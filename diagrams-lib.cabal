@@ -1,0 +1,20 @@
+Name:                diagrams-lib
+Version:             0.1
+Synopsis:            Domain-specific language for creating drawings and diagrams
+Description:         XXX WRITE ME
+Homepage:            http://code.haskell.org/diagrams/
+License:             BSD3
+License-file:        LICENSE
+Author:              Brent Yorgey
+Maintainer:          byorgey@cis.upenn.edu
+Stability:           Experimental
+Category:            Graphics
+Build-type:          Simple
+Cabal-version:       >=1.2
+
+Library
+  Exposed-modules:     Diagrams.TwoD
+  Build-depends:       base >= 4.2 && < 4.3,
+                       containers >= 0.3 && < 0.4,
+                       diagrams-core >= 0.1 && < 0.2
+  Hs-source-dirs:      src
