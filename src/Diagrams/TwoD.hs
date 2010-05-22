@@ -2,10 +2,8 @@
 module Diagrams.TwoD where
 
 import "diagrams-core" Graphics.Rendering.Diagrams
-import Graphics.Rendering.Diagrams.Backends
 import Graphics.Rendering.Diagrams.Expressions
 import Graphics.Rendering.Diagrams.Transform
-import Graphics.Rendering.Diagrams.Renderable
 
 import qualified Data.Map as M
 
