@@ -12,9 +12,15 @@ import qualified Data.Map as M
 
 type P2 = (Double, Double)
 
+{-
 instance Transformable P2 where
   type TSpace P2 = P2
   transform = aapply
+-}
+
+instance Transformable P2 where
+  type TSpace P2 = P2
+  transform = papply
 
 data Box = Box P2 P2 P2 P2
 
@@ -38,6 +44,9 @@ box = Diagram [Prim (Box (-1,-1) (1,-1) (1,1) (-1,1))]
 -- circle
 
 type Radius = Double
+
+data Ellipse = Ellipse Double Double Double Double Double Double
+-- 6 Doubles are A, B, C, D, E, F in A x^2 + B x y + C y^2 + D x + E y + F = 0
 
 data Circle = Circle P2 Radius
 
