@@ -16,5 +16,6 @@ Library
   Exposed-modules:     Diagrams.TwoD
   Build-depends:       base >= 4.2 && < 4.3,
                        containers >= 0.3 && < 0.4,
-                       diagrams-core >= 0.1 && < 0.2
+                       diagrams-core >= 0.1 && < 0.2,
+                       vector-space >= 0.7 && < 0.8
   Hs-source-dirs:      src
