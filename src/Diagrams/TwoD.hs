@@ -57,11 +57,29 @@ circle = Diagram [Prim (Circle (0,0) 1)]
 
 -- rotation
 
+type Angle = Double  -- in radians
 
-
+{- older version which also works
+rotation :: Angle -> Affine P2
 rotation theta = Affine (linear rot) zeroV where
     rot (x,y) = (costh * x - sinth * y,sinth * x + costh * y)
     costh = cos theta
     sinth = sin theta
 
 rotate theta = transform $ rotation theta
+-}
+-- Do we want to rotate things in arbitrary dimensions?
+
+rotate :: (TSpace t ~ P2, Transformable t) => Angle -> t -> t
+rotate theta = transform $ fromLinear $ linear rot where
+    rot (x,y) = (costh * x - sinth * y,sinth * x + costh * y)
+    costh = cos theta
+    sinth = sin theta
+
+horizontalScale :: (TSpace t ~ P2, Transformable t) => Double -> t -> t
+horizontalScale c = transform $ fromLinear $ linear (\(x,y) -> (c * x, y))
+
+verticalScale :: (TSpace t ~ P2, Transformable t) => Double -> t -> t
+verticalScale c = transform $ fromLinear $ linear (\(x,y) -> (x, c * y))
+
+
