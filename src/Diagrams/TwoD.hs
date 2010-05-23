@@ -9,6 +9,7 @@ import Data.VectorSpace
 import Data.LinearMap
 
 import qualified Data.Map as M
+import Control.Arrow (first, second)
 
 type P2 = (Double, Double)
 
@@ -68,27 +69,20 @@ circle = Diagram [Prim (Circle (0,0) 1)]
 
 type Angle = Double  -- in radians
 
-{- older version which also works
-rotation :: Angle -> Affine P2
-rotation theta = Affine (linear rot) zeroV where
-    rot (x,y) = (costh * x - sinth * y,sinth * x + costh * y)
-    costh = cos theta
-    sinth = sin theta
-
-rotate theta = transform $ rotation theta
--}
 -- Do we want to rotate things in arbitrary dimensions?
 
+rotation :: Angle -> Projective P2
+rotation theta = fromLinear $ rot theta <-> rot (-theta)
+  where
+    rot th (x,y) = (cos th * x - sin th * y, sin th * x + cos th * y)
+
 rotate :: (TSpace t ~ P2, Transformable t) => Angle -> t -> t
-rotate theta = transform $ fromLinear $ linear rot where
-    rot (x,y) = (costh * x - sinth * y,sinth * x + costh * y)
-    costh = cos theta
-    sinth = sin theta
+rotate = transform . rotation
 
 horizontalScale :: (TSpace t ~ P2, Transformable t) => Double -> t -> t
-horizontalScale c = transform $ fromLinear $ linear (\(x,y) -> (c * x, y))
+horizontalScale c = transform . fromLinear $ first (*c) <-> first (/c)
 
 verticalScale :: (TSpace t ~ P2, Transformable t) => Double -> t -> t
-verticalScale c = transform $ fromLinear $ linear (\(x,y) -> (x, c * y))
+verticalScale c = transform . fromLinear $ second (*c) <-> second (/c)
 
 
