@@ -33,7 +33,7 @@ instance Transformable Box where
 
 box :: (BSpace b ~ P2, Renderable Box b) => Diagram b
 box = Diagram [Prim (Box (-1,-1) (1,-1) (1,1) (-1,1))]
-              boxBounds
+              (Bounds boxBounds)
               (M.fromList [ (nm "LL", (-1,-1))
                           , (nm "LR", ( 1,-1))
                           , (nm "UR", ( 1, 1))
