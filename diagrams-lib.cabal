@@ -13,7 +13,8 @@ Build-type:          Simple
 Cabal-version:       >=1.2
 
 Library
-  Exposed-modules:     Diagrams.TwoD,
+  Exposed-modules:     Diagrams.Combinators,
+                       Diagrams.TwoD,
                        Diagrams.Path
   Build-depends:       base >= 4.2 && < 4.3,
                        containers >= 0.3 && < 0.4,
