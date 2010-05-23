@@ -16,9 +16,12 @@ module Diagrams.Path where
 
 import Graphics.Rendering.Diagrams
 
+import Diagrams.TwoD
+
 import Data.VectorSpace
 
 import Data.Monoid
+import qualified Data.Map as M
 
 ------------------------------------------------
 -- Paths
@@ -84,9 +87,9 @@ quadForm a b c
 
 segmentBounds :: (InnerSpace v, Ord (Scalar v), Floating (Scalar v))
               => Segment v -> Bounds v
-segmentBounds s@(Linear x1) v      =
+segmentBounds s@(Linear x1) = Bounds $ \v ->
   maximum . map (\t -> (pointAt t s <.> v) / magnitude v) $ [0,1]
-segmentBounds s@(Cubic c1 c2 x2) v =
+segmentBounds s@(Cubic c1 c2 x2) = Bounds $ \v ->
   maximum .
   map (\t -> (pointAt t s <.> v) / magnitude v) $
   [0,1] ++
@@ -106,3 +109,17 @@ instance Monoid (RelPath v) where
 instance (AdditiveGroup v, Transformable v) => Transformable (RelPath v) where
   type TSpace (RelPath v)  = TSpace v
   transform t = RelPath . map (transform t) . getSegments
+
+-- A path is a base point together with a RelPath.
+
+data Path v = Path v (RelPath v)
+
+instance (AdditiveGroup v, Transformable v) => Transformable (Path v) where
+  type TSpace (Path v)   = TSpace v
+  transform t (Path v r) = Path (transform t v) (transform t r)
+
+path :: (Renderable (Path P2) b, BSpace b ~ P2) => [P2] -> Diagram b
+path ss = Diagram [Prim (Path zeroV (RelPath (map Linear ss)))]
+                  (Bounds pathBounds)
+                  M.empty
+  where pathBounds = const zeroV   -- XXX
