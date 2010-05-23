@@ -35,10 +35,10 @@ instance Transformable Box where
 box :: (BSpace b ~ P2, Renderable Box b) => Diagram b
 box = Diagram [Prim (Box (-1,-1) (1,-1) (1,1) (-1,1))]
               (Bounds boxBounds)
-              (M.fromList [ (nm "LL", (-1,-1))
-                          , (nm "LR", ( 1,-1))
-                          , (nm "UR", ( 1, 1))
-                          , (nm "UL", (-1, 1)) ])
+              (fromNames [ ("LL", (-1,-1))
+                         , ("LR", ( 1,-1))
+                         , ("UR", ( 1, 1))
+                         , ("UL", (-1, 1)) ])
   where boxBounds (x,y) = let d = x*x + y*y  -- want u.v/u.u, where u=(x,y), v=(1,1),(1,-1),(-1,1),(-1,-1)
                           in  maximum [(-x-y)/d, (x-y)/d, (x+y)/d, (y-x)/d]
 

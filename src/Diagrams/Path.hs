@@ -121,5 +121,5 @@ instance (AdditiveGroup v, Transformable v) => Transformable (Path v) where
 path :: (Renderable (Path P2) b, BSpace b ~ P2) => [P2] -> Diagram b
 path ss = Diagram [Prim (Path zeroV (RelPath (map Linear ss)))]
                   (Bounds pathBounds)
-                  M.empty
+                  mempty
   where pathBounds = const zeroV   -- XXX
