@@ -129,7 +129,9 @@ instance (AdditiveGroup v, Transformable v) => Transformable (Path v) where
 
 -- Build a zero-based path from a list of segments.
 
-path :: (Renderable (Path P2) b, BSpace b ~ P2) => [P2] -> Diagram b
+path :: ( InnerSpace v, Floating (Scalar v), AdditiveGroup (Scalar v), Ord (Scalar v)
+        , TSpace v ~ v)
+     => (Renderable (Path v) b, BSpace b ~ v) => [v] -> Diagram b
 path ss = Diagram [Prim (Path zeroV (RelPath segs))]
                   pathBounds
                   mempty
