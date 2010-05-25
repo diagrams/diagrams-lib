@@ -23,6 +23,9 @@ import Data.VectorSpace
 import Data.Monoid
 import qualified Data.Map as M
 
+(<>) :: Monoid m => m -> m -> m
+(<>) = mappend
+
 ------------------------------------------------
 -- Paths
 
@@ -55,6 +58,12 @@ pointAt t (Linear x)       = t *^ x
 pointAt t (Cubic c1 c2 x2) = (3 * (1-t)^2 * t) *^ c1
                           ^+^ (3 * (1-t) * t^2) *^ c2
                           ^+^ t^3 *^ x2
+
+segStart :: (VectorSpace v, Num (Scalar v)) => Segment v -> v
+segStart = pointAt 0
+
+segEnd :: (VectorSpace v, Num (Scalar v)) => Segment v -> v
+segEnd   = pointAt 1
 
 {- (1-t)^2 t c1 + (1-t) t^2 c2 + t^3 x2
 
@@ -118,8 +127,12 @@ instance (AdditiveGroup v, Transformable v) => Transformable (Path v) where
   type TSpace (Path v)   = TSpace v
   transform t (Path v r) = Path (transform t v) (transform t r)
 
+-- Build a zero-based path from a list of segments.
+
 path :: (Renderable (Path P2) b, BSpace b ~ P2) => [P2] -> Diagram b
-path ss = Diagram [Prim (Path zeroV (RelPath (map Linear ss)))]
-                  (Bounds pathBounds)
+path ss = Diagram [Prim (Path zeroV (RelPath segs))]
+                  pathBounds
                   mempty
-  where pathBounds = const zeroV   -- XXX
+  where pathBounds = foldr (\seg bds -> rebaseBounds (negateV (segEnd seg)) bds
+                                        <> segmentBounds seg) mempty segs
+        segs = map Linear ss
