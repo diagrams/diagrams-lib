@@ -15,6 +15,7 @@
 module Diagrams.Combinators where
 
 import Graphics.Rendering.Diagrams
+import Graphics.Rendering.Diagrams.Transform (HasLinearMap)
 
 import Data.VectorSpace
 
