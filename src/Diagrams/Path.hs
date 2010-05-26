@@ -26,18 +26,19 @@ import qualified Data.Map as M
 (<>) :: Monoid m => m -> m -> m
 (<>) = mappend
 
-------------------------------------------------
--- Paths
-
--- Segments are *translationally invariant.*
-
+-- | The atomic constituents of paths are /segments/, which are single
+--   straight lines or cubic Bezier curves.  Segments are
+--   /translationally invariant/, that is, they have translational
+--   freedom.  For example, a linear segment has a definite length and
+--   direction, but no definite location in space.
 data Segment v = Linear v
                | Cubic v v v
   deriving Show
 
--- Note, this Transformable instance is a bit strange, since it
--- ignores translational components.
-
+-- | Note that since segments are translationally invariant,
+--   translating a segment has no effect.  Thus the translational
+--   component of a transformation is always ignored, but other
+--   components (scaling, rotation, ...) will have an effect.
 instance (Transformable v, AdditiveGroup v) => Transformable (Segment v) where
   type TSpace (Segment v) = TSpace v
   transform t (Linear v) = Linear (transform t v ^-^ transform t zeroV)
@@ -46,10 +47,18 @@ instance (Transformable v, AdditiveGroup v) => Transformable (Segment v) where
                                        (transform t v3 ^-^ z)
     where z = transform t zeroV
 
+-- | @'straight' v@ constructs a translationally invariant linear
+--   segment with direction and length given by the vector @v@.
 straight :: (VectorSpace v, Fractional (Scalar v)) => v -> Segment v
 straight v = Linear v
-     -- Cubic (v ^/ 3) (2 *^ (v ^/ 3)) v
 
+-- Note, if we didn't have a Linear constructor we could also create
+-- linear segments with @Cubic (v ^/ 3) (2 *^ (v ^/ 3)) v@.
+
+-- | @'bezier3' v1 v2 v3@ constructs a translationally invariant cubic
+--   Bezier curve where the offsets from the first endpoint to the
+--   first and second control point and endpoint are respectively
+--   given by @v1@, @v2@, and @v3@.
 bezier3 :: v -> v -> v -> Segment v
 bezier3 = Cubic
 
