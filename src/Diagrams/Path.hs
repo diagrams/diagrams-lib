@@ -8,11 +8,28 @@
 -- Stability   :  experimental
 -- Portability :  portable
 --
--- XXX comment me
+-- Generic functionality for constructing and manipulating /paths/
+-- (sequences of linear or cubic Bezier segments) and related objects.
 --
 -----------------------------------------------------------------------------
 
-module Diagrams.Path where
+module Diagrams.Path
+       ( -- * Segments
+
+         Segment, straight, bezier3
+       , pointAt, segStart, segEnd
+
+         -- * Relative paths
+
+       , RelPath, getSegments
+
+         -- * Based paths
+
+       , Path
+
+       , path
+
+       ) where
 
 import Graphics.Rendering.Diagrams
 
