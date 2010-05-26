@@ -17,11 +17,11 @@ module Diagrams.Path
        ( -- * Segments
 
          Segment, straight, bezier3
-       , pointAt, segStart, segEnd
+       , atParam, segOffset
 
          -- * Relative paths
 
-       , RelPath, getSegments
+       , RelPath, relPathSegments
 
          -- * Based paths
 
@@ -76,17 +76,19 @@ straight v = Linear v
 bezier3 :: v -> v -> v -> Segment v
 bezier3 = Cubic
 
-pointAt :: (VectorSpace v, Num (Scalar v)) => Scalar v -> Segment v -> v
-pointAt t (Linear x)       = t *^ x
-pointAt t (Cubic c1 c2 x2) = (3 * (1-t)^2 * t) *^ c1
-                          ^+^ (3 * (1-t) * t^2) *^ c2
-                          ^+^ t^3 *^ x2
+-- | 'atParam' yields a parametrized view of segments as continuous
+--   functions @[0,1] -> V@, which give the offset from the start of
+--   the segment for each value of the parameter @0@ and @1@.
+atParam :: (VectorSpace v, Num (Scalar v)) => Segment v -> Scalar v -> v
+atParam (Linear x) t       = t *^ x
+atParam (Cubic c1 c2 x2) t =     (3 * (1-t)^2 * t) *^ c1
+                             ^+^ (3 * (1-t) * t^2) *^ c2
+                             ^+^ t^3 *^ x2
 
-segStart :: (VectorSpace v, Num (Scalar v)) => Segment v -> v
-segStart = pointAt 0
-
-segEnd :: (VectorSpace v, Num (Scalar v)) => Segment v -> v
-segEnd   = pointAt 1
+-- | Compute the total offset (vector) from the start of a segment to
+--   the end.
+segOffset :: (VectorSpace v, Num (Scalar v)) => Segment v -> v
+segOffset = (`atParam` 1)
 
 {- (1-t)^2 t c1 + (1-t) t^2 c2 + t^3 x2
 
@@ -120,14 +122,14 @@ quadForm a b c
 segmentBounds :: (InnerSpace v, Ord (Scalar v), Floating (Scalar v))
               => Segment v -> Bounds v
 segmentBounds s@(Linear x1) = Bounds $ \v ->
-  maximum . map (\t -> (pointAt t s <.> v) / magnitude v) $ [0,1]
+  maximum . map (\t -> (s `atParam` t <.> v) / magnitude v) $ [0,1]
 segmentBounds s@(Cubic c1 c2 x2) = Bounds $ \v ->
   maximum .
-  map (\t -> (pointAt t s <.> v) / magnitude v) $
+  map (\t -> (s `atParam` t <.> v) / magnitude v) $
   [0,1] ++
   quadForm (3 * ((c1 ^-^ c2 ^+^ x2) <.> v))
-         (2 * (((-2) *^ c1 ^+^ c2) <.> v))
-         (c1 <.> v)
+           (2 * (((-2) *^ c1 ^+^ c2) <.> v))
+           (c1 <.> v)
 
 -- A *translationally invariant* relative path.
 newtype RelPath v = RelPath { relPathSegments :: [Segment v] }
@@ -160,6 +162,6 @@ path :: ( InnerSpace v, Floating (Scalar v), AdditiveGroup (Scalar v), Ord (Scal
 path ss = Diagram [Prim (Path zeroV (RelPath segs))]
                   pathBounds
                   mempty
-  where pathBounds = foldr (\seg bds -> rebaseBounds (negateV (segEnd seg)) bds
+  where pathBounds = foldr (\seg bds -> rebaseBounds (negateV (segOffset seg)) bds
                                         <> segmentBounds seg) mempty segs
         segs = map Linear ss
