@@ -43,6 +43,10 @@ import qualified Data.Map as M
 (<>) :: Monoid m => m -> m -> m
 (<>) = mappend
 
+------------------------------------------------------------
+--  Segments  ----------------------------------------------
+------------------------------------------------------------
+
 -- | The atomic constituents of paths are /segments/, which are single
 --   straight lines or cubic Bezier curves.  Segments are
 --   /translationally invariant/, that is, they have translational
@@ -78,17 +82,26 @@ bezier3 = Cubic
 
 -- | 'atParam' yields a parametrized view of segments as continuous
 --   functions @[0,1] -> V@, which give the offset from the start of
---   the segment for each value of the parameter @0@ and @1@.
+--   the segment for each value of the parameter @0@ and @1@.  It is
+--   designed to be used infix, like @seg `atParam` 0.5@.
 atParam :: (VectorSpace v, Num (Scalar v)) => Segment v -> Scalar v -> v
 atParam (Linear x) t       = t *^ x
 atParam (Cubic c1 c2 x2) t =     (3 * (1-t)^2 * t) *^ c1
                              ^+^ (3 * (1-t) * t^2) *^ c2
                              ^+^ t^3 *^ x2
 
--- | Compute the total offset (vector) from the start of a segment to
---   the end.
-segOffset :: (VectorSpace v, Num (Scalar v)) => Segment v -> v
-segOffset = (`atParam` 1)
+-- | Compute the total offset (a vector) from the start of a segment
+--   to the end.
+segOffset :: Segment v -> v
+segOffset (Linear v)    = v
+segOffset (Cubic _ _ v) = v
+
+-- XXX todo: add a function to compute the length of a segment?
+--   probably need some heavy-duty numeric methods...
+
+------------------------------------------------------------
+--  Computing segment bounds  ------------------------------
+------------------------------------------------------------
 
 {- (1-t)^2 t c1 + (1-t) t^2 c2 + t^3 x2
 
