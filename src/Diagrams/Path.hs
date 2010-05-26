@@ -23,6 +23,8 @@ module Diagrams.Path
 
        , RelPath, relPathSegments
 
+       , relPathOffset
+
          -- * Based paths
 
        , Path
@@ -144,12 +146,19 @@ segmentBounds s@(Cubic c1 c2 x2) = Bounds $ \v ->
            (2 * (((-2) *^ c1 ^+^ c2) <.> v))
            (c1 <.> v)
 
--- A *translationally invariant* relative path.
-newtype RelPath v = RelPath { relPathSegments :: [Segment v] }
+------------------------------------------------------------
+--  Relative paths  ----------------------------------------
+------------------------------------------------------------
+
+-- | A /relative path/ is a sequence of segments placed end-to-end.
+--   Like its constituent segments, a relative path is also
+--   translationally invariant.
+newtype RelPath v = RelPath { relPathSegments :: [Segment v]
+                              -- ^ Get the list of segments comprising a relative path.
+                            }
   deriving (Show, Functor)
 
--- Relative paths form a monoid under path concatenation.
-
+-- | Relative paths form a monoid under path concatenation.
 instance Monoid (RelPath v) where
   mempty = RelPath []
   (RelPath b1) `mappend` (RelPath b2) = RelPath (b1 ++ b2)
@@ -158,8 +167,17 @@ instance (AdditiveGroup v, Transformable v) => Transformable (RelPath v) where
   type TSpace (RelPath v)  = TSpace v
   transform = fmap . transform
 
--- A path is a base point together with a RelPath.
+-- | Compute the total offset from the start of a relative path to the
+--   end.
+relPathOffset :: (AdditiveGroup v) => RelPath v -> v
+relPathOffset = sumV . map segOffset . relPathSegments
 
+------------------------------------------------------------
+--  Paths  -------------------------------------------------
+------------------------------------------------------------
+
+-- | A /path/ is a relative path together with a fixed starting point;
+--   hence, paths are /not/ translationally invariant.
 data Path v = Path v (RelPath v)
   deriving (Show, Functor)
 
