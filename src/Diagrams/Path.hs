@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeFamilies, FlexibleContexts #-}
+{-# LANGUAGE TypeFamilies, FlexibleContexts, DeriveFunctor #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Path
@@ -50,7 +50,7 @@ import qualified Data.Map as M
 --   direction, but no definite location in space.
 data Segment v = Linear v
                | Cubic v v v
-  deriving Show
+  deriving (Show, Functor)
 
 -- | Note that since segments are translationally invariant,
 --   translating a segment has no effect.  Thus the translational
@@ -58,10 +58,7 @@ data Segment v = Linear v
 --   components (scaling, rotation, ...) will have an effect.
 instance (Transformable v, AdditiveGroup v) => Transformable (Segment v) where
   type TSpace (Segment v) = TSpace v
-  transform t (Linear v) = Linear (transform t v ^-^ transform t zeroV)
-  transform t (Cubic v1 v2 v3) = Cubic (transform t v1 ^-^ z)
-                                       (transform t v2 ^-^ z)
-                                       (transform t v3 ^-^ z)
+  transform t = fmap (\v -> transform t v ^-^ z)
     where z = transform t zeroV
 
 -- | @'straight' v@ constructs a translationally invariant linear
@@ -133,7 +130,8 @@ segmentBounds s@(Cubic c1 c2 x2) = Bounds $ \v ->
          (c1 <.> v)
 
 -- A *translationally invariant* relative path.
-newtype RelPath v = RelPath { getSegments :: [Segment v] }
+newtype RelPath v = RelPath { relPathSegments :: [Segment v] }
+  deriving (Show, Functor)
 
 -- Relative paths form a monoid under path concatenation.
 
@@ -143,15 +141,16 @@ instance Monoid (RelPath v) where
 
 instance (AdditiveGroup v, Transformable v) => Transformable (RelPath v) where
   type TSpace (RelPath v)  = TSpace v
-  transform t = RelPath . map (transform t) . getSegments
+  transform = fmap . transform
 
 -- A path is a base point together with a RelPath.
 
 data Path v = Path v (RelPath v)
+  deriving (Show, Functor)
 
 instance (AdditiveGroup v, Transformable v) => Transformable (Path v) where
   type TSpace (Path v)   = TSpace v
-  transform t (Path v r) = Path (transform t v) (transform t r)
+  transform = fmap . transform
 
 -- Build a zero-based path from a list of segments.
 
