@@ -16,18 +16,18 @@
 module Diagrams.Path
        ( -- * Segments
 
-         Segment, straight, bezier3
+         Segment(..), straight, bezier3
        , atParam, segOffset
 
          -- * Relative paths
 
-       , RelPath, relPathSegments
+       , RelPath(..)
 
        , relPathOffset
 
          -- * Based paths
 
-       , Path
+       , Path(..)
 
        , path
 
