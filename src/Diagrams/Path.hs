@@ -15,12 +15,22 @@
 
 module Diagrams.Path
        (
-         -- * Paths
+         -- * The 'Path' type
 
          Path(..)
 
+         -- * Constructing paths
+
+       , pathFromVertices
+       , pathFromOffsets
+
+       , close, open
+
+       , stroke
+
          -- * Computing with paths
 
+       , pathVertices
        , pathOffset
        , pathBounds
 
@@ -68,8 +78,52 @@ instance (AdditiveGroup v, Transformable v) => Transformable (Path v) where
   transform = fmap . transform
 
 ------------------------------------------------------------
+--  Constructing paths  ------------------------------------
+------------------------------------------------------------
+
+-- | Build an open path of linear segments from a list of vertices.
+pathFromVertices :: AdditiveGroup v => [v] -> Path v
+pathFromVertices [] = mempty
+pathFromVertices vs = Path { isClosed     = False
+                           , pathStart    = head vs
+                           , pathSegments = map Linear $ zipWith (flip (^-^)) vs (tail vs)
+                           }
+
+-- | Build an open path of linear segments from a starting location
+--   and a list of offsets.
+pathFromOffsets :: v -> [v] -> Path v
+pathFromOffsets st segs = Path { isClosed     = False
+                               , pathStart    = st
+                               , pathSegments = map Linear segs
+                               }
+
+-- | Close a path.
+close :: Path v -> Path v
+close p = p { isClosed = True }
+
+-- | Open a path.
+open :: Path v -> Path v
+open p = p { isClosed = False }
+
+-- | Convert a path into a diagram.  The resulting diagram has the
+--   names 0, 1, ... assigned to each of the path's vertices.
+stroke :: ( v ~ BSpace b, TSpace v ~ v
+          , InnerSpace v, AdditiveGroup (Scalar v), Ord (Scalar v), Floating (Scalar v)
+          , Renderable (Path v) b)
+       => Path v -> Diagram b
+stroke p = Diagram { prims  = [Prim p]
+                   , bounds = pathBounds p
+                   , names  = fromNames $ zip ([0..] :: [Int])
+                                              (pathVertices p)  -- XXX names for Bezier
+                   }                                            --   control points too?
+
+------------------------------------------------------------
 --  Computing with paths  ----------------------------------
 ------------------------------------------------------------
+
+-- | Extract the vertices of a path.
+pathVertices :: AdditiveGroup v => Path v -> [v]
+pathVertices (Path _ st segs) = scanl (^+^) st (map segOffset segs)
 
 -- | Compute the total offset from the start of a path to the end.
 pathOffset :: (AdditiveGroup v) => Path v -> v
@@ -89,14 +143,3 @@ pathBounds (Path _ st segs) = rebaseBounds (negateV st) $
         mempty
         segs
 
--- Build a zero-based path from a list of segments.
-{-
-path :: ( InnerSpace v, Floating (Scalar v), AdditiveGroup (Scalar v), Ord (Scalar v)
-        , TSpace v ~ v)
-     => (Renderable (Path v) b, BSpace b ~ v) => [v] -> Diagram b
-path ss = Diagram [Prim (Path False zeroV (RelPath segs))]
-                  pathBounds
-                  mempty
-  where pathBounds =
-        segs = map Linear ss
--}
