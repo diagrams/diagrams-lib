@@ -14,8 +14,9 @@ Cabal-version:       >=1.2
 
 Library
   Exposed-modules:     Diagrams.Combinators,
-                       Diagrams.TwoD,
+                       Diagrams.Segment,
                        Diagrams.Path,
+                       Diagrams.TwoD,
                        Diagrams.Animation
   Build-depends:       base >= 4.2 && < 4.3,
                        containers >= 0.3 && < 0.4,
