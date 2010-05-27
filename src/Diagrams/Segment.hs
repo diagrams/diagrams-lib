@@ -81,9 +81,6 @@ segOffset :: Segment v -> v
 segOffset (Linear v)    = v
 segOffset (Cubic _ _ v) = v
 
--- XXX todo: add a function to compute the length of a segment?
---   probably need some heavy-duty numeric methods...
-
 ------------------------------------------------------------
 --  Computing segment bounds  ------------------------------
 ------------------------------------------------------------
@@ -117,6 +114,7 @@ quadForm a b c
   | otherwise = [(-b + sqrt d)/(2*a), (-b - sqrt d)/(2*a)]
  where d = b*b - 4*a*c
 
+-- | Compute the bounding function for a segment.
 segmentBounds :: (InnerSpace v, Ord (Scalar v), Floating (Scalar v))
               => Segment v -> Bounds v
 segmentBounds s@(Linear x1) = Bounds $ \v ->
@@ -128,3 +126,9 @@ segmentBounds s@(Cubic c1 c2 x2) = Bounds $ \v ->
   quadForm (3 * ((c1 ^-^ c2 ^+^ x2) <.> v))
            (2 * (((-2) *^ c1 ^+^ c2) <.> v))
            (c1 <.> v)
+
+{- XXX TODO
+
+   - add a function to compute the arc length of a segment
+   - add functions for splitting segments into multiple segments
+-}
