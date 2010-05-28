@@ -1,15 +1,33 @@
 {-# LANGUAGE PackageImports, TypeSynonymInstances, FlexibleContexts, TypeFamilies #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Diagrams.Two
+-- Module      :  Diagrams.TwoD
 -- Copyright   :  (c) Brent Yorgey 2010
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  byorgey@cis.upenn.edu
 -- Stability   :  experimental
 -- Portability :  portable
 --
--- The two-dimensional vector space R^2, two-dimensional
--- transformations, and various predefined two-dimensional shapes.
+-- This module defines the two-dimensional vector space R^2,
+-- two-dimensional transformations, and various predefined
+-- two-dimensional shapes.  This module re-exports useful
+-- functionality from a group of more specific modules:
+--
+--   * "Diagrams.TwoD.Types" defines basic types for two-dimensional
+--     diagrams
+--
+--   * "Diagrams.TwoD.Transform" defines various 2D-specific
+--     transformations
+--
+--   * "Diagrams.TwoD.Ellipse" defines ellipses
+--
+--   * "Diagrams.TwoD.Shapes" defines various other two-dimensional
+--     shapes
+--
+-- For most uses it should be sufficient to simply import
+-- "Diagrams.TwoD"; occasionally users may wish to import one or more
+-- of the above modules directly to access more specialized/internal
+-- functionality.
 --
 -----------------------------------------------------------------------------
 module Diagrams.TwoD
@@ -29,13 +47,12 @@ module Diagrams.TwoD
 
 import "diagrams-core" Graphics.Rendering.Diagrams
 import Graphics.Rendering.Diagrams.Expressions
-import Graphics.Rendering.Diagrams.Transform
 
 import Diagrams.TwoD.Types
+import Diagrams.TwoD.Transform
 import Diagrams.TwoD.Ellipse
 
 import qualified Data.Map as M
-import Control.Arrow (first, second)
 
 data Box = Box P2 P2 P2 P2
            deriving (Show)
@@ -56,23 +73,4 @@ box = Diagram [Prim (Box (-1,-1) (1,-1) (1,1) (-1,1))]
                          , ("UL", (-1, 1)) ])
   where boxBounds (x,y) = let d = x*x + y*y  -- want u.v/u.u, where u=(x,y), v=(1,1),(1,-1),(-1,1),(-1,-1)
                           in  maximum [(-x-y)/d, (x-y)/d, (x+y)/d, (y-x)/d]
-
--- rotation and scaling
-
--- Do we want to rotate things in arbitrary dimensions?
-
-rotation :: Angle -> Projective P2
-rotation theta = fromLinear $ rot theta <-> rot (-theta)
-  where
-    rot th (x,y) = (cos th * x - sin th * y, sin th * x + cos th * y)
-
-rotate :: (TSpace t ~ P2, Transformable t) => Angle -> t -> t
-rotate = transform . rotation
-
-horizontalScale :: (TSpace t ~ P2, Transformable t) => Double -> t -> t
-horizontalScale c = transform . fromLinear $ first (*c) <-> first (/c)
-
-verticalScale :: (TSpace t ~ P2, Transformable t) => Double -> t -> t
-verticalScale c = transform . fromLinear $ second (*c) <-> second (/c)
-
 

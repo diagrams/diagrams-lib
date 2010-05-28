@@ -18,6 +18,7 @@ Library
                        Diagrams.Path,
                        Diagrams.TwoD,
                        Diagrams.TwoD.Types,
+                       Diagrams.TwoD.Transform,
                        Diagrams.TwoD.Ellipse,
                        Diagrams.Animation
   Build-depends:       base >= 4.2 && < 4.3,
