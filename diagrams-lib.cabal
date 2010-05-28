@@ -17,6 +17,8 @@ Library
                        Diagrams.Segment,
                        Diagrams.Path,
                        Diagrams.TwoD,
+                       Diagrams.TwoD.Types,
+                       Diagrams.TwoD.Ellipse,
                        Diagrams.Animation
   Build-depends:       base >= 4.2 && < 4.3,
                        containers >= 0.3 && < 0.4,
