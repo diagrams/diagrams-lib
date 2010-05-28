@@ -4,7 +4,7 @@
 -- Module      :  Diagrams.TwoD.Transform
 -- Copyright   :  (c) Brent Yorgey 2010
 -- License     :  BSD-style (see LICENSE)
--- Maintainer  :  walck@lvc.edu
+-- Maintainer  :  byorgey@cis.upenn.edu
 -- Stability   :  experimental
 -- Portability :  portable
 --
