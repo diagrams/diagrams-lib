@@ -75,7 +75,21 @@ instance (AdditiveGroup v) => Monoid (Path v) where
 
 instance (AdditiveGroup v, Transformable v) => Transformable (Path v) where
   type TSpace (Path v) = TSpace v
-  transform = fmap . transform
+  transform t (Path c st segs) = Path c (transform t st) (map (transform t) segs)
+
+  -- Note: this
+  --
+  --   transform = fmap . transform
+  --
+  -- is incorrect, since it actually drills down and applies transform
+  -- to the vectors defining the segments, rather than to the segments
+  -- as a whole -- hence translations are actually applied to the
+  -- vectors defining the segments.
+  --
+  -- Maybe the right way to do this is to distinguish at the type
+  -- level between points (which are affected by translations) and
+  -- vectors (which are not).  It seems there's actually a module in
+  -- vector-space which does this.
 
 ------------------------------------------------------------
 --  Constructing paths  ------------------------------------
