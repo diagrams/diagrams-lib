@@ -28,6 +28,8 @@ import Graphics.Rendering.Diagrams
 
 import Data.VectorSpace
 
+import Control.Applicative (liftA2)
+
 ------------------------------------------------------------
 --  Constructing segments  ---------------------------------
 ------------------------------------------------------------
@@ -123,9 +125,10 @@ segmentBounds s@(Cubic c1 c2 x2) = Bounds $ \v ->
   maximum .
   map (\t -> (s `atParam` t <.> v) / magnitude v) $
   [0,1] ++
-  quadForm (3 * ((c1 ^-^ c2 ^+^ x2) <.> v))
-           (2 * (((-2) *^ c1 ^+^ c2) <.> v))
-           (c1 <.> v)
+  filter (liftA2 (&&) (>0) (<1))
+    (quadForm (3 * ((c1 ^-^ c2 ^+^ x2) <.> v))
+              (2 * (((-2) *^ c1 ^+^ c2) <.> v))
+              (c1 <.> v))
 
 {- XXX TODO
 
