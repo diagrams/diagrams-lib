@@ -43,6 +43,7 @@ module Diagrams.TwoD
          -- * Shapes
        , box
        , circle
+       , ellipse
        ) where
 
 import "diagrams-core" Graphics.Rendering.Diagrams

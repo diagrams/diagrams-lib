@@ -15,6 +15,7 @@
 module Diagrams.TwoD.Ellipse
     ( Ellipse(..)
     , circle
+    , ellipse
     , ellipseCenter
     , ellipseAngle
     , ellipseScale
@@ -25,6 +26,7 @@ import "diagrams-core" Graphics.Rendering.Diagrams
 import Graphics.Rendering.Diagrams.Transform
 
 import Diagrams.TwoD.Types
+import Diagrams.TwoD.Transform
 
 import Data.VectorSpace
 import Data.LinearMap
@@ -107,6 +109,12 @@ circle = Diagram [Prim (Ellipse 1 0 1 0 0 (-1))]
                             , ("W", (-1, 0))
                             , ("S", ( 0,-1)) ])
     where circleBounds (x,y) = 1 / sqrt(x*x + y*y)
+
+-- | Ellipse with eccentricity e
+ellipse :: (BSpace b ~ P2, Renderable Ellipse b) => Double -> Diagram b
+ellipse e
+    | e >= 0 && e < 1  = verticalScale (sqrt (1 - e^2)) circle
+    | otherwise        = error "Eccentricity of ellipse must be >= 0 and < 1."
 
 -- | Returns (xCenter,yCenter)
 ellipseCenter :: Ellipse -> P2
