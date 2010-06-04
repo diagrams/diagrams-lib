@@ -43,7 +43,7 @@ data Ellipse = Ellipse Double Double Double Double Double Double
 
 instance Transformable Ellipse where
   type TSpace Ellipse = P2
-  transform (Projective t) ell
+  transform (Transformation t) ell
       = ellipseFromFunc ((aug3Transpose tinv)
                          . (funcFromEllipse ell)
                          . tinv) where

@@ -28,7 +28,7 @@ import Control.Arrow (first, second)
 
 -- Do we want to rotate things in arbitrary dimensions?
 
-rotation :: Angle -> Projective P2
+rotation :: Angle -> Transformation P2
 rotation theta = fromLinear $ rot theta <-> rot (-theta)
   where
     rot th (x,y) = (cos th * x - sin th * y, sin th * x + cos th * y)
