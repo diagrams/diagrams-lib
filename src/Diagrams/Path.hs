@@ -37,6 +37,7 @@ module Diagrams.Path
        ) where
 
 import Graphics.Rendering.Diagrams
+import Graphics.Rendering.Diagrams.Basics (rebaseBounds)
 
 import Diagrams.Segment
 
