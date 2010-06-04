@@ -47,7 +47,7 @@ instance Transformable Ellipse where
       = ellipseFromFunc ((aug3Transpose tinv)
                          . (funcFromEllipse ell)
                          . tinv) where
-                               tinv = apply $ inv t
+                               tinv = lapp $ linv t
 
 func3Transpose :: (P3 -> P3) -> (P3 -> P3)
 func3Transpose func3 = \v -> (v1 `dot` v

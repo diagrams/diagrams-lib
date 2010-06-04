@@ -10,6 +10,6 @@ type P2 = (Double, Double)
 
 instance Transformable P2 where
   type TSpace P2 = P2
-  transform = papply
+  transform = apply
 
 type Angle = Double  -- in radians
