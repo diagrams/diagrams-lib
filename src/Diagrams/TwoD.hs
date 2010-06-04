@@ -37,8 +37,8 @@ module Diagrams.TwoD
 
          -- * Transformations
        , rotation, rotate
-       , horizontalScale
-       , verticalScale
+       , scalingX, scaleX
+       , scalingY, scaleY
 
          -- * Shapes
        , box

@@ -113,7 +113,7 @@ circle = Diagram [Prim (Ellipse 1 0 1 0 0 (-1))]
 -- | Ellipse with eccentricity e
 ellipse :: (BSpace b ~ P2, Renderable Ellipse b) => Double -> Diagram b
 ellipse e
-    | e >= 0 && e < 1  = verticalScale (sqrt (1 - e^2)) circle
+    | e >= 0 && e < 1  = scaleY (sqrt (1 - e^2)) circle
     | otherwise        = error "Eccentricity of ellipse must be >= 0 and < 1."
 
 -- | Returns (xCenter,yCenter)

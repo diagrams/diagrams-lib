@@ -13,10 +13,9 @@
 -----------------------------------------------------------------------------
 
 module Diagrams.TwoD.Transform
-       ( rotation
-       , rotate
-       , horizontalScale
-       , verticalScale
+       ( rotation, rotate
+       , scalingX, scaleX
+       , scalingY, scaleY
        ) where
 
 import "diagrams-core" Graphics.Rendering.Diagrams
@@ -36,8 +35,14 @@ rotation theta = fromLinear $ rot theta <-> rot (-theta)
 rotate :: (TSpace t ~ P2, Transformable t) => Angle -> t -> t
 rotate = transform . rotation
 
-horizontalScale :: (TSpace t ~ P2, Transformable t) => Double -> t -> t
-horizontalScale c = transform . fromLinear $ first (*c) <-> first (/c)
+scalingX :: Double -> Transformation P2
+scalingX c = fromLinear $ first (*c) <-> first (/c)
 
-verticalScale :: (TSpace t ~ P2, Transformable t) => Double -> t -> t
-verticalScale c = transform . fromLinear $ second (*c) <-> second (/c)
+scaleX :: (TSpace t ~ P2, Transformable t) => Double -> t -> t
+scaleX = transform . scalingX
+
+scalingY :: Double -> Transformation P2
+scalingY c = fromLinear $ second (*c) <-> second (/c)
+
+scaleY :: (TSpace t ~ P2, Transformable t) => Double -> t -> t
+scaleY = transform . scalingY
