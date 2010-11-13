@@ -14,6 +14,7 @@ Cabal-version:       >=1.2
 
 Library
   Exposed-modules:     Diagrams.Combinators,
+                       Diagrams.Attributes,
                        Diagrams.Segment,
                        Diagrams.Path,
                        Diagrams.TwoD,
@@ -25,5 +26,6 @@ Library
   Build-depends:       base >= 4.2 && < 4.3,
                        containers >= 0.3 && < 0.4,
                        diagrams-core >= 0.1 && < 0.2,
-                       vector-space >= 0.7 && < 0.8
+                       vector-space >= 0.7 && < 0.8,
+                       colour >= 2.3.1 && < 2.4
   Hs-source-dirs:      src
