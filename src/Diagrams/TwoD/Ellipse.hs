@@ -23,6 +23,7 @@ module Diagrams.TwoD.Ellipse
     ) where
 
 import "diagrams-core" Graphics.Rendering.Diagrams
+import Graphics.Rendering.Diagrams.Basics (prim)
 import Graphics.Rendering.Diagrams.Transform
 
 import Diagrams.TwoD.Types
@@ -101,7 +102,7 @@ ellipseFromFunc func
 
 -- | A unit circle
 circle :: (BSpace b ~ P2, Renderable Ellipse b) => Diagram b
-circle = Diagram [Prim (Ellipse 1 0 1 0 0 (-1))]
+circle = Diagram (prim $ Ellipse 1 0 1 0 0 (-1))
                  (Bounds circleBounds)
                  (fromNames [ ("C", ( 0, 0))
                             , ("E", ( 1, 0))

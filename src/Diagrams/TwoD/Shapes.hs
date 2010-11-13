@@ -18,6 +18,7 @@ module Diagrams.TwoD.Shapes
        ) where
 
 import "diagrams-core" Graphics.Rendering.Diagrams
+import Graphics.Rendering.Diagrams.Basics (prim)
 import Graphics.Rendering.Diagrams.Expressions
 
 import Diagrams.TwoD.Types
@@ -36,7 +37,7 @@ instance Transformable Box where
                                       (transform a v4)
 
 box :: (BSpace b ~ P2, Renderable Box b) => Diagram b
-box = Diagram [Prim (Box (-1,-1) (1,-1) (1,1) (-1,1))]
+box = Diagram (prim $ Box (-1,-1) (1,-1) (1,1) (-1,1))
               (Bounds boxBounds)
               (fromNames [ ("LL", (-1,-1))
                          , ("LR", ( 1,-1))

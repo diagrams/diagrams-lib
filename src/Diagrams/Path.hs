@@ -37,7 +37,7 @@ module Diagrams.Path
        ) where
 
 import Graphics.Rendering.Diagrams
-import Graphics.Rendering.Diagrams.Basics (rebaseBounds)
+import Graphics.Rendering.Diagrams.Basics (rebaseBounds, prim)
 
 import Diagrams.Segment
 
@@ -126,7 +126,7 @@ stroke :: ( v ~ BSpace b, TSpace v ~ v
           , InnerSpace v, AdditiveGroup (Scalar v), Ord (Scalar v), Floating (Scalar v)
           , Renderable (Path v) b)
        => Path v -> Diagram b
-stroke p = Diagram { prims  = [Prim p]
+stroke p = Diagram { prims  = prim p
                    , bounds = pathBounds p
                    , names  = fromNames $ zip ([0..] :: [Int])
                                               (pathVertices p)  -- XXX names for Bezier
