@@ -1,10 +1,25 @@
+{-# LANGUAGE DeriveDataTypeable, ExistentialQuantification #-}
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  Diagrams.Attributes
+-- Copyright   :  (c) Brent Yorgey 2010
+-- License     :  BSD-style (see LICENSE)
+-- Maintainer  :  byorgey@cis.upenn.edu
+-- Stability   :  experimental
+-- Portability :  portable
+--
+-- Some common attributes.  Particular backends may also define more
+-- backend-specific attributes.
+--
+-----------------------------------------------------------------------------
 
 module Diagrams.Attributes (
   -- * Color
 
     Color(..), SomeColor(..)
 
-  , lc
+  , LineColor(..), lineColor, lc
+  , FillColor(..), fillColor, fc
 
   ) where
 
@@ -32,7 +47,31 @@ class Color c where
 data SomeColor = forall c. Color c => SomeColor c
   deriving Typeable
 
-instance AttributeClass SomeColor
+-- | Line/stroke color attribute.
+newtype LineColor = LineColor SomeColor
+  deriving Typeable
+instance AttributeClass LineColor
+
+-- | Set the line (stroke) color of a diagram.
+lineColor :: Color c => c -> Diagram b -> Diagram b
+lineColor = applyAttr . LineColor . SomeColor
+
+-- | A convenient synonym for 'lineColor'.
+lc :: Color c => c -> Diagram b -> Diagram b
+lc = lineColor
+
+-- | Fill color attribute.
+newtype FillColor = FillColor SomeColor
+  deriving Typeable
+instance AttributeClass FillColor
+
+-- | Set the fill color of a diagram.
+fillColor :: Color c => c -> Diagram b -> Diagram b
+fillColor = applyAttr . FillColor . SomeColor
+
+-- | A convenient synonym for 'fillColor'.
+fc :: Color c => c -> Diagram b -> Diagram b
+fc = fillColor
 
 -- Note: we would like to just be able to say 'instance Color (Colour
 -- Double)' and so on, but the problem is that the named color
@@ -63,11 +102,14 @@ instance (Floating a, Real a) => Color (AlphaColour a) where
           b  = RGB.channelBlue c'
 
 instance Color SomeColor where
-  colorToRGBA (SomeColor col) = colorToRGBA col
+  colorToRGBA (SomeColor c) = colorToRGBA c
+
+instance Color LineColor where
+  colorToRGBA (LineColor c) = colorToRGBA c
+
+instance Color FillColor where
+  colorToRGBA (FillColor c) = colorToRGBA c
 
 alphaToColour :: (Floating a, Ord a, Fractional a) => AlphaColour a -> Colour a
 alphaToColour ac | alphaChannel ac == 0 = ac `over` black
                  | otherwise = darken (recip (alphaChannel ac)) (ac `over` black)
-
-lc :: Color c => c -> Diagram b -> Diagram b
-lc c = applyAttr (SomeColor c)
