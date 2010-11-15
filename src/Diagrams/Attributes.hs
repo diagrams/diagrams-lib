@@ -20,6 +20,7 @@ module Diagrams.Attributes (
 
   , LineColor(..), lineColor, lc
   , FillColor(..), fillColor, fc
+  , LineWidth(..), lineWidth, lw
 
   ) where
 
@@ -113,3 +114,21 @@ instance Color FillColor where
 alphaToColour :: (Floating a, Ord a, Fractional a) => AlphaColour a -> Colour a
 alphaToColour ac | alphaChannel ac == 0 = ac `over` black
                  | otherwise = darken (recip (alphaChannel ac)) (ac `over` black)
+
+
+------------------------------------------------------------
+--  Other attributes  -------------------------------------
+------------------------------------------------------------
+
+-- | Line/stroke width attribute.
+newtype LineWidth = LineWidth Double
+  deriving Typeable
+instance AttributeClass LineWidth
+
+-- | Set the line (stroke) width of a diagram.
+lineWidth :: Double -> Diagram b -> Diagram b
+lineWidth = applyAttr . LineWidth
+
+-- | A convenient synonym for 'lineWidth'.
+lw :: Double -> Diagram b -> Diagram b
+lw = lineWidth
