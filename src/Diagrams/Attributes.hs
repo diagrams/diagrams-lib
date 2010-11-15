@@ -21,6 +21,7 @@ module Diagrams.Attributes (
   , LineColor(..), lineColor, lc
   , FillColor(..), fillColor, fc
   , LineWidth(..), lineWidth, lw
+  , LineCap(..), lineCap
 
   ) where
 
@@ -132,3 +133,13 @@ lineWidth = applyAttr . LineWidth
 -- | A convenient synonym for 'lineWidth'.
 lw :: Double -> Diagram b -> Diagram b
 lw = lineWidth
+
+
+-- | Line/stroke end cap attribute.
+data LineCap = LineCapButt | LineCapRound | LineCapSquare
+  deriving (Eq,Show,Typeable)
+instance AttributeClass LineCap
+
+-- | Set the line (stroke) end cap of a diagram.
+lineCap :: LineCap -> Diagram b -> Diagram b
+lineCap = applyAttr
