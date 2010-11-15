@@ -23,6 +23,7 @@ module Diagrams.Attributes (
   , LineWidth(..), lineWidth, lw
   , LineCap(..), lineCap
   , LineJoin(..), lineJoin
+  , Dashing(..), dashing
 
   ) where
 
@@ -154,3 +155,18 @@ instance AttributeClass LineJoin
 -- | Set the line (stroke) join of a diagram.
 lineJoin :: LineJoin -> Diagram b -> Diagram b
 lineJoin = applyAttr
+
+
+-- | Line/stroke dashing attribute.
+data Dashing = Dashing [Double] Double
+  deriving Typeable
+instance AttributeClass Dashing
+
+-- | Set the line (stroke) dashing of a diagram.
+dashing :: [Double]  -- ^ a list specifying alternate lengths of on
+                     --   and off portions of the stroke.  The empty
+                     --   list indicates no dashing.
+        -> Double    -- ^ an offset into the dash pattern at which the
+                     --   stroke should start
+        -> Diagram b -> Diagram b
+dashing ds offs = applyAttr (Dashing ds offs)
