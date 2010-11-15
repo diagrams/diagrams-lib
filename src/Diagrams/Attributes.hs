@@ -22,6 +22,7 @@ module Diagrams.Attributes (
   , FillColor(..), fillColor, fc
   , LineWidth(..), lineWidth, lw
   , LineCap(..), lineCap
+  , LineJoin(..), lineJoin
 
   ) where
 
@@ -143,3 +144,13 @@ instance AttributeClass LineCap
 -- | Set the line (stroke) end cap of a diagram.
 lineCap :: LineCap -> Diagram b -> Diagram b
 lineCap = applyAttr
+
+
+-- | Line/stroke join attribute.
+data LineJoin = LineJoinMiter | LineJoinRound | LineJoinBevel
+  deriving (Eq,Show,Typeable)
+instance AttributeClass LineJoin
+
+-- | Set the line (stroke) join of a diagram.
+lineJoin :: LineJoin -> Diagram b -> Diagram b
+lineJoin = applyAttr
