@@ -21,8 +21,8 @@ import Graphics.Rendering.Diagrams
 
 -- a diagram that changes over time within the bounds of the interval
 -- [startTime, endTime]
-data (Fractional t) => TimeDependentDiagram b t = TimeDependentDiagram
-  { diagramAtTime :: t -> Diagram b
+data (Fractional t) => TimeDependentDiagram b a t = TimeDependentDiagram
+  { diagramAtTime :: t -> AnnDiagram b a
   , startTime :: t
   , endTime :: t
   }
@@ -33,15 +33,16 @@ validateBounded ::
  , s ~ Scalar (BSpace b)
  , Ord s
  , AdditiveGroup s
- ) => TimeDependentDiagram b t -> t -> Diagram b
+ , Monoid a
+ ) => TimeDependentDiagram b a t -> t -> AnnDiagram b a
 validateBounded tdd t = case withinBounds of
     True -> diagramAtTime tdd t
     False -> mempty
   where withinBounds = t >= startTime tdd && t <= endTime tdd
 
 -- makes a list of diagrams to be treated as frames of animation
-makeFrames :: (Fractional t) => Int -> TimeDependentDiagram b t
-  -> [Diagram b]
+makeFrames :: (Fractional t) => Int -> TimeDependentDiagram b a t
+  -> [AnnDiagram b a]
 makeFrames numFrames tdd = let
     timeDelta = (endTime tdd - startTime tdd) / (fromIntegral numFrames)
     frameTimes = take numFrames $ iterate (+ timeDelta) (startTime tdd)
@@ -53,7 +54,7 @@ makeFrames numFrames tdd = let
 
 class (Backend b, Fractional t) => AnimationBackend b t where
    type AnimatedRender b :: *
-   renderAnim :: b -> [Diagram b] -> AnimatedRender b
+   renderAnim :: b -> [AnnDiagram b a] -> AnimatedRender b
 
 -- convenience function for running animation
 runAnimation numFrames tdd animBackend =
@@ -62,8 +63,8 @@ runAnimation numFrames tdd animBackend =
 -- animation primitives ... kinda messy, not well-thought-out
 
 --show an unchanging diagram for a length of time
-staticDiagram :: (Fractional t) => Diagram b -> t ->
-  TimeDependentDiagram b t
+staticDiagram :: (Fractional t) => AnnDiagram b a -> t ->
+  TimeDependentDiagram b a t
 staticDiagram diagram length = TimeDependentDiagram
   (const diagram) -- display this no matter what time
   0.0 -- start at time 0

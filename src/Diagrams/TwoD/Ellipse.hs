@@ -32,6 +32,8 @@ import Diagrams.TwoD.Transform
 import Data.VectorSpace
 import Data.LinearMap
 
+import Data.Monoid (Any(..))
+
 type P3 = (Double, Double, Double)
 type Aug3 = (P2,Double)
 
@@ -109,6 +111,7 @@ circle = Diagram (prim $ Ellipse 1 0 1 0 0 (-1))
                             , ("N", ( 0, 1))
                             , ("W", (-1, 0))
                             , ("S", ( 0,-1)) ])
+                 (\(x,y) -> Any (x*x + y*y <= 1))
     where circleBounds (x,y) = 1 / sqrt(x*x + y*y)
 
 -- | Ellipse with eccentricity e

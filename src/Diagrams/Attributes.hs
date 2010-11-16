@@ -57,11 +57,11 @@ newtype LineColor = LineColor SomeColor
 instance AttributeClass LineColor
 
 -- | Set the line (stroke) color of a diagram.
-lineColor :: Color c => c -> Diagram b -> Diagram b
+lineColor :: Color c => c -> AnnDiagram b a -> AnnDiagram b a
 lineColor = applyAttr . LineColor . SomeColor
 
 -- | A convenient synonym for 'lineColor'.
-lc :: Color c => c -> Diagram b -> Diagram b
+lc :: Color c => c -> AnnDiagram b a -> AnnDiagram b a
 lc = lineColor
 
 -- | Fill color attribute.
@@ -70,11 +70,11 @@ newtype FillColor = FillColor SomeColor
 instance AttributeClass FillColor
 
 -- | Set the fill color of a diagram.
-fillColor :: Color c => c -> Diagram b -> Diagram b
+fillColor :: Color c => c -> AnnDiagram b a -> AnnDiagram b a
 fillColor = applyAttr . FillColor . SomeColor
 
 -- | A convenient synonym for 'fillColor'.
-fc :: Color c => c -> Diagram b -> Diagram b
+fc :: Color c => c -> AnnDiagram b a -> AnnDiagram b a
 fc = fillColor
 
 -- Note: we would like to just be able to say 'instance Color (Colour
@@ -129,11 +129,11 @@ newtype LineWidth = LineWidth Double
 instance AttributeClass LineWidth
 
 -- | Set the line (stroke) width of a diagram.
-lineWidth :: Double -> Diagram b -> Diagram b
+lineWidth :: Double -> AnnDiagram b a -> AnnDiagram b a
 lineWidth = applyAttr . LineWidth
 
 -- | A convenient synonym for 'lineWidth'.
-lw :: Double -> Diagram b -> Diagram b
+lw :: Double -> AnnDiagram b a -> AnnDiagram b a
 lw = lineWidth
 
 
@@ -143,7 +143,7 @@ data LineCap = LineCapButt | LineCapRound | LineCapSquare
 instance AttributeClass LineCap
 
 -- | Set the line (stroke) end cap of a diagram.
-lineCap :: LineCap -> Diagram b -> Diagram b
+lineCap :: LineCap -> AnnDiagram b a -> AnnDiagram b a
 lineCap = applyAttr
 
 
@@ -153,7 +153,7 @@ data LineJoin = LineJoinMiter | LineJoinRound | LineJoinBevel
 instance AttributeClass LineJoin
 
 -- | Set the line (stroke) join of a diagram.
-lineJoin :: LineJoin -> Diagram b -> Diagram b
+lineJoin :: LineJoin -> AnnDiagram b a -> AnnDiagram b a
 lineJoin = applyAttr
 
 
@@ -168,5 +168,5 @@ dashing :: [Double]  -- ^ a list specifying alternate lengths of on
                      --   list indicates no dashing.
         -> Double    -- ^ an offset into the dash pattern at which the
                      --   stroke should start
-        -> Diagram b -> Diagram b
+        -> AnnDiagram b a -> AnnDiagram b a
 dashing ds offs = applyAttr (Dashing ds offs)

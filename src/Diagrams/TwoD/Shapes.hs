@@ -25,6 +25,7 @@ import Diagrams.TwoD.Types
 
 import qualified Data.Map as M
 
+import Data.Monoid (Any(..))
 
 data Box = Box P2 P2 P2 P2
            deriving (Show)
@@ -43,6 +44,8 @@ box = Diagram (prim $ Box (-1,-1) (1,-1) (1,1) (-1,1))
                          , ("LR", ( 1,-1))
                          , ("UR", ( 1, 1))
                          , ("UL", (-1, 1)) ])
+              (\(x,y) -> Any (inBox x && inBox y))
   where boxBounds (x,y) = let d = x*x + y*y  -- want u.v/u.u, where u=(x,y), v=(1,1),(1,-1),(-1,1),(-1,-1)
                           in  maximum [(-x-y)/d, (x-y)/d, (x+y)/d, (y-x)/d]
+        inBox x = x >= (-1) && x <= 1
 

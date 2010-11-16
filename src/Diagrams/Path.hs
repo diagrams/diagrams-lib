@@ -130,7 +130,10 @@ stroke p = Diagram { prims  = prim p
                    , bounds = pathBounds p
                    , names  = fromNames $ zip ([0..] :: [Int])
                                               (pathVertices p)  -- XXX names for Bezier
-                   }                                            --   control points too?
+                                                                --   control points too?
+                   , sample = const (Any False)   -- Paths are infinitely thin
+                              -- TODO: what about closed paths in 2D?
+                   }
 
 ------------------------------------------------------------
 --  Computing with paths  ----------------------------------
