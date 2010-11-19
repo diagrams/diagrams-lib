@@ -1,4 +1,7 @@
-{-# LANGUAGE DeriveDataTypeable, ExistentialQuantification #-}
+{-# LANGUAGE DeriveDataTypeable
+           , ExistentialQuantification
+           , TypeFamilies
+  #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Attributes
@@ -32,6 +35,8 @@ import Graphics.Rendering.Diagrams
 import Data.Colour
 import qualified Data.Colour.SRGB as RGB
 
+import Data.VectorSpace
+
 import Data.Typeable
 
 ------------------------------------------------------------
@@ -57,11 +62,13 @@ newtype LineColor = LineColor SomeColor
 instance AttributeClass LineColor
 
 -- | Set the line (stroke) color of a diagram.
-lineColor :: Color c => c -> AnnDiagram b a -> AnnDiagram b a
+lineColor :: (Backend b, s ~ Scalar (BSpace b), Scalar s ~ s, Color c)
+             => c -> AnnDiagram b a -> AnnDiagram b a
 lineColor = applyAttr . LineColor . SomeColor
 
 -- | A convenient synonym for 'lineColor'.
-lc :: Color c => c -> AnnDiagram b a -> AnnDiagram b a
+lc :: (Backend b, s ~ Scalar (BSpace b), Scalar s ~ s, Color c)
+      => c -> AnnDiagram b a -> AnnDiagram b a
 lc = lineColor
 
 -- | Fill color attribute.
