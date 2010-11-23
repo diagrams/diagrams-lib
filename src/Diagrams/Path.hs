@@ -75,9 +75,20 @@ instance (AdditiveGroup v) => Monoid (Path v) where
   Path c1 _ []     `mappend` Path c2 st segs = Path (c1 || c2) st segs
   Path c1 st segs1 `mappend` Path c2 _ segs2 = Path (c1 || c2) st (segs1 ++ segs2)
 
-instance (AdditiveGroup v, Transformable v) => Transformable (Path v) where
-  type TSpace (Path v) = TSpace v
-  transform = fmap . transform
+-- See Note [Transforming paths]
+instance HasLinearMap v => Transformable (Path v) where
+  type TSpace (Path v) = v
+  transform t (Path c st segs) = Path c (transform t st) (transform t segs)
+
+{- ~~~~ Note [Transforming paths]
+
+Careful!  It's tempting to just define
+
+> transform = fmap . transform
+
+but that doesn't take into account the fact that some
+of the v's are inside Points and hence ought to be translated.
+-}
 
 ------------------------------------------------------------
 --  Constructing paths  ------------------------------------
