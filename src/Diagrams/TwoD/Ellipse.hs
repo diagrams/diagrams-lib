@@ -44,9 +44,10 @@ data Ellipse = Ellipse Double Double Double Double Double Double
                deriving (Show)
 -- 6 Doubles are A, B, C, D, E, F in A x^2 + B x y + C y^2 + D x + E y + F = 0
 
+-- Perhaps this can be done more simply, now that we have the transpose available?
 instance Transformable Ellipse where
   type TSpace Ellipse = P2
-  transform (Transformation t) ell
+  transform (Transformation t _) ell
       = ellipseFromFunc ((aug3Transpose tinv)
                          . (funcFromEllipse ell)
                          . tinv) where

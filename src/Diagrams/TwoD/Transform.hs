@@ -28,21 +28,24 @@ import Control.Arrow (first, second)
 -- Do we want to rotate things in arbitrary dimensions?
 
 rotation :: Angle -> Transformation P2
-rotation theta = fromLinear $ rot theta <-> rot (-theta)
+rotation theta = fromLinear r (linv r)
   where
     rot th (x,y) = (cos th * x - sin th * y, sin th * x + cos th * y)
+    r = rot theta <-> rot (-theta)
 
 rotate :: (TSpace t ~ P2, Transformable t) => Angle -> t -> t
 rotate = transform . rotation
 
 scalingX :: Double -> Transformation P2
-scalingX c = fromLinear $ first (*c) <-> first (/c)
+scalingX c = fromLinear s s
+  where s = first (*c) <-> first (/c)
 
 scaleX :: (TSpace t ~ P2, Transformable t) => Double -> t -> t
 scaleX = transform . scalingX
 
 scalingY :: Double -> Transformation P2
-scalingY c = fromLinear $ second (*c) <-> second (/c)
+scalingY c = fromLinear s s
+  where s = second (*c) <-> second (/c)
 
 scaleY :: (TSpace t ~ P2, Transformable t) => Double -> t -> t
 scaleY = transform . scalingY
