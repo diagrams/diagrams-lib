@@ -49,8 +49,7 @@ data Segment v = Linear v
 --   components (scaling, rotation, ...) will have an effect.
 instance (Transformable v, AdditiveGroup v) => Transformable (Segment v) where
   type TSpace (Segment v) = TSpace v
-  transform t = fmap (\v -> transform t v ^-^ z)
-    where z = transform t zeroV
+  transform = fmap . transform
 
 -- | @'straight' v@ constructs a translationally invariant linear
 --   segment with direction and length given by the vector @v@.

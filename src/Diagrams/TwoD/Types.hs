@@ -1,15 +1,21 @@
 {-# LANGUAGE PackageImports, TypeFamilies, TypeSynonymInstances #-}
 module Diagrams.TwoD.Types
-       ( P2
+       ( R2
+       , P2
        , Angle
        ) where
 
 import "diagrams-core" Graphics.Rendering.Diagrams
 
-type P2 = (Double, Double)
+-- | The two-dimensional Euclidean vector space R^2.
+type R2 = (Double, Double)
 
-instance Transformable P2 where
-  type TSpace P2 = P2
+-- | Points in R^2.
+type P2 = Point R2
+
+instance Transformable R2 where
+  type TSpace R2 = R2
   transform = apply
 
-type Angle = Double  -- in radians
+-- | An angle in radians.
+type Angle = Double

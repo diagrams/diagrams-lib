@@ -57,7 +57,7 @@ import qualified Data.Map as M
 --   with a distinguished starting point.  Hence, paths are /not/
 --   translationally invariant.  Paths can also be /open/ or /closed/.
 data Path v = Path { isClosed     :: Bool
-                   , pathStart    :: v
+                   , pathStart    :: Point v
                    , pathSegments :: [Segment v]
                    }
   deriving (Show, Functor)
@@ -70,43 +70,30 @@ data Path v = Path { isClosed     :: Bool
 --   just @p2@.  @p1 `mappend` p2@ is closed iff either @p1@ or @p2@
 --   are.
 instance (AdditiveGroup v) => Monoid (Path v) where
-  mempty = Path False zeroV []
+  mempty = Path False origin []
   Path c1 _ []     `mappend` Path c2 st segs = Path (c1 || c2) st segs
   Path c1 st segs1 `mappend` Path c2 _ segs2 = Path (c1 || c2) st (segs1 ++ segs2)
 
 instance (AdditiveGroup v, Transformable v) => Transformable (Path v) where
   type TSpace (Path v) = TSpace v
-  transform t (Path c st segs) = Path c (transform t st) (map (transform t) segs)
-
-  -- Note: this
-  --
-  --   transform = fmap . transform
-  --
-  -- is incorrect, since it actually drills down and applies transform
-  -- to the vectors defining the segments, rather than to the segments
-  -- as a whole -- hence translations are actually applied to the
-  -- vectors defining the segments.
-  --
-  -- Maybe the right way to do this is to distinguish at the type
-  -- level between points (which are affected by translations) and
-  -- vectors (which are not).  It seems there's actually a module in
-  -- vector-space which does this.
+  transform = fmap . transform
 
 ------------------------------------------------------------
 --  Constructing paths  ------------------------------------
 ------------------------------------------------------------
 
 -- | Build an open path of linear segments from a list of vertices.
-pathFromVertices :: AdditiveGroup v => [v] -> Path v
+pathFromVertices :: AdditiveGroup v => [Point v] -> Path v
 pathFromVertices [] = mempty
-pathFromVertices vs = Path { isClosed     = False
-                           , pathStart    = head vs
-                           , pathSegments = map Linear $ zipWith (flip (^-^)) vs (tail vs)
-                           }
+pathFromVertices vvs@(v:vs)
+  = Path { isClosed     = False
+         , pathStart    = v
+         , pathSegments = map Linear $ zipWith (flip (.-.)) vvs vs
+         }
 
 -- | Build an open path of linear segments from a starting location
 --   and a list of offsets.
-pathFromOffsets :: v -> [v] -> Path v
+pathFromOffsets :: Point v -> [v] -> Path v
 pathFromOffsets st segs = Path { isClosed     = False
                                , pathStart    = st
                                , pathSegments = map Linear segs
@@ -140,8 +127,8 @@ stroke p = Diagram { prims  = prim p
 ------------------------------------------------------------
 
 -- | Extract the vertices of a path.
-pathVertices :: AdditiveGroup v => Path v -> [v]
-pathVertices (Path _ st segs) = scanl (^+^) st (map segOffset segs)
+pathVertices :: AdditiveGroup v => Path v -> [Point v]
+pathVertices (Path _ st segs) = scanl (.+^) st (map segOffset segs)
 
 -- | Compute the total offset from the start of a path to the end.
 pathOffset :: (AdditiveGroup v) => Path v -> v
@@ -155,8 +142,8 @@ pathOffset = sumV . map segOffset . pathSegments
 -- | Compute the bounding function for an entire path.
 pathBounds :: (InnerSpace v, AdditiveGroup (Scalar v), Floating (Scalar v), Ord (Scalar v))
            => Path v -> Bounds v
-pathBounds (Path _ st segs) = rebaseBounds (negateV st) $
-  foldr (\seg bds -> rebaseBounds (negateV (segOffset seg)) bds
+pathBounds (Path _ st segs) = rebaseBounds ((-1) *. st) $
+  foldr (\seg bds -> rebaseBounds (P $ negateV (segOffset seg)) bds
                      <> segmentBounds seg)
         mempty
         segs

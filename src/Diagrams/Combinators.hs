@@ -39,5 +39,5 @@ beside :: ( Backend b
        => v -> AnnDiagram b a -> AnnDiagram b a -> AnnDiagram b a
 beside v d1@(Diagram _ (Bounds b1) _ _)
          d2@(Diagram _ (Bounds b2) _ _)
-  = rebase (Const (b1 v *^ v)) d1 `atop`
-    rebase (Const (b2 (negateV v) *^ negateV v)) d2
+  = rebase (P $ b1 v *^ v) d1 `atop`
+    rebase (P $ b2 (negateV v) *^ negateV v) d2
