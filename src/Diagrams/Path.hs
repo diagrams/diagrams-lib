@@ -38,6 +38,7 @@ module Diagrams.Path
 
 import Graphics.Rendering.Diagrams
 import Graphics.Rendering.Diagrams.Basics (rebaseBounds, prim)
+import Graphics.Rendering.Diagrams.Transform (HasLinearMap)
 
 import Diagrams.Segment
 

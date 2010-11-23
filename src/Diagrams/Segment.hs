@@ -25,6 +25,7 @@ module Diagrams.Segment
        ) where
 
 import Graphics.Rendering.Diagrams
+import Graphics.Rendering.Diagrams.Transform (HasLinearMap)
 
 import Data.VectorSpace
 
@@ -47,13 +48,13 @@ data Segment v = Linear v
 --   translating a segment has no effect.  Thus the translational
 --   component of a transformation is always ignored, but other
 --   components (scaling, rotation, ...) will have an effect.
-instance (Transformable v, AdditiveGroup v) => Transformable (Segment v) where
-  type TSpace (Segment v) = TSpace v
-  transform = fmap . transform
+instance HasLinearMap v => Transformable (Segment v) where
+  type TSpace (Segment v) = v
+  transform = fmap . apply
 
 -- | @'straight' v@ constructs a translationally invariant linear
 --   segment with direction and length given by the vector @v@.
-straight :: (VectorSpace v, Fractional (Scalar v)) => v -> Segment v
+straight :: v -> Segment v
 straight v = Linear v
 
 -- Note, if we didn't have a Linear constructor we could also create
