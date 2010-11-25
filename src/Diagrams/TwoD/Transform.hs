@@ -16,6 +16,8 @@ module Diagrams.TwoD.Transform
        ( rotation, rotate
        , scalingX, scaleX
        , scalingY, scaleY
+       , reflectionX, reflectX
+       , reflectionY, reflectY
        ) where
 
 import "diagrams-core" Graphics.Rendering.Diagrams
@@ -49,3 +51,15 @@ scalingY c = fromLinear s s
 
 scaleY :: (TSpace t ~ R2, Transformable t) => Double -> t -> t
 scaleY = transform . scalingY
+
+reflectionX :: Transformation R2
+reflectionX = scalingX (-1)
+
+reflectX :: (TSpace t ~ R2, Transformable t) => t -> t
+reflectX = transform reflectionX
+
+reflectionY :: Transformation R2
+reflectionY = scalingY (-1)
+
+reflectY :: (TSpace t ~ R2, Transformable t) => t -> t
+reflectY = transform reflectionY
