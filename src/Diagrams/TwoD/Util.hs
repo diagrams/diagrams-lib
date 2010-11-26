@@ -7,11 +7,11 @@ import Diagrams.TwoD.Types
 
 -- | Compute the width of a diagram in R2.
 width :: (BSpace b ~ R2) => AnnDiagram b a -> Double
-width (Diagram {bounds = Bounds b})  = b (1,0) - b (-1,0)
+width (Diagram {bounds = Bounds b})  = b (1,0) + b (-1,0)
 
 -- | Compute the height of a diagram in R2.
 height :: (BSpace b ~ R2) => AnnDiagram b a -> Double
-height (Diagram {bounds = Bounds b}) = b (0,1) - b (0,-1)
+height (Diagram {bounds = Bounds b}) = b (0,1) + b (0,-1)
 
 -- | Compute the width and height of a diagram in R2.
 size2D :: (BSpace b ~ R2) => AnnDiagram b a -> (Double, Double)
