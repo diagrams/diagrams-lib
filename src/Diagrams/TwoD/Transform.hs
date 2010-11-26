@@ -38,17 +38,27 @@ rotation theta = fromLinear r (linv r)
 rotate :: (TSpace t ~ R2, Transformable t) => Angle -> t -> t
 rotate = transform . rotation
 
+-- | Construct a transformation which scales by the given factor in
+--   the x (horizontal) direction.
 scalingX :: Double -> Transformation R2
 scalingX c = fromLinear s s
   where s = first (*c) <-> first (/c)
 
+-- | Scale a diagram by the given factor in the x (horizontal)
+--   direction.  To scale uniformly, use
+--   'Graphics.Rendering.Diagrams.Transform.scale'.
 scaleX :: (TSpace t ~ R2, Transformable t) => Double -> t -> t
 scaleX = transform . scalingX
 
+-- | Construct a transformation which scales by the given factor in
+--   the y (vertical) direction.
 scalingY :: Double -> Transformation R2
 scalingY c = fromLinear s s
   where s = second (*c) <-> second (/c)
 
+-- | Scale a diagram by the given factor in the y (vertical)
+--   direction.  To scale uniformly, use
+--   'Graphics.Rendering.Diagrams.Transform.scale'.
 scaleY :: (TSpace t ~ R2, Transformable t) => Double -> t -> t
 scaleY = transform . scalingY
 
