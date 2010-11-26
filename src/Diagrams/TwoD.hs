@@ -45,6 +45,11 @@ module Diagrams.TwoD
        , box
        , circle
        , ellipse
+
+         -- * Utilities
+       , width
+       , height
+       , size2D
        ) where
 
 import "diagrams-core" Graphics.Rendering.Diagrams
@@ -53,3 +58,4 @@ import Diagrams.TwoD.Types
 import Diagrams.TwoD.Transform
 import Diagrams.TwoD.Ellipse
 import Diagrams.TwoD.Shapes
+import Diagrams.TwoD.Util
