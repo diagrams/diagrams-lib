@@ -40,6 +40,10 @@ module Diagrams.TwoD
        , rotation, rotate
        , scalingX, scaleX
        , scalingY, scaleY
+       , translationX, translateX
+       , translationY, translateY
+       , reflectionX, reflectX
+       , reflectionY, reflectY
 
          -- * Shapes
        , box
