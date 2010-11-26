@@ -51,9 +51,8 @@ module Diagrams.TwoD
        , ellipse
 
          -- * Utilities
-       , width
-       , height
-       , size2D
+       , width, height, size2D
+       , extentX, extentY, center2D
        ) where
 
 import "diagrams-core" Graphics.Rendering.Diagrams
