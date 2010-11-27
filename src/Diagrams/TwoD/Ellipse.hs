@@ -23,7 +23,6 @@ module Diagrams.TwoD.Ellipse
     ) where
 
 import "diagrams-core" Graphics.Rendering.Diagrams
-import Graphics.Rendering.Diagrams.Basics (prim)
 import Graphics.Rendering.Diagrams.Transform
 
 import Diagrams.TwoD.Types

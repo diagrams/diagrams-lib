@@ -37,7 +37,7 @@ module Diagrams.Path
        ) where
 
 import Graphics.Rendering.Diagrams
-import Graphics.Rendering.Diagrams.Basics (rebaseBounds, prim)
+import Graphics.Rendering.Diagrams.Diagrams (rebaseBounds)
 import Graphics.Rendering.Diagrams.Transform (HasLinearMap)
 
 import Diagrams.Segment
