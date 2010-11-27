@@ -18,7 +18,6 @@ module Diagrams.TwoD.Shapes
        ) where
 
 import "diagrams-core" Graphics.Rendering.Diagrams
-import Graphics.Rendering.Diagrams.Basics (prim)
 
 import Diagrams.TwoD.Types
 
