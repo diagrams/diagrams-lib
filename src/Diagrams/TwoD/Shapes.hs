@@ -19,7 +19,6 @@ module Diagrams.TwoD.Shapes
 
 import "diagrams-core" Graphics.Rendering.Diagrams
 import Graphics.Rendering.Diagrams.Basics (prim)
-import Graphics.Rendering.Diagrams.Expressions
 
 import Diagrams.TwoD.Types
 
