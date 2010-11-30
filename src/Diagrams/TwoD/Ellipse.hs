@@ -1,4 +1,4 @@
-{-# LANGUAGE PackageImports, FlexibleContexts, TypeFamilies #-}
+{-# LANGUAGE FlexibleContexts, TypeFamilies #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Ellipse
@@ -22,7 +22,7 @@ module Diagrams.TwoD.Ellipse
     , ellipseScale
     ) where
 
-import "diagrams-core" Graphics.Rendering.Diagrams
+import Graphics.Rendering.Diagrams
 import Graphics.Rendering.Diagrams.Transform
 import Graphics.Rendering.Diagrams.Util
 
@@ -52,18 +52,18 @@ circle = Diagram (prim $ Ellipse mempty)
     where circleBounds (x,y) = 1 / sqrt(x*x + y*y)
 
 -- | Construct an ellipse with eccentricity e, created by scaling the
---   unit circle in the Y direction.  The eccentricity must be within
+--   unit circle in the X direction.  The eccentricity must be within
 --   the interval [0,1).
 ellipse :: (BSpace b ~ R2, Renderable Ellipse b) => Double -> Diagram b
 ellipse e
-    | e >= 0 && e < 1  = scaleY (sqrt (1 - e^2)) circle
+    | e >= 0 && e < 1  = scaleX (sqrt (1 - e^2)) circle
     | otherwise        = error "Eccentricity of ellipse must be >= 0 and < 1."
 
 -- | Compute the coefficients of the quadratic form
 --
 --     A x^2 + B x y + C y^2 + D x + E y + F = 0
 --
---   for an ellipse.  Returns A through F (in that order) in a tuple.
+--   for an ellipse.  Returns A through F (in that order) as a tuple.
 ellipseCoeffs :: Ellipse -> (Double, Double, Double, Double, Double, Double)
 ellipseCoeffs (Ellipse eT) = (      a*a + d*d      -- x^2
                              , 2 * (a*b + d*e)     -- xy
@@ -77,14 +77,13 @@ ellipseCoeffs (Ellipse eT) = (      a*a + d*d      -- x^2
         (b,e) = apply eT' (0,1)
         (c,f) = transl eT'
 
-
 -- | Compute the center of an ellipse.
 ellipseCenter :: Ellipse -> P2
 ellipseCenter (Ellipse e) = papply e origin
 
 -- Below formulas taken from http://mathworld.wolfram.com/Ellipse.html
 
--- | Compute the angle to the major axis, measured
+-- | Compute the angle to the major axis of an ellipse, measured
 --   counterclockwise from the positive x axis.
 ellipseAngle :: Ellipse -> Angle
 ellipseAngle ell
@@ -94,8 +93,8 @@ ellipseAngle ell
   | otherwise         = (pi + atan (b/(a-c))) / 2
   where (a,b,c,_,_,_) = ellipseCoeffs ell
 
--- | Compute the scaling factors of the ellipse, i.e. (a,b) where a and b are
---   half the lengths of the major and minor axes respectively.
+-- | Compute the scaling factors of an ellipse, i.e. (a,b) where a and
+--   b are half the lengths of the major and minor axes respectively.
 ellipseScale :: Ellipse -> (Double, Double)
 ellipseScale ell = ( sqrt (num / (r * ( disc - (a+c))))
                    , sqrt (num / (r * (-disc - (a+c))))
