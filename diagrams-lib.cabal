@@ -21,6 +21,7 @@ Library
                        Diagrams.TwoD.Types,
                        Diagrams.TwoD.Transform,
                        Diagrams.TwoD.Ellipse,
+                       Diagrams.TwoD.Arc,
                        Diagrams.TwoD.Shapes,
                        Diagrams.TwoD.Util,
                        Diagrams.Animation
