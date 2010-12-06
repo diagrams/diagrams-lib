@@ -13,7 +13,8 @@ Build-type:          Simple
 Cabal-version:       >=1.2
 
 Library
-  Exposed-modules:     Diagrams.Combinators,
+  Exposed-modules:     Diagrams.Prelude,
+                       Diagrams.Combinators,
                        Diagrams.Attributes,
                        Diagrams.Segment,
                        Diagrams.Path,

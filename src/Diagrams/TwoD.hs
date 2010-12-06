@@ -21,6 +21,8 @@
 --
 --   * "Diagrams.TwoD.Ellipse" defines ellipses
 --
+--   * "Diagrams.TwoD.Arc" defines circular arcs
+--
 --   * "Diagrams.TwoD.Shapes" defines various other two-dimensional
 --     shapes
 --
@@ -49,6 +51,7 @@ module Diagrams.TwoD
        , box
        , circle
        , ellipse
+       , arc
 
          -- * Utilities
        , width, height, size2D
@@ -60,5 +63,6 @@ import "diagrams-core" Graphics.Rendering.Diagrams
 import Diagrams.TwoD.Types
 import Diagrams.TwoD.Transform
 import Diagrams.TwoD.Ellipse
+import Diagrams.TwoD.Arc
 import Diagrams.TwoD.Shapes
 import Diagrams.TwoD.Util
