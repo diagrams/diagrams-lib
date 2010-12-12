@@ -23,17 +23,9 @@ import Data.Monoid
 
 -- | Place two diagrams next to each other along the given vector.
 --   XXX write more. note where origin ends up.
-beside :: ( Backend b
-          , v ~ BSpace b
-          , Transformable v
-          , v ~ TSpace v
-          , HasLinearMap v
-          , HasLinearMap (Scalar v)
-          , InnerSpace v
-          , AdditiveGroup (Scalar v)
-          , Fractional (Scalar v)
-          , Ord (Scalar v)
-          , Scalar (Scalar v) ~ Scalar v
+beside :: ( Backend b, v ~ BSpace b, s ~ Scalar v
+          , HasLinearMap v, InnerSpace v
+          , AdditiveGroup s, Fractional s, Ord s
           , Monoid a
           )
        => v -> AnnDiagram b a -> AnnDiagram b a -> AnnDiagram b a
