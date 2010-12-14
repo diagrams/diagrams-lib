@@ -1,4 +1,4 @@
-{-# LANGUAGE PackageImports, TypeFamilies, FlexibleContexts #-}
+{-# LANGUAGE TypeFamilies, FlexibleContexts #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Shapes
@@ -17,7 +17,7 @@ module Diagrams.TwoD.Shapes
        , box
        ) where
 
-import "diagrams-core" Graphics.Rendering.Diagrams
+import Graphics.Rendering.Diagrams
 
 import Diagrams.TwoD.Types
 

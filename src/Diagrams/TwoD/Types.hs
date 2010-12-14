@@ -1,11 +1,11 @@
-{-# LANGUAGE PackageImports, TypeFamilies, TypeSynonymInstances #-}
+{-# LANGUAGE TypeFamilies, TypeSynonymInstances #-}
 module Diagrams.TwoD.Types
        ( R2
        , P2
        , Angle
        ) where
 
-import "diagrams-core" Graphics.Rendering.Diagrams
+import Graphics.Rendering.Diagrams
 
 -- | The two-dimensional Euclidean vector space R^2.
 type R2 = (Double, Double)

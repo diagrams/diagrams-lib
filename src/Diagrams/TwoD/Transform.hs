@@ -1,4 +1,4 @@
-{-# LANGUAGE PackageImports, TypeFamilies #-}
+{-# LANGUAGE TypeFamilies #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Transform
@@ -22,7 +22,7 @@ module Diagrams.TwoD.Transform
        , reflectionY, reflectY
        ) where
 
-import "diagrams-core" Graphics.Rendering.Diagrams
+import Graphics.Rendering.Diagrams
 import Graphics.Rendering.Diagrams.Transform
 
 import Diagrams.TwoD.Types
