@@ -1,4 +1,4 @@
-{-# LANGUAGE PackageImports, TypeSynonymInstances, FlexibleContexts, TypeFamilies #-}
+{-# LANGUAGE TypeSynonymInstances, FlexibleContexts, TypeFamilies #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD
@@ -58,7 +58,7 @@ module Diagrams.TwoD
        , extentX, extentY, center2D
        ) where
 
-import "diagrams-core" Graphics.Rendering.Diagrams
+import Graphics.Rendering.Diagrams
 
 import Diagrams.TwoD.Types
 import Diagrams.TwoD.Transform

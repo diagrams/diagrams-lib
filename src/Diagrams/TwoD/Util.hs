@@ -1,10 +1,10 @@
-{-# LANGUAGE PackageImports, TypeFamilies #-}
+{-# LANGUAGE TypeFamilies #-}
 module Diagrams.TwoD.Util
        ( width, height, size2D
        , extentX, extentY, center2D
        ) where
 
-import "diagrams-core" Graphics.Rendering.Diagrams
+import Graphics.Rendering.Diagrams
 import Diagrams.TwoD.Types
 
 import Control.Arrow ((***), (&&&))
