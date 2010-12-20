@@ -56,7 +56,7 @@ box = Diagram (prim $ Box (P (-1,-1)) (P (1,-1)) (P (1,1)) (P (-1,1)))
 
 -- | Take number of sides of polygon then create diagrams with these numbers of equal length  sides
 --   the generated polygon will be fit into the unit circle which has radius of 1. 
---   each point of the polygon will be located on the circumference of the unit circle
+--   each point of the polygon will be located on the circumference of the unit circle. The center of the polygon is located at position (0,0)
 polygon:: (BSpace b ~ R2, Renderable (Path R2) b) => Int -> Diagram b
 polygon n = stroke . polygonPath $ n
 
