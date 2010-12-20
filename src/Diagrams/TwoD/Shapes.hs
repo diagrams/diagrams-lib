@@ -75,7 +75,7 @@ polygonVertices n = map (vertexGen n) [1..(n)]
 		    		   in rotate angle starting
    	      	 
 -- | Generate a sqaure which has its center at the origin(0,0) 
---   each side of the square will have length of one
+--   each side of the square will have length of one unit
 square ::  (BSpace b ~ R2, Renderable (Path R2) b) => Diagram b
 square = stroke . close $ pathFromVertices $ [origin, translateX 1 origin, translateX 1 (translateY 1 origin), translateY 1 origin]
 
