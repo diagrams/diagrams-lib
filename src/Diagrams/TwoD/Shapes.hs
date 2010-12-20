@@ -81,11 +81,12 @@ square = stroke . close $ pathFromVertices $ [origin, translateX 1 origin, trans
 
 
 -- | Generate a star polygon 
---   take numbers of angle as one of its arguement
 --   Formula: (pi*(p - 2q))/p ; p is the first arguement and q is the second arguement
 createStar :: (BSpace b ~ R2, Renderable (Path R2) b) => Int -> Int-> Diagram b
 createStar p q =  stroke . close $ pathFromVertices $ createStarH origin p q p 0
 
+-- | Create a path to draw a star 
+--   take staring point(P2) as an arguement; p and q from the star formula;cumulative angle as the third argument; star tracker as the forth arguement
 createStarH :: P2 -> Int -> Int -> Int -> Angle -> [P2]
 createStarH _ _ _ 0 _ = []
 createStarH v@(P r) p q n a = (point : createStarH point p q (n - 1) angle)
