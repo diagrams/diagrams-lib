@@ -40,6 +40,7 @@ module Diagrams.TwoD
 
          -- * Transformations
        , rotation, rotate
+       , rotationBy, rotateBy
        , scalingX, scaleX
        , scalingY, scaleY
        , translationX, translateX
@@ -51,6 +52,8 @@ module Diagrams.TwoD
        , circle
        , ellipse
        , arc
+       , polygon, polygonPath, polygonVertices
+       , square
 
          -- * Utilities
        , width, height, size2D

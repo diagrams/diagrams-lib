@@ -46,10 +46,10 @@ polygonVertices n = take n . iterate (rotate angle) $ start
   where start = translateX 1 origin
         angle = 2*pi / fromIntegral n
 
--- | Generate a sqaure which has its center at the origin(0,0)
---   each side of the square will have length of one unit
+-- | A sqaure with its center at the origin and sides of length 1,
+--   oriented parallel to the axes.
 square ::  (BSpace b ~ R2, Renderable (Path R2) b) => Diagram b
-square = stroke . close $ pathFromVertices $ [origin, translateX 1 origin, translateX 1 (translateY 1 origin), translateY 1 origin]
+square = scale (1/sqrt 2) . rotateBy (1/8) $ polygon 4
 
 -- | Generate a star polygon
 --   Formula: (pi*(p - 2q))/p ; p is the first arguement and q is the second arguement
