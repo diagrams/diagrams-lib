@@ -14,6 +14,7 @@
 
 module Diagrams.TwoD.Transform
        ( rotation, rotate
+       , rotationBy, rotateBy
        , scalingX, scaleX
        , scalingY, scaleY
        , translationX, translateX
@@ -31,14 +32,26 @@ import Control.Arrow (first, second)
 
 -- Do we want to rotate things in arbitrary dimensions?
 
+-- | Create a transformation which performs a rotation by the given
+--   angle in radians.
 rotation :: Angle -> Transformation R2
 rotation theta = fromLinear r (linv r)
   where
     rot th (x,y) = (cos th * x - sin th * y, sin th * x + cos th * y)
     r = rot theta <-> rot (-theta)
 
+-- | Rotate by the given angle in radians.
 rotate :: (TSpace t ~ R2, Transformable t) => Angle -> t -> t
 rotate = transform . rotation
+
+-- | Create a transformation which performs a rotation by the given
+--   fraction of a circle.
+rotationBy :: Double -> Transformation R2
+rotationBy = rotation . (*(2*pi))
+
+-- | Rotate by the given fraction of a circle.
+rotateBy :: (TSpace t ~ R2, Transformable t) => Angle -> t -> t
+rotateBy = transform . rotationBy
 
 -- | Construct a transformation which scales by the given factor in
 --   the x (horizontal) direction.
