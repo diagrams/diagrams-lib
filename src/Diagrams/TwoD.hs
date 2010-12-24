@@ -52,8 +52,11 @@ module Diagrams.TwoD
        , circle
        , ellipse
        , arc
+
+       , PolygonOrientation(..), PolygonOpts(..)
        , polygon, polygonPath, polygonVertices
        , square
+       , starPolygon
 
          -- * Utilities
        , width, height, size2D

@@ -13,9 +13,10 @@
 -----------------------------------------------------------------------------
 
 module Diagrams.TwoD.Shapes
-       ( polygon, polygonPath, polygonVertices
+       ( PolygonOrientation(..), PolygonOpts(..)
+       , polygon, polygonPath, polygonVertices
        , square
-       , createStar
+       , starPolygon
        ) where
 
 import Graphics.Rendering.Diagrams
@@ -27,39 +28,63 @@ import Diagrams.TwoD.Transform
 import qualified Data.Map as M
 
 import Data.Monoid (Any(..))
+import Data.Default
 
--- | Create a regular polygon with the given number of sides, with a
---   radius (distance from the center to any vertex) of one, and a
---   vertex at (1,0).
-polygon:: (BSpace b ~ R2, Renderable (Path R2) b) => Int -> Diagram b
+-- | Determine how a polygon should be oriented.
+data PolygonOrientation = NoOrient  -- ^ No special orientation; one
+                                    --   vertex will be at (1,0).
+                                    --   This is the default.
+                        | OrientToX -- ^ Orient so the botommost edge
+                                    --   is parallel to the x-axis.
+                        | OrientToY -- ^ Orient so the leftmost edge
+                                    --   is parallel to the y-axis.
+  deriving (Eq, Ord, Show, Read)
+
+data PolygonOpts = PolygonOpts {
+    sides       :: Int    -- ^ Number of sides; the default is 5.
+  , edgeSkip    :: Int    -- ^ Create star polygons by setting the
+                          --   edge skip to some number other than 1
+                          --   (the default).  With an edge skip of n,
+                          --   edges will connect every nth vertex.
+  , orientation :: PolygonOrientation
+                          -- ^ Determine how the polygon should be
+                          --   oriented.
+  }
+  deriving (Eq, Ord, Show, Read)
+
+instance Default PolygonOpts where
+  def = PolygonOpts { sides = 5, edgeSkip = 1, orientation = NoOrient }
+
+-- | Create a regular polygon from the given options.
+polygon :: (BSpace b ~ R2, Renderable (Path R2) b) => PolygonOpts -> Diagram b
 polygon = stroke . polygonPath
 
--- | Create a closed, radius-one regular polygonal path with the given
---   number of edges, with a vertex at (1,0).
-polygonPath:: Int -> Path R2
+-- | Create a regular polygonal path from the given options.
+polygonPath :: PolygonOpts -> Path R2
 polygonPath = close . pathFromVertices . polygonVertices
 
--- | Generate the vertices of a radius-one regular polygon with the
---   given number of sides, with a vertex at (1,0).
-polygonVertices:: Int -> [P2]
-polygonVertices n = take n . iterate (rotate angle) $ start
-  where start = translateX 1 origin
-        angle = 2*pi / fromIntegral n
+-- | Generate the vertices of a regular polygon from the given
+--   options.
+polygonVertices :: PolygonOpts -> [P2]
+polygonVertices opts = orient . take n . iterate (rotate angle) $ start
+  where start  = translateX 1 origin
+        angle  = (fromIntegral $ edgeSkip opts) * 2*pi / fromIntegral n
+        n      = sides opts
+        orient  | orientation opts == OrientToX = orientX
+                | orientation opts == OrientToY = orientY
+                | otherwise                     = id
+        orientX | odd n          = rotateBy (1/4)
+                | n `mod` 4 == 0 = rotate (angle/2)
+                | otherwise      = id
+        orientY | even n    = rotate (angle/2)
+                | otherwise = id
 
 -- | A sqaure with its center at the origin and sides of length 1,
 --   oriented parallel to the axes.
 square ::  (BSpace b ~ R2, Renderable (Path R2) b) => Diagram b
-square = scale (1/sqrt 2) . rotateBy (1/8) $ polygon 4
+square = scale (1/sqrt 2) $ polygon def { sides = 4, orientation = OrientToX }
 
--- | Generate a star polygon
---   Formula: (pi*(p - 2q))/p ; p is the first arguement and q is the second arguement
-createStar :: (BSpace b ~ R2, Renderable (Path R2) b) => Int -> Int-> Diagram b
-createStar p q =  stroke . close $ pathFromVertices $ createStarH origin p q p 0
-
--- | Create a path to draw a star
---   take staring point(P2) as an arguement; p and q from the star formula;cumulative angle as the third argument; star tracker as the forth arguement
-createStarH :: P2 -> Int -> Int -> Int -> Angle -> [P2]
-createStarH _ _ _ 0 _ = []
-createStarH v@(P r) p q n a = (point : createStarH point p q (n - 1) angle)
-          where angle = (a + pi - (pi*(fromIntegral p-2*(fromIntegral q))/fromIntegral p))
-                point = translateY (snd r) . translateX (fst r) $ rotate angle (translateY 1 origin)
+-- | @starPolygon p q@ creates a star polygon, where @p@ indicates the
+--   number of vertices, and an edge connects every @q@th vertex.
+starPolygon :: (BSpace b ~ R2, Renderable (Path R2) b) => Int -> Int -> Diagram b
+starPolygon p q = polygon def { sides = p, edgeSkip = q }

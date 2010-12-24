@@ -30,5 +30,6 @@ Library
                        containers >= 0.3 && < 0.5,
                        diagrams-core >= 0.1 && < 0.2,
                        vector-space >= 0.7 && < 0.8,
-                       colour >= 2.3.1 && < 2.4
+                       colour >= 2.3.1 && < 2.4,
+                       data-default >= 0.2 && < 0.3
   Hs-source-dirs:      src
