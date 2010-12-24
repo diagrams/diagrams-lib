@@ -48,7 +48,6 @@ module Diagrams.TwoD
        , reflectionY, reflectY
 
          -- * Shapes
-       , box
        , circle
        , ellipse
        , arc
