@@ -13,7 +13,7 @@
 -----------------------------------------------------------------------------
 
 module Diagrams.TwoD.Arc
-    ( arc
+    ( arc, arcT
     , bezierFromSweep
     ) where
 
@@ -76,10 +76,13 @@ across a situation with large enough arcs that they can actually see
 the approximation error.
 -}
 
+-- | A version of 'arc' that produces a 'Trail' instead of a 'Path'.
+arcT :: Angle -> Angle -> Trail R2
+arcT start end = Trail bs (sweep >= pi*2)
+  where sweep = end - start
+        bs    = map (rotate start) . bezierFromSweep $ sweep
+
 -- | Given a 'start' angle and an 'end' angle, 'arc' is the path of
 --   a radius one arc counter clockwise between the two angles.
 arc :: Angle -> Angle -> Path R2
-arc start end = Path (sweep >= pi*2) p bs
-  where sweep = end - start
-        p = rotate start (P (1,0))
-        bs = map (rotate start) . bezierFromSweep $ sweep
+arc start end = pathFromTrailAt (arcT start end) (rotate start $ P (1,0))

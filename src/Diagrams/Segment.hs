@@ -42,7 +42,7 @@ import Control.Applicative (liftA2)
 --   direction, but no definite location in space.
 data Segment v = Linear v
                | Cubic v v v
-  deriving (Show, Functor)
+  deriving (Show, Functor, Eq, Ord)
 
 -- | Note that since segments are translationally invariant,
 --   translating a segment has no effect.  Thus the translational
