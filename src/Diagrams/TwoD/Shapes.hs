@@ -59,9 +59,9 @@ instance Default PolygonOpts where
 polygon :: (BSpace b ~ R2, Renderable (Path R2) b) => PolygonOpts -> Diagram b
 polygon = stroke . polygonPath
 
--- | Create a regular polygonal path from the given options.
+-- | Create a closed regular polygonal path from the given options.
 polygonPath :: PolygonOpts -> Path R2
-polygonPath = close . pathFromVertices . polygonVertices
+polygonPath = closePath . pathFromVertices . polygonVertices
 
 -- | Generate the vertices of a regular polygon from the given
 --   options.
