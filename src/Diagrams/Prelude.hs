@@ -13,17 +13,18 @@
 -----------------------------------------------------------------------------
 
 module Diagrams.Prelude
-       ( with, (<>)
-
-       , module Graphics.Rendering.Diagrams
+       (
+         module Graphics.Rendering.Diagrams
 
        , module Diagrams.Attributes
        , module Diagrams.Combinators
        , module Diagrams.Path
        , module Diagrams.Segment
        , module Diagrams.TwoD
+       , module Diagrams.Util
 
        , module Data.Monoid
+
        ) where
 
 import Graphics.Rendering.Diagrams
@@ -33,14 +34,10 @@ import Diagrams.Combinators
 import Diagrams.Path
 import Diagrams.Segment
 import Diagrams.TwoD
+import Diagrams.Util
 
 import Data.Default
 
 import Data.Monoid
 
--- | XXX comment me
-with :: Default d => d
-with = def
 
-(<>) :: Monoid m => m -> m -> m
-(<>) = mappend

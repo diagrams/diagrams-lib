@@ -25,6 +25,8 @@ import Diagrams.Path
 import Diagrams.TwoD.Types
 import Diagrams.TwoD.Transform
 
+import Diagrams.Util
+
 import qualified Data.Map as M
 
 import Data.Monoid (Any(..))
@@ -88,3 +90,33 @@ square = scale (1/sqrt 2) $ polygon def { sides = 4, orientation = OrientToX }
 --   number of vertices, and an edge connects every @q@th vertex.
 starPolygon :: (BSpace b ~ R2, Renderable (Path R2) b) => Int -> Int -> Diagram b
 starPolygon p q = polygon def { sides = p, edgeSkip = q }
+
+-- | An equilateral triangle, with radius 1 and base parallel to the
+--   x-axis.
+eqTriangle :: (BSpace b ~ R2, Renderable (Path R2) b) => Diagram b
+eqTriangle = polygon with {sides = 3, orientation = OrientToX}
+
+pentagon :: (BSpace b ~ R2, Renderable (Path R2) b) => Diagram b
+pentagon = writeMe "pentagon"
+
+hexagon :: (BSpace b ~ R2, Renderable (Path R2) b) => Diagram b
+hexagon = writeMe "hexagon"
+
+septagon :: (BSpace b ~ R2, Renderable (Path R2) b) => Diagram b
+septagon = writeMe "septagon"
+
+octagon :: (BSpace b ~ R2, Renderable (Path R2) b) => Diagram b
+octagon = writeMe "octagon"
+
+nonagon :: (BSpace b ~ R2, Renderable (Path R2) b) => Diagram b
+nonagon = writeMe "nonagon"
+
+decagon :: (BSpace b ~ R2, Renderable (Path R2) b) => Diagram b
+decagon = writeMe "decagon"
+
+-- | Construct a triangle from three side lengths, if possible.  The
+--   longest side will be parallel to the x-axis.
+triangleFromSides :: (BSpace b ~ R2, Renderable (Path R2) b)
+                  => Double -> Double -> Double -> Maybe (Diagram b)
+triangleFromSides = writeMe "triangleFromSides"
+
