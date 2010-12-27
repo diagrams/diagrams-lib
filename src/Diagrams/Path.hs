@@ -27,7 +27,7 @@ module Diagrams.Path
 
        , emptyTrail
        , trailFromOffsets, trailFromVertices
-       , close, open
+       , closeTrail, openTrail
 
          -- ** Computing with trails
 
@@ -42,7 +42,7 @@ module Diagrams.Path
 
        , emptyPath
        , pathFromVertices,  pathFromOffsets, pathFromTrailAt
-       , closePath, openPath
+       , close, open
 
          -- ** Computing with paths
 
@@ -122,12 +122,12 @@ trailFromVertices vvs@(v:vs)
           }
 
 -- | Close a trail.
-close :: Trail v -> Trail v
-close t = t { isClosed = True }
+closeTrail :: Trail v -> Trail v
+closeTrail t = t { isClosed = True }
 
 -- | Open a trail.
-open :: Trail v -> Trail v
-open t = t { isClosed = False }
+openTrail :: Trail v -> Trail v
+openTrail t = t { isClosed = False }
 
 ------------------------------------------------------------
 --  Computing with trails  ---------------------------------
@@ -208,12 +208,12 @@ pathFromTrailAt :: Trail v -> Point v -> Path v
 pathFromTrailAt t p = Path $ S.singleton (t, p)
 
 -- | Close a path by closing all its constituent trails.
-closePath :: Ord v => Path v -> Path v
-closePath (Path s) = Path $ S.map (close *** id) s
+close :: Ord v => Path v -> Path v
+close (Path s) = Path $ S.map (closeTrail *** id) s
 
 -- | Open a path by closing all its constituent trails.
-openPath :: Ord v => Path v -> Path v
-openPath (Path s) = Path $ S.map (open *** id) s
+open :: Ord v => Path v -> Path v
+open (Path s) = Path $ S.map (openTrail *** id) s
 
 
 ------------------------------------------------------------
