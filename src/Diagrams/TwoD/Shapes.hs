@@ -61,7 +61,7 @@ polygon = stroke . polygonPath
 
 -- | Create a closed regular polygonal path from the given options.
 polygonPath :: PolygonOpts -> Path R2
-polygonPath = closePath . pathFromVertices . polygonVertices
+polygonPath = close . pathFromVertices . polygonVertices
 
 -- | Generate the vertices of a regular polygon from the given
 --   options.
