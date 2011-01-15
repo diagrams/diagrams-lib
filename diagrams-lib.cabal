@@ -26,11 +26,13 @@ Library
                        Diagrams.TwoD.Shapes,
                        Diagrams.TwoD.Util,
                        Diagrams.Animation,
-                       Diagrams.Util
+                       Diagrams.Util,
+                       Diagrams.Backend.Show
   Build-depends:       base >= 4.2 && < 4.4,
                        containers >= 0.3 && < 0.5,
                        diagrams-core >= 0.1 && < 0.2,
                        vector-space >= 0.7 && < 0.8,
                        colour >= 2.3.1 && < 2.4,
-                       data-default >= 0.2 && < 0.3
+                       data-default >= 0.2 && < 0.3,
+                       pretty >= 1.0.1.2 && < 1.1
   Hs-source-dirs:      src
