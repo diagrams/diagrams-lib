@@ -85,8 +85,8 @@ ellipseCenter :: Ellipse -> P2
 ellipseCenter (Ellipse e) = papply e origin
 
 -- | Compute the angle to the major axis of an ellipse, measured
---   counterclockwise from the positive x axis.  The result t will
---   always be the range t >= 0 and t < pi.
+--   counterclockwise from the positive x axis.  The result will
+--   be in the range [0, pi).
 ellipseAngle :: Ellipse -> Angle
 ellipseAngle ell
   | y < 0     = pi + atan2 y x
