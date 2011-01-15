@@ -19,6 +19,7 @@ module Diagrams.TwoD.Ellipse
     , ellipseCoeffs
     , ellipseCenter
     , ellipseAngle
+    , ellipseAxes
     , ellipseScale
     ) where
 
@@ -30,6 +31,8 @@ import Diagrams.TwoD.Types
 import Diagrams.TwoD.Transform
 
 import Data.Monoid (Any(..), mempty)
+
+import Data.VectorSpace (magnitudeSq, magnitude, (^-^))
 
 -- | An ellipse is represented by an affine transformation acting on
 --   the unit circle.
@@ -81,28 +84,28 @@ ellipseCoeffs (Ellipse eT) = (      a*a + d*d      -- x^2
 ellipseCenter :: Ellipse -> P2
 ellipseCenter (Ellipse e) = papply e origin
 
--- Below formulas taken from http://mathworld.wolfram.com/Ellipse.html
-
 -- | Compute the angle to the major axis of an ellipse, measured
---   counterclockwise from the positive x axis.
+--   counterclockwise from the positive x axis.  The result t will
+--   always be the range t >= 0 and t < pi.
 ellipseAngle :: Ellipse -> Angle
 ellipseAngle ell
-  | b == 0 && a <= c  = 0
-  | b == 0 && a >  c  = pi/2
-  | a <  c            = atan (b/(a-c)) / 2
-  | otherwise         = (pi + atan (b/(a-c))) / 2
-  where (a,b,c,_,_,_) = ellipseCoeffs ell
+  | y < 0     = pi + atan2 y x
+  | otherwise = atan2 y x
+  where ((x,y),_) = ellipseAxes ell
+
+-- | Compute the vectors (va, vb) from the center of the ellipse to the edge of the
+--   ellipse along the major and minor axes.  These vectors can lie in any quadrent
+--   depending on how the ellipse has been transformed.
+ellipseAxes :: Ellipse -> (R2, R2)
+ellipseAxes (Ellipse eT) = if magnitudeSq va >= magnitudeSq vb then (va,vb) else (vb,va)
+  where a     = apply eT (1,0)
+        b     = apply eT (0,1)
+        v     = apply eT (0,0)
+        va    = a ^-^ v
+        vb    = b ^-^ v
 
 -- | Compute the scaling factors of an ellipse, i.e. (a,b) where a and
 --   b are half the lengths of the major and minor axes respectively.
 ellipseScale :: Ellipse -> (Double, Double)
-ellipseScale ell = ( sqrt (num / (r * ( disc - (a+c))))
-                   , sqrt (num / (r * (-disc - (a+c))))
-                   )
-  where num  = 2*(a*f*f + c*d*d + g*b*b - 2*b*d*f - a*c*g)
-        disc = sqrt ((a - c)^2 +4*b*b)
-        r    = (b*b - a*c)
-        (a,b',c,d',f',g) = ellipseCoeffs ell
-        b = b'/2
-        d = d'/2
-        f = f'/2
+ellipseScale ell = (magnitude a, magnitude b)
+  where (a,b) = ellipseAxes ell
