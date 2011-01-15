@@ -89,7 +89,7 @@ ellipseAngle :: Ellipse -> Angle
 ellipseAngle ell
   | b == 0 && a <= c  = 0
   | b == 0 && a >  c  = pi/2
-  | a <= c            = atan (b/(a-c)) / 2
+  | a <  c            = atan (b/(a-c)) / 2
   | otherwise         = (pi + atan (b/(a-c))) / 2
   where (a,b,c,_,_,_) = ellipseCoeffs ell
 
