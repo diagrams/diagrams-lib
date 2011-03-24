@@ -12,13 +12,12 @@
 --
 -----------------------------------------------------------------------------
 
-module Diagrams.Combinators
-       ( beside
-
-       ) where
+module Diagrams.Combinators where
 
 import Graphics.Rendering.Diagrams
 import Graphics.Rendering.Diagrams.Transform (HasLinearMap)
+
+import Diagrams.Segment (Segment(..), segmentBounds)
 
 import Data.AdditiveGroup
 import Data.VectorSpace
@@ -40,11 +39,15 @@ beside v d1@(Diagram _ (Bounds b1) _ _)
     rebase (P $ b2 (negateV v) *^ negateV v) d2
 
 -- | @strut v@ is a diagram which produces no output, but for the
--- purposes of alignment and bounding regions acts like a
--- 1-dimensional segment oriented along the vector @v@.  Useful for
--- manually creating separation between two diagrams.
-strut :: (BSpace b ~ v, Monoid a) => v -> AnnDiagram b a
-strut v = undefined
+--   purposes of alignment and bounding regions acts like a
+--   1-dimensional segment oriented along the vector @v@.  Useful for
+--   manually creating separation between two diagrams.
+strut :: ( BSpace b ~ v, Scalar v ~ s
+         , InnerSpace v, Floating s, Ord s, AdditiveGroup s
+         , Monoid a
+         )
+      => v -> AnnDiagram b a
+strut v = mempty { bounds = segmentBounds (Linear v) }
 
 -- XXX comment me
 data Alignment = AlignLeft | AlignRight | AlignCenter
