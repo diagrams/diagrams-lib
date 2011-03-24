@@ -18,6 +18,7 @@ import Graphics.Rendering.Diagrams
 import Graphics.Rendering.Diagrams.Transform (HasLinearMap, moveTo)
 
 import Diagrams.Segment (Segment(..), segmentBounds)
+import Diagrams.Path
 
 import Data.AdditiveGroup
 import Data.VectorSpace
@@ -68,6 +69,17 @@ position :: ( Backend b, BSpace b ~ v, Scalar v ~ s
             )
          => [ (Point v, AnnDiagram b a) ] -> AnnDiagram b a
 position = mconcat . map (uncurry moveTo)
+
+-- | Combine a list of diagrams by using them to \"decorate\" a trail,
+--   placing the local origin of one diagram at each successive vertex.
+--   XXX say more
+decorateTrail :: ( Backend b, BSpace b ~ v, Scalar v ~ s
+                 , InnerSpace v, HasLinearMap v
+                 , AdditiveGroup s, Ord s, Floating s
+                 , Monoid a
+                 )
+              => Trail v -> [AnnDiagram b a] -> AnnDiagram b a
+decorateTrail t = position . zip (trailVertices origin t)
 
 -- XXX comment me
 data Alignment = AlignLeft | AlignRight | AlignCenter
