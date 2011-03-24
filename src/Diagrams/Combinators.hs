@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeFamilies, FlexibleContexts #-}
+{-# LANGUAGE TypeFamilies, FlexibleContexts, UndecidableInstances #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Combinators
@@ -12,14 +12,19 @@
 --
 -----------------------------------------------------------------------------
 
-module Diagrams.Combinators where
+module Diagrams.Combinators
+       ( beside
+
+       ) where
 
 import Graphics.Rendering.Diagrams
 import Graphics.Rendering.Diagrams.Transform (HasLinearMap)
 
+import Data.AdditiveGroup
 import Data.VectorSpace
 
 import Data.Monoid
+import Data.Default
 
 -- | Place two diagrams next to each other along the given vector.
 --   XXX write more. note where origin ends up.
@@ -33,3 +38,55 @@ beside v d1@(Diagram _ (Bounds b1) _ _)
          d2@(Diagram _ (Bounds b2) _ _)
   = rebase (P $ b1 v *^ v) d1 `atop`
     rebase (P $ b2 (negateV v) *^ negateV v) d2
+
+-- | @strut v@ is a diagram which produces no output, but for the
+-- purposes of alignment and bounding regions acts like a
+-- 1-dimensional segment oriented along the vector @v@.  Useful for
+-- manually creating separation between two diagrams.
+strut :: (BSpace b ~ v, Monoid a) => v -> AnnDiagram b a
+strut v = undefined
+
+-- XXX comment me
+data Alignment = AlignLeft | AlignRight | AlignCenter
+
+-- XXX comment me
+data Positioning = PositionFront | PositionCenter | PositionBack
+
+-- XXX comment me
+data CatMethod v = CatSep (Scalar v)
+                 | CatRep (Scalar v) Positioning
+                 | CatDistrib (Scalar v) Positioning
+
+-- XXX comment me
+data CatOpts v = CatOpts
+  { catDir      :: v
+  , catMethod   :: CatMethod v
+  , catAlignDir :: v
+  , catAlign    :: Alignment
+  }
+
+instance (AdditiveGroup v, AdditiveGroup (Scalar v)) => Default (CatOpts v) where
+  def = CatOpts { catDir      = zeroV
+                , catMethod   = CatSep (zeroV)
+                , catAlignDir = zeroV
+                , catAlign    = AlignCenter
+                }
+
+-- XXX comment me
+cat' :: (Backend b, BSpace b ~ v)
+    => CatOpts v -> [AnnDiagram b a] -> AnnDiagram b a
+cat' (CatOpts { catDir      = dir
+              , catMethod   = meth
+              , catAlignDir = aDir
+              , catAlign    = algn
+              })
+     dias
+  = undefined
+
+-- cat
+
+-- along
+
+-- at
+
+-- grid
