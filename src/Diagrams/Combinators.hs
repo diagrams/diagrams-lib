@@ -15,7 +15,7 @@
 module Diagrams.Combinators where
 
 import Graphics.Rendering.Diagrams
-import Graphics.Rendering.Diagrams.Transform (HasLinearMap)
+import Graphics.Rendering.Diagrams.Transform (HasLinearMap, moveTo)
 
 import Diagrams.Segment (Segment(..), segmentBounds)
 
@@ -24,6 +24,10 @@ import Data.VectorSpace
 
 import Data.Monoid
 import Data.Default
+
+------------------------------------------------------------
+-- Combining two diagrams
+------------------------------------------------------------
 
 -- | Place two diagrams next to each other along the given vector.
 --   XXX write more. note where origin ends up.
@@ -38,6 +42,8 @@ beside v d1@(Diagram _ (Bounds b1) _ _)
   = rebase (P $ b1 v *^ v) d1 `atop`
     rebase (P $ b2 (negateV v) *^ negateV v) d2
 
+
+-- XXX this should move to a different module?
 -- | @strut v@ is a diagram which produces no output, but for the
 --   purposes of alignment and bounding regions acts like a
 --   1-dimensional segment oriented along the vector @v@.  Useful for
@@ -48,6 +54,20 @@ strut :: ( BSpace b ~ v, Scalar v ~ s
          )
       => v -> AnnDiagram b a
 strut v = mempty { bounds = segmentBounds (Linear v) }
+
+------------------------------------------------------------
+-- Combining multiple diagrams
+------------------------------------------------------------
+
+-- | Assign absolute positions to the origins of some diagrams,
+--   combining them into one.
+position :: ( Backend b, BSpace b ~ v, Scalar v ~ s
+            , InnerSpace v, HasLinearMap v
+            , AdditiveGroup s, Ord s, Floating s
+            , Monoid a
+            )
+         => [ (Point v, AnnDiagram b a) ] -> AnnDiagram b a
+position = mconcat . map (uncurry moveTo)
 
 -- XXX comment me
 data Alignment = AlignLeft | AlignRight | AlignCenter
