@@ -32,6 +32,7 @@ module Diagrams.Path
          -- ** Computing with trails
 
        , trailOffsets, trailOffset
+       , trailVertices
        , trailBounds
 
          -- * Paths
@@ -141,6 +142,10 @@ trailOffsets (Trail segs _) = map segOffset segs
 trailOffset :: AdditiveGroup v => Trail v -> v
 trailOffset = sumV . trailOffsets
 
+-- | Extract the vertices of a trail given a starting point.
+trailVertices :: AdditiveGroup v => Point v -> Trail v -> [Point v]
+trailVertices p = scanl (.+^) p . trailOffsets
+
 -- | Compute the bounding function for a trail with a given starting
 --   point.
 trailBounds :: ( s ~ Scalar v
@@ -222,7 +227,7 @@ open (Path s) = Path $ S.map (openTrail *** id) s
 
 -- | Extract the vertices of a path.
 pathVertices :: (AdditiveGroup v, Ord v) => Path v -> S.Set [Point v]
-pathVertices (Path trs) = S.map (\(tr, p) -> scanl (.+^) p $ trailOffsets tr) trs
+pathVertices (Path trs) = S.map (\(tr, p) -> trailVertices p tr) trs
 
 -- | Compute the bounding function for an entire path.
 pathBounds :: ( s ~ Scalar v, Ord s, Floating s, AdditiveGroup s
