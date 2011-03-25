@@ -27,6 +27,10 @@ import Data.Monoid
 import Data.Default
 
 ------------------------------------------------------------
+-- Aligning diagrams
+------------------------------------------------------------
+
+------------------------------------------------------------
 -- Combining two diagrams
 ------------------------------------------------------------
 
@@ -38,10 +42,9 @@ beside :: ( Backend b, v ~ BSpace b, s ~ Scalar v
           , Monoid a
           )
        => v -> AnnDiagram b a -> AnnDiagram b a -> AnnDiagram b a
-beside v d1@(Diagram _ (Bounds b1) _ _)
-         d2@(Diagram _ (Bounds b2) _ _)
-  = rebase (P $ b1 v *^ v) d1 `atop`
-    rebase (P $ b2 (negateV v) *^ negateV v) d2
+beside v d1 d2
+  = rebase (P $ bounds d1 v *^ v) d1 `atop`
+    rebase (P $ bounds d2 (negateV v) *^ negateV v) d2
 
 
 -- XXX this should move to a different module?
@@ -54,7 +57,7 @@ strut :: ( BSpace b ~ v, Scalar v ~ s
          , Monoid a
          )
       => v -> AnnDiagram b a
-strut v = mempty { bounds = segmentBounds (Linear v) }
+strut v = mempty { bounds_ = segmentBounds (Linear v) }
 
 ------------------------------------------------------------
 -- Combining multiple diagrams
