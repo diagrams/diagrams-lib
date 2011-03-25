@@ -57,7 +57,7 @@ module Diagrams.Path
        ) where
 
 import Graphics.Rendering.Diagrams
-import Graphics.Rendering.Diagrams.Diagrams (rebaseBounds)
+import Graphics.Rendering.Diagrams.Bounds (rebaseBounds)
 import Graphics.Rendering.Diagrams.Transform (HasLinearMap)
 
 import Diagrams.Segment
@@ -246,15 +246,15 @@ stroke :: ( v ~ BSpace b, s ~ Scalar v
           , AdditiveGroup s, Ord s, Floating s
           )
        => Path v -> Diagram b
-stroke p = Diagram { prims  = prim p
-                   , bounds = pathBounds p
-                   , names  = mempty
+stroke p = Diagram { prims   = prim p
+                   , bounds_ = pathBounds p
+                   , names   = mempty
                           {-  XXX what to do here?
                               fromNames $ zip ([0..] :: [Int])
                                               (pathVertices p)  -- XXX names for Bezier
                                                                 --   control points too?
                           -}
-                   , sample = const (Any False)   -- Paths are infinitely thin
+                   , sample  = const (Any False)   -- Paths are infinitely thin
                               -- TODO: what about closed paths in 2D?
                    }
 

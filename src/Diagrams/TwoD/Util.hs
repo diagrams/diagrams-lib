@@ -24,12 +24,12 @@ size2D = width &&& height
 -- | Compute the absolute x-coordinate range of a diagram in R2, in
 --   the form (lo,hi).
 extentX :: (BSpace b ~ R2) => AnnDiagram b a -> (Double, Double)
-extentX (Diagram {bounds = Bounds b}) = (-b (-1,0), b (1,0))
+extentX d = (-bounds d (-1,0), bounds d (1,0))
 
 -- | Compute the absolute y-coordinate range of a diagram in R2, in
 --   the form (lo,hi).
 extentY :: (BSpace b ~ R2) => AnnDiagram b a -> (Double, Double)
-extentY (Diagram {bounds = Bounds b}) = (-b (0,-1), b (0,1))
+extentY d = (-bounds d (0,-1), bounds d (0,1))
 
 -- | Compute the center of a diagram in R2.
 center2D :: (BSpace b ~ R2) => AnnDiagram b a -> P2
