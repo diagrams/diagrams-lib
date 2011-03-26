@@ -43,8 +43,9 @@ beside :: ( Backend b, v ~ BSpace b, s ~ Scalar v
           )
        => v -> AnnDiagram b a -> AnnDiagram b a -> AnnDiagram b a
 beside v d1 d2
-  = rebase (P $ getBoundFunc (bounds d1) v *^ v) d1 `atop`
-    rebase (P $ getBoundFunc (bounds d2) (negateV v) *^ negateV v) d2
+  = moveOriginTo (P $ getBoundFunc (bounds d1) v *^ v) d1 `atop`
+    moveOriginTo (P $ getBoundFunc (bounds d2) (negateV v) *^ negateV v) d2
+  -- XXX reimplement in terms of more basic "align" functions
 
 
 -- XXX this should move to a different module?

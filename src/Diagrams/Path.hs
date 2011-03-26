@@ -56,7 +56,6 @@ module Diagrams.Path
        ) where
 
 import Graphics.Rendering.Diagrams
-import Graphics.Rendering.Diagrams.Bounds (rebaseBounds)
 import Graphics.Rendering.Diagrams.Transform (HasLinearMap)
 
 import Diagrams.Segment
@@ -194,6 +193,10 @@ instance ( s ~ Scalar v, Ord s, Floating s, AdditiveGroup s
   bounds (Path trs) =  F.foldMap trailBounds trs
     where trailBounds (t, p) = translate (p .-. origin) (bounds t)
       -- XXX use moveOriginTo?  Can probably remove HasLinearMap in that case?
+
+instance (Ord v, AdditiveGroup v) => HasOrigin (Path v) where
+  type OriginSpace (Path v) = v
+  moveOriginTo p (Path s) = Path $ S.map (id *** moveOriginTo p) s
 
 ------------------------------------------------------------
 --  Constructing paths  ------------------------------------
