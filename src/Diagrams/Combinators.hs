@@ -39,9 +39,9 @@ import Data.Default
 beside :: ( Backend b, v ~ BSpace b, s ~ Scalar v
           , HasLinearMap v, InnerSpace v
           , AdditiveGroup s, Fractional s, Ord s
-          , Monoid a
+          , Monoid m
           )
-       => v -> AnnDiagram b a -> AnnDiagram b a -> AnnDiagram b a
+       => v -> AnnDiagram b m -> AnnDiagram b m -> AnnDiagram b m
 beside v d1 d2
   = moveOriginTo (P $ getBoundFunc (bounds d1) v *^ v) d1 `atop`
     moveOriginTo (P $ getBoundFunc (bounds d2) (negateV v) *^ negateV v) d2
@@ -55,9 +55,9 @@ beside v d1 d2
 --   manually creating separation between two diagrams.
 strut :: ( BSpace b ~ v, Scalar v ~ s
          , InnerSpace v, Floating s, Ord s, AdditiveGroup s
-         , Monoid a
+         , Monoid m
          )
-      => v -> AnnDiagram b a
+      => v -> AnnDiagram b m
 strut v = mempty { bounds_ = bounds (Linear v) }
 
 ------------------------------------------------------------
@@ -69,9 +69,9 @@ strut v = mempty { bounds_ = bounds (Linear v) }
 position :: ( Backend b, BSpace b ~ v, Scalar v ~ s
             , InnerSpace v, HasLinearMap v
             , AdditiveGroup s, Ord s, Floating s
-            , Monoid a
+            , Monoid m
             )
-         => [ (Point v, AnnDiagram b a) ] -> AnnDiagram b a
+         => [ (Point v, AnnDiagram b m) ] -> AnnDiagram b m
 position = mconcat . map (uncurry moveTo)
 
 -- | Combine a list of diagrams by using them to \"decorate\" a trail,
@@ -80,9 +80,9 @@ position = mconcat . map (uncurry moveTo)
 decorateTrail :: ( Backend b, BSpace b ~ v, Scalar v ~ s
                  , InnerSpace v, HasLinearMap v
                  , AdditiveGroup s, Ord s, Floating s
-                 , Monoid a
+                 , Monoid m
                  )
-              => Trail v -> [AnnDiagram b a] -> AnnDiagram b a
+              => Trail v -> [AnnDiagram b m] -> AnnDiagram b m
 decorateTrail t = position . zip (trailVertices origin t)
 
 -- XXX comment me
@@ -113,7 +113,7 @@ instance (AdditiveGroup v, AdditiveGroup (Scalar v)) => Default (CatOpts v) wher
 
 -- XXX comment me
 cat' :: (Backend b, BSpace b ~ v)
-    => CatOpts v -> [AnnDiagram b a] -> AnnDiagram b a
+    => CatOpts v -> [AnnDiagram b m] -> AnnDiagram b m
 cat' (CatOpts { catDir      = dir
               , catMethod   = meth
               , catAlignDir = aDir
