@@ -17,7 +17,7 @@ module Diagrams.Combinators where
 import Graphics.Rendering.Diagrams
 import Graphics.Rendering.Diagrams.Transform (HasLinearMap, moveTo)
 
-import Diagrams.Segment (Segment(..), segmentBounds)
+import Diagrams.Segment (Segment(..))
 import Diagrams.Path
 
 import Data.AdditiveGroup
@@ -43,8 +43,8 @@ beside :: ( Backend b, v ~ BSpace b, s ~ Scalar v
           )
        => v -> AnnDiagram b a -> AnnDiagram b a -> AnnDiagram b a
 beside v d1 d2
-  = rebase (P $ bounds d1 v *^ v) d1 `atop`
-    rebase (P $ bounds d2 (negateV v) *^ negateV v) d2
+  = rebase (P $ getBoundFunc (bounds d1) v *^ v) d1 `atop`
+    rebase (P $ getBoundFunc (bounds d2) (negateV v) *^ negateV v) d2
 
 
 -- XXX this should move to a different module?
@@ -57,7 +57,7 @@ strut :: ( BSpace b ~ v, Scalar v ~ s
          , Monoid a
          )
       => v -> AnnDiagram b a
-strut v = mempty { bounds_ = segmentBounds (Linear v) }
+strut v = mempty { bounds_ = bounds (Linear v) }
 
 ------------------------------------------------------------
 -- Combining multiple diagrams

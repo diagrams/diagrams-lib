@@ -1,5 +1,6 @@
 {-# LANGUAGE TypeFamilies
            , FlexibleContexts
+           , UndecidableInstances
            , DeriveFunctor
            , GeneralizedNewtypeDeriving
   #-}
@@ -33,7 +34,6 @@ module Diagrams.Path
 
        , trailOffsets, trailOffset
        , trailVertices
-       , trailBounds
 
          -- * Paths
 
@@ -48,7 +48,6 @@ module Diagrams.Path
          -- ** Computing with paths
 
        , pathVertices
-       , pathBounds
 
          -- * Constructing path-based diagrams
 
@@ -103,6 +102,17 @@ instance HasLinearMap v => Transformable (Trail v) where
   type TSpace (Trail v) = v
   transform t (Trail segs c) = Trail (transform t segs) c
 
+-- | The bounding function for a trail is based at the trail's start.
+instance ( s ~ Scalar v, Ord s, Floating s, AdditiveGroup s
+         , InnerSpace v, HasLinearMap v )
+         => Boundable (Trail v) where
+  type BoundSpace (Trail v) = v
+
+  bounds (Trail segs _) =
+    foldr (\seg bds -> translate (segOffset seg) bds <> bounds seg)
+          mempty
+          segs
+
 ------------------------------------------------------------
 --  Constructing trails  -----------------------------------
 ------------------------------------------------------------
@@ -146,19 +156,6 @@ trailOffset = sumV . trailOffsets
 trailVertices :: AdditiveGroup v => Point v -> Trail v -> [Point v]
 trailVertices p = scanl (.+^) p . trailOffsets
 
--- | Compute the bounding function for a trail with a given starting
---   point.
-trailBounds :: ( s ~ Scalar v
-               , Ord s, Floating s, AdditiveGroup s
-               , InnerSpace v
-               )
-            => Trail v -> Point v -> Bounds v
-trailBounds (Trail segs _) st = rebaseBounds ((-1) *. st) $
-  foldr (\seg bds -> rebaseBounds (P $ negateV (segOffset seg)) bds
-                     <> segmentBounds seg)
-        mempty
-        segs
-
 ------------------------------------------------------------
 --  Paths  -------------------------------------------------
 ------------------------------------------------------------
@@ -188,6 +185,15 @@ Careful!  It's tempting to just define
 but that doesn't take into account the fact that some
 of the v's are inside Points and hence ought to be translated.
 -}
+
+instance ( s ~ Scalar v, Ord s, Floating s, AdditiveGroup s
+         , InnerSpace v, HasLinearMap v)
+         => Boundable (Path v) where
+  type BoundSpace (Path v) = v
+
+  bounds (Path trs) =  F.foldMap trailBounds trs
+    where trailBounds (t, p) = translate (p .-. origin) (bounds t)
+      -- XXX use moveOriginTo?  Can probably remove HasLinearMap in that case?
 
 ------------------------------------------------------------
 --  Constructing paths  ------------------------------------
@@ -229,12 +235,6 @@ open (Path s) = Path $ S.map (openTrail *** id) s
 pathVertices :: (AdditiveGroup v, Ord v) => Path v -> S.Set [Point v]
 pathVertices (Path trs) = S.map (\(tr, p) -> trailVertices p tr) trs
 
--- | Compute the bounding function for an entire path.
-pathBounds :: ( s ~ Scalar v, Ord s, Floating s, AdditiveGroup s
-              , InnerSpace v)
-           => Path v -> Bounds v
-pathBounds (Path trs) = F.foldMap (uncurry trailBounds) trs
-
 ------------------------------------------------------------
 --  Constructing path-based diagrams  ----------------------
 ------------------------------------------------------------
@@ -242,12 +242,12 @@ pathBounds (Path trs) = F.foldMap (uncurry trailBounds) trs
 -- | Convert a path into a diagram.  The resulting diagram has the
 --   names 0, 1, ... assigned to each of the path's vertices.
 stroke :: ( v ~ BSpace b, s ~ Scalar v
-          , InnerSpace v, Renderable (Path v) b
+          , InnerSpace v, HasLinearMap v, Renderable (Path v) b
           , AdditiveGroup s, Ord s, Floating s
           )
        => Path v -> Diagram b
 stroke p = Diagram { prims   = prim p
-                   , bounds_ = pathBounds p
+                   , bounds_ = bounds p
                    , names   = mempty
                           {-  XXX what to do here?
                               fromNames $ zip ([0..] :: [Int])
@@ -257,10 +257,12 @@ stroke p = Diagram { prims   = prim p
                    , sample  = const (Any False)   -- Paths are infinitely thin
                               -- TODO: what about closed paths in 2D?
                    }
+-- XXX can remove HasLinearMap constraint above once we add a HasOrigin class?
+--     and below.
 
 -- | Combination of 'pathFromTrail' and 'stroke' for convenience.
 strokeT :: ( v ~ BSpace b, s ~ Scalar v
-           , InnerSpace v, Renderable (Path v) b
+           , InnerSpace v, HasLinearMap v, Renderable (Path v) b
            , AdditiveGroup s, Ord s, Floating s
            )
         => Trail v -> Diagram b

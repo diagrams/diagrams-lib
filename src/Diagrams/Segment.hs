@@ -1,4 +1,9 @@
-{-# LANGUAGE TypeFamilies, FlexibleContexts, DeriveFunctor #-}
+{-# LANGUAGE TypeFamilies
+           , FlexibleContexts
+           , FlexibleInstances
+           , UndecidableInstances
+           , DeriveFunctor
+  #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Segment
@@ -21,7 +26,6 @@ module Diagrams.Segment
          -- * Computation
        , atParam, segOffset
 
-       , segmentBounds
        ) where
 
 import Graphics.Rendering.Diagrams
@@ -116,19 +120,24 @@ quadForm a b c
   | otherwise = [(-b + sqrt d)/(2*a), (-b - sqrt d)/(2*a)]
  where d = b*b - 4*a*c
 
--- | Compute the bounding function for a segment.
-segmentBounds :: (InnerSpace v, Ord (Scalar v), Floating (Scalar v))
-              => Segment v -> Bounds v
-segmentBounds s@(Linear x1) = Bounds $ \v ->
-  maximum . map (\t -> (s `atParam` t <.> v) / magnitude v) $ [0,1]
-segmentBounds s@(Cubic c1 c2 x2) = Bounds $ \v ->
-  maximum .
-  map (\t -> (s `atParam` t <.> v) / magnitude v) $
-  [0,1] ++
-  filter (liftA2 (&&) (>0) (<1))
-    (quadForm (3 * ((c1 ^-^ c2 ^+^ x2) <.> v))
-              (2 * (((-2) *^ c1 ^+^ c2) <.> v))
-              (c1 <.> v))
+-- | The bounding function for a segment is based at the segment's
+--   start.
+instance (InnerSpace v, Ord (Scalar v), Floating (Scalar v))
+         => Boundable (Segment v) where
+
+  type BoundSpace (Segment v) = v
+
+  bounds (s@(Linear {})) = Bounds $ \v ->
+    maximum . map (\t -> ((s `atParam` t) <.> v) / magnitude v) $ [0,1]
+
+  bounds (s@(Cubic c1 c2 x2)) = Bounds $ \v ->
+    maximum .
+    map (\t -> ((s `atParam` t) <.> v) / magnitude v) $
+    [0,1] ++
+    filter (liftA2 (&&) (>0) (<1))
+      (quadForm (3 * ((c1 ^-^ c2 ^+^ x2) <.> v))
+                (2 * (((-2) *^ c1 ^+^ c2) <.> v))
+                (c1 <.> v))
 
 {- XXX TODO
 
