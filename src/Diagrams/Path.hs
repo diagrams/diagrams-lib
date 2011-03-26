@@ -18,17 +18,15 @@
 
 module Diagrams.Path
        (
+         -- * Path-like things
+
+         PathLike(..), fromOffsets, fromVertices
+
          -- * Trails
 
-         Trail(..)
+       , Trail(..)
 
-         -- ** Constructing trails
-
-       , emptyTrail
-       , trailFromOffsets, trailFromVertices
-       , closeTrail, openTrail
-
-         -- ** Computing with trails
+         -- ** Destructing trails
 
        , trailOffsets, trailOffset
        , trailVertices
@@ -39,9 +37,8 @@ module Diagrams.Path
 
          -- ** Constructing paths
 
-       , emptyPath
-       , pathFromVertices,  pathFromOffsets, pathFromTrailAt
-       , close, open
+       , pathFromTrail
+       , pathFromTrailAt
 
          -- ** Computing with paths
 
@@ -71,29 +68,70 @@ import Control.Arrow ((***))
 (<>) = mappend
 
 ------------------------------------------------------------
+--  PathLike class
+------------------------------------------------------------
+
+-- | Type class for path-like things, which must be monoids.
+--   Instances include 'Trail's, 'Path's, and 'MultiPath's.
+class Monoid p => PathLike p where
+  type PathSpace p :: *
+
+  -- | Set the starting point of the path-like thing.  Some path-like
+  --   things (e.g. 'Trail's) may ignore this operation.
+  setStart   :: Point (PathSpace p)   -> p -> p
+
+  -- | Construct a path-like thing from a list of 'Segment's.
+  fromSegments :: [Segment (PathSpace p)] -> p
+
+  -- | \"Close\" a path-like thing.
+  close :: p -> p
+
+  -- | \"Open\" a path-like thing.
+  open  :: p -> p
+
+-- | Construct a path-like thing of linear segments from a list of
+--   offsets.
+fromOffsets :: PathLike p => [PathSpace p] -> p
+fromOffsets = fromSegments . map Linear
+
+-- | Construct a path-like thing of linear segments from a list of
+--   vertices, with the first vertex as the starting point.
+fromVertices :: (PathLike p, AdditiveGroup (PathSpace p))
+             => [Point (PathSpace p)] -> p
+fromVertices []         = mempty
+fromVertices vvs@(v:vs) = setStart v $ fromOffsets (zipWith (flip (.-.)) vvs vs)
+
+------------------------------------------------------------
 --  Trails  ------------------------------------------------
 ------------------------------------------------------------
 
 -- | A /trail/ is a sequence of segments placed end-to-end.  Trails
 --   are thus translationally invariant, and form a monoid under
 --   concatenation.  Trails can also be /open/ (the default) or
---   /closed/ (the final point in the trail is implicitly connected
---   back to the starting point).
-
+--   /closed/ (the final point in a closed trail is implicitly
+--   connected back to the starting point).
 data Trail v = Trail { trailSegments :: [Segment v]
                      , isClosed      :: Bool
                      }
   deriving (Show, Functor, Eq, Ord)
 
--- | The empty trail, with no segments.
-emptyTrail :: Trail v
-emptyTrail = Trail [] False
-
--- | Trails are composed via concatenation.  @t1 `mappend` t2@ is
---   closed iff either @t1@ or @t2@ are.
+-- | The empty trail has no segments.  Trails are composed via
+--   concatenation.  @t1 `mappend` t2@ is closed iff either @t1@ or
+--   @t2@ are.
 instance Monoid (Trail v) where
-  mempty = emptyTrail
+  mempty = Trail [] False
   Trail t1 c1 `mappend` Trail t2 c2 = Trail (t1 ++ t2) (c1 || c2)
+
+-- | Trails are 'PathLike' things.  Note that since trails are
+--   translationally invariant, 'setStart' has no effect.
+--   'fromSegments' creates an open trail.
+instance PathLike (Trail v) where
+  type PathSpace (Trail v) = v
+
+  setStart _ tr     = tr
+  fromSegments segs = Trail segs False
+  close tr          = tr { isClosed = True }
+  open tr           = tr { isClosed = False }
 
 instance HasLinearMap v => Transformable (Trail v) where
   type TSpace (Trail v) = v
@@ -101,41 +139,14 @@ instance HasLinearMap v => Transformable (Trail v) where
 
 -- | The bounding function for a trail is based at the trail's start.
 instance ( s ~ Scalar v, Ord s, Floating s, AdditiveGroup s
-         , InnerSpace v, HasLinearMap v )
+         , InnerSpace v )
          => Boundable (Trail v) where
   type BoundSpace (Trail v) = v
 
   bounds (Trail segs _) =
-    foldr (\seg bds -> translate (segOffset seg) bds <> bounds seg)
+    foldr (\seg bds -> moveOriginTo (P . negateV . segOffset $ seg) bds <> bounds seg)
           mempty
           segs
-
-------------------------------------------------------------
---  Constructing trails  -----------------------------------
-------------------------------------------------------------
-
--- | Build an open trail of linear segments from a list of offsets.
-trailFromOffsets :: [v] -> Trail v
-trailFromOffsets segs = Trail { trailSegments = map Linear segs
-                              , isClosed      = False
-                              }
-
--- | Build an open trail of linear segments from a list of vertices,
---   remembering only the relative positions of the points.
-trailFromVertices :: AdditiveGroup v => [Point v] -> Trail v
-trailFromVertices [] = mempty
-trailFromVertices vvs@(v:vs)
-  = Trail { trailSegments = map Linear $ zipWith (flip (.-.)) vvs vs
-          , isClosed      = False
-          }
-
--- | Close a trail.
-closeTrail :: Trail v -> Trail v
-closeTrail t = t { isClosed = True }
-
--- | Open a trail.
-openTrail :: Trail v -> Trail v
-openTrail t = t { isClosed = False }
 
 ------------------------------------------------------------
 --  Computing with trails  ---------------------------------
@@ -164,9 +175,22 @@ trailVertices p = scanl (.+^) p . trailOffsets
 newtype Path v = Path { pathTrails :: S.Set (Trail v, Point v) }
   deriving (Show, Monoid, Eq, Ord)
 
--- | The empty path consisting of no trails.
-emptyPath :: Path v
-emptyPath = Path S.empty
+instance (Ord v, AdditiveGroup v) => HasOrigin (Path v) where
+  type OriginSpace (Path v) = v
+  moveOriginTo p (Path s) = Path $ S.map (id *** moveOriginTo p) s
+
+-- | Paths are (of course) path-like. 'fromSegments' creates a path
+--   with start point at the origin.
+instance (AdditiveGroup v, Ord v) => PathLike (Path v) where
+  type PathSpace (Path v) = v
+
+  setStart = moveOriginTo
+
+  fromSegments []   = Path $ S.empty
+  fromSegments segs = Path $ S.singleton (fromSegments segs, origin)
+
+  close (Path s) = Path $ S.map (close *** id) s
+  open  (Path s) = Path $ S.map (open  *** id) s
 
 -- See Note [Transforming paths]
 instance (HasLinearMap v, Ord v) => Transformable (Path v) where
@@ -184,7 +208,7 @@ of the v's are inside Points and hence ought to be translated.
 -}
 
 instance ( s ~ Scalar v, Ord s, Floating s, AdditiveGroup s
-         , InnerSpace v, HasLinearMap v)
+         , InnerSpace v )
          => Boundable (Path v) where
   type BoundSpace (Path v) = v
 
@@ -192,24 +216,13 @@ instance ( s ~ Scalar v, Ord s, Floating s, AdditiveGroup s
     where trailBounds (t, p) = translate (p .-. origin) (bounds t)
       -- XXX use moveOriginTo?  Can probably remove HasLinearMap in that case?
 
-instance (Ord v, VectorSpace v) => HasOrigin (Path v) where
+instance (Ord v, AdditiveGroup v) => HasOrigin (Path v) where
   type OriginSpace (Path v) = v
   moveOriginTo p (Path s) = Path $ S.map (id *** moveOriginTo p) s
 
 ------------------------------------------------------------
---  Constructing paths  ------------------------------------
+--  Constructing paths from trails  ------------------------
 ------------------------------------------------------------
-
--- | Create a path with a single open trail of linear segments from a
---   list of vertices.
-pathFromVertices :: (AdditiveGroup v, Ord v) => [Point v] -> Path v
-pathFromVertices [] = mempty
-pathFromVertices vvs@(v:vs) = Path $ S.singleton (trailFromVertices vvs, v)
-
--- | Create a path with a single open trail of linear segments from a
---   starting location and a list of offsets.
-pathFromOffsets :: Point v -> [v] -> Path v
-pathFromOffsets st segs = Path $ S.singleton (trailFromOffsets segs, st)
 
 -- | Convert a trail to a path beginning at the origin.
 pathFromTrail :: AdditiveGroup v => Trail v -> Path v
@@ -218,15 +231,6 @@ pathFromTrail t = Path $ S.singleton (t, origin)
 -- | Convert a trail to a path with a particular starting point.
 pathFromTrailAt :: Trail v -> Point v -> Path v
 pathFromTrailAt t p = Path $ S.singleton (t, p)
-
--- | Close a path by closing all its constituent trails.
-close :: Ord v => Path v -> Path v
-close (Path s) = Path $ S.map (closeTrail *** id) s
-
--- | Open a path by closing all its constituent trails.
-open :: Ord v => Path v -> Path v
-open (Path s) = Path $ S.map (openTrail *** id) s
-
 
 ------------------------------------------------------------
 --  Computing with paths  ----------------------------------
