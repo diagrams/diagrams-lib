@@ -63,12 +63,12 @@ instance AttributeClass LineColor
 
 -- | Set the line (stroke) color of a diagram.
 lineColor :: (Backend b, Color c)
-             => c -> AnnDiagram b a -> AnnDiagram b a
+             => c -> AnnDiagram b m -> AnnDiagram b m
 lineColor = applyAttr . LineColor . SomeColor
 
 -- | A convenient synonym for 'lineColor'.
 lc :: (Backend b, Color c)
-      => c -> AnnDiagram b a -> AnnDiagram b a
+      => c -> AnnDiagram b m -> AnnDiagram b m
 lc = lineColor
 
 -- | Fill color attribute.
@@ -77,11 +77,11 @@ newtype FillColor = FillColor SomeColor
 instance AttributeClass FillColor
 
 -- | Set the fill color of a diagram.
-fillColor :: (Backend b, Color c) => c -> AnnDiagram b a -> AnnDiagram b a
+fillColor :: (Backend b, Color c) => c -> AnnDiagram b m -> AnnDiagram b m
 fillColor = applyAttr . FillColor . SomeColor
 
 -- | A convenient synonym for 'fillColor'.
-fc :: (Backend b, Color c) => c -> AnnDiagram b a -> AnnDiagram b a
+fc :: (Backend b, Color c) => c -> AnnDiagram b m -> AnnDiagram b m
 fc = fillColor
 
 -- Note: we would like to just be able to say 'instance Color (Colour
@@ -136,11 +136,11 @@ newtype LineWidth = LineWidth Double
 instance AttributeClass LineWidth
 
 -- | Set the line (stroke) width of a diagram.
-lineWidth :: Backend b => Double -> AnnDiagram b a -> AnnDiagram b a
+lineWidth :: Backend b => Double -> AnnDiagram b m -> AnnDiagram b m
 lineWidth = applyAttr . LineWidth
 
 -- | A convenient synonym for 'lineWidth'.
-lw :: Backend b => Double -> AnnDiagram b a -> AnnDiagram b a
+lw :: Backend b => Double -> AnnDiagram b m -> AnnDiagram b m
 lw = lineWidth
 
 
@@ -150,7 +150,7 @@ data LineCap = LineCapButt | LineCapRound | LineCapSquare
 instance AttributeClass LineCap
 
 -- | Set the line (stroke) end cap of a diagram.
-lineCap :: Backend b => LineCap -> AnnDiagram b a -> AnnDiagram b a
+lineCap :: Backend b => LineCap -> AnnDiagram b m -> AnnDiagram b m
 lineCap = applyAttr
 
 
@@ -160,7 +160,7 @@ data LineJoin = LineJoinMiter | LineJoinRound | LineJoinBevel
 instance AttributeClass LineJoin
 
 -- | Set the line (stroke) join of a diagram.
-lineJoin :: Backend b => LineJoin -> AnnDiagram b a -> AnnDiagram b a
+lineJoin :: Backend b => LineJoin -> AnnDiagram b m -> AnnDiagram b m
 lineJoin = applyAttr
 
 
@@ -176,5 +176,5 @@ dashing :: Backend b =>
                      --   list indicates no dashing.
         -> Double    -- ^ an offset into the dash pattern at which the
                      --   stroke should start
-        -> AnnDiagram b a -> AnnDiagram b a
+        -> AnnDiagram b m -> AnnDiagram b m
 dashing ds offs = applyAttr (Dashing ds offs)
