@@ -192,7 +192,7 @@ instance ( s ~ Scalar v, Ord s, Floating s, AdditiveGroup s
     where trailBounds (t, p) = translate (p .-. origin) (bounds t)
       -- XXX use moveOriginTo?  Can probably remove HasLinearMap in that case?
 
-instance (Ord v, AdditiveGroup v) => HasOrigin (Path v) where
+instance (Ord v, VectorSpace v) => HasOrigin (Path v) where
   type OriginSpace (Path v) = v
   moveOriginTo p (Path s) = Path $ S.map (id *** moveOriginTo p) s
 
@@ -243,7 +243,7 @@ pathVertices (Path trs) = S.map (\(tr, p) -> trailVertices p tr) trs
 -- | Convert a path into a diagram.  The resulting diagram has the
 --   names 0, 1, ... assigned to each of the path's vertices.
 stroke :: ( v ~ BSpace b, s ~ Scalar v
-          , InnerSpace v, HasLinearMap v, Renderable (Path v) b
+          , InnerSpace v, Renderable (Path v) b
           , AdditiveGroup s, Ord s, Floating s
           )
        => Path v -> Diagram b
@@ -258,12 +258,10 @@ stroke p = Diagram { prims   = prim p
                    , sample  = const (Any False)   -- Paths are infinitely thin
                               -- TODO: what about closed paths in 2D?
                    }
--- XXX can remove HasLinearMap constraint above once we add a HasOrigin class?
---     and below.
 
 -- | Combination of 'pathFromTrail' and 'stroke' for convenience.
 strokeT :: ( v ~ BSpace b, s ~ Scalar v
-           , InnerSpace v, HasLinearMap v, Renderable (Path v) b
+           , InnerSpace v, Renderable (Path v) b
            , AdditiveGroup s, Ord s, Floating s
            )
         => Trail v -> Diagram b
