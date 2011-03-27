@@ -6,7 +6,6 @@
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  byorgey@cis.upenn.edu
 -- Stability   :  experimental
--- Portability :  portable
 --
 -- Higher-level tools for combining diagrams.
 --
@@ -19,6 +18,8 @@ import Graphics.Rendering.Diagrams.Transform (HasLinearMap, moveTo)
 
 import Diagrams.Segment (Segment(..))
 import Diagrams.Path
+import Diagrams.Align
+import Diagrams.Util
 
 import Data.AdditiveGroup
 import Data.VectorSpace
@@ -27,26 +28,22 @@ import Data.Monoid
 import Data.Default
 
 ------------------------------------------------------------
--- Aligning diagrams
-------------------------------------------------------------
-
-------------------------------------------------------------
 -- Combining two diagrams
 ------------------------------------------------------------
 
--- | Place two diagrams next to each other along the given vector.
---   XXX write more. note where origin ends up.
-beside :: ( Backend b, v ~ BSpace b, s ~ Scalar v
-          , HasLinearMap v, InnerSpace v
-          , AdditiveGroup s, Fractional s, Ord s
-          , Monoid m
-          )
-       => v -> AnnDiagram b m -> AnnDiagram b m -> AnnDiagram b m
+-- | Place two bounded, monoidal objects (i.e. diagrams or paths) next
+--   to each other along the given vector.  In particular, place the
+--   first object so that the vector points from its local origin to
+--   the local origin of the second object, at a distance so that
+--   their bounding regions are just tangent.  The local origin of the
+--   new, combined object is at the point of tangency, along the line
+--   between the old local origins.
+beside :: ( HasOrigin a, Boundable a, Monoid a
+          , v ~ OriginSpace a, v ~ BoundSpace a
+          , VectorSpace v )
+       => v -> a -> a -> a
 beside v d1 d2
-  = moveOriginTo (P $ getBoundFunc (bounds d1) v *^ v) d1 `atop`
-    moveOriginTo (P $ getBoundFunc (bounds d2) (negateV v) *^ negateV v) d2
-  -- XXX reimplement in terms of more basic "align" functions
-
+  = align (negateV v) d1 <> align v d2
 
 -- XXX this should move to a different module?
 -- | @strut v@ is a diagram which produces no output, but for the
