@@ -14,7 +14,7 @@
 module Diagrams.Combinators where
 
 import Graphics.Rendering.Diagrams
-import Graphics.Rendering.Diagrams.Transform (HasLinearMap, moveTo)
+import Graphics.Rendering.Diagrams.Transform (HasLinearMap)
 
 import Diagrams.Segment (Segment(..))
 import Diagrams.Path
@@ -61,25 +61,22 @@ strut v = mempty { bounds_ = bounds (Linear v) }
 -- Combining multiple diagrams
 ------------------------------------------------------------
 
--- | Assign absolute positions to the origins of some diagrams,
---   combining them into one.
-position :: ( Backend b, BSpace b ~ v, Scalar v ~ s
-            , InnerSpace v, HasLinearMap v
-            , AdditiveGroup s, Ord s, Floating s
-            , Monoid m
+-- | Combine a list of objects (i.e. diagrams or paths) by assigning
+--   them absolute positions in the vector space of the combined
+--   object.
+position :: ( HasOrigin a, Monoid a
+            , v ~ OriginSpace a, AdditiveGroup v
             )
-         => [ (Point v, AnnDiagram b m) ] -> AnnDiagram b m
+         => [ (Point v, a) ] -> a
 position = mconcat . map (uncurry moveTo)
 
--- | Combine a list of diagrams by using them to \"decorate\" a trail,
---   placing the local origin of one diagram at each successive vertex.
---   XXX say more
-decorateTrail :: ( Backend b, BSpace b ~ v, Scalar v ~ s
-                 , InnerSpace v, HasLinearMap v
-                 , AdditiveGroup s, Ord s, Floating s
-                 , Monoid m
+-- | Combine a list of diagrams (or paths) by using them to
+-- \"decorate\" a trail, placing the local origin of one diagram at
+-- each successive vertex.  XXX say more
+decorateTrail :: ( HasOrigin a, Monoid a
+                 , v ~ OriginSpace a, AdditiveGroup v
                  )
-              => Trail v -> [AnnDiagram b m] -> AnnDiagram b m
+              => Trail v -> [a] -> a
 decorateTrail t = position . zip (trailVertices origin t)
 
 -- XXX comment me
