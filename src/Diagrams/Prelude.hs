@@ -1,11 +1,9 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Prelude
--- Copyright   :  (c) 2010 Diagrams team (see LICENSE)
+-- Copyright   :  (c) 2011 diagrams-lib team (see LICENSE)
 -- License     :  BSD-style (see LICENSE)
--- Maintainer  :  byorgey@cis.upenn.edu
--- Stability   :  experimental
--- Portability :  portable
+-- Maintainer  :  diagrams-discuss@googlegroups.com
 --
 -- A module to re-export most of the functionality of the diagrams
 -- core and standard library.

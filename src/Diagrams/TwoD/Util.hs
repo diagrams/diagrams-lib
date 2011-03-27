@@ -1,4 +1,14 @@
 {-# LANGUAGE TypeFamilies #-}
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  Diagrams.TwoD.Util
+-- Copyright   :  (c) 2011 diagrams-lib team (see LICENSE)
+-- License     :  BSD-style (see LICENSE)
+-- Maintainer  :  diagrams-discuss@googlegroups.com
+--
+-- Utility functions for diagrams in two-dimensional Cartesian space.
+--
+-----------------------------------------------------------------------------
 module Diagrams.TwoD.Util
        ( width, height, size2D
        , extentX, extentY, center2D

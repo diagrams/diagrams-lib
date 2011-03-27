@@ -2,10 +2,9 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Combinators
--- Copyright   :  (c) Brent Yorgey 2010
+-- Copyright   :  (c) 2011 diagrams-lib team (see LICENSE)
 -- License     :  BSD-style (see LICENSE)
--- Maintainer  :  byorgey@cis.upenn.edu
--- Stability   :  experimental
+-- Maintainer  :  diagrams-discuss@googlegroups.com
 --
 -- Higher-level tools for combining diagrams.
 --

@@ -5,10 +5,9 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Align
--- Copyright   :  (c) Brent Yorgey 2011
+-- Copyright   :  (c) 2011 diagrams-lib team (see LICENSE)
 -- License     :  BSD-style (see LICENSE)
--- Maintainer  :  byorgey@cis.upenn.edu
--- Stability   :  experimental
+-- Maintainer  :  diagrams-discuss@googlegroups.com
 --
 -- General tools for alignment.
 --

@@ -2,11 +2,9 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD
--- Copyright   :  (c) Brent Yorgey 2010
+-- Copyright   :  (c) 2011 diagrams-lib team (see LICENSE)
 -- License     :  BSD-style (see LICENSE)
--- Maintainer  :  byorgey@cis.upenn.edu
--- Stability   :  experimental
--- Portability :  portable
+-- Maintainer  :  diagrams-discuss@googlegroups.com
 --
 -- This module defines the two-dimensional vector space R^2,
 -- two-dimensional transformations, and various predefined
