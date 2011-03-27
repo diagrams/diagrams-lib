@@ -2,11 +2,9 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Ellipse
--- Copyright   :  (c) Scott Walck 2010
+-- Copyright   :  (c) 2011 diagrams-lib team (see LICENSE)
 -- License     :  BSD-style (see LICENSE)
--- Maintainer  :  walck@lvc.edu
--- Stability   :  experimental
--- Portability :  portable
+-- Maintainer  :  diagrams-discuss@googlegroups.com
 --
 -- Two-dimensional ellipses.
 --

@@ -1,4 +1,15 @@
 {-# LANGUAGE TypeFamilies, TypeSynonymInstances #-}
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  Diagrams.TwoD.Types
+-- Copyright   :  (c) 2011 diagrams-lib team (see LICENSE)
+-- License     :  BSD-style (see LICENSE)
+-- Maintainer  :  diagrams-discuss@googlegroups.com
+--
+-- Basic types for two-dimensional Cartesian space.
+--
+-----------------------------------------------------------------------------
+
 module Diagrams.TwoD.Types
        ( R2
        , P2

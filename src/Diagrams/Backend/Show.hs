@@ -7,11 +7,9 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Backend.Show
--- Copyright   :  (c) Brent Yorgey 2010
+-- Copyright   :  (c) 2011 diagrams-lib team (see LICENSE)
 -- License     :  BSD-style (see LICENSE)
--- Maintainer  :  byorgey@cis.upenn.edu
--- Stability   :  experimental
--- Portability :  portable
+-- Maintainer  :  diagrams-discuss@googlegroups.com
 --
 -- A simple Show-based diagrams backend, for testing purposes.
 --

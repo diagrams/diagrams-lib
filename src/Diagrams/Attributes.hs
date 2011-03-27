@@ -5,11 +5,9 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Attributes
--- Copyright   :  (c) Brent Yorgey 2010
+-- Copyright   :  (c) 2011 diagrams-lib team (see LICENSE)
 -- License     :  BSD-style (see LICENSE)
--- Maintainer  :  byorgey@cis.upenn.edu
--- Stability   :  experimental
--- Portability :  portable
+-- Maintainer  :  diagrams-discuss@googlegroups.com
 --
 -- Some common attributes.  Particular backends may also define more
 -- backend-specific attributes.
