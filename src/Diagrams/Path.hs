@@ -52,6 +52,7 @@ module Diagrams.Path
 
 import Graphics.Rendering.Diagrams
 import Graphics.Rendering.Diagrams.Transform (HasLinearMap)
+import Graphics.Rendering.Diagrams.Bounds (OrderedField)
 
 import Diagrams.Segment
 
@@ -138,9 +139,7 @@ instance HasLinearMap v => Transformable (Trail v) where
   transform t (Trail segs c) = Trail (transform t segs) c
 
 -- | The bounding function for a trail is based at the trail's start.
-instance ( s ~ Scalar v, Ord s, Floating s, AdditiveGroup s
-         , InnerSpace v )
-         => Boundable (Trail v) where
+instance (InnerSpace v, OrderedField (Scalar v)) => Boundable (Trail v) where
   type BoundSpace (Trail v) = v
 
   bounds (Trail segs _) =
@@ -175,13 +174,13 @@ trailVertices p = scanl (.+^) p . trailOffsets
 newtype Path v = Path { pathTrails :: S.Set (Trail v, Point v) }
   deriving (Show, Monoid, Eq, Ord)
 
-instance (Ord v, AdditiveGroup v) => HasOrigin (Path v) where
+instance (Ord v, VectorSpace v) => HasOrigin (Path v) where
   type OriginSpace (Path v) = v
   moveOriginTo p (Path s) = Path $ S.map (id *** moveOriginTo p) s
 
 -- | Paths are (of course) path-like. 'fromSegments' creates a path
 --   with start point at the origin.
-instance (AdditiveGroup v, Ord v) => PathLike (Path v) where
+instance (Ord v, VectorSpace v) => PathLike (Path v) where
   type PathSpace (Path v) = v
 
   setStart = moveOriginTo
@@ -207,9 +206,7 @@ but that doesn't take into account the fact that some
 of the v's are inside Points and hence ought to be translated.
 -}
 
-instance ( s ~ Scalar v, Ord s, Floating s, AdditiveGroup s
-         , InnerSpace v )
-         => Boundable (Path v) where
+instance (InnerSpace v, OrderedField (Scalar v)) => Boundable (Path v) where
   type BoundSpace (Path v) = v
 
   bounds (Path trs) =  F.foldMap trailBounds trs

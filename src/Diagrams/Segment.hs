@@ -28,6 +28,7 @@ module Diagrams.Segment
 
 import Graphics.Rendering.Diagrams
 import Graphics.Rendering.Diagrams.Transform (HasLinearMap)
+import Graphics.Rendering.Diagrams.Bounds (OrderedField)
 
 import Data.VectorSpace
 
@@ -120,10 +121,11 @@ quadForm a b c
 
 -- | The bounding function for a segment is based at the segment's
 --   start.
-instance (InnerSpace v, Ord (Scalar v), Floating (Scalar v))
-         => Boundable (Segment v) where
+instance (InnerSpace v, OrderedField (Scalar v)) => Boundable (Segment v) where
 
   type BoundSpace (Segment v) = v
+
+  -- XXX shouldn't these be  / magnitudeSq v  ?
 
   bounds (s@(Linear {})) = Bounds $ \v ->
     maximum . map (\t -> ((s `atParam` t) <.> v) / magnitude v) $ [0,1]

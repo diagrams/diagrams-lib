@@ -43,13 +43,11 @@ align v a = moveOriginBy (getBoundFunc (bounds a) v' *^ v') a
 --   along @-v@ to the very edge of the bounding region.  The negation
 --   is because we actually want to think of @align@ as aligning the
 --   /diagram/, not the origin.
-alignBy :: ( HasOrigin a, Boundable a, v ~ BoundSpace a, v ~ OriginSpace a
-           , s ~ Scalar v, Fractional s, AdditiveGroup s )
+alignBy :: (HasOrigin a, Boundable a, v ~ OriginSpace a, v ~ BoundSpace a)
         => v -> Rational -> a -> a
 alignBy v d a = moveOriginBy (v ^* (- radius v a * fromRational d)) a
 
 -- | @center v@ centers a boundable object along the direction of @v@.
-center :: ( HasOrigin a, Boundable a, v ~ BoundSpace a, v ~ OriginSpace a
-          , s ~ Scalar v, Fractional s, AdditiveGroup s )
+center :: (HasOrigin a, Boundable a, v ~ OriginSpace a, v ~ BoundSpace a)
        => v -> a -> a
 center v = alignBy v 0
