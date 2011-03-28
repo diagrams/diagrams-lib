@@ -14,6 +14,7 @@ module Diagrams.Combinators where
 
 import Graphics.Rendering.Diagrams
 import Graphics.Rendering.Diagrams.Transform (HasLinearMap)
+import Graphics.Rendering.Diagrams.Bounds (OrderedField)
 
 import Diagrams.Segment (Segment(..))
 import Diagrams.Path
@@ -49,8 +50,8 @@ beside v d1 d2
 --   purposes of alignment and bounding regions acts like a
 --   1-dimensional segment oriented along the vector @v@.  Useful for
 --   manually creating separation between two diagrams.
-strut :: ( BSpace b ~ v, Scalar v ~ s
-         , InnerSpace v, Floating s, Ord s, AdditiveGroup s
+strut :: ( BSpace b ~ v, InnerSpace v
+         , OrderedField (Scalar v)
          , Monoid m
          )
       => v -> AnnDiagram b m
