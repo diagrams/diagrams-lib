@@ -60,7 +60,7 @@ polygon :: (BSpace b ~ R2, Renderable (Path R2) b) => PolygonOpts -> Diagram b
 polygon = stroke . polygonPath
 
 -- | Create a closed regular polygonal path from the given options.
-polygonPath :: (PathLike p, PathSpace p ~ R2) => PolygonOpts -> p
+polygonPath :: PathLike p R2 => PolygonOpts -> p
 polygonPath = close . fromVertices . polygonVertices
 
 -- | Generate the vertices of a regular polygon from the given
