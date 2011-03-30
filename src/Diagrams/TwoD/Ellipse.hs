@@ -1,4 +1,8 @@
-{-# LANGUAGE FlexibleContexts, TypeFamilies #-}
+{-# LANGUAGE FlexibleContexts
+           , TypeSynonymInstances
+           , MultiParamTypeClasses
+           , TypeFamilies
+  #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Ellipse
@@ -36,8 +40,7 @@ import Data.VectorSpace (magnitudeSq, magnitude, (^-^))
 --   the unit circle.
 data Ellipse = Ellipse (Transformation R2)
 
-instance Transformable Ellipse where
-  type TSpace Ellipse = R2
+instance Transformable Ellipse R2 where
   transform t (Ellipse e) = Ellipse (t <> e)
 
 -- | A unit circle.

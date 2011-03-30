@@ -1,5 +1,4 @@
-{-# LANGUAGE TypeFamilies
-           , MultiParamTypeClasses
+{-# LANGUAGE MultiParamTypeClasses
            , FlexibleContexts
            , FlexibleInstances
            , DeriveFunctor
@@ -51,8 +50,7 @@ data Segment v = Linear v
 --   translating a segment has no effect.  Thus the translational
 --   component of a transformation is always ignored, but other
 --   components (scaling, rotation, ...) will have an effect.
-instance HasLinearMap v => Transformable (Segment v) where
-  type TSpace (Segment v) = v
+instance HasLinearMap v => Transformable (Segment v) v where
   transform = fmap . apply
 
 -- | @'straight' v@ constructs a translationally invariant linear
