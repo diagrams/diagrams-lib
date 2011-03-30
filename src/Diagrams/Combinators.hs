@@ -51,7 +51,7 @@ withBounds b d = d { bounds_ = bounds b }
 --   XXX picture
 beside :: (HasOrigin a v, Boundable a v, Monoid a) => v -> a -> a -> a
 beside v d1 d2
-  = align (negateV v) d1 <> align v d2
+  = align v d1 <> align (negateV v) d2
 
 ------------------------------------------------------------
 -- Combining multiple objects
