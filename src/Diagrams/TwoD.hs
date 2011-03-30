@@ -36,16 +36,6 @@ module Diagrams.TwoD
        , P2
        , Angle
 
-         -- * Transformations
-       , rotation, rotate
-       , rotationBy, rotateBy
-       , scalingX, scaleX
-       , scalingY, scaleY
-       , translationX, translateX
-       , translationY, translateY
-       , reflectionX, reflectX
-       , reflectionY, reflectY
-
          -- * Shapes
        , circle
        , ellipse
@@ -56,6 +46,21 @@ module Diagrams.TwoD
        , square
        , starPolygon
 
+         -- * Transformations
+       , rotation, rotate
+       , rotationBy, rotateBy
+       , scalingX, scaleX
+       , scalingY, scaleY
+       , translationX, translateX
+       , translationY, translateY
+       , reflectionX, reflectX
+       , reflectionY, reflectY
+
+         -- * Alignment
+       , alignLeft, alignRight, alignTop, alignBottom
+       , centerX, centerY, centerXY
+       , strutX, strutY
+
          -- * Utilities
        , width, height, size2D
        , extentX, extentY, center2D
@@ -64,8 +69,9 @@ module Diagrams.TwoD
 import Graphics.Rendering.Diagrams
 
 import Diagrams.TwoD.Types
-import Diagrams.TwoD.Transform
 import Diagrams.TwoD.Ellipse
 import Diagrams.TwoD.Arc
 import Diagrams.TwoD.Shapes
+import Diagrams.TwoD.Transform
+import Diagrams.TwoD.Align
 import Diagrams.TwoD.Util
