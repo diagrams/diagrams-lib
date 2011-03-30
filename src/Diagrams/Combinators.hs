@@ -28,10 +28,16 @@ import Data.AdditiveGroup
 import Data.VectorSpace
 
 import Data.Monoid
-import Data.Default
+import Data.List
+
+-- | Use the bounding region from some boundable object as the
+--   bounding region for a diagram, in place of the diagram's default
+--   bounding region.
+withBounds :: Boundable a v => a -> AnnDiagram b v m -> AnnDiagram b v m
+withBounds b d = d { bounds_ = bounds b }
 
 ------------------------------------------------------------
--- Combining two diagrams
+-- Combining two objects
 ------------------------------------------------------------
 
 -- | Place two bounded, monoidal objects (i.e. diagrams or paths) next
@@ -41,80 +47,29 @@ import Data.Default
 --   their bounding regions are just tangent.  The local origin of the
 --   new, combined object is at the point of tangency, along the line
 --   between the old local origins.
+--
+--   XXX picture
 beside :: (HasOrigin a v, Boundable a v, Monoid a) => v -> a -> a -> a
 beside v d1 d2
   = align (negateV v) d1 <> align v d2
 
--- XXX this should move to a different module?
--- | @strut v@ is a diagram which produces no output, but for the
---   purposes of alignment and bounding regions acts like a
---   1-dimensional segment oriented along the vector @v@.  Useful for
---   manually creating separation between two diagrams.
-strut :: ( Backend b v, InnerSpace v
-         , OrderedField (Scalar v)
-         , Monoid m
-         )
-      => v -> AnnDiagram b v m
-strut v = mempty { bounds_ = bounds (Linear v) }
-
 ------------------------------------------------------------
--- Combining multiple diagrams
+-- Combining multiple objects
 ------------------------------------------------------------
 
 -- | Combine a list of objects (i.e. diagrams or paths) by assigning
 --   them absolute positions in the vector space of the combined
 --   object.
-position :: ( HasOrigin a v, Monoid a )
-         => [ (Point v, a) ] -> a
+position :: (HasOrigin a v, Monoid a) => [(Point v, a)] -> a
 position = mconcat . map (uncurry moveTo)
 
 -- | Combine a list of diagrams (or paths) by using them to
 -- \"decorate\" a trail, placing the local origin of one diagram at
 -- each successive vertex.  XXX say more
-decorateTrail :: ( HasOrigin a v, Monoid a )
-              => Trail v -> [a] -> a
+decorateTrail :: (HasOrigin a v, Monoid a) => Trail v -> [a] -> a
 decorateTrail t = position . zip (trailVertices origin t)
 
--- XXX comment me
-data Alignment = AlignLeft | AlignRight | AlignCenter
-
--- XXX comment me
-data Positioning = PositionFront | PositionCenter | PositionBack
-
--- XXX comment me
-data CatMethod v = CatSep (Scalar v)
-                 | CatRep (Scalar v) Positioning
-                 | CatDistrib (Scalar v) Positioning
-
--- XXX comment me
-data CatOpts v = CatOpts
-  { catDir      :: v
-  , catMethod   :: CatMethod v
-  , catAlignDir :: v
-  , catAlign    :: Alignment
-  }
-
-instance (AdditiveGroup v, AdditiveGroup (Scalar v)) => Default (CatOpts v) where
-  def = CatOpts { catDir      = zeroV
-                , catMethod   = CatSep (zeroV)
-                , catAlignDir = zeroV
-                , catAlign    = AlignCenter
-                }
-
--- XXX comment me
-cat' :: (Backend b v) => CatOpts v -> [AnnDiagram b v m] -> AnnDiagram b v m
-cat' (CatOpts { catDir      = dir
-              , catMethod   = meth
-              , catAlignDir = aDir
-              , catAlign    = algn
-              })
-     dias
-  = undefined
-
--- cat
-
--- along
-
--- at
+cat :: (HasOrigin a v, Boundable a v, Monoid a) => v -> [a] -> a
+cat v = foldl' (beside v) mempty
 
 -- grid
