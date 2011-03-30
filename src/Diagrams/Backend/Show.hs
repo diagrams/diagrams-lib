@@ -1,8 +1,9 @@
-{-# LANGUAGE TypeFamilies
-           , FlexibleInstances
+{-# LANGUAGE FlexibleInstances
            , FlexibleContexts
            , MultiParamTypeClasses
            , ScopedTypeVariables
+           , TypeSynonymInstances
+           , TypeFamilies
   #-}
 -----------------------------------------------------------------------------
 -- |
@@ -31,17 +32,16 @@ import Data.List (sortBy, transpose)
 import Data.Ord (comparing)
 
 -- | Token for identifying this backend.
-data ShowBackend v = ShowBackend
+data ShowBackend = ShowBackend
 
 instance Monoid Doc where
   mempty  = empty
   mappend = ($+$)
 
-instance HasLinearMap v => Backend (ShowBackend v) where
-  type BSpace (ShowBackend v) = v
-  type Render (ShowBackend v) = Doc
-  type Result (ShowBackend v) = String
-  data Options (ShowBackend v) = SBOpt
+instance HasLinearMap v => Backend ShowBackend v where
+  type Render  ShowBackend v = Doc
+  type Result  ShowBackend v = String
+  data Options ShowBackend v = SBOpt
 
   withStyle _ s r = r -- XXX FIXME
 
@@ -70,16 +70,16 @@ renderMat :: Show a => [[a]] -> Doc
 renderMat = vcat . map renderRow . transpose
   where renderRow = parens . hsep . map (text . show)
 
-instance Renderable Ellipse (ShowBackend R2) where
+instance Renderable Ellipse ShowBackend R2 where
   render b (Ellipse t) = text "Ellipse (" $+$
                            (nest 2 (renderTransf t)) $+$
                          text ")"
 
-instance (Show v, HasLinearMap v) => Renderable (Segment v) (ShowBackend v) where
+instance (Show v, HasLinearMap v) => Renderable (Segment v) ShowBackend v where
   render _ s = text (show s)
 
-instance (Show v, HasLinearMap v) => Renderable (Trail v) (ShowBackend v) where
+instance (Show v, HasLinearMap v) => Renderable (Trail v) ShowBackend v where
   render _ t = text (show t)
 
-instance (Ord v, Show v, HasLinearMap v) => Renderable (Path v) (ShowBackend v) where
+instance (Ord v, Show v, HasLinearMap v) => Renderable (Path v) ShowBackend v where
   render _ p = text (show p)
