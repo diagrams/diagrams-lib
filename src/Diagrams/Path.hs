@@ -2,7 +2,6 @@
            , MultiParamTypeClasses
            , FlexibleInstances
            , FlexibleContexts
-           , UndecidableInstances
            , DeriveFunctor
            , GeneralizedNewtypeDeriving
   #-}
@@ -141,8 +140,7 @@ instance HasLinearMap v => Transformable (Trail v) where
   transform t (Trail segs c) = Trail (transform t segs) c
 
 -- | The bounding function for a trail is based at the trail's start.
-instance (InnerSpace v, OrderedField (Scalar v)) => Boundable (Trail v) where
-  type BoundSpace (Trail v) = v
+instance (InnerSpace v, OrderedField (Scalar v)) => Boundable (Trail v) v where
 
   bounds (Trail segs _) =
     foldr (\seg bds -> moveOriginTo (P . negateV . segOffset $ seg) bds <> bounds seg)
@@ -207,8 +205,7 @@ but that doesn't take into account the fact that some
 of the v's are inside Points and hence ought to be translated.
 -}
 
-instance (InnerSpace v, OrderedField (Scalar v)) => Boundable (Path v) where
-  type BoundSpace (Path v) = v
+instance (InnerSpace v, OrderedField (Scalar v)) => Boundable (Path v) v where
 
   bounds (Path trs) =  F.foldMap trailBounds trs
     where trailBounds (t, p) = moveOriginTo ((-1) *. p) (bounds t)
