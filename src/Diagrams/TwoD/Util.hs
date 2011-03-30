@@ -48,3 +48,6 @@ extentY d = (-f (0,-1), f (0,1))
 center2D :: Backend b R2 => AnnDiagram b R2 a -> P2
 center2D = P . (mid *** mid) . (extentX &&& extentY)
   where mid = (/2) . uncurry (+)
+
+
+-- XXX add X and Y unit vectors
