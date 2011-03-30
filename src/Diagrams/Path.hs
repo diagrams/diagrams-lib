@@ -4,7 +4,6 @@
            , FlexibleContexts
            , DeriveFunctor
            , GeneralizedNewtypeDeriving
-           , TypeFamilies
   #-}
 -----------------------------------------------------------------------------
 -- |
@@ -229,11 +228,11 @@ pathVertices (Path trs) = S.map (\(tr, p) -> trailVertices p tr) trs
 
 -- | Convert a path into a diagram.  The resulting diagram has the
 --   names 0, 1, ... assigned to each of the path's vertices.
-stroke :: ( v ~ BSpace b, s ~ Scalar v
-          , InnerSpace v, Renderable (Path v) b
-          , AdditiveGroup s, Ord s, Floating s
+stroke :: ( Backend b v
+          , InnerSpace v, Renderable (Path v) b v
+          , OrderedField (Scalar v)
           )
-       => Path v -> Diagram b
+       => Path v -> Diagram b v
 stroke p = Diagram { prims   = prim p
                    , bounds_ = bounds p
                    , names   = mempty
@@ -247,9 +246,9 @@ stroke p = Diagram { prims   = prim p
                    }
 
 -- | Combination of 'pathFromTrail' and 'stroke' for convenience.
-strokeT :: ( v ~ BSpace b, s ~ Scalar v
-           , InnerSpace v, Renderable (Path v) b
-           , AdditiveGroup s, Ord s, Floating s
+strokeT :: ( Backend b v
+           , InnerSpace v, Renderable (Path v) b v
+           , OrderedField (Scalar v)
            )
-        => Trail v -> Diagram b
+        => Trail v -> Diagram b v
 strokeT = stroke . pathFromTrail

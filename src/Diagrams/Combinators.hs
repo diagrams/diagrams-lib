@@ -50,11 +50,11 @@ beside v d1 d2
 --   purposes of alignment and bounding regions acts like a
 --   1-dimensional segment oriented along the vector @v@.  Useful for
 --   manually creating separation between two diagrams.
-strut :: ( BSpace b ~ v, InnerSpace v
+strut :: ( Backend b v, InnerSpace v
          , OrderedField (Scalar v)
          , Monoid m
          )
-      => v -> AnnDiagram b m
+      => v -> AnnDiagram b v m
 strut v = mempty { bounds_ = bounds (Linear v) }
 
 ------------------------------------------------------------
@@ -102,8 +102,7 @@ instance (AdditiveGroup v, AdditiveGroup (Scalar v)) => Default (CatOpts v) wher
                 }
 
 -- XXX comment me
-cat' :: (Backend b, BSpace b ~ v)
-    => CatOpts v -> [AnnDiagram b m] -> AnnDiagram b m
+cat' :: (Backend b v) => CatOpts v -> [AnnDiagram b v m] -> AnnDiagram b v m
 cat' (CatOpts { catDir      = dir
               , catMethod   = meth
               , catAlignDir = aDir

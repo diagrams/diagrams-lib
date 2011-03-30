@@ -1,6 +1,5 @@
 {-# LANGUAGE DeriveDataTypeable
            , ExistentialQuantification
-           , TypeFamilies
   #-}
 -----------------------------------------------------------------------------
 -- |
@@ -60,13 +59,13 @@ newtype LineColor = LineColor SomeColor
 instance AttributeClass LineColor
 
 -- | Set the line (stroke) color of a diagram.
-lineColor :: (Backend b, Color c)
-             => c -> AnnDiagram b m -> AnnDiagram b m
+lineColor :: (Backend b v, Color c)
+             => c -> AnnDiagram b v m -> AnnDiagram b v m
 lineColor = applyAttr . LineColor . SomeColor
 
 -- | A convenient synonym for 'lineColor'.
-lc :: (Backend b, Color c)
-      => c -> AnnDiagram b m -> AnnDiagram b m
+lc :: (Backend b v, Color c)
+      => c -> AnnDiagram b v m -> AnnDiagram b v m
 lc = lineColor
 
 -- | Fill color attribute.
@@ -75,11 +74,11 @@ newtype FillColor = FillColor SomeColor
 instance AttributeClass FillColor
 
 -- | Set the fill color of a diagram.
-fillColor :: (Backend b, Color c) => c -> AnnDiagram b m -> AnnDiagram b m
+fillColor :: (Backend b v, Color c) => c -> AnnDiagram b v m -> AnnDiagram b v m
 fillColor = applyAttr . FillColor . SomeColor
 
 -- | A convenient synonym for 'fillColor'.
-fc :: (Backend b, Color c) => c -> AnnDiagram b m -> AnnDiagram b m
+fc :: (Backend b v, Color c) => c -> AnnDiagram b v m -> AnnDiagram b v m
 fc = fillColor
 
 -- Note: we would like to just be able to say 'instance Color (Colour
@@ -134,11 +133,11 @@ newtype LineWidth = LineWidth Double
 instance AttributeClass LineWidth
 
 -- | Set the line (stroke) width of a diagram.
-lineWidth :: Backend b => Double -> AnnDiagram b m -> AnnDiagram b m
+lineWidth :: Backend b v => Double -> AnnDiagram b v m -> AnnDiagram b v m
 lineWidth = applyAttr . LineWidth
 
 -- | A convenient synonym for 'lineWidth'.
-lw :: Backend b => Double -> AnnDiagram b m -> AnnDiagram b m
+lw :: Backend b v => Double -> AnnDiagram b v m -> AnnDiagram b v m
 lw = lineWidth
 
 
@@ -148,7 +147,7 @@ data LineCap = LineCapButt | LineCapRound | LineCapSquare
 instance AttributeClass LineCap
 
 -- | Set the line (stroke) end cap of a diagram.
-lineCap :: Backend b => LineCap -> AnnDiagram b m -> AnnDiagram b m
+lineCap :: Backend b v => LineCap -> AnnDiagram b v m -> AnnDiagram b v m
 lineCap = applyAttr
 
 
@@ -158,7 +157,7 @@ data LineJoin = LineJoinMiter | LineJoinRound | LineJoinBevel
 instance AttributeClass LineJoin
 
 -- | Set the line (stroke) join of a diagram.
-lineJoin :: Backend b => LineJoin -> AnnDiagram b m -> AnnDiagram b m
+lineJoin :: Backend b v => LineJoin -> AnnDiagram b v m -> AnnDiagram b v m
 lineJoin = applyAttr
 
 
@@ -168,11 +167,11 @@ data Dashing = Dashing [Double] Double
 instance AttributeClass Dashing
 
 -- | Set the line (stroke) dashing of a diagram.
-dashing :: Backend b =>
+dashing :: Backend b v =>
            [Double]  -- ^ a list specifying alternate lengths of on
                      --   and off portions of the stroke.  The empty
                      --   list indicates no dashing.
         -> Double    -- ^ an offset into the dash pattern at which the
                      --   stroke should start
-        -> AnnDiagram b m -> AnnDiagram b m
+        -> AnnDiagram b v m -> AnnDiagram b v m
 dashing ds offs = applyAttr (Dashing ds offs)

@@ -44,7 +44,7 @@ instance Transformable Ellipse R2 where
   transform t (Ellipse e) = Ellipse (t <> e)
 
 -- | A unit circle.
-circle :: (BSpace b ~ R2, Renderable Ellipse b) => Diagram b
+circle :: (Backend b R2, Renderable Ellipse b R2) => Diagram b R2
 circle = Diagram (prim $ Ellipse mempty)
                  (Bounds circleBounds)
                  (fromNames [ ("C", P ( 0, 0))
@@ -58,7 +58,7 @@ circle = Diagram (prim $ Ellipse mempty)
 -- | Construct an ellipse with eccentricity e, created by scaling the
 --   unit circle in the X direction.  The eccentricity must be within
 --   the interval [0,1).
-ellipse :: (BSpace b ~ R2, Renderable Ellipse b) => Double -> Diagram b
+ellipse :: (Backend b R2, Renderable Ellipse b R2) => Double -> Diagram b R2
 ellipse e
     | e >= 0 && e < 1  = scaleX (sqrt (1 - e^2)) circle
     | otherwise        = error "Eccentricity of ellipse must be >= 0 and < 1."

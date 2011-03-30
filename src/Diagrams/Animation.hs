@@ -31,28 +31,29 @@ import Graphics.Rendering.Diagrams
 
 -- a diagram that changes over time within the bounds of the interval
 -- [startTime, endTime]
-data (Fractional t) => TimeDependentDiagram b a t = TimeDependentDiagram
-  { diagramAtTime :: t -> AnnDiagram b a
+data (Fractional t) => TimeDependentDiagram b v a t = TimeDependentDiagram
+  { diagramAtTime :: t -> AnnDiagram b v a
   , startTime :: t
   , endTime :: t
   }
 
 validateBounded ::
- (Fractional t
+ ( Backend b v
+ , Fractional t
  , Ord t
- , s ~ Scalar (BSpace b)
+ , s ~ Scalar v
  , Ord s
  , AdditiveGroup s
  , Monoid a
- ) => TimeDependentDiagram b a t -> t -> AnnDiagram b a
+ ) => TimeDependentDiagram b v a t -> t -> AnnDiagram b v a
 validateBounded tdd t = case withinBounds of
     True -> diagramAtTime tdd t
     False -> mempty
   where withinBounds = t >= startTime tdd && t <= endTime tdd
 
 -- makes a list of diagrams to be treated as frames of animation
-makeFrames :: (Fractional t) => Int -> TimeDependentDiagram b a t
-  -> [AnnDiagram b a]
+makeFrames :: (Fractional t) => Int -> TimeDependentDiagram b v a t
+  -> [AnnDiagram b v a]
 makeFrames numFrames tdd = let
     timeDelta = (endTime tdd - startTime tdd) / (fromIntegral numFrames)
     frameTimes = take numFrames $ iterate (+ timeDelta) (startTime tdd)
@@ -62,9 +63,9 @@ makeFrames numFrames tdd = let
 -- we simply assume that animation is done in frames, and that
 -- the length and speed of the animation is determined by the number of frames
 
-class (Backend b, Fractional t) => AnimationBackend b t where
+class (Backend b v, Fractional t) => AnimationBackend b v t where
    type AnimatedRender b :: *
-   renderAnim :: b -> [AnnDiagram b a] -> AnimatedRender b
+   renderAnim :: b -> [AnnDiagram b v a] -> AnimatedRender b
 
 -- convenience function for running animation
 runAnimation numFrames tdd animBackend =
@@ -73,8 +74,8 @@ runAnimation numFrames tdd animBackend =
 -- animation primitives ... kinda messy, not well-thought-out
 
 --show an unchanging diagram for a length of time
-staticDiagram :: (Fractional t) => AnnDiagram b a -> t ->
-  TimeDependentDiagram b a t
+staticDiagram :: (Fractional t) => AnnDiagram b v a -> t ->
+  TimeDependentDiagram b v a t
 staticDiagram diagram length = TimeDependentDiagram
   (const diagram) -- display this no matter what time
   0.0 -- start at time 0

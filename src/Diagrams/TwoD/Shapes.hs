@@ -56,7 +56,7 @@ instance Default PolygonOpts where
   def = PolygonOpts { sides = 5, edgeSkip = 1, orientation = NoOrient }
 
 -- | Create a regular polygon from the given options.
-polygon :: (BSpace b ~ R2, Renderable (Path R2) b) => PolygonOpts -> Diagram b
+polygon :: (Backend b R2, Renderable (Path R2) b R2) => PolygonOpts -> Diagram b R2
 polygon = stroke . polygonPath
 
 -- | Create a closed regular polygonal path from the given options.
@@ -81,40 +81,40 @@ polygonVertices opts = orient . take n . iterate (rotate angle) $ start
 
 -- | A sqaure with its center at the origin and sides of length 1,
 --   oriented parallel to the axes.
-square ::  (BSpace b ~ R2, Renderable (Path R2) b) => Diagram b
+square ::  (Backend b R2, Renderable (Path R2) b R2) => Diagram b R2
 square = scale (1/sqrt 2) $ polygon def { sides = 4, orientation = OrientToX }
 
 -- | @starPolygon p q@ creates a star polygon, where @p@ indicates the
 --   number of vertices, and an edge connects every @q@th vertex.
-starPolygon :: (BSpace b ~ R2, Renderable (Path R2) b) => Int -> Int -> Diagram b
+starPolygon :: (Backend b R2, Renderable (Path R2) b R2) => Int -> Int -> Diagram b R2
 starPolygon p q = polygon def { sides = p, edgeSkip = q }
 
 -- | An equilateral triangle, with radius 1 and base parallel to the
 --   x-axis.
-eqTriangle :: (BSpace b ~ R2, Renderable (Path R2) b) => Diagram b
+eqTriangle :: (Backend b R2, Renderable (Path R2) b R2) => Diagram b R2
 eqTriangle = polygon with {sides = 3, orientation = OrientToX}
 
-pentagon :: (BSpace b ~ R2, Renderable (Path R2) b) => Diagram b
+pentagon :: (Backend b R2, Renderable (Path R2) b R2) => Diagram b R2
 pentagon = writeMe "pentagon"
 
-hexagon :: (BSpace b ~ R2, Renderable (Path R2) b) => Diagram b
+hexagon :: (Backend b R2, Renderable (Path R2) b R2) => Diagram b R2
 hexagon = writeMe "hexagon"
 
-septagon :: (BSpace b ~ R2, Renderable (Path R2) b) => Diagram b
+septagon :: (Backend b R2, Renderable (Path R2) b R2) => Diagram b R2
 septagon = writeMe "septagon"
 
-octagon :: (BSpace b ~ R2, Renderable (Path R2) b) => Diagram b
+octagon :: (Backend b R2, Renderable (Path R2) b R2) => Diagram b R2
 octagon = writeMe "octagon"
 
-nonagon :: (BSpace b ~ R2, Renderable (Path R2) b) => Diagram b
+nonagon :: (Backend b R2, Renderable (Path R2) b R2) => Diagram b R2
 nonagon = writeMe "nonagon"
 
-decagon :: (BSpace b ~ R2, Renderable (Path R2) b) => Diagram b
+decagon :: (Backend b R2, Renderable (Path R2) b R2) => Diagram b R2
 decagon = writeMe "decagon"
 
 -- | Construct a triangle from three side lengths, if possible.  The
 --   longest side will be parallel to the x-axis.
-triangleFromSides :: (BSpace b ~ R2, Renderable (Path R2) b)
-                  => Double -> Double -> Double -> Maybe (Diagram b)
+triangleFromSides :: (Backend b R2, Renderable (Path R2) b R2)
+                  => Double -> Double -> Double -> Maybe (Diagram b R2)
 triangleFromSides = writeMe "triangleFromSides"
 
