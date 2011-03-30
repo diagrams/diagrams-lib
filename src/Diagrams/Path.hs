@@ -1,4 +1,5 @@
 {-# LANGUAGE MultiParamTypeClasses
+           , FunctionalDependencies
            , FlexibleInstances
            , FlexibleContexts
            , DeriveFunctor
@@ -75,15 +76,14 @@ import Control.Arrow ((***))
 
 -- | Type class for path-like things, which must be monoids.
 --   Instances include 'Trail's, 'Path's, and 'MultiPath's.
-class Monoid p => PathLike p where
-  type PathSpace p :: *
+class (Monoid p, VectorSpace v) => PathLike p v | p -> v where
 
   -- | Set the starting point of the path-like thing.  Some path-like
   --   things (e.g. 'Trail's) may ignore this operation.
-  setStart   :: Point (PathSpace p)   -> p -> p
+  setStart   :: Point v -> p -> p
 
   -- | Construct a path-like thing from a list of 'Segment's.
-  fromSegments :: [Segment (PathSpace p)] -> p
+  fromSegments :: [Segment v] -> p
 
   -- | \"Close\" a path-like thing.
   close :: p -> p
@@ -93,13 +93,12 @@ class Monoid p => PathLike p where
 
 -- | Construct a path-like thing of linear segments from a list of
 --   offsets.
-fromOffsets :: PathLike p => [PathSpace p] -> p
+fromOffsets :: PathLike p v => [v] -> p
 fromOffsets = fromSegments . map Linear
 
 -- | Construct a path-like thing of linear segments from a list of
 --   vertices, with the first vertex as the starting point.
-fromVertices :: (PathLike p, AdditiveGroup (PathSpace p))
-             => [Point (PathSpace p)] -> p
+fromVertices :: PathLike p v => [Point v] -> p
 fromVertices []         = mempty
 fromVertices vvs@(v:vs) = setStart v $ fromOffsets (zipWith (flip (.-.)) vvs vs)
 
@@ -127,9 +126,7 @@ instance Monoid (Trail v) where
 -- | Trails are 'PathLike' things.  Note that since trails are
 --   translationally invariant, 'setStart' has no effect.
 --   'fromSegments' creates an open trail.
-instance PathLike (Trail v) where
-  type PathSpace (Trail v) = v
-
+instance VectorSpace v => PathLike (Trail v) v where
   setStart _ tr     = tr
   fromSegments segs = Trail segs False
   close tr          = tr { isClosed = True }
@@ -178,9 +175,7 @@ instance (Ord v, VectorSpace v) => HasOrigin (Path v) v where
 
 -- | Paths are (of course) path-like. 'fromSegments' creates a path
 --   with start point at the origin.
-instance (Ord v, VectorSpace v) => PathLike (Path v) where
-  type PathSpace (Path v) = v
-
+instance (Ord v, VectorSpace v) => PathLike (Path v) v where
   setStart = moveTo
 
   fromSegments []   = Path $ S.empty
