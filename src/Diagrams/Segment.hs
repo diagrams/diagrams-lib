@@ -125,14 +125,12 @@ instance (InnerSpace v, OrderedField (Scalar v)) => Boundable (Segment v) where
 
   type BoundSpace (Segment v) = v
 
-  -- XXX shouldn't these be  / magnitudeSq v  ?
-
   bounds (s@(Linear {})) = Bounds $ \v ->
-    maximum . map (\t -> ((s `atParam` t) <.> v) / magnitude v) $ [0,1]
+    maximum . map (\t -> ((s `atParam` t) <.> v) / magnitudeSq v) $ [0,1]
 
   bounds (s@(Cubic c1 c2 x2)) = Bounds $ \v ->
     maximum .
-    map (\t -> ((s `atParam` t) <.> v) / magnitude v) $
+    map (\t -> ((s `atParam` t) <.> v) / magnitudeSq v) $
     [0,1] ++
     filter (liftA2 (&&) (>0) (<1))
       (quadForm (3 * ((c1 ^-^ c2 ^+^ x2) <.> v))
