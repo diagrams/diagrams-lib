@@ -1,4 +1,6 @@
 {-# LANGUAGE TypeFamilies
+           , MultiParamTypeClasses
+           , FlexibleInstances
            , FlexibleContexts
            , UndecidableInstances
            , DeriveFunctor
@@ -174,8 +176,7 @@ trailVertices p = scanl (.+^) p . trailOffsets
 newtype Path v = Path { pathTrails :: S.Set (Trail v, Point v) }
   deriving (Show, Monoid, Eq, Ord)
 
-instance (Ord v, VectorSpace v) => HasOrigin (Path v) where
-  type OriginSpace (Path v) = v
+instance (Ord v, VectorSpace v) => HasOrigin (Path v) v where
   moveOriginTo p (Path s) = Path $ S.map (id *** moveOriginTo p) s
 
 -- | Paths are (of course) path-like. 'fromSegments' creates a path
