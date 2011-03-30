@@ -1,7 +1,7 @@
 {-# LANGUAGE TypeFamilies
+           , MultiParamTypeClasses
            , FlexibleContexts
            , FlexibleInstances
-           , UndecidableInstances
            , DeriveFunctor
   #-}
 -----------------------------------------------------------------------------
@@ -121,9 +121,7 @@ quadForm a b c
 
 -- | The bounding function for a segment is based at the segment's
 --   start.
-instance (InnerSpace v, OrderedField (Scalar v)) => Boundable (Segment v) where
-
-  type BoundSpace (Segment v) = v
+instance (InnerSpace v, OrderedField (Scalar v)) => Boundable (Segment v) v where
 
   bounds (s@(Linear {})) = Bounds $ \v ->
     maximum . map (\t -> ((s `atParam` t) <.> v) / magnitudeSq v) $ [0,1]

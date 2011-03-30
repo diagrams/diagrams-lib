@@ -1,4 +1,7 @@
-{-# LANGUAGE TypeFamilies, FlexibleContexts, UndecidableInstances #-}
+{-# LANGUAGE TypeFamilies
+           , FlexibleContexts
+           , UndecidableInstances
+  #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Combinators
@@ -38,10 +41,7 @@ import Data.Default
 --   their bounding regions are just tangent.  The local origin of the
 --   new, combined object is at the point of tangency, along the line
 --   between the old local origins.
-beside :: ( HasOrigin a v, Boundable a, Monoid a
-          , v ~ BoundSpace a
-          )
-       => v -> a -> a -> a
+beside :: (HasOrigin a v, Boundable a v, Monoid a) => v -> a -> a -> a
 beside v d1 d2
   = align (negateV v) d1 <> align v d2
 

@@ -29,8 +29,7 @@ import Data.Ratio
 --   bounding region.  (Note, if the origin is outside the bounding
 --   region to start, this may mean the object moves \"backwards\", in
 --   the direction of @-v@.)
-align :: ( HasOrigin a v, Boundable a, v ~ BoundSpace a )
-      => v -> a -> a
+align :: (HasOrigin a v, Boundable a v) => v -> a -> a
 align v a = moveOriginBy (getBoundFunc (bounds a) v' *^ v') a
   where v' = negateV v
 
@@ -43,11 +42,9 @@ align v a = moveOriginBy (getBoundFunc (bounds a) v' *^ v') a
 --   along @-v@ to the very edge of the bounding region.  The negation
 --   is because we actually want to think of @align@ as aligning the
 --   /diagram/, not the origin.
-alignBy :: (HasOrigin a v, Boundable a, v ~ BoundSpace a)
-        => v -> Rational -> a -> a
+alignBy :: (HasOrigin a v, Boundable a v) => v -> Rational -> a -> a
 alignBy v d a = moveOriginBy (v ^* (- radius v a * fromRational d)) a
 
 -- | @center v@ centers a boundable object along the direction of @v@.
-center :: (HasOrigin a v, Boundable a, v ~ BoundSpace a)
-       => v -> a -> a
+center :: (HasOrigin a v, Boundable a v) => v -> a -> a
 center v = alignBy v 0
