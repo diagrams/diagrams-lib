@@ -38,8 +38,8 @@ import Data.Default
 --   their bounding regions are just tangent.  The local origin of the
 --   new, combined object is at the point of tangency, along the line
 --   between the old local origins.
-beside :: ( HasOrigin a, Boundable a, Monoid a
-          , v ~ OriginSpace a, v ~ BoundSpace a
+beside :: ( HasOrigin a v, Boundable a, Monoid a
+          , v ~ BoundSpace a
           )
        => v -> a -> a -> a
 beside v d1 d2
@@ -64,15 +64,15 @@ strut v = mempty { bounds_ = bounds (Linear v) }
 -- | Combine a list of objects (i.e. diagrams or paths) by assigning
 --   them absolute positions in the vector space of the combined
 --   object.
-position :: ( HasOrigin a, Monoid a )
-         => [ (Point (OriginSpace a), a) ] -> a
+position :: ( HasOrigin a v, Monoid a )
+         => [ (Point v, a) ] -> a
 position = mconcat . map (uncurry moveTo)
 
 -- | Combine a list of diagrams (or paths) by using them to
 -- \"decorate\" a trail, placing the local origin of one diagram at
 -- each successive vertex.  XXX say more
-decorateTrail :: ( HasOrigin a, Monoid a )
-              => Trail (OriginSpace a) -> [a] -> a
+decorateTrail :: ( HasOrigin a v, Monoid a )
+              => Trail v -> [a] -> a
 decorateTrail t = position . zip (trailVertices origin t)
 
 -- XXX comment me
