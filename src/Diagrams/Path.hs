@@ -183,7 +183,7 @@ instance (Ord v, VectorSpace v) => HasOrigin (Path v) where
 instance (Ord v, VectorSpace v) => PathLike (Path v) where
   type PathSpace (Path v) = v
 
-  setStart = moveOriginTo
+  setStart = moveTo
 
   fromSegments []   = Path $ S.empty
   fromSegments segs = Path $ S.singleton (fromSegments segs, origin)
