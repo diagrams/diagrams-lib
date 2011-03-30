@@ -15,6 +15,7 @@ module Diagrams.Prelude
          module Graphics.Rendering.Diagrams
 
        , module Diagrams.Attributes
+       , module Diagrams.Align
        , module Diagrams.Combinators
        , module Diagrams.Path
        , module Diagrams.Segment
@@ -28,6 +29,7 @@ module Diagrams.Prelude
 import Graphics.Rendering.Diagrams
 
 import Diagrams.Attributes
+import Diagrams.Align
 import Diagrams.Combinators
 import Diagrams.Path
 import Diagrams.Segment
