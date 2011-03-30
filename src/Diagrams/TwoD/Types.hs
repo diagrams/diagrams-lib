@@ -1,4 +1,6 @@
-{-# LANGUAGE TypeFamilies, TypeSynonymInstances #-}
+{-# LANGUAGE MultiParamTypeClasses
+           , TypeSynonymInstances
+  #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Types
@@ -24,8 +26,7 @@ type R2 = (Double, Double)
 -- | Points in R^2.
 type P2 = Point R2
 
-instance Transformable R2 where
-  type TSpace R2 = R2
+instance Transformable R2 R2 where
   transform = apply
 
 -- | An angle in radians.

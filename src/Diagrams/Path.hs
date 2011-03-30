@@ -1,9 +1,9 @@
-{-# LANGUAGE TypeFamilies
-           , MultiParamTypeClasses
+{-# LANGUAGE MultiParamTypeClasses
            , FlexibleInstances
            , FlexibleContexts
            , DeriveFunctor
            , GeneralizedNewtypeDeriving
+           , TypeFamilies
   #-}
 -----------------------------------------------------------------------------
 -- |
@@ -135,8 +135,7 @@ instance PathLike (Trail v) where
   close tr          = tr { isClosed = True }
   open tr           = tr { isClosed = False }
 
-instance HasLinearMap v => Transformable (Trail v) where
-  type TSpace (Trail v) = v
+instance HasLinearMap v => Transformable (Trail v) v where
   transform t (Trail segs c) = Trail (transform t segs) c
 
 -- | The bounding function for a trail is based at the trail's start.
@@ -191,8 +190,7 @@ instance (Ord v, VectorSpace v) => PathLike (Path v) where
   open  (Path s) = Path $ S.map (open  *** id) s
 
 -- See Note [Transforming paths]
-instance (HasLinearMap v, Ord v) => Transformable (Path v) where
-  type TSpace (Path v) = v
+instance (HasLinearMap v, Ord v) => Transformable (Path v) v where
   transform t (Path s) = Path $ S.map (transform t *** transform t) s
 
 {- ~~~~ Note [Transforming paths]
