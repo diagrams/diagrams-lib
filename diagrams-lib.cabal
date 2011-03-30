@@ -21,6 +21,7 @@ Library
                        Diagrams.Path,
                        Diagrams.TwoD,
                        Diagrams.TwoD.Types,
+                       Diagrams.TwoD.Align,
                        Diagrams.TwoD.Transform,
                        Diagrams.TwoD.Ellipse,
                        Diagrams.TwoD.Arc,
