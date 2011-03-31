@@ -58,6 +58,7 @@ import Graphics.Rendering.Diagrams.Bounds (OrderedField)
 import Diagrams.Segment
 
 import Data.VectorSpace
+import Data.AffineSpace
 
 import Data.Monoid
 import qualified Data.Foldable as F
