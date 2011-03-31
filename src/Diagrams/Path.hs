@@ -73,8 +73,10 @@ import Control.Arrow ((***))
 --  PathLike class
 ------------------------------------------------------------
 
+-- XXX merge close/open into fromSegments and make Diagrams an instance?
+
 -- | Type class for path-like things, which must be monoids.
---   Instances include 'Trail's, 'Path's, and 'MultiPath's.
+--   Instances include 'Trail's and 'Path's.
 class (Monoid p, VectorSpace v) => PathLike p v | p -> v where
 
   -- | Set the starting point of the path-like thing.  Some path-like
