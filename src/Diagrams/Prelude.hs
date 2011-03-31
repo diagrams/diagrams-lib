@@ -23,6 +23,8 @@ module Diagrams.Prelude
        , module Diagrams.Util
 
        , module Data.Monoid
+       , module Data.VectorSpace
+       , module Data.AffineSpace
 
        ) where
 
@@ -39,5 +41,7 @@ import Diagrams.Util
 import Data.Default
 
 import Data.Monoid
+import Data.VectorSpace hiding (Sum(..))
+import Data.AffineSpace
 
 
