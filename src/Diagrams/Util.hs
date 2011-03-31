@@ -24,3 +24,10 @@ with = def
 -- | Placeholder for things which still need to be implemented.
 writeMe :: String -> a
 writeMe s = error $ "The " ++ s ++ " function is not yet implemented.  Maybe you would like to implement it?"
+
+infixl 0 #
+
+-- | Postfix function application, for conveniently applying
+--   attributes.
+(#) :: a -> (a -> b) -> b
+(#) = flip ($)
