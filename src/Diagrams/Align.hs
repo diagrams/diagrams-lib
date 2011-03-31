@@ -28,6 +28,7 @@ import Graphics.Rendering.Diagrams.Bounds
 import Diagrams.Segment
 
 import Data.VectorSpace
+import Data.AffineSpace (alerp)
 
 import Data.Monoid
 import Data.Ratio
@@ -48,7 +49,10 @@ align v a = moveOriginTo (boundary v a) a
 --   @align v 0@ centers along @v@, and @align v 1@ moves the origin
 --   in the direction of @v@ to the very edge of the bounding region.
 alignBy :: (HasOrigin a v, Boundable a v) => v -> Rational -> a -> a
-alignBy v d a = moveOriginBy (v ^* (- radius v a * fromRational d)) a
+alignBy v d a = moveOriginTo (alerp (boundary (negateV v) a)
+                                    (boundary v a)
+                                    ((fromRational d + 1) / 2))
+                             a
 
 -- | @center v@ centers a boundable object along the direction of @v@.
 center :: (HasOrigin a v, Boundable a v) => v -> a -> a
