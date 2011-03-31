@@ -26,6 +26,8 @@ module Diagrams.Prelude
        , module Data.VectorSpace
        , module Data.AffineSpace
 
+       , module Data.Colour.Names
+
        ) where
 
 import Graphics.Rendering.Diagrams
@@ -44,4 +46,4 @@ import Data.Monoid
 import Data.VectorSpace hiding (Sum(..))
 import Data.AffineSpace
 
-
+import Data.Colour.Names
