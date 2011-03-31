@@ -13,6 +13,7 @@
 module Diagrams.TwoD.Util
        ( width, height, size2D
        , extentX, extentY, center2D
+       , unitX, unitY
        ) where
 
 import Graphics.Rendering.Diagrams
@@ -49,5 +50,10 @@ center2D :: Backend b R2 => AnnDiagram b R2 a -> P2
 center2D = P . (mid *** mid) . (extentX &&& extentY)
   where mid = (/2) . uncurry (+)
 
+-- | Unit vector in the positive X direction.
+unitX :: R2
+unitX = (1,0)
 
--- XXX add X and Y unit vectors
+-- | Unit vector in the positive Y direction.
+unitY :: R2
+unitY = (0,1)

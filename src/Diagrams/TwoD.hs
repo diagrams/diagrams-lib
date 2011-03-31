@@ -35,6 +35,7 @@ module Diagrams.TwoD
          R2
        , P2
        , Angle
+       , unitX, unitY
 
          -- * Shapes
        , circle
