@@ -125,10 +125,14 @@ cat v = cat' v def
 -- XXX fix so something more reasonable happens to the origin
 -- | XXX comment me
 cat' :: (HasOrigin a v, Boundable a v, Monoid a) => v -> CatOpts v -> [a] -> a
-cat' v (CatOpts { catMethod = Cat, sep = s }) =
+cat' v (CatOpts { catMethod = Cat, sep = s }) []     = mempty
+cat' v (CatOpts { catMethod = Cat, sep = s }) [d]    = d
+cat' v (CatOpts { catMethod = Cat, sep = s }) (d:ds) =
   foldl' (\d1 d2 ->
-           beside v d1 (besideBounds (getBounds (Linear (withLength s v))) v d2))
-         mempty
+           align v d1 <> (besideBounds (getBounds (Linear (withLength s v))) v d2))
+         d
+         ds
 
-cat' v (CatOpts { catMethod = Distrib }) =
-  decorateTrail (fromOffsets (repeat v))  -- infinite trail, no problem for Haskell =)
+cat' v (CatOpts { catMethod = Distrib }) ds =
+  decorateTrail (fromOffsets (repeat v)) ds
+  -- infinite trail, no problem for Haskell =)
