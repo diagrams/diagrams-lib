@@ -17,7 +17,7 @@
 module Diagrams.Combinators where
 
 import Graphics.Rendering.Diagrams
-import Graphics.Rendering.Diagrams.Transform (HasLinearMap)
+import Graphics.Rendering.Diagrams.Transform (HasLinearMap, withLength)
 import Graphics.Rendering.Diagrams.Bounds (OrderedField)
 
 import Diagrams.Segment (Segment(..))
@@ -31,6 +31,8 @@ import Data.VectorSpace
 
 import Data.Monoid
 import Data.List
+
+import Data.Default
 
 ------------------------------------------------------------
 -- Working with bounds
@@ -97,7 +99,32 @@ position = mconcat . map (uncurry moveTo)
 decorateTrail :: (HasOrigin a v, Monoid a) => Trail v -> [a] -> a
 decorateTrail t = position . zip (trailVertices origin t)
 
+-- | XXX comment me
+data CatMethod = Cat | Distrib
+
+-- | XXX comment me
+data CatOpts v = CatOpts { catMethod :: CatMethod
+                         , sep       :: Scalar v
+                         }
+
+instance Num (Scalar v) => Default (CatOpts v) where
+  def = CatOpts { catMethod = Cat
+                , sep       = 0
+                }
+
+-- | XXX comment me
 cat :: (HasOrigin a v, Boundable a v, Monoid a) => v -> [a] -> a
-cat v = foldl' (beside v) mempty
+cat v = cat' v def
+
+-- XXX fix so something more reasonable happens to the origin
+-- | XXX comment me
+cat' :: (HasOrigin a v, Boundable a v, Monoid a) => v -> CatOpts v -> [a] -> a
+cat' v (CatOpts { catMethod = Cat, sep = s }) =
+  foldl' (\d1 d2 ->
+           beside v d1 (besideBounds (getBounds (Linear (withLength s v))) v d2))
+         mempty
+
+cat' v (CatOpts { catMethod = Distrib }) =
+  decorateTrail (fromOffsets (repeat v))  -- infinite trail, no problem for Haskell =)
 
 -- grid

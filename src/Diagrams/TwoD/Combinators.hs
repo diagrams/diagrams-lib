@@ -15,18 +15,22 @@ module Diagrams.TwoD.Combinators
     (
       (===), (|||)
 
-    , hcat, vcat
+    , hcat, hcat'
+    , vcat, vcat'
+
     ) where
 
 import Graphics.Rendering.Diagrams
 
 import Diagrams.TwoD.Types
 import Diagrams.TwoD.Util
+import Diagrams.TwoD.Align
 import Diagrams.Combinators
 
 import Data.VectorSpace
 
 import Data.Monoid
+import Data.Default
 
 -- | Place two diagrams (or other boundable objects) vertically
 --   adjacent to one another.
@@ -40,8 +44,14 @@ a1 ||| a2 = beside unitX a1 a2
 
 -- | XXX comment me
 hcat :: (HasOrigin a R2, Boundable a R2, Monoid a) => [a] -> a
-hcat = cat unitX
+hcat = hcat' def
+
+hcat' :: (HasOrigin a R2, Boundable a R2, Monoid a) => CatOpts R2 -> [a] -> a
+hcat' = cat' unitX
 
 -- | XXX comment me
 vcat :: (HasOrigin a R2, Boundable a R2, Monoid a) => [a] -> a
-vcat = cat (negateV unitY)
+vcat = vcat' def
+
+vcat' :: (HasOrigin a R2, Boundable a R2, Monoid a) => CatOpts R2 -> [a] -> a
+vcat' = cat' (negateV unitY)
