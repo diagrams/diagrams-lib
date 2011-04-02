@@ -14,6 +14,8 @@
 module Diagrams.TwoD.Combinators
     (
       (===), (|||)
+
+    , hcat, vcat
     ) where
 
 import Graphics.Rendering.Diagrams
@@ -21,6 +23,8 @@ import Graphics.Rendering.Diagrams
 import Diagrams.TwoD.Types
 import Diagrams.TwoD.Util
 import Diagrams.Combinators
+
+import Data.VectorSpace
 
 import Data.Monoid
 
@@ -33,3 +37,11 @@ a1 === a2 = beside unitY a2 a1
 --   adjacent to one another.
 (|||) :: (HasOrigin a R2, Boundable a R2, Monoid a) => a -> a -> a
 a1 ||| a2 = beside unitX a1 a2
+
+-- | XXX comment me
+hcat :: (HasOrigin a R2, Boundable a R2, Monoid a) => [a] -> a
+hcat = cat unitX
+
+-- | XXX comment me
+vcat :: (HasOrigin a R2, Boundable a R2, Monoid a) => [a] -> a
+vcat = cat (negateV unitY)
