@@ -14,6 +14,7 @@
 module Diagrams.TwoD.Align
     (
       alignLeft, alignRight, alignTop, alignBottom
+    , alignX, alignY
     , centerX, centerY, centerXY
 
     , strutX, strutY
@@ -23,33 +24,44 @@ module Diagrams.TwoD.Align
 import Graphics.Rendering.Diagrams
 
 import Diagrams.TwoD.Types
+import Diagrams.TwoD.Util
 import Diagrams.Align
+
+import Data.VectorSpace
 
 import Data.Monoid
 
 -- | Align along the left edge.
 alignLeft   :: (HasOrigin a R2, Boundable a R2) => a -> a
-alignLeft   = align (-1,0)
+alignLeft   = align (negateV unitX)
 
 -- | Align along the right edge.
 alignRight  :: (HasOrigin a R2, Boundable a R2) => a -> a
-alignRight  = align (1,0)
+alignRight  = align unitX
 
 -- | Align along the top edge.
 alignTop    :: (HasOrigin a R2, Boundable a R2) => a -> a
-alignTop    = align (0,1)
+alignTop    = align unitY
 
 -- | Align along the bottom edge.
 alignBottom :: (HasOrigin a R2, Boundable a R2) => a -> a
-alignBottom = align (0,-1)
+alignBottom = align (negateV unitY)
+
+-- | XXX comment me
+alignX :: (HasOrigin a R2, Boundable a R2) => Rational -> a -> a
+alignX = alignBy unitX
+
+-- | XXX comment me
+alignY :: (HasOrigin a R2, Boundable a R2) => Rational -> a -> a
+alignY = alignBy unitY
 
 -- | Center along the X-axis.
 centerX  :: (HasOrigin a R2, Boundable a R2) => a -> a
-centerX  = alignBy (1,0) 0
+centerX  = alignBy unitX 0
 
 -- | Center along the Y-axis.
 centerY  :: (HasOrigin a R2, Boundable a R2) => a -> a
-centerY  = alignBy (0,1) 0
+centerY  = alignBy unitY 0
 
 -- | Center along both the X- and Y-axes.
 centerXY :: (HasOrigin a R2, Boundable a R2) => a -> a
