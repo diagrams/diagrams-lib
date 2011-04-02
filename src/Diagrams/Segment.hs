@@ -121,10 +121,10 @@ quadForm a b c
 --   start.
 instance (InnerSpace v, OrderedField (Scalar v)) => Boundable (Segment v) v where
 
-  bounds (s@(Linear {})) = Bounds $ \v ->
+  getBounds (s@(Linear {})) = Bounds $ \v ->
     maximum . map (\t -> ((s `atParam` t) <.> v) / magnitudeSq v) $ [0,1]
 
-  bounds (s@(Cubic c1 c2 x2)) = Bounds $ \v ->
+  getBounds (s@(Cubic c1 c2 x2)) = Bounds $ \v ->
     maximum .
     map (\t -> ((s `atParam` t) <.> v) / magnitudeSq v) $
     [0,1] ++

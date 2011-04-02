@@ -140,8 +140,8 @@ instance HasLinearMap v => Transformable (Trail v) v where
 -- | The bounding function for a trail is based at the trail's start.
 instance (InnerSpace v, OrderedField (Scalar v)) => Boundable (Trail v) v where
 
-  bounds (Trail segs _) =
-    foldr (\seg bds -> moveOriginTo (P . negateV . segOffset $ seg) bds <> bounds seg)
+  getBounds (Trail segs _) =
+    foldr (\seg bds -> moveOriginTo (P . negateV . segOffset $ seg) bds <> getBounds seg)
           mempty
           segs
 
@@ -202,8 +202,8 @@ of the v's are inside Points and hence ought to be translated.
 
 instance (InnerSpace v, OrderedField (Scalar v)) => Boundable (Path v) v where
 
-  bounds (Path trs) =  F.foldMap trailBounds trs
-    where trailBounds (t, p) = moveOriginTo ((-1) *. p) (bounds t)
+  getBounds (Path trs) =  F.foldMap trailBounds trs
+    where trailBounds (t, p) = moveOriginTo ((-1) *. p) (getBounds t)
 
 ------------------------------------------------------------
 --  Constructing paths from trails  ------------------------
@@ -237,7 +237,7 @@ stroke :: ( Backend b v
           )
        => Path v -> Diagram b v
 stroke p = Diagram { prims   = prim p
-                   , bounds_ = bounds p
+                   , bounds  = getBounds p
                    , names   = mempty
                           {-  XXX what to do here?
                               fromNames $ zip ([0..] :: [Int])

@@ -13,6 +13,7 @@
 --
 -----------------------------------------------------------------------------
 
+-- XXX make an export list
 module Diagrams.Combinators where
 
 import Graphics.Rendering.Diagrams
@@ -25,6 +26,7 @@ import Diagrams.Align
 import Diagrams.Util
 
 import Data.AdditiveGroup
+import Data.AffineSpace ((.-.))
 import Data.VectorSpace
 
 import Data.Monoid
@@ -34,7 +36,7 @@ import Data.List
 --   bounding region for a diagram, in place of the diagram's default
 --   bounding region.
 withBounds :: Boundable a v => a -> AnnDiagram b v m -> AnnDiagram b v m
-withBounds b d = d { bounds_ = bounds b }
+withBounds b d = d { bounds = getBounds b }
 
 ------------------------------------------------------------
 -- Combining two objects
