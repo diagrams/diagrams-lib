@@ -105,17 +105,39 @@ position = mconcat . map (uncurry moveTo)
 decorateTrail :: (HasOrigin a v, Monoid a) => Trail v -> [a] -> a
 decorateTrail t = position . zip (trailVertices origin t)
 
--- | XXX comment me
-data CatMethod = Cat | Distrib
+-- | Methods for concatenating diagrams.
+data CatMethod = Cat     -- ^ Normal catenation: simply put diagrams
+                         --   next to one another.
+               | Distrib -- ^ Distribution: place the local origins of diagrams
+                         --   at regular intervals.
 
--- | XXX comment me
-data CatOpts v = CatOpts { catMethod :: CatMethod
-                         , sep       :: Scalar v
+-- | Options for the 'cat' function.
+data CatOpts v = CatOpts { catMethod       :: CatMethod
+                             -- ^ Which 'CatMethod' should be used:
+                             --   normal catenation (default), or
+                             --   distribution?
+                         , sep             :: Scalar v
+                             -- ^ If catenation, how much separation should be
+                             --   placed between successive diagrams (default: 0)?
+                             --   This option is ignored when @catMethod = Distrib@.
+                         , catOptsvProxy__ :: Proxy v
+                             -- ^ This field exists solely to aid type inference;
+                             --   please ignore it.
                          }
 
+-- The reason the proxy field is necessary is that without it,
+-- altering the sep field could theoretically change the type of a
+-- CatOpts record.  This causes problems when writing an expression
+-- like @with { sep = 10 }@, because knowing the type of the whole
+-- expression does not tell us anything about the type of @with@, and
+-- therefore the @Num (Scalar v)@ constraint cannot be satisfied.
+-- Adding the Proxy field constrains the type of @with@ in @with {sep
+-- = 10}@ to be the same as the type of the whole expression.
+
 instance Num (Scalar v) => Default (CatOpts v) where
-  def = CatOpts { catMethod = Cat
-                , sep       = 0
+  def = CatOpts { catMethod       = Cat
+                , sep             = 0
+                , catOptsvProxy__ = Proxy
                 }
 
 -- | XXX comment me
