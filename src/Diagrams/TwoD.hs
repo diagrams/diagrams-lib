@@ -62,6 +62,7 @@ module Diagrams.TwoD
 
          -- * Alignment
        , alignLeft, alignRight, alignTop, alignBottom
+       , alignX, alignY
        , centerX, centerY, centerXY
        , strutX, strutY
 
