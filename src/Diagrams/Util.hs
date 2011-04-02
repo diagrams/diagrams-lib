@@ -25,9 +25,10 @@ with = def
 writeMe :: String -> a
 writeMe s = error $ "The " ++ s ++ " function is not yet implemented.  Maybe you would like to implement it?"
 
-infixl 0 #
+infixl 1 #
 
 -- | Postfix function application, for conveniently applying
---   attributes.
+--   attributes.  @(#)@ has a slightly higher precedence than @($)@, so
+--   @someFunction $ d # foo # bar@ parses as @someFunction (d # foo # bar)@.
 (#) :: a -> (a -> b) -> b
 (#) = flip ($)
