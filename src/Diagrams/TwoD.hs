@@ -57,6 +57,9 @@ module Diagrams.TwoD
        , reflectionX, reflectX
        , reflectionY, reflectY
 
+         -- * Combinators
+       , (===), (|||)
+
          -- * Alignment
        , alignLeft, alignRight, alignTop, alignBottom
        , centerX, centerY, centerXY
@@ -75,4 +78,5 @@ import Diagrams.TwoD.Arc
 import Diagrams.TwoD.Shapes
 import Diagrams.TwoD.Transform
 import Diagrams.TwoD.Align
+import Diagrams.TwoD.Combinators
 import Diagrams.TwoD.Util
