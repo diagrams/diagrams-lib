@@ -11,6 +11,10 @@
 
 module Diagrams.Util where
 
+-- XXX add export list
+
+-- XXX should this be split into internal vs external utilities?
+
 import Data.Monoid
 import Data.Default
 
@@ -32,3 +36,7 @@ infixl 1 #
 --   @someFunction $ d # foo # bar@ parses as @someFunction (d # foo # bar)@.
 (#) :: a -> (a -> b) -> b
 (#) = flip ($)
+
+-- | A value of @Proxy a@ carries no information; it's used only to
+--   fix the type @a@.
+data Proxy a = Proxy
