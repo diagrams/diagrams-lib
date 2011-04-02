@@ -25,7 +25,7 @@ import Diagrams.TwoD.Ellipse
 import Data.Basis
 import Data.VectorSpace
 
-import Text.PrettyPrint (Doc, empty, ($+$), vcat, parens, hsep, text, nest)
+import Text.PrettyPrint (Doc, empty, ($+$), parens, hsep, text, nest)
 import qualified Text.PrettyPrint as PP
 
 import Data.List (sortBy, transpose)
@@ -67,7 +67,7 @@ renderTransf t = renderMat mat
         decompV = map snd . decompose
 
 renderMat :: Show a => [[a]] -> Doc
-renderMat = vcat . map renderRow . transpose
+renderMat = PP.vcat . map renderRow . transpose
   where renderRow = parens . hsep . map (text . show)
 
 instance Renderable Ellipse ShowBackend R2 where

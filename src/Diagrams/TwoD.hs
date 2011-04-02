@@ -59,6 +59,7 @@ module Diagrams.TwoD
 
          -- * Combinators
        , (===), (|||)
+       , hcat, vcat
 
          -- * Alignment
        , alignLeft, alignRight, alignTop, alignBottom
