@@ -37,13 +37,13 @@ size2D = width &&& height
 --   the form (lo,hi).
 extentX :: Backend b R2 => AnnDiagram b R2 a -> (Double, Double)
 extentX d = (-f (-1,0), f (1,0))
-  where f = getBoundFunc $ bounds d
+  where f = appBounds $ bounds d
 
 -- | Compute the absolute y-coordinate range of a diagram in R2, in
 --   the form (lo,hi).
 extentY :: Backend b R2 => AnnDiagram b R2 a -> (Double, Double)
 extentY d = (-f (0,-1), f (0,1))
-  where f = getBoundFunc $ bounds d
+  where f = appBounds $ bounds d
 
 -- | Compute the center of a diagram in R2.
 center2D :: Backend b R2 => AnnDiagram b R2 a -> P2
