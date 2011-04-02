@@ -32,11 +32,21 @@ import Data.VectorSpace
 import Data.Monoid
 import Data.List
 
+------------------------------------------------------------
+-- Working with bounds
+------------------------------------------------------------
+
 -- | Use the bounding region from some boundable object as the
 --   bounding region for a diagram, in place of the diagram's default
 --   bounding region.
 withBounds :: Boundable a v => a -> AnnDiagram b v m -> AnnDiagram b v m
 withBounds b d = d { bounds = getBounds b }
+
+-- XXX should this retain all the names etc. of d?
+-- | @phantom a@ produces a \"phantom\" diagram, which has the same
+--   bounding region as @a@ but produces no output.
+phantom :: (Backend b v, Boundable a v, Monoid m) => a -> AnnDiagram b v m
+phantom d = withBounds d mempty
 
 ------------------------------------------------------------
 -- Combining two objects
@@ -54,6 +64,22 @@ withBounds b d = d { bounds = getBounds b }
 beside :: (HasOrigin a v, Boundable a v, Monoid a) => v -> a -> a -> a
 beside v d1 d2
   = align v d1 <> align (negateV v) d2
+
+-- | XXX comment me
+besideBounds :: (HasOrigin a v, Boundable a v) => Bounds v -> v -> a -> a
+besideBounds b v a
+  = moveOriginBy (origin .-. boundary v b) (align (negateV v) a)
+
+-- | Like 'beside', but the origin of the final combined object is the
+--   origin of the first object.  So in a sense we are \"appending\"
+--   the second object onto the first.
+append :: (HasOrigin a v, Boundable a v, Monoid a) => v -> a -> a -> a
+append v d1 d2 = appends d1 [(v,d2)]
+
+-- | XXX comment me
+appends :: (HasOrigin a v, Boundable a v, Monoid a) => a -> [(v,a)] -> a
+appends d1 apps = d1 <> mconcat (map (uncurry (besideBounds b)) apps)
+  where b = getBounds d1
 
 ------------------------------------------------------------
 -- Combining multiple objects
