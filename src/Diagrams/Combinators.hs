@@ -50,6 +50,12 @@ withBounds b d = d { bounds = getBounds b }
 phantom :: (Backend b v, Boundable a v, Monoid m) => a -> AnnDiagram b v m
 phantom d = withBounds d mempty
 
+-- | @pad s@ \"pads\" a diagram, expanding its bounding region by a
+--   factor of @s@.
+pad :: (Boundable (AnnDiagram b v m) v, Backend b v)
+    => Scalar v -> AnnDiagram b v m -> AnnDiagram b v m
+pad s d = withBounds (d # scale s) d
+
 ------------------------------------------------------------
 -- Combining two objects
 ------------------------------------------------------------
@@ -126,5 +132,3 @@ cat' v (CatOpts { catMethod = Cat, sep = s }) =
 
 cat' v (CatOpts { catMethod = Distrib }) =
   decorateTrail (fromOffsets (repeat v))  -- infinite trail, no problem for Haskell =)
-
--- grid
