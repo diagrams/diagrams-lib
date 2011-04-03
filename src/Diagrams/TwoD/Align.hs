@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts
+           , TypeFamilies
   #-}
 -----------------------------------------------------------------------------
 -- |
@@ -32,39 +33,39 @@ import Data.VectorSpace
 import Data.Monoid
 
 -- | Align along the left edge.
-alignLeft   :: (HasOrigin a R2, Boundable a R2) => a -> a
+alignLeft   :: (HasOrigin a, Boundable a, V a ~ R2) => a -> a
 alignLeft   = align (negateV unitX)
 
 -- | Align along the right edge.
-alignRight  :: (HasOrigin a R2, Boundable a R2) => a -> a
+alignRight  :: (HasOrigin a, Boundable a, V a ~ R2) => a -> a
 alignRight  = align unitX
 
 -- | Align along the top edge.
-alignTop    :: (HasOrigin a R2, Boundable a R2) => a -> a
+alignTop    :: (HasOrigin a, Boundable a, V a ~ R2) => a -> a
 alignTop    = align unitY
 
 -- | Align along the bottom edge.
-alignBottom :: (HasOrigin a R2, Boundable a R2) => a -> a
+alignBottom :: (HasOrigin a, Boundable a, V a ~ R2) => a -> a
 alignBottom = align (negateV unitY)
 
 -- | XXX comment me
-alignX :: (HasOrigin a R2, Boundable a R2) => Rational -> a -> a
+alignX :: (HasOrigin a, Boundable a, V a ~ R2) => Rational -> a -> a
 alignX = alignBy unitX
 
 -- | XXX comment me
-alignY :: (HasOrigin a R2, Boundable a R2) => Rational -> a -> a
+alignY :: (HasOrigin a, Boundable a, V a ~ R2) => Rational -> a -> a
 alignY = alignBy unitY
 
 -- | Center along the X-axis.
-centerX  :: (HasOrigin a R2, Boundable a R2) => a -> a
+centerX  :: (HasOrigin a, Boundable a, V a ~ R2) => a -> a
 centerX  = alignBy unitX 0
 
 -- | Center along the Y-axis.
-centerY  :: (HasOrigin a R2, Boundable a R2) => a -> a
+centerY  :: (HasOrigin a, Boundable a, V a ~ R2) => a -> a
 centerY  = alignBy unitY 0
 
 -- | Center along both the X- and Y-axes.
-centerXY :: (HasOrigin a R2, Boundable a R2) => a -> a
+centerXY :: (HasOrigin a, Boundable a, V a ~ R2) => a -> a
 centerXY = centerX . centerY
 
 -- | @strutX d@ is an empty diagram with width @d@ and height 0.

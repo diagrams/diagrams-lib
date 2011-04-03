@@ -40,11 +40,13 @@ import Data.VectorSpace (magnitudeSq, magnitude, (^-^))
 --   the unit circle.
 data Ellipse = Ellipse (Transformation R2)
 
-instance Transformable Ellipse R2 where
+type instance V Ellipse = R2
+
+instance Transformable Ellipse where
   transform t (Ellipse e) = Ellipse (t <> e)
 
 -- | A unit circle.
-circle :: (Backend b R2, Renderable Ellipse b R2) => Diagram b R2
+circle :: (Backend b R2, Renderable Ellipse b) => Diagram b R2
 circle = Diagram (prim $ Ellipse mempty)
                  (Bounds circleBounds)
                  (fromNames [ ("C", P ( 0, 0))
@@ -52,13 +54,13 @@ circle = Diagram (prim $ Ellipse mempty)
                             , ("N", P ( 0, 1))
                             , ("W", P (-1, 0))
                             , ("S", P ( 0,-1)) ])
-                 (\(P (x,y)) -> Any (x*x + y*y <= 1))
+                 (Annot $ \(P (x,y)) -> Any (x*x + y*y <= 1))
     where circleBounds (x,y) = 1 / sqrt(x*x + y*y)
 
 -- | Construct an ellipse with eccentricity e, created by scaling the
 --   unit circle in the X direction.  The eccentricity must be within
 --   the interval [0,1).
-ellipse :: (Backend b R2, Renderable Ellipse b R2) => Double -> Diagram b R2
+ellipse :: (Backend b R2, Renderable Ellipse b) => Double -> Diagram b R2
 ellipse e
     | e >= 0 && e < 1  = scaleX (sqrt (1 - e^2)) circle
     | otherwise        = error "Eccentricity of ellipse must be >= 0 and < 1."

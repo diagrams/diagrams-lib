@@ -41,18 +41,18 @@ import Data.Default
 -- | Use the bounding region from some boundable object as the
 --   bounding region for a diagram, in place of the diagram's default
 --   bounding region.
-withBounds :: Boundable a v => a -> AnnDiagram b v m -> AnnDiagram b v m
+withBounds :: Boundable a => a -> AnnDiagram b (V a) m -> AnnDiagram b (V a) m
 withBounds b d = d { bounds = getBounds b }
 
 -- XXX should this retain all the names etc. of d?
 -- | @phantom a@ produces a \"phantom\" diagram, which has the same
 --   bounding region as @a@ but produces no output.
-phantom :: (Backend b v, Boundable a v, Monoid m) => a -> AnnDiagram b v m
+phantom :: (Backend b (V a), Boundable a, Monoid m) => a -> AnnDiagram b (V a) m
 phantom d = withBounds d mempty
 
 -- | @pad s@ \"pads\" a diagram, expanding its bounding region by a
 --   factor of @s@.
-pad :: (Boundable (AnnDiagram b v m) v, Backend b v)
+pad :: (Boundable (AnnDiagram b v m), Backend b v)
     => Scalar v -> AnnDiagram b v m -> AnnDiagram b v m
 pad s d = withBounds (d # scale s) d
 
@@ -69,23 +69,23 @@ pad s d = withBounds (d # scale s) d
 --   between the old local origins.
 --
 --   XXX picture
-beside :: (HasOrigin a v, Boundable a v, Monoid a) => v -> a -> a -> a
+beside :: (HasOrigin a, Boundable a, Monoid a) => V a -> a -> a -> a
 beside v d1 d2
   = align v d1 <> align (negateV v) d2
 
 -- | XXX comment me
-besideBounds :: (HasOrigin a v, Boundable a v) => Bounds v -> v -> a -> a
+besideBounds :: (HasOrigin a, Boundable a) => Bounds (V a) -> V a -> a -> a
 besideBounds b v a
   = moveOriginBy (origin .-. boundary v b) (align (negateV v) a)
 
 -- | Like 'beside', but the origin of the final combined object is the
 --   origin of the first object.  So in a sense we are \"appending\"
 --   the second object onto the first.
-append :: (HasOrigin a v, Boundable a v, Monoid a) => v -> a -> a -> a
+append :: (HasOrigin a, Boundable a, Monoid a) => V a -> a -> a -> a
 append v d1 d2 = appends d1 [(v,d2)]
 
 -- | XXX comment me
-appends :: (HasOrigin a v, Boundable a v, Monoid a) => a -> [(v,a)] -> a
+appends :: (HasOrigin a, Boundable a, Monoid a) => a -> [(V a,a)] -> a
 appends d1 apps = d1 <> mconcat (map (uncurry (besideBounds b)) apps)
   where b = getBounds d1
 
@@ -96,13 +96,13 @@ appends d1 apps = d1 <> mconcat (map (uncurry (besideBounds b)) apps)
 -- | Combine a list of objects (i.e. diagrams or paths) by assigning
 --   them absolute positions in the vector space of the combined
 --   object.
-position :: (HasOrigin a v, Monoid a) => [(Point v, a)] -> a
+position :: (HasOrigin a, Monoid a) => [(Point (V a), a)] -> a
 position = mconcat . map (uncurry moveTo)
 
 -- | Combine a list of diagrams (or paths) by using them to
 -- \"decorate\" a trail, placing the local origin of one diagram at
 -- each successive vertex.  XXX say more
-decorateTrail :: (HasOrigin a v, Monoid a) => Trail v -> [a] -> a
+decorateTrail :: (HasOrigin a, Monoid a) => Trail (V a) -> [a] -> a
 decorateTrail t = position . zip (trailVertices origin t)
 
 -- | Methods for concatenating diagrams.
@@ -141,12 +141,12 @@ instance Num (Scalar v) => Default (CatOpts v) where
                 }
 
 -- | XXX comment me
-cat :: (HasOrigin a v, Boundable a v, Monoid a) => v -> [a] -> a
+cat :: (HasOrigin a, Boundable a, Monoid a) => V a -> [a] -> a
 cat v = cat' v def
 
 -- XXX fix so something more reasonable happens to the origin
 -- | XXX comment me
-cat' :: (HasOrigin a v, Boundable a v, Monoid a) => v -> CatOpts v -> [a] -> a
+cat' :: (HasOrigin a, Boundable a, Monoid a) => V a -> CatOpts (V a) -> [a] -> a
 cat' v (CatOpts { catMethod = Cat, sep = s }) []     = mempty
 cat' v (CatOpts { catMethod = Cat, sep = s }) [d]    = d
 cat' v (CatOpts { catMethod = Cat, sep = s }) (d:ds) =

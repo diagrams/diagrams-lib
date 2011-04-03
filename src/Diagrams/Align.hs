@@ -38,7 +38,7 @@ import Data.Ratio
 --   direction of @v@ until it is on the boundary.  (Note that if the
 --   local origin is outside the boundary to begin, it may have to
 --   move \"backwards\".)
-align :: (HasOrigin a v, Boundable a v) => v -> a -> a
+align :: (HasOrigin a, Boundable a) => V a -> a -> a
 align v a = moveOriginTo (boundary v a) a
 
 
@@ -48,14 +48,14 @@ align v a = moveOriginTo (boundary v a) a
 --   the center along @v@, where @r@ is the radius along @v@.  Hence
 --   @align v 0@ centers along @v@, and @align v 1@ moves the origin
 --   in the direction of @v@ to the very edge of the bounding region.
-alignBy :: (HasOrigin a v, Boundable a v) => v -> Rational -> a -> a
+alignBy :: (HasOrigin a, Boundable a) => V a -> Rational -> a -> a
 alignBy v d a = moveOriginTo (alerp (boundary (negateV v) a)
                                     (boundary v a)
                                     ((fromRational d + 1) / 2))
                              a
 
 -- | @center v@ centers a boundable object along the direction of @v@.
-center :: (HasOrigin a v, Boundable a v) => v -> a -> a
+center :: (HasOrigin a, Boundable a) => V a -> a -> a
 center v = alignBy v 0
 
 -- | @strut v@ is a diagram which produces no output, but for the
