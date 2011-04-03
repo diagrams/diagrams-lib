@@ -1,7 +1,8 @@
-{-# LANGUAGE MultiParamTypeClasses
+{-# LANGUAGE TypeFamilies
            , FlexibleContexts
            , FlexibleInstances
            , DeriveFunctor
+           , UndecidableInstances
   #-}
 -----------------------------------------------------------------------------
 -- |
@@ -46,11 +47,13 @@ data Segment v = Linear v
                | Cubic v v v
   deriving (Show, Functor, Eq, Ord)
 
+type instance V (Segment v) = v
+
 -- | Note that since segments are translationally invariant,
 --   translating a segment has no effect.  Thus the translational
 --   component of a transformation is always ignored, but other
 --   components (scaling, rotation, ...) will have an effect.
-instance HasLinearMap v => Transformable (Segment v) v where
+instance HasLinearMap v => Transformable (Segment v) where
   transform = fmap . apply
 
 -- | @'straight' v@ constructs a translationally invariant linear
@@ -119,7 +122,7 @@ quadForm a b c
 
 -- | The bounding function for a segment is based at the segment's
 --   start.
-instance (InnerSpace v, OrderedField (Scalar v)) => Boundable (Segment v) v where
+instance (InnerSpace v, OrderedField (Scalar v)) => Boundable (Segment v) where
 
   getBounds (s@(Linear {})) = Bounds $ \v ->
     maximum . map (\t -> ((s `atParam` t) <.> v) / magnitudeSq v) $ [0,1]

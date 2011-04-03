@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts
+           , TypeFamilies
   #-}
 -----------------------------------------------------------------------------
 -- |
@@ -34,24 +35,24 @@ import Data.Default
 
 -- | Place two diagrams (or other boundable objects) vertically
 --   adjacent to one another.
-(===) :: (HasOrigin a R2, Boundable a R2, Monoid a) => a -> a -> a
+(===) :: (HasOrigin a, Boundable a, V a ~ R2, Monoid a) => a -> a -> a
 a1 === a2 = beside unitY a2 a1
 
 -- | Place two diagrams (or other boundable objects) horizontally
 --   adjacent to one another.
-(|||) :: (HasOrigin a R2, Boundable a R2, Monoid a) => a -> a -> a
+(|||) :: (HasOrigin a, Boundable a, V a ~ R2, Monoid a) => a -> a -> a
 a1 ||| a2 = beside unitX a1 a2
 
 -- | XXX comment me
-hcat :: (HasOrigin a R2, Boundable a R2, Monoid a) => [a] -> a
+hcat :: (HasOrigin a, Boundable a, V a ~ R2, Monoid a) => [a] -> a
 hcat = hcat' def
 
-hcat' :: (HasOrigin a R2, Boundable a R2, Monoid a) => CatOpts R2 -> [a] -> a
+hcat' :: (HasOrigin a, Boundable a, V a ~ R2, Monoid a) => CatOpts R2 -> [a] -> a
 hcat' = cat' unitX
 
 -- | XXX comment me
-vcat :: (HasOrigin a R2, Boundable a R2, Monoid a) => [a] -> a
+vcat :: (HasOrigin a, Boundable a, V a ~ R2, Monoid a) => [a] -> a
 vcat = vcat' def
 
-vcat' :: (HasOrigin a R2, Boundable a R2, Monoid a) => CatOpts R2 -> [a] -> a
+vcat' :: (HasOrigin a, Boundable a, V a ~ R2, Monoid a) => CatOpts R2 -> [a] -> a
 vcat' = cat' (negateV unitY)

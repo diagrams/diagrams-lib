@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts
+           , TypeFamilies
   #-}
 -----------------------------------------------------------------------------
 -- |
@@ -40,7 +41,7 @@ rotation theta = fromLinear r (linv r)
     r = rot theta <-> rot (-theta)
 
 -- | Rotate by the given angle in radians.
-rotate :: Transformable t R2 => Angle -> t -> t
+rotate :: (Transformable t, V t ~ R2) => Angle -> t -> t
 rotate = transform . rotation
 
 -- | Create a transformation which performs a rotation by the given
@@ -49,7 +50,7 @@ rotationBy :: Double -> Transformation R2
 rotationBy = rotation . (*(2*pi))
 
 -- | Rotate by the given fraction of a circle.
-rotateBy :: Transformable t R2 => Angle -> t -> t
+rotateBy :: (Transformable t, V t ~ R2) => Angle -> t -> t
 rotateBy = transform . rotationBy
 
 -- | Construct a transformation which scales by the given factor in
@@ -61,7 +62,7 @@ scalingX c = fromLinear s s
 -- | Scale a diagram by the given factor in the x (horizontal)
 --   direction.  To scale uniformly, use
 --   'Graphics.Rendering.Diagrams.Transform.scale'.
-scaleX :: Transformable t R2 => Double -> t -> t
+scaleX :: (Transformable t, V t ~ R2) => Double -> t -> t
 scaleX = transform . scalingX
 
 -- | Construct a transformation which scales by the given factor in
@@ -73,29 +74,29 @@ scalingY c = fromLinear s s
 -- | Scale a diagram by the given factor in the y (vertical)
 --   direction.  To scale uniformly, use
 --   'Graphics.Rendering.Diagrams.Transform.scale'.
-scaleY :: Transformable t R2 => Double -> t -> t
+scaleY :: (Transformable t, V t ~ R2) => Double -> t -> t
 scaleY = transform . scalingY
 
 translationX :: Double -> Transformation R2
 translationX x = translation (x,0)
 
-translateX :: Transformable t R2 => Double -> t -> t
+translateX :: (Transformable t, V t ~ R2) => Double -> t -> t
 translateX = transform . translationX
 
 translationY :: Double -> Transformation R2
 translationY y = translation (0,y)
 
-translateY :: Transformable t R2 => Double -> t -> t
+translateY :: (Transformable t, V t ~ R2) => Double -> t -> t
 translateY = transform . translationY
 
 reflectionX :: Transformation R2
 reflectionX = scalingX (-1)
 
-reflectX :: Transformable t R2 => t -> t
+reflectX :: (Transformable t, V t ~ R2) => t -> t
 reflectX = transform reflectionX
 
 reflectionY :: Transformation R2
 reflectionY = scalingY (-1)
 
-reflectY :: Transformable t R2 => t -> t
+reflectY :: (Transformable t, V t ~ R2) => t -> t
 reflectY = transform reflectionY

@@ -1,4 +1,4 @@
-{-# LANGUAGE MultiParamTypeClasses
+{-# LANGUAGE TypeFamilies
            , TypeSynonymInstances
   #-}
 -----------------------------------------------------------------------------
@@ -23,10 +23,12 @@ import Graphics.Rendering.Diagrams
 -- | The two-dimensional Euclidean vector space R^2.
 type R2 = (Double, Double)
 
+type instance V R2 = R2
+
 -- | Points in R^2.
 type P2 = Point R2
 
-instance Transformable R2 R2 where
+instance Transformable R2 where
   transform = apply
 
 -- | An angle in radians.

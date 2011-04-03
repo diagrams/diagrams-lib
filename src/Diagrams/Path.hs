@@ -1,9 +1,9 @@
-{-# LANGUAGE MultiParamTypeClasses
-           , FunctionalDependencies
+{-# LANGUAGE TypeFamilies
            , FlexibleInstances
            , FlexibleContexts
            , DeriveFunctor
            , GeneralizedNewtypeDeriving
+           , UndecidableInstances
   #-}
 -----------------------------------------------------------------------------
 -- |
@@ -78,14 +78,14 @@ import Control.Arrow ((***))
 
 -- | Type class for path-like things, which must be monoids.
 --   Instances include 'Trail's and 'Path's.
-class (Monoid p, VectorSpace v) => PathLike p v | p -> v where
+class (Monoid p, VectorSpace (V p)) => PathLike p where
 
   -- | Set the starting point of the path-like thing.  Some path-like
   --   things (e.g. 'Trail's) may ignore this operation.
-  setStart   :: Point v -> p -> p
+  setStart   :: Point (V p) -> p -> p
 
   -- | Construct a path-like thing from a list of 'Segment's.
-  fromSegments :: [Segment v] -> p
+  fromSegments :: [Segment (V p)] -> p
 
   -- | \"Close\" a path-like thing.
   close :: p -> p
@@ -95,12 +95,12 @@ class (Monoid p, VectorSpace v) => PathLike p v | p -> v where
 
 -- | Construct a path-like thing of linear segments from a list of
 --   offsets.
-fromOffsets :: PathLike p v => [v] -> p
+fromOffsets :: PathLike p => [V p] -> p
 fromOffsets = fromSegments . map Linear
 
 -- | Construct a path-like thing of linear segments from a list of
 --   vertices, with the first vertex as the starting point.
-fromVertices :: PathLike p v => [Point v] -> p
+fromVertices :: PathLike p => [Point (V p)] -> p
 fromVertices []         = mempty
 fromVertices vvs@(v:vs) = setStart v $ fromOffsets (zipWith (flip (.-.)) vvs vs)
 
@@ -118,6 +118,8 @@ data Trail v = Trail { trailSegments :: [Segment v]
                      }
   deriving (Show, Functor, Eq, Ord)
 
+type instance V (Trail v) = v
+
 -- | The empty trail has no segments.  Trails are composed via
 --   concatenation.  @t1 `mappend` t2@ is closed iff either @t1@ or
 --   @t2@ are.
@@ -128,17 +130,17 @@ instance Monoid (Trail v) where
 -- | Trails are 'PathLike' things.  Note that since trails are
 --   translationally invariant, 'setStart' has no effect.
 --   'fromSegments' creates an open trail.
-instance VectorSpace v => PathLike (Trail v) v where
+instance VectorSpace v => PathLike (Trail v) where
   setStart _ tr     = tr
   fromSegments segs = Trail segs False
   close tr          = tr { isClosed = True }
   open tr           = tr { isClosed = False }
 
-instance HasLinearMap v => Transformable (Trail v) v where
+instance HasLinearMap v => Transformable (Trail v) where
   transform t (Trail segs c) = Trail (transform t segs) c
 
 -- | The bounding function for a trail is based at the trail's start.
-instance (InnerSpace v, OrderedField (Scalar v)) => Boundable (Trail v) v where
+instance (InnerSpace v, OrderedField (Scalar v)) => Boundable (Trail v) where
 
   getBounds (Trail segs _) =
     foldr (\seg bds -> moveOriginTo (P . negateV . segOffset $ seg) bds <> getBounds seg)
@@ -172,12 +174,14 @@ trailVertices p = scanl (.+^) p . trailOffsets
 newtype Path v = Path { pathTrails :: S.Set (Trail v, Point v) }
   deriving (Show, Monoid, Eq, Ord)
 
-instance (Ord v, VectorSpace v) => HasOrigin (Path v) v where
+type instance V (Path v) = v
+
+instance (Ord v, VectorSpace v) => HasOrigin (Path v) where
   moveOriginTo p (Path s) = Path $ S.map (id *** moveOriginTo p) s
 
 -- | Paths are (of course) path-like. 'fromSegments' creates a path
 --   with start point at the origin.
-instance (Ord v, VectorSpace v) => PathLike (Path v) v where
+instance (Ord v, VectorSpace v) => PathLike (Path v) where
   setStart = moveTo
 
   fromSegments []   = Path $ S.empty
@@ -187,7 +191,7 @@ instance (Ord v, VectorSpace v) => PathLike (Path v) v where
   open  (Path s) = Path $ S.map (open  *** id) s
 
 -- See Note [Transforming paths]
-instance (HasLinearMap v, Ord v) => Transformable (Path v) v where
+instance (HasLinearMap v, Ord v) => Transformable (Path v) where
   transform t (Path s) = Path $ S.map (transform t *** transform t) s
 
 {- ~~~~ Note [Transforming paths]
@@ -200,7 +204,7 @@ but that doesn't take into account the fact that some
 of the v's are inside Points and hence ought to be translated.
 -}
 
-instance (InnerSpace v, OrderedField (Scalar v)) => Boundable (Path v) v where
+instance (InnerSpace v, OrderedField (Scalar v)) => Boundable (Path v) where
 
   getBounds (Path trs) =  F.foldMap trailBounds trs
     where trailBounds (t, p) = moveOriginTo ((-1) *. p) (getBounds t)
@@ -232,7 +236,7 @@ pathVertices (Path trs) = S.map (\(tr, p) -> trailVertices p tr) trs
 -- | Convert a path into a diagram.  The resulting diagram has the
 --   names 0, 1, ... assigned to each of the path's vertices.
 stroke :: ( Backend b v
-          , InnerSpace v, Renderable (Path v) b v
+          , InnerSpace v, Renderable (Path v) b
           , OrderedField (Scalar v)
           )
        => Path v -> Diagram b v
@@ -244,13 +248,13 @@ stroke p = Diagram { prims   = prim p
                                               (pathVertices p)  -- XXX names for Bezier
                                                                 --   control points too?
                           -}
-                   , sample  = const (Any False)   -- Paths are infinitely thin
+                   , annot   = mempty   -- Paths are infinitely thin
                               -- TODO: what about closed paths in 2D?
                    }
 
 -- | Combination of 'pathFromTrail' and 'stroke' for convenience.
 strokeT :: ( Backend b v
-           , InnerSpace v, Renderable (Path v) b v
+           , InnerSpace v, Renderable (Path v) b
            , OrderedField (Scalar v)
            )
         => Trail v -> Diagram b v

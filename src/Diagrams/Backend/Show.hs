@@ -70,16 +70,16 @@ renderMat :: Show a => [[a]] -> Doc
 renderMat = PP.vcat . map renderRow . transpose
   where renderRow = parens . hsep . map (text . show)
 
-instance Renderable Ellipse ShowBackend R2 where
+instance Renderable Ellipse ShowBackend where
   render b (Ellipse t) = text "Ellipse (" $+$
                            (nest 2 (renderTransf t)) $+$
                          text ")"
 
-instance (Show v, HasLinearMap v) => Renderable (Segment v) ShowBackend v where
+instance (Show v, HasLinearMap v) => Renderable (Segment v) ShowBackend where
   render _ s = text (show s)
 
-instance (Show v, HasLinearMap v) => Renderable (Trail v) ShowBackend v where
+instance (Show v, HasLinearMap v) => Renderable (Trail v) ShowBackend where
   render _ t = text (show t)
 
-instance (Ord v, Show v, HasLinearMap v) => Renderable (Path v) ShowBackend v where
+instance (Ord v, Show v, HasLinearMap v) => Renderable (Path v) ShowBackend where
   render _ p = text (show p)
