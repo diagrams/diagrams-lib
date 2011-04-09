@@ -47,15 +47,15 @@ instance Transformable Ellipse where
 
 -- | A unit circle.
 circle :: (Backend b R2, Renderable Ellipse b) => Diagram b R2
-circle = Diagram (prim $ Ellipse mempty)
-                 (Bounds circleBounds)
-                 (fromNames [ ("C", P ( 0, 0))
-                            , ("E", P ( 1, 0))
-                            , ("N", P ( 0, 1))
-                            , ("W", P (-1, 0))
-                            , ("S", P ( 0,-1)) ])
-                 (Annot $ \(P (x,y)) -> Any (x*x + y*y <= 1))
-    where circleBounds (x,y) = 1 / sqrt(x*x + y*y)
+circle = mkAD (Prim $ Ellipse mempty)
+              (Bounds circleBounds)
+              (fromNames [ ("C", P ( 0, 0))
+                         , ("E", P ( 1, 0))
+                         , ("N", P ( 0, 1))
+                         , ("W", P (-1, 0))
+                         , ("S", P ( 0,-1)) ])
+              (Annot $ \(P (x,y)) -> Any (x*x + y*y <= 1))
+  where circleBounds (x,y) = 1 / sqrt(x*x + y*y)
 
 -- | Construct an ellipse with eccentricity e, created by scaling the
 --   unit circle in the X direction.  The eccentricity must be within

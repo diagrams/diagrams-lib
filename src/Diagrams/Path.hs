@@ -240,17 +240,16 @@ stroke :: ( Backend b v
           , OrderedField (Scalar v)
           )
        => Path v -> Diagram b v
-stroke p = Diagram { prims   = prim p
-                   , bounds  = getBounds p
-                   , names   = mempty
-                          {-  XXX what to do here?
-                              fromNames $ zip ([0..] :: [Int])
-                                              (pathVertices p)  -- XXX names for Bezier
-                                                                --   control points too?
-                          -}
-                   , annot   = mempty   -- Paths are infinitely thin
-                              -- TODO: what about closed paths in 2D?
-                   }
+stroke p = mkAD (Prim p)
+                (getBounds p)
+                mempty
+                {-  XXX what to do here?
+                    fromNames $ zip ([0..] :: [Int])
+                                    (pathVertices p)  -- XXX names for Bezier
+                                                      --   control points too?
+                -}
+                mempty   -- Paths are infinitely thin
+                         -- TODO: what about closed paths in 2D?
 
 -- | Combination of 'pathFromTrail' and 'stroke' for convenience.
 strokeT :: ( Backend b v
