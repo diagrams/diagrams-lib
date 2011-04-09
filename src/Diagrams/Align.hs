@@ -67,4 +67,4 @@ strut :: ( Backend b v, InnerSpace v
          , Monoid m
          )
       => v -> AnnDiagram b v m
-strut v = mempty { bounds = getBounds (Linear v) }
+strut v = setBounds (getBounds (Linear v)) mempty

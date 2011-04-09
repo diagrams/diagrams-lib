@@ -4,6 +4,7 @@
            , ScopedTypeVariables
            , TypeSynonymInstances
            , TypeFamilies
+           , GeneralizedNewtypeDeriving
   #-}
 -----------------------------------------------------------------------------
 -- |
@@ -39,15 +40,17 @@ instance Monoid Doc where
   mappend = ($+$)
 
 instance HasLinearMap v => Backend ShowBackend v where
-  type Render  ShowBackend v = Doc
+  data Render  ShowBackend v = SR Doc
   type Result  ShowBackend v = String
   data Options ShowBackend v = SBOpt
 
-  withStyle _ s r = r -- XXX FIXME
+  withStyle _ s t r = r -- XXX FIXME
 
-  doRender _ _ r = PP.render r
+  doRender _ _ (SR r) = PP.render r
 
-  adjustDia _ _ d = d
+instance Monoid (Render ShowBackend v) where
+  mempty = SR mempty
+  (SR d1) `mappend` (SR d2) = SR (d1 `mappend` d2)
 
 renderTransf :: forall v. (Num (Scalar v), HasLinearMap v)
              => Transformation v -> Doc
@@ -71,15 +74,15 @@ renderMat = PP.vcat . map renderRow . transpose
   where renderRow = parens . hsep . map (text . show)
 
 instance Renderable Ellipse ShowBackend where
-  render b (Ellipse t) = text "Ellipse (" $+$
-                           (nest 2 (renderTransf t)) $+$
-                         text ")"
+  render b (Ellipse t) = SR $ text "Ellipse (" $+$
+                                (nest 2 (renderTransf t)) $+$
+                              text ")"
 
 instance (Show v, HasLinearMap v) => Renderable (Segment v) ShowBackend where
-  render _ s = text (show s)
+  render _ s = SR $ text (show s)
 
 instance (Show v, HasLinearMap v) => Renderable (Trail v) ShowBackend where
-  render _ t = text (show t)
+  render _ t = SR $ text (show t)
 
 instance (Ord v, Show v, HasLinearMap v) => Renderable (Path v) ShowBackend where
-  render _ p = text (show p)
+  render _ p = SR $ text (show p)
