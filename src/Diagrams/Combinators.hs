@@ -42,7 +42,7 @@ import Data.Default
 --   bounding region for a diagram, in place of the diagram's default
 --   bounding region.
 withBounds :: Boundable a => a -> AnnDiagram b (V a) m -> AnnDiagram b (V a) m
-withBounds b d = d { bounds = getBounds b }
+withBounds b d = setBounds (getBounds b) d
 
 -- XXX should this retain all the names etc. of d?
 -- | @phantom a@ produces a \"phantom\" diagram, which has the same
@@ -52,7 +52,7 @@ phantom d = withBounds d mempty
 
 -- | @pad s@ \"pads\" a diagram, expanding its bounding region by a
 --   factor of @s@.
-pad :: (Boundable (AnnDiagram b v m), Backend b v)
+pad :: (Boundable (AnnDiagram b v m), Backend b v, Monoid m)
     => Scalar v -> AnnDiagram b v m -> AnnDiagram b v m
 pad s d = withBounds (d # scale s) d
 
