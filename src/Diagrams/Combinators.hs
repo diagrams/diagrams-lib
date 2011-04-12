@@ -52,7 +52,8 @@ phantom d = withBounds d mempty
 
 -- | @pad s@ \"pads\" a diagram, expanding its bounding region by a
 --   factor of @s@.
-pad :: (Boundable (AnnDiagram b v m), Backend b v, Monoid m)
+pad :: ( Boundable (AnnDiagram b v m), Backend b v, Monoid m
+       , InnerSpace v, OrderedField (Scalar v))
     => Scalar v -> AnnDiagram b v m -> AnnDiagram b v m
 pad s d = withBounds (d # scale s) d
 
