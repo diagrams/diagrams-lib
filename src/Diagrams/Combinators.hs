@@ -145,14 +145,17 @@ instance Num (Scalar v) => Default (CatOpts v) where
 cat :: (HasOrigin a, Boundable a, Monoid a) => V a -> [a] -> a
 cat v = cat' v def
 
--- XXX fix so something more reasonable happens to the origin
 -- | XXX comment me
 cat' :: (HasOrigin a, Boundable a, Monoid a) => V a -> CatOpts (V a) -> [a] -> a
 cat' v (CatOpts { catMethod = Cat, sep = s }) []     = mempty
 cat' v (CatOpts { catMethod = Cat, sep = s }) [d]    = d
 cat' v (CatOpts { catMethod = Cat, sep = s }) (d:ds) =
   foldl' (\d1 d2 ->
-           align v d1 <> (besideBounds (getBounds (Linear (withLength s v))) v d2))
+           d1 <> (moveOriginBy (origin .-. boundary v d1)
+                  . moveOriginBy (withLength s (negateV v))
+                  . align (negateV v)
+                  $ d2)
+         )
          d
          ds
 
