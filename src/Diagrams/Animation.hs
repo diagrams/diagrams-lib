@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeFamilies, MultiParamTypeClasses #-}
+{-# LANGUAGE TypeFamilies, MultiParamTypeClasses, FlexibleContexts #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Animation
@@ -25,6 +25,7 @@ import Data.Monoid
 import Data.VectorSpace
 
 import Graphics.Rendering.Diagrams
+import Graphics.Rendering.Diagrams.Bounds (OrderedField)
 
 (<>) :: Monoid m => m -> m -> m
 (<>) = mappend
@@ -39,11 +40,9 @@ data (Fractional t) => TimeDependentDiagram b v a t = TimeDependentDiagram
 
 validateBounded ::
  ( Backend b v
- , Fractional t
- , Ord t
- , s ~ Scalar v
- , Ord s
- , AdditiveGroup s
+ , InnerSpace v
+ , OrderedField t
+ , OrderedField (Scalar v)
  , Monoid a
  ) => TimeDependentDiagram b v a t -> t -> AnnDiagram b v a
 validateBounded tdd t = case withinBounds of
