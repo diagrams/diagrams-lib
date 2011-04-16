@@ -38,17 +38,18 @@ import Data.Default
 -- Working with bounds
 ------------------------------------------------------------
 
+-- XXX this isn't quite right!  Need to think about this a bit more...
 -- | Use the bounding region from some boundable object as the
 --   bounding region for a diagram, in place of the diagram's default
 --   bounding region.
-withBounds :: Boundable a => a -> AnnDiagram b (V a) m -> AnnDiagram b (V a) m
-withBounds b d = setBounds (getBounds b) d
+withBounds :: (Backend b (V a), Boundable a, Monoid m)
+           => a -> AnnDiagram b (V a) m -> AnnDiagram b (V a) m
+withBounds b d = d `atop` phantom b
 
--- XXX should this retain all the names etc. of d?
 -- | @phantom a@ produces a \"phantom\" diagram, which has the same
 --   bounding region as @a@ but produces no output.
 phantom :: (Backend b (V a), Boundable a, Monoid m) => a -> AnnDiagram b (V a) m
-phantom d = withBounds d mempty
+phantom a = mkAD nullPrim (getBounds a) mempty mempty
 
 -- | @pad s@ \"pads\" a diagram, expanding its bounding region by a
 --   factor of @s@.
@@ -56,6 +57,17 @@ pad :: ( Boundable (AnnDiagram b v m), Backend b v, Monoid m
        , InnerSpace v, OrderedField (Scalar v))
     => Scalar v -> AnnDiagram b v m -> AnnDiagram b v m
 pad s d = withBounds (d # scale s) d
+
+-- | @strut v@ is a diagram which produces no output, but for the
+--   purposes of alignment and bounding regions acts like a
+--   1-dimensional segment oriented along the vector @v@.  Useful for
+--   manually creating separation between two diagrams.
+strut :: ( Backend b v, InnerSpace v
+         , OrderedField (Scalar v)
+         , Monoid m
+         )
+      => v -> AnnDiagram b v m
+strut v = phantom $ getBounds (Linear v)
 
 ------------------------------------------------------------
 -- Combining two objects

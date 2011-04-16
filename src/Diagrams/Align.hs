@@ -18,8 +18,6 @@
 module Diagrams.Align
        ( align, alignBy
        , center
-
-       , strut
        ) where
 
 import Graphics.Rendering.Diagrams
@@ -57,14 +55,3 @@ alignBy v d a = moveOriginTo (alerp (boundary (negateV v) a)
 -- | @center v@ centers a boundable object along the direction of @v@.
 center :: (HasOrigin a, Boundable a) => V a -> a -> a
 center v = alignBy v 0
-
--- | @strut v@ is a diagram which produces no output, but for the
---   purposes of alignment and bounding regions acts like a
---   1-dimensional segment oriented along the vector @v@.  Useful for
---   manually creating separation between two diagrams.
-strut :: ( Backend b v, InnerSpace v
-         , OrderedField (Scalar v)
-         , Monoid m
-         )
-      => v -> AnnDiagram b v m
-strut v = setBounds (getBounds (Linear v)) mempty
