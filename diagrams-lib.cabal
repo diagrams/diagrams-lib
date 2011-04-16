@@ -28,7 +28,7 @@ Library
                        Diagrams.TwoD.Arc,
                        Diagrams.TwoD.Shapes,
                        Diagrams.TwoD.Util,
-                       Diagrams.Animation,
+--                       Diagrams.Animation,
                        Diagrams.Util,
                        Diagrams.Backend.Show
   Build-depends:       base >= 4.2 && < 4.4,
