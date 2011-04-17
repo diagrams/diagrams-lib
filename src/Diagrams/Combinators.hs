@@ -17,7 +17,7 @@
 module Diagrams.Combinators where
 
 import Graphics.Rendering.Diagrams
-import Graphics.Rendering.Diagrams.Transform (HasLinearMap, withLength)
+import Graphics.Rendering.Diagrams.Transform (withLength)
 import Graphics.Rendering.Diagrams.Bounds (OrderedField)
 
 import Diagrams.Segment (Segment(..))
@@ -159,8 +159,8 @@ cat v = cat' v def
 
 -- | XXX comment me
 cat' :: (HasOrigin a, Boundable a, Monoid a) => V a -> CatOpts (V a) -> [a] -> a
-cat' v (CatOpts { catMethod = Cat, sep = s }) []     = mempty
-cat' v (CatOpts { catMethod = Cat, sep = s }) [d]    = d
+cat' _ (CatOpts { catMethod = Cat }) []     = mempty
+cat' _ (CatOpts { catMethod = Cat }) [d]    = d
 cat' v (CatOpts { catMethod = Cat, sep = s }) (d:ds) =
   foldl' (\d1 d2 ->
            d1 <> (moveOriginBy (origin .-. boundary v d1)

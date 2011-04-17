@@ -62,7 +62,6 @@ import Data.AffineSpace
 
 import Data.Monoid
 import qualified Data.Foldable as F
-import qualified Data.Map as M
 import qualified Data.Set as S
 
 import Control.Arrow ((***))

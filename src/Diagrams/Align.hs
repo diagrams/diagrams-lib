@@ -21,15 +21,9 @@ module Diagrams.Align
        ) where
 
 import Graphics.Rendering.Diagrams
-import Graphics.Rendering.Diagrams.Bounds
-
-import Diagrams.Segment
 
 import Data.VectorSpace
 import Data.AffineSpace (alerp)
-
-import Data.Monoid
-import Data.Ratio
 
 -- | @align v@ aligns a boundable object along the edge in the
 --   direction of @v@.  That is, it moves the local origin in the

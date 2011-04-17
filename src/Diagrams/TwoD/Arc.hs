@@ -16,7 +16,6 @@ module Diagrams.TwoD.Arc
     ) where
 
 import Graphics.Rendering.Diagrams
-import Graphics.Rendering.Diagrams.Transform
 
 import Diagrams.TwoD.Types
 import Diagrams.TwoD.Transform

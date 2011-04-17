@@ -73,8 +73,6 @@ module Diagrams.TwoD
        , extentX, extentY, center2D
        ) where
 
-import Graphics.Rendering.Diagrams
-
 import Diagrams.TwoD.Types
 import Diagrams.TwoD.Ellipse
 import Diagrams.TwoD.Arc
