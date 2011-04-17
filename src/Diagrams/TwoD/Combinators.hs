@@ -26,7 +26,6 @@ import Graphics.Rendering.Diagrams
 
 import Diagrams.TwoD.Types
 import Diagrams.TwoD.Util
-import Diagrams.TwoD.Align
 import Diagrams.Combinators
 
 import Data.VectorSpace

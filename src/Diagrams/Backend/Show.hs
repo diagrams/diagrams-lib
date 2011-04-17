@@ -24,13 +24,11 @@ import Graphics.Rendering.Diagrams.Transform
 import Diagrams.TwoD.Ellipse
 
 import Data.Basis
-import Data.VectorSpace
 
 import Text.PrettyPrint (Doc, empty, ($+$), parens, hsep, text, nest)
 import qualified Text.PrettyPrint as PP
 
-import Data.List (sortBy, transpose)
-import Data.Ord (comparing)
+import Data.List (transpose)
 
 -- | Token for identifying this backend.
 data ShowBackend = ShowBackend
@@ -44,7 +42,7 @@ instance HasLinearMap v => Backend ShowBackend v where
   type Result  ShowBackend v = String
   data Options ShowBackend v = SBOpt
 
-  withStyle _ s t r = r -- XXX FIXME
+  withStyle _ _ _ r = r -- XXX FIXME
 
   doRender _ _ (SR r) = PP.render r
 
@@ -65,8 +63,8 @@ renderTransf t = renderMat mat
         vmat = map (apply t) es
         mat :: [[Scalar v]]
         mat = map decompV vmat
-        mat' :: [[Scalar v]]
-        mat'  = map (++[0]) mat ++ [decompV tr ++ [1]]
+--        mat' :: [[Scalar v]]
+--        mat'  = map (++[0]) mat ++ [decompV tr ++ [1]]
         decompV = map snd . decompose
 
 renderMat :: Show a => [[a]] -> Doc
@@ -74,7 +72,7 @@ renderMat = PP.vcat . map renderRow . transpose
   where renderRow = parens . hsep . map (text . show)
 
 instance Renderable Ellipse ShowBackend where
-  render b (Ellipse t) = SR $ text "Ellipse (" $+$
+  render _ (Ellipse t) = SR $ text "Ellipse (" $+$
                                 (nest 2 (renderTransf t)) $+$
                               text ")"
 

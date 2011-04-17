@@ -40,8 +40,6 @@ import Diagrams.Segment
 import Diagrams.TwoD
 import Diagrams.Util
 
-import Data.Default
-
 import Data.Monoid
 import Data.VectorSpace hiding (Sum(..))
 import Data.AffineSpace

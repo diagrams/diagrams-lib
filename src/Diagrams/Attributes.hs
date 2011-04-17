@@ -32,8 +32,6 @@ import Graphics.Rendering.Diagrams
 import Data.Colour
 import qualified Data.Colour.SRGB as RGB
 
-import Data.VectorSpace
-
 import Data.Typeable
 
 ------------------------------------------------------------

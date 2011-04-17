@@ -28,8 +28,6 @@ import Diagrams.Align
 
 import Data.VectorSpace
 
-import Data.Monoid
-
 -- | Align along the left edge.
 alignLeft   :: (HasOrigin a, Boundable a, V a ~ R2) => a -> a
 alignLeft   = align (negateV unitX)

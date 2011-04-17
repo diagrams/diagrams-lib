@@ -25,9 +25,6 @@ import Diagrams.TwoD.Transform
 
 import Diagrams.Util
 
-import qualified Data.Map as M
-
-import Data.Monoid (Any(..))
 import Data.Default
 
 -- | Determine how a polygon should be oriented.
