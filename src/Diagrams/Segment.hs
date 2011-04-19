@@ -91,7 +91,7 @@ segOffset (Cubic _ _ v) = v
 --  Computing segment bounds  ------------------------------
 ------------------------------------------------------------
 
-{- (1-t)^2 t c1 + (1-t) t^2 c2 + t^3 x2
+{- 3 (1-t)^2 t c1 + 3 (1-t) t^2 c2 + t^3 x2
 
    Can we compute the projection of B(t) onto a given vector v?
 
@@ -105,10 +105,10 @@ segOffset (Cubic _ _ v) = v
    Then take the derivative of this wrt. t, get a quadratic, solve.
 
    B_v(t) = (1/|v|) *     -- note this does not affect max/min, can solve for t first
-            (1-t)^2 t (c1.v) + (1-t) t^2 (c2.v) + t^3 (x2.v)
-          = t^3 ((c1 - c2 + x2).v) + t^2 ((-2c1 + c2).v) + t (c1.v)
+            3 (1-t)^2 t (c1.v) + 3 (1-t) t^2 (c2.v) + t^3 (x2.v)
+          = t^3 ((3c1 - 3c2 + x2).v) + t^2 ((-6c1 + 3c2).v) + t (3c1.v)
 
-   B_v'(t) = t^2 (3(c1 - c2 + x2).v) + t (2(-2c1 + c2).v) + c1.v
+   B_v'(t) = t^2 (3(3c1 - 3c2 + x2).v) + t (6(-2c1 + c2).v) + 3c1.v
 
    Set equal to zero, use quadratic formula.
 -}
@@ -132,9 +132,9 @@ instance (InnerSpace v, OrderedField (Scalar v)) => Boundable (Segment v) where
     map (\t -> ((s `atParam` t) <.> v) / magnitudeSq v) $
     [0,1] ++
     filter (liftA2 (&&) (>0) (<1))
-      (quadForm (3 * ((c1 ^-^ c2 ^+^ x2) <.> v))
-                (2 * (((-2) *^ c1 ^+^ c2) <.> v))
-                (c1 <.> v))
+      (quadForm (3 * ((3 *^ c1 ^-^ 3 *^ c2 ^+^ x2) <.> v))
+                (6 * (((-2) *^ c1 ^+^ c2) <.> v))
+                ((3 *^ c1) <.> v))
 
 {- XXX TODO
 
