@@ -234,10 +234,7 @@ pathVertices (Path trs) = S.map (\(tr, p) -> trailVertices p tr) trs
 
 -- | Convert a path into a diagram.  The resulting diagram has the
 --   names 0, 1, ... assigned to each of the path's vertices.
-stroke :: ( Backend b v
-          , InnerSpace v, Renderable (Path v) b
-          , OrderedField (Scalar v)
-          )
+stroke :: (InnerSpace v, OrderedField (Scalar v), Renderable (Path v) b)
        => Path v -> Diagram b v
 stroke p = mkAD (Prim p)
                 (getBounds p)
@@ -251,9 +248,6 @@ stroke p = mkAD (Prim p)
                          -- TODO: what about closed paths in 2D?
 
 -- | Combination of 'pathFromTrail' and 'stroke' for convenience.
-strokeT :: ( Backend b v
-           , InnerSpace v, Renderable (Path v) b
-           , OrderedField (Scalar v)
-           )
+strokeT :: (InnerSpace v, OrderedField (Scalar v), Renderable (Path v) b)
         => Trail v -> Diagram b v
 strokeT = stroke . pathFromTrail
