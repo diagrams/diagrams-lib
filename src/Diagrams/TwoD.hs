@@ -42,6 +42,8 @@ module Diagrams.TwoD
        , ellipse
        , arc
 
+       , hrule, vrule
+
        , PolygonOrientation(..), PolygonOpts(..)
        , polygon, polygonPath, polygonVertices
        , square
