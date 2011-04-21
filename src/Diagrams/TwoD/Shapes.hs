@@ -11,7 +11,9 @@
 -----------------------------------------------------------------------------
 
 module Diagrams.TwoD.Shapes
-       ( PolygonOrientation(..), PolygonOpts(..)
+       ( hrule, vrule
+
+       , PolygonOrientation(..), PolygonOpts(..)
        , polygon, polygonPath, polygonVertices
        , square
        , starPolygon
@@ -22,10 +24,17 @@ import Graphics.Rendering.Diagrams
 import Diagrams.Path
 import Diagrams.TwoD.Types
 import Diagrams.TwoD.Transform
+import Diagrams.TwoD.Align
 
 import Diagrams.Util
 
 import Data.Default
+
+hrule :: (Backend b R2, Renderable (Path R2) b) => Double -> Diagram b R2
+hrule d = centerX . stroke $ fromOffsets [(d,0)]
+
+vrule :: (Backend b R2, Renderable (Path R2) b) => Double -> Diagram b R2
+vrule d = centerY . stroke $ fromOffsets [(0,d)]
 
 -- | Determine how a polygon should be oriented.
 data PolygonOrientation = NoOrient  -- ^ No special orientation; one
