@@ -86,6 +86,17 @@ beside :: (HasOrigin a, Boundable a, Monoid a) => V a -> a -> a -> a
 beside v d1 d2
   = align v d1 <> align (negateV v) d2
 
+-- Note that sending the origin to the point of tangency like this
+-- means that (beside v) is not associative.  We can make it
+-- associative if we specify that the origin of the new, composed
+-- diagram is the same as the local origin of the first diagram (or,
+-- dually, of the second).  But then mempty is only a right identity,
+-- not a left identity.  (To be sure, with the current implementation
+-- mempty is no identity at all!)  We could make (beside v) a monoidal
+-- operation (associative, with mempty as identity) if we always
+-- center the origin along v after combining.  That sounds nice from a
+-- theoretical point of view but not from a usability point of view...
+
 -- | XXX comment me
 besideBounds :: (HasOrigin a, Boundable a) => Bounds (V a) -> V a -> a -> a
 besideBounds b v a
