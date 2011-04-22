@@ -54,8 +54,9 @@ circle = mkAD (Prim $ Ellipse mempty)
                          , ("N", P ( 0, 1))
                          , ("W", P (-1, 0))
                          , ("S", P ( 0,-1)) ])
-              (Annot $ \(P (x,y)) -> Any (x*x + y*y <= 1))
+              (Query circleQuery)
   where circleBounds (x,y) = 1 / sqrt(x*x + y*y)
+        circleQuery (P (x,y)) = Any $ x*x + y*y <= 1
 
 -- | Construct an ellipse with eccentricity e, created by scaling the
 --   unit circle in the X direction.  The eccentricity must be within
