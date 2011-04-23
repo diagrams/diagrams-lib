@@ -63,7 +63,7 @@ circle = mkAD (Prim $ Ellipse mempty)
 --   the interval [0,1).
 ellipse :: (Backend b R2, Renderable Ellipse b) => Double -> Diagram b R2
 ellipse e
-    | e >= 0 && e < 1  = scaleX (sqrt (1 - e^2)) circle
+    | e >= 0 && e < 1  = scaleX (sqrt (1 - e*e)) circle
     | otherwise        = error "Eccentricity of ellipse must be >= 0 and < 1."
 
 -- | Compute the coefficients of the quadratic form

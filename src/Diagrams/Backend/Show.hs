@@ -33,10 +33,6 @@ import Data.List (transpose)
 -- | Token for identifying this backend.
 data ShowBackend = ShowBackend
 
-instance Monoid Doc where
-  mempty  = empty
-  mappend = ($+$)
-
 instance HasLinearMap v => Backend ShowBackend v where
   data Render  ShowBackend v = SR Doc
   type Result  ShowBackend v = String
@@ -47,8 +43,8 @@ instance HasLinearMap v => Backend ShowBackend v where
   doRender _ _ (SR r) = PP.render r
 
 instance Monoid (Render ShowBackend v) where
-  mempty = SR mempty
-  (SR d1) `mappend` (SR d2) = SR (d1 `mappend` d2)
+  mempty = SR empty
+  (SR d1) `mappend` (SR d2) = SR (d1 $+$ d2)
 
 renderTransf :: forall v. (Num (Scalar v), HasLinearMap v)
              => Transformation v -> Doc
