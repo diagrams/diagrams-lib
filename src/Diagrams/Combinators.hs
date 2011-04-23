@@ -13,8 +13,23 @@
 --
 -----------------------------------------------------------------------------
 
--- XXX make an export list
-module Diagrams.Combinators where
+module Diagrams.Combinators
+       ( -- * Unary operations
+
+         withBounds
+       , phantom, strut
+
+       , pad
+
+         -- * Binary operations
+       , beside, besideBounds
+       , append, appends
+
+         -- * n-ary operations
+       , position, decorateTrail
+       , cat, cat', CatOpts(catMethod, sep), CatMethod
+
+       ) where
 
 import Graphics.Rendering.Diagrams
 import Graphics.Rendering.Diagrams.Bounds (OrderedField)
@@ -46,15 +61,20 @@ withBounds :: (Backend b (V a), Boundable a, Monoid m)
            => a -> AnnDiagram b (V a) m -> AnnDiagram b (V a) m
 withBounds b d = d `atop` phantom b
 
--- | @phantom a@ produces a \"phantom\" diagram, which has the same
---   bounding region as @a@ but produces no output.
+-- | @phantom x@ produces a \"phantom\" diagram, which has the same
+--   bounding region as @x@ but produces no output.
 phantom :: (Backend b (V a), Boundable a, Monoid m) => a -> AnnDiagram b (V a) m
 phantom a = mkAD nullPrim (getBounds a) mempty mempty
 
 -- | @pad s@ \"pads\" a diagram, expanding its bounding region by a
---   factor of @s@.
-pad :: ( Boundable (AnnDiagram b v m), Backend b v, Monoid m
-       , InnerSpace v, OrderedField (Scalar v))
+--   factor of @s@.  Note that the bounding region will expand with
+--   respect to the local origin, so if the origin is not centered the
+--   padding may appear \"uneven\".  If this is not desired, the
+--   origin can be centered (using, e.g., 'centerXY' for 2D diagrams)
+--   before applying @pad@.
+pad :: ( Backend b v
+       , InnerSpace v, OrderedField (Scalar v)
+       , Monoid m )
     => Scalar v -> AnnDiagram b v m -> AnnDiagram b v m
 pad s d = withBounds (d # scale s) d
 
@@ -103,8 +123,7 @@ besideBounds b v a
   = moveOriginBy (origin .-. boundary v b) (align (negateV v) a)
 
 -- | Like 'beside', but the origin of the final combined object is the
---   origin of the first object.  So in a sense we are \"appending\"
---   the second object onto the first.
+--   origin of the first object.
 append :: (HasOrigin a, Boundable a, Monoid a) => V a -> a -> a -> a
 append v d1 d2 = appends d1 [(v,d2)]
 
