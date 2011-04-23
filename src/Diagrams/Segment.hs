@@ -77,9 +77,10 @@ bezier3 = Cubic
 --   designed to be used infix, like @seg `atParam` 0.5@.
 atParam :: (VectorSpace v, Num (Scalar v)) => Segment v -> Scalar v -> v
 atParam (Linear x) t       = t *^ x
-atParam (Cubic c1 c2 x2) t =     (3 * (1-t)^2 * t) *^ c1
-                             ^+^ (3 * (1-t) * t^2) *^ c2
-                             ^+^ t^3 *^ x2
+atParam (Cubic c1 c2 x2) t =     (3 * t'*t'*t ) *^ c1
+                             ^+^ (3 * t'*t *t ) *^ c2
+                             ^+^ (    t *t *t ) *^ x2
+  where t' = 1-t
 
 -- | Compute the total offset (a vector) from the start of a segment
 --   to the end.

@@ -17,6 +17,8 @@ module Diagrams.TwoD.Shapes
        , polygon, polygonPath, polygonVertices
        , square
        , starPolygon
+
+       , eqTriangle
        ) where
 
 import Graphics.Rendering.Diagrams
@@ -100,6 +102,7 @@ starPolygon p q = polygon def { sides = p, edgeSkip = q }
 eqTriangle :: (Backend b R2, Renderable (Path R2) b) => Diagram b R2
 eqTriangle = polygon with {sides = 3, orientation = OrientToX}
 
+{-
 pentagon :: (Backend b R2, Renderable (Path R2) b) => Diagram b R2
 pentagon = writeMe "pentagon"
 
@@ -123,4 +126,4 @@ decagon = writeMe "decagon"
 triangleFromSides :: (Backend b R2, Renderable (Path R2) b)
                   => Double -> Double -> Double -> Maybe (Diagram b R2)
 triangleFromSides = writeMe "triangleFromSides"
-
+-}
