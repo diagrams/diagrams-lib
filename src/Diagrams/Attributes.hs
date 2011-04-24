@@ -18,8 +18,8 @@ module Diagrams.Attributes (
 
     Color(..), SomeColor(..)
 
-  , LineColor(..), lineColor, lc
-  , FillColor(..), fillColor, fc
+  , LineColor(..), lineColor, lc, lcA
+  , FillColor(..), fillColor, fc, fcA
   , LineWidth(..), lineWidth, lw
   , LineCap(..), lineCap
   , LineJoin(..), lineJoin
@@ -56,38 +56,46 @@ newtype LineColor = LineColor SomeColor
   deriving Typeable
 instance AttributeClass LineColor
 
--- | Set the line (stroke) color of a diagram.
+-- | Set the line (stroke) color of a diagram.  This function is
+--   polymorphic in the color type (so it can be used with either
+--   'Colour' or 'AlphaColour'), but this can sometimes create
+--   problems for type inference, so the 'lc' and 'lcA' variants are
+--   provided with more concrete types.
 lineColor :: (Color c, HasStyle a) => c -> a -> a
 lineColor = applyAttr . LineColor . SomeColor
 
--- | A convenient synonym for 'lineColor'.
-lc :: (Color c, HasStyle a) => c -> a -> a
+-- | A synonym for 'lineColor', specialized to @'Colour' Double@
+--   (i.e. opaque colors).
+lc :: HasStyle a => Colour Double -> a -> a
 lc = lineColor
+
+-- | A synonym for 'lineColor', specialized to @'Colour' Double@
+--   (i.e. opaque colors).
+lcA :: HasStyle a => AlphaColour Double -> a -> a
+lcA = lineColor
 
 -- | Fill color attribute.
 newtype FillColor = FillColor SomeColor
   deriving Typeable
 instance AttributeClass FillColor
 
--- | Set the fill color of a diagram.
+-- | Set the fill color of a diagram.  This function is polymorphic in
+--   the color type (so it can be used with either 'Colour' or
+--   'AlphaColour'), but this can sometimes create problems for type
+--   inference, so the 'fc' and 'fcA' variants are provided with more
+--   concrete types.
 fillColor :: (Color c, HasStyle a) => c -> a -> a
 fillColor = applyAttr . FillColor . SomeColor
 
--- | A convenient synonym for 'fillColor'.
-fc :: (Color c, HasStyle a) => c -> a -> a
+-- | A synonym for 'fillColor', specialized to @'Colour' Double@
+--   (i.e. opaque colors).
+fc :: HasStyle a => Colour Double -> a -> a
 fc = fillColor
 
--- Note: we would like to just be able to say 'instance Color (Colour
--- Double)' and so on, but the problem is that the named color
--- constants in Data.Colour.Names are polymorphic with type (Floating
--- a, Ord a) => Colour a, so trying to pass one of these constants to
--- a function like 'lc' gives an error that there is no instance for
--- Color (Colour a).  Adding a type annotation like 'lc (black ::
--- Colour Double)' works, but this is a pain for the user.  The
--- (admittedly hackish) solution is to make general instances which
--- require Floating and Real (so that we can convert to Double with
--- fromRational . toRational), and let type defaulting figure out that
--- in the expression 'lc black', black should have type Colour Double.
+-- | A synonym for 'fillColor', specialized to @'AlphaColour' Double@
+--   (i.e. colors with transparency).
+fcA :: HasStyle a => AlphaColour Double -> a -> a
+fcA = fillColor
 
 instance (Floating a, Real a) => Color (Colour a) where
   colorToRGBA col = (r,g,b,1)
