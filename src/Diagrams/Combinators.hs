@@ -117,7 +117,9 @@ beside v d1 d2
 -- center the origin along v after combining.  That sounds nice from a
 -- theoretical point of view but not from a usability point of view...
 
--- | XXX comment me
+-- | @besideBounds b v x@ positions @x@ so it is beside the bounding
+--   region @b@ in the direction of @v@.  The origin of the new
+--   diagram is the origin of the bounding region.
 besideBounds :: (HasOrigin a, Boundable a) => Bounds (V a) -> V a -> a -> a
 besideBounds b v a
   = moveOriginBy (origin .-. boundary v b) (align (negateV v) a)
@@ -127,7 +129,10 @@ besideBounds b v a
 append :: (HasOrigin a, Boundable a, Monoid a) => V a -> a -> a -> a
 append v d1 d2 = appends d1 [(v,d2)]
 
--- | XXX comment me
+-- | @appends x ys@ appends each of the objects in @ys@ to the object
+--   @x@ in the corresponding direction.  Note that each object in
+--   @ys@ is positioned beside @x@ /without/ reference to the other
+--   objects in @ys@, so this is not the same as iterating @append@.
 appends :: (HasOrigin a, Boundable a, Monoid a) => a -> [(V a,a)] -> a
 appends d1 apps = d1 <> mconcat (map (uncurry (besideBounds b)) apps)
   where b = getBounds d1
