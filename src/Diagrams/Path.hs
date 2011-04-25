@@ -234,6 +234,11 @@ pathVertices (Path trs) = S.map (\(tr, p) -> trailVertices p tr) trs
 
 -- | Convert a path into a diagram.  The resulting diagram has the
 --   names 0, 1, ... assigned to each of the path's vertices.
+--
+--   Note that a bug in GHC 7.0.1 causes a context stack overflow when
+--   inferring the type of @stroke@.  The solution is to give a type
+--   signature to expressions involving @stroke@, or (recommended)
+--   upgrade GHC (the bug is fixed in 7.0.2 onwards).
 stroke :: (InnerSpace v, OrderedField (Scalar v), Renderable (Path v) b)
        => Path v -> Diagram b v
 stroke p = mkAD (Prim p)
@@ -248,6 +253,12 @@ stroke p = mkAD (Prim p)
                          -- TODO: what about closed paths in 2D?
 
 -- | Combination of 'pathFromTrail' and 'stroke' for convenience.
+--
+--   Note that a bug in GHC 7.0.1 causes a context stack overflow when
+--   inferring the type of 'stroke' and hence of @strokeT@ as well.
+--   The solution is to give a type signature to expressions involving
+--   @strokeT@, or (recommended) upgrade GHC (the bug is fixed in 7.0.2
+--   onwards).
 strokeT :: (InnerSpace v, OrderedField (Scalar v), Renderable (Path v) b)
         => Trail v -> Diagram b v
 strokeT = stroke . pathFromTrail
