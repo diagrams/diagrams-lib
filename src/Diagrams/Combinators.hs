@@ -213,6 +213,6 @@ cat' v (CatOpts { catMethod = Cat, sep = s }) (d:ds) =
          d
          ds
 
-cat' v (CatOpts { catMethod = Distrib }) ds =
-  decorateTrail (fromOffsets (repeat v)) ds
-  -- infinite trail, no problem for Haskell =)
+cat' v (CatOpts { catMethod = Distrib, sep = s }) ds =
+  decorateTrail (fromOffsets (repeat (withLength s v))) ds
+  -- infinite trail, no problem for Haskell =D
