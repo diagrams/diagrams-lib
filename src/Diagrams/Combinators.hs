@@ -23,11 +23,12 @@ module Diagrams.Combinators
 
          -- * Binary operations
        , beside, besideBounds
-       , append, appends
+       , append
 
          -- * n-ary operations
+       , appends
        , position, decorateTrail
-       , cat, cat', CatOpts(catMethod, sep), CatMethod
+       , cat, cat', CatOpts(..), CatMethod(..)
 
        ) where
 
@@ -125,9 +126,13 @@ besideBounds b v a
   = moveOriginBy (origin .-. boundary v b) (align (negateV v) a)
 
 -- | Like 'beside', but the origin of the final combined object is the
---   origin of the first object.
+--   origin of the first object.  See also 'appends'.
 append :: (HasOrigin a, Boundable a, Monoid a) => V a -> a -> a -> a
 append v d1 d2 = appends d1 [(v,d2)]
+
+------------------------------------------------------------
+-- Combining multiple objects
+------------------------------------------------------------
 
 -- | @appends x ys@ appends each of the objects in @ys@ to the object
 --   @x@ in the corresponding direction.  Note that each object in
@@ -137,19 +142,17 @@ appends :: (HasOrigin a, Boundable a, Monoid a) => a -> [(V a,a)] -> a
 appends d1 apps = d1 <> mconcat (map (uncurry (besideBounds b)) apps)
   where b = getBounds d1
 
-------------------------------------------------------------
--- Combining multiple objects
-------------------------------------------------------------
-
--- | Combine a list of objects (i.e. diagrams or paths) by assigning
---   them absolute positions in the vector space of the combined
---   object.
+-- | Position things absolutely: combine a list of objects
+-- (e.g. diagrams or paths) by assigning them absolute positions in
+-- the vector space of the combined object.
 position :: (HasOrigin a, Monoid a) => [(Point (V a), a)] -> a
 position = mconcat . map (uncurry moveTo)
 
 -- | Combine a list of diagrams (or paths) by using them to
--- \"decorate\" a trail, placing the local origin of one diagram at
--- each successive vertex.  XXX say more
+--   \"decorate\" a trail, placing the local origin of one object at
+--   each successive vertex of the trail.  If the trail and list of
+--   objects have different lengths, the extra tail of the longer one
+--   is ignored.
 decorateTrail :: (HasOrigin a, Monoid a) => Trail (V a) -> [a] -> a
 decorateTrail t = position . zip (trailVertices origin t)
 
@@ -188,7 +191,11 @@ instance Num (Scalar v) => Default (CatOpts v) where
                 , catOptsvProxy__ = Proxy
                 }
 
--- | XXX comment me
+-- | @cat v@ positions a list of objects so that their local origins
+--   lie along a line in the direction of @v@.  Successive objects
+--   will have their bounding regions just touching.  See also 'cat'',
+--   which takes an extra options record allowing certain aspects of
+--   the operation to be tweaked.
 cat :: (HasOrigin a, Boundable a, Monoid a) => V a -> [a] -> a
 cat v = cat' v def
 
