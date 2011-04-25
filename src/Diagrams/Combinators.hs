@@ -156,19 +156,33 @@ decorateTrail t = position . zip (trailVertices origin t)
 
 -- | Methods for concatenating diagrams.
 data CatMethod = Cat     -- ^ Normal catenation: simply put diagrams
-                         --   next to one another.
-               | Distrib -- ^ Distribution: place the local origins of diagrams
-                         --   at regular intervals.
+                         --   next to one another (possibly with a
+                         --   certain distance in between each). The
+                         --   distance between successive diagram
+                         --   /boundaries/ will be consistent; the
+                         --   distance between /origins/ may vary if
+                         --   the diagrams are of different sizes.
+               | Distrib -- ^ Distribution: place the local origins of
+                         --   diagrams at regular intervals.  With
+                         --   this method, the distance between
+                         --   successive /origins/ will be consistent
+                         --   but the distance between boundaries may
+                         --   not be.  Indeed, depending on the amount
+                         --   of separation, diagrams may overlap.
 
--- | Options for the 'cat' function.
+-- | Options for 'cat''.
 data CatOpts v = CatOpts { catMethod       :: CatMethod
                              -- ^ Which 'CatMethod' should be used:
                              --   normal catenation (default), or
                              --   distribution?
                          , sep             :: Scalar v
-                             -- ^ If catenation, how much separation should be
-                             --   placed between successive diagrams (default: 0)?
-                             --   This option is ignored when @catMethod = Distrib@.
+                             -- ^ How much separation should be used
+                             --   between successive diagrams
+                             --   (default: 0)?  When @catMethod =
+                             --   Cat@, this is the distance between
+                             --   /boundaries/; when @catMethod =
+                             --   Distrib@, this is the distance
+                             --   between /origins/.
                          , catOptsvProxy__ :: Proxy v
                              -- ^ This field exists solely to aid type inference;
                              --   please ignore it.
@@ -191,13 +205,32 @@ instance Num (Scalar v) => Default (CatOpts v) where
 
 -- | @cat v@ positions a list of objects so that their local origins
 --   lie along a line in the direction of @v@.  Successive objects
---   will have their bounding regions just touching.  See also 'cat'',
---   which takes an extra options record allowing certain aspects of
---   the operation to be tweaked.
+--   will have their bounding regions just touching.  The local origin
+--   of the result will be the same as the local origin of the first
+--   object.
+--
+--   See also 'cat'', which takes an extra options record allowing
+--   certain aspects of the operation to be tweaked.
 cat :: (HasOrigin a, Boundable a, Monoid a) => V a -> [a] -> a
 cat v = cat' v def
 
--- | XXX comment me
+-- | Like 'cat', but taking an extra 'CatOpts' arguments allowing the
+--   user to specify
+--
+--   * The spacing method: catenation (uniform spacing between
+--     boundaries) or distribution (uniform spacing between local
+--     origins).  The default is catenation.
+--
+--   * The amount of separation between successive diagram
+--     boundaries/origins (depending on the spacing method).  The
+--     default is 0.
+--
+--   'CatOpts' is an instance of 'Default', so 'with' may be used for
+--   the second argument, as in @cat' (1,2) with {sep = 2}@.
+--
+--   Note that @cat' v with {catMethod = Distrib} === mconcat@
+--   (distributing with a separation of 0 is the same as
+--   superimposing).
 cat' :: (HasOrigin a, Boundable a, Monoid a) => V a -> CatOpts (V a) -> [a] -> a
 cat' _ (CatOpts { catMethod = Cat }) []     = mempty
 cat' _ (CatOpts { catMethod = Cat }) [d]    = d
