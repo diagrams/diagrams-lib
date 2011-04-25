@@ -1,8 +1,14 @@
 Name:                diagrams-lib
 Version:             0.1
-Synopsis:            Domain-specific language for creating drawings and diagrams
-Description:         XXX WRITE ME
-Homepage:            http://code.haskell.org/diagrams/
+Synopsis:            Embedded domain-specific language for declarative graphics
+Description:         Diagrams is a flexible, extensible EDSL for creating
+                     graphics of many types.  Graphics can be created
+                     in arbitrary vector spaces and rendered with
+                     multiple backends.  diagrams-lib provides a
+                     standard library of primitives and operations for
+                     creating diagrams.  To get started using it, see
+                     "Diagrams.Prelude".
+Homepage:            http://code.google.com/p/diagrams/
 License:             BSD3
 License-file:        LICENSE
 Author:              Brent Yorgey
