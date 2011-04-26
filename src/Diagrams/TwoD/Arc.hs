@@ -6,7 +6,7 @@
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
--- Two-dimensional arcs approximated by beziers.
+-- Two-dimensional arcs, approximated by cubic bezier curves.
 --
 -----------------------------------------------------------------------------
 
@@ -28,9 +28,10 @@ import Data.VectorSpace((^-^))
 -- For details of this approximation see:
 --   http://www.tinaja.com/glib/bezcirc2.pdf
 
--- | Construct a 'Cubic' segment that starts in positive y direction
---   and sweeps counter clockwise 's' radians.  The approximation is
---   only valid for angles in the first quarter.
+-- | @bezierFromSweepQ1 s@ constructs a 'Cubic' segment that starts in
+--   the positive y direction and sweeps counterclockwise through @s@
+--   radians.  The approximation is only valid for angles in the first
+--   quadrant.
 bezierFromSweepQ1 :: Angle -> Segment R2
 bezierFromSweepQ1 s = fmap (^-^ v) . rotate (s/2) $ Cubic p2 p1 p0
   where p0@(x,y) = rotate (s/2) v
@@ -38,12 +39,12 @@ bezierFromSweepQ1 s = fmap (^-^ v) . rotate (s/2) $ Cubic p2 p1 p0
         p2       = reflectY p1
         v        = (1,0)
 
--- | Construct a series of 'Cubic' segments that start in positive
---   y direction and sweep counter clockwise 's' radians.  If 's' is
---   negative it will start in the negative y direction and sweep
---   clockwise.  When 's' is less than 0.0001 the result is '[]'.  If
---   the sweep is greater than two pi then it is truncated to two pi.
---   See Note [segment spacing]
+-- | @bezierFromSweep s@ constructs a series of 'Cubic' segments that
+--   start in the positive y direction and sweep counter clockwise
+--   through @s@ radians.  If @s@ is negative, it will start in the
+--   negative y direction and sweep clockwise.  When @s@ is less than
+--   0.0001 the empty list results.  If the sweep is greater than two pi
+--   then it is truncated to two pi.
 bezierFromSweep :: Angle -> [Segment R2]
 bezierFromSweep s
   | s > 2 * pi = bezierFromSweep (2*pi)
@@ -79,7 +80,8 @@ arcT start end = Trail bs (sweep >= pi*2)
   where sweep = end - start
         bs    = map (rotate start) . bezierFromSweep $ sweep
 
--- | Given a 'start' angle and an 'end' angle, 'arc' is the path of
---   a radius one arc counter clockwise between the two angles.
+-- | Given a start angle @s@ and an end angle @e@ (both in radians),
+--   @'arc' s e@ is the path of a radius one arc counterclockwise
+--   between the two angles.
 arc :: Angle -> Angle -> Path R2
 arc start end = pathFromTrailAt (arcT start end) (rotate start $ P (1,0))
