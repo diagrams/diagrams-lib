@@ -8,9 +8,9 @@
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
--- Transformations specific to two dimensions.  Note that uniform
--- scaling and translation are defined generically for any vector
--- space by diagrams-core.
+-- Transformations specific to two dimensions, with a few generic
+-- transformations (uniform scaling, translation) also re-exported for
+-- convenience.
 --
 -----------------------------------------------------------------------------
 
@@ -23,10 +23,12 @@ module Diagrams.TwoD.Transform
          -- * Scaling
        , scalingX, scaleX
        , scalingY, scaleY
+       , scaling, scale
 
          -- * Translation
        , translationX, translateX
        , translationY, translateY
+       , translation, translate
 
          -- * Reflection
        , reflectionX, reflectX
