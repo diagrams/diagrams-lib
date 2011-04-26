@@ -31,5 +31,5 @@ type P2 = Point R2
 instance Transformable R2 where
   transform = apply
 
--- | An angle in radians.
+-- | Type synonym used to represent angles in radians.
 type Angle = Double
