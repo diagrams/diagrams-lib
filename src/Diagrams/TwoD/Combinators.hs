@@ -8,17 +8,22 @@
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
--- Diagram combinators in two dimensions.
+-- Diagram combinators specialized to two dimensions. For more general
+-- combinators, see "Diagrams.Combinators".
 --
 -----------------------------------------------------------------------------
 
 module Diagrams.TwoD.Combinators
     (
+      -- * Binary combinators
+
       (===), (|||)
 
+      -- * n-ary combinators
     , hcat, hcat'
     , vcat, vcat'
 
+      -- * Struts
     , strutX, strutY
     ) where
 
@@ -34,26 +39,60 @@ import Data.Monoid
 import Data.Default
 
 -- | Place two diagrams (or other boundable objects) vertically
---   adjacent to one another.
+--   adjacent to one another, with the first diagram above the second.
+--   Since Haskell ignores whitespace in expressions, one can thus write
+--
+--   >    c
+--   >   ===
+--   >    d
+--
+--   to place @c@ above @d@.
 (===) :: (HasOrigin a, Boundable a, V a ~ R2, Monoid a) => a -> a -> a
 a1 === a2 = beside unitY a2 a1
 
 -- | Place two diagrams (or other boundable objects) horizontally
---   adjacent to one another.
+--   adjacent to one another, with the first diagram to the left of
+--   the second.
 (|||) :: (HasOrigin a, Boundable a, V a ~ R2, Monoid a) => a -> a -> a
 a1 ||| a2 = beside unitX a1 a2
 
--- | XXX comment me
+-- | Lay out a list of boundable objects in a row from left to right,
+--   so that their local origins lie along a single horizontal line,
+--   with successive bounding regions tangent to one another.
+--
+--   * For more control over the spacing, see 'hcat''.
+--
+--   * To align the diagrams vertically (or otherwise), use alignment
+--   combinators (such as 'alignTop' or 'alignBottom') from
+--   "Diagrams.TwoD.Align" before applying 'hcat'.
+--
+--   * For non-axis-aligned layout, see 'cat'.
 hcat :: (HasOrigin a, Boundable a, V a ~ R2, Monoid a) => [a] -> a
 hcat = hcat' def
 
+-- | A variant of 'hcat' taking an extra 'CatOpts' record to control
+--   the spacing.  See the 'cat'' documentation for a description of
+--   the possibilities.
 hcat' :: (HasOrigin a, Boundable a, V a ~ R2, Monoid a) => CatOpts R2 -> [a] -> a
 hcat' = cat' unitX
 
--- | XXX comment me
+-- | Lay out a list of boundable objects in a column from top to bottom,
+--   so that their local origins lie along a single vertical line,
+--   with successive bounding regions tangent to one another.
+--
+--   * For more control over the spacing, see 'vcat''.
+--
+--   * To align the diagrams horizontally (or otherwise), use alignment
+--   combinators (such as 'alignLeft' or 'alignRight') from
+--   "Diagrams.TwoD.Align" before applying 'vcat'.
+--
+--   * For non-axis-aligned layout, see 'cat'.
 vcat :: (HasOrigin a, Boundable a, V a ~ R2, Monoid a) => [a] -> a
 vcat = vcat' def
 
+-- | A variant of 'vcat' taking an extra 'CatOpts' record to control
+--   the spacing.  See the 'cat'' documentation for a description of the
+--   possibilities.
 vcat' :: (HasOrigin a, Boundable a, V a ~ R2, Monoid a) => CatOpts R2 -> [a] -> a
 vcat' = cat' (negateV unitY)
 
