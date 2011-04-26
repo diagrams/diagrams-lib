@@ -11,10 +11,15 @@
 -----------------------------------------------------------------------------
 
 module Diagrams.TwoD.Shapes
-       ( hrule, vrule
+       (
+         -- * Miscellaneous
+         hrule, vrule
 
-       , PolygonOrientation(..), PolygonOpts(..)
+         -- * General polygons
        , polygon, polygonPath, polygonVertices
+       , PolygonOpts(..), PolygonOrientation(..)
+
+         -- * Special polygons
        , square
        , starPolygon
 
@@ -32,9 +37,11 @@ import Diagrams.Util
 
 import Data.Default
 
+-- | Create a centered horizontal line of the given length.
 hrule :: (Backend b R2, Renderable (Path R2) b) => Double -> Diagram b R2
 hrule d = centerX . stroke $ fromOffsets [(d,0)]
 
+-- | Create a centered vertical line of the given length.
 vrule :: (Backend b R2, Renderable (Path R2) b) => Double -> Diagram b R2
 vrule d = centerY . stroke $ fromOffsets [(0,d)]
 
