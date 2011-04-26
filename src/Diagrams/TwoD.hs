@@ -12,22 +12,30 @@
 -- functionality from a group of more specific modules:
 --
 --   * "Diagrams.TwoD.Types" defines basic types for two-dimensional
---     diagrams
+--     diagrams.
 --
---   * "Diagrams.TwoD.Transform" defines various 2D-specific
---     transformations
+--   * "Diagrams.TwoD.Align" defines alignment combinators specialized
+--     to two dimensions (see "Diagrams.Align" for more general
+--     alignment).
 --
---   * "Diagrams.TwoD.Ellipse" defines ellipses
+--   * "Diagrams.TwoD.Combinators" defines ways of combining diagrams
+--     specialized to two dimensions (see also "Diagrams.Combinators"
+--     for more general combining).
 --
---   * "Diagrams.TwoD.Arc" defines circular arcs
+--   * "Diagrams.TwoD.Transform" defines R^2-specific transformations
+--     such as rotation by an angle, and scaling, translation, and
+--     reflection in the X and Y directions.
 --
---   * "Diagrams.TwoD.Shapes" defines various other two-dimensional
---     shapes
+--   * "Diagrams.TwoD.Ellipse" defines ellipses.
 --
--- For most uses it should be sufficient to simply import
--- "Diagrams.TwoD"; occasionally users may wish to import one or more
--- of the above modules directly to access more specialized/internal
--- functionality.
+--   * "Diagrams.TwoD.Arc" defines circular arcs.
+--
+--   * "Diagrams.TwoD.Shapes" defines other two-dimensional shapes,
+--     e.g. various polygons.
+--
+--   * "Diagrams.TwoD.Util" defines some two-dimensional utilities,
+--     such as unit vectors and functions for computing the size and
+--     extent of diagrams in R^2.
 --
 -----------------------------------------------------------------------------
 module Diagrams.TwoD
@@ -38,28 +46,40 @@ module Diagrams.TwoD
        , unitX, unitY
 
          -- * Shapes
+         -- ** Rules
+       , hrule, vrule
+
+         -- ** Circle-ish things
        , circle
        , ellipse
        , arc
 
-       , hrule, vrule
-
-       , PolygonOrientation(..), PolygonOpts(..)
+         -- ** General polygons
        , polygon, polygonPath, polygonVertices
+       , PolygonOpts(..), PolygonOrientation(..)
+
+         -- ** Special polygons
        , square
        , starPolygon
+       , eqTriangle
 
          -- * Transformations
+         -- ** Rotation
        , rotation, rotate
        , rotationBy, rotateBy
+         -- ** Scaling
        , scalingX, scaleX
        , scalingY, scaleY
+         -- ** Translation
        , translationX, translateX
        , translationY, translateY
+         -- ** Reflection
        , reflectionX, reflectX
        , reflectionY, reflectY
 
          -- * Combinators
+       , strutX, strutY
+
        , (===), (|||)
        , hcat, hcat'
        , vcat, vcat'
@@ -68,7 +88,6 @@ module Diagrams.TwoD
        , alignLeft, alignRight, alignTop, alignBottom
        , alignX, alignY
        , centerX, centerY, centerXY
-       , strutX, strutY
 
          -- * Utilities
        , width, height, size2D
