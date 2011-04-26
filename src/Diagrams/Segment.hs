@@ -27,8 +27,6 @@ module Diagrams.Segment
        ) where
 
 import Graphics.Rendering.Diagrams
-import Graphics.Rendering.Diagrams.Transform (HasLinearMap)
-import Graphics.Rendering.Diagrams.Bounds (OrderedField)
 
 import Data.VectorSpace
 

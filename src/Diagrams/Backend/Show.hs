@@ -20,7 +20,6 @@ module Diagrams.Backend.Show where
 
 import Diagrams.Prelude
 
-import Graphics.Rendering.Diagrams.Transform
 import Diagrams.TwoD.Ellipse
 
 import Data.Basis
