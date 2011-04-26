@@ -70,9 +70,11 @@ module Diagrams.TwoD
          -- ** Scaling
        , scalingX, scaleX
        , scalingY, scaleY
+       , scaling, scale
          -- ** Translation
        , translationX, translateX
        , translationY, translateY
+       , translation, translate
          -- ** Reflection
        , reflectionX, reflectX
        , reflectionY, reflectY
