@@ -26,7 +26,6 @@ module Diagrams.TwoD.Ellipse
     ) where
 
 import Graphics.Rendering.Diagrams
-import Graphics.Rendering.Diagrams.Transform
 import Graphics.Rendering.Diagrams.Util
 
 import Diagrams.TwoD.Types
