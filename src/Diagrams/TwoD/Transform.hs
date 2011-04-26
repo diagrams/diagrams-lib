@@ -24,7 +24,6 @@ module Diagrams.TwoD.Transform
        ) where
 
 import Graphics.Rendering.Diagrams
-import Graphics.Rendering.Diagrams.Transform
 
 import Diagrams.TwoD.Types
 
