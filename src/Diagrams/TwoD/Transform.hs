@@ -8,7 +8,9 @@
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
--- Transformations specific to two dimensions.
+-- Transformations specific to two dimensions.  Note that uniform
+-- scaling and translation are defined generically for any vector
+-- space by diagrams-core.
 --
 -----------------------------------------------------------------------------
 
