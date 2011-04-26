@@ -122,3 +122,6 @@ reflectionY = scalingY (-1)
 --   (x,-y).
 reflectY :: (Transformable t, V t ~ R2) => t -> t
 reflectY = transform reflectionY
+
+-- XXX todo: add general reflection/reflect operators which reflect
+-- around an arbitrary axis (taking a vector as an argument).
