@@ -69,8 +69,8 @@ lineColor = applyAttr . LineColor . SomeColor
 lc :: HasStyle a => Colour Double -> a -> a
 lc = lineColor
 
--- | A synonym for 'lineColor', specialized to @'Colour' Double@
---   (i.e. opaque colors).
+-- | A synonym for 'lineColor', specialized to @'AlphaColour' Double@
+--   (i.e. colors with transparency).
 lcA :: HasStyle a => AlphaColour Double -> a -> a
 lcA = lineColor
 
