@@ -20,7 +20,7 @@
 
 module Diagrams.Path
        (
-         -- * Path-like things
+         -- * Constructing path-like things
 
          PathLike(..), fromOffsets, fromVertices
 
@@ -37,12 +37,12 @@ module Diagrams.Path
 
        , Path(..)
 
-         -- ** Constructing paths
+         -- ** Constructing paths from trails
 
        , pathFromTrail
        , pathFromTrailAt
 
-         -- ** Computing with paths
+         -- ** Destructing paths
 
        , pathVertices
 
@@ -83,7 +83,8 @@ class (Monoid p, VectorSpace (V p)) => PathLike p where
   -- | Construct a path-like thing from a list of 'Segment's.
   fromSegments :: [Segment (V p)] -> p
 
-  -- | \"Close\" a path-like thing.
+  -- | \"Close\" a path-like thing, by implicitly connecting the
+  --   endpoint(s) back to the starting point(s).
   close :: p -> p
 
   -- | \"Open\" a path-like thing.
@@ -117,7 +118,7 @@ data Trail v = Trail { trailSegments :: [Segment v]
 type instance V (Trail v) = v
 
 -- | The empty trail has no segments.  Trails are composed via
---   concatenation.  @t1 `mappend` t2@ is closed iff either @t1@ or
+--   concatenation.  @t1 ``mappend`` t2@ is closed iff either @t1@ or
 --   @t2@ are.
 instance Monoid (Trail v) where
   mempty = Trail [] False
@@ -151,11 +152,12 @@ instance (InnerSpace v, OrderedField (Scalar v)) => Boundable (Trail v) where
 trailOffsets :: Trail v -> [v]
 trailOffsets (Trail segs _) = map segOffset segs
 
--- | Compute the total offset from the start of a trail to the end.
+-- | Compute the offset from the start of a trail to the end.
 trailOffset :: AdditiveGroup v => Trail v -> v
 trailOffset = sumV . trailOffsets
 
--- | Extract the vertices of a trail given a starting point.
+-- | Extract the vertices of a trail, given a concrete location at
+--   which to place the first vertex.
 trailVertices :: AdditiveGroup v => Point v -> Trail v -> [Point v]
 trailVertices p = scanl (.+^) p . trailOffsets
 
@@ -218,7 +220,7 @@ pathFromTrailAt :: Trail v -> Point v -> Path v
 pathFromTrailAt t p = Path $ S.singleton (t, p)
 
 ------------------------------------------------------------
---  Computing with paths  ----------------------------------
+--  Destructing paths  -------------------------------------
 ------------------------------------------------------------
 
 -- | Extract the vertices of a path.
@@ -249,7 +251,8 @@ stroke p = mkAD (Prim p)
                 mempty   -- Paths are infinitely thin
                          -- TODO: what about closed paths in 2D?
 
--- | Combination of 'pathFromTrail' and 'stroke' for convenience.
+-- | A composition of 'stroke' and 'pathFromTrail' for conveniently
+--   converting a trail directly into a diagram.
 --
 --   Note that a bug in GHC 7.0.1 causes a context stack overflow when
 --   inferring the type of 'stroke' and hence of @strokeT@ as well.
