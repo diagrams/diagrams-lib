@@ -23,6 +23,7 @@ module Diagrams.Segment
 
          -- * Computing with segments
        , atParam, segOffset
+       , splitAtParam, arcLength
 
        ) where
 
@@ -122,6 +123,48 @@ quadForm a b c
   | d == 0    = [-b/(2*a)]
   | otherwise = [(-b + sqrt d)/(2*a), (-b - sqrt d)/(2*a)]
  where d = b*b - 4*a*c
+
+
+-- | 'splitAtParam' splits a segment @s@ into two new segments @(l,r)@
+--   at the parameter @t@ where @l@ corresponds to the portion of
+--   @s@ for parameter values from @0@ to @t@ and @r@ for @s@ from @t@ to @1@.
+--   The following should hold for splitting:
+--
+-- > paramSplit s t u
+-- >   | u < t     = atParam s u == atParam l (u / t)
+-- >   | otherwise = atParam s u == atParam s t ^+^ atParam l ((u - t) / (1.0 - t))
+-- >   where (l,r) = splitAtParam s t
+--
+--   That is to say, the parameterization scales linearly with splitting.
+splitAtParam :: (VectorSpace v) => Segment v -> Scalar v -> (Segment v, Segment v)
+splitAtParam (Linear x1) t = (left, right)
+  where left  = Linear p
+        right = Linear (x1 ^-^ p)
+        p = lerp zeroV x1 t
+splitAtParam (Cubic c1 c2 x2) t = (left, right)
+  where left  = Cubic a b e
+        right = Cubic (c ^-^ e) (d ^-^ e) (x2 ^-^ e)
+        p = lerp c1    c2 t
+        a = lerp zeroV c1 t
+        b = lerp a     p  t
+        d = lerp c2    x2 t
+        c = lerp p     d  t
+        e = lerp b     c  t
+
+-- | 'arcLength' @s m@ approximates the arc length of the segment curve @s@ with
+--   accuracy of at least plus or minus @m@.  For a 'Cubic' segment this is computed
+--   by subdividing until the arc length of the path through the control points is
+--   within @m@ of distance from start to end.
+arcLength :: (InnerSpace v, Floating (Scalar v), Ord (Scalar v))
+          => Segment v -> Scalar v -> Scalar v
+arcLength (Linear x1) _ = magnitude x1
+arcLength s@(Cubic c1 c2 x2) m
+  | ub - lb < m = (ub + lb) / 2
+  | otherwise   = arcLength l m + arcLength r m
+ where (l,r) = splitAtParam s 0.5
+       ub    = sum (map magnitude [c1, c2 ^-^ c1, x2 ^-^ c2])
+       lb    = magnitude x2
+
 
 -- | The bounding function for a segment is based at the segment's
 --   start.
