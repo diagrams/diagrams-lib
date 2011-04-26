@@ -52,10 +52,9 @@ module Diagrams.Path
        ) where
 
 import Graphics.Rendering.Diagrams
-import Graphics.Rendering.Diagrams.Transform (HasLinearMap)
-import Graphics.Rendering.Diagrams.Bounds (OrderedField)
 
 import Diagrams.Segment
+import Diagrams.Util
 
 import Data.VectorSpace
 import Data.AffineSpace
@@ -65,9 +64,6 @@ import qualified Data.Foldable as F
 import qualified Data.Set as S
 
 import Control.Arrow ((***))
-
-(<>) :: Monoid m => m -> m -> m
-(<>) = mappend
 
 ------------------------------------------------------------
 --  PathLike class

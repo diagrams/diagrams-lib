@@ -33,8 +33,6 @@ module Diagrams.Combinators
        ) where
 
 import Graphics.Rendering.Diagrams
-import Graphics.Rendering.Diagrams.Bounds (OrderedField)
-import Graphics.Rendering.Diagrams.Util (withLength)
 
 import Diagrams.Segment (Segment(..))
 import Diagrams.Path
