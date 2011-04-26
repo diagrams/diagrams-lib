@@ -48,13 +48,13 @@ import Data.Default
 --
 --   to place @c@ above @d@.
 (===) :: (HasOrigin a, Boundable a, V a ~ R2, Monoid a) => a -> a -> a
-a1 === a2 = beside unitY a2 a1
+(===) = beside (negateV unitY)
 
 -- | Place two diagrams (or other boundable objects) horizontally
 --   adjacent to one another, with the first diagram to the left of
 --   the second.
 (|||) :: (HasOrigin a, Boundable a, V a ~ R2, Monoid a) => a -> a -> a
-a1 ||| a2 = beside unitX a1 a2
+(|||) = beside unitX
 
 -- | Lay out a list of boundable objects in a row from left to right,
 --   so that their local origins lie along a single horizontal line,
