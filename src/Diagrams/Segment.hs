@@ -17,11 +17,11 @@
 -----------------------------------------------------------------------------
 
 module Diagrams.Segment
-       ( -- * Construction
+       ( -- * Constructing segments
 
          Segment(..), straight, bezier3
 
-         -- * Computation
+         -- * Computing with segments
        , atParam, segOffset
 
        ) where
@@ -40,19 +40,20 @@ import Control.Applicative (liftA2)
 
 -- | The atomic constituents of paths are /segments/, which are single
 --   straight lines or cubic Bezier curves.  Segments are
---   /translationally invariant/, that is, they have translational
---   freedom.  For example, a linear segment has a definite length and
---   direction, but no definite location in space.
-data Segment v = Linear v
-               | Cubic v v v
+--   /translationally invariant/, that is, they have no particular
+--   \"location\" and are unaffected by translations.  They are,
+--   however, affected by other transformations such as rotations and
+--   scales.
+data Segment v = Linear v     -- ^ A linear segment with given offset.
+               | Cubic v v v  -- ^ A cubic bezier segment specified by
+                              --   three offsets from the starting
+                              --   point to the first control point,
+                              --   second control point, and ending
+                              --   point, respectively.
   deriving (Show, Functor, Eq, Ord)
 
 type instance V (Segment v) = v
 
--- | Note that since segments are translationally invariant,
---   translating a segment has no effect.  Thus the translational
---   component of a transformation is always ignored, but other
---   components (scaling, rotation, ...) will have an effect.
 instance HasLinearMap v => Transformable (Segment v) where
   transform = fmap . apply
 
@@ -62,9 +63,11 @@ straight :: v -> Segment v
 straight v = Linear v
 
 -- Note, if we didn't have a Linear constructor we could also create
--- linear segments with @Cubic (v ^/ 3) (2 *^ (v ^/ 3)) v@.
+-- linear segments with @Cubic (v ^/ 3) (2 *^ (v ^/ 3)) v@.  Those
+-- would not be precisely the same, however, since we can actually
+-- observe how segments are parametrized.
 
--- | @'bezier3' v1 v2 v3@ constructs a translationally invariant cubic
+-- | @bezier3 v1 v2 v3@ constructs a translationally invariant cubic
 --   Bezier curve where the offsets from the first endpoint to the
 --   first and second control point and endpoint are respectively
 --   given by @v1@, @v2@, and @v3@.
@@ -72,9 +75,9 @@ bezier3 :: v -> v -> v -> Segment v
 bezier3 = Cubic
 
 -- | 'atParam' yields a parametrized view of segments as continuous
---   functions @[0,1] -> V@, which give the offset from the start of
---   the segment for each value of the parameter @0@ and @1@.  It is
---   designed to be used infix, like @seg `atParam` 0.5@.
+--   functions @[0,1] -> v@, which give the offset from the start of
+--   the segment for each value of the parameter between @0@ and @1@.
+--   It is designed to be used infix, like @seg `atParam` 0.5@.
 atParam :: (VectorSpace v, Num (Scalar v)) => Segment v -> Scalar v -> v
 atParam (Linear x) t       = t *^ x
 atParam (Cubic c1 c2 x2) t =     (3 * t'*t'*t ) *^ c1
@@ -82,8 +85,9 @@ atParam (Cubic c1 c2 x2) t =     (3 * t'*t'*t ) *^ c1
                              ^+^ (    t *t *t ) *^ x2
   where t' = 1-t
 
--- | Compute the total offset (a vector) from the start of a segment
---   to the end.
+-- | Compute the offset from the start of a segment to the
+--   end.  Note that in the case of a Bezier segment this is /not/ the
+--   same as the length of the curve itself; for that, see 'arcLength'.
 segOffset :: Segment v -> v
 segOffset (Linear v)    = v
 segOffset (Cubic _ _ v) = v
