@@ -12,8 +12,9 @@
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
--- Generic functionality for constructing and manipulating /paths/
--- (sequences of linear or cubic Bezier segments) and related objects.
+-- Generic functionality for constructing and manipulating /trails/
+-- (sequences of linear or cubic Bezier segments) and /paths/
+-- (collections of concretely located trails).
 --
 -----------------------------------------------------------------------------
 
