@@ -12,21 +12,45 @@
 
 module Diagrams.Prelude
        (
+         -- * Core library
+         -- | The core definitions of transformations, diagrams,
+         --   backends, and so on.
          module Graphics.Rendering.Diagrams
 
+         -- * Standard library
+         -- | Attributes (color, line style, etc.) and styles.
        , module Diagrams.Attributes
+
+         -- | General alignment of diagrams.
        , module Diagrams.Align
+
+         -- | Combining multiple diagrams into one.
        , module Diagrams.Combinators
-       , module Diagrams.Path
+
+         -- | Linear and cubic bezier segments.
        , module Diagrams.Segment
+
+         -- | Trails and paths.
+       , module Diagrams.Path
+
+         -- | A wide range of things (shapes, transformations,
+         --   combinators) specific to creating two-dimensional
+         --   diagrams.
        , module Diagrams.TwoD
+
+         -- | Various utility definitions.
        , module Diagrams.Util
 
-       , module Data.Monoid
-       , module Data.VectorSpace
-       , module Data.AffineSpace
-
+         -- * Convenience re-exports
+         -- | A large list of color names.
        , module Data.Colour.Names
+         -- | Monoids show up all over the place, so things from
+         --   Data.Monoid often come in handy.
+       , module Data.Monoid
+         -- | For computing with vectors.
+       , module Data.VectorSpace
+         -- | For computing with points and vectors.
+       , module Data.AffineSpace
 
        ) where
 
