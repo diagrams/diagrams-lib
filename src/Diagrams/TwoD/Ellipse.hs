@@ -10,19 +10,28 @@
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
--- Two-dimensional ellipses.
+-- Two-dimensional ellipses (and, as a special case, circles).
 --
 -----------------------------------------------------------------------------
 
 module Diagrams.TwoD.Ellipse
-    ( Ellipse(..)
-    , circle
+    (
+      -- * Ellipse and circle diagrams
+      circle
     , ellipse
-    , ellipseCoeffs
+
+      -- * Mathematical ellipses
+      -- ** Representation
+    , Ellipse(..)
+
+      -- ** Extracting attributes
     , ellipseCenter
     , ellipseAngle
     , ellipseAxes
     , ellipseScale
+
+    , ellipseCoeffs
+
     ) where
 
 import Graphics.Rendering.Diagrams
@@ -44,7 +53,7 @@ type instance V Ellipse = R2
 instance Transformable Ellipse where
   transform t (Ellipse e) = Ellipse (t <> e)
 
--- | A unit circle.
+-- | A circle of radius 1.
 circle :: (Backend b R2, Renderable Ellipse b) => Diagram b R2
 circle = mkAD (Prim $ Ellipse mempty)
               (Bounds circleBounds)
@@ -57,9 +66,9 @@ circle = mkAD (Prim $ Ellipse mempty)
   where circleBounds (x,y) = 1 / sqrt(x*x + y*y)
         circleQuery (P (x,y)) = Any $ x*x + y*y <= 1
 
--- | Construct an ellipse with eccentricity e, created by scaling the
---   unit circle in the X direction.  The eccentricity must be within
---   the interval [0,1).
+-- | @ellipse e@ constructs an ellipse with eccentricity @e@ by
+--   scaling the unit circle in the X direction.  The eccentricity must
+--   be within the interval [0,1).
 ellipse :: (Backend b R2, Renderable Ellipse b) => Double -> Diagram b R2
 ellipse e
     | e >= 0 && e < 1  = scaleX (sqrt (1 - e*e)) circle
@@ -97,7 +106,7 @@ ellipseAngle ell
   where ((x,y),_) = ellipseAxes ell
 
 -- | Compute the vectors (va, vb) from the center of the ellipse to the edge of the
---   ellipse along the major and minor axes.  These vectors can lie in any quadrent
+--   ellipse along the major and minor axes.  These vectors can lie in any quadrant,
 --   depending on how the ellipse has been transformed.
 ellipseAxes :: Ellipse -> (R2, R2)
 ellipseAxes (Ellipse eT) = if magnitudeSq va >= magnitudeSq vb then (va,vb) else (vb,va)
