@@ -25,10 +25,6 @@ with = def
 (<>) :: Monoid m => m -> m -> m
 (<>) = mappend
 
--- | Placeholder for things which still need to be implemented.
-writeMe :: String -> a
-writeMe s = error $ "The " ++ s ++ " function is not yet implemented.  Maybe you would like to implement it?"
-
 infixl 1 #
 
 -- | Postfix function application, for conveniently applying
