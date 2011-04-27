@@ -25,6 +25,14 @@ module Diagrams.TwoD.Align
     ( -- * Absolute alignment
       alignLeft, alignRight, alignTop, alignBottom
 
+      -- ** Abbreviations
+
+      -- | Some convenient abbreviations for code which is shorter and
+      --   either more or less readable, depending on your point of
+      --   view.  @aT === alignTop@, and so on.  @aTL = aT . aL@, and
+      --   so on.
+    , aL, aR, aT, aB, aTL, aTR, aBL, aBR
+
       -- * Relative alignment
     , alignX, alignY
 
@@ -57,6 +65,16 @@ alignTop    = align unitY
 -- | Align along the bottom edge.
 alignBottom :: (HasOrigin a, Boundable a, V a ~ R2) => a -> a
 alignBottom = align (negateV unitY)
+
+aL, aR, aT, aB, aTL, aTR, aBL, aBR :: (HasOrigin a, Boundable a, V a ~ R2) => a -> a
+aL  = alignLeft
+aR  = alignRight
+aT  = alignTop
+aB  = alignBottom
+aTL = aT . aL
+aTR = aT . aR
+aBL = aB . aL
+aBR = aB . aR
 
 -- | @alignX@ moves the local origin horizontally as follows:
 --
