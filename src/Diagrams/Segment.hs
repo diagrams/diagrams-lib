@@ -181,9 +181,3 @@ instance (InnerSpace v, OrderedField (Scalar v)) => Boundable (Segment v) where
       (quadForm (3 * ((3 *^ c1 ^-^ 3 *^ c2 ^+^ x2) <.> v))
                 (6 * (((-2) *^ c1 ^+^ c2) <.> v))
                 ((3 *^ c1) <.> v))
-
-{- XXX TODO
-
-   - add a function to compute the arc length of a segment
-   - add functions for splitting segments into multiple segments
--}
