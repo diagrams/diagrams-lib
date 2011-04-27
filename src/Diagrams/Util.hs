@@ -78,12 +78,14 @@ with = def
 (<>) :: Monoid m => m -> m -> m
 (<>) = mappend
 
-infixl 1 #
+infixr 5 <>
+
+infixl 8 #
 
 -- | Postfix function application, for conveniently applying
---   attributes.  @(#)@ has a slightly higher precedence than @($)@,
---   so @someFunction $ d \# foo \# bar@ parses as @someFunction (d \#
---   foo \# bar)@.
+--   attributes.  Unlike @($)@, @(#)@ has a high precedence (8), so @d
+--   \# foo \# bar@ can be combined with other things using operators
+--   like @(|||)@ or @(\<\>)@ without needing parentheses.
 (#) :: a -> (a -> b) -> b
 (#) = flip ($)
 
