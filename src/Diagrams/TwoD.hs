@@ -87,6 +87,7 @@ module Diagrams.TwoD
        , vcat, vcat'
 
          -- * Alignment
+         -- | For abbreviated names, import "Diagrams.TwoD.Align".
        , alignLeft, alignRight, alignTop, alignBottom
        , alignX, alignY
        , centerX, centerY, centerXY
