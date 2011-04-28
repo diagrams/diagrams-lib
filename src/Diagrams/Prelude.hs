@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-duplicate-exports #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Prelude
