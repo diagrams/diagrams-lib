@@ -38,6 +38,9 @@ import Data.VectorSpace
 import Data.Monoid
 import Data.Default
 
+infixl 6 ===
+infixl 6 |||
+
 -- | Place two diagrams (or other boundable objects) vertically
 --   adjacent to one another, with the first diagram above the second.
 --   Since Haskell ignores whitespace in expressions, one can thus write
