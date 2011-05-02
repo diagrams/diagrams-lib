@@ -70,13 +70,13 @@ infixl 6 |||
 --   "Diagrams.TwoD.Align" before applying 'hcat'.
 --
 --   * For non-axis-aligned layout, see 'cat'.
-hcat :: (HasOrigin a, Boundable a, V a ~ R2, Monoid a) => [a] -> a
+hcat :: (HasOrigin a, Boundable a, Qualifiable a, V a ~ R2, Monoid a) => [a] -> a
 hcat = hcat' def
 
 -- | A variant of 'hcat' taking an extra 'CatOpts' record to control
 --   the spacing.  See the 'cat'' documentation for a description of
 --   the possibilities.
-hcat' :: (HasOrigin a, Boundable a, V a ~ R2, Monoid a) => CatOpts R2 -> [a] -> a
+hcat' :: (HasOrigin a, Boundable a, Qualifiable a, V a ~ R2, Monoid a) => CatOpts R2 -> [a] -> a
 hcat' = cat' unitX
 
 -- | Lay out a list of boundable objects in a column from top to bottom,
@@ -90,13 +90,13 @@ hcat' = cat' unitX
 --   "Diagrams.TwoD.Align" before applying 'vcat'.
 --
 --   * For non-axis-aligned layout, see 'cat'.
-vcat :: (HasOrigin a, Boundable a, V a ~ R2, Monoid a) => [a] -> a
+vcat :: (HasOrigin a, Boundable a, Qualifiable a, V a ~ R2, Monoid a) => [a] -> a
 vcat = vcat' def
 
 -- | A variant of 'vcat' taking an extra 'CatOpts' record to control
 --   the spacing.  See the 'cat'' documentation for a description of the
 --   possibilities.
-vcat' :: (HasOrigin a, Boundable a, V a ~ R2, Monoid a) => CatOpts R2 -> [a] -> a
+vcat' :: (HasOrigin a, Boundable a, Qualifiable a, V a ~ R2, Monoid a) => CatOpts R2 -> [a] -> a
 vcat' = cat' (negateV unitY)
 
 -- | @strutX d@ is an empty diagram with width @d@ and height 0.
