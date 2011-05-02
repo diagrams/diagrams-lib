@@ -1,6 +1,7 @@
 {-# LANGUAGE TypeFamilies
            , TypeSynonymInstances
   #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Types
