@@ -18,6 +18,10 @@ module Diagrams.TwoD.Path
 
          stroke, strokeT
 
+       , isInsideWinding, isInsideEvenOdd
+       , crossings, trailCrossings
+       , mkFixedSeg
+
        ) where
 
 import Graphics.Rendering.Diagrams
