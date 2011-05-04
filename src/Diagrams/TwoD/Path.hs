@@ -109,9 +109,9 @@ trailCrossings p@(P (_,y)) (t, start)
                        (trailSegments t ++ [Linear . negateV . trailOffset $ t])
   where
     test l@(FLinear (P (_,ay)) (P (_,by)))
-      | ay <= y = if by <= y then isLeft l else 0
-      | by <= y = negate (isLeft l)
-      | otherwise = 0
+      | ay <= y && by > y && isLeft l > 0 =  1
+      | by <= y && ay > y && isLeft l < 0 = -1
+      | otherwise                         =  0
 
-    isLeft (FLinear a b) = floor $ signum (cross (b .-. a) (p .-. a))
+    isLeft (FLinear a b) = cross (b .-. a) (p .-. a)
 
