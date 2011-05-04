@@ -117,13 +117,17 @@ segOffset (Cubic _ _ v) = v
    Set equal to zero, use quadratic formula.
 -}
 
+-- | The quadratic formula.
 quadForm :: (Floating d, Ord d) => d -> d -> d -> [d]
 quadForm a b c
+  | a == 0 && b == 0 && c == 0 = [0]
+  | a == 0 && b == 0 = []
+  | a == 0    = [-c/b]
+
   | d < 0     = []
   | d == 0    = [-b/(2*a)]
   | otherwise = [(-b + sqrt d)/(2*a), (-b - sqrt d)/(2*a)]
  where d = b*b - 4*a*c
-
 
 -- | 'splitAtParam' splits a segment @s@ into two new segments @(l,r)@
 --   at the parameter @t@ where @l@ corresponds to the portion of
@@ -181,3 +185,48 @@ instance (InnerSpace v, OrderedField (Scalar v)) => Boundable (Segment v) where
       (quadForm (3 * ((3 *^ c1 ^-^ 3 *^ c2 ^+^ x2) <.> v))
                 (6 * (((-2) *^ c1 ^+^ c2) <.> v))
                 ((3 *^ c1) <.> v))
+
+------------------------------------------------------------
+-- Cubic formula
+------------------------------------------------------------
+
+-- See http://en.wikipedia.org/wiki/Cubic_formula#General_formula_of_roots
+
+-- | Solve the cubic equation ax^3 + bx^2 + cx + d = 0, returning a
+--   list of all real roots.
+cubForm :: (Floating d, Ord d) => d -> d -> d -> d -> [d]
+cubForm a b c d
+  | a == 0                  = quadForm b c d
+  | delta >  0              = [x0] ++ quadForm a (b + a*x0) (c + b*x0 + a*x0*x0)
+  | delta == 0 && disc == 0 = [ -b/(3*a) ]
+  | delta == 0 && disc /= 0 = [ (b*c - 9*a*d)/(2*disc)
+                              , (9*a*a*d - 4*a*b*c + b*b*b)/(a * disc)
+                              ]
+  | otherwise               = [-b/(3*a) - cc/(3*a) + disc/(3*a*cc)]
+ where delta = 18*a*b*c*d - 4*b*b*b*d + b*b*c*c - 4*a*c*c*c - 27*a*a*d*d
+       disc  = 3*a*c - b*b
+       qq    = sqrt(-27*a*a*delta)
+       cc    = cubert (1/2*(qq + xx))
+       xx    = 2*b*b*b - 9*a*b*c + 27*a*a*d
+       p     = disc/(3*a*a)
+       q     = xx/(27*a*a*a)
+       x0    = 2 * sqrt(-p/3) * cos(1/3*acos(3*q/(2*p)*sqrt(-3/p))) - b/(3*a)
+
+       cubert x | x < 0     = -((-x)**(1/3))
+                | otherwise = x**(1/3)
+
+cubForm_prop :: Double -> Double -> Double -> Double -> Bool
+cubForm_prop a b c d = all (aboutZero . eval) (cubForm a b c d)
+  where eval x = a*x*x*x + b*x*x + c*x + d
+        aboutZero x = abs x < tolerance
+        tolerance = 1e-7
+           -- Basically, however large you set the tolerance it seems
+           -- that quickcheck can always come up with examples where
+           -- the returned solutions evaluate to something near zero
+           -- but larger than the tolerance (but it takes it more
+           -- tries the larger you set the tolerance). Wonder if this
+           -- is an inherent limitation or (more likely) a problem
+           -- with numerical stability.  If this turns out to be an
+           -- issue in practice we could, say, use the solutions
+           -- generated here as very good guesses to a numerical
+           -- solver which can give us a more precise answer?
