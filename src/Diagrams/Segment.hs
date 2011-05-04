@@ -197,20 +197,29 @@ instance (InnerSpace v, OrderedField (Scalar v)) => Boundable (Segment v) where
 cubForm :: (Floating d, Ord d) => d -> d -> d -> d -> [d]
 cubForm a b c d
   | a == 0                  = quadForm b c d
-  | delta >  0              = [x0] ++ quadForm a (b + a*x0) (c + b*x0 + a*x0*x0)
+
+    -- three real roots, use trig method to avoid complex numbers
+  | delta >  0              = map trig [0,1,2]
+
+    -- one real root of multiplicity 3
   | delta == 0 && disc == 0 = [ -b/(3*a) ]
+
+    -- two real roots, one of multiplicity 2
   | delta == 0 && disc /= 0 = [ (b*c - 9*a*d)/(2*disc)
                               , (9*a*a*d - 4*a*b*c + b*b*b)/(a * disc)
                               ]
+
+    -- one real root (and two complex)
   | otherwise               = [-b/(3*a) - cc/(3*a) + disc/(3*a*cc)]
- where delta = 18*a*b*c*d - 4*b*b*b*d + b*b*c*c - 4*a*c*c*c - 27*a*a*d*d
-       disc  = 3*a*c - b*b
-       qq    = sqrt(-27*a*a*delta)
-       cc    = cubert (1/2*(qq + xx))
-       xx    = 2*b*b*b - 9*a*b*c + 27*a*a*d
-       p     = disc/(3*a*a)
-       q     = xx/(27*a*a*a)
-       x0    = 2 * sqrt(-p/3) * cos(1/3*acos(3*q/(2*p)*sqrt(-3/p))) - b/(3*a)
+ where delta  = 18*a*b*c*d - 4*b*b*b*d + b*b*c*c - 4*a*c*c*c - 27*a*a*d*d
+       disc   = 3*a*c - b*b
+       qq     = sqrt(-27*a*a*delta)
+       cc     = cubert (1/2*(qq + xx))
+       xx     = 2*b*b*b - 9*a*b*c + 27*a*a*d
+       p      = disc/(3*a*a)
+       q      = xx/(27*a*a*a)
+       trig k = 2 * sqrt(-p/3) * cos(1/3*acos(3*q/(2*p)*sqrt(-3/p)) - k*2*pi/3)
+                - b/(3*a)
 
        cubert x | x < 0     = -((-x)**(1/3))
                 | otherwise = x**(1/3)
