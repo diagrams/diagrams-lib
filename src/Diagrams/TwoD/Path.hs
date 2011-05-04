@@ -103,9 +103,10 @@ trailCrossings :: P2 -> (Trail R2, P2) -> Int
   -- open trails have no inside or outside, so don't contribute crossings
 trailCrossings _ (t, _) | not (isClosed t) = 0
 
-trailCrossings p@(P (_,y)) (t, start) = sum . map test
-                            $ zipWith mkFixedSeg (trailVertices start t)
-                                                 (trailSegments t)
+trailCrossings p@(P (_,y)) (t, start)
+  = sum . map test
+  $ zipWith mkFixedSeg (trailVertices start t)
+                       (trailSegments t ++ [Linear . negateV . trailOffset $ t])
   where
     test l@(FLinear (P (_,ay)) (P (_,by)))
       | ay <= y = if by <= y then isLeft l else 0
