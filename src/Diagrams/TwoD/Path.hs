@@ -85,6 +85,7 @@ isInsideEvenOdd p = odd . crossings p
 
 data FixedSegment v = FLinear (Point v) (Point v)
                     | FCubic (Point v) (Point v) (Point v) (Point v)
+  deriving Show
 
 mkFixedSeg :: AdditiveGroup v => Point v -> Segment v -> FixedSegment v
 mkFixedSeg p (Linear v)       = FLinear p (p .+^ v)
