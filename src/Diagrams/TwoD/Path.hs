@@ -58,7 +58,6 @@ stroke p = mkAD (Prim p)
                                                       --   control points too?
                 -}
                 (Query $ Any . flip isInsideWinding p)
-                  -- XXX todo allow user to choose winding or even/odd rule
 
 -- | A composition of 'stroke' and 'pathFromTrail' for conveniently
 --   converting a trail directly into a diagram.
