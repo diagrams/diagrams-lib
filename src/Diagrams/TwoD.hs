@@ -30,6 +30,9 @@
 --
 --   * "Diagrams.TwoD.Arc" defines circular arcs.
 --
+--   * "Diagrams.TwoD.Path" exports various operations on
+--     two-dimensional paths when viewed as regions of the plane.
+--
 --   * "Diagrams.TwoD.Shapes" defines other two-dimensional shapes,
 --     e.g. various polygons.
 --
@@ -44,6 +47,9 @@ module Diagrams.TwoD
        , P2
        , Angle
        , unitX, unitY
+
+         -- * Paths
+       , stroke, strokeT
 
          -- * Shapes
          -- ** Rules
@@ -98,6 +104,7 @@ module Diagrams.TwoD
        ) where
 
 import Diagrams.TwoD.Types
+import Diagrams.TwoD.Path
 import Diagrams.TwoD.Ellipse
 import Diagrams.TwoD.Arc
 import Diagrams.TwoD.Shapes

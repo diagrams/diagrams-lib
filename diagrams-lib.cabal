@@ -33,6 +33,7 @@ Library
                        Diagrams.TwoD.Transform,
                        Diagrams.TwoD.Ellipse,
                        Diagrams.TwoD.Arc,
+                       Diagrams.TwoD.Path,
                        Diagrams.TwoD.Shapes,
                        Diagrams.TwoD.Util,
 --                       Diagrams.Animation,
