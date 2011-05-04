@@ -60,7 +60,7 @@ quadForm_prop a b c = all (aboutZero . eval) (quadForm a b c)
 --   list of all real roots.
 cubForm :: (Floating d, Ord d) => d -> d -> d -> d -> [d]
 cubForm a b c d
-  | a == 0                  = quadForm b c d
+  | aboutZero a             = quadForm b c d
 
     -- three real roots, use trig method to avoid complex numbers
   | delta >  0              = map trig [0,1,2]
