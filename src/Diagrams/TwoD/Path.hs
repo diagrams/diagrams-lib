@@ -21,9 +21,9 @@ module Diagrams.TwoD.Path
        ) where
 
 import Graphics.Rendering.Diagrams
-import Diagrams.Path
 
-import Data.VectorSpace
+import Diagrams.Path
+import Diagrams.TwoD.Types
 
 import Data.Monoid
 
@@ -38,8 +38,8 @@ import Data.Monoid
 --   inferring the type of @stroke@.  The solution is to give a type
 --   signature to expressions involving @stroke@, or (recommended)
 --   upgrade GHC (the bug is fixed in 7.0.2 onwards).
-stroke :: (InnerSpace v, OrderedField (Scalar v), Renderable (Path v) b)
-       => Path v -> Diagram b v
+stroke :: (Renderable (Path R2) b)
+       => Path R2 -> Diagram b R2
 stroke p = mkAD (Prim p)
                 (getBounds p)
                 mempty
@@ -59,6 +59,6 @@ stroke p = mkAD (Prim p)
 --   The solution is to give a type signature to expressions involving
 --   @strokeT@, or (recommended) upgrade GHC (the bug is fixed in 7.0.2
 --   onwards).
-strokeT :: (InnerSpace v, OrderedField (Scalar v), Renderable (Path v) b)
-        => Trail v -> Diagram b v
+strokeT :: (Renderable (Path R2) b)
+        => Trail R2 -> Diagram b R2
 strokeT = stroke . pathFromTrail
