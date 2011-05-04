@@ -14,6 +14,9 @@ module Diagrams.Solve
        , cubForm
        ) where
 
+import Data.List (maximumBy)
+import Data.Ord (comparing)
+
 ------------------------------------------------------------
 -- Quadratic formula
 ------------------------------------------------------------
@@ -76,7 +79,9 @@ cubForm a b c d
  where delta  = 18*a*b*c*d - 4*b*b*b*d + b*b*c*c - 4*a*c*c*c - 27*a*a*d*d
        disc   = 3*a*c - b*b
        qq     = sqrt(-27*a*a*delta)
-       cc     = cubert (1/2*(qq + xx))
+       qq'    | aboutZero disc = maximumBy (comparing (abs . (+xx))) [qq, -qq]
+              | otherwise = qq
+       cc     = cubert (1/2*(qq' + xx))
        xx     = 2*b*b*b - 9*a*b*c + 27*a*a*d
        p      = disc/(3*a*a)
        q      = xx/(27*a*a*a)
@@ -85,6 +90,9 @@ cubForm a b c d
 
        cubert x | x < 0     = -((-x)**(1/3))
                 | otherwise = x**(1/3)
+
+       aboutZero x = abs x < toler
+       toler = 1e-10
 
 cubForm_prop :: Double -> Double -> Double -> Double -> Bool
 cubForm_prop a b c d = all (aboutZero . eval) (cubForm a b c d)
