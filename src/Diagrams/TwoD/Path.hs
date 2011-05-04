@@ -22,10 +22,16 @@ module Diagrams.TwoD.Path
 
 import Graphics.Rendering.Diagrams
 
+import Diagrams.Segment
 import Diagrams.Path
 import Diagrams.TwoD.Types
 
+import Data.AdditiveGroup
+import Data.AffineSpace
+
 import Data.Monoid
+import qualified Data.Set as S
+import qualified Data.Foldable as F
 
 ------------------------------------------------------------
 --  Constructing path-based diagrams  ----------------------
@@ -62,3 +68,44 @@ stroke p = mkAD (Prim p)
 strokeT :: (Renderable (Path R2) b)
         => Trail R2 -> Diagram b R2
 strokeT = stroke . pathFromTrail
+
+------------------------------------------------------------
+--  Inside/outside testing
+------------------------------------------------------------
+
+cross :: R2 -> R2 -> Double
+cross (x,y) (x',y') = x * y' - y * x'
+
+isInsideWinding p = (/= 0) . crossings p
+isInsideEvenOdd p = odd . crossings p
+
+data FixedSegment v = FLinear (Point v) (Point v)
+                    | FCubic (Point v) (Point v) (Point v) (Point v)
+
+mkFixedSeg :: AdditiveGroup v => Point v -> Segment v -> FixedSegment v
+mkFixedSeg p (Linear v)       = FLinear p (p .+^ v)
+mkFixedSeg p (Cubic c1 c2 x2) = FCubic p (p .+^ c1) (p .+^ c2) (p .+^ x2)
+
+-- | Compute the sum of /signed/ crossings of a path as we travel in the
+--   positive x direction from a given point.
+crossings :: P2 -> Path R2 -> Int
+crossings p = F.sum . S.map (trailCrossings p) . pathTrails
+
+-- | Compute the sum of signed crossings of a trail starting from the
+--   given point in the positive x direction.
+trailCrossings :: P2 -> (Trail R2, P2) -> Int
+
+  -- open trails have no inside or outside, so don't contribute crossings
+trailCrossings _ (t, _) | not (isClosed t) = 0
+
+trailCrossings p@(P (_,y)) (t, start) = sum . map test
+                            $ zipWith mkFixedSeg (trailVertices start t)
+                                                 (trailSegments t)
+  where
+    test l@(FLinear (P (_,ay)) (P (_,by)))
+      | ay <= y = if by <= y then isLeft l else 0
+      | by <= y = negate (isLeft l)
+      | otherwise = 0
+
+    isLeft (FLinear a b) = floor $ signum (cross (b .-. a) (p .-. a))
+
