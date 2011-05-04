@@ -25,6 +25,7 @@ Library
                        Diagrams.Attributes,
                        Diagrams.Segment,
                        Diagrams.Path,
+                       Diagrams.Solve,
                        Diagrams.TwoD,
                        Diagrams.TwoD.Types,
                        Diagrams.TwoD.Align,
