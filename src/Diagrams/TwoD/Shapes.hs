@@ -29,6 +29,7 @@ module Diagrams.TwoD.Shapes
 import Graphics.Rendering.Diagrams
 
 import Diagrams.Path
+import Diagrams.TwoD.Path
 import Diagrams.TwoD.Types
 import Diagrams.TwoD.Transform
 import Diagrams.TwoD.Align
