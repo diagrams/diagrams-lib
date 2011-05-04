@@ -29,11 +29,14 @@ import Graphics.Rendering.Diagrams
 import Diagrams.Segment
 import Diagrams.Path
 import Diagrams.TwoD.Types
+import Diagrams.Solve
 
 import Data.AdditiveGroup
+import Data.VectorSpace
 import Data.AffineSpace
 
 import Data.Monoid
+import Control.Applicative (liftA2)
 import qualified Data.Set as S
 import qualified Data.Foldable as F
 
@@ -91,6 +94,18 @@ mkFixedSeg :: AdditiveGroup v => Point v -> Segment v -> FixedSegment v
 mkFixedSeg p (Linear v)       = FLinear p (p .+^ v)
 mkFixedSeg p (Cubic c1 c2 x2) = FCubic p (p .+^ c1) (p .+^ c2) (p .+^ x2)
 
+fAtParam :: VectorSpace v => FixedSegment v -> Scalar v -> Point v
+fAtParam (FLinear p1 p2) t = alerp p1 p2 t
+fAtParam (FCubic x1 c1 c2 x2) t = p3
+  where p11 = alerp x1 c1 t
+        p12 = alerp c1 c2 t
+        p13 = alerp c2 x2 t
+
+        p21 = alerp p11 p12 t
+        p22 = alerp p12 p13 t
+
+        p3  = alerp p21 p22 t
+
 -- | Compute the sum of /signed/ crossings of a path as we travel in the
 --   positive x direction from a given point.
 crossings :: P2 -> Path R2 -> Int
@@ -103,15 +118,31 @@ trailCrossings :: P2 -> (Trail R2, P2) -> Int
   -- open trails have no inside or outside, so don't contribute crossings
 trailCrossings _ (t, _) | not (isClosed t) = 0
 
-trailCrossings p@(P (_,y)) (t, start)
+trailCrossings p@(P (x,y)) (tr, start)
   = sum . map test
-  $ zipWith mkFixedSeg (trailVertices start t)
-                       (trailSegments t ++ [Linear . negateV . trailOffset $ t])
+  $ zipWith mkFixedSeg (trailVertices start tr)
+                       (trailSegments tr ++ [Linear . negateV . trailOffset $ tr])
   where
     test l@(FLinear (P (_,ay)) (P (_,by)))
       | ay <= y && by > y && isLeft l > 0 =  1
       | by <= y && ay > y && isLeft l < 0 = -1
       | otherwise                         =  0
+
+    test c@(FCubic (P x1@(_,x1y)) (P c1@(_,c1y)) (P c2@(_,c2y)) (P x2@(_,x2y))) =
+        sum . map testT $ ts
+      where ts = filter (liftA2 (&&) (>=0) (<=1))
+               $ cubForm (-  x1y + 3*c1y - 3*c2y + x2y)
+                         ( 3*x1y - 6*c1y + 3*c2y)
+                         (-3*x1y + 3*c1y)
+                         (x1y - y)
+            testT t = let (P (px,_)) = c `fAtParam` t
+                      in  if px > x then signFromDerivAt t else 0
+            signFromDerivAt t =
+              let (dx,dy) = (3*t*t) *^ ((-1)*^x1 ^+^ 3*^c1 ^-^ 3*^c2 ^+^ x2)
+                        ^+^ (2*t)   *^ (3*^x1 ^-^ 6*^c1 ^+^ 3*^c2)
+                        ^+^            ((-3)*^x1 ^+^ 3*^c1)
+                  ang = atan2 dy dx
+              in  if (0 <= ang && ang < pi) then 1 else -1
 
     isLeft (FLinear a b) = cross (b .-. a) (p .-. a)
 
