@@ -18,10 +18,6 @@ module Diagrams.TwoD.Path
 
          stroke, strokeT
 
-       , isInsideWinding, isInsideEvenOdd
-       , crossings, trailCrossings
-       , mkFixedSeg
-
        ) where
 
 import Graphics.Rendering.Diagrams
@@ -61,8 +57,8 @@ stroke p = mkAD (Prim p)
                                     (pathVertices p)  -- XXX names for Bezier
                                                       --   control points too?
                 -}
-                mempty   -- Paths are infinitely thin
-                         -- TODO: what about closed paths in 2D?
+                (Query $ Any . flip isInsideWinding p)
+                  -- XXX todo allow user to choose winding or even/odd rule
 
 -- | A composition of 'stroke' and 'pathFromTrail' for conveniently
 --   converting a trail directly into a diagram.
@@ -83,7 +79,10 @@ strokeT = stroke . pathFromTrail
 cross :: R2 -> R2 -> Double
 cross (x,y) (x',y') = x * y' - y * x'
 
+isInsideWinding :: P2 -> Path R2 -> Bool
 isInsideWinding p = (/= 0) . crossings p
+
+isInsideEvenOdd :: P2 -> Path R2 -> Bool
 isInsideEvenOdd p = odd . crossings p
 
 data FixedSegment v = FLinear (Point v) (Point v)
@@ -123,10 +122,10 @@ trailCrossings p@(P (x,y)) (tr, start)
   $ zipWith mkFixedSeg (trailVertices start tr)
                        (trailSegments tr ++ [Linear . negateV . trailOffset $ tr])
   where
-    test l@(FLinear (P (_,ay)) (P (_,by)))
-      | ay <= y && by > y && isLeft l > 0 =  1
-      | by <= y && ay > y && isLeft l < 0 = -1
-      | otherwise                         =  0
+    test (FLinear a@(P (_,ay)) b@(P (_,by)))
+      | ay <= y && by > y && isLeft a b > 0 =  1
+      | by <= y && ay > y && isLeft a b < 0 = -1
+      | otherwise                           =  0
 
     test c@(FCubic (P x1@(_,x1y)) (P c1@(_,c1y)) (P c2@(_,c2y)) (P x2@(_,x2y))) =
         sum . map testT $ ts
@@ -146,5 +145,5 @@ trailCrossings p@(P (x,y)) (tr, start)
                                | (-pi < ang && ang < 0 && t > 0) -> -1
                                | otherwise                       -> 0
 
-    isLeft (FLinear a b) = cross (b .-. a) (p .-. a)
+    isLeft a b = cross (b .-. a) (p .-. a)
 
