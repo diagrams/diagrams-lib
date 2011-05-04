@@ -142,7 +142,9 @@ trailCrossings p@(P (x,y)) (tr, start)
                         ^+^ (2*t)   *^ (3*^x1 ^-^ 6*^c1 ^+^ 3*^c2)
                         ^+^            ((-3)*^x1 ^+^ 3*^c1)
                   ang = atan2 dy dx
-              in  if (0 <= ang && ang < pi) then 1 else -1
+              in  case () of _ | (0 < ang && ang < pi && t < 1)  -> 1
+                               | (-pi < ang && ang < 0 && t > 0) -> -1
+                               | otherwise                       -> 0
 
     isLeft (FLinear a b) = cross (b .-. a) (p .-. a)
 
