@@ -40,6 +40,10 @@
 --     such as unit vectors and functions for computing the size and
 --     extent of diagrams in R^2.
 --
+--   * "Diagrams.TwoD.Model" defines some aids for visualizing
+--     diagrams' internal model (local origins, bounding regions,
+--     etc.)
+--
 -----------------------------------------------------------------------------
 module Diagrams.TwoD
        ( -- * R^2
@@ -101,6 +105,9 @@ module Diagrams.TwoD
          -- * Utilities
        , width, height, size2D
        , extentX, extentY, center2D
+
+         -- * Visual aids for understanding the internal model
+       , showOrigin
        ) where
 
 import Diagrams.TwoD.Types
@@ -112,3 +119,4 @@ import Diagrams.TwoD.Transform
 import Diagrams.TwoD.Align
 import Diagrams.TwoD.Combinators
 import Diagrams.TwoD.Util
+import Diagrams.TwoD.Model

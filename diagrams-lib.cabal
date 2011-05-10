@@ -36,6 +36,7 @@ Library
                        Diagrams.TwoD.Path,
                        Diagrams.TwoD.Shapes,
                        Diagrams.TwoD.Util,
+                       Diagrams.TwoD.Model,
 --                       Diagrams.Animation,
                        Diagrams.Util,
                        Diagrams.Backend.Show
