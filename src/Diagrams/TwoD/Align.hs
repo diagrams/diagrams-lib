@@ -23,15 +23,8 @@
 
 module Diagrams.TwoD.Align
     ( -- * Absolute alignment
-      alignLeft, alignRight, alignTop, alignBottom
-
-      -- ** Abbreviations
-
-      -- | Some convenient abbreviations for code which is shorter and
-      --   either more or less readable, depending on your point of
-      --   view.  @aT === alignTop@, and so on.  @aTL = aT . aL@, and
-      --   so on.
-    , aL, aR, aT, aB, aTL, aTR, aBL, aBR
+      alignL, alignR, alignT, alignB
+    , alignTL, alignTR, alignBL, alignBR
 
       -- * Relative alignment
     , alignX, alignY
@@ -49,32 +42,29 @@ import Diagrams.Align
 
 import Data.VectorSpace
 
--- | Align along the left edge, i.e. move the local origin as far to
---   the left as possible.
-alignLeft   :: (HasOrigin a, Boundable a, V a ~ R2) => a -> a
-alignLeft   = align (negateV unitX)
+-- | Align along the left edge, i.e. translate the diagram in a
+--   horizontal direction so that the local origin is on the left edge
+--   of the bounding region.
+alignL :: (HasOrigin a, Boundable a, V a ~ R2) => a -> a
+alignL = align (negateV unitX)
 
 -- | Align along the right edge.
-alignRight  :: (HasOrigin a, Boundable a, V a ~ R2) => a -> a
-alignRight  = align unitX
+alignR :: (HasOrigin a, Boundable a, V a ~ R2) => a -> a
+alignR = align unitX
 
 -- | Align along the top edge.
-alignTop    :: (HasOrigin a, Boundable a, V a ~ R2) => a -> a
-alignTop    = align unitY
+alignT :: (HasOrigin a, Boundable a, V a ~ R2) => a -> a
+alignT = align unitY
 
 -- | Align along the bottom edge.
-alignBottom :: (HasOrigin a, Boundable a, V a ~ R2) => a -> a
-alignBottom = align (negateV unitY)
+alignB :: (HasOrigin a, Boundable a, V a ~ R2) => a -> a
+alignB = align (negateV unitY)
 
-aL, aR, aT, aB, aTL, aTR, aBL, aBR :: (HasOrigin a, Boundable a, V a ~ R2) => a -> a
-aL  = alignLeft
-aR  = alignRight
-aT  = alignTop
-aB  = alignBottom
-aTL = aT . aL
-aTR = aT . aR
-aBL = aB . aL
-aBR = aB . aR
+alignTL, alignTR, alignBL, alignBR :: (HasOrigin a, Boundable a, V a ~ R2) => a -> a
+alignTL = alignT . alignL
+alignTR = alignT . alignR
+alignBL = alignB . alignL
+alignBR = alignB . alignR
 
 -- | @alignX@ moves the local origin horizontally as follows:
 --
