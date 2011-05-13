@@ -17,11 +17,14 @@ module Diagrams.TwoD.Model
        ) where
 
 import Graphics.Rendering.Diagrams
+import Graphics.Rendering.Diagrams.UDTree
 import Diagrams.TwoD.Types
 import Diagrams.TwoD.Ellipse
 import Diagrams.TwoD.Util
 import Diagrams.Attributes
 import Diagrams.Util
+
+import Data.Monoid
 
 import Data.Colour.Names
 
@@ -45,3 +48,16 @@ showOrigin d = o <> d
 -- showOrigin' (OriginOpts o s) d = o' <> d
 --   where o' = o # scale (max (w * s) (h * s))
 --         (w,h) = size2D d
+
+
+
+-- XXX finish:
+
+--   Draw the separating lines between diagrams composed with 'beside'
+--   (or any combinators implemented in terms of 'beside', like '(|||)'
+--   or '(===)').
+
+-- showSep :: AnnDiagram b R2 m -> AnnDiagram b R2 m
+-- showSep d = s <> d
+--   where ... = case d of
+--                 AnnDiagram (Branch u ds children) -> ...
