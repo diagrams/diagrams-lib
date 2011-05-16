@@ -17,6 +17,8 @@ Stability:           Experimental
 Category:            Graphics
 Build-type:          Simple
 Cabal-version:       >=1.2
+Tested-with:         GHC == 6.12.3, GHC >= 7.0.2 && <= 7.0.3
+
 
 Library
   Exposed-modules:     Diagrams.Prelude,
