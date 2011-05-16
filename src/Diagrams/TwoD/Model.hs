@@ -17,7 +17,7 @@ module Diagrams.TwoD.Model
        ) where
 
 import Graphics.Rendering.Diagrams
-import Graphics.Rendering.Diagrams.UDTree
+-- import Graphics.Rendering.Diagrams.UDTree
 import Diagrams.TwoD.Types
 import Diagrams.TwoD.Ellipse
 import Diagrams.TwoD.Util
