@@ -78,7 +78,7 @@ bezier3 = Cubic
 -- | 'atParam' yields a parametrized view of segments as continuous
 --   functions @[0,1] -> v@, which give the offset from the start of
 --   the segment for each value of the parameter between @0@ and @1@.
---   It is designed to be used infix, like @seg `atParam` 0.5@.
+--   It is designed to be used infix, like @seg ``atParam`` 0.5@.
 atParam :: (VectorSpace v, Num (Scalar v)) => Segment v -> Scalar v -> v
 atParam (Linear x) t       = t *^ x
 atParam (Cubic c1 c2 x2) t =     (3 * t'*t'*t ) *^ c1
