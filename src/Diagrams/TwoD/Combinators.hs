@@ -66,7 +66,7 @@ infixl 6 |||
 --   * For more control over the spacing, see 'hcat''.
 --
 --   * To align the diagrams vertically (or otherwise), use alignment
---   combinators (such as 'alignTop' or 'alignBottom') from
+--   combinators (such as 'alignT' or 'alignB') from
 --   "Diagrams.TwoD.Align" before applying 'hcat'.
 --
 --   * For non-axis-aligned layout, see 'cat'.
@@ -86,7 +86,7 @@ hcat' = cat' unitX
 --   * For more control over the spacing, see 'vcat''.
 --
 --   * To align the diagrams horizontally (or otherwise), use alignment
---   combinators (such as 'alignLeft' or 'alignRight') from
+--   combinators (such as 'alignL' or 'alignR') from
 --   "Diagrams.TwoD.Align" before applying 'vcat'.
 --
 --   * For non-axis-aligned layout, see 'cat'.
