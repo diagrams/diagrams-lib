@@ -99,11 +99,10 @@ strut v = phantom $ getBounds (Linear v)
 --   their bounding regions are just tangent.  The local origin of the
 --   new, combined object is at the point of tangency, along the line
 --   between the old local origins.
---
---   XXX picture
 beside :: (HasOrigin a, Boundable a, Monoid a) => V a -> a -> a -> a
 beside v d1 d2
   = align v d1 <> align (negateV v) d2
+-- XXX add picture to above documentation?
 
 -- Note that sending the origin to the point of tangency like this
 -- means that (beside v) is not associative.  We can make it
