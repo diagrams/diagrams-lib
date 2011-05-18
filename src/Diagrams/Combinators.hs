@@ -134,7 +134,7 @@ append v d1 d2 = appends d1 [(v,d2)]
 -- | @appends x ys@ appends each of the objects in @ys@ to the object
 --   @x@ in the corresponding direction.  Note that each object in
 --   @ys@ is positioned beside @x@ /without/ reference to the other
---   objects in @ys@, so this is not the same as iterating @append@.
+--   objects in @ys@, so this is not the same as iterating 'append'.
 appends :: (HasOrigin a, Boundable a, Monoid a) => a -> [(V a,a)] -> a
 appends d1 apps = d1 <> mconcat (map (uncurry (besideBounds b)) apps)
   where b = getBounds d1
