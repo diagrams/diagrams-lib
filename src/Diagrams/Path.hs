@@ -31,7 +31,7 @@ module Diagrams.Path
          -- ** Destructing trails
 
        , trailOffsets, trailOffset
-       , trailVertices
+       , trailVertices, reverseTrail
 
          -- * Paths
 
@@ -156,6 +156,11 @@ trailOffset = sumV . trailOffsets
 --   which to place the first vertex.
 trailVertices :: AdditiveGroup v => Point v -> Trail v -> [Point v]
 trailVertices p = scanl (.+^) p . trailOffsets
+
+-- | Reverse a trail's direction of travel.
+reverseTrail t = t { trailSegments = (fmap . fmap) negateV . reverse
+                       $ trailSegments t
+                   }
 
 ------------------------------------------------------------
 --  Paths  -------------------------------------------------
