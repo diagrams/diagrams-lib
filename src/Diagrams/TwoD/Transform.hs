@@ -25,6 +25,8 @@ module Diagrams.TwoD.Transform
        , scalingY, scaleY
        , scaling, scale
 
+       , scaleToX, scaleToY
+
          -- * Translation
        , translationX, translateX
        , translationY, translateY
@@ -38,8 +40,11 @@ module Diagrams.TwoD.Transform
 import Graphics.Rendering.Diagrams
 
 import Diagrams.TwoD.Types
+import Diagrams.TwoD.Util
 
 import Control.Arrow (first, second)
+
+-- Rotation ------------------------------------------------
 
 -- | Create a transformation which performs a rotation by the given
 --   angle in radians.
@@ -62,6 +67,8 @@ rotationBy = rotation . (*(2*pi))
 -- | Rotate by the given fraction of a circle.
 rotateBy :: (Transformable t, V t ~ R2) => Angle -> t -> t
 rotateBy = transform . rotationBy
+
+-- Scaling -------------------------------------------------
 
 -- | Construct a transformation which scales by the given factor in
 --   the x (horizontal) direction.
@@ -87,6 +94,22 @@ scalingY c = fromLinear s s
 scaleY :: (Transformable t, V t ~ R2) => Double -> t -> t
 scaleY = transform . scalingY
 
+-- | @scaleToX w@ scales a diagram in the x (horizontal) direction by
+--   whatever factor required to make its width @w@.  @scaleToX@
+--   should not be applied to diagrams with a width of 0, such as
+--   'vrule'.
+scaleToX :: (Boundable t, Transformable t, V t ~ R2) => Double -> t -> t
+scaleToX w d = scaleX (w / width d) d
+
+-- | @scaleToY h@ scales a diagram in the y (vertical) direction by
+--   whatever factor required to make its height @h@.  @scaleToY@
+--   should not be applied to diagrams with a width of 0, such as
+--   'hrule'.
+scaleToY :: (Boundable t, Transformable t, V t ~ R2) => Double -> t -> t
+scaleToY h d = scaleY (h / height d) d
+
+-- Translation ---------------------------------------------
+
 -- | Construct a transformation which translates by the given distance
 --   in the x (horizontal) direction.
 translationX :: Double -> Transformation R2
@@ -106,6 +129,8 @@ translationY y = translation (0,y)
 --   direction.
 translateY :: (Transformable t, V t ~ R2) => Double -> t -> t
 translateY = transform . translationY
+
+-- Reflection ----------------------------------------------
 
 -- | Construct a transformation which flips a diagram from left to
 --   right, i.e. sends the point (x,y) to (-x,y).
@@ -128,4 +153,5 @@ reflectY :: (Transformable t, V t ~ R2) => t -> t
 reflectY = transform reflectionY
 
 -- XXX todo: add general reflection/reflect operators which reflect
--- around an arbitrary axis (taking a vector as an argument).
+-- around an arbitrary axis (taking a vector as an argument);
+-- rotations around an arbitrary point; etc.
