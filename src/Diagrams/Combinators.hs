@@ -52,13 +52,12 @@ import Data.Default
 -- Working with bounds
 ------------------------------------------------------------
 
--- XXX this isn't quite right!  Need to think about this a bit more...
 -- | Use the bounding region from some boundable object as the
 --   bounding region for a diagram, in place of the diagram's default
 --   bounding region.
 withBounds :: (Backend b (V a), Boundable a, Monoid m)
            => a -> AnnDiagram b (V a) m -> AnnDiagram b (V a) m
-withBounds b d = d `atop` phantom b
+withBounds b = setBounds (getBounds b)
 
 -- | @phantom x@ produces a \"phantom\" diagram, which has the same
 --   bounding region as @x@ but produces no output.
@@ -66,7 +65,8 @@ phantom :: (Backend b (V a), Boundable a, Monoid m) => a -> AnnDiagram b (V a) m
 phantom a = mkAD nullPrim (getBounds a) mempty mempty
 
 -- | @pad s@ \"pads\" a diagram, expanding its bounding region by a
---   factor of @s@.  Note that the bounding region will expand with
+--   factor of @s@ (factors between 0 and 1 can be used to shrink the
+--   bounding region).  Note that the bounding region will expand with
 --   respect to the local origin, so if the origin is not centered the
 --   padding may appear \"uneven\".  If this is not desired, the
 --   origin can be centered (using, e.g., 'centerXY' for 2D diagrams)
