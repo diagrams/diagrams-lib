@@ -61,7 +61,7 @@ instance HasLinearMap v => Transformable (Segment v) where
 -- | @'straight' v@ constructs a translationally invariant linear
 --   segment with direction and length given by the vector @v@.
 straight :: v -> Segment v
-straight v = Linear v
+straight = Linear
 
 -- Note, if we didn't have a Linear constructor we could also create
 -- linear segments with @Cubic (v ^/ 3) (2 *^ (v ^/ 3)) v@.  Those

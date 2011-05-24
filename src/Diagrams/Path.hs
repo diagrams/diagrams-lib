@@ -60,7 +60,7 @@ import Data.Monoid
 import qualified Data.Foldable as F
 import qualified Data.Set as S
 
-import Control.Arrow ((***))
+import Control.Arrow ((***), first, second)
 
 ------------------------------------------------------------
 --  PathLike class
@@ -177,18 +177,18 @@ newtype Path v = Path { pathTrails :: S.Set (Trail v, Point v) }
 type instance V (Path v) = v
 
 instance (Ord v, VectorSpace v) => HasOrigin (Path v) where
-  moveOriginTo p (Path s) = Path $ S.map (id *** moveOriginTo p) s
+  moveOriginTo p (Path s) = Path $ S.map (second $ moveOriginTo p) s
 
 -- | Paths are (of course) path-like. 'fromSegments' creates a path
 --   with start point at the origin.
 instance (Ord v, VectorSpace v) => PathLike (Path v) where
   setStart = moveTo
 
-  fromSegments []   = Path $ S.empty
+  fromSegments []   = Path S.empty
   fromSegments segs = Path $ S.singleton (fromSegments segs, origin)
 
-  close (Path s) = Path $ S.map (close *** id) s
-  open  (Path s) = Path $ S.map (open  *** id) s
+  close (Path s) = Path $ S.map (first close) s
+  open  (Path s) = Path $ S.map (first open ) s
 
 -- See Note [Transforming paths]
 instance (HasLinearMap v, Ord v) => Transformable (Path v) where
