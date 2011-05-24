@@ -84,7 +84,7 @@ polygonPath = close . fromVertices . polygonVertices
 polygonVertices :: PolygonOpts -> [P2]
 polygonVertices opts = orient . take n . iterate (rotate angle) $ start
   where start  = translateX 1 origin
-        angle  = (fromIntegral $ edgeSkip opts) * 2*pi / fromIntegral n
+        angle  = fromIntegral (edgeSkip opts) * 2*pi / fromIntegral n
         n      = sides opts
         orient  | orientation opts == OrientToX = orientX
                 | orientation opts == OrientToY = orientY

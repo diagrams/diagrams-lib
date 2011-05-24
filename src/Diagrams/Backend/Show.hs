@@ -68,7 +68,7 @@ renderMat = PP.vcat . map renderRow . transpose
 
 instance Renderable Ellipse ShowBackend where
   render _ (Ellipse t) = SR $ text "Ellipse (" $+$
-                                (nest 2 (renderTransf t)) $+$
+                                nest 2 (renderTransf t) $+$
                               text ")"
 
 instance (Show v, HasLinearMap v) => Renderable (Segment v) ShowBackend where
