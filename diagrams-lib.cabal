@@ -30,6 +30,7 @@ Library
                        Diagrams.Segment,
                        Diagrams.Path,
                        Diagrams.Solve,
+                       Diagrams.Transform,
                        Diagrams.TwoD,
                        Diagrams.TwoD.Types,
                        Diagrams.TwoD.Align,

@@ -34,6 +34,10 @@ module Diagrams.Prelude
          -- | Trails and paths.
        , module Diagrams.Path
 
+         -- | Some additional transformation-related functions, like
+         --   conjugation of transformations.
+       , module Diagrams.Transform
+
          -- | A wide range of things (shapes, transformations,
          --   combinators) specific to creating two-dimensional
          --   diagrams.
@@ -60,8 +64,9 @@ import Graphics.Rendering.Diagrams
 import Diagrams.Attributes
 import Diagrams.Align
 import Diagrams.Combinators
-import Diagrams.Path
 import Diagrams.Segment
+import Diagrams.Path
+import Diagrams.Transform
 import Diagrams.TwoD
 import Diagrams.Util
 
