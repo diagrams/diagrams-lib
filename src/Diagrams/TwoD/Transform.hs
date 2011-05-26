@@ -19,6 +19,8 @@ module Diagrams.TwoD.Transform
          -- * Rotation
          rotation, rotate, rotateBy
 
+       , rotationAbout, rotateAbout
+
          -- * Scaling
        , scalingX, scaleX
        , scalingY, scaleY
@@ -40,6 +42,10 @@ import Graphics.Rendering.Diagrams
 
 import Diagrams.TwoD.Types
 import Diagrams.TwoD.Util
+import Diagrams.Transform
+import Diagrams.Util
+
+import Data.AffineSpace
 
 import Control.Arrow (first, second)
 
@@ -73,6 +79,16 @@ rotate = transform . rotation
 --   @rotateBy (1/4)@ than @'rotate' (1/4 :: 'CircleFrac')@.
 rotateBy :: (Transformable t, V t ~ R2) => CircleFrac -> t -> t
 rotateBy = transform . rotation
+
+-- | @rotationAbout p@ is a rotation about the point @p@ (instead of
+--   around the local origin).
+rotationAbout :: Angle a => P2 -> a -> Transformation R2
+rotationAbout p angle = conjugate (translation (origin .-. p)) (rotation angle)
+
+-- | @rotateAbout p@ is like 'rotate', except it rotates around the
+--   point @p@ instead of around the local origin.
+rotateAbout :: (Transformable t, V t ~ R2, Angle a) => P2 -> a -> t -> t
+rotateAbout p angle = rotate angle `under` (translation (origin .-. p))
 
 -- Scaling -------------------------------------------------
 
