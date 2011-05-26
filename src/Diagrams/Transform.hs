@@ -27,6 +27,12 @@ conjugate t1 t2  = inv t1 <> t2 <> t1
 --   t@ first applies @t@, then @f@, then the inverse of @t@.  For
 --   example, @'rotateBy' (1/3) ``under`` 'translationX' 1@ is
 --   equivalent to a rotation by 120 degrees about the point
---   @(-1,0)@.
+--   @(-1,0)@ (you may have to think about this for a minute =).
+--
+--   Note that
+--
+--   > (transform t2) `under` t1 == transform (conjugate t1 t2)
+--
+--   for all transformations @t1@ and @t2@.
 under :: Transformable a => (a -> a) -> Transformation (V a) -> a -> a
 f `under` t = transform (inv t) . f . transform t
