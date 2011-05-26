@@ -14,6 +14,7 @@
 module Diagrams.TwoD.Util
        ( -- * General two-dimensional utilities
          unitX, unitY
+       , direction
 
          -- * Size and extent of diagrams in R2
        , width, height, size2D
@@ -62,3 +63,9 @@ unitX = (1,0)
 -- | A unit vector in the positive Y direction.
 unitY :: R2
 unitY = (0,1)
+
+-- | Compute the direction of a vector, measured counterclockwise from
+--   the positive x-axis as a fraction of a full turn.  The zero
+--   vector is arbitrarily assigned the direction 0.
+direction :: R2 -> CircleFrac
+direction (x,y) = toCircleFrac . Rad $ atan2 y x

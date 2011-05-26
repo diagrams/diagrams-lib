@@ -17,8 +17,7 @@
 module Diagrams.TwoD.Transform
        (
          -- * Rotation
-         rotation, rotate
-       , rotationBy, rotateBy
+         rotation, rotate, rotateBy
 
          -- * Scaling
        , scalingX, scaleX
@@ -47,26 +46,29 @@ import Control.Arrow (first, second)
 -- Rotation ------------------------------------------------
 
 -- | Create a transformation which performs a rotation by the given
---   angle in radians.
-rotation :: Angle -> Transformation R2
-rotation theta = fromLinear r (linv r)
+--   angle.  See also 'rotate'.
+rotation :: Angle a => a -> Transformation R2
+rotation ang = fromLinear r (linv r)
   where
+    r            = rot theta <-> rot (-theta)
+    Rad theta    = convertAngle ang
     rot th (x,y) = (cos th * x - sin th * y, sin th * x + cos th * y)
-    r = rot theta <-> rot (-theta)
 
--- | Rotate by the given angle in radians.
-rotate :: (Transformable t, V t ~ R2) => Angle -> t -> t
+-- | Rotate by the given angle. Positive angles correspond to
+--   counterclockwise rotation, negative to clockwise. The angle can
+--   be expressed using any type which is an instance of 'Angle'.  For
+--   example, @rotate (1/4)@, @rotate (Rad (pi/2))@, and @rotate (Deg
+--   90)@ all represent the same transformation, namely, a
+--   counterclockwise rotation by a right angle.
+rotate :: (Transformable t, V t ~ R2, Angle a) => a -> t -> t
 rotate = transform . rotation
 
--- | Create a transformation which performs a rotation by the given
---   fraction of a circle.  For example, @rotationBy (1/4)@ rotates by
---   one quarter of a circle (i.e. 90 degrees, i.e. pi/2 radians).
-rotationBy :: Double -> Transformation R2
-rotationBy = rotation . (*(2*pi))
+-- XXX add a note about why rotateBy is needed etc.
 
--- | Rotate by the given fraction of a circle.
-rotateBy :: (Transformable t, V t ~ R2) => Angle -> t -> t
-rotateBy = transform . rotationBy
+-- | A synonym for 'rotate', specialized to only work with
+--   @CircleFrac@ arguments.
+rotateBy :: (Transformable t, V t ~ R2) => CircleFrac -> t -> t
+rotateBy = transform . rotation
 
 -- Scaling -------------------------------------------------
 

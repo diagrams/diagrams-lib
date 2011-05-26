@@ -32,7 +32,7 @@ import Data.VectorSpace((^-^))
 --   the positive y direction and sweeps counterclockwise through @s@
 --   radians.  The approximation is only valid for angles in the first
 --   quadrant.
-bezierFromSweepQ1 :: Angle -> Segment R2
+bezierFromSweepQ1 :: Rad -> Segment R2
 bezierFromSweepQ1 s = fmap (^-^ v) . rotate (s/2) $ Cubic p2 p1 p0
   where p0@(x,y) = rotate (s/2) v
         p1       = ((4-x)/3, (1-x)*(3-x)/(3*y))
@@ -45,14 +45,14 @@ bezierFromSweepQ1 s = fmap (^-^ v) . rotate (s/2) $ Cubic p2 p1 p0
 --   negative y direction and sweep clockwise.  When @s@ is less than
 --   0.0001 the empty list results.  If the sweep is greater than two pi
 --   then it is truncated to two pi.
-bezierFromSweep :: Angle -> [Segment R2]
+bezierFromSweep :: Rad -> [Segment R2]
 bezierFromSweep s
-  | s > 2 * pi = bezierFromSweep (2*pi)
+  | s > tau    = bezierFromSweep tau
   | s < 0      = fmap reflectY . bezierFromSweep $ (-s)
-  | s < pi/2   = [bezierFromSweepQ1 s]
+  | s < tau/4  = [bezierFromSweepQ1 s]
   | s < 0.0001 = []
-  | otherwise  = bezierFromSweepQ1 (pi/2)
-          : map (rotate (pi/2)) (bezierFromSweep (max (s-pi/2) 0))
+  | otherwise  = bezierFromSweepQ1 (tau/4)
+          : map (rotateBy (1/4)) (bezierFromSweep (max (s - tau/4) 0))
 
 {-
 ~~~~ Note [segment spacing]
@@ -75,13 +75,13 @@ the approximation error.
 -}
 
 -- | A version of 'arc' that produces a 'Trail' instead of a 'Path'.
-arcT :: Angle -> Angle -> Trail R2
-arcT start end = Trail bs (sweep >= pi*2)
-  where sweep = end - start
+arcT :: Angle a => a -> a -> Trail R2
+arcT start end = Trail bs (sweep >= tau)
+  where sweep = convertAngle $ end - start
         bs    = map (rotate start) . bezierFromSweep $ sweep
 
 -- | Given a start angle @s@ and an end angle @e@ (both in radians),
 --   @'arc' s e@ is the path of a radius one arc counterclockwise
 --   between the two angles.
-arc :: Angle -> Angle -> Path R2
+arc :: Angle a => a -> a -> Path R2
 arc start end = pathFromTrailAt (arcT start end) (rotate start $ P (1,0))
