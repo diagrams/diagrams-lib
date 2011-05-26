@@ -1,5 +1,6 @@
 {-# LANGUAGE TypeFamilies
            , TypeSynonymInstances
+           , GeneralizedNewtypeDeriving
   #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 -----------------------------------------------------------------------------
@@ -14,12 +15,21 @@
 -----------------------------------------------------------------------------
 
 module Diagrams.TwoD.Types
-       ( R2
+       ( -- * 2D Euclidean space
+         R2
        , P2
-       , Angle
+
+         -- * Angles
+       , tau
+       , Angle(..)
+       , CircleFrac(..), Rad(..), Deg(..)
+       , fullCircle, convertAngle
        ) where
 
 import Graphics.Rendering.Diagrams
+
+------------------------------------------------------------
+-- 2D Euclidean space
 
 -- | The two-dimensional Euclidean vector space R^2.
 type R2 = (Double, Double)
@@ -32,5 +42,53 @@ type P2 = Point R2
 instance Transformable R2 where
   transform = apply
 
--- | Type synonym used to represent angles in radians.
-type Angle = Double
+------------------------------------------------------------
+-- Angles
+
+-- | The circle constant, i.e. the ratio of a circle's circumference
+--   to its radius.
+tau :: Floating a => a
+tau = 2*pi
+
+-- | Newtype wrapper used to represent angles as fractions of a
+--   circle.  For example, 1/3 = tau/3 radians = 120 degrees.
+newtype CircleFrac = CircleFrac { getCircleFrac :: Double }
+  deriving (Read, Show, Eq, Ord, Enum, Floating, Fractional, Num, Real, RealFloat, RealFrac)
+
+-- | Newtype wrapper for representing angles in radians.
+newtype Rad = Rad { getRad :: Double }
+  deriving (Read, Show, Eq, Ord, Enum, Floating, Fractional, Num, Real, RealFloat, RealFrac)
+
+-- | Newtype wrapper for representing angles in degrees.
+newtype Deg = Deg { getDeg :: Double }
+  deriving (Read, Show, Eq, Ord, Enum, Floating, Fractional, Num, Real, RealFloat, RealFrac)
+
+-- | Type class for types that measure angles.
+class Num a => Angle a where
+  -- | Convert to a fraction of a circle.
+  toCircleFrac   :: a -> CircleFrac
+
+  -- | Convert from a fraction of a circle.
+  fromCircleFrac :: CircleFrac -> a
+
+instance Angle CircleFrac where
+  toCircleFrac   = id
+  fromCircleFrac = id
+
+-- | tau radians = 1 full circle.
+instance Angle Rad where
+  toCircleFrac   = CircleFrac . (/tau) . getRad
+  fromCircleFrac = Rad . (*tau) . getCircleFrac
+
+-- | 360 degrees = 1 full circle.
+instance Angle Deg where
+  toCircleFrac   = CircleFrac . (/360) . getDeg
+  fromCircleFrac = Deg . (*360) . getCircleFrac
+
+-- | An angle representing a full circle.
+fullCircle :: Angle a => a
+fullCircle = fromCircleFrac 1
+
+-- | Convert between two angle representations.
+convertAngle :: (Angle a, Angle b) => a -> b
+convertAngle = fromCircleFrac . toCircleFrac

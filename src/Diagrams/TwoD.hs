@@ -12,7 +12,8 @@
 -- functionality from a group of more specific modules:
 --
 --   * "Diagrams.TwoD.Types" defines basic types for two-dimensional
---     diagrams.
+--     diagrams, including types representing the 2D Euclidean vector
+--     space and various systems of angle measurement.
 --
 --   * "Diagrams.TwoD.Align" defines alignment combinators specialized
 --     to two dimensions (see "Diagrams.Align" for more general
@@ -49,8 +50,13 @@ module Diagrams.TwoD
        ( -- * R^2
          R2
        , P2
-       , Angle
-       , unitX, unitY
+       , unitX, unitY, direction
+
+         -- * Angles
+       , tau
+       , Angle(..)
+       , CircleFrac(..), Rad(..), Deg(..)
+       , fullCircle, convertAngle
 
          -- * Paths
        , stroke, strokeT
@@ -75,8 +81,7 @@ module Diagrams.TwoD
 
          -- * Transformations
          -- ** Rotation
-       , rotation, rotate
-       , rotationBy, rotateBy
+       , rotation, rotate, rotateBy
          -- ** Scaling
        , scalingX, scaleX
        , scalingY, scaleY

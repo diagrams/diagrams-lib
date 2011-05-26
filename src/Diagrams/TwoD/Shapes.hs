@@ -82,18 +82,18 @@ polygonPath = close . fromVertices . polygonVertices
 -- | Generate the vertices of a regular polygon from the given
 --   options.
 polygonVertices :: PolygonOpts -> [P2]
-polygonVertices opts = orient . take n . iterate (rotate angle) $ start
+polygonVertices opts = orient . take n . iterate (rotateBy turn) $ start
   where start  = translateX 1 origin
-        angle  = fromIntegral (edgeSkip opts) * 2*pi / fromIntegral n
+        turn   = fromIntegral (edgeSkip opts) / fromIntegral n
         n      = sides opts
         orient  | orientation opts == OrientToX = orientX
                 | orientation opts == OrientToY = orientY
                 | otherwise                     = id
         orientX | odd n          = rotateBy (1/4)
-                | n `mod` 4 == 0 = rotate (angle/2)
+                | n `mod` 4 == 0 = rotateBy (turn/2)
                 | otherwise      = id
-        orientY | even n    = rotate (angle/2)
-                | otherwise = id
+        orientY | even n         = rotateBy (turn/2)
+                | otherwise      = id
 
 -- | A sqaure with its center at the origin and sides of length 1,
 --   oriented parallel to the axes.
