@@ -57,16 +57,20 @@ rotation ang = fromLinear r (linv r)
 -- | Rotate by the given angle. Positive angles correspond to
 --   counterclockwise rotation, negative to clockwise. The angle can
 --   be expressed using any type which is an instance of 'Angle'.  For
---   example, @rotate (1/4)@, @rotate (Rad (pi/2))@, and @rotate (Deg
---   90)@ all represent the same transformation, namely, a
---   counterclockwise rotation by a right angle.
+--   example, @rotate (1/4 :: 'CircleFrac')@, @rotate (pi/2 :: 'Rad')@, and
+--   @rotate (90 :: 'Deg')@ all represent the same transformation, namely,
+--   a counterclockwise rotation by a right angle.
+--
+--   Note that writing @rotate (1/4)@, with no type annotation, will
+--   yield an error since GHC cannot figure out which sort of angle
+--   you want to use.  In this common situation you can use
+--   'rotateBy', which is specialized to take a 'CircleFrac' argument.
 rotate :: (Transformable t, V t ~ R2, Angle a) => a -> t -> t
 rotate = transform . rotation
 
--- XXX add a note about why rotateBy is needed etc.
-
 -- | A synonym for 'rotate', specialized to only work with
---   @CircleFrac@ arguments.
+--   @CircleFrac@ arguments; it can be more convenient to write
+--   @rotateBy (1/4)@ than @'rotate' (1/4 :: 'CircleFrac')@.
 rotateBy :: (Transformable t, V t ~ R2) => CircleFrac -> t -> t
 rotateBy = transform . rotation
 
