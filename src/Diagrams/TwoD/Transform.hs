@@ -36,6 +36,7 @@ module Diagrams.TwoD.Transform
          -- * Reflection
        , reflectionX, reflectX
        , reflectionY, reflectY
+       , reflectionAbout, reflectAbout
        ) where
 
 import Graphics.Rendering.Diagrams
@@ -173,6 +174,15 @@ reflectionY = scalingY (-1)
 --   (x,-y).
 reflectY :: (Transformable t, V t ~ R2) => t -> t
 reflectY = transform reflectionY
+
+-- | @reflectionAbout p v@ is a reflection in the line determined by
+--   the point @p@ and vector @v@.
+reflectionAbout :: P2 -> R2 -> Transformation R2
+reflectionAbout p v = conjugate (rotation (-direction v) <> translation (origin .-. p))
+                                reflectionY
+
+reflectAbout :: (Transformable t, V t ~ R2) => P2 -> R2 -> t -> t
+reflectAbout p v = transform (reflectionAbout p v)
 
 -- XXX todo: add general reflection/reflect operators which reflect
 -- around an arbitrary axis (taking a vector as an argument);

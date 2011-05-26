@@ -95,6 +95,7 @@ module Diagrams.TwoD
          -- ** Reflection
        , reflectionX, reflectX
        , reflectionY, reflectY
+       , reflectionAbout, reflectAbout
 
          -- * Combinators
        , strutX, strutY
