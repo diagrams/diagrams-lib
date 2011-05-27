@@ -107,7 +107,7 @@ fAtParam (FCubic x1 c1 c2 x2) t = p3
 -- | Compute the sum of /signed/ crossings of a path as we travel in the
 --   positive x direction from a given point.
 crossings :: P2 -> Path R2 -> Int
-crossings p = F.sum . S.map (trailCrossings p) . pathTrails
+crossings p = F.sum . map (trailCrossings p) . pathTrails
 
 -- | Compute the sum of signed crossings of a trail starting from the
 --   given point in the positive x direction.
