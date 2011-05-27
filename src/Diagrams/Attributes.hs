@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveDataTypeable
            , ExistentialQuantification
+           , GeneralizedNewtypeDeriving
   #-}
 -----------------------------------------------------------------------------
 -- |
@@ -12,6 +13,13 @@
 -- rendered.  This module defines some common attributes; particular
 -- backends may also define more backend-specific attributes.
 --
+-- Every attribute type must have a /semigroup/ structure, that is, an
+-- associative binary operation for combining two attributes into one.
+-- Unless otherwise noted, all the attributes defined here use the
+-- 'Last' structure, that is, combining two attributes simply keeps
+-- the second one and throws away the first.  This means that child
+-- attributes always override parent attributes.
+--
 -----------------------------------------------------------------------------
 
 module Diagrams.Attributes (
@@ -21,23 +29,23 @@ module Diagrams.Attributes (
     Color(..), SomeColor(..)
 
   -- ** Line color
-  , LineColor(..), lineColor, lc, lcA
+  , LineColor, getLineColor, lineColor, lc, lcA
 
   -- ** Fill color
-  , FillColor(..), fillColor, fc, fcA
+  , FillColor, getFillColor, fillColor, fc, fcA
 
   -- * Lines
   -- ** Width
-  , LineWidth(..), lineWidth, lw
+  , LineWidth, getLineWidth, lineWidth, lw
 
   -- ** Cap style
-  , LineCap(..), lineCap
+  , LineCap(..), LineCapA, getLineCap, lineCap
 
   -- ** Join style
-  , LineJoin(..), lineJoin
+  , LineJoin(..), LineJoinA, getLineJoin, lineJoin
 
   -- ** Dashing
-  , Dashing(..), dashing
+  , Dashing(..), DashingA, getDashing, dashing
 
   ) where
 
@@ -47,6 +55,8 @@ import Data.Colour
 import qualified Data.Colour.SRGB as RGB
 
 import Data.Typeable
+
+import Data.Semigroup
 
 ------------------------------------------------------------
 --  Color  -------------------------------------------------
@@ -73,10 +83,17 @@ class Color c where
 data SomeColor = forall c. Color c => SomeColor c
   deriving Typeable
 
--- | The color with which lines (strokes) are drawn.
-newtype LineColor = LineColor SomeColor
-  deriving Typeable
+-- | The color with which lines (strokes) are drawn.  Note that child
+--   colors always override parent colors; that is, @'lineColor' c1
+--   . 'lineColor' c2 $ d@ is equivalent to @'lineColor' c2 $ d@.
+--   More precisely, the semigroup structure on line color attributes
+--   is that of 'Last'.
+newtype LineColor = LineColor (Last SomeColor)
+  deriving (Typeable, Semigroup)
 instance AttributeClass LineColor
+
+getLineColor :: LineColor -> SomeColor
+getLineColor (LineColor (Last c)) = c
 
 -- | Set the line (stroke) color.  This function is polymorphic in the
 --   color type (so it can be used with either 'Colour' or
@@ -84,7 +101,7 @@ instance AttributeClass LineColor
 --   inference, so the 'lc' and 'lcA' variants are provided with more
 --   concrete types.
 lineColor :: (Color c, HasStyle a) => c -> a -> a
-lineColor = applyAttr . LineColor . SomeColor
+lineColor = applyAttr . LineColor . Last . SomeColor
 
 -- | A synonym for 'lineColor', specialized to @'Colour' Double@
 --   (i.e. opaque colors).
@@ -96,9 +113,13 @@ lc = lineColor
 lcA :: HasStyle a => AlphaColour Double -> a -> a
 lcA = lineColor
 
--- | The color with which shapes are filled.
-newtype FillColor = FillColor SomeColor
-  deriving Typeable
+-- | The color with which shapes are filled. Note that child
+--   colors always override parent colors; that is, @'fillColor' c1
+--   . 'fillColor' c2 $ d@ is equivalent to @'lineColor' c2 $ d@.
+--   More precisely, the semigroup structure on fill color attributes
+--   is that of 'Last'.
+newtype FillColor = FillColor (Last SomeColor)
+  deriving (Typeable, Semigroup)
 instance AttributeClass FillColor
 
 -- | Set the fill color.  This function is polymorphic in the color
@@ -106,7 +127,10 @@ instance AttributeClass FillColor
 --   but this can sometimes create problems for type inference, so the
 --   'fc' and 'fcA' variants are provided with more concrete types.
 fillColor :: (Color c, HasStyle a) => c -> a -> a
-fillColor = applyAttr . FillColor . SomeColor
+fillColor = applyAttr . FillColor . Last . SomeColor
+
+getFillColor :: FillColor -> SomeColor
+getFillColor (FillColor (Last c)) = c
 
 -- | A synonym for 'fillColor', specialized to @'Colour' Double@
 --   (i.e. opaque colors).
@@ -138,10 +162,10 @@ instance Color SomeColor where
   colorToRGBA (SomeColor c) = colorToRGBA c
 
 instance Color LineColor where
-  colorToRGBA (LineColor c) = colorToRGBA c
+  colorToRGBA (LineColor (Last c)) = colorToRGBA c
 
 instance Color FillColor where
-  colorToRGBA (FillColor c) = colorToRGBA c
+  colorToRGBA (FillColor (Last c)) = colorToRGBA c
 
 alphaToColour :: (Floating a, Ord a, Fractional a) => AlphaColour a -> Colour a
 alphaToColour ac | alphaChannel ac == 0 = ac `over` black
@@ -161,18 +185,23 @@ alphaToColour ac | alphaChannel ac == 0 = ac `over` black
 --   However, sometimes it is desirable for scaling to affect line
 --   width; the 'freeze' operation is provided for this purpose.  The
 --   line width of frozen diagrams is affected by transformations.
-newtype LineWidth = LineWidth Double
-  deriving Typeable
+--
+--   Line widths specified on child nodes always override line widths
+--   specified at parent nodes.
+newtype LineWidth = LineWidth (Last Double)
+  deriving (Typeable, Semigroup)
 instance AttributeClass LineWidth
+
+getLineWidth :: LineWidth -> Double
+getLineWidth (LineWidth (Last w)) = w
 
 -- | Set the line (stroke) width.
 lineWidth :: HasStyle a => Double -> a -> a
-lineWidth = applyAttr . LineWidth
+lineWidth = applyAttr . LineWidth . Last
 
 -- | A convenient synonym for 'lineWidth'.
 lw :: HasStyle a => Double -> a -> a
 lw = lineWidth
-
 
 -- | What sort of shape should be placed at the endpoints of lines?
 data LineCap = LineCapButt   -- ^ Lines end precisely at their endpoints.
@@ -181,11 +210,17 @@ data LineCap = LineCapButt   -- ^ Lines end precisely at their endpoints.
              | LineCapSquare -- ^ Lines are capped with a squares
                              --   centered on endpoints.
   deriving (Eq,Show,Typeable)
-instance AttributeClass LineCap
+
+newtype LineCapA = LineCapA (Last LineCap)
+  deriving (Typeable, Semigroup)
+instance AttributeClass LineCapA
+
+getLineCap :: LineCapA -> LineCap
+getLineCap (LineCapA (Last c)) = c
 
 -- | Set the line end cap attribute.
 lineCap :: HasStyle a => LineCap -> a -> a
-lineCap = applyAttr
+lineCap = applyAttr . LineCapA . Last
 
 
 -- | How should the join points between line segments be drawn?
@@ -195,17 +230,28 @@ data LineJoin = LineJoinMiter    -- ^ Use a \"miter\" shape (whatever that is).
                                  --   that is).  Are these...
                                  --   carpentry terms?
   deriving (Eq,Show,Typeable)
-instance AttributeClass LineJoin
+
+newtype LineJoinA = LineJoinA (Last LineJoin)
+  deriving (Typeable, Semigroup)
+instance AttributeClass LineJoinA
+
+getLineJoin :: LineJoinA -> LineJoin
+getLineJoin (LineJoinA (Last j)) = j
 
 -- | Set the segment join style.
 lineJoin :: HasStyle a => LineJoin -> a -> a
-lineJoin = applyAttr
-
+lineJoin = applyAttr . LineJoinA . Last
 
 -- | Create lines that are dashing... er, dashed.
 data Dashing = Dashing [Double] Double
   deriving Typeable
-instance AttributeClass Dashing
+
+newtype DashingA = DashingA (Last Dashing)
+  deriving (Typeable, Semigroup)
+instance AttributeClass DashingA
+
+getDashing :: DashingA -> Dashing
+getDashing (DashingA (Last d)) = d
 
 -- | Set the line dashing style.
 dashing :: HasStyle a =>
@@ -215,4 +261,4 @@ dashing :: HasStyle a =>
         -> Double    -- ^ An offset into the dash pattern at which the
                      --   stroke should start.
         -> a -> a
-dashing ds offs = applyAttr (Dashing ds offs)
+dashing ds offs = applyAttr (DashingA (Last (Dashing ds offs)))
