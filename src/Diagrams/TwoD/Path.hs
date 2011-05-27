@@ -33,7 +33,6 @@ import Data.AffineSpace
 
 import Data.Monoid
 import Control.Applicative (liftA2)
-import qualified Data.Set as S
 import qualified Data.Foldable as F
 
 ------------------------------------------------------------
