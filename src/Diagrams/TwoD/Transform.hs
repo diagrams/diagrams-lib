@@ -181,9 +181,7 @@ reflectionAbout :: P2 -> R2 -> Transformation R2
 reflectionAbout p v = conjugate (rotation (-direction v) <> translation (origin .-. p))
                                 reflectionY
 
+-- | @reflectAbout p v@ reflects a diagram in the line determined by
+--   the point @p@ and the vector @v@.
 reflectAbout :: (Transformable t, V t ~ R2) => P2 -> R2 -> t -> t
 reflectAbout p v = transform (reflectionAbout p v)
-
--- XXX todo: add general reflection/reflect operators which reflect
--- around an arbitrary axis (taking a vector as an argument);
--- rotations around an arbitrary point; etc.
