@@ -21,6 +21,7 @@ module Diagrams.TwoD.Shapes
 
          -- * Special polygons
        , square
+       , rect
        , starPolygon
 
        , eqTriangle
@@ -99,6 +100,11 @@ polygonVertices opts = orient . take n . iterate (rotateBy turn) $ start
 --   oriented parallel to the axes.
 square ::  (Backend b R2, Renderable (Path R2) b) => Diagram b R2
 square = scale (1/sqrt 2) $ polygon def { sides = 4, orientation = OrientToX }
+
+-- | @rect w h@ is an axis-aligned rectangle of width @w@ and height
+--   @h@, centered at the origin.
+rect :: (Backend b R2, Renderable (Path R2) b) => Double -> Double -> Diagram b R2
+rect w h = square # scaleX w # scaleY h
 
 -- | @starPolygon p q@ creates a star polygon, where @p@ indicates the
 --   number of vertices, and an edge connects every @q@th vertex.
