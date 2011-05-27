@@ -58,7 +58,8 @@ import Data.AffineSpace
 
 import Data.Monoid
 import qualified Data.Foldable as F
-import qualified Data.Set as S
+
+import Data.Tuple (swap)
 
 import Control.Arrow ((***), first, second)
 
@@ -167,32 +168,35 @@ reverseTrail t = t { trailSegments = (fmap . fmap) negateV . reverse
 --  Paths  -------------------------------------------------
 ------------------------------------------------------------
 
--- | A /path/ is a (possibly empty) collection of trails, with each
+-- | A /path/ is a (possibly empty) list of trails, with each
 --   trail paired with an absolute starting point. Hence, paths
 --   are /not/ translationally invariant, and form a monoid under
---   union\/superposition.
-newtype Path v = Path { pathTrails :: S.Set (Trail v, Point v) }
+--   superposition.
+newtype Path v = Path { pathTrails :: [(Trail v, Point v)] }
   deriving (Show, Monoid, Eq, Ord)
 
 type instance V (Path v) = v
 
+inPath :: ([(Trail v, Point v)] -> [(Trail v, Point v)]) -> Path v -> Path v
+inPath f (Path ts) = Path (f ts)
+
 instance (Ord v, VectorSpace v) => HasOrigin (Path v) where
-  moveOriginTo p (Path s) = Path $ S.map (second $ moveOriginTo p) s
+  moveOriginTo = inPath . map . second . moveOriginTo
 
 -- | Paths are (of course) path-like. 'fromSegments' creates a path
 --   with start point at the origin.
 instance (Ord v, VectorSpace v) => PathLike (Path v) where
-  setStart = moveTo
+  setStart          = moveTo
 
-  fromSegments []   = Path S.empty
-  fromSegments segs = Path $ S.singleton (fromSegments segs, origin)
+  fromSegments []   = Path []
+  fromSegments segs = Path [(fromSegments segs, origin)]
 
-  close (Path s) = Path $ S.map (first close) s
-  open  (Path s) = Path $ S.map (first open ) s
+  close = (inPath . map . first) close
+  open  = (inPath . map . first) open
 
 -- See Note [Transforming paths]
 instance (HasLinearMap v, Ord v) => Transformable (Path v) where
-  transform t (Path s) = Path $ S.map (transform t *** transform t) s
+  transform t = (inPath . map) (transform t *** transform t)
 
 {- ~~~~ Note [Transforming paths]
 
@@ -206,7 +210,7 @@ of the v's are inside Points and hence ought to be translated.
 
 instance (InnerSpace v, OrderedField (Scalar v)) => Boundable (Path v) where
 
-  getBounds (Path trs) =  F.foldMap trailBounds trs
+  getBounds = F.foldMap trailBounds . pathTrails
     where trailBounds (t, p) = moveOriginTo ((-1) *. p) (getBounds t)
 
 ------------------------------------------------------------
@@ -215,16 +219,16 @@ instance (InnerSpace v, OrderedField (Scalar v)) => Boundable (Path v) where
 
 -- | Convert a trail to a path beginning at the origin.
 pathFromTrail :: AdditiveGroup v => Trail v -> Path v
-pathFromTrail t = Path $ S.singleton (t, origin)
+pathFromTrail t = Path [(t, origin)]
 
 -- | Convert a trail to a path with a particular starting point.
 pathFromTrailAt :: Trail v -> Point v -> Path v
-pathFromTrailAt t p = Path $ S.singleton (t, p)
+pathFromTrailAt t p = Path [(t, p)]
 
 ------------------------------------------------------------
 --  Destructing paths  -------------------------------------
 ------------------------------------------------------------
 
 -- | Extract the vertices of a path.
-pathVertices :: (AdditiveGroup v, Ord v) => Path v -> S.Set [Point v]
-pathVertices (Path trs) = S.map (\(tr, p) -> trailVertices p tr) trs
+pathVertices :: (AdditiveGroup v, Ord v) => Path v -> [[Point v]]
+pathVertices = map (uncurry trailVertices . swap) . pathTrails
