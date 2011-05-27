@@ -76,6 +76,7 @@ module Diagrams.TwoD
 
          -- ** Special polygons
        , square
+       , rect
        , starPolygon
        , eqTriangle
 
