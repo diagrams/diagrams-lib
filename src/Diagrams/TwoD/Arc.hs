@@ -80,8 +80,7 @@ arcT start end = Trail bs (sweep >= tau)
   where sweep = convertAngle $ end - start
         bs    = map (rotate start) . bezierFromSweep $ sweep
 
--- | Given a start angle @s@ and an end angle @e@ (both in radians),
---   @'arc' s e@ is the path of a radius one arc counterclockwise
---   between the two angles.
+-- | Given a start angle @s@ and an end angle @e@, @'arc' s e@ is the
+--   path of a radius one arc counterclockwise between the two angles.
 arc :: Angle a => a -> a -> Path R2
 arc start end = pathFromTrailAt (arcT start end) (rotate start $ P (1,0))
