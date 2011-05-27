@@ -30,6 +30,7 @@ module Diagrams.Path
 
          -- ** Destructing trails
 
+       , trailSegments'
        , trailOffsets, trailOffset
        , trailVertices, reverseTrail
 
@@ -59,6 +60,7 @@ import Data.AffineSpace
 import Data.Monoid
 import qualified Data.Foldable as F
 
+import Data.List (mapAccumL)
 import Data.Tuple (swap)
 
 import Control.Arrow ((***), first, second)
@@ -144,6 +146,13 @@ instance (InnerSpace v, OrderedField (Scalar v)) => Boundable (Trail v) where
 ------------------------------------------------------------
 --  Computing with trails  ---------------------------------
 ------------------------------------------------------------
+
+-- | @trailSegments'@ is like 'trailSegments', but explicitly includes
+--   the implicit closing segment at the end of the list for closed trails.
+trailSegments' :: AdditiveGroup v => Trail v -> [Segment v]
+trailSegments' t | isClosed t = trailSegments t
+                                ++ [straight . negateV . trailOffset $ t]
+                 | otherwise  = trailSegments t
 
 -- | Extract the offsets of the segments of a trail.
 trailOffsets :: Trail v -> [v]
