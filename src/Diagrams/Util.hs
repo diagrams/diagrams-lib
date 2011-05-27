@@ -14,6 +14,7 @@ module Diagrams.Util
 
          with
        , (<>)
+       , applyAll
        , (#)
 
          -- * Internal utilities
@@ -79,6 +80,12 @@ with = def
 (<>) = mappend
 
 infixr 5 <>
+
+-- | @applyAll@ takes a list of functions and applies them all to a
+--   value, in sequence from the last function in the list to the first.
+--   For example, @applyAll [f1, f2, f3] a == f1 . f2 . f3 $ a@.
+applyAll :: [a -> a] -> a -> a
+applyAll = appEndo . mconcat . map Endo
 
 infixl 8 #
 
