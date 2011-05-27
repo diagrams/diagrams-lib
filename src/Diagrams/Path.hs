@@ -46,6 +46,12 @@ module Diagrams.Path
          -- ** Destructing paths
 
        , pathVertices
+       , pathOffsets
+
+         -- * Miscellaneous
+
+       , explodeTrail
+       , explodePath
 
        ) where
 
@@ -241,3 +247,23 @@ pathFromTrailAt t p = Path [(t, p)]
 -- | Extract the vertices of a path.
 pathVertices :: (AdditiveGroup v, Ord v) => Path v -> [[Point v]]
 pathVertices = map (uncurry trailVertices . swap) . pathTrails
+
+-- | Compute the total offset of each trail comprising a path.
+pathOffsets :: AdditiveGroup v => Path v -> [v]
+pathOffsets = map (trailOffset . fst) . pathTrails
+
+------------------------------------------------------------
+--  Other functions  ---------------------------------------
+------------------------------------------------------------
+
+-- | Given a starting point, \"explode\" a trail by turning each
+--   segment (including the implicit closing segment, if the trail is
+--   closed) into its own separate path.  Useful for (say) applying a
+--   different style to each segment.
+explodeTrail :: VectorSpace v => Point v -> Trail v -> [Path v]
+explodeTrail start = snd . mapAccumL mkPath start . trailSegments'
+  where mkPath p seg = (p .+^ segOffset seg, pathFromTrailAt (fromSegments [seg]) p)
+
+-- | \"Explode\" a path by exploding every component trail (see 'explodeTrail').
+explodePath :: VectorSpace v => Path v -> [[Path v]]
+explodePath = map (uncurry explodeTrail . swap) . pathTrails
