@@ -23,6 +23,7 @@ module Diagrams.Path
          -- * Constructing path-like things
 
          PathLike(..), fromOffsets, fromVertices
+       , trailToPathLike
 
          -- * Trails
 
@@ -176,6 +177,14 @@ reverseTrail :: AdditiveGroup v => Trail v -> Trail v
 reverseTrail t = t { trailSegments = (fmap . fmap) negateV . reverse
                        $ trailSegments t
                    }
+
+-- | Convert a trail to any path-like thing.  @trailToPathLike@ is the
+--   identity on trails.
+trailToPathLike :: PathLike p => Trail (V p) -> p
+trailToPathLike t = (if isClosed t then close else id)
+                  . fromSegments
+                  . trailSegments
+                  $ t
 
 ------------------------------------------------------------
 --  Paths  -------------------------------------------------
