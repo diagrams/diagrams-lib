@@ -27,9 +27,16 @@ module Diagrams.Attributes (
   , FillColor(..), fillColor, fc, fcA
 
   -- * Lines
+  -- ** Width
   , LineWidth(..), lineWidth, lw
+
+  -- ** Cap style
   , LineCap(..), lineCap
+
+  -- ** Join style
   , LineJoin(..), lineJoin
+
+  -- ** Dashing
   , Dashing(..), dashing
 
   ) where
