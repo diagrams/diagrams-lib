@@ -110,12 +110,12 @@ crossings p = F.sum . map (trailCrossings p) . pathTrails
 
 -- | Compute the sum of signed crossings of a trail starting from the
 --   given point in the positive x direction.
-trailCrossings :: P2 -> (Trail R2, P2) -> Int
+trailCrossings :: P2 -> (P2, Trail R2) -> Int
 
   -- open trails have no inside or outside, so don't contribute crossings
-trailCrossings _ (t, _) | not (isClosed t) = 0
+trailCrossings _ (_, t) | not (isClosed t) = 0
 
-trailCrossings p@(P (x,y)) (tr, start)
+trailCrossings p@(P (x,y)) (start, tr)
   = sum . map test
   $ zipWith mkFixedSeg (trailVertices start tr)
                        (trailSegments tr ++ [Linear . negateV . trailOffset $ tr])

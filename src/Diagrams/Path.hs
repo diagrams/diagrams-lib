@@ -68,7 +68,6 @@ import Data.Monoid
 import qualified Data.Foldable as F
 
 import Data.List (mapAccumL)
-import Data.Tuple (swap)
 
 import Control.Arrow ((***), first, second)
 
@@ -194,16 +193,16 @@ trailToPathLike t = (if isClosed t then close else id)
 --   trail paired with an absolute starting point. Hence, paths
 --   are /not/ translationally invariant, and form a monoid under
 --   superposition.
-newtype Path v = Path { pathTrails :: [(Trail v, Point v)] }
+newtype Path v = Path { pathTrails :: [(Point v, Trail v)] }
   deriving (Show, Monoid, Eq, Ord)
 
 type instance V (Path v) = v
 
-inPath :: ([(Trail v, Point v)] -> [(Trail v, Point v)]) -> Path v -> Path v
+inPath :: ([(Point v, Trail v)] -> [(Point v, Trail v)]) -> Path v -> Path v
 inPath f (Path ts) = Path (f ts)
 
 instance (Ord v, VectorSpace v) => HasOrigin (Path v) where
-  moveOriginTo = inPath . map . second . moveOriginTo
+  moveOriginTo = inPath . map . first . moveOriginTo
 
 -- | Paths are (of course) path-like. 'fromSegments' creates a path
 --   with start point at the origin.
@@ -211,10 +210,10 @@ instance (Ord v, VectorSpace v) => PathLike (Path v) where
   setStart          = moveTo
 
   fromSegments []   = Path []
-  fromSegments segs = Path [(fromSegments segs, origin)]
+  fromSegments segs = Path [(origin, fromSegments segs)]
 
-  close = (inPath . map . first) close
-  open  = (inPath . map . first) open
+  close = (inPath . map . second) close
+  open  = (inPath . map . second) open
 
 -- See Note [Transforming paths]
 instance (HasLinearMap v, Ord v) => Transformable (Path v) where
@@ -233,7 +232,7 @@ of the v's are inside Points and hence ought to be translated.
 instance (InnerSpace v, OrderedField (Scalar v)) => Boundable (Path v) where
 
   getBounds = F.foldMap trailBounds . pathTrails
-    where trailBounds (t, p) = moveOriginTo ((-1) *. p) (getBounds t)
+    where trailBounds (p, t) = moveOriginTo ((-1) *. p) (getBounds t)
 
 ------------------------------------------------------------
 --  Constructing paths from trails  ------------------------
@@ -241,11 +240,11 @@ instance (InnerSpace v, OrderedField (Scalar v)) => Boundable (Path v) where
 
 -- | Convert a trail to a path beginning at the origin.
 pathFromTrail :: AdditiveGroup v => Trail v -> Path v
-pathFromTrail t = Path [(t, origin)]
+pathFromTrail t = Path [(origin, t)]
 
 -- | Convert a trail to a path with a particular starting point.
 pathFromTrailAt :: Trail v -> Point v -> Path v
-pathFromTrailAt t p = Path [(t, p)]
+pathFromTrailAt t p = Path [(p, t)]
 
 ------------------------------------------------------------
 --  Destructing paths  -------------------------------------
@@ -253,11 +252,11 @@ pathFromTrailAt t p = Path [(t, p)]
 
 -- | Extract the vertices of a path.
 pathVertices :: (AdditiveGroup v, Ord v) => Path v -> [[Point v]]
-pathVertices = map (uncurry trailVertices . swap) . pathTrails
+pathVertices = map (uncurry trailVertices) . pathTrails
 
 -- | Compute the total offset of each trail comprising a path.
 pathOffsets :: AdditiveGroup v => Path v -> [v]
-pathOffsets = map (trailOffset . fst) . pathTrails
+pathOffsets = map (trailOffset . snd) . pathTrails
 
 ------------------------------------------------------------
 --  Other functions  ---------------------------------------
@@ -273,4 +272,4 @@ explodeTrail start = snd . mapAccumL mkPath start . trailSegments'
 
 -- | \"Explode\" a path by exploding every component trail (see 'explodeTrail').
 explodePath :: VectorSpace v => Path v -> [[Path v]]
-explodePath = map (uncurry explodeTrail . swap) . pathTrails
+explodePath = map (uncurry explodeTrail) . pathTrails
