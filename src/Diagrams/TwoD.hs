@@ -81,7 +81,7 @@ module Diagrams.TwoD
        , eqTriangle
 
          -- ** Other shapes
-       , roundedRectPath
+       , roundedRectPath, roundedRect
 
          -- * Transformations
          -- ** Rotation

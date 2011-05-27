@@ -28,7 +28,7 @@ module Diagrams.TwoD.Shapes
 
          -- * Other shapes
 
-       , roundedRectPath
+       , roundedRectPath, roundedRect
        ) where
 
 import Graphics.Rendering.Diagrams
@@ -161,18 +161,18 @@ triangleFromSides = writeMe "triangleFromSides"
 -- larger values of @r@ will be treated as @0@ or half the smaller
 -- dimension of @v@, respectively.  The trail or path begins with the
 -- right edge and proceeds counterclockwise.
-roundedRectPath :: R2 -> Double -> Path R2
-roundedRectPath v r = close $ pathFromTrailAt
-                        (fromOffsets [(0,yOff)]
-                         <> mkCorner 0
-                         <> fromOffsets [(-xOff,0)]
-                         <> mkCorner 1
-                         <> fromOffsets [(0, -yOff)]
-                         <> mkCorner 2
-                         <> fromOffsets [(xOff,0)]
-                         <> mkCorner 3
-                         )
-                        (P (xOff/2 + r', -yOff/2))
+roundedRectPath :: (PathLike p, V p ~ R2) => R2 -> Double -> p
+roundedRectPath v r = close
+                    . setStart (P (xOff/2 + r', -yOff/2))
+                    . trailToPathLike
+                    $ fromOffsets [(0,yOff)]
+                      <> mkCorner 0
+                      <> fromOffsets [(-xOff,0)]
+                      <> mkCorner 1
+                      <> fromOffsets [(0, -yOff)]
+                      <> mkCorner 2
+                      <> fromOffsets [(xOff,0)]
+                      <> mkCorner 3
   where r'   = clamp r 0 maxR
         maxR = uncurry min v / 2
         (xOff,yOff) = v ^-^ (2*r', 2*r')
@@ -186,3 +186,6 @@ clamp :: Ord a => a -> a -> a -> a
 clamp x lo hi | x < lo    = lo
               | x > hi    = hi
               | otherwise = x
+
+roundedRect :: (Backend b R2, Renderable (Path R2) b) => R2 -> Double -> Diagram b R2
+roundedRect v r = stroke $ roundedRectPath v r
