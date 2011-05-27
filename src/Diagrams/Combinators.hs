@@ -143,7 +143,7 @@ appends d1 apps = d1 <> mconcat (map (uncurry (besideBounds b)) apps)
 -- (e.g. diagrams or paths) by assigning them absolute positions in
 -- the vector space of the combined object.
 position :: (HasOrigin a, Qualifiable a, Monoid a) => [(Point (V a), a)] -> a
-position = mconcat . zipWith (|>) [1::Integer ..] . map (uncurry moveTo)
+position = mconcat . zipWith (|>) [0::Integer ..] . map (uncurry moveTo)
 
 -- | Combine a list of diagrams (or paths) by using them to
 --   \"decorate\" a trail, placing the local origin of one object at
@@ -233,7 +233,7 @@ cat v = cat' v def
 cat' :: (HasOrigin a, Boundable a, Qualifiable a, Monoid a)
      => V a -> CatOpts (V a) -> [a] -> a
 cat' _ (CatOpts { catMethod = Cat }) []     = mempty
-cat' _ (CatOpts { catMethod = Cat }) [d]    = (1::Integer) |> d
+cat' _ (CatOpts { catMethod = Cat }) [d]    = (0::Integer) |> d
 cat' v (CatOpts { catMethod = Cat, sep = s }) (d:ds) =
   foldl' (\d1 d2 ->
            d1 <> (moveOriginBy (origin .-. boundary v d1)
@@ -241,9 +241,13 @@ cat' v (CatOpts { catMethod = Cat, sep = s }) (d:ds) =
                   . align (negateV v)
                   $ d2)
          )
-         ((1::Integer) |> d)
-         (zipWith (|>) [2::Integer ..] ds)
+         ((0::Integer) |> d)
+         (zipWith (|>) [1::Integer ..] ds)
 
 cat' v (CatOpts { catMethod = Distrib, sep = s }) ds =
   decorateTrail (fromOffsets (repeat (withLength s v))) ds
   -- infinite trail, no problem for Haskell =D
+
+-- XXX add documentation about how cat' (and vcat, hcat,
+-- decorateTrail, position...) also qualifies names with consecutive
+-- natural numbers
