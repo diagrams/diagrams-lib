@@ -80,6 +80,9 @@ module Diagrams.TwoD
        , starPolygon
        , eqTriangle
 
+         -- ** Other shapes
+       , roundedRectPath
+
          -- * Transformations
          -- ** Rotation
        , rotation, rotate, rotateBy

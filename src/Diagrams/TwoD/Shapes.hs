@@ -25,17 +25,25 @@ module Diagrams.TwoD.Shapes
        , starPolygon
 
        , eqTriangle
+
+         -- * Other shapes
+
+       , roundedRectPath
        ) where
 
 import Graphics.Rendering.Diagrams
 
 import Diagrams.Path
+import Diagrams.TwoD.Arc
 import Diagrams.TwoD.Path
 import Diagrams.TwoD.Types
 import Diagrams.TwoD.Transform
 import Diagrams.TwoD.Align
 
 import Diagrams.Util
+
+import Data.Monoid
+import Data.VectorSpace
 
 import Data.Default
 
@@ -141,3 +149,40 @@ triangleFromSides :: (Backend b R2, Renderable (Path R2) b)
                   => Double -> Double -> Double -> Maybe (Diagram b R2)
 triangleFromSides = writeMe "triangleFromSides"
 -}
+
+------------------------------------------------------------
+--  Other shapes  ------------------------------------------
+------------------------------------------------------------
+
+-- | @roundedRectPath v r@ generates a closed trail, or closed path
+-- centered at the origin, of an axis-aligned rectangle with diagonal
+-- @v@ and circular rounded corners of radius @r@.  @r@ must be
+-- between @0@ and half the smaller dimension of @v@, inclusive; smaller or
+-- larger values of @r@ will be treated as @0@ or half the smaller
+-- dimension of @v@, respectively.  The trail or path begins with the
+-- right edge and proceeds counterclockwise.
+roundedRectPath :: R2 -> Double -> Path R2
+roundedRectPath v r = close $ pathFromTrailAt
+                        (fromOffsets [(0,yOff)]
+                         <> mkCorner 0
+                         <> fromOffsets [(-xOff,0)]
+                         <> mkCorner 1
+                         <> fromOffsets [(0, -yOff)]
+                         <> mkCorner 2
+                         <> fromOffsets [(xOff,0)]
+                         <> mkCorner 3
+                         )
+                        (P (xOff/2 + r', -yOff/2))
+  where r'   = clamp r 0 maxR
+        maxR = uncurry min v / 2
+        (xOff,yOff) = v ^-^ (2*r', 2*r')
+        mkCorner k | r' == 0   = mempty
+                   | otherwise = arcT (k/4) ((k+1)/4::CircleFrac) # scale r'
+
+-- | @clamp x lo hi@ clamps @x@ to lie between @lo@ and @hi@
+--   inclusive.  That is, if @lo <= x <= hi@ it returns @x@; if @x < lo@
+--   it returns @lo@, and if @hi < x@ it returns @hi@.
+clamp :: Ord a => a -> a -> a -> a
+clamp x lo hi | x < lo    = lo
+              | x > hi    = hi
+              | otherwise = x
