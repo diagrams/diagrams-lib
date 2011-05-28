@@ -21,9 +21,10 @@ module Diagrams.BoundingBox
        , union, intersection, unions, intersections
        ) where
 
-import Prelude hiding (and, or)
 import Control.Monad (join, liftM2)
-import Data.Map (Map, fromList, toList, fromDistinctAscList, toAscList, fold)
+import Data.Map (Map, fromList, toList, fromDistinctAscList, toAscList)
+import qualified Data.Foldable as F
+
 import Data.VectorSpace (VectorSpace, Scalar, AdditiveGroup, zeroV)
 import Data.Basis (HasBasis, Basis, decompose, recompose)
 import Data.AffineSpace ((.-.))
@@ -58,8 +59,8 @@ fromPoints ps = Just . foldr1 union . map fromPoint $ ps
 contains, contains'
   :: (HasBasis v, Ord (Basis v), AdditiveGroup (Scalar v), Ord (Scalar v))
   => BoundingBox v -> Point v -> Bool
-contains  (BoundingBox l h) p = and (combineV (<=) l v) && and (combineV (<=) v h) where v = p .-. origin
-contains' (BoundingBox l h) p = and (combineV (< ) l v) && and (combineV (< ) v h) where v = p .-. origin
+contains  (BoundingBox l h) p = F.and (combineV (<=) l v) && F.and (combineV (<=) v h) where v = p .-. origin
+contains' (BoundingBox l h) p = F.and (combineV (< ) l v) && F.and (combineV (< ) v h) where v = p .-. origin
 
 unions, intersections
   :: (HasBasis v, Ord (Basis v), AdditiveGroup (Scalar v), Ord (Scalar v))
@@ -72,10 +73,10 @@ intersections ps = foldr1 ((join .) . liftM2 intersection) (map Just ps)
 inside, inside', outside, outside'
   :: (HasBasis v, Ord (Basis v), AdditiveGroup (Scalar v), Ord (Scalar v))
   => BoundingBox v -> BoundingBox v -> Bool
-inside   (BoundingBox ul uh) (BoundingBox vl vh) =  and (combineV (<=) uh vh) && and (combineV (>=) ul vl)
-inside'  (BoundingBox ul uh) (BoundingBox vl vh) =  and (combineV (< ) uh vh) && and (combineV (> ) ul vl)
-outside  (BoundingBox ul uh) (BoundingBox vl vh) =  or  (combineV (<=) uh vl) || or  (combineV (>=) ul vh)
-outside' (BoundingBox ul uh) (BoundingBox vl vh) =  or  (combineV (< ) uh vl) || or  (combineV (> ) ul vh)
+inside   (BoundingBox ul uh) (BoundingBox vl vh) =  F.and (combineV (<=) uh vh) && F.and (combineV (>=) ul vl)
+inside'  (BoundingBox ul uh) (BoundingBox vl vh) =  F.and (combineV (< ) uh vh) && F.and (combineV (> ) ul vl)
+outside  (BoundingBox ul uh) (BoundingBox vl vh) =  F.or  (combineV (<=) uh vl) || F.or  (combineV (>=) ul vh)
+outside' (BoundingBox ul uh) (BoundingBox vl vh) =  F.or  (combineV (< ) uh vl) || F.or  (combineV (> ) ul vh)
 
 intersection
   :: (HasBasis v, Ord (Basis v), AdditiveGroup (Scalar v), Ord (Scalar v))
@@ -120,7 +121,3 @@ combine f am bm = fromDistinctAscList $ merge (toAscList am) (toAscList bm)
       LT -> (x, f (Just a) Nothing ) : merge xs ys0
       EQ -> (x, f (Just a) (Just b)) : merge xs ys
       GT -> (y, f Nothing  (Just b)) : merge xs0 ys
-
-and, or :: Map k Bool -> Bool
-and = fold (&&) True
-or  = fold (||) False
