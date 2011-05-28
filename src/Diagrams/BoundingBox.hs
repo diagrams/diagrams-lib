@@ -1,10 +1,25 @@
-{-# LANGUAGE DeriveDataTypeable, FlexibleContexts, NoMonomorphismRestriction, TypeFamilies #-}
-module BoundingBox
- ( BoundingBox(), boundingBox, fromPoint, fromPoints
- , contains, contains'
- , inside, inside', outside, outside'
- , union, intersection, unions, intersections
- ) where
+{-# LANGUAGE DeriveDataTypeable
+           , FlexibleContexts
+           , NoMonomorphismRestriction
+           , TypeFamilies
+  #-}
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  Diagrams.BoundingBox
+-- Copyright   :  (c) 2011 diagrams-lib team (see LICENSE)
+-- License     :  BSD-style (see LICENSE)
+-- Maintainer  :  diagrams-discuss@googlegroups.com
+--
+-- Definitions and functions for working with bounding boxes.
+--
+-----------------------------------------------------------------------------
+
+module Diagrams.BoundingBox
+       ( BoundingBox(), boundingBox, fromPoint, fromPoints
+       , contains, contains'
+       , inside, inside', outside, outside'
+       , union, intersection, unions, intersections
+       ) where
 
 import Prelude hiding (and, or)
 import Control.Monad (join, liftM2)
