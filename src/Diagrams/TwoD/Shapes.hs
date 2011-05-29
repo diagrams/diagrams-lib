@@ -164,7 +164,7 @@ triangleFromSides = writeMe "triangleFromSides"
 roundedRectPath :: (PathLike p, V p ~ R2) => R2 -> Double -> p
 roundedRectPath v r = close
                     . setStart (P (xOff/2 + r', -yOff/2))
-                    . trailToPathLike
+                    . pathLikeFromTrail
                     $ fromOffsets [(0,yOff)]
                       <> mkCorner 0
                       <> fromOffsets [(-xOff,0)]
@@ -177,7 +177,7 @@ roundedRectPath v r = close
         maxR = uncurry min v / 2
         (xOff,yOff) = v ^-^ (2*r', 2*r')
         mkCorner k | r' == 0   = mempty
-                   | otherwise = arcT (k/4) ((k+1)/4::CircleFrac) # scale r'
+                   | otherwise = arc (k/4) ((k+1)/4::CircleFrac) # scale r'
 
 -- | @clamp x lo hi@ clamps @x@ to lie between @lo@ and @hi@
 --   inclusive.  That is, if @lo <= x <= hi@ it returns @x@; if @x < lo@
