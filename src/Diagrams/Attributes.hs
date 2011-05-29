@@ -34,6 +34,9 @@ module Diagrams.Attributes (
   -- ** Fill color
   , FillColor, getFillColor, fillColor, fc, fcA
 
+  -- ** Opacity
+  , Opacity, getOpacity, opacity
+
   -- * Lines
   -- ** Width
   , LineWidth, getLineWidth, lineWidth, lw
@@ -171,6 +174,29 @@ alphaToColour :: (Floating a, Ord a, Fractional a) => AlphaColour a -> Colour a
 alphaToColour ac | alphaChannel ac == 0 = ac `over` black
                  | otherwise = darken (recip (alphaChannel ac)) (ac `over` black)
 
+------------------------------------------------------------
+-- Opacity
+
+-- | Although the individual colors in a diagram can have
+--   transparency, the opacity/transparency of a diagram as a whole
+--   can be specified with the @Opacity@ attribute.  The opacity is a
+--   value between 1 (completely opaque, the default) and 0
+--   (completely transparent).  Opacity is multiplicative, that is,
+--   @'opacity' o1 . 'opacity' o2 === 'opacity' (o1 * o2)@.  In other
+--   words, for example, @opacity 0.8@ means \"decrease this diagram's
+--   opacity to 80% of its previous opacity\".
+newtype Opacity = Opacity (Product Double)
+  deriving (Typeable, Semigroup)
+instance AttributeClass Opacity
+
+getOpacity :: Opacity -> Double
+getOpacity (Opacity (Product d)) = d
+
+-- | Multiply the opacity (see 'Opacity') by the given value.  For
+--   example, @opacity 0.8@ means \"decrease this diagram's opacity to
+--   80% of its previous opacity\".
+opacity :: HasStyle a => Double -> a -> a
+opacity = applyAttr . Opacity . Product
 
 ------------------------------------------------------------
 --  Lines and stuff    -------------------------------------
