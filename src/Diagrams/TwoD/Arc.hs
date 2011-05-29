@@ -11,7 +11,7 @@
 -----------------------------------------------------------------------------
 
 module Diagrams.TwoD.Arc
-    ( arc, arcT
+    ( arc
     , bezierFromSweep
     ) where
 
@@ -19,6 +19,7 @@ import Graphics.Rendering.Diagrams
 
 import Diagrams.TwoD.Types
 import Diagrams.TwoD.Transform
+import Diagrams.TwoD.Util
 
 import Diagrams.Path
 import Diagrams.Segment
@@ -74,7 +75,6 @@ across a situation with large enough arcs that they can actually see
 the approximation error.
 -}
 
--- | A version of 'arc' that produces a 'Trail' instead of a 'Path'.
 arcT :: Angle a => a -> a -> Trail R2
 arcT start end = Trail bs (sweep >= tau)
   where sweep = convertAngle $ end - start
@@ -82,5 +82,5 @@ arcT start end = Trail bs (sweep >= tau)
 
 -- | Given a start angle @s@ and an end angle @e@, @'arc' s e@ is the
 --   path of a radius one arc counterclockwise between the two angles.
-arc :: Angle a => a -> a -> Path R2
-arc start end = pathFromTrailAt (arcT start end) (rotate start $ P (1,0))
+arc :: (Angle a, PathLike p, V p ~ R2) => a -> a -> p
+arc start end = setStart (rotate start $ P unitX) . pathLikeFromTrail $ arcT start end
