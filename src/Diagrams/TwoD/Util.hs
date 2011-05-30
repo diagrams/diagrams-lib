@@ -13,7 +13,7 @@
 -----------------------------------------------------------------------------
 module Diagrams.TwoD.Util
        ( -- * General two-dimensional utilities
-         unitX, unitY
+         unitX, unitY, unit_X, unit_Y
        , direction
 
          -- * Size and extent of diagrams in R2
@@ -56,13 +56,21 @@ center2D :: (Boundable a, V a ~ R2) => a -> P2
 center2D = P . (mid *** mid) . (extentX &&& extentY)
   where mid = (/2) . uncurry (+)
 
--- | A unit vector in the positive X direction.
+-- | The unit vector in the positive X direction.
 unitX :: R2
 unitX = (1,0)
 
--- | A unit vector in the positive Y direction.
+-- | The unit vector in the positive Y direction.
 unitY :: R2
 unitY = (0,1)
+
+-- | The unit vector in the negative X direction.
+unit_X :: R2
+unit_X = (-1,0)
+
+-- | The unit vector in the negative Y direction.
+unit_Y :: R2
+unit_Y = (0,-1)
 
 -- | Compute the direction of a vector, measured counterclockwise from
 --   the positive x-axis as a fraction of a full turn.  The zero
