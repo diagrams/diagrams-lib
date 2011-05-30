@@ -54,7 +54,7 @@ import Control.Arrow (first, second)
 
 -- | Create a transformation which performs a rotation by the given
 --   angle.  See also 'rotate'.
-rotation :: Angle a => a -> Transformation R2
+rotation :: Angle a => a -> T2
 rotation ang = fromLinear r (linv r)
   where
     r            = rot theta <-> rot (-theta)
@@ -83,7 +83,7 @@ rotateBy = transform . rotation
 
 -- | @rotationAbout p@ is a rotation about the point @p@ (instead of
 --   around the local origin).
-rotationAbout :: Angle a => P2 -> a -> Transformation R2
+rotationAbout :: Angle a => P2 -> a -> T2
 rotationAbout p angle = conjugate (translation (origin .-. p)) (rotation angle)
 
 -- | @rotateAbout p@ is like 'rotate', except it rotates around the
@@ -95,7 +95,7 @@ rotateAbout p angle = rotate angle `under` (translation (origin .-. p))
 
 -- | Construct a transformation which scales by the given factor in
 --   the x (horizontal) direction.
-scalingX :: Double -> Transformation R2
+scalingX :: Double -> T2
 scalingX c = fromLinear s s
   where s = first (*c) <-> first (/c)
 
@@ -107,7 +107,7 @@ scaleX = transform . scalingX
 
 -- | Construct a transformation which scales by the given factor in
 --   the y (vertical) direction.
-scalingY :: Double -> Transformation R2
+scalingY :: Double -> T2
 scalingY c = fromLinear s s
   where s = second (*c) <-> second (/c)
 
@@ -135,7 +135,7 @@ scaleToY h d = scaleY (h / height d) d
 
 -- | Construct a transformation which translates by the given distance
 --   in the x (horizontal) direction.
-translationX :: Double -> Transformation R2
+translationX :: Double -> T2
 translationX x = translation (x,0)
 
 -- | Translate a diagram by the given distance in the x (horizontal)
@@ -145,7 +145,7 @@ translateX = transform . translationX
 
 -- | Construct a transformation which translates by the given distance
 --   in the y (vertical) direction.
-translationY :: Double -> Transformation R2
+translationY :: Double -> T2
 translationY y = translation (0,y)
 
 -- | Translate a diagram by the given distance in the y (vertical)
@@ -157,7 +157,7 @@ translateY = transform . translationY
 
 -- | Construct a transformation which flips a diagram from left to
 --   right, i.e. sends the point (x,y) to (-x,y).
-reflectionX :: Transformation R2
+reflectionX :: T2
 reflectionX = scalingX (-1)
 
 -- | Flip a diagram from left to right, i.e. send the point (x,y) to
@@ -167,7 +167,7 @@ reflectX = transform reflectionX
 
 -- | Construct a transformation which flips a diagram from top to
 --   bottom, i.e. sends the point (x,y) to (x,-y).
-reflectionY :: Transformation R2
+reflectionY :: T2
 reflectionY = scalingY (-1)
 
 -- | Flip a diagram from top to bottom, i.e. send the point (x,y) to
@@ -177,7 +177,7 @@ reflectY = transform reflectionY
 
 -- | @reflectionAbout p v@ is a reflection in the line determined by
 --   the point @p@ and vector @v@.
-reflectionAbout :: P2 -> R2 -> Transformation R2
+reflectionAbout :: P2 -> R2 -> T2
 reflectionAbout p v = conjugate (rotation (-direction v) <> translation (origin .-. p))
                                 reflectionY
 

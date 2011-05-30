@@ -46,7 +46,7 @@ import Data.VectorSpace (magnitudeSq, magnitude, (^-^))
 
 -- | An ellipse is represented by an affine transformation acting on
 --   the unit circle.
-data Ellipse = Ellipse (Transformation R2)
+data Ellipse = Ellipse T2
 
 type instance V Ellipse = R2
 
