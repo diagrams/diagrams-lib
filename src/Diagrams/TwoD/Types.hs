@@ -18,6 +18,7 @@ module Diagrams.TwoD.Types
        ( -- * 2D Euclidean space
          R2
        , P2
+       , T2
 
          -- * Angles
        , tau
@@ -38,6 +39,9 @@ type instance V R2 = R2
 
 -- | Points in R^2.
 type P2 = Point R2
+
+-- | Transformations in R^2.
+type T2 = Transformation R2
 
 instance Transformable R2 where
   transform = apply
