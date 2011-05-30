@@ -10,7 +10,7 @@
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
--- Basic types for two-dimensional Cartesian space.
+-- Basic types for two-dimensional Euclidean space.
 --
 -----------------------------------------------------------------------------
 
