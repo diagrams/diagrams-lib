@@ -38,6 +38,9 @@ module Diagrams.Prelude
          --   conjugation of transformations.
        , module Diagrams.Transform
 
+         -- | Convenient definitions and
+       , module Diagrams.BoundingBox
+
          -- | A wide range of things (shapes, transformations,
          --   combinators) specific to creating two-dimensional
          --   diagrams.
