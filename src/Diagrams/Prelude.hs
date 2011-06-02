@@ -70,6 +70,7 @@ import Diagrams.Combinators
 import Diagrams.Segment
 import Diagrams.Path
 import Diagrams.Transform
+import Diagrams.BoundingBox
 import Diagrams.TwoD
 import Diagrams.Util
 
