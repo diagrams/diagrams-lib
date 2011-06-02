@@ -1,4 +1,6 @@
 {-# LANGUAGE FlexibleContexts
+           , DeriveDataTypeable
+           , GeneralizedNewtypeDeriving
   #-}
 -----------------------------------------------------------------------------
 -- |
@@ -18,6 +20,9 @@ module Diagrams.TwoD.Path
 
          stroke, strokeT
 
+         -- * Clipping
+
+       , Clip(..), clipBy
        ) where
 
 import Graphics.Rendering.Diagrams
@@ -31,9 +36,12 @@ import Data.AdditiveGroup
 import Data.VectorSpace
 import Data.AffineSpace
 
+import Data.Semigroup hiding ((<>))
 import Data.Monoid
 import Control.Applicative (liftA2)
 import qualified Data.Foldable as F
+
+import Data.Typeable
 
 ------------------------------------------------------------
 --  Constructing path-based diagrams  ----------------------
@@ -145,3 +153,19 @@ trailCrossings p@(P (x,y)) (start, tr)
 
     isLeft a b = cross (b .-. a) (p .-. a)
 
+------------------------------------------------------------
+--  Clipping  ----------------------------------------------
+------------------------------------------------------------
+
+-- | @Clip@ tracks the accumulated clipping paths applied to a
+--   diagram.  Note that the semigroup structure on @Clip@ is list
+--   concatenation, so applying multiple clipping paths is sensible.
+--   The clipping region is the intersection of all the applied
+--   clipping paths.
+newtype Clip = Clip [Path R2]
+  deriving (Typeable, Semigroup)
+instance AttributeClass Clip
+
+-- XXX comment me
+clipBy :: HasStyle a => Path R2 -> a -> a
+clipBy = applyAttr . Clip . (:[])

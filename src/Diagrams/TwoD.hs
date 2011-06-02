@@ -59,7 +59,11 @@ module Diagrams.TwoD
        , fullCircle, convertAngle
 
          -- * Paths
+         -- ** Stroking
        , stroke, strokeT
+
+         -- ** Clipping
+       , Clip(..), clipBy
 
          -- * Shapes
          -- ** Rules
