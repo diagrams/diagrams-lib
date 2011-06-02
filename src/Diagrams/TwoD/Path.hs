@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleContexts
            , DeriveDataTypeable
            , GeneralizedNewtypeDeriving
+           , TypeFamilies
   #-}
 -----------------------------------------------------------------------------
 -- |
@@ -166,6 +167,13 @@ newtype Clip = Clip [Path R2]
   deriving (Typeable, Semigroup)
 instance AttributeClass Clip
 
--- XXX comment me
-clipBy :: HasStyle a => Path R2 -> a -> a
-clipBy = applyAttr . Clip . (:[])
+type instance V Clip = R2
+
+instance Transformable Clip where
+  transform t (Clip ps) = Clip (transform t ps)
+
+-- | Clip a diagram by the given path.  This means that only the parts
+--   of the diagram which lie in the interior of the path will be drawn.
+--   The bounding region of the diagram is unaffected.
+clipBy :: (HasStyle a, V a ~ R2) => Path R2 -> a -> a
+clipBy = applyTAttr . Clip . (:[])
