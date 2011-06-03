@@ -17,6 +17,7 @@ Stability:           Experimental
 Category:            Graphics
 Build-type:          Simple
 Cabal-version:       >=1.6
+Extra-source-files:  CHANGES
 Tested-with:         GHC == 6.12.3, GHC >= 7.0.2 && <= 7.0.3
 Source-repository head
   type:     darcs
