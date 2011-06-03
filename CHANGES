@@ -4,3 +4,27 @@
 0.1.1: 18 May 2011
   * minor documentation fixes
   * link to new website
+
+0.2: 3 June 2011
+
+  * documentation fixes
+
+  * New functions and primitives:
+    + scaleToX and scaleToY for scaling to an absolute width/height
+    + reverseTrail
+    + new Angle class and ability to use radians, degrees, or circle fractions
+      for specifying angles
+    + rotateAbout and reflectAbout transformations based on new conjugation functions
+    + rect and roundedRect primitives
+    + explodeTrail/Path for breaking trails and paths into individual segments
+
+  * New features:
+    + opacity attribute
+    + support for path clipping
+
+  * New modules:
+    + Diagrams.BoundingBox
+
+  * Fixes and updates:
+    + withBounds now properly uses the new bounds instead of just combining
+      them with the old
