@@ -44,7 +44,6 @@ Library
                        Diagrams.TwoD.Shapes,
                        Diagrams.TwoD.Util,
                        Diagrams.TwoD.Model,
---                       Diagrams.Animation,
                        Diagrams.Util,
                        Diagrams.Backend.Show
   Build-depends:       base >= 4.2 && < 4.4,
