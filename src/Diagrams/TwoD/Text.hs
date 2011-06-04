@@ -25,9 +25,10 @@ module Diagrams.TwoD.Text (
 import Graphics.Rendering.Diagrams
 
 import Diagrams.TwoD.Types
+import Diagrams.Util
 
 import Data.Monoid (mempty)
-import Data.Semigroup
+import Data.Semigroup (Semigroup, Last(..))
 
 import Data.Typeable
 
@@ -38,6 +39,9 @@ import Data.Typeable
 data Text = Text T2 String
 
 type instance V Text = R2
+
+instance Transformable Text where
+  transform t (Text tt s) = Text (t <> tt) s
 
 text :: Renderable Text b => String -> Diagram b R2
 text t = mkAD (Prim (Text mempty t))
