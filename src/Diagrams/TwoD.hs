@@ -45,6 +45,7 @@
 --     diagrams' internal model (local origins, bounding regions,
 --     etc.)
 --
+--   * "Diagrams.TwoD.Text" defines primitive text diagrams.
 -----------------------------------------------------------------------------
 module Diagrams.TwoD
        ( -- * R^2
@@ -123,6 +124,9 @@ module Diagrams.TwoD
 
          -- * Visual aids for understanding the internal model
        , showOrigin
+
+         -- * Text
+       , text, font, fontSize
        ) where
 
 import Diagrams.TwoD.Types
@@ -135,3 +139,4 @@ import Diagrams.TwoD.Align
 import Diagrams.TwoD.Combinators
 import Diagrams.TwoD.Util
 import Diagrams.TwoD.Model
+import Diagrams.TwoD.Text

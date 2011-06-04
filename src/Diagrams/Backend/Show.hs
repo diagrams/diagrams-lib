@@ -24,7 +24,7 @@ import Diagrams.TwoD.Ellipse
 
 import Data.Basis
 
-import Text.PrettyPrint (Doc, empty, ($+$), parens, hsep, text, nest)
+import Text.PrettyPrint (Doc, empty, ($+$), parens, hsep, nest)
 import qualified Text.PrettyPrint as PP
 
 import Data.List (transpose)
@@ -64,18 +64,18 @@ renderTransf t = renderMat mat
 
 renderMat :: Show a => [[a]] -> Doc
 renderMat = PP.vcat . map renderRow . transpose
-  where renderRow = parens . hsep . map (text . show)
+  where renderRow = parens . hsep . map (PP.text . show)
 
 instance Renderable Ellipse ShowBackend where
-  render _ (Ellipse t) = SR $ text "Ellipse (" $+$
+  render _ (Ellipse t) = SR $ PP.text "Ellipse (" $+$
                                 nest 2 (renderTransf t) $+$
-                              text ")"
+                              PP.text ")"
 
 instance (Show v, HasLinearMap v) => Renderable (Segment v) ShowBackend where
-  render _ s = SR $ text (show s)
+  render _ s = SR $ PP.text (show s)
 
 instance (Show v, HasLinearMap v) => Renderable (Trail v) ShowBackend where
-  render _ t = SR $ text (show t)
+  render _ t = SR $ PP.text (show t)
 
 instance (Ord v, Show v, HasLinearMap v) => Renderable (Path v) ShowBackend where
-  render _ p = SR $ text (show p)
+  render _ p = SR $ PP.text (show p)
