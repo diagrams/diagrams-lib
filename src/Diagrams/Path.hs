@@ -230,7 +230,6 @@ of the v's are inside Points and hence ought to be translated.
 -}
 
 instance (InnerSpace v, OrderedField (Scalar v)) => Boundable (Path v) where
-
   getBounds = F.foldMap trailBounds . pathTrails
     where trailBounds (p, t) = moveOriginTo ((-1) *. p) (getBounds t)
 
