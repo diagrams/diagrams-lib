@@ -63,7 +63,7 @@ module Diagrams.TwoD
        , stroke, strokeT
 
          -- ** Clipping
-       , Clip(..), clipBy
+       , clipBy
 
          -- * Shapes
          -- ** Rules
