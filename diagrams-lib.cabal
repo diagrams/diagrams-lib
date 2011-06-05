@@ -45,6 +45,7 @@ Library
                        Diagrams.TwoD.Util,
                        Diagrams.TwoD.Model,
                        Diagrams.TwoD.Text,
+                       Diagrams.TwoD.Adjust,
                        Diagrams.Util,
                        Diagrams.Backend.Show
   Build-depends:       base >= 4.2 && < 4.4,
