@@ -163,7 +163,7 @@ trailCrossings p@(P (x,y)) (start, tr)
 --   concatenation, so applying multiple clipping paths is sensible.
 --   The clipping region is the intersection of all the applied
 --   clipping paths.
-newtype Clip = Clip [Path R2]
+newtype Clip = Clip { getClip :: [Path R2] }
   deriving (Typeable, Semigroup)
 instance AttributeClass Clip
 
