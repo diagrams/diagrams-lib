@@ -50,8 +50,8 @@ import Data.Monoid          (Monoid)
 
 adjustDia2D :: Monoid m => (Options b R2 -> R2) -> b -> Options b R2 -> AnnDiagram b R2 m -> AnnDiagram b R2 m
 adjustDia2D getSize _ opts d = d # lw 0.01 # lc black # fontSize 1 # freeze
-                             # scale s
-                             # translate tr
+                                 # scale s
+                                 # translate tr
     where (w,h)   = getSize opts
           (wd,hd) = size2D d
           xscale  = w / wd
