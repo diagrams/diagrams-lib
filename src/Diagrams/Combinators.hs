@@ -57,7 +57,7 @@ import Data.Default
 --   bounding region.
 withBounds :: (Backend b (V a), Boundable a, Monoid m)
            => a -> AnnDiagram b (V a) m -> AnnDiagram b (V a) m
-withBounds b = setBounds (getBounds b)
+withBounds = setBounds . getBounds
 
 -- | @phantom x@ produces a \"phantom\" diagram, which has the same
 --   bounding region as @x@ but produces no output.
