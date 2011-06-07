@@ -49,8 +49,7 @@
 -----------------------------------------------------------------------------
 module Diagrams.TwoD
        ( -- * R^2
-         R2
-       , P2
+         R2, P2, T2
        , unitX, unitY, unit_X, unit_Y, direction
 
          -- * Angles
