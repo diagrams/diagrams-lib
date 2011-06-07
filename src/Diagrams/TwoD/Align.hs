@@ -75,13 +75,13 @@ alignBR = alignB . alignR
 --   * any other argument interpolates linearly between these.  For
 --     example, @alignX 0@ centers, @alignX 2@ moves the origin one
 --     \"radius\" to the right of the right edge, and so on.
-alignX :: (HasOrigin a, Boundable a, V a ~ R2) => Rational -> a -> a
+alignX :: (HasOrigin a, Boundable a, V a ~ R2) => Double -> a -> a
 alignX = alignBy unitX
 
 -- | Like 'alignX', but moving the local origin vertically, with an
 --   argument of @1@ corresponding to the top edge and @(-1)@ corresponding
 --   to the bottom edge.
-alignY :: (HasOrigin a, Boundable a, V a ~ R2) => Rational -> a -> a
+alignY :: (HasOrigin a, Boundable a, V a ~ R2) => Double -> a -> a
 alignY = alignBy unitY
 
 -- | Center the local origin along the X-axis.
