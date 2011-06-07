@@ -20,7 +20,7 @@ module Diagrams.Align
        ( align, alignBy
        , center
 
-       , Alignment(..), asAlignment
+       , Alignment(..), asAlignment, useAlignment
        ) where
 
 import Graphics.Rendering.Diagrams
@@ -54,11 +54,13 @@ alignBy v d a = moveOriginTo (alerp (boundary (negateV v) a)
 center :: (HasOrigin a, Boundable a) => V a -> a -> a
 center v = alignBy v 0
 
+------------------------------------------------------------
+-- Alignment objects
+------------------------------------------------------------
 
-
--- XXX comment me
-
-newtype Alignment v = Alignment v
+-- | An @Alignment@ value is a concrete representation of an
+--   alignment. XXX finish me
+newtype Alignment v = Alignment [v]
 
 type instance V (Alignment v) = v
 
@@ -66,7 +68,11 @@ instance (InnerSpace v, OrderedField (Scalar v)) => Boundable (Alignment v) wher
     getBounds _ = Bounds $ (1/) . magnitude   -- Bounds are always just a simple circle
 
 instance VectorSpace v => HasOrigin (Alignment v) where
-  moveOriginTo p (Alignment x) = Alignment (x ^+^ (origin .-. p))
+  moveOriginTo p (Alignment vs) = Alignment ((origin .-. p) : vs)
 
 asAlignment :: AdditiveGroup v => (Alignment v -> Alignment v) -> Alignment v
-asAlignment f = f (Alignment zeroV)
+asAlignment f = f (Alignment [])
+
+useAlignment :: (HasOrigin a, Boundable a) => Alignment (V a) -> a -> a
+useAlignment (Alignment vs) = foldr (.) id $ map doAlign vs
+  where doAlign v = alignBy v (magnitude v)
