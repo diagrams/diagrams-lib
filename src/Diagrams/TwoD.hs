@@ -126,7 +126,8 @@ module Diagrams.TwoD
        , showOrigin
 
          -- * Text
-       , text, font, fontSize
+       , text, font, fontSize, italic, oblique, bold
+       , alignText
        ) where
 
 import Diagrams.TwoD.Types
