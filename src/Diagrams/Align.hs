@@ -37,16 +37,17 @@ align :: (HasOrigin a, Boundable a) => V a -> a -> a
 align v a = moveOriginTo (boundary v a) a
 
 
--- XXX need a better, more intuitive description of alignBy
-
--- | @align v d a@ moves the origin of @a@ to a distance of @d*r@ from
---   the center along @v@, where @r@ is the radius along @v@.  Hence
---   @align v 0@ centers along @v@, and @align v 1@ moves the origin
---   in the direction of @v@ to the very edge of the bounding region.
-alignBy :: (HasOrigin a, Boundable a) => V a -> Rational -> a -> a
+-- | @align v d a@ moves the origin of @a@ along the vector @v@. If @d
+--   = 1@, the origin is moved to the boundary in the direction of
+--   @v@; if @d = -1@, it moves to the boundary in the direction of
+--   the negation of @v@.  Other values of @d@ interpolate linearly
+--   (so for example, @d = 0@ centers the origin along the direction
+--   of @v@).
+alignBy :: (HasOrigin a, Boundable a, Num (Scalar (V a)))
+        => V a -> Scalar (V a) -> a -> a
 alignBy v d a = moveOriginTo (alerp (boundary (negateV v) a)
                                     (boundary v a)
-                                    ((fromRational d + 1) / 2))
+                                    ((d + 1) / 2))
                              a
 
 -- | @center v@ centers a boundable object along the direction of @v@.
