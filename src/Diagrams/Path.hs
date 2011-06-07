@@ -4,6 +4,7 @@
            , DeriveFunctor
            , GeneralizedNewtypeDeriving
            , UndecidableInstances
+           , ScopedTypeVariables
   #-}
 -----------------------------------------------------------------------------
 -- |
@@ -231,7 +232,9 @@ of the v's are inside Points and hence ought to be translated.
 
 instance (InnerSpace v, OrderedField (Scalar v)) => Boundable (Path v) where
   getBounds = F.foldMap trailBounds . pathTrails
-    where trailBounds (p, t) = moveOriginTo ((-1) *. p) (getBounds t)
+          -- this type signature is necessary to work around an apparent bug in ghc 6.12.1
+    where trailBounds :: (Point v, Trail v) -> Bounds v
+          trailBounds (p, t) = moveOriginTo ((-1) *. p) (getBounds t)
 
 ------------------------------------------------------------
 --  Constructing paths from trails  ------------------------
