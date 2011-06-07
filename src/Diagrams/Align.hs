@@ -1,5 +1,6 @@
 {-# LANGUAGE TypeFamilies
            , FlexibleContexts
+           , UndecidableInstances
   #-}
 
 -----------------------------------------------------------------------------
@@ -18,12 +19,14 @@
 module Diagrams.Align
        ( align, alignBy
        , center
+
+       , Alignment(..), asAlignment
        ) where
 
 import Graphics.Rendering.Diagrams
 
 import Data.VectorSpace
-import Data.AffineSpace (alerp)
+import Data.AffineSpace (alerp, (.-.))
 
 -- | @align v@ aligns a boundable object along the edge in the
 --   direction of @v@.  That is, it moves the local origin in the
@@ -49,3 +52,20 @@ alignBy v d a = moveOriginTo (alerp (boundary (negateV v) a)
 -- | @center v@ centers a boundable object along the direction of @v@.
 center :: (HasOrigin a, Boundable a) => V a -> a -> a
 center v = alignBy v 0
+
+
+
+-- XXX comment me
+
+newtype Alignment v = Alignment v
+
+type instance V (Alignment v) = v
+
+instance (InnerSpace v, OrderedField (Scalar v)) => Boundable (Alignment v) where
+    getBounds _ = Bounds $ (1/) . magnitude   -- Bounds are always just a simple circle
+
+instance VectorSpace v => HasOrigin (Alignment v) where
+  moveOriginTo p (Alignment x) = Alignment (x ^+^ (origin .-. p))
+
+asAlignment :: AdditiveGroup v => (Alignment v -> Alignment v) -> Alignment v
+asAlignment f = f (Alignment zeroV)
