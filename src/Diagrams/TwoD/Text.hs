@@ -21,7 +21,7 @@ module Diagrams.TwoD.Text (
 
   -- * Text attributes
   -- ** Alignment
-  , TextAlignment(..), getTextAlignment, defaultTextAlignment, alignText
+  , TextAlignment(..), getTextAlignment, centeredText, alignText
   -- ** Font family
   , Font(..), getFont, font
   -- ** Font size
@@ -49,8 +49,7 @@ import Data.Typeable
 
 -- | A text primitive consists of the string contents along with a
 --   transformation mapping from the local vector space of the text to
---   the vector space in which it is embedded.  In its local vector
---   space, the text is positioned ???
+--   the vector space in which it is embedded.
 data Text = Text T2 String
 
 type instance V Text = R2
@@ -59,9 +58,8 @@ instance Transformable Text where
   transform t (Text tt s) = Text (t <> tt) s
 
 -- | Create a primitive text diagram from the given string, which
---   /takes up no space/.  By default, the text is positioned with the
---   base reference point preceding the first character at the local
---   origin.
+--   /takes up no space/.  By default, the text is centered with
+--   respect to its local origin (see 'alignText').
 text :: Renderable Text b => String -> Diagram b R2
 text t = mkAD (Prim (Text mempty t))
               mempty
@@ -75,19 +73,24 @@ text t = mkAD (Prim (Text mempty t))
 --------------------------------------------------
 -- Alignment
 
--- XXX comment me
-
+-- | The @TextAlignment@ attribute specifies what alignment should be
+--   applied to text.  Inner @TextAlignment@ attributes override outer
+--   ones.
 newtype TextAlignment = TextAlignment (Last (Alignment R2))
   deriving (Typeable, Semigroup)
 instance AttributeClass TextAlignment
 
+-- | Extract an alignment from a @TextAlignment@ attribute.
 getTextAlignment :: TextAlignment -> Alignment R2
 getTextAlignment (TextAlignment (Last a)) = a
 
-defaultTextAlignment :: TextAlignment
-defaultTextAlignment = TextAlignment (Last (asAlignment id))
+-- | The default alignment for text is centered.
+centeredText :: TextAlignment
+centeredText = TextAlignment (Last (asAlignment id))
 
--- XXX comment me
+-- | @alignText f@ aligns text by applying the alignment function @f@
+--   (any transformation of boundable things with origins may be used;
+--   for example, 'alignTL' and friends).
 alignText :: HasStyle a => (Alignment R2 -> Alignment R2) -> a -> a
 alignText = applyAttr . TextAlignment . Last . asAlignment
 
