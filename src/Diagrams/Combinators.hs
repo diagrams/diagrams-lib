@@ -43,8 +43,8 @@ import Data.AdditiveGroup
 import Data.AffineSpace ((.-.))
 import Data.VectorSpace
 
+import Data.List (foldl')
 import Data.Monoid
-import Data.List
 
 import Data.Default
 
@@ -232,17 +232,18 @@ cat v = cat' v def
 --   superimposing).
 cat' :: (HasOrigin a, Boundable a, Qualifiable a, Monoid a)
      => V a -> CatOpts (V a) -> [a] -> a
-cat' _ (CatOpts { catMethod = Cat }) []     = mempty
-cat' _ (CatOpts { catMethod = Cat }) [d]    = (0::Integer) |> d
-cat' v (CatOpts { catMethod = Cat, sep = s }) (d:ds) =
-  foldl' (\d1 d2 ->
-           d1 <> (moveOriginBy (origin .-. boundary v d1)
-                  . moveOriginBy (withLength s (negateV v))
-                  . align (negateV v)
-                  $ d2)
-         )
-         ((0::Integer) |> d)
-         (zipWith (|>) [1::Integer ..] ds)
+cat' _ (CatOpts { catMethod = Cat }) []              = mempty
+cat' _ (CatOpts { catMethod = Cat }) [d]             = (0::Integer) |> d
+cat' v (CatOpts { catMethod = Cat, sep = s }) (x:xs) =
+    foldl' (\d2 d1 ->
+             d1 <> (moveOriginBy (origin .-. boundary v d1)
+                    . moveOriginBy (withLength s (negateV v))
+                    $ d2)
+           )
+           d
+           ds
+  where (d:ds) = reverse (zipWith (|>) [0::Integer ..] (x:xs'))
+        xs' = map (align (negateV v)) xs
 
 cat' v (CatOpts { catMethod = Distrib, sep = s }) ds =
   decorateTrail (fromOffsets (repeat (withLength s v))) ds
