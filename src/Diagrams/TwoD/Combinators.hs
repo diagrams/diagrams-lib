@@ -99,10 +99,12 @@ vcat = vcat' def
 vcat' :: (HasOrigin a, Boundable a, Qualifiable a, V a ~ R2, Monoid a) => CatOpts R2 -> [a] -> a
 vcat' = cat' (negateV unitY)
 
--- | @strutX d@ is an empty diagram with width @d@ and height 0.
+-- | @strutX d@ is an empty diagram with width @d@ and height 0.  Note
+--   that @strutX (-w)@ behaves the same as @strutX w@.
 strutX :: (Backend b R2, Monoid m) => Double -> AnnDiagram b R2 m
 strutX d = strut (d,0)
 
--- | @strutY d@ is an empty diagram with height @d@ and width 0.
+-- | @strutY d@ is an empty diagram with height @d@ and width 0. Note
+--   that @strutX (-w)@ behaves the same as @strutX w@.
 strutY :: (Backend b R2, Monoid m) => Double -> AnnDiagram b R2 m
 strutY d = strut (0,d)
