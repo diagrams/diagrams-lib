@@ -50,7 +50,7 @@ instance Transformable R2 where
 -- Angles
 
 -- | The circle constant, i.e. the ratio of a circle's circumference
---   to its radius.
+--   to its radius.  See <http://tauday.com/>.
 tau :: Floating a => a
 tau = 2*pi
 
