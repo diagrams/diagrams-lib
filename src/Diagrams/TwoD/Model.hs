@@ -36,10 +36,10 @@ import Data.Colour.Names
 showOrigin :: (Renderable Ellipse b, Backend b R2, Monoid m)
            => AnnDiagram b R2 m -> AnnDiagram b R2 m
 showOrigin d = o <> d
-  where o     = circle # fc red
-                       # lw 0
-                       # scale (max (w/50) (h/50))
-                       # fmap (const mempty)
+  where o     = circle (max (w/50) (h/50))
+                # fc red
+                # lw 0
+                # fmap (const mempty)
         (w,h) = size2D d
 
 -- data OriginOpts b m = OriginOpts { oDia   :: AnnDiagram b R2 m
