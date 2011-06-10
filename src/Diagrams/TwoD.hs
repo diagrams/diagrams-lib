@@ -128,7 +128,6 @@ module Diagrams.TwoD
 
          -- * Text
        , text, font, fontSize, italic, oblique, bold
-       , alignText
        ) where
 
 import Diagrams.TwoD.Types

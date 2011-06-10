@@ -20,8 +20,6 @@ module Diagrams.TwoD.Text (
   , text
 
   -- * Text attributes
-  -- ** Alignment
-  , TextAlignment(..), getTextAlignment, centeredText, alignText
   -- ** Font family
   , Font(..), getFont, font
   -- ** Font size
@@ -35,7 +33,6 @@ module Diagrams.TwoD.Text (
 import Graphics.Rendering.Diagrams
 
 import Diagrams.TwoD.Types
-import Diagrams.Align
 import Diagrams.Util
 
 import Data.Monoid (mempty)
@@ -70,6 +67,7 @@ text t = mkAD (Prim (Text mempty t))
 -- Text attributes
 ------------------------------------------------------------
 
+{-
 --------------------------------------------------
 -- Alignment
 
@@ -93,6 +91,7 @@ centeredText = TextAlignment (Last (asAlignment id))
 --   for example, 'alignTL' and friends).
 alignText :: HasStyle a => (Alignment R2 -> Alignment R2) -> a -> a
 alignText = applyAttr . TextAlignment . Last . asAlignment
+-}
 
 --------------------------------------------------
 -- Font family
