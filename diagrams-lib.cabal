@@ -12,8 +12,7 @@ Homepage:            http://projects.haskell.org/diagrams
 License:             BSD3
 License-file:        LICENSE
 Author:              Brent Yorgey
-Maintainer:          byorgey@cis.upenn.edu
-Stability:           Experimental
+Maintainer:          diagrams-discuss@googlegroups.com
 Category:            Graphics
 Build-type:          Simple
 Cabal-version:       >=1.6
