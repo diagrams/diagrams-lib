@@ -20,6 +20,7 @@ module Diagrams.TwoD.Shapes
        , PolygonOpts(..), PolygonOrientation(..)
 
          -- * Special polygons
+       , unitSquare
        , square
        , rect
        , starPolygon
@@ -106,13 +107,18 @@ polygonVertices opts = orient . take n . iterate (rotateBy turn) $ start
 
 -- | A sqaure with its center at the origin and sides of length 1,
 --   oriented parallel to the axes.
-square ::  (Backend b R2, Renderable (Path R2) b) => Diagram b R2
-square = scale (1/sqrt 2) $ polygon def { sides = 4, orientation = OrientToX }
+unitSquare :: (Backend b R2, Renderable (Path R2) b) => Diagram b R2
+unitSquare = scale (1/sqrt 2) $ polygon with { sides = 4, orientation = OrientToX }
+
+-- | A sqaure with its center at the origin and sides of the given
+--   length, oriented parallel to the axes.
+square :: (Backend b R2, Renderable (Path R2) b) => Double -> Diagram b R2
+square d = unitSquare # scale d
 
 -- | @rect w h@ is an axis-aligned rectangle of width @w@ and height
 --   @h@, centered at the origin.
 rect :: (Backend b R2, Renderable (Path R2) b) => Double -> Double -> Diagram b R2
-rect w h = square # scaleX w # scaleY h
+rect w h = unitSquare # scaleX w # scaleY h
 
 -- | @starPolygon p q@ creates a star polygon, where @p@ indicates the
 --   number of vertices, and an edge connects every @q@th vertex.

@@ -70,6 +70,7 @@ module Diagrams.TwoD
        , hrule, vrule
 
          -- ** Circle-ish things
+       , unitCircle
        , circle
        , ellipse
        , arc
@@ -79,6 +80,7 @@ module Diagrams.TwoD
        , PolygonOpts(..), PolygonOrientation(..)
 
          -- ** Special polygons
+       , unitSquare
        , square
        , rect
        , starPolygon

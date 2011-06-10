@@ -17,7 +17,8 @@
 module Diagrams.TwoD.Ellipse
     (
       -- * Ellipse and circle diagrams
-      circle
+      unitCircle
+    , circle
     , ellipse
 
       -- * Mathematical ellipses
@@ -35,10 +36,10 @@ module Diagrams.TwoD.Ellipse
     ) where
 
 import Graphics.Rendering.Diagrams
-import Graphics.Rendering.Diagrams.Util
 
 import Diagrams.TwoD.Types
 import Diagrams.TwoD.Transform
+import Diagrams.Util
 
 import Data.Monoid (Any(..), mempty)
 
@@ -53,25 +54,29 @@ type instance V Ellipse = R2
 instance Transformable Ellipse where
   transform t (Ellipse e) = Ellipse (t <> e)
 
--- | A circle of radius 1.
-circle :: (Backend b R2, Renderable Ellipse b) => Diagram b R2
-circle = mkAD (Prim $ Ellipse mempty)
-              (Bounds circleBounds)
-              (fromNames [ ("C", P ( 0, 0))
-                         , ("E", P ( 1, 0))
-                         , ("N", P ( 0, 1))
-                         , ("W", P (-1, 0))
-                         , ("S", P ( 0,-1)) ])
-              (Query circleQuery)
+-- | A circle of radius 1, with center at the origin.
+unitCircle :: (Backend b R2, Renderable Ellipse b) => Diagram b R2
+unitCircle = mkAD (Prim $ Ellipse mempty)
+                  (Bounds circleBounds)
+                  (fromNames [ ("C", P ( 0, 0))
+                             , ("E", P ( 1, 0))
+                             , ("N", P ( 0, 1))
+                             , ("W", P (-1, 0))
+                             , ("S", P ( 0,-1)) ])
+                  (Query circleQuery)
   where circleBounds (x,y) = 1 / sqrt(x*x + y*y)
         circleQuery (P (x,y)) = Any $ x*x + y*y <= 1
+
+-- | A circle of the given radius, centered at the origin.
+circle :: (Backend b R2, Renderable Ellipse b) => Double -> Diagram b R2
+circle d = unitCircle # scale d
 
 -- | @ellipse e@ constructs an ellipse with eccentricity @e@ by
 --   scaling the unit circle in the X direction.  The eccentricity must
 --   be within the interval [0,1).
 ellipse :: (Backend b R2, Renderable Ellipse b) => Double -> Diagram b R2
 ellipse e
-    | e >= 0 && e < 1  = scaleX (sqrt (1 - e*e)) circle
+    | e >= 0 && e < 1  = scaleX (sqrt (1 - e*e)) unitCircle
     | otherwise        = error "Eccentricity of ellipse must be >= 0 and < 1."
 
 -- | Compute the coefficients of the quadratic form
