@@ -58,11 +58,7 @@ instance Transformable Ellipse where
 unitCircle :: (Backend b R2, Renderable Ellipse b) => Diagram b R2
 unitCircle = mkAD (Prim $ Ellipse mempty)
                   (Bounds circleBounds)
-                  (fromNames [ ("C", P ( 0, 0))
-                             , ("E", P ( 1, 0))
-                             , ("N", P ( 0, 1))
-                             , ("W", P (-1, 0))
-                             , ("S", P ( 0,-1)) ])
+                  mempty
                   (Query circleQuery)
   where circleBounds (x,y) = 1 / sqrt(x*x + y*y)
         circleQuery (P (x,y)) = Any $ x*x + y*y <= 1
