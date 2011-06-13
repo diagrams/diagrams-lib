@@ -37,6 +37,10 @@
 --   * "Diagrams.TwoD.Shapes" defines other two-dimensional shapes,
 --     e.g. various polygons.
 --
+--   * "Diagrams.TwoD.Text" defines primitive text diagrams.
+--
+--   * "Diagrams.TwoD.Image" allows importing external images into diagrams.
+--
 --   * "Diagrams.TwoD.Util" defines some two-dimensional utilities,
 --     such as unit vectors and functions for computing the size and
 --     extent of diagrams in R^2.
@@ -45,7 +49,6 @@
 --     diagrams' internal model (local origins, bounding regions,
 --     etc.)
 --
---   * "Diagrams.TwoD.Text" defines primitive text diagrams.
 -----------------------------------------------------------------------------
 module Diagrams.TwoD
        ( -- * R^2
@@ -90,6 +93,12 @@ module Diagrams.TwoD
          -- ** Other shapes
        , roundedRectPath, roundedRect
 
+         -- * Text
+       , text, font, fontSize, italic, oblique, bold
+
+         -- * Images
+       , image
+
          -- * Transformations
          -- ** Rotation
        , rotation, rotate, rotateBy
@@ -127,8 +136,6 @@ module Diagrams.TwoD
          -- * Visual aids for understanding the internal model
        , showOrigin
 
-         -- * Text
-       , text, font, fontSize, italic, oblique, bold
        ) where
 
 import Diagrams.TwoD.Types
@@ -142,3 +149,4 @@ import Diagrams.TwoD.Combinators
 import Diagrams.TwoD.Util
 import Diagrams.TwoD.Model
 import Diagrams.TwoD.Text
+import Diagrams.TwoD.Image
