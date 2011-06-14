@@ -27,7 +27,7 @@
 --     such as rotation by an angle, and scaling, translation, and
 --     reflection in the X and Y directions.
 --
---   * "Diagrams.TwoD.Ellipse" defines ellipses.
+--   * "Diagrams.TwoD.Ellipse" defines circles and ellipses.
 --
 --   * "Diagrams.TwoD.Arc" defines circular arcs.
 --
@@ -77,6 +77,7 @@ module Diagrams.TwoD
        , unitCircle
        , circle
        , ellipse
+       , ellipseXY
        , arc
 
          -- ** General polygons
