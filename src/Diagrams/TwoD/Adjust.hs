@@ -11,7 +11,8 @@
 -----------------------------------------------------------------------------
 
 module Diagrams.TwoD.Adjust (
-  adjustDia2D
+    adjustDia2D
+  , adjustSize
   ) where
 
 import Graphics.Rendering.Diagrams
@@ -22,11 +23,12 @@ import Diagrams.Util        ((#))
 import Diagrams.TwoD.Types  (R2)
 import Diagrams.TwoD.Util   (size2D, center2D)
 import Diagrams.TwoD.Text   (fontSize)
+import Diagrams.TwoD.Util   (SizeSpec2D(..))
 
 import Data.AffineSpace     ((.-.))
 
 import Data.Colour.Names    (black)
-import Data.Monoid          (Monoid)
+import Data.Monoid          (Monoid, mempty)
 
 -- | @adjustDia2D@ provides a useful default implementation of
 --   the 'adjustDia' method from the 'Backend' type class.
@@ -56,6 +58,25 @@ adjustDia2D getSize _ opts d = d # lw 0.01 # lc black # fontSize 1 # freeze
           (wd,hd) = size2D d
           xscale  = w / wd
           yscale  = h / hd
-          s       = let s' = min xscale yscale
-                    in  if isInfinite s' then 1 else s'
+          s'      = min xscale yscale
+          s | isInfinite s' = 1
+            | otherwise     = s'
           tr      = (0.5 *. P (w,h)) .-. (s *. center2D d)
+
+-- | @adjustSize spec sz@ returns a transformation which can be
+--   applied to something of size @sz@ to make it the requested size
+--   @spec@.
+adjustSize :: SizeSpec2D -> R2 -> Transformation R2
+adjustSize Absolute _ = mempty
+adjustSize (Width wSpec) (w,_)
+  | wSpec == 0 || w == 0 = mempty
+  | otherwise = scaling (wSpec / w)
+adjustSize (Height hSpec) (_,h)
+  | hSpec == 0 || h == 0 = mempty
+  | otherwise = scaling (hSpec / h)
+adjustSize (Dims wSpec hSpec) (w,h) = scaling s
+  where xscale  = wSpec / w
+        yscale  = hSpec / h
+        s'      = min xscale yscale
+        s | isInfinite s' = 1
+          | otherwise     = s'

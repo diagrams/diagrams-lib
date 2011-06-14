@@ -129,9 +129,13 @@ module Diagrams.TwoD
        , alignX, alignY
        , centerX, centerY, centerXY
 
-         -- * Utilities
+         -- * Size
+         -- ** Computing size
        , width, height, size2D
        , extentX, extentY, center2D
+
+         -- ** Specifying size
+       , SizeSpec2D(..)
 
          -- * Visual aids for understanding the internal model
        , showOrigin
