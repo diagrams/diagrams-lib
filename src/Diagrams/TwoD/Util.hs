@@ -17,8 +17,12 @@ module Diagrams.TwoD.Util
        , direction
 
          -- * Size and extent of diagrams in R2
+         -- ** Computing sizes
        , width, height, size2D
        , extentX, extentY, center2D
+
+         -- ** Specifying sizes
+       , SizeSpec2D(..)
        ) where
 
 import Graphics.Rendering.Diagrams
@@ -77,3 +81,22 @@ unit_Y = (0,-1)
 --   vector is arbitrarily assigned the direction 0.
 direction :: R2 -> CircleFrac
 direction (x,y) = toCircleFrac . Rad $ atan2 y x
+
+------------------------------------------------------------
+-- Size specifications
+------------------------------------------------------------
+
+-- | A specification of a (requested) rectangular size.
+data SizeSpec2D = Width  Double       -- ^ Specify an explicit
+                                      -- width. The height should be
+                                      -- determined automatically (so
+                                      -- as to preserve aspect ratio).
+                | Height Double       -- ^ Specify an explicit
+                                      -- height. The width should be
+                                      -- determined automatically (so
+                                      -- as to preserve aspect ratio)
+                | Dims Double Double  -- ^ An explicit specification
+                                      --   of both dimensions.
+                | Absolute            -- ^ Absolute size: use whatever
+                                      -- size an object already has;
+                                      -- do not rescale.
