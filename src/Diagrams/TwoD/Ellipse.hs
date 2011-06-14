@@ -20,6 +20,7 @@ module Diagrams.TwoD.Ellipse
       unitCircle
     , circle
     , ellipse
+    , ellipseXY
 
       -- * Mathematical ellipses
       -- ** Representation
@@ -74,6 +75,12 @@ ellipse :: (Backend b R2, Renderable Ellipse b) => Double -> Diagram b R2
 ellipse e
     | e >= 0 && e < 1  = scaleX (sqrt (1 - e*e)) unitCircle
     | otherwise        = error "Eccentricity of ellipse must be >= 0 and < 1."
+
+-- | @ellipseXY x y@ creates an axis-aligned ellipse, centered at the
+--   origin, with radius @x@ along the x-axis and radius @y@ along the
+--   y-axis.
+ellipseXY :: (Backend b R2, Renderable Ellipse b) => Double -> Double -> Diagram b R2
+ellipseXY x y = unitCircle # scaleX x # scaleY y
 
 -- | Compute the coefficients of the quadratic form
 --
