@@ -35,6 +35,8 @@ import Graphics.Rendering.Diagrams
 import Diagrams.TwoD.Types
 import Diagrams.Util
 
+import Data.AffineSpace ((.-.))
+
 import Data.Monoid (mempty)
 import Data.Semigroup (Semigroup, Last(..))
 
@@ -53,6 +55,9 @@ type instance V Text = R2
 
 instance Transformable Text where
   transform t (Text tt s) = Text (t <> tt) s
+
+instance HasOrigin Text where
+  moveOriginTo p = translate (origin .-. p)
 
 -- | Create a primitive text diagram from the given string, which
 --   /takes up no space/.  By default, the text is centered with
