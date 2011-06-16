@@ -14,17 +14,24 @@
 module Diagrams.TwoD.Model
        ( -- * Showing the local origin
          showOrigin
+       , showLabels
        ) where
 
 import Graphics.Rendering.Diagrams
--- import Graphics.Rendering.Diagrams.UDTree
+import Graphics.Rendering.Diagrams.Names
+
 import Diagrams.TwoD.Types
 import Diagrams.TwoD.Ellipse
 import Diagrams.TwoD.Util
+import Diagrams.TwoD.Text
 import Diagrams.Attributes
 import Diagrams.Util
 
+import Control.Arrow (second)
 import Data.Monoid
+import Data.AffineSpace ((.-.))
+
+import qualified Data.Map as M
 
 import Data.Colour.Names
 
@@ -51,6 +58,24 @@ showOrigin d = o <> d
 --         (w,h) = size2D d
 
 
+------------------------------------------------------------
+-- Labeling named points
+------------------------------------------------------------
+
+showLabels :: (Renderable Text b, Backend b R2)
+           => AnnDiagram b R2 m -> AnnDiagram b R2 Any
+showLabels d = (fontSize (max (w/40) (h/40))
+             . mconcat
+             . map (\(n,p) -> text (show n) # translate (p .-. origin))
+             . concatMap (\(n,ps) -> zip (repeat n) ps)
+             . (map . second . map) fst
+             . M.assocs
+             $ m)
+               `atop`
+               (fmap (const (Any False)) d)
+  where
+    NameMap m = names d
+    (w,h) = size2D d
 
 -- XXX finish:
 

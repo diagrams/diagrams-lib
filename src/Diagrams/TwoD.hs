@@ -140,6 +140,7 @@ module Diagrams.TwoD
 
          -- * Visual aids for understanding the internal model
        , showOrigin
+       , showLabels
 
        ) where
 
