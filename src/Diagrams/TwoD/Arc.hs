@@ -83,4 +83,6 @@ arcT start end = Trail bs (sweep >= tau)
 -- | Given a start angle @s@ and an end angle @e@, @'arc' s e@ is the
 --   path of a radius one arc counterclockwise between the two angles.
 arc :: (Angle a, PathLike p, V p ~ R2) => a -> a -> p
-arc start end = setStart (rotate start $ P unitX) . pathLikeFromTrail $ arcT start end
+arc start end = pathLike (rotate start $ P unitX)
+                         False
+                         (trailSegments $ arcT start end)

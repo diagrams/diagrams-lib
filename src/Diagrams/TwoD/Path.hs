@@ -1,8 +1,10 @@
 {-# LANGUAGE FlexibleContexts
+           , FlexibleInstances
            , DeriveDataTypeable
            , GeneralizedNewtypeDeriving
            , TypeFamilies
   #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Path
@@ -64,9 +66,12 @@ import Data.Typeable
 --   inferring the type of @stroke@.  The solution is to give a type
 --   signature to expressions involving @stroke@, or (recommended)
 --   upgrade GHC (the bug is fixed in 7.0.2 onwards).
-stroke :: (Renderable (Path R2) b)
+stroke :: Renderable (Path R2) b
        => Path R2 -> Diagram b R2
 stroke = stroke' (def :: StrokeOpts ())
+
+instance Renderable (Path R2) b => PathLike (AnnDiagram b R2 Any) where
+  pathLike st cl segs = stroke $ pathLike st cl segs
 
 -- | A variant of 'stroke' that takes an extra record of options to
 --   customize its behavior.  In particular:

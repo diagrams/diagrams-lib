@@ -16,7 +16,7 @@ module Diagrams.TwoD.Shapes
          hrule, vrule
 
          -- * General polygons
-       , polygon, polygonPath, polygonVertices
+       , polygon, polygonVertices
        , PolygonOpts(..), PolygonOrientation(..)
 
          -- * Special polygons
@@ -29,17 +29,16 @@ module Diagrams.TwoD.Shapes
 
          -- * Other shapes
 
-       , roundedRectPath, roundedRect
+       , roundedRect
        ) where
 
 import Graphics.Rendering.Diagrams
 
+import Diagrams.Segment
 import Diagrams.Path
 import Diagrams.TwoD.Arc
-import Diagrams.TwoD.Path
 import Diagrams.TwoD.Types
 import Diagrams.TwoD.Transform
-import Diagrams.TwoD.Align
 
 import Diagrams.Util
 
@@ -48,13 +47,13 @@ import Data.VectorSpace
 
 import Data.Default
 
--- | Create a centered horizontal line of the given length.
-hrule :: (Backend b R2, Renderable (Path R2) b) => Double -> Diagram b R2
-hrule d = centerX . stroke $ fromOffsets [(d,0)]
+-- | Create a centered horizontal (L-R) line of the given length.
+hrule :: (PathLike p, V p ~ R2) => Double -> p
+hrule d = pathLike (P (-d/2,0)) False [Linear (d,0)]
 
--- | Create a centered vertical line of the given length.
-vrule :: (Backend b R2, Renderable (Path R2) b) => Double -> Diagram b R2
-vrule d = centerY . stroke $ fromOffsets [(0,d)]
+-- | Create a centered vertical (T-B) line of the given length.
+vrule :: (PathLike p, V p ~ R2) => Double -> p
+vrule d = pathLike (P (0,d/2)) False [Linear (0,-d)]
 
 -- | Determine how a polygon should be oriented.
 data PolygonOrientation = NoOrient  -- ^ No special orientation; one
@@ -81,13 +80,10 @@ data PolygonOpts = PolygonOpts {
 instance Default PolygonOpts where
   def = PolygonOpts { sides = 5, edgeSkip = 1, orientation = NoOrient }
 
--- | Create a regular polygon from the given options.
-polygon :: (Backend b R2, Renderable (Path R2) b) => PolygonOpts -> Diagram b R2
-polygon = stroke . polygonPath
-
--- | Create a closed regular polygonal path from the given options.
-polygonPath :: (PathLike p, V p ~ R2) => PolygonOpts -> p
-polygonPath = close . fromVertices . polygonVertices
+-- | Create a closed regular polygon from the given options.
+polygon :: (PathLike p, V p ~ R2) => PolygonOpts -> p
+polygon opts = pathLike v True (segmentsFromVertices vvs)
+  where vvs@(v:vs) = polygonVertices opts
 
 -- | Generate the vertices of a regular polygon from the given
 --   options.
@@ -107,27 +103,27 @@ polygonVertices opts = orient . take n . iterate (rotateBy turn) $ start
 
 -- | A sqaure with its center at the origin and sides of length 1,
 --   oriented parallel to the axes.
-unitSquare :: (Backend b R2, Renderable (Path R2) b) => Diagram b R2
+unitSquare :: (Transformable p, PathLike p, V p ~ R2) => p
 unitSquare = scale (1/sqrt 2) $ polygon with { sides = 4, orientation = OrientToX }
 
 -- | A sqaure with its center at the origin and sides of the given
 --   length, oriented parallel to the axes.
-square :: (Backend b R2, Renderable (Path R2) b) => Double -> Diagram b R2
+square :: (PathLike p, Transformable p, V p ~ R2) => Double -> p
 square d = unitSquare # scale d
 
 -- | @rect w h@ is an axis-aligned rectangle of width @w@ and height
 --   @h@, centered at the origin.
-rect :: (Backend b R2, Renderable (Path R2) b) => Double -> Double -> Diagram b R2
+rect :: (PathLike p, Transformable p, V p ~ R2) => Double -> Double -> p
 rect w h = unitSquare # scaleX w # scaleY h
 
 -- | @starPolygon p q@ creates a star polygon, where @p@ indicates the
 --   number of vertices, and an edge connects every @q@th vertex.
-starPolygon :: (Backend b R2, Renderable (Path R2) b) => Int -> Int -> Diagram b R2
+starPolygon :: (PathLike p, Transformable p, V p ~ R2) => Int -> Int -> p
 starPolygon p q = polygon def { sides = p, edgeSkip = q }
 
 -- | An equilateral triangle, with radius 1 and base parallel to the
 --   x-axis.
-eqTriangle :: (Backend b R2, Renderable (Path R2) b) => Diagram b R2
+eqTriangle :: (PathLike p, Transformable p, V p ~ R2) => p
 eqTriangle = polygon with {sides = 3, orientation = OrientToX}
 
 {-
@@ -160,26 +156,26 @@ triangleFromSides = writeMe "triangleFromSides"
 --  Other shapes  ------------------------------------------
 ------------------------------------------------------------
 
--- | @roundedRectPath v r@ generates a closed trail, or closed path
+-- | @roundedRect v r@ generates a closed trail, or closed path
 -- centered at the origin, of an axis-aligned rectangle with diagonal
 -- @v@ and circular rounded corners of radius @r@.  @r@ must be
 -- between @0@ and half the smaller dimension of @v@, inclusive; smaller or
 -- larger values of @r@ will be treated as @0@ or half the smaller
 -- dimension of @v@, respectively.  The trail or path begins with the
 -- right edge and proceeds counterclockwise.
-roundedRectPath :: (PathLike p, V p ~ R2) => R2 -> Double -> p
-roundedRectPath v r = close
-                    . setStart (P (xOff/2 + r', -yOff/2))
-                    . pathLikeFromTrail
-                    $ fromOffsets [(0,yOff)]
-                      <> mkCorner 0
-                      <> fromOffsets [(-xOff,0)]
-                      <> mkCorner 1
-                      <> fromOffsets [(0, -yOff)]
-                      <> mkCorner 2
-                      <> fromOffsets [(xOff,0)]
-                      <> mkCorner 3
-  where r'   = clamp r 0 maxR
+roundedRect :: (PathLike p, V p ~ R2) => R2 -> Double -> p
+roundedRect v r = pathLike (P (xOff/2 + r', -yOff/2)) True
+                . trailSegments
+                $ seg (0,yOff)
+                <> mkCorner 0
+                <> seg (-xOff,0)
+                <> mkCorner 1
+                <> seg (0, -yOff)
+                <> mkCorner 2
+                <> seg (xOff,0)
+                <> mkCorner 3
+  where seg = fromOffsets  . (:[])
+        r'   = clamp r 0 maxR
         maxR = uncurry min v / 2
         (xOff,yOff) = v ^-^ (2*r', 2*r')
         mkCorner k | r' == 0   = mempty
@@ -192,6 +188,3 @@ clamp :: Ord a => a -> a -> a -> a
 clamp x lo hi | x < lo    = lo
               | x > hi    = hi
               | otherwise = x
-
-roundedRect :: (Backend b R2, Renderable (Path R2) b) => R2 -> Double -> Diagram b R2
-roundedRect v r = stroke $ roundedRectPath v r

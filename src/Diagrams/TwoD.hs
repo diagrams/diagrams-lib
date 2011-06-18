@@ -81,7 +81,7 @@ module Diagrams.TwoD
        , arc
 
          -- ** General polygons
-       , polygon, polygonPath, polygonVertices
+       , polygon, polygonVertices
        , PolygonOpts(..), PolygonOrientation(..)
 
          -- ** Special polygons
@@ -92,7 +92,7 @@ module Diagrams.TwoD
        , eqTriangle
 
          -- ** Other shapes
-       , roundedRectPath, roundedRect
+       , roundedRect
 
          -- * Text
        , text, font, fontSize, italic, oblique, bold

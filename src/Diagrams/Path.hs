@@ -1,4 +1,5 @@
 {-# LANGUAGE TypeFamilies
+           , MultiParamTypeClasses
            , FlexibleInstances
            , FlexibleContexts
            , DeriveFunctor
@@ -23,8 +24,12 @@ module Diagrams.Path
        (
          -- * Constructing path-like things
 
-         PathLike(..), fromOffsets, fromVertices
+         PathLike(..), fromOffsets, fromVertices, segmentsFromVertices
        , pathLikeFromTrail
+
+         -- * Closeable things
+
+       , Closeable(..)
 
          -- * Trails
 
@@ -54,6 +59,7 @@ module Diagrams.Path
 
        , explodeTrail
        , explodePath
+       , (~~)
 
        ) where
 
@@ -65,6 +71,7 @@ import Diagrams.Util
 import Data.VectorSpace
 import Data.AffineSpace
 
+import Control.Newtype
 import Data.Monoid
 import qualified Data.Foldable as F
 
@@ -77,33 +84,58 @@ import Control.Arrow ((***), first, second)
 ------------------------------------------------------------
 
 -- | Type class for path-like things, which must be monoids.
---   Instances include 'Trail's and 'Path's.
+--   Instances include 'Trail's, 'Path's, and two-dimensional 'Diagram's.
 class (Monoid p, VectorSpace (V p)) => PathLike p where
 
-  -- | Set the starting point of the path-like thing.  Some path-like
-  --   things (e.g. 'Trail's) may ignore this operation.
-  setStart   :: Point (V p) -> p -> p
+  pathLike :: Point (V p)      -- ^ The starting point of the
+                               --   path.  Some path-like things
+                               --   (e.g. 'Trail's) may ignore this.
+           -> Bool             -- ^ Should the path be closed?
+           -> [Segment (V p)]  -- ^ Segments of the path.
+           -> p
 
-  -- | Construct a path-like thing from a list of 'Segment's.
-  fromSegments :: [Segment (V p)] -> p
+-- | Construct an open path-like thing with the origin as a starting
+--   point.
+fromSegments :: PathLike p => [Segment (V p)] -> p
+fromSegments = pathLike origin False
+
+-- | Construct an open path-like thing of linear segments from a list
+--   of offsets.  The starting point is the origin.
+fromOffsets :: PathLike p => [V p] -> p
+fromOffsets = pathLike origin False . map Linear
+
+-- | Construct a path-like thing of linear segments from a list of
+--   vertices, with the first vertex as the starting point.  The first
+--   argument specifies whether the path should be closed.
+fromVertices :: PathLike p => [Point (V p)] -> p
+fromVertices []         = mempty
+fromVertices vvs@(v:_) = pathLike v False (segmentsFromVertices vvs)
+
+-- | Construct a list of segments from a (non-empty) list of vertices.
+segmentsFromVertices :: AdditiveGroup v => [Point v] -> [Segment v]
+segmentsFromVertices [] = []
+segmentsFromVertices vvs@(_:vs) = map Linear (zipWith (flip (.-.)) vvs vs)
+
+------------------------------------------------------------
+--  Closeable class
+------------------------------------------------------------
+
+-- | Path-like things that can be \"open\" or \"closed\".
+class PathLike p => Closeable p where
+  -- | \"Open\" a path-like thing.
+  open  :: p -> p
 
   -- | \"Close\" a path-like thing, by implicitly connecting the
   --   endpoint(s) back to the starting point(s).
   close :: p -> p
 
-  -- | \"Open\" a path-like thing.
-  open  :: p -> p
+instance VectorSpace v => Closeable (Trail v) where
+  close (Trail segs _) = Trail segs True
+  open  (Trail segs _) = Trail segs False
 
--- | Construct a path-like thing of linear segments from a list of
---   offsets.
-fromOffsets :: PathLike p => [V p] -> p
-fromOffsets = fromSegments . map Linear
-
--- | Construct a path-like thing of linear segments from a list of
---   vertices, with the first vertex as the starting point.
-fromVertices :: PathLike p => [Point (V p)] -> p
-fromVertices []         = mempty
-fromVertices vvs@(v:vs) = setStart v $ fromOffsets (zipWith (flip (.-.)) vvs vs)
+instance (VectorSpace v, Ord v) => Closeable (Path v) where
+  close = (over Path . map . second) close
+  open  = (over Path . map . second) open
 
 ------------------------------------------------------------
 --  Trails  ------------------------------------------------
@@ -132,10 +164,7 @@ instance Monoid (Trail v) where
 --   translationally invariant, 'setStart' has no effect.
 --   'fromSegments' creates an open trail.
 instance VectorSpace v => PathLike (Trail v) where
-  setStart _ tr     = tr
-  fromSegments segs = Trail segs False
-  close tr          = tr { isClosed = True }
-  open tr           = tr { isClosed = False }
+  pathLike _ cl segs = Trail segs cl
 
 instance HasLinearMap v => Transformable (Trail v) where
   transform t (Trail segs c) = Trail (transform t segs) c
@@ -181,10 +210,7 @@ reverseTrail t = t { trailSegments = (fmap . fmap) negateV . reverse
 -- | Convert a trail to any path-like thing.  @pathLikeFromTrail@ is the
 --   identity on trails.
 pathLikeFromTrail :: PathLike p => Trail (V p) -> p
-pathLikeFromTrail t = (if isClosed t then close else id)
-                    . fromSegments
-                    . trailSegments
-                    $ t
+pathLikeFromTrail t = pathLike origin (isClosed t) (trailSegments t)
 
 ------------------------------------------------------------
 --  Paths  -------------------------------------------------
@@ -199,26 +225,21 @@ newtype Path v = Path { pathTrails :: [(Point v, Trail v)] }
 
 type instance V (Path v) = v
 
-inPath :: ([(Point v, Trail v)] -> [(Point v, Trail v)]) -> Path v -> Path v
-inPath f (Path ts) = Path (f ts)
+instance Newtype (Path v) [(Point v, Trail v)] where
+  pack   = Path
+  unpack = pathTrails
 
 instance (Ord v, VectorSpace v) => HasOrigin (Path v) where
-  moveOriginTo = inPath . map . first . moveOriginTo
+  moveOriginTo = over Path . map . first . moveOriginTo
 
 -- | Paths are (of course) path-like. 'fromSegments' creates a path
 --   with start point at the origin.
 instance (Ord v, VectorSpace v) => PathLike (Path v) where
-  setStart          = moveTo
-
-  fromSegments []   = Path []
-  fromSegments segs = Path [(origin, fromSegments segs)]
-
-  close = (inPath . map . second) close
-  open  = (inPath . map . second) open
+  pathLike s cl segs = Path [(s, pathLike origin cl segs)]
 
 -- See Note [Transforming paths]
 instance (HasLinearMap v, Ord v) => Transformable (Path v) where
-  transform t = (inPath . map) (transform t *** transform t)
+  transform t = (over Path . map) (transform t *** transform t)
 
 {- ~~~~ Note [Transforming paths]
 
@@ -275,3 +296,7 @@ explodeTrail start = snd . mapAccumL mkPath start . trailSegments'
 -- | \"Explode\" a path by exploding every component trail (see 'explodeTrail').
 explodePath :: VectorSpace v => Path v -> [[Path v]]
 explodePath = map (uncurry explodeTrail) . pathTrails
+
+-- | Create a single-segment path between two given points.
+(~~) :: PathLike p => Point (V p) -> Point (V p) -> p
+p1 ~~ p2 = fromVertices [p1, p2]
