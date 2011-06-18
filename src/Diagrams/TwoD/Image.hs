@@ -31,7 +31,8 @@ import Data.AffineSpace ((.-.))
 
 import Data.Monoid
 
--- XXX comment me
+-- | An external image primitive, representing an image the backend
+--   should import from another file when rendering.
 data Image = Image { imgFile   :: FilePath
                    , imgSize   :: SizeSpec2D
                    , imgTransf :: T2
