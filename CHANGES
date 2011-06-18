@@ -28,3 +28,22 @@
   * Fixes and updates:
     + withBounds now properly uses the new bounds instead of just combining
       them with the old
+
+0.3: 18 June 2011
+
+  * New features:
+    + new customizable stroke' function which lets you assign names to
+      path vertices
+    + circle and square functions now take a size argument
+    + function for adjusting 2D diagrams to requested size abstracted
+      from cairo backend
+    + generalize PathLike class to include an instance for diagrams,
+      and collapse things like polygon/polygonPath into a single
+      polymorphic function
+    + basic text support
+    + basic support for external images
+    + very sketchy initial proof-of-concept library of 3D primitives.
+      See also http://patch-tag.com/r/byorgey/diagrams-povray.
+
+  * Bug fixes:
+    + Issue 32 (mempty not behaving correctly within concatenations)
