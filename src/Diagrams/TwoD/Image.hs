@@ -22,8 +22,8 @@ import Graphics.Rendering.Diagrams
 
 import Diagrams.Path
 import Diagrams.TwoD.Types
-import Diagrams.TwoD.Align
 import Diagrams.TwoD.Path
+import Diagrams.TwoD.Shapes
 import Diagrams.TwoD.Util (SizeSpec2D(..))
 import Diagrams.Util
 
@@ -58,9 +58,7 @@ image file w h = mkAD (Prim (Image file (Dims w h) mempty))
                       mempty
                       (Query $ \p -> Any (isInsideEvenOdd p r))
   where r :: Path R2
-        r = fromOffsets [(w,0), (0,h), (-w,0), (0,-h)]
-            # centerXY
-            -- XXX use rectPath ?
+        r = rect w h
 
 {- ~~~~ Note [Image size specification]
 
