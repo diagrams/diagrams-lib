@@ -50,8 +50,8 @@ bezierFromSweep :: Rad -> [Segment R2]
 bezierFromSweep s
   | s > tau    = bezierFromSweep tau
   | s < 0      = fmap reflectY . bezierFromSweep $ (-s)
-  | s < tau/4  = [bezierFromSweepQ1 s]
   | s < 0.0001 = []
+  | s < tau/4  = [bezierFromSweepQ1 s]
   | otherwise  = bezierFromSweepQ1 (tau/4)
           : map (rotateBy (1/4)) (bezierFromSweep (max (s - tau/4) 0))
 
