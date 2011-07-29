@@ -25,6 +25,8 @@ module Diagrams.Segment
        , atParam, segOffset
        , splitAtParam, arcLength
 
+       , arcLengthToParam
+
        ) where
 
 import Graphics.Rendering.Diagrams
@@ -33,7 +35,7 @@ import Diagrams.Solve
 
 import Data.VectorSpace
 
-import Control.Applicative (liftA2)
+import Control.Applicative (liftA2, (<$>))
 
 ------------------------------------------------------------
 --  Constructing segments  ---------------------------------
@@ -159,6 +161,20 @@ arcLength s@(Cubic c1 c2 x2) m
        ub    = sum (map magnitude [c1, c2 ^-^ c1, x2 ^-^ c2])
        lb    = magnitude x2
 
+-- | @'arcLengthToParam' s l m@ converts the absolute arc length @l@ to
+--   a parameter on the segment @s@, with accuracy of at least plus or
+--   minus @m@.
+arcLengthToParam :: (InnerSpace v, Floating (Scalar v), Ord (Scalar v))
+                 => Segment v -> Scalar v -> Scalar v -> Maybe (Scalar v)
+arcLengthToParam s len m
+  |  len < 0 || len > arcLength s m = Nothing
+arcLengthToParam s@(Linear {}) len m = Just $ len / arcLength s m
+arcLengthToParam s@(Cubic {})  len m
+  | abs (len - ll) < m = Just 0.5
+  | len < ll           = (*0.5) <$> arcLengthToParam l len m
+  | otherwise          = (+0.5) . (*0.5) <$> arcLengthToParam r (len - ll) m
+  where (l,r) = splitAtParam s 0.5
+        ll    = arcLength l m
 
 -- | The bounding function for a segment is based at the segment's
 --   start.
