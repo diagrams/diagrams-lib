@@ -44,8 +44,8 @@ bezierFromSweepQ1 s = fmap (^-^ v) . rotate (s/2) $ Cubic p2 p1 p0
 --   start in the positive y direction and sweep counter clockwise
 --   through @s@ radians.  If @s@ is negative, it will start in the
 --   negative y direction and sweep clockwise.  When @s@ is less than
---   0.0001 the empty list results.  If the sweep is greater than two pi
---   then it is truncated to two pi.
+--   0.0001 the empty list results.  If the sweep is greater than tau
+--   then it is truncated to tau.
 bezierFromSweep :: Rad -> [Segment R2]
 bezierFromSweep s
   | s > tau    = bezierFromSweep tau
