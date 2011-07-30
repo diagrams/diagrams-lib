@@ -41,9 +41,8 @@ import Diagrams.Path
 import Diagrams.TwoD.Types
 import Diagrams.Solve
 
-import Data.AdditiveGroup
-import Data.VectorSpace
 import Data.AffineSpace
+import Data.VectorSpace
 
 import Data.Semigroup hiding ((<>))
 import Control.Applicative (liftA2)
@@ -157,26 +156,6 @@ isInsideWinding p = (/= 0) . crossings p
 isInsideEvenOdd :: P2 -> Path R2 -> Bool
 isInsideEvenOdd p = odd . crossings p
 
-data FixedSegment v = FLinear (Point v) (Point v)
-                    | FCubic (Point v) (Point v) (Point v) (Point v)
-  deriving Show
-
-mkFixedSeg :: AdditiveGroup v => Point v -> Segment v -> FixedSegment v
-mkFixedSeg p (Linear v)       = FLinear p (p .+^ v)
-mkFixedSeg p (Cubic c1 c2 x2) = FCubic p (p .+^ c1) (p .+^ c2) (p .+^ x2)
-
-fAtParam :: VectorSpace v => FixedSegment v -> Scalar v -> Point v
-fAtParam (FLinear p1 p2) t = alerp p1 p2 t
-fAtParam (FCubic x1 c1 c2 x2) t = p3
-  where p11 = alerp x1 c1 t
-        p12 = alerp c1 c2 t
-        p13 = alerp c2 x2 t
-
-        p21 = alerp p11 p12 t
-        p22 = alerp p12 p13 t
-
-        p3  = alerp p21 p22 t
-
 -- | Compute the sum of /signed/ crossings of a path as we travel in the
 --   positive x direction from a given point.
 crossings :: P2 -> Path R2 -> Int
@@ -190,9 +169,7 @@ trailCrossings :: P2 -> (P2, Trail R2) -> Int
 trailCrossings _ (_, t) | not (isClosed t) = 0
 
 trailCrossings p@(P (x,y)) (start, tr)
-  = sum . map test
-  $ zipWith mkFixedSeg (trailVertices start tr)
-                       (trailSegments tr ++ [Linear . negateV . trailOffset $ tr])
+  = sum . map test $ fixTrail start tr
   where
     test (FLinear a@(P (_,ay)) b@(P (_,by)))
       | ay <= y && by > y && isLeft a b > 0 =  1
