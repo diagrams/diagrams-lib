@@ -55,6 +55,7 @@ module Diagrams.Path
 
        , pathVertices
        , pathOffsets
+       , fixPath
 
          -- * Miscellaneous
 
@@ -288,6 +289,10 @@ pathVertices = map (uncurry trailVertices) . pathTrails
 -- | Compute the total offset of each trail comprising a path.
 pathOffsets :: AdditiveGroup v => Path v -> [v]
 pathOffsets = map (trailOffset . snd) . pathTrails
+
+-- | Convert a path into a list of lists of 'FixedSegment's.
+fixPath :: AdditiveGroup v => Path v -> [[FixedSegment v]]
+fixPath = map (uncurry fixTrail) . unpack
 
 ------------------------------------------------------------
 --  Other functions  ---------------------------------------
