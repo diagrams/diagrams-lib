@@ -28,12 +28,19 @@ module Diagrams.Segment
        , arcLengthToParam
        , adjustSegmentToParams
 
+         -- * Fixed (absolutely located) segments
+
+       , FixedSegment(..)
+       , mkFixedSeg
+       , fAtParam
+
        ) where
 
 import Graphics.Rendering.Diagrams
 
 import Diagrams.Solve
 
+import Data.AffineSpace
 import Data.VectorSpace
 
 import Control.Applicative (liftA2, (<$>))
@@ -225,3 +232,33 @@ data AdjustOpts v = ALO { adjMethod :: AdjustMethod v
 adjustSegmentToParams :: (Fractional (Scalar v), VectorSpace v)
                       => Segment v -> Scalar v -> Scalar v -> Segment v
 adjustSegmentToParams s p1 p2 = snd (splitAtParam (fst (splitAtParam s p2)) (p1/p2))
+
+------------------------------------------------------------
+--  Fixed segments
+------------------------------------------------------------
+
+-- | @FixedSegment@s are like 'Segment's except that they have
+--   absolute locations.
+data FixedSegment v = FLinear (Point v) (Point v)
+                    | FCubic (Point v) (Point v) (Point v) (Point v)
+  deriving Show
+
+-- | Create a 'FixedSegment' from a starting point and a 'Segment'.
+mkFixedSeg :: AdditiveGroup v => Point v -> Segment v -> FixedSegment v
+mkFixedSeg p (Linear v)       = FLinear p (p .+^ v)
+mkFixedSeg p (Cubic c1 c2 x2) = FCubic p (p .+^ c1) (p .+^ c2) (p .+^ x2)
+
+-- | Compute the point on a fixed segment at a given parameter.  A
+--   parameter of 0 corresponds to the starting point and 1 corresponds
+--   to the ending point.
+fAtParam :: VectorSpace v => FixedSegment v -> Scalar v -> Point v
+fAtParam (FLinear p1 p2) t = alerp p1 p2 t
+fAtParam (FCubic x1 c1 c2 x2) t = p3
+  where p11 = alerp x1 c1 t
+        p12 = alerp c1 c2 t
+        p13 = alerp c2 x2 t
+
+        p21 = alerp p11 p12 t
+        p22 = alerp p12 p13 t
+
+        p3  = alerp p21 p22 t

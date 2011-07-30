@@ -40,6 +40,7 @@ module Diagrams.Path
        , trailSegments'
        , trailOffsets, trailOffset
        , trailVertices, reverseTrail
+       , fixTrail
 
          -- * Paths
 
@@ -211,6 +212,13 @@ reverseTrail t = t { trailSegments = (fmap . fmap) negateV . reverse
 --   identity on trails.
 pathLikeFromTrail :: PathLike p => Trail (V p) -> p
 pathLikeFromTrail t = pathLike origin (isClosed t) (trailSegments t)
+
+-- | Convert a starting point and a trail into a list of fixed segments.
+fixTrail :: AdditiveGroup v => Point v -> Trail v -> [FixedSegment v]
+fixTrail start tr = zipWith mkFixedSeg (trailVertices start tr)
+                      (trailSegments tr ++ closeSeg)
+  where closeSeg | isClosed tr = [Linear . negateV . trailOffset $ tr]
+                 | otherwise   = []
 
 ------------------------------------------------------------
 --  Paths  -------------------------------------------------
