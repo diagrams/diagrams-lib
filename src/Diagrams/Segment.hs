@@ -26,6 +26,7 @@ module Diagrams.Segment
        , splitAtParam, arcLength
 
        , arcLengthToParam
+       , adjustSegmentToParams
 
        ) where
 
@@ -121,6 +122,26 @@ segOffset (Cubic _ _ v) = v
    Set equal to zero, use quadratic formula.
 -}
 
+-- | The bounding function for a segment is based at the segment's
+--   start.
+instance (InnerSpace v, OrderedField (Scalar v)) => Boundable (Segment v) where
+
+  getBounds (s@(Linear {})) = Bounds $ \v ->
+    maximum . map (\t -> ((s `atParam` t) <.> v) / magnitudeSq v) $ [0,1]
+
+  getBounds (s@(Cubic c1 c2 x2)) = Bounds $ \v ->
+    maximum .
+    map (\t -> ((s `atParam` t) <.> v) / magnitudeSq v) $
+    [0,1] ++
+    filter (liftA2 (&&) (>0) (<1))
+      (quadForm (3 * ((3 *^ c1 ^-^ 3 *^ c2 ^+^ x2) <.> v))
+                (6 * (((-2) *^ c1 ^+^ c2) <.> v))
+                ((3 *^ c1) <.> v))
+
+------------------------------------------------------------
+--  Manipulating segments
+------------------------------------------------------------
+
 -- | 'splitAtParam' splits a segment @s@ into two new segments @(l,r)@
 --   at the parameter @t@ where @l@ corresponds to the portion of
 --   @s@ for parameter values from @0@ to @t@ and @r@ for @s@ from @t@ to @1@.
@@ -132,6 +153,12 @@ segOffset (Cubic _ _ v) = v
 -- >   where (l,r) = splitAtParam s t
 --
 --   That is to say, the parameterization scales linearly with splitting.
+--
+--   'splitAtParam' can also be used with parameters outside the range
+--   (0,1).  For example, using the parameter @2@ gives two result
+--   segments where the first is the original segment extended to the
+--   parameter 2, and the second result segment travels /backwards/
+--   from the end of the first to the end of the original segment.
 splitAtParam :: (VectorSpace v) => Segment v -> Scalar v -> (Segment v, Segment v)
 splitAtParam (Linear x1) t = (left, right)
   where left  = Linear p
@@ -176,18 +203,25 @@ arcLengthToParam s@(Cubic {})  len m
   where (l,r) = splitAtParam s 0.5
         ll    = arcLength l m
 
--- | The bounding function for a segment is based at the segment's
---   start.
-instance (InnerSpace v, OrderedField (Scalar v)) => Boundable (Segment v) where
+--------------------------------------------------
+--  Adjusting segment length
+--------------------------------------------------
 
-  getBounds (s@(Linear {})) = Bounds $ \v ->
-    maximum . map (\t -> ((s `atParam` t) <.> v) / magnitudeSq v) $ [0,1]
+data AdjustMethod v = ByParam (Scalar v)
+                    | ByAbsolute (Scalar v)
+                    | ToAbsolute (Scalar v)
 
-  getBounds (s@(Cubic c1 c2 x2)) = Bounds $ \v ->
-    maximum .
-    map (\t -> ((s `atParam` t) <.> v) / magnitudeSq v) $
-    [0,1] ++
-    filter (liftA2 (&&) (>0) (<1))
-      (quadForm (3 * ((3 *^ c1 ^-^ 3 *^ c2 ^+^ x2) <.> v))
-                (6 * (((-2) *^ c1 ^+^ c2) <.> v))
-                ((3 *^ c1) <.> v))
+data AdjustSide = Start
+                | End
+                | Both
+
+data AdjustOpts v = ALO { adjMethod :: AdjustMethod v
+                        , adjSide   :: AdjustSide
+                        }
+
+-- adjustSegment :: Segment v -> AdjustOpts -> Segment v
+-- adjustSegment s
+
+adjustSegmentToParams :: (Fractional (Scalar v), VectorSpace v)
+                      => Segment v -> Scalar v -> Scalar v -> Segment v
+adjustSegmentToParams s p1 p2 = snd (splitAtParam (fst (splitAtParam s p2)) (p1/p2))

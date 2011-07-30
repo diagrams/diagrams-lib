@@ -16,7 +16,7 @@ instance AdditiveGroup (Rational) where { zeroV=0; (^+^) = (+); negateV = negate
 instance VectorSpace (Rational) where
   type Scalar (Rational) = Rational
   (*^) = (*)
-  
+
 instance (VectorSpace v, Arbitrary v) => Arbitrary (Segment v) where
    arbitrary = oneof [Linear <$> arbitrary, Cubic <$> arbitrary <*> arbitrary <*> arbitrary]
 
@@ -28,3 +28,7 @@ prop_paramSplit s t u
   | otherwise = atParam s u == atParam s t ^+^ atParam r ((u - t) / (1.0 - t))
   where (l,r) = splitAtParam s t
 
+prop_adjustSegParams :: Segment Q2 -> Scalar Q2 -> Scalar Q2 -> Scalar Q2 -> Property
+prop_adjustSegParams s p1 p2 t = p1 /= p2 ==>
+    atParam s t == atParam s p1 ^+^ atParam s' ((t - p1) / (p2 - p1))
+  where s' = adjustSegmentToParams s p1 p2
