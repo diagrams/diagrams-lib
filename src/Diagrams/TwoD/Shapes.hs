@@ -83,7 +83,7 @@ instance Default PolygonOpts where
 -- | Create a closed regular polygon from the given options.
 polygon :: (PathLike p, V p ~ R2) => PolygonOpts -> p
 polygon opts = pathLike v True (segmentsFromVertices vvs)
-  where vvs@(v:vs) = polygonVertices opts
+  where vvs@(v:_) = polygonVertices opts
 
 -- | Generate the vertices of a regular polygon from the given
 --   options.
