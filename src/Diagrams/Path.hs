@@ -24,7 +24,7 @@ module Diagrams.Path
        (
          -- * Constructing path-like things
 
-         PathLike(..), fromOffsets, fromVertices, segmentsFromVertices
+         PathLike(..), fromSegments, fromOffsets, fromVertices, segmentsFromVertices
        , pathLikeFromTrail
 
          -- * Closeable things
