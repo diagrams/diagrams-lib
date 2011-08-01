@@ -26,6 +26,13 @@ module Diagrams.Segment
        , reverseSegment
        , splitAtParam, arcLength
        , arcLengthToParam
+
+         -- * Adjusting segments
+       , adjustSegment
+       , AdjustOpts(..)
+       , AdjustMethod(..)
+       , AdjustSide(..)
+
        , adjustSegmentToParams
 
          -- * Fixed (absolutely located) segments
@@ -39,11 +46,13 @@ module Diagrams.Segment
 import Graphics.Rendering.Diagrams
 
 import Diagrams.Solve
+import Diagrams.Util
 
+import Data.Default
 import Data.AffineSpace
 import Data.VectorSpace
 
-import Control.Applicative (liftA2, (<$>))
+import Control.Applicative (liftA2)
 
 ------------------------------------------------------------
 --  Constructing segments  ---------------------------------
@@ -199,43 +208,89 @@ arcLength s@(Cubic c1 c2 x2) m
        ub    = sum (map magnitude [c1, c2 ^-^ c1, x2 ^-^ c2])
        lb    = magnitude x2
 
--- | @'arcLengthToParam' s l m@ converts the absolute arc length @l@ to
---   a parameter on the segment @s@, with accuracy of at least plus or
---   minus @m@.
-arcLengthToParam :: (InnerSpace v, Floating (Scalar v), Ord (Scalar v))
-                 => Segment v -> Scalar v -> Scalar v -> Maybe (Scalar v)
-arcLengthToParam s len m
-  |  len < 0 || len > arcLength s m = Nothing
-arcLengthToParam s@(Linear {}) len m = Just $ len / arcLength s m
+-- | @'arcLengthToParam' s l m@ converts the absolute arc length @l@,
+--   measured from the segment starting point, to a parameter on the
+--   segment @s@, with accuracy of at least plus or minus @m@.  Works
+--   for /any/ arc length, and may return any parameter value (not
+--   just parameters between 0 and 1).
+arcLengthToParam :: (InnerSpace v, Floating (Scalar v), Ord (Scalar v), AdditiveGroup v)
+                 => Segment v -> Scalar v -> Scalar v -> Scalar v
+arcLengthToParam s@(Linear {}) len m = len / arcLength s m
 arcLengthToParam s@(Cubic {})  len m
-  | abs (len - ll) < m = Just 0.5
-  | len < ll           = (*0.5) <$> arcLengthToParam l len m
-  | otherwise          = (+0.5) . (*0.5) <$> arcLengthToParam r (len - ll) m
+  | len == 0             = 0
+  | len < 0              = - arcLengthToParam (fst (splitAtParam s (-1))) (-len) m
+  | abs (len - slen) < m = 1
+  | len > slen           = 2 * arcLengthToParam (fst (splitAtParam s 2)) len m
+  | len < ll             = (*0.5) $ arcLengthToParam l len m
+  | otherwise            = (+0.5) . (*0.5) $ arcLengthToParam r (len - ll) m
   where (l,r) = splitAtParam s 0.5
         ll    = arcLength l m
+        slen  = arcLength s m
 
 --------------------------------------------------
 --  Adjusting segment length
 --------------------------------------------------
 
-data AdjustMethod v = ByParam (Scalar v)
-                    | ByAbsolute (Scalar v)
-                    | ToAbsolute (Scalar v)
+-- | What method should be used for adjusting a segment, trail, or
+--   path?
+data AdjustMethod v = ByParam (Scalar v)     -- ^ Extend by the given parameter value
+                                             --   (use a negative parameter to shrink)
+                    | ByAbsolute (Scalar v)  -- ^ Extend by the given arc length
+                                             --   (use a negative length to shrink)
+                    | ToAbsolute (Scalar v)  -- ^ Extend or shrink to the given
+                                             --   arc length
 
-data AdjustSide = Start
-                | End
-                | Both
+-- | Which side of a segment, trail, or path should be adjusted?
+data AdjustSide = Start  -- ^ Adjust only the beginning
+                | End    -- ^ Adjust only the end
+                | Both   -- ^ Adjust both sides equally
+  deriving (Show, Read, Eq, Ord, Bounded, Enum)
 
+-- | How should a segment, trail, or path be adjusted?
 data AdjustOpts v = ALO { adjMethod :: AdjustMethod v
                         , adjSide   :: AdjustSide
+                        , adjOptsvProxy__ :: Proxy v
                         }
 
--- adjustSegment :: Segment v -> AdjustOpts -> Segment v
--- adjustSegment s
+instance Fractional (Scalar v) => Default (AdjustMethod v) where
+  def = ByParam 0.2
 
+instance Default AdjustSide where
+  def = Both
+
+instance Fractional (Scalar v) => Default (AdjustOpts v) where
+  def = ALO def def Proxy
+
+-- | Adjust the length of a segment.  The second parameter is an
+--   option record which controls how the adjustment should be
+--   performed; see 'AdjustOpts'.
+adjustSegment :: (InnerSpace v, OrderedField (Scalar v))
+              => Segment v -> AdjustOpts v -> Segment v
+adjustSegment s opts = adjustSegmentToParams s t1 t2
+  where t1 = case opts of
+               (ALO _ End _)                  -> 0
+               (ALO (ByParam p) Start _)      -> -p
+               (ALO (ByParam p) Both _)       -> -p/2
+               (ALO (ByAbsolute len) Start _) -> arcLengthToParam s (-len) eps
+               (ALO (ByAbsolute len) Both _)  -> arcLengthToParam s (-len/2) eps
+               (ALO (ToAbsolute len) Start _) -> arcLengthToParam s (arcLength s eps - len) eps
+               (ALO (ToAbsolute len) Both _)  -> arcLengthToParam s ((arcLength s eps - len)/2) eps
+        t2 = case opts of
+               (ALO _ Start _)               -> 1
+               (ALO (ByParam p) End _)       -> 1 + p
+               (ALO (ByParam p) Both _)      -> 1 + p/2
+               (ALO (ByAbsolute len) End _)  -> 1 - arcLengthToParam (reverseSegment s) (-len) eps
+               (ALO (ByAbsolute len) Both _) -> 1 - (arcLengthToParam (reverseSegment s) (-len) eps)/2
+               (ALO (ToAbsolute len) End _)  -> 1 - arcLengthToParam (reverseSegment s) (arcLength s eps - len) eps
+               (ALO (ToAbsolute len) Both _) -> 1 - arcLengthToParam (reverseSegment s) ((arcLength s eps - len)/2) eps
+        eps = 1/10^(10 :: Integer)
+
+-- | Given a segment and parameters @t1@, @t2@, produce the segment
+--   which lies on the (infinitely extended) original segment
+--   beginning at @t1@ and ending at @t2@.
 adjustSegmentToParams :: (Fractional (Scalar v), VectorSpace v)
                       => Segment v -> Scalar v -> Scalar v -> Segment v
-adjustSegmentToParams s p1 p2 = snd (splitAtParam (fst (splitAtParam s p2)) (p1/p2))
+adjustSegmentToParams s t1 t2 = snd (splitAtParam (fst (splitAtParam s t2)) (t1/t2))
 
 ------------------------------------------------------------
 --  Fixed segments
