@@ -23,8 +23,8 @@ module Diagrams.Segment
 
          -- * Computing with segments
        , atParam, segOffset
+       , reverseSegment
        , splitAtParam, arcLength
-
        , arcLengthToParam
        , adjustSegmentToParams
 
@@ -102,6 +102,10 @@ atParam (Cubic c1 c2 x2) t =     (3 * t'*t'*t ) *^ c1
 segOffset :: Segment v -> v
 segOffset (Linear v)    = v
 segOffset (Cubic _ _ v) = v
+
+-- | Reverse the direction of a segment.
+reverseSegment :: AdditiveGroup v => Segment v -> Segment v
+reverseSegment = fmap negateV
 
 ------------------------------------------------------------
 --  Computing segment bounds  ------------------------------

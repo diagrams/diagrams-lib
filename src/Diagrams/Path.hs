@@ -205,7 +205,7 @@ trailVertices p = scanl (.+^) p . trailOffsets
 
 -- | Reverse a trail's direction of travel.
 reverseTrail :: AdditiveGroup v => Trail v -> Trail v
-reverseTrail t = t { trailSegments = (fmap . fmap) negateV . reverse
+reverseTrail t = t { trailSegments = fmap reverseSegment . reverse
                        $ trailSegments t
                    }
 
