@@ -37,9 +37,23 @@ prop_adjustSegParams s p1 p2 t = p1 /= p2 ==>
 instance Arbitrary AdjustSide where
   arbitrary = elements [Start, End, Both]
 
+-- The following tests don't work very well since they fail on cases
+-- where the answer is not quite within the stated tolerance.  But
+-- they have still been useful in finding cases where the adjustment
+-- methods fail for other reasons.  Basically, (1) run QC (2) get
+-- counterexample (3) check counterexample by hand to see whether it
+-- is close.
+--
+-- Unfortunately we can't use Q2 since arc-length-related functions
+-- ultimately work by finding the magnitude vectors, which uses sqrt.
+
 prop_adjustSeg_toAbs_len :: Segment R2 -> Scalar R2 -> AdjustSide -> Property
-prop_adjustSeg_toAbs_len s len side = len > eps ==>
-  arcLength (adjustSegment s with { adjMethod = ToAbsolute len, adjSide = side }) eps ==~ len
+prop_adjustSeg_toAbs_len s len side = abs len > eps ==>
+  arcLength (adjustSegment s with { adjMethod = ToAbsolute len, adjSide = side }) eps ==~ abs len
 
 eps = 1/10^10
 x ==~ y = abs (x - y) < eps
+
+prop_adjustSeg_byAbs_len :: Segment R2 -> Scalar R2 -> AdjustSide -> Bool
+prop_adjustSeg_byAbs_len s len side =
+  arcLength (adjustSegment s with { adjMethod = ByAbsolute len, adjSide = side }) eps ==~ abs (arcLength s eps + len)
