@@ -114,7 +114,8 @@ segOffset (Cubic _ _ v) = v
 
 -- | Reverse the direction of a segment.
 reverseSegment :: AdditiveGroup v => Segment v -> Segment v
-reverseSegment = fmap negateV
+reverseSegment (Linear v)       = Linear (negateV v)
+reverseSegment (Cubic c1 c2 x2) = Cubic (c2 ^-^ x2) (c1 ^-^ x2) (negateV x2)
 
 ------------------------------------------------------------
 --  Computing segment bounds  ------------------------------
