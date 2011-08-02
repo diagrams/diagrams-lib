@@ -229,6 +229,10 @@ arcLengthToParam s@(Cubic {})  len m
         ll    = arcLength l m
         slen  = arcLength s m
 
+-- Note, the above seems to be quite slow since it duplicates a lot of
+-- work.  We could trade off some time for space by building a tree of
+-- parameter values (up to a certain depth...)
+
 --------------------------------------------------
 --  Adjusting segment length
 --------------------------------------------------
