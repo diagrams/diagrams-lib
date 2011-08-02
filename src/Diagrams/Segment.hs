@@ -216,6 +216,7 @@ arcLength s@(Cubic c1 c2 x2) m
 --   just parameters between 0 and 1).
 arcLengthToParam :: (InnerSpace v, Floating (Scalar v), Ord (Scalar v), AdditiveGroup v)
                  => Segment v -> Scalar v -> Scalar v -> Scalar v
+arcLengthToParam s _ m | arcLength s m == 0 = 0.5
 arcLengthToParam s@(Linear {}) len m = len / arcLength s m
 arcLengthToParam s@(Cubic {})  len m
   | len == 0             = 0
