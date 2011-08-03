@@ -147,9 +147,10 @@ position = mconcat . zipWith (|>) [0::Integer ..] . map (uncurry moveTo)
 
 -- | Combine a list of diagrams (or paths) by using them to
 --   \"decorate\" a trail, placing the local origin of one object at
---   each successive vertex of the trail.  If the trail and list of
---   objects have different lengths, the extra tail of the longer one
---   is ignored.
+--   each successive vertex of the trail.  The first vertex of the
+--   trail is placed at the origin.  If the trail and list of objects
+--   have different lengths, the extra tail of the longer one is
+--   ignored.
 decorateTrail :: (HasOrigin a, Qualifiable a, Monoid a) => Trail (V a) -> [a] -> a
 decorateTrail t = position . zip (trailVertices origin t)
 
