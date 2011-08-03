@@ -27,7 +27,7 @@ module Diagrams.Combinators
 
          -- * n-ary operations
        , appends
-       , position, decorateTrail
+       , position, decorateTrail, decoratePath
        , cat, cat', CatOpts(..), CatMethod(..)
 
        ) where
@@ -153,6 +153,14 @@ position = mconcat . zipWith (|>) [0::Integer ..] . map (uncurry moveTo)
 --   ignored.
 decorateTrail :: (HasOrigin a, Qualifiable a, Monoid a) => Trail (V a) -> [a] -> a
 decorateTrail t = position . zip (trailVertices origin t)
+
+-- | Combine a list of diagrams (or paths) by using them to
+--   \"decorate\" a path, placing the local origin of one object at
+--   each successive vertex of the path.  If the path and list of objects
+--   have different lengths, the extra tail of the longer one is
+--   ignored.
+decoratePath :: (HasOrigin a, Qualifiable a, Monoid a) => Path (V a) -> [a] -> a
+decoratePath p = position . zip (concat $ pathVertices p)
 
 -- | Methods for concatenating diagrams.
 data CatMethod = Cat     -- ^ Normal catenation: simply put diagrams
