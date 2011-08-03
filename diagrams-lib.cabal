@@ -29,6 +29,8 @@ Library
                        Diagrams.Attributes,
                        Diagrams.Segment,
                        Diagrams.Path,
+                       Diagrams.CubicSpline,
+                       Diagrams.CubicSpline.Internal,
                        Diagrams.Solve,
                        Diagrams.Transform,
                        Diagrams.BoundingBox,

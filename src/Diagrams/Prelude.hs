@@ -34,6 +34,9 @@ module Diagrams.Prelude
          -- | Trails and paths.
        , module Diagrams.Path
 
+         -- | Cubic splines.
+       , module Diagrams.CubicSpline
+
          -- | Some additional transformation-related functions, like
          --   conjugation of transformations.
        , module Diagrams.Transform
@@ -69,6 +72,7 @@ import Diagrams.Align
 import Diagrams.Combinators
 import Diagrams.Segment
 import Diagrams.Path
+import Diagrams.CubicSpline
 import Diagrams.Transform
 import Diagrams.BoundingBox
 import Diagrams.TwoD

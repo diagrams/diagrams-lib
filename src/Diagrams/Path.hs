@@ -107,8 +107,7 @@ fromOffsets :: PathLike p => [V p] -> p
 fromOffsets = pathLike origin False . map Linear
 
 -- | Construct a path-like thing of linear segments from a list of
---   vertices, with the first vertex as the starting point.  The first
---   argument specifies whether the path should be closed.
+--   vertices, with the first vertex as the starting point.
 fromVertices :: PathLike p => [Point (V p)] -> p
 fromVertices []         = mempty
 fromVertices vvs@(v:_) = pathLike v False (segmentsFromVertices vvs)
