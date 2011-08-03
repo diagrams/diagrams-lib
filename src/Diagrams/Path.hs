@@ -282,7 +282,7 @@ pathFromTrailAt t p = Path [(p, t)]
 ------------------------------------------------------------
 
 -- | Extract the vertices of a path.
-pathVertices :: (AdditiveGroup v, Ord v) => Path v -> [[Point v]]
+pathVertices :: AdditiveGroup v => Path v -> [[Point v]]
 pathVertices = map (uncurry trailVertices) . pathTrails
 
 -- | Compute the total offset of each trail comprising a path.
