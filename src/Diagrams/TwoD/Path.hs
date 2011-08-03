@@ -79,7 +79,7 @@ instance Renderable (Path R2) b => PathLike (AnnDiagram b R2 Any) where
 --
 --   'StrokeOpts' is an instance of 'Default', so @stroke' 'with' {
 --   ... }@ syntax may be used.
-stroke' :: (Renderable (Path R2) b, Atomic a) => StrokeOpts a -> Path R2 -> Diagram b R2
+stroke' :: (Renderable (Path R2) b, IsName a) => StrokeOpts a -> Path R2 -> Diagram b R2
 stroke' opts p
   = mkAD (Prim p)
          (getBounds p)
@@ -128,7 +128,7 @@ strokeT = stroke . pathFromTrail
 
 -- | A composition of 'stroke'' and 'pathFromTrail' for conveniently
 --   converting a trail directly into a diagram.
-strokeT' :: (Renderable (Path R2) b, Atomic a)
+strokeT' :: (Renderable (Path R2) b, IsName a)
          => StrokeOpts a -> Trail R2 -> Diagram b R2
 strokeT' opts = stroke' opts . pathFromTrail
 
