@@ -1,5 +1,5 @@
 Name:                diagrams-lib
-Version:             0.3
+Version:             0.4
 Synopsis:            Embedded domain-specific language for declarative graphics
 Description:         Diagrams is a flexible, extensible EDSL for creating
                      graphics of many types.  Graphics can be created
@@ -17,7 +17,7 @@ Category:            Graphics
 Build-type:          Simple
 Cabal-version:       >=1.6
 Extra-source-files:  CHANGES
-Tested-with:         GHC == 6.12.3, GHC >= 7.0.2 && <= 7.0.3
+Tested-with:         GHC >= 7.0.2 && <= 7.0.3, GHC == 7.2.0
 Source-repository head
   type:     darcs
   location: http://patch-tag.com/r/byorgey/diagrams-lib
@@ -52,13 +52,13 @@ Library
                        Diagrams.ThreeD.Shapes,
                        Diagrams.Util,
                        Diagrams.Backend.Show
-  Build-depends:       base >= 4.2 && < 4.4,
+  Build-depends:       base >= 4.2 && < 4.5,
                        containers >= 0.3 && < 0.5,
                        semigroups >= 0.3.4 && < 0.6,
-                       diagrams-core >= 0.3 && < 0.4,
+                       diagrams-core >= 0.4 && < 0.5,
                        vector-space >= 0.7 && < 0.8,
                        colour >= 2.3.1 && < 2.4,
                        data-default >= 0.2 && < 0.3,
-                       pretty >= 1.0.1.2 && < 1.1,
+                       pretty >= 1.0.1.2 && < 1.2,
                        newtype >= 0.2 && < 0.3
   Hs-source-dirs:      src
