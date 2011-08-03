@@ -1,4 +1,5 @@
 {-# LANGUAGE TypeSynonymInstances
+           , FlexibleInstances
            , TypeFamilies
   #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
