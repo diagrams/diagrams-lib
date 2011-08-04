@@ -1,6 +1,7 @@
 {-# LANGUAGE TypeFamilies
            , FlexibleContexts
   #-}
+{-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.CubicSpline
@@ -22,13 +23,9 @@ import Diagrams.CubicSpline.Internal
 import Graphics.Rendering.Diagrams
 import Diagrams.Segment
 import Diagrams.Path
-import Diagrams.Util
 
 import Control.Newtype
 import Data.Monoid
-import Data.List
-import Data.VectorSpace
-import Data.NumInstances
 
 -- | Construct a spline path-like thing of cubic segments from a list of
 --   vertices, with the first vertex as the starting point.  The first
