@@ -35,7 +35,7 @@ module Diagrams.Path
 
        , Trail(..)
 
-         -- ** Destructing trails
+         -- ** Computing with trails
 
        , trailSegments'
        , trailOffsets, trailOffset
@@ -51,10 +51,11 @@ module Diagrams.Path
        , pathFromTrail
        , pathFromTrailAt
 
-         -- ** Destructing paths
+         -- ** Computing with paths
 
        , pathVertices
        , pathOffsets
+       , reversePath
        , fixPath
 
          -- * Miscellaneous
@@ -202,11 +203,18 @@ trailOffset = sumV . trailOffsets
 trailVertices :: AdditiveGroup v => Point v -> Trail v -> [Point v]
 trailVertices p = scanl (.+^) p . trailOffsets
 
+-- XXX TODO: This is not correct for closed trails.
 -- | Reverse a trail's direction of travel.
 reverseTrail :: AdditiveGroup v => Trail v -> Trail v
 reverseTrail t = t { trailSegments = fmap reverseSegment . reverse
                        $ trailSegments t
                    }
+
+{- XXX write me
+-- | Reverse a trail with a fixed starting point.
+reverseRootedTrail :: AdditiveGroup v => (Point v, Trail v) -> (Point v, Trail v)
+reverseRootedTrail (p, t)
+-}
 
 -- | Convert a trail to any path-like thing.  @pathLikeFromTrail@ is the
 --   identity on trails.
@@ -278,7 +286,7 @@ pathFromTrailAt :: Trail v -> Point v -> Path v
 pathFromTrailAt t p = Path [(p, t)]
 
 ------------------------------------------------------------
---  Destructing paths  -------------------------------------
+--  Computing with paths  ----------------------------------
 ------------------------------------------------------------
 
 -- | Extract the vertices of a path.
@@ -288,6 +296,11 @@ pathVertices = map (uncurry trailVertices) . pathTrails
 -- | Compute the total offset of each trail comprising a path.
 pathOffsets :: AdditiveGroup v => Path v -> [v]
 pathOffsets = map (trailOffset . snd) . pathTrails
+
+{- XXX uncomment me once reverseRootedTrail is written
+reversePath :: Path v -> Path v
+reversePath = (over Path . map) reverseRootedTrail
+-}
 
 -- | Convert a path into a list of lists of 'FixedSegment's.
 fixPath :: AdditiveGroup v => Path v -> [[FixedSegment v]]
