@@ -203,18 +203,19 @@ trailOffset = sumV . trailOffsets
 trailVertices :: AdditiveGroup v => Point v -> Trail v -> [Point v]
 trailVertices p = scanl (.+^) p . trailOffsets
 
--- XXX TODO: This is not correct for closed trails.
 -- | Reverse a trail's direction of travel.
 reverseTrail :: AdditiveGroup v => Trail v -> Trail v
-reverseTrail t = t { trailSegments = fmap reverseSegment . reverse
-                       $ trailSegments t
-                   }
+reverseTrail t@(Trail {trailSegments = []}) = t
+reverseTrail t@(Trail {trailSegments = sss@(_:ss)})
+  | isClosed t = t { trailSegments = straight (trailOffset t) : reverseSegs ss }
+  | otherwise  = t { trailSegments = reverseSegs $ sss }
+  where reverseSegs = fmap reverseSegment . reverse
 
-{- XXX write me
 -- | Reverse a trail with a fixed starting point.
 reverseRootedTrail :: AdditiveGroup v => (Point v, Trail v) -> (Point v, Trail v)
 reverseRootedTrail (p, t)
--}
+  | isClosed t = (p .+^ trailOffset t, reverseTrail t)
+  | otherwise  = (p, reverseTrail t)
 
 -- | Convert a trail to any path-like thing.  @pathLikeFromTrail@ is the
 --   identity on trails.
@@ -297,10 +298,9 @@ pathVertices = map (uncurry trailVertices) . pathTrails
 pathOffsets :: AdditiveGroup v => Path v -> [v]
 pathOffsets = map (trailOffset . snd) . pathTrails
 
-{- XXX uncomment me once reverseRootedTrail is written
-reversePath :: Path v -> Path v
+-- | Reverse the direction of all the component trails of a path.
+reversePath :: AdditiveGroup v => Path v -> Path v
 reversePath = (over Path . map) reverseRootedTrail
--}
 
 -- | Convert a path into a list of lists of 'FixedSegment's.
 fixPath :: AdditiveGroup v => Path v -> [[FixedSegment v]]
