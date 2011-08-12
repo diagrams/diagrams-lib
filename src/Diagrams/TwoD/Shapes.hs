@@ -80,7 +80,7 @@ data PolygonOpts = PolygonOpts {
 instance Default PolygonOpts where
   def = PolygonOpts { sides = 5, edgeSkip = 1, orientation = NoOrient }
 
--- | Create a closed regular polygon from the given options.
+-- | Create a closed regular polygon of radius 1 centered at the origin.
 polygon :: (PathLike p, V p ~ R2) => PolygonOpts -> p
 polygon opts = pathLike v True (segmentsFromVertices vvs)
   where vvs@(v:_) = polygonVertices opts
