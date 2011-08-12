@@ -214,8 +214,8 @@ reverseTrail t@(Trail {trailSegments = sss@(_:ss)})
 -- | Reverse a trail with a fixed starting point.
 reverseRootedTrail :: AdditiveGroup v => (Point v, Trail v) -> (Point v, Trail v)
 reverseRootedTrail (p, t)
-  | isClosed t = (p .+^ trailOffset t, reverseTrail t)
-  | otherwise  = (p, reverseTrail t)
+  | isClosed t = (p, reverseTrail t)
+  | otherwise  = (p .+^ trailOffset t, reverseTrail t)
 
 -- | Convert a trail to any path-like thing.  @pathLikeFromTrail@ is the
 --   identity on trails.
