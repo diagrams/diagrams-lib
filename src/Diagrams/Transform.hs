@@ -25,9 +25,9 @@ conjugate t1 t2  = inv t1 <> t2 <> t1
 
 -- | Carry out some transformation \"under\" another one: @f ``under``
 --   t@ first applies @t@, then @f@, then the inverse of @t@.  For
---   example, @'rotateBy' (1/3) ``under`` 'translationX' 1@ is
---   equivalent to a rotation by 120 degrees about the point
---   @(-1,0)@ (you may have to think about this for a minute =).
+--   example, @'scaleX' 2 ``under`` 'rotationBy' (-1/8 :: CircleFrac)@
+--   is the transformation which scales by a factor of 2 along the
+--   diagonal line y = x.
 --
 --   Note that
 --
