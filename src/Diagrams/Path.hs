@@ -113,7 +113,9 @@ fromVertices :: PathLike p => [Point (V p)] -> p
 fromVertices []         = mempty
 fromVertices vvs@(v:_) = pathLike v False (segmentsFromVertices vvs)
 
--- | Construct a list of segments from a (non-empty) list of vertices.
+-- | Construct a list of linear segments from a list of vertices.  The
+--   input list must contain at least two points to generate a
+--   non-empty list of segments.
 segmentsFromVertices :: AdditiveGroup v => [Point v] -> [Segment v]
 segmentsFromVertices [] = []
 segmentsFromVertices vvs@(_:vs) = map Linear (zipWith (flip (.-.)) vvs vs)
