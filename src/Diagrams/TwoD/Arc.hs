@@ -13,6 +13,8 @@
 module Diagrams.TwoD.Arc
     ( arc
     , bezierFromSweep
+
+    , circlePath
     ) where
 
 import Graphics.Rendering.Diagrams
@@ -23,6 +25,7 @@ import Diagrams.TwoD.Util
 
 import Diagrams.Path
 import Diagrams.Segment
+import Diagrams.Util ((#))
 
 import Data.VectorSpace((^-^))
 
@@ -86,3 +89,8 @@ arc :: (Angle a, PathLike p, V p ~ R2) => a -> a -> p
 arc start end = pathLike (rotate start $ P unitX)
                          False
                          (trailSegments $ arcT start end)
+
+-- | Create a closed circular path of the given radius, centered at
+--   the origin, beginning at (r,0).
+circlePath :: (PathLike p, Closeable p, V p ~ R2, Transformable p) => Double -> p
+circlePath r = arc 0 (tau::Rad) # close # scale r
