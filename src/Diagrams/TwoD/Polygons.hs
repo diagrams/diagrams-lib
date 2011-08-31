@@ -25,23 +25,17 @@ module Diagrams.TwoD.Polygons(
         , star, starSkip
         -- * Orientation of polygons
         , orientX, orientY
-        -- * Rounded polygons
-        -- * Regular poligons
-        -- * Well-known stars
-        , star5, star6, starDavid, starSolomon
-        -- * Rendering to 'Diagram's
-        , polyPath, polyDiagram
         -- * Typed interface
-        , PolyData(..), StarGroup(..), Orientation(..), PolygonOpts(..), poDef, polyPoints
+        , PolyData(..), StarGroup(..), PolygonOrientation(..), PolygonOpts(..), polyPoints
     ) where
 
 import Data.Ord          (comparing)
 import Data.List
-import Control.Arrow     ((&&&), (***))
+import Control.Arrow     ((&&&))
 import Control.Monad     (guard)
 
 import Data.AffineSpace  ((.-.), (.+^))
-import Data.VectorSpace
+import Data.VectorSpace  (sumV, magnitude, (^/), (<.>))
 import Data.Default
 
 import Diagrams.TwoD.Types
@@ -128,7 +122,7 @@ polyCyclic ans = polyPolar ans $ repeat 1
 
 -- | Regular /n/-polygon
 polyRegular :: Int -> [P2]
-polyRegular n = polyCyclic $ take (n-1) $ repeat $ 2*pi / fromIntegral n
+polyRegular n = polyCyclic $ take (n-1) $ repeat $ (tau::Rad) / fromIntegral n
 
 -- | Center of /n/-polygon as sum of vertexes divided by /n/
 centroid :: [P2] -> P2
@@ -148,15 +142,17 @@ starSkip :: Int -> [P2] -> [[P2]]
 starSkip k = star (+k)
 
 orient :: (Ord a) => Bool -> (R2 -> a) -> (Double -> P2 -> P2) -> [P2] -> [P2]
-orient _ _ _ []= []
+orient _ _ _ [] = []
 orient isMax fc ft xs = rotate a xs
     where
-        mm = if isMax then maximumBy else minimumBy
-        (x1,x,x2) = mm (comparing (\(_,(P z),_)->fc z)) $  zip3 (tail xs ++ take 1 xs) xs (last xs : init xs)
-        x' = mm (comparing (\(P z)->fc z)) [x1, x2]
-        v = x' .-. x
-        ex = ft 1 origin .-. origin
-        a = Rad $ acos ((v <.> ex) / magnitude v)
+        mm :: (a -> a -> Ordering) -> [a] -> a
+        mm        = if isMax then maximumBy else minimumBy
+        (x1,x,x2) = mm (comparing (\(_,(P z),_) -> fc z))
+                       (zip3 (tail xs ++ take 1 xs) xs (last xs : init xs))
+        x'        = mm (comparing (\(P z)->fc z)) [x1, x2]
+        v         = x' .-. x
+        ex        = ft 1 origin .-. origin
+        a         = Rad $ acos ((v <.> ex) / magnitude v)
 
 -- | takes lowermost vertex then take its lowermost neighbor and make this side horisontally
 orientX :: [P2] -> [P2]
