@@ -1,14 +1,12 @@
-{-# LANGUAGE TypeFamilies #-}
--- , NoMonomorphismRestriction
+{-# LANGUAGE TypeFamilies 
+  #-}
 
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Polygon
--- Copyright   :  (c) Brent Yorgey, Dmitry Olshansky 2011
+-- Copyright   :  (c) 2011 diagrams-lib team (see LICENSE)
 -- License     :  BSD-style (see LICENSE)
--- Maintainer  :  byorgey@cis.upenn.edu, olshanskydr@gmail.com
--- Stability   :  experimental
--- Portability :  portable
+-- Maintainer  :  diagrams-discuss@googlegroups.com
 --
 -- Different 2D convex polygons and stars.
 --
