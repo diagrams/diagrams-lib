@@ -1,4 +1,7 @@
-{-# LANGUAGE TypeFamilies, FlexibleContexts #-}
+{-# LANGUAGE TypeFamilies
+           , FlexibleContexts
+  #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Shapes
