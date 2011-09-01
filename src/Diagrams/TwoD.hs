@@ -34,6 +34,9 @@
 --   * "Diagrams.TwoD.Path" exports various operations on
 --     two-dimensional paths when viewed as regions of the plane.
 --
+--   * "Diagrams.TwoD.Polygons" defines general algorithms for drawing
+--     various types of polygons.
+--
 --   * "Diagrams.TwoD.Shapes" defines other two-dimensional shapes,
 --     e.g. various polygons.
 --
