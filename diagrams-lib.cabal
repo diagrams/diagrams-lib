@@ -42,6 +42,7 @@ Library
                        Diagrams.TwoD.Ellipse,
                        Diagrams.TwoD.Arc,
                        Diagrams.TwoD.Path,
+                       Diagrams.TwoD.Polygons,
                        Diagrams.TwoD.Shapes,
                        Diagrams.TwoD.Util,
                        Diagrams.TwoD.Model,
