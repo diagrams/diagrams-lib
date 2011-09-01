@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeFamilies 
+{-# LANGUAGE TypeFamilies
   #-}
 
 -----------------------------------------------------------------------------
@@ -15,7 +15,7 @@
 
 module Diagrams.TwoD.Polygons(
         -- * Poligon's construction
-        polyPolar, polySides, polyCyclic, polyRegular
+        polyPolar, polySides, polyRegular
         -- * Poligon's centers
         -- $centers
         , centroid
@@ -26,7 +26,7 @@ module Diagrams.TwoD.Polygons(
         -- * Orientation of polygons
         , orientX, orientY
         -- * Typed interface
-        , PolyData(..), StarGroup(..), PolygonOrientation(..), PolygonOpts(..), polyPoints
+        , PolyType(..), StarOpts(..), PolygonOrientation(..), PolygonOpts(..), polyPoints
     ) where
 
 import Data.Ord          (comparing)
@@ -35,24 +35,76 @@ import Control.Arrow     ((&&&))
 import Control.Monad     (guard)
 
 import Data.AffineSpace  ((.-.), (.+^))
-import Data.VectorSpace  (sumV, magnitude, (^/), (<.>))
+import Data.VectorSpace  (sumV, magnitude, (^/), (<.>), (^*))
 import Data.Default
 
 import Diagrams.TwoD.Types
 import Diagrams.TwoD.Transform
+import Diagrams.TwoD.Util (unitY)
 import Graphics.Rendering.Diagrams
 import Diagrams.Path
 
-data PolyData a = PolyPolar  [a] [Double]
-                | PolySides  [a] [Double]
-                | PolyCyclic [a]
-                | PolyRegular Int
+-- | Method used to determine the vertices of a polygon.
+data PolyType a = PolyPolar  [a] [Double]
+                  -- ^ A \"polar\" polygon.
+                  --
+                  --   * The first argument is a list of /central/
+                  --   /angles/ from each vertex to the next.
+                  --
+                  --   * The second argument is a list of /radii/ from the
+                  --   origin to each successive vertex.
+                  --
+                  --   To construct an /n/-gon, use a list of /n-1/
+                  --   angles and /n/ radii.  Extra angles or radii
+                  --   are ignored.
+                  --
+                  --   Cyclic polygons (with all vertices lying on a
+                  --   circle) can be constructed using a second
+                  --   argument of @(repeat r)@.
 
-data StarGroup = StarFun (Int->Int) |
-                 StarSkip Int
+                | PolySides  [a] [Double]
+                  -- ^ A polygon determined by the distance between
+                  --   successive vertices and the angles formed by
+                  --   three successive vertices.  The polygon will be
+                  --   centered at the /centroid/ of its vertices.
+                  --
+                  --   * The first argument is a list of /vertex/
+                  --   /angles/, giving the angle at each vertex from
+                  --   the previous vertex to the next.  The first
+                  --   angle in the list will be the angle ???
+                  --
+                  --   * The second argument is a list of side lengths.
+                  --
+                  --   To construct an /n/-gon, use a list of /n-2/
+                  --   angles and /n-1/ edge lengths.  Extra angles or
+                  --   lengths are ignored.
+
+                | PolyRegular Int Double
+                  -- ^ A regular polygon with the given number of
+                  --   sides (first argument) and the given radius
+                  --   (second argument).
+
+-- | Options for creating \"star\" polygons, where the edges connect
+--   possibly non-adjacent vertices.
+data StarOpts = StarFun (Int -> Int)
+                -- ^ Specify the order in which the vertices should be
+                --   connected by a function that maps each vertex
+                --   index to the index of the vertex that should come
+                --   next.  Indexing of vertices begins at 0.
+
+                --   XXX is that true?
+
+              | StarSkip Int
+                -- ^ Specify a star polygon by a \"skip\".  A skip of
+                --   1 indicates a normal polygon, where edges go
+                --   between successive vertices.  A skip of 2 means
+                --   that edges will connect every second vertex,
+                --   skipping one in between.  Generally, a skip of
+                --   /n/ means that edges will connect every /n/th
+                --   vertex.
 
 -- | Determine how a polygon should be oriented.
-data PolygonOrientation = NoOrient  -- ^ No special orientation; one
+data PolygonOrientation = NoOrient  -- ^ No special orientation; the first
                                     --   vertex will be at (1,0).
                                     --   This is the default.
                         | OrientToX -- ^ Orient so the botommost edge
@@ -61,72 +113,70 @@ data PolygonOrientation = NoOrient  -- ^ No special orientation; one
                                     --   is parallel to the y-axis.
   deriving (Eq, Ord, Show, Read)
 
-data PolygonOpts a = PolygonOpts {
-        poPolyData      :: PolyData a
-      , poStarGroup     :: StarGroup
-      , poOrientation   :: PolygonOrientation
-      , poCenter        :: P2
-    }
+-- | Options for specifying a polygon.
+data PolygonOpts a = PolygonOpts
+                     { polyType       :: PolyType a
+                       -- ^ Specification for the polygon's vertices.
 
+                     , polyStar       :: StarOpts
+                       -- ^ Is this a star polygon?
+
+                     , polyOrient     :: PolygonOrientation
+                       -- ^ Should a rotation be applied to the
+                       --   polygon in order to orient it in a
+                       --   particular way?
+
+                     , polyCenter     :: P2
+                       -- ^ Should a translation be applied to the
+                       --   polygon in order to place the center at a
+                       --   particular location?
+                     }
+
+-- | The default polygon is a regular pentagon of radius 1, centered
+--   at the origin, aligned to the x-axis.
 instance Default (PolygonOpts a) where
-    def = PolygonOpts (PolyRegular 5) (StarSkip 1) OrientToX origin
+    def = PolygonOpts (PolyRegular 5 1) (StarSkip 1) OrientToX origin
 
 polyPoints :: Angle a => PolygonOpts a -> [[P2]]
 polyPoints po = sg
     where
-        ps = case poPolyData po of
+        ps = case polyType po of
             PolyPolar ans szs -> polyPolar ans szs
             PolySides ans szs -> polySides' ans szs
-            PolyCyclic ans -> polyCyclic ans
-            PolyRegular n -> polyRegular n
-        ori = case poOrientation po of
-            OrientToX -> orientX ps
-            OrientToY -> orientY ps
-        tr = ori -- translate (poCenter .-. centroid ori) ori
-        sg = case poStarGroup po of
-            StarFun f -> star f tr
-            StarSkip n -> starSkip n tr
+            PolyRegular n r   -> polyRegular n r
+        ori = case polyOrient po of
+            OrientToX         -> orientX ps
+            OrientToY         -> orientY ps
+            NoOrient          -> ps
+        sg = case polyStar po of
+            StarFun f         -> star f ori
+            StarSkip n        -> starSkip n ori
 
--- | Polygon from some center given by central angles and edges length.
---   There are /(n-1)/ angle and /n/ lengths for /n/-polygon.
---   Extra angles or lengths are ignored.
 polyPolar :: Angle a => [a] -> [Double] -> [P2]
 polyPolar _ [] = []
 polyPolar ans (l:ls) = snd $ unzip xs
     where
         xs = (l, translateX l origin) : zipWith3 (\a s (s',x) -> (s, scale (s/s') $ rotate a x)) ans ls xs
 
--- | Polygon given by side-lengths and vertex-angles.
---   There are /(n-2)/ angle and /(n-1)/ lengths for /n/-polygon.
---   Extra angles or lengths are ignored.
 polySides' :: Angle a => [a] -> [Double] -> [P2]
-polySides' ans ls = scanl (\p v -> p .+^ v) origin $ map (.-. origin) $ flip polyPolar ls $ map (convertAngle (tau/2 :: Rad) -) ans
+polySides' ans ls = scanl (.+^) origin
+                      $ zipWith rotate ans' (map (unitY ^*) ls)
+  where
+    ans' = scanl (+) 0 ans
 
 -- | Polygon is centered around 'origin'.
 polySides :: Angle a => [a] -> [Double] -> [P2]
 polySides ans ls = let p0 = polySides' ans ls in translate (origin .-. centroid p0) p0
 
-{-
-angle :: (InnerSpace v, s ~ Scalar v, Floating s) => v -> v -> s
-angle v1 v2
-    | m == 0 = 0
-    | otherwise = acos $ sqrt $ (v1 <.> v2)^2 / m
-    where
-        m = magnitudeSq v1 * magnitudeSq v2
--}
-
--- | Polygon with vertexes on circle given by central edges.
---   There are just /(n-1)/ angle for /n/-polygon.
-polyCyclic :: Angle a => [a] -> [P2]
-polyCyclic ans = polyPolar ans $ repeat 1
-
 -- | Regular /n/-polygon
-polyRegular :: Int -> [P2]
-polyRegular n = polyCyclic $ take (n-1) $ repeat $ (tau::Rad) / fromIntegral n
+polyRegular :: Int -> Double -> [P2]
+polyRegular n r = polyPolar (take (n-1) . repeat $ (tau::Rad) / fromIntegral n)
+                            (repeat r)
 
+-- XXX use 'ala' here? And elsewhere with (origin .+^) etc.?
 -- | Center of /n/-polygon as sum of vertexes divided by /n/
 centroid :: [P2] -> P2
-centroid = (origin .+^). uncurry (^/) . (sumV &&& (fromIntegral . length)) . map (.-. origin)
+centroid = (origin .+^) . uncurry (^/) . (sumV &&& (fromIntegral . length)) . map (.-. origin)
 
 groups :: (Int->Int) -> Int -> [[Int]]
 groups f n = unfoldr (\xs -> guard (not $ null xs) >> return (let zs = g (head xs) in (zs, xs \\ zs))) [0..n-1]
@@ -141,27 +191,27 @@ star f xs = map (map (xs!!)) $ groups f (length xs)
 starSkip :: Int -> [P2] -> [[P2]]
 starSkip k = star (+k)
 
-orient :: (Ord a) => Bool -> (R2 -> a) -> (Double -> P2 -> P2) -> [P2] -> [P2]
+orient :: (Ord a) => Bool -> (P2 -> a) -> (Double -> P2 -> P2) -> [P2] -> [P2]
 orient _ _ _ [] = []
 orient isMax fc ft xs = rotate a xs
     where
         mm :: (a -> a -> Ordering) -> [a] -> a
         mm        = if isMax then maximumBy else minimumBy
-        (x1,x,x2) = mm (comparing (\(_,(P z),_) -> fc z))
+        (x1,x,x2) = mm (comparing (fc . sndOf3))
                        (zip3 (tail xs ++ take 1 xs) xs (last xs : init xs))
-        x'        = mm (comparing (\(P z)->fc z)) [x1, x2]
+        x'        = mm (comparing fc) [x1, x2]
         v         = x' .-. x
         ex        = ft 1 origin .-. origin
         a         = Rad $ acos ((v <.> ex) / magnitude v)
 
+        sndOf3 (_,b,_) = b
+
 -- | takes lowermost vertex then take its lowermost neighbor and make this side horisontally
 orientX :: [P2] -> [P2]
-orientX = orient True snd translateX
+orientX = orient True getY translateX
+  where getY (P (_,y)) = y
 
 -- | takes leftmost vertex then take its leftmost neighbor and make this side vertically
 orientY :: [P2] -> [P2]
-orientY = orient False fst translateY
-
--- $centers
---  * Centroid is calculated by <http://en.wikipedia.org/wiki/Centroid#Of_a_finite_set_of_points>
---
+orientY = orient False getX translateY
+  where getX (P (x,_)) = x
