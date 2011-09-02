@@ -66,17 +66,17 @@ infixl 6 |||
 --   * For more control over the spacing, see 'hcat''.
 --
 --   * To align the diagrams vertically (or otherwise), use alignment
---   combinators (such as 'alignT' or 'alignB') from
---   "Diagrams.TwoD.Align" before applying 'hcat'.
+--     combinators (such as 'alignT' or 'alignB') from
+--     "Diagrams.TwoD.Align" before applying 'hcat'.
 --
 --   * For non-axis-aligned layout, see 'cat'.
-hcat :: (HasOrigin a, Boundable a, Qualifiable a, V a ~ R2, Monoid a) => [a] -> a
+hcat :: (HasOrigin a, Boundable a, V a ~ R2, Monoid a) => [a] -> a
 hcat = hcat' def
 
 -- | A variant of 'hcat' taking an extra 'CatOpts' record to control
 --   the spacing.  See the 'cat'' documentation for a description of
 --   the possibilities.
-hcat' :: (HasOrigin a, Boundable a, Qualifiable a, V a ~ R2, Monoid a) => CatOpts R2 -> [a] -> a
+hcat' :: (HasOrigin a, Boundable a, V a ~ R2, Monoid a) => CatOpts R2 -> [a] -> a
 hcat' = cat' unitX
 
 -- | Lay out a list of boundable objects in a column from top to bottom,
@@ -86,17 +86,17 @@ hcat' = cat' unitX
 --   * For more control over the spacing, see 'vcat''.
 --
 --   * To align the diagrams horizontally (or otherwise), use alignment
---   combinators (such as 'alignL' or 'alignR') from
---   "Diagrams.TwoD.Align" before applying 'vcat'.
+--     combinators (such as 'alignL' or 'alignR') from
+--     "Diagrams.TwoD.Align" before applying 'vcat'.
 --
 --   * For non-axis-aligned layout, see 'cat'.
-vcat :: (HasOrigin a, Boundable a, Qualifiable a, V a ~ R2, Monoid a) => [a] -> a
+vcat :: (HasOrigin a, Boundable a, V a ~ R2, Monoid a) => [a] -> a
 vcat = vcat' def
 
 -- | A variant of 'vcat' taking an extra 'CatOpts' record to control
 --   the spacing.  See the 'cat'' documentation for a description of the
 --   possibilities.
-vcat' :: (HasOrigin a, Boundable a, Qualifiable a, V a ~ R2, Monoid a) => CatOpts R2 -> [a] -> a
+vcat' :: (HasOrigin a, Boundable a, V a ~ R2, Monoid a) => CatOpts R2 -> [a] -> a
 vcat' = cat' (negateV unitY)
 
 -- | @strutX d@ is an empty diagram with width @d@ and height 0.  Note
