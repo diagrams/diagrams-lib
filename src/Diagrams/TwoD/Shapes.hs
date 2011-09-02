@@ -18,14 +18,28 @@ module Diagrams.TwoD.Shapes
          -- * Miscellaneous
          hrule, vrule
 
-         -- * Special polygons
-       , unitSquare
+         -- * Regular polygons
+
+       , regPoly
+       , eqTriangle
        , square
+       , pentagon
+       , hexagon
+       , septagon
+       , octagon
+       , nonagon
+       , decagon
+       , hendecagon
+       , dodecagon
+
+         -- * Other special polygons
+       , unitSquare
        , rect
 
          -- * Other shapes
 
        , roundedRect
+
        ) where
 
 import Graphics.Rendering.Diagrams
@@ -52,7 +66,7 @@ vrule d = pathLike (P (0,d/2)) False [Linear (0,-d)]
 
 -- | A sqaure with its center at the origin and sides of length 1,
 --   oriented parallel to the axes.
-unitSquare :: (Transformable p, PathLike p, V p ~ R2) => p
+unitSquare :: (PathLike p, V p ~ R2) => p
 unitSquare = polygon with { polyType   = PolyRegular 4 (sqrt 2 / 2)
                           , polyOrient = OrientH }
 
@@ -66,30 +80,55 @@ square d = unitSquare # scale d
 rect :: (PathLike p, Transformable p, V p ~ R2) => Double -> Double -> p
 rect w h = unitSquare # scaleX w # scaleY h
 
+------------------------------------------------------------
+--  Regular polygons
+------------------------------------------------------------
+
+-- | Create a regular polygon. The first argument is the number of
+--   sides, and the second is the /length/ of the sides. (Compare to the
+--   'polygon' function with a 'PolyRegular' option, which produces
+--   polygons of a given /radius/).
+--
+--   The polygon will be oriented with one edge parallel to the x-axis.
+regPoly :: (PathLike p, V p ~ R2) => Int -> Double -> p
+regPoly n l = polygon with { polyType =
+                               PolySides
+                                 (repeat (1/ fromIntegral n :: CircleFrac))
+                                 (replicate (n-1) l)
+                           , polyOrient = OrientH
+                           }
+
+-- | An equilateral triangle, with sides of the given length and base parallel
+--   to the x-axis.
+eqTriangle :: (PathLike p, V p ~ R2) => Double -> p
+eqTriangle = regPoly 3
+
+pentagon :: (PathLike p, V p ~ R2) => Double -> p
+pentagon = regPoly 5
+
+hexagon :: (PathLike p, V p ~ R2) => Double -> p
+hexagon = regPoly 6
+
+septagon :: (PathLike p, V p ~ R2) => Double -> p
+septagon = regPoly 7
+
+octagon :: (PathLike p, V p ~ R2) => Double -> p
+octagon = regPoly 8
+
+nonagon :: (PathLike p, V p ~ R2) => Double -> p
+nonagon = regPoly 9
+
+decagon :: (PathLike p, V p ~ R2) => Double -> p
+decagon = regPoly 10
+
+hendecagon :: (PathLike p, V p ~ R2) => Double -> p
+hendecagon = regPoly 11
+
+dodecagon :: (PathLike p, V p ~ R2) => Double -> p
+dodecagon = regPoly 12
+
+
 {-
--- | An equilateral triangle, with radius 1 and base parallel to the
---   x-axis.
-eqTriangle :: (PathLike p, Transformable p, V p ~ R2) => p
-eqTriangle = polygon with {sides = 3, orientation = OrientToX}
-
-pentagon :: (Backend b R2, Renderable (Path R2) b) => Diagram b R2
-pentagon = writeMe "pentagon"
-
-hexagon :: (Backend b R2, Renderable (Path R2) b) => Diagram b R2
-hexagon = writeMe "hexagon"
-
-septagon :: (Backend b R2, Renderable (Path R2) b) => Diagram b R2
-septagon = writeMe "septagon"
-
-octagon :: (Backend b R2, Renderable (Path R2) b) => Diagram b R2
-octagon = writeMe "octagon"
-
-nonagon :: (Backend b R2, Renderable (Path R2) b) => Diagram b R2
-nonagon = writeMe "nonagon"
-
-decagon :: (Backend b R2, Renderable (Path R2) b) => Diagram b R2
-decagon = writeMe "decagon"
-
 -- | Construct a triangle from three side lengths, if possible.  The
 --   longest side will be parallel to the x-axis.
 triangleFromSides :: (Backend b R2, Renderable (Path R2) b)

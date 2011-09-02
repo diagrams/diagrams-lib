@@ -91,9 +91,21 @@ module Diagrams.TwoD
          -- ** Star polygons
        , StarOpts(..), starPoly
 
-         -- ** Special polygons
-       , unitSquare
+         -- ** Regular polygons
+       , regPoly
+       , eqTriangle
        , square
+       , pentagon
+       , hexagon
+       , septagon
+       , octagon
+       , nonagon
+       , decagon
+       , hendecagon
+       , dodecagon
+
+         -- ** Other special polygons
+       , unitSquare
        , rect
 
          -- ** Other shapes
