@@ -176,7 +176,7 @@ data FontWeight = FontWeightNormal
 -- | The @FontWeightA@ attribute specifies the weight (normal or bold)
 --   that should be used for all text within a diagram.  Inner
 --   @FontWeightA@ attributes override outer ones.
-newtype FontWeightA = FontWeightA (Last (FontWeight))
+newtype FontWeightA = FontWeightA (Last FontWeight)
   deriving (Typeable, Semigroup)
 instance AttributeClass FontWeightA
 
