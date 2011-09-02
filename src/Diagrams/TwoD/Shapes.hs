@@ -18,17 +18,10 @@ module Diagrams.TwoD.Shapes
          -- * Miscellaneous
          hrule, vrule
 
-         -- * General polygons
-       , polygon, polygonVertices
-       , PolygonOpts(..), PolygonOrientation(..)
-
          -- * Special polygons
        , unitSquare
        , square
        , rect
-       , starPolygon
-
-       , eqTriangle
 
          -- * Other shapes
 
@@ -42,13 +35,12 @@ import Diagrams.Path
 import Diagrams.TwoD.Arc
 import Diagrams.TwoD.Types
 import Diagrams.TwoD.Transform
+import Diagrams.TwoD.Polygons
 
 import Diagrams.Util
 
 import Data.Monoid
 import Data.VectorSpace
-
-import Data.Default
 
 -- | Create a centered horizontal (L-R) line of the given length.
 hrule :: (PathLike p, V p ~ R2) => Double -> p
@@ -58,56 +50,11 @@ hrule d = pathLike (P (-d/2,0)) False [Linear (d,0)]
 vrule :: (PathLike p, V p ~ R2) => Double -> p
 vrule d = pathLike (P (0,d/2)) False [Linear (0,-d)]
 
--- | Determine how a polygon should be oriented.
-data PolygonOrientation = NoOrient  -- ^ No special orientation; one
-                                    --   vertex will be at (1,0).
-                                    --   This is the default.
-                        | OrientToX -- ^ Orient so the botommost edge
-                                    --   is parallel to the x-axis.
-                        | OrientToY -- ^ Orient so the leftmost edge
-                                    --   is parallel to the y-axis.
-  deriving (Eq, Ord, Show, Read)
-
-data PolygonOpts = PolygonOpts {
-    sides       :: Int    -- ^ Number of sides; the default is 5.
-  , edgeSkip    :: Int    -- ^ Create star polygons by setting the
-                          --   edge skip to some number other than 1
-                          --   (the default).  With an edge skip of n,
-                          --   edges will connect every nth vertex.
-  , orientation :: PolygonOrientation
-                          -- ^ Determine how the polygon should be
-                          --   oriented.
-  }
-  deriving (Eq, Ord, Show, Read)
-
-instance Default PolygonOpts where
-  def = PolygonOpts { sides = 5, edgeSkip = 1, orientation = NoOrient }
-
--- | Create a closed regular polygon of radius 1 centered at the origin.
-polygon :: (PathLike p, V p ~ R2) => PolygonOpts -> p
-polygon opts = pathLike v True (segmentsFromVertices vvs)
-  where vvs@(v:_) = polygonVertices opts
-
--- | Generate the vertices of a regular polygon from the given
---   options.
-polygonVertices :: PolygonOpts -> [P2]
-polygonVertices opts = orient . take n . iterate (rotateBy turn) $ start
-  where start  = translateX 1 origin
-        turn   = fromIntegral (edgeSkip opts) / fromIntegral n
-        n      = sides opts
-        orient  | orientation opts == OrientToX = orientX
-                | orientation opts == OrientToY = orientY
-                | otherwise                     = id
-        orientX | odd n          = rotateBy (1/4)
-                | n `mod` 4 == 0 = rotateBy (turn/2)
-                | otherwise      = id
-        orientY | even n         = rotateBy (turn/2)
-                | otherwise      = id
-
 -- | A sqaure with its center at the origin and sides of length 1,
 --   oriented parallel to the axes.
 unitSquare :: (Transformable p, PathLike p, V p ~ R2) => p
-unitSquare = scale (1/sqrt 2) $ polygon with { sides = 4, orientation = OrientToX }
+unitSquare = polygon with { polyType   = PolyRegular 4 (sqrt 2)
+                          , polyOrient = OrientH }
 
 -- | A sqaure with its center at the origin and sides of the given
 --   length, oriented parallel to the axes.
@@ -119,17 +66,12 @@ square d = unitSquare # scale d
 rect :: (PathLike p, Transformable p, V p ~ R2) => Double -> Double -> p
 rect w h = unitSquare # scaleX w # scaleY h
 
--- | @starPolygon p q@ creates a star polygon, where @p@ indicates the
---   number of vertices, and an edge connects every @q@th vertex.
-starPolygon :: (PathLike p, Transformable p, V p ~ R2) => Int -> Int -> p
-starPolygon p q = polygon def { sides = p, edgeSkip = q }
-
+{-
 -- | An equilateral triangle, with radius 1 and base parallel to the
 --   x-axis.
 eqTriangle :: (PathLike p, Transformable p, V p ~ R2) => p
 eqTriangle = polygon with {sides = 3, orientation = OrientToX}
 
-{-
 pentagon :: (Backend b R2, Renderable (Path R2) b) => Diagram b R2
 pentagon = writeMe "pentagon"
 

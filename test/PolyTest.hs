@@ -5,8 +5,24 @@ import Diagrams.Backend.Cairo.CmdLine
 
 import Diagrams.TwoD.Polygons
 
-d = stroke . close $ fromVertices (polySides [3/8, 3/8, 3/8, 3/8 :: CircleFrac]
-                                             [1,2,0.5,6,1]
-                                  )
+-- d = stroke . close $ fromVertices (polyPoints with { polyStar = StarFun succ })
 
-main = defaultMain (pad 1.1 (d <> hrule 6 <> vrule 6))
+vs = take 10 $ iterate (rotateBy (1/20 :: CircleFrac)) unitX
+
+mkR v = (mconcat . mconcat $ p)
+     <> fromVertices [origin, origin .+^ v]
+  where
+    p = map (zipWith lc (red : repeat black)) $
+        (map (map stroke))
+        (explodePath (polygon with { polyOrient = OrientTo v }))
+
+d = hcat' with {sep = 0.5} (map mkR vs)
+  # lw 0.05
+
+s = stroke $ starPoly (StarSkip 5) 
+               (polygon with { polyType = PolyPolar
+                                            (repeat (convertAngle $ (1/15 :: CircleFrac)))
+                                            (take 15 (cycle [6,7,8]))
+                             })
+
+main = defaultMain (pad 1.1 s)
