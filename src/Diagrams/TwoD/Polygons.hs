@@ -1,6 +1,7 @@
 {-# LANGUAGE TypeFamilies
            , ScopedTypeVariables
            , DeriveFunctor
+           , ExistentialQuantification
   #-}
 
 -----------------------------------------------------------------------------
@@ -69,7 +70,7 @@ import Diagrams.Path
 import Diagrams.Util      ((#))
 
 -- | Method used to determine the vertices of a polygon.
-data PolyType = PolyPolar [Rad] [Double]
+data PolyType = forall a. Angle a => PolyPolar [a] [Double]
                 -- ^ A \"polar\" polygon.
                 --
                 --   * The first argument is a list of /central/
@@ -86,7 +87,7 @@ data PolyType = PolyPolar [Rad] [Double]
                 --   circle) can be constructed using a second
                 --   argument of @(repeat r)@.
 
-              | PolySides [Rad] [Double]
+              | forall a. Angle a => PolySides [a] [Double]
                 -- ^ A polygon determined by the distance between
                 --   successive vertices and the angles formed by
                 --   each three successive vertices.  In other
@@ -115,7 +116,6 @@ data PolyType = PolyPolar [Rad] [Double]
                 -- ^ A regular polygon with the given number of
                 --   sides (first argument) and the given radius
                 --   (second argument).
-  deriving (Eq, Ord, Show, Read)
 
 -- | Determine how a polygon should be oriented.
 data PolyOrientation = NoOrient     -- ^ No special orientation; the first
@@ -148,7 +148,6 @@ data PolygonOpts = PolygonOpts
                      --   polygon in order to place the center at a
                      --   particular location?
                    }
-  deriving (Eq, Ord, Show, Read)
 
 -- | The default polygon is a regular pentagon of radius 1, centered
 --   at the origin, aligned to the x-axis.
