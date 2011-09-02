@@ -127,15 +127,6 @@ hendecagon = regPoly 11
 dodecagon :: (PathLike p, V p ~ R2) => Double -> p
 dodecagon = regPoly 12
 
-
-{-
--- | Construct a triangle from three side lengths, if possible.  The
---   longest side will be parallel to the x-axis.
-triangleFromSides :: (Backend b R2, Renderable (Path R2) b)
-                  => Double -> Double -> Double -> Maybe (Diagram b R2)
-triangleFromSides = writeMe "triangleFromSides"
--}
-
 ------------------------------------------------------------
 --  Other shapes  ------------------------------------------
 ------------------------------------------------------------
