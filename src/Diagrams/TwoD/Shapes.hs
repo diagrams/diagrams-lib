@@ -53,7 +53,7 @@ vrule d = pathLike (P (0,d/2)) False [Linear (0,-d)]
 -- | A sqaure with its center at the origin and sides of length 1,
 --   oriented parallel to the axes.
 unitSquare :: (Transformable p, PathLike p, V p ~ R2) => p
-unitSquare = polygon with { polyType   = PolyRegular 4 (sqrt 2)
+unitSquare = polygon with { polyType   = PolyRegular 4 (sqrt 2 / 2)
                           , polyOrient = OrientH }
 
 -- | A sqaure with its center at the origin and sides of the given
