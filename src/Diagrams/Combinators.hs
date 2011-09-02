@@ -142,7 +142,7 @@ appends d1 apps = d1 <> mconcat (map (uncurry (besideBounds b)) apps)
 -- | Position things absolutely: combine a list of objects
 -- (e.g. diagrams or paths) by assigning them absolute positions in
 -- the vector space of the combined object.
-position :: (HasOrigin a, Qualifiable a, Monoid a) => [(Point (V a), a)] -> a
+position :: (HasOrigin a, Monoid a) => [(Point (V a), a)] -> a
 position = mconcat . map (uncurry moveTo)
 
 -- | Combine a list of diagrams (or paths) by using them to
@@ -151,7 +151,7 @@ position = mconcat . map (uncurry moveTo)
 --   trail is placed at the origin.  If the trail and list of objects
 --   have different lengths, the extra tail of the longer one is
 --   ignored.
-decorateTrail :: (HasOrigin a, Qualifiable a, Monoid a) => Trail (V a) -> [a] -> a
+decorateTrail :: (HasOrigin a, Monoid a) => Trail (V a) -> [a] -> a
 decorateTrail t = position . zip (trailVertices origin t)
 
 -- | Combine a list of diagrams (or paths) by using them to
@@ -159,7 +159,7 @@ decorateTrail t = position . zip (trailVertices origin t)
 --   each successive vertex of the path.  If the path and list of objects
 --   have different lengths, the extra tail of the longer one is
 --   ignored.
-decoratePath :: (HasOrigin a, Qualifiable a, Monoid a) => Path (V a) -> [a] -> a
+decoratePath :: (HasOrigin a, Monoid a) => Path (V a) -> [a] -> a
 decoratePath p = position . zip (concat $ pathVertices p)
 
 -- | Methods for concatenating diagrams.
@@ -219,7 +219,7 @@ instance Num (Scalar v) => Default (CatOpts v) where
 --
 --   See also 'cat'', which takes an extra options record allowing
 --   certain aspects of the operation to be tweaked.
-cat :: (HasOrigin a, Boundable a, Qualifiable a, Monoid a) => V a -> [a] -> a
+cat :: (HasOrigin a, Boundable a, Monoid a) => V a -> [a] -> a
 cat v = cat' v def
 
 -- | Like 'cat', but taking an extra 'CatOpts' arguments allowing the
@@ -239,7 +239,7 @@ cat v = cat' v def
 --   Note that @cat' v with {catMethod = Distrib} === mconcat@
 --   (distributing with a separation of 0 is the same as
 --   superimposing).
-cat' :: (HasOrigin a, Boundable a, Qualifiable a, Monoid a)
+cat' :: (HasOrigin a, Boundable a, Monoid a)
      => V a -> CatOpts (V a) -> [a] -> a
 cat' _ (CatOpts { catMethod = Cat }) []              = mempty
 cat' _ (CatOpts { catMethod = Cat }) [d]             = d
