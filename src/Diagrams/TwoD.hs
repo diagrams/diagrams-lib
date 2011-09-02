@@ -67,6 +67,7 @@ module Diagrams.TwoD
          -- * Paths
          -- ** Stroking
        , stroke, stroke', strokeT, strokeT'
+       , FillRule(..), fillRule
        , StrokeOpts(..)
 
          -- ** Clipping
