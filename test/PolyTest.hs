@@ -21,7 +21,7 @@ d = hcat' with {sep = 0.5} (map mkR vs)
 
 s = stroke $ starPoly (StarSkip 5) 
                (polygon with { polyType = PolyPolar
-                                            (repeat (convertAngle $ (1/15 :: CircleFrac)))
+                                            (repeat (tau/15 :: Rad))
                                             (take 15 (cycle [6,7,8]))
                              })
 
