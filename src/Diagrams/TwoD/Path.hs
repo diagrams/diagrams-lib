@@ -23,9 +23,13 @@ module Diagrams.TwoD.Path
 
          stroke, stroke', strokeT, strokeT'
 
+         -- ** Stroke options
+
+       , FillRule(..)
+       , FillRuleA(..), getFillRule, fillRule
        , StrokeOpts(..)
 
-         -- * Inside/outside testing
+         -- ** Inside/outside testing
 
        , isInsideWinding, isInsideEvenOdd
 
@@ -40,6 +44,7 @@ import Diagrams.Segment
 import Diagrams.Path
 import Diagrams.TwoD.Types
 import Diagrams.Solve
+import Diagrams.Util
 
 import Data.AffineSpace
 import Data.VectorSpace
@@ -85,7 +90,8 @@ stroke' opts p
          (getBounds p)
          (fromNames . concat $
            zipWith zip (vertexNames opts) (pathVertices p))
-         (Query $ Any . flip isInsideWinding p)
+         (Query $ Any . flip (runFillRule (strokeFillRule opts)) p)
+    # fillRule (strokeFillRule opts)
 
 -- | A record of options that control how a path is stroked.
 --   @StrokeOpts@ is an instance of 'Default', so a @StrokeOpts@
@@ -107,11 +113,17 @@ data StrokeOpts a
                             --   so on.
                             --
                             --   The default value is the empty list.
+
+    , strokeFillRule :: FillRule
+                            -- ^ The fill rule used for determining
+                            --   which points are inside the path.
+                            --   The default is 'Winding'.
     }
 
 instance Default (StrokeOpts a) where
   def = StrokeOpts
-        { vertexNames = []
+        { vertexNames    = []
+        , strokeFillRule = Winding
         }
 
 -- | A composition of 'stroke' and 'pathFromTrail' for conveniently
@@ -135,6 +147,35 @@ strokeT' opts = stroke' opts . pathFromTrail
 ------------------------------------------------------------
 --  Inside/outside testing
 ------------------------------------------------------------
+
+-- | Enumeration of algorithms or \"rules\" for determining which
+--   points lie in the interior of a (possibly self-intersecting)
+--   closed path.
+data FillRule = Winding  -- ^ Interior points are those with a nonzero
+                         --   /winding/ /number/.  See
+                         --   <http://en.wikipedia.org/wiki/Nonzero-rule>.
+              | EvenOdd  -- ^ Interior points are those where a ray
+                         --   extended infinitely in a particular
+                         --   direction crosses the path an odd number
+                         --   of times. See
+                         --   <http://en.wikipedia.org/wiki/Even-odd_rule>.
+
+runFillRule :: FillRule -> P2 -> Path R2 -> Bool
+runFillRule Winding = isInsideWinding
+runFillRule EvenOdd = isInsideEvenOdd
+
+newtype FillRuleA = FillRuleA (Last FillRule)
+  deriving (Typeable, Semigroup)
+instance AttributeClass FillRuleA
+
+-- | Extract the fill rule from a 'FillRuleA' attribute.
+getFillRule :: FillRuleA -> FillRule
+getFillRule (FillRuleA (Last r)) = r
+
+-- | Specify the fill rule that should be used for determining which
+--   points are inside a path.
+fillRule :: HasStyle a => FillRule -> a -> a
+fillRule = applyAttr . FillRuleA . Last
 
 cross :: R2 -> R2 -> Double
 cross (x,y) (x',y') = x * y' - y * x'
