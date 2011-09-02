@@ -27,6 +27,7 @@ module Diagrams.TwoD.Transform
        , scaling, scale
 
        , scaleToX, scaleToY
+       , scaleUToX, scaleUToY
 
          -- * Translation
        , translationX, translateX
@@ -130,6 +131,19 @@ scaleToX w d = scaleX (w / width d) d
 --   'hrule'.
 scaleToY :: (Boundable t, Transformable t, V t ~ R2) => Double -> t -> t
 scaleToY h d = scaleY (h / height d) d
+
+-- | @scaleUToX w@ scales a diagram /uniformly/ by whatever factor
+--   required to make its width @w@.  @scaleUToX@ should not be
+--   applied to diagrams with a width of 0, such as 'vrule'.
+scaleUToX :: (Boundable t, Transformable t, V t ~ R2) => Double -> t -> t
+scaleUToX w d = scale (w / width d) d
+
+-- | @scaleUToY h@ scales a diagram in the y (vertical) direction by
+--   whatever factor required to make its height @h@.  @scaleUToY@
+--   should not be applied to diagrams with a width of 0, such as
+--   'hrule'.
+scaleUToY :: (Boundable t, Transformable t, V t ~ R2) => Double -> t -> t
+scaleUToY h d = scale (h / height d) d
 
 -- Translation ---------------------------------------------
 

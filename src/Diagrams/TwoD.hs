@@ -126,6 +126,7 @@ module Diagrams.TwoD
        , scalingY, scaleY
        , scaling, scale
        , scaleToX, scaleToY
+       , scaleUToX, scaleUToY
          -- ** Translation
        , translationX, translateX
        , translationY, translateY
