@@ -97,6 +97,11 @@ class (Monoid p, VectorSpace (V p)) => PathLike p where
            -> [Segment (V p)]  -- ^ Segments of the path.
            -> p
 
+-- | A list of points is path-like; this instance simply computes the
+--   vertices of a path-like thing.
+instance VectorSpace v => PathLike [Point v] where
+  pathLike start cl segs = trailVertices start (pathLike start cl segs)
+
 -- | Construct an open path-like thing with the origin as a starting
 --   point.
 fromSegments :: PathLike p => [Segment (V p)] -> p
