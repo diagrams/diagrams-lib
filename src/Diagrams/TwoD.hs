@@ -85,15 +85,16 @@ module Diagrams.TwoD
        , arc
 
          -- ** General polygons
-       , polygon, polygonVertices
-       , PolygonOpts(..), PolygonOrientation(..)
+       , polygon, polyVertices
+       , PolygonOpts(..), PolyType(..), PolyOrientation(..)
+
+         -- ** Star polygons
+       , StarOpts(..), starPoly
 
          -- ** Special polygons
        , unitSquare
        , square
        , rect
-       , starPolygon
-       , eqTriangle
 
          -- ** Other shapes
        , roundedRect
@@ -152,6 +153,7 @@ import Diagrams.TwoD.Types
 import Diagrams.TwoD.Path
 import Diagrams.TwoD.Ellipse
 import Diagrams.TwoD.Arc
+import Diagrams.TwoD.Polygons
 import Diagrams.TwoD.Shapes
 import Diagrams.TwoD.Transform
 import Diagrams.TwoD.Align
