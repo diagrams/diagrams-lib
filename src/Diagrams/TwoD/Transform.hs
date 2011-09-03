@@ -192,8 +192,9 @@ reflectY = transform reflectionY
 -- | @reflectionAbout p v@ is a reflection in the line determined by
 --   the point @p@ and vector @v@.
 reflectionAbout :: P2 -> R2 -> T2
-reflectionAbout p v = conjugate (rotation (-direction v) <> translation (origin .-. p))
-                                reflectionY
+reflectionAbout p v =
+  conjugate (rotation (-direction v :: Rad) <> translation (origin .-. p))
+            reflectionY
 
 -- | @reflectAbout p v@ reflects a diagram in the line determined by
 --   the point @p@ and the vector @v@.
