@@ -79,8 +79,8 @@ unit_Y = (0,-1)
 -- | Compute the direction of a vector, measured counterclockwise from
 --   the positive x-axis as a fraction of a full turn.  The zero
 --   vector is arbitrarily assigned the direction 0.
-direction :: R2 -> CircleFrac
-direction (x,y) = toCircleFrac . Rad $ atan2 y x
+direction :: Angle a => R2 -> a
+direction (x,y) = convertAngle . Rad $ atan2 y x
 
 ------------------------------------------------------------
 -- Size specifications
