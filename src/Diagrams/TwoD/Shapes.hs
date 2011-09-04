@@ -103,27 +103,43 @@ regPoly n l = polygon with { polyType =
 eqTriangle :: (PathLike p, V p ~ R2) => Double -> p
 eqTriangle = regPoly 3
 
+-- | A regular pentagon, with sides of the given length and base
+--   parallel to the x-axis.
 pentagon :: (PathLike p, V p ~ R2) => Double -> p
 pentagon = regPoly 5
 
+-- | A regular hexagon, with sides of the given length and base
+--   parallel to the x-axis.
 hexagon :: (PathLike p, V p ~ R2) => Double -> p
 hexagon = regPoly 6
 
+-- | A regular septagon, with sides of the given length and base
+--   parallel to the x-axis.
 septagon :: (PathLike p, V p ~ R2) => Double -> p
 septagon = regPoly 7
 
+-- | A regular octagon, with sides of the given length and base
+--   parallel to the x-axis.
 octagon :: (PathLike p, V p ~ R2) => Double -> p
 octagon = regPoly 8
 
+-- | A regular nonagon, with sides of the given length and base
+--   parallel to the x-axis.
 nonagon :: (PathLike p, V p ~ R2) => Double -> p
 nonagon = regPoly 9
 
+-- | A regular decagon, with sides of the given length and base
+--   parallel to the x-axis.
 decagon :: (PathLike p, V p ~ R2) => Double -> p
 decagon = regPoly 10
 
+-- | A regular hendecagon, with sides of the given length and base
+--   parallel to the x-axis.
 hendecagon :: (PathLike p, V p ~ R2) => Double -> p
 hendecagon = regPoly 11
 
+-- | A regular dodecagon, with sides of the given length and base
+--   parallel to the x-axis.
 dodecagon :: (PathLike p, V p ~ R2) => Double -> p
 dodecagon = regPoly 12
 
