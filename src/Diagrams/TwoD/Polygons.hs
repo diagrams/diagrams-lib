@@ -11,9 +11,8 @@
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
--- Different 2D convex polygons and stars.
+-- General API for creating various types of polygons.
 --
--- * Information about polygons: <http://en.wikipedia.org/wiki/Polygon>
 -----------------------------------------------------------------------------
 
 module Diagrams.TwoD.Polygons(
