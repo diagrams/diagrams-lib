@@ -64,8 +64,7 @@ showOrigin d = o <> d
 
 showLabels :: (Renderable Text b, Backend b R2)
            => AnnDiagram b R2 m -> AnnDiagram b R2 Any
-showLabels d = (fontSize (max (w/40) (h/40))
-             . mconcat
+showLabels d = (mconcat
              . map (\(n,p) -> text (show n) # translate (p .-. origin))
              . concatMap (\(n,ps) -> zip (repeat n) ps)
              . (map . second . map) fst
@@ -75,7 +74,6 @@ showLabels d = (fontSize (max (w/40) (h/40))
                (fmap (const (Any False)) d)
   where
     NameMap m = names d
-    (w,h) = size2D d
 
 -- XXX finish:
 
