@@ -90,7 +90,7 @@ module Diagrams.TwoD
        , PolygonOpts(..), PolyType(..), PolyOrientation(..)
 
          -- ** Star polygons
-       , StarOpts(..), starPoly
+       , StarOpts(..), star
 
          -- ** Regular polygons
        , regPoly
