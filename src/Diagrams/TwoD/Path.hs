@@ -44,7 +44,6 @@ import Diagrams.Segment
 import Diagrams.Path
 import Diagrams.TwoD.Types
 import Diagrams.Solve
-import Diagrams.Util
 
 import Data.AffineSpace
 import Data.VectorSpace
@@ -90,8 +89,7 @@ stroke' opts p
          (getBounds p)
          (fromNames . concat $
            zipWith zip (vertexNames opts) (pathVertices p))
-         (Query $ Any . flip (runFillRule (strokeFillRule opts)) p)
-    # fillRule (strokeFillRule opts)
+         (Query $ Any . flip (runFillRule (queryFillRule opts)) p)
 
 -- | A record of options that control how a path is stroked.
 --   @StrokeOpts@ is an instance of 'Default', so a @StrokeOpts@
@@ -114,16 +112,21 @@ data StrokeOpts a
                             --
                             --   The default value is the empty list.
 
-    , strokeFillRule :: FillRule
+    , queryFillRule :: FillRule
                             -- ^ The fill rule used for determining
                             --   which points are inside the path.
-                            --   The default is 'Winding'.
+                            --   The default is 'Winding'.  NOTE: for
+                            --   now, this only affects the resulting
+                            --   diagram's 'Query', /not/ how it will
+                            --   be drawn!  To set the fill rule
+                            --   determining how it is to be drawn,
+                            --   use the 'fillRule' function.
     }
 
 instance Default (StrokeOpts a) where
   def = StrokeOpts
         { vertexNames    = []
-        , strokeFillRule = Winding
+        , queryFillRule = Winding
         }
 
 -- | A composition of 'stroke' and 'pathFromTrail' for conveniently
