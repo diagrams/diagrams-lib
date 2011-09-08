@@ -79,14 +79,15 @@ pad s d = withBounds (d # scale s) d
 
 -- | @strut v@ is a diagram which produces no output, but for the
 --   purposes of alignment and bounding regions acts like a
---   1-dimensional segment oriented along the vector @v@.  Useful for
---   manually creating separation between two diagrams.
+--   1-dimensional segment oriented along the vector @v@, with local
+--   origin at its center.  Useful for manually creating separation
+--   between two diagrams.
 strut :: ( Backend b v, InnerSpace v
          , OrderedField (Scalar v)
          , Monoid m
          )
       => v -> AnnDiagram b v m
-strut v = phantom $ getBounds (Linear v)
+strut v = phantom . translate ((-0.5) *^ v) . getBounds $ Linear v
 
 ------------------------------------------------------------
 -- Combining two objects
