@@ -30,7 +30,8 @@ module Diagrams.TwoD.Combinators
 import Graphics.Rendering.Diagrams
 
 import Diagrams.TwoD.Types
-import Diagrams.TwoD.Util
+import Diagrams.TwoD.Vector (unitX, unitY)
+
 import Diagrams.Combinators
 
 import Data.VectorSpace

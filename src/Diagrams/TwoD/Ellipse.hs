@@ -46,6 +46,8 @@ import Data.Monoid (Any(..), mempty)
 
 import Data.VectorSpace (magnitudeSq, magnitude, (^-^))
 
+import Math.Tau
+
 -- | An ellipse is represented by an affine transformation acting on
 --   the unit circle.
 data Ellipse = Ellipse T2

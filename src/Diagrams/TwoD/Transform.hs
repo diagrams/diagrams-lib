@@ -43,7 +43,8 @@ module Diagrams.TwoD.Transform
 import Graphics.Rendering.Diagrams
 
 import Diagrams.TwoD.Types
-import Diagrams.TwoD.Util
+import Diagrams.TwoD.Size   (width, height)
+import Diagrams.TwoD.Vector (direction)
 import Diagrams.Transform
 import Diagrams.Util
 

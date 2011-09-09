@@ -17,6 +17,8 @@ module Diagrams.Solve
 import Data.List (maximumBy)
 import Data.Ord (comparing)
 
+import Math.Tau
+
 ------------------------------------------------------------
 -- Quadratic formula
 ------------------------------------------------------------

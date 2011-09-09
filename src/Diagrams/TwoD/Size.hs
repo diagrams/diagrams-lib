@@ -3,22 +3,19 @@
   #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Diagrams.TwoD.Util
+-- Module      :  Diagrams.TwoD.Size
 -- Copyright   :  (c) 2011 diagrams-lib team (see LICENSE)
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
--- Utility functions for diagrams in two-dimensional Cartesian space.
+-- Utilities for working with sizes of two-dimensional objects.
 --
 -----------------------------------------------------------------------------
-module Diagrams.TwoD.Util
-       ( -- * General two-dimensional utilities
-         unitX, unitY, unit_X, unit_Y
-       , direction
-
+module Diagrams.TwoD.Size
+       (
          -- * Size and extent of diagrams in R2
          -- ** Computing sizes
-       , width, height, size2D
+         width, height, size2D
        , extentX, extentY, center2D
 
          -- ** Specifying sizes
@@ -29,6 +26,10 @@ import Graphics.Rendering.Diagrams
 import Diagrams.TwoD.Types
 
 import Control.Arrow ((***), (&&&))
+
+------------------------------------------------------------
+-- Computing diagram sizes
+------------------------------------------------------------
 
 -- | Compute the width of a boundable object.
 width :: (Boundable a, V a ~ R2) => a -> Double
@@ -59,28 +60,6 @@ extentY d = (-f (0,-1), f (0,1))
 center2D :: (Boundable a, V a ~ R2) => a -> P2
 center2D = P . (mid *** mid) . (extentX &&& extentY)
   where mid = (/2) . uncurry (+)
-
--- | The unit vector in the positive X direction.
-unitX :: R2
-unitX = (1,0)
-
--- | The unit vector in the positive Y direction.
-unitY :: R2
-unitY = (0,1)
-
--- | The unit vector in the negative X direction.
-unit_X :: R2
-unit_X = (-1,0)
-
--- | The unit vector in the negative Y direction.
-unit_Y :: R2
-unit_Y = (0,-1)
-
--- | Compute the direction of a vector, measured counterclockwise from
---   the positive x-axis as a fraction of a full turn.  The zero
---   vector is arbitrarily assigned the direction 0.
-direction :: Angle a => R2 -> a
-direction (x,y) = convertAngle . Rad $ atan2 y x
 
 ------------------------------------------------------------
 -- Size specifications

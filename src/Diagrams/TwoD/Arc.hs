@@ -15,13 +15,17 @@ module Diagrams.TwoD.Arc
     , bezierFromSweep
 
     , circlePath
+
+--    , wedge
     ) where
 
 import Graphics.Rendering.Diagrams
 
+import Math.Tau
+
 import Diagrams.TwoD.Types
 import Diagrams.TwoD.Transform
-import Diagrams.TwoD.Util
+import Diagrams.TwoD.Vector (unitX)
 
 import Diagrams.Path
 import Diagrams.Segment
@@ -94,3 +98,8 @@ arc start end = pathLike (rotate start $ P unitX)
 --   the origin, beginning at (r,0).
 circlePath :: (PathLike p, Closeable p, V p ~ R2, Transformable p) => Double -> p
 circlePath r = arc 0 (tau::Rad) # close # scale r
+
+{-
+wedge :: (Angle a, PathLike p, Closeable p, V p ~ R2) => Double -> a -> a -> p
+wedge r a1 a2 = pathLikeFromTrail $ 
+-}

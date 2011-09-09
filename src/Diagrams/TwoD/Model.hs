@@ -22,7 +22,7 @@ import Graphics.Rendering.Diagrams.Names
 
 import Diagrams.TwoD.Types
 import Diagrams.TwoD.Ellipse
-import Diagrams.TwoD.Util
+import Diagrams.TwoD.Size    (size2D)
 import Diagrams.TwoD.Text
 import Diagrams.Attributes
 import Diagrams.Util

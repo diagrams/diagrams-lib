@@ -21,9 +21,8 @@ import Diagrams.Attributes  (lw, lc)
 import Diagrams.Util        ((#))
 
 import Diagrams.TwoD.Types  (R2)
-import Diagrams.TwoD.Util   (size2D, center2D)
+import Diagrams.TwoD.Size   (size2D, center2D, SizeSpec2D(..))
 import Diagrams.TwoD.Text   (fontSize)
-import Diagrams.TwoD.Util   (SizeSpec2D(..))
 
 import Data.AffineSpace     ((.-.))
 
