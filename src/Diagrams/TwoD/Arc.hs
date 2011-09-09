@@ -63,9 +63,9 @@ bezierFromSweep s
 
 There are a few obvious options for segment spacing:
    A. Evenly space segments each with sweep less than or equal
-      to half pi.  This has the benefit of a better approximation
+      to one quarter of a circle.  This has the benefit of a better approximation
       (at least I think it is better).
-   B. Use as much of the sweep in half pi sized segments and one for
+   B. Use as much of the sweep in quarter-circle sized segments and one for
       the remainder.  This potentially gives more opportunities for
       consistency (though not as much as option C) as the error in
       approximation would more often match the error from another arc

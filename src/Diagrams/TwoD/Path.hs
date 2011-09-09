@@ -234,9 +234,9 @@ trailCrossings p@(P (x,y)) (start, tr)
                         ^+^ (2*t)   *^ (3*^x1 ^-^ 6*^c1 ^+^ 3*^c2)
                         ^+^            ((-3)*^x1 ^+^ 3*^c1)
                   ang = atan2 dy dx
-              in  case () of _ | (0 < ang && ang < pi && t < 1)  -> 1
-                               | (-pi < ang && ang < 0 && t > 0) -> -1
-                               | otherwise                       -> 0
+              in  case () of _ | (0      < ang && ang < tau/2 && t < 1) ->  1
+                               | (-tau/2 < ang && ang < 0     && t > 0) -> -1
+                               | otherwise                              ->  0
 
     isLeft a b = cross (b .-. a) (p .-. a)
 

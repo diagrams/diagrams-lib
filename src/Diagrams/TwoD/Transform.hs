@@ -65,7 +65,7 @@ rotation ang = fromLinear r (linv r)
 -- | Rotate by the given angle. Positive angles correspond to
 --   counterclockwise rotation, negative to clockwise. The angle can
 --   be expressed using any type which is an instance of 'Angle'.  For
---   example, @rotate (1\/4 :: 'CircleFrac')@, @rotate (pi\/2 :: 'Rad')@, and
+--   example, @rotate (1\/4 :: 'CircleFrac')@, @rotate (tau\/4 :: 'Rad')@, and
 --   @rotate (90 :: 'Deg')@ all represent the same transformation, namely,
 --   a counterclockwise rotation by a right angle.
 --
