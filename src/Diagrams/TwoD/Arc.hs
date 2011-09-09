@@ -16,7 +16,7 @@ module Diagrams.TwoD.Arc
 
     , circlePath
 
---    , wedge
+    , wedge
     ) where
 
 import Graphics.Rendering.Diagrams
@@ -25,13 +25,13 @@ import Math.Tau
 
 import Diagrams.TwoD.Types
 import Diagrams.TwoD.Transform
-import Diagrams.TwoD.Vector (unitX)
+import Diagrams.TwoD.Vector (unitX, e)
 
 import Diagrams.Path
 import Diagrams.Segment
-import Diagrams.Util ((#))
+import Diagrams.Util ((#), (<>))
 
-import Data.VectorSpace((^-^))
+import Data.VectorSpace((^-^), (*^), negateV)
 
 -- For details of this approximation see:
 --   http://www.tinaja.com/glib/bezcirc2.pdf
@@ -99,7 +99,9 @@ arc start end = pathLike (rotate start $ P unitX)
 circlePath :: (PathLike p, Closeable p, V p ~ R2, Transformable p) => Double -> p
 circlePath r = arc 0 (tau::Rad) # close # scale r
 
-{-
-wedge :: (Angle a, PathLike p, Closeable p, V p ~ R2) => Double -> a -> a -> p
-wedge r a1 a2 = pathLikeFromTrail $ 
--}
+-- | Create a circular wedge of the given radius, beginning at the
+--   first angle and extending counterclockwise to the second.
+wedge :: (Angle a, PathLike p, V p ~ R2) => Double -> a -> a -> p
+wedge r a1 a2 = pathLikeFromTrail $ fromOffsets [r *^ e a1]
+                                 <> arc a1 a2 # scale r
+                                 <> fromOffsets [r *^ negateV (e a2)]
