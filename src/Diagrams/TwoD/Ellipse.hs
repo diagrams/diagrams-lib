@@ -109,7 +109,7 @@ ellipseCenter (Ellipse e) = papply e origin
 --   will be in the range [0, tau/2).
 ellipseAngle :: Ellipse -> Rad
 ellipseAngle ell
-  | y < 0     = Rad $ pi + atan2 y x
+  | y < 0     = Rad $ tau/2 + atan2 y x
   | otherwise = Rad $ atan2 y x
   where ((x,y),_) = ellipseAxes ell
 

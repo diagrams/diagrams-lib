@@ -96,7 +96,6 @@ class (Monoid p, VectorSpace (V p)) => PathLike p where
            -> Bool             -- ^ Should the path be closed?
            -> [Segment (V p)]  -- ^ Segments of the path.
            -> p
-
 -- | A list of points is path-like; this instance simply computes the
 --   vertices of a path-like thing.
 instance VectorSpace v => PathLike [Point v] where

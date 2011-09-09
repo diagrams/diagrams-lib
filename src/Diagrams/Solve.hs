@@ -85,7 +85,7 @@ cubForm a b c d
        xx     = 2*b*b*b - 9*a*b*c + 27*a*a*d
        p      = disc/(3*a*a)
        q      = xx/(27*a*a*a)
-       trig k = 2 * sqrt(-p/3) * cos(1/3*acos(3*q/(2*p)*sqrt(-3/p)) - k*2*pi/3)
+       trig k = 2 * sqrt(-p/3) * cos(1/3*acos(3*q/(2*p)*sqrt(-3/p)) - k*tau/3)
                 - b/(3*a)
 
        cubert x | x < 0     = -((-x)**(1/3))
