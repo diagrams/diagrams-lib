@@ -24,7 +24,7 @@ import Diagrams.Path
 import Diagrams.TwoD.Types
 import Diagrams.TwoD.Path
 import Diagrams.TwoD.Shapes
-import Diagrams.TwoD.Util (SizeSpec2D(..))
+import Diagrams.TwoD.Size (SizeSpec2D(..))
 import Diagrams.Util
 
 import Data.AffineSpace ((.-.))

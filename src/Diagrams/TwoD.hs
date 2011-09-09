@@ -44,9 +44,11 @@
 --
 --   * "Diagrams.TwoD.Image" allows importing external images into diagrams.
 --
---   * "Diagrams.TwoD.Util" defines some two-dimensional utilities,
---     such as unit vectors and functions for computing the size and
---     extent of diagrams in R^2.
+--   * "Diagrams.TwoD.Vector" defines some special 2D vectors and
+--     functions for converting between vectors and angles.
+--
+--   * "Diagrams.TwoD.Size" defines functions for working with the
+--     size of 2D objects.
 --
 --   * "Diagrams.TwoD.Model" defines some aids for visualizing
 --     diagrams' internal model (local origins, bounding regions,
@@ -56,7 +58,8 @@
 module Diagrams.TwoD
        ( -- * R^2
          R2, P2, T2
-       , unitX, unitY, unit_X, unit_Y, direction
+       , unitX, unitY, unit_X, unit_Y
+       , direction, fromDirection, e
 
          -- * Angles
        , tau
@@ -163,6 +166,8 @@ module Diagrams.TwoD
 
        ) where
 
+import Math.Tau
+
 import Diagrams.TwoD.Types
 import Diagrams.TwoD.Path
 import Diagrams.TwoD.Ellipse
@@ -172,7 +177,8 @@ import Diagrams.TwoD.Shapes
 import Diagrams.TwoD.Transform
 import Diagrams.TwoD.Align
 import Diagrams.TwoD.Combinators
-import Diagrams.TwoD.Util
+import Diagrams.TwoD.Vector
+import Diagrams.TwoD.Size
 import Diagrams.TwoD.Model
 import Diagrams.TwoD.Text
 import Diagrams.TwoD.Image

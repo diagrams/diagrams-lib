@@ -37,7 +37,7 @@ module Diagrams.TwoD.Align
 import Graphics.Rendering.Diagrams
 
 import Diagrams.TwoD.Types
-import Diagrams.TwoD.Util
+import Diagrams.TwoD.Vector
 import Diagrams.Align
 
 import Data.VectorSpace

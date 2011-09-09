@@ -40,6 +40,8 @@ module Diagrams.TwoD.Path
 
 import Graphics.Rendering.Diagrams
 
+import Math.Tau
+
 import Diagrams.Segment
 import Diagrams.Path
 import Diagrams.TwoD.Types

@@ -22,13 +22,14 @@ module Diagrams.TwoD.Types
        , T2
 
          -- * Angles
-       , tau
        , Angle(..)
        , CircleFrac(..), Rad(..), Deg(..)
        , fullCircle, convertAngle
        ) where
 
 import Graphics.Rendering.Diagrams
+
+import Math.Tau
 
 ------------------------------------------------------------
 -- 2D Euclidean space
@@ -49,11 +50,6 @@ instance Transformable R2 where
 
 ------------------------------------------------------------
 -- Angles
-
--- | The circle constant, i.e. the ratio of a circle's circumference
---   to its radius.  See <http://tauday.com/>.
-tau :: Floating a => a
-tau = 2*pi
 
 -- | Newtype wrapper used to represent angles as fractions of a
 --   circle.  For example, 1/3 = tau/3 radians = 120 degrees.
