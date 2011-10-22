@@ -47,3 +47,29 @@
 
   * Bug fixes:
     + Issue 32 (mempty not behaving correctly within concatenations)
+
+0.4: 23 October 2011
+
+  * documentation fixes
+
+  * New functions and primitives:
+
+    + 'wedge' shape primitive
+    + 'fromDirection' function for converting angles to 2D unit vectors;
+      inverse function 'direction' generalized to return any Angle type
+    + New functions for computing and adjusting segment lengths
+    + 'scaleUToX' and 'scaleUToY' for doing uniform scales
+      resulting in a desired width or height.
+    + 'circlePath', 'reversePath', 'decoratePath'
+
+  * New features:
+
+    + Completely new and improved polygon generation API
+    + Cubic splines
+    + User-controllable path fill rules
+
+  * Bug fixes:
+
+    + fix incorrect corner case in arc generation
+    + fix incorrect reverseTrail function
+
