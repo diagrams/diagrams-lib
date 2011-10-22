@@ -17,7 +17,7 @@ Category:            Graphics
 Build-type:          Simple
 Cabal-version:       >=1.6
 Extra-source-files:  CHANGES
-Tested-with:         GHC >= 7.0.2 && <= 7.0.3, GHC == 7.2.1
+Tested-with:         GHC == 6.12.3, GHC >= 7.0.2 && <= 7.0.3, GHC == 7.2.1
 Source-repository head
   type:     darcs
   location: http://patch-tag.com/r/byorgey/diagrams-lib
