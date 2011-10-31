@@ -73,3 +73,6 @@
     + fix incorrect corner case in arc generation
     + fix incorrect reverseTrail function
 
+0.4.0.1: 30 October 2011
+
+  * bump data-default dependency to allow version 0.3
