@@ -13,6 +13,7 @@
 module Diagrams.TwoD.Adjust (
     adjustDia2D
   , adjustSize
+  , requiredScale
   ) where
 
 import Graphics.Rendering.Diagrams
@@ -27,13 +28,14 @@ import Diagrams.TwoD.Text   (fontSize)
 import Data.AffineSpace     ((.-.))
 
 import Data.Colour.Names    (black)
-import Data.Monoid          (Monoid, mempty)
+import Data.Monoid          (Monoid)
 
 -- | @adjustDia2D@ provides a useful default implementation of
 --   the 'adjustDia' method from the 'Backend' type class.
 --
---   As its first argument it requires a method for extracting the
---   requested output size from the rendering options.
+--   As its first two arguments it requires a method for extracting
+--   the requested output size from the rendering options, and a way
+--   of updating the rendering options with a new (more specific) size.
 --
 --   It then performs the following adjustments:
 --
@@ -48,32 +50,50 @@ import Data.Monoid          (Monoid, mempty)
 --   * Freeze the diagram in its final form
 --
 --   * Scale and translate the diagram to fit within the requested size
+--
+--   * Also return the actual adjusted size of the diagram.
 
-adjustDia2D :: Monoid m => (Options b R2 -> R2) -> b -> Options b R2 -> AnnDiagram b R2 m -> AnnDiagram b R2 m
-adjustDia2D getSize _ opts d = d # lw 0.01 # lc black # fontSize 1 # freeze
-                                 # scale s
-                                 # translate tr
-    where (w,h)   = getSize opts
-          (wd,hd) = size2D d
-          xscale  = w / wd
-          yscale  = h / hd
-          s'      = min xscale yscale
-          s | isInfinite s' = 1
-            | otherwise     = s'
-          tr      = (0.5 *. P (w,h)) .-. (s *. center2D d)
+-- XXX should split out the attribute-setting into a separate function.
+adjustDia2D :: Monoid m
+            => (Options b R2 -> SizeSpec2D)
+            -> (SizeSpec2D -> Options b R2 -> Options b R2)
+            -> b -> Options b R2 -> AnnDiagram b R2 m
+            -> (Options b R2, AnnDiagram b R2 m)
+adjustDia2D getSize setSize _ opts d =
+  ( case spec of
+       Dims _ _ -> opts
+       _        -> setSize (uncurry Dims . scale s $ size) opts
 
--- | @adjustSize spec sz@ returns a transformation which can be
---   applied to something of size @sz@ to make it the requested size
---   @spec@.
+  , d # lw 0.01 # lc black # fontSize 1 # freeze
+      # scale s
+      # translate tr
+  )
+  where spec = getSize opts
+        size = size2D d
+        s    = requiredScale spec size
+        tr   = (0.5 *. P (scale s size)) .-. (s *. center2D d)
+
+-- | @adjustSize spec sz@ returns a transformation (a uniform scale)
+--   which can be applied to something of size @sz@ to make it the
+--   requested size @spec@.
 adjustSize :: SizeSpec2D -> R2 -> Transformation R2
-adjustSize Absolute _ = mempty
-adjustSize (Width wSpec) (w,_)
-  | wSpec == 0 || w == 0 = mempty
-  | otherwise = scaling (wSpec / w)
-adjustSize (Height hSpec) (_,h)
-  | hSpec == 0 || h == 0 = mempty
-  | otherwise = scaling (hSpec / h)
-adjustSize (Dims wSpec hSpec) (w,h) = scaling s
+adjustSize spec size = scaling (requiredScale spec size)
+
+-- | @requiredScale spec sz@ returns a scaling factor necessary to
+--   make something of size @sz@ fit the requested size @spec@,
+--   without changing the aspect ratio.  Hence an explicit
+--   specification of both dimensions may not be honored if the aspect
+--   ratios do not match; in that case the scaling will be as large as
+--   possible so that the object still fits within the requested size.
+requiredScale :: SizeSpec2D -> R2 -> Double
+requiredScale Absolute _    = 1
+requiredScale (Width wSpec) (w,_)
+  | wSpec == 0 || w == 0 = 1
+  | otherwise            = wSpec / w
+requiredScale (Height hSpec) (_,h)
+  | hSpec == 0 || h == 0 = 1
+  | otherwise            = hSpec / h
+requiredScale (Dims wSpec hSpec) (w,h) = s
   where xscale  = wSpec / w
         yscale  = hSpec / h
         s'      = min xscale yscale
