@@ -1,5 +1,5 @@
 Name:                diagrams-lib
-Version:             0.4
+Version:             0.4.0.1
 Synopsis:            Embedded domain-specific language for declarative graphics
 Description:         Diagrams is a flexible, extensible EDSL for creating
                      graphics of many types.  Graphics can be created
@@ -62,7 +62,7 @@ Library
                        vector-space >= 0.7.7 && < 0.8,
                        NumInstances >= 1.0 && < 1.1,
                        colour >= 2.3.1 && < 2.4,
-                       data-default >= 0.2 && < 0.3,
+                       data-default >= 0.2 && < 0.4,
                        pretty >= 1.0.1.2 && < 1.2,
                        newtype >= 0.2 && < 0.3,
                        tau >= 6.28
