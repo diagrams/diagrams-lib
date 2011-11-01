@@ -140,6 +140,9 @@ module Diagrams.TwoD
        , reflectionX, reflectX
        , reflectionY, reflectY
        , reflectionAbout, reflectAbout
+         -- ** Shears
+       , shearingX, shearX
+       , shearingY, shearY
 
          -- * Combinators
        , strutX, strutY
