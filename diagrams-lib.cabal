@@ -34,6 +34,7 @@ Library
                        Diagrams.Solve,
                        Diagrams.Transform,
                        Diagrams.BoundingBox,
+                       Diagrams.Size,
                        Diagrams.TwoD,
                        Diagrams.TwoD.Types,
                        Diagrams.TwoD.Align,
