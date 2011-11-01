@@ -41,7 +41,8 @@ module Diagrams.Prelude
          --   conjugation of transformations.
        , module Diagrams.Transform
 
-         -- | Convenient definitions and
+         -- | Convenient definitions and utilities for working with
+         --   good old-fashioned, axis-aligned bounding boxes.
        , module Diagrams.BoundingBox
 
          -- | Generic tools for computing sizes of diagrams.
