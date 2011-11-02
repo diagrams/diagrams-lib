@@ -50,13 +50,19 @@ infixl 6 |||
 --   >   ===
 --   >    d
 --
---   to place @c@ above @d@.
+--   to place @c@ above @d@.  The local origin of the resulting
+--   combined diagram is the same as the local origin of the first.
+--   @(===)@ is associative and has 'mempty' as a right (but not left)
+--   identity.  See the documentation of 'beside' for more information.
 (===) :: (HasOrigin a, Boundable a, V a ~ R2, Monoid a) => a -> a -> a
 (===) = beside (negateV unitY)
 
 -- | Place two diagrams (or other boundable objects) horizontally
 --   adjacent to one another, with the first diagram to the left of
---   the second.
+--   the second.  The local origin of the resulting
+--   combined diagram is the same as the local origin of the first.
+--   @(===)@ is associative and has 'mempty' as a right (but not left)
+--   identity.  See the documentation of 'beside' for more information.
 (|||) :: (HasOrigin a, Boundable a, V a ~ R2, Monoid a) => a -> a -> a
 (|||) = beside unitX
 
