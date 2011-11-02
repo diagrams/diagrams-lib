@@ -23,7 +23,6 @@ module Diagrams.Combinators
 
          -- * Binary operations
        , beside, besideBounds
-       , append
 
          -- * n-ary operations
        , appends
@@ -93,28 +92,35 @@ strut v = phantom . translate ((-0.5) *^ v) . getBounds $ Linear v
 -- Combining two objects
 ------------------------------------------------------------
 
--- | Place two bounded, monoidal objects (i.e. diagrams or paths) next
+-- | Place two bounded, monoidal objects (/i.e./ diagrams or paths) next
 --   to each other along the given vector.  In particular, place the
 --   first object so that the vector points from its local origin to
 --   the local origin of the second object, at a distance so that
 --   their bounding regions are just tangent.  The local origin of the
---   new, combined object is at the point of tangency, along the line
---   between the old local origins.
+--   new, combined object is the local origin of the first object.
+--
+--   Note that @beside v@ is associative, so objects under @beside v@
+--   form a semigroup for any given vector @v@.  However, they do
+--   /not/ form a monoid, since there is no identity element. 'mempty'
+--   is a right identity (@beside v d1 mempty === d1@) but not a left
+--   identity (@beside v mempty d1 === d1 # align (negateV v)@).
+--
+--   In older versions of diagrams, @beside@ put the local origin of
+--   the result at the point of tangency between the two inputs.  That
+--   semantics can easily be recovered by performing an alignment on
+--   the first input before combining.  That is, if @beside'@ denotes
+--   the old semantics,
+--
+--   > beside' v x1 x2 = beside v (x1 # align v) x2
+--
+--   To get something like @beside v x1 x2@ whose local origin is
+--   identified with that of @x2@ instead of @x1@, use @beside
+--   (negateV v) x2 x1@.
 beside :: (HasOrigin a, Boundable a, Monoid a) => V a -> a -> a -> a
 beside v d1 d2
-  = align v d1 <> align (negateV v) d2
+  = (align v d1 <> align (negateV v) d2) # moveOriginBy (negateV b1)
+  where b1 = boundaryV v d1
 -- XXX add picture to above documentation?
-
--- Note that sending the origin to the point of tangency like this
--- means that (beside v) is not associative.  We can make it
--- associative if we specify that the origin of the new, composed
--- diagram is the same as the local origin of the first diagram (or,
--- dually, of the second).  But then mempty is only a right identity,
--- not a left identity.  (To be sure, with the current implementation
--- mempty is no identity at all!)  We could make (beside v) a monoidal
--- operation (associative, with mempty as identity) if we always
--- center the origin along v after combining.  That sounds nice from a
--- theoretical point of view but not from a usability point of view...
 
 -- | @besideBounds b v x@ positions @x@ so it is beside the bounding
 --   region @b@ in the direction of @v@.  The origin of the new
@@ -122,11 +128,6 @@ beside v d1 d2
 besideBounds :: (HasOrigin a, Boundable a) => Bounds (V a) -> V a -> a -> a
 besideBounds b v a
   = moveOriginBy (origin .-. boundary v b) (align (negateV v) a)
-
--- | Like 'beside', but the origin of the final combined object is the
---   origin of the first object.  See also 'appends'.
-append :: (HasOrigin a, Boundable a, Monoid a) => V a -> a -> a -> a
-append v d1 d2 = appends d1 [(v,d2)]
 
 ------------------------------------------------------------
 -- Combining multiple objects
@@ -258,3 +259,6 @@ cat' v (CatOpts { catMethod = Cat, sep = s }) (x:xs) =
 cat' v (CatOpts { catMethod = Distrib, sep = s }) ds =
   decorateTrail (fromOffsets (repeat (withLength s v))) ds
   -- infinite trail, no problem for Haskell =D
+
+-- XXX can the implementation of cat' be simplified now that we have a
+-- nicer semantics for 'beside'?
