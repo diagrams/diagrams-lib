@@ -118,8 +118,10 @@ strut v = phantom . translate ((-0.5) *^ v) . getBounds $ Linear v
 --   (negateV v) x2 x1@.
 beside :: (HasOrigin a, Boundable a, Monoid a) => V a -> a -> a -> a
 beside v d1 d2
-  = (align v d1 <> align (negateV v) d2) # moveOriginBy (negateV b1)
-  where b1 = boundaryV v d1
+  = d1 <> (d2 # moveOriginBy (v1 ^+^ v2))
+  where v1 = negateV (boundaryV v d1)
+        v2 = boundaryV (negateV v) d2
+
 -- XXX add picture to above documentation?
 
 -- | @besideBounds b v x@ positions @x@ so it is beside the bounding
