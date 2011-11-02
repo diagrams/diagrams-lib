@@ -71,7 +71,10 @@ adjustDia2D getSize setSize _ opts d =
   where spec = getSize opts
         size = size2D d
         s    = requiredScale spec size
-        tr   = (0.5 *. P (scale s size)) .-. (s *. center2D d)
+        finalSz = case spec of
+                    Dims w h -> (w,h)
+                    _        -> scale s size
+        tr = (0.5 *. P finalSz) .-. (s *. center2D d)
 
 -- | @adjustSize spec sz@ returns a transformation (a uniform scale)
 --   which can be applied to something of size @sz@ to make it the
