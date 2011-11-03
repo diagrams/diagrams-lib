@@ -42,7 +42,6 @@ import Data.AdditiveGroup
 import Data.AffineSpace ((.-.))
 import Data.VectorSpace
 
-import Data.List (foldl')
 import Data.Monoid
 
 import Data.Default
@@ -245,22 +244,13 @@ cat v = cat' v def
 --   superimposing).
 cat' :: (HasOrigin a, Boundable a, Monoid a)
      => V a -> CatOpts (V a) -> [a] -> a
-cat' _ (CatOpts { catMethod = Cat }) []              = mempty
-cat' _ (CatOpts { catMethod = Cat }) [d]             = d
-cat' v (CatOpts { catMethod = Cat, sep = s }) (x:xs) =
-    foldl' (\d2 d1 ->
-             d1 <> (moveOriginBy (origin .-. boundary v d1)
-                    . moveOriginBy (withLength s (negateV v))
-                    $ d2)
-           )
-           d
-           ds
-  where (d:ds) = reverse (x:xs')
-        xs' = map (align (negateV v)) xs
+cat' v (CatOpts { catMethod = Cat, sep = s }) = foldB comb mempty
+  where comb d1 d2 = let v1 = negateV (boundaryV v d1)
+                         v2 = boundaryV (negateV v) d2
+                         vs = withLength s (negateV v)
+                     in
+                         d1 <> (d2 # moveOriginBy (v1 ^+^ vs ^+^ v2))
 
-cat' v (CatOpts { catMethod = Distrib, sep = s }) ds =
-  decorateTrail (fromOffsets (repeat (withLength s v))) ds
+cat' v (CatOpts { catMethod = Distrib, sep = s }) =
+  decorateTrail . fromOffsets . repeat $ withLength s v
   -- infinite trail, no problem for Haskell =D
-
--- XXX can the implementation of cat' be simplified now that we have a
--- nicer semantics for 'beside'?
