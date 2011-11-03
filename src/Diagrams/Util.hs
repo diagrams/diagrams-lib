@@ -19,6 +19,7 @@ module Diagrams.Util
 
          -- * Internal utilities
        , Proxy(..)
+       , foldB
 
        ) where
 
@@ -99,3 +100,18 @@ infixl 8 #
 -- | A value of @Proxy a@ carries no information; it's used only to
 --   fix the type @a@.
 data Proxy a = Proxy
+
+-- | Given an associative binary operation and a default value to use
+--   in the case of an empty list, perform a /balanced/ fold over a
+--   list.  For example,
+--
+--   > foldB (+) z [a,b,c,d,e,f] == ((a+b) + (c+d)) + (e+f)
+--
+foldB :: (a -> a -> a) -> a -> [a] -> a
+foldB _ z [] = z
+foldB f _ as = foldB' as
+  where foldB' [x] = x
+        foldB' xs  = foldB' (go xs)
+        go []         = []
+        go [x]        = [x]
+        go (x1:x2:xs) = f x1 x2 : go xs
