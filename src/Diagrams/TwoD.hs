@@ -140,6 +140,9 @@ module Diagrams.TwoD
        , reflectionX, reflectX
        , reflectionY, reflectY
        , reflectionAbout, reflectAbout
+         -- ** Shears
+       , shearingX, shearX
+       , shearingY, shearY
 
          -- * Combinators
        , strutX, strutY
@@ -163,8 +166,6 @@ module Diagrams.TwoD
 
          -- * Visual aids for understanding the internal model
        , showOrigin
-       , showOrigin'
-       , OriginOpts(..)
        , showLabels
 
        ) where
