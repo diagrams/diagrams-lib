@@ -166,6 +166,8 @@ module Diagrams.TwoD
 
          -- * Visual aids for understanding the internal model
        , showOrigin
+       , showOrigin'
+       , OriginOpts(..)
        , showLabels
 
        ) where

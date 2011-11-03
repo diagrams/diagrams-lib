@@ -14,6 +14,8 @@
 module Diagrams.TwoD.Model
        ( -- * Showing the local origin
          showOrigin
+       , showOrigin'
+       , OriginOpts(..)
        , showLabels
        ) where
 
@@ -29,11 +31,13 @@ import Diagrams.Util
 
 import Control.Arrow (second)
 import Data.Monoid
+import Data.Default
 import Data.AffineSpace ((.-.))
 
 import qualified Data.Map as M
 
 import Data.Colour.Names
+import Data.Colour (Colour)
 
 ------------------------------------------------------------
 -- Marking the origin
@@ -49,13 +53,23 @@ showOrigin d = o <> d
                 # fmap (const mempty)
         (w,h) = size2D d
 
--- data OriginOpts b m = OriginOpts { oDia   :: AnnDiagram b R2 m
---                                  , oScale :: Double
---                                  }
+-- | Mark the origin of a diagram, with control over colour and scale
+-- of marker dot.
+showOrigin' :: (Renderable Ellipse b, Backend b R2, Monoid m)
+           => OriginOpts -> AnnDiagram b R2 m -> AnnDiagram b R2 m
+showOrigin' oo d = o <> d
+  where o     = circle (max (w * oScale oo) (h * oScale oo))
+                # fc (oColor oo)
+                # lw 0
+                # fmap (const mempty)
+        (w,h) = size2D d
 
--- showOrigin' (OriginOpts o s) d = o' <> d
---   where o' = o # scale (max (w * s) (h * s))
---         (w,h) = size2D d
+data OriginOpts = OriginOpts { oColor :: Colour Double
+                             , oScale :: Double
+                             }
+
+instance Default OriginOpts where
+  def = OriginOpts red (1/50)
 
 
 ------------------------------------------------------------
