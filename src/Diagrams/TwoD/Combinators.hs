@@ -23,15 +23,18 @@ module Diagrams.TwoD.Combinators
     , hcat, hcat'
     , vcat, vcat'
 
-      -- * Struts
+      -- * Spacing
     , strutX, strutY
+    , padX, padY
     ) where
 
 import Graphics.Rendering.Diagrams
 
+import Diagrams.TwoD.Transform (scaleX, scaleY)
 import Diagrams.TwoD.Types
 import Diagrams.TwoD.Vector (unitX, unitY)
 
+import Diagrams.Util ((#))
 import Diagrams.Combinators
 
 import Data.VectorSpace
@@ -117,3 +120,25 @@ strutX d = strut (d,0)
 --   @strutX w@.
 strutY :: (Backend b R2, Monoid m) => Double -> AnnDiagram b R2 m
 strutY d = strut (0,d)
+
+-- | @padX s@ \"pads\" a diagram in the x-direction, expanding its
+--   bounding region horizontally by a factor of @s@ (factors between
+--   0 and 1 can be used to shrink the bounding region).  Note that
+--   the bounding region will expand with respect to the local origin,
+--   so if the origin is not centered horizontally the padding may appear
+--   \"uneven\".  If this is not desired, the origin can be centered
+--   (using 'centerX') before applying @padX@.
+padX :: ( Backend b R2, Monoid m )
+     => Double -> AnnDiagram b R2 m -> AnnDiagram b R2 m
+padX s d = withBounds (d # scaleX s) d
+
+-- | @padY s@ \"pads\" a diagram in the y-direction, expanding its
+--   bounding region vertically by a factor of @s@ (factors between
+--   0 and 1 can be used to shrink the bounding region).  Note that
+--   the bounding region will expand with respect to the local origin,
+--   so if the origin is not centered vertically the padding may appear
+--   \"uneven\".  If this is not desired, the origin can be centered
+--   (using 'centerY') before applying @padY@.
+padY :: ( Backend b R2, Monoid m )
+     => Double -> AnnDiagram b R2 m -> AnnDiagram b R2 m
+padY s d = withBounds (d # scaleY s) d
