@@ -81,7 +81,7 @@ showLabels :: (Renderable Text b, Backend b R2)
 showLabels d = (mconcat
              . map (\(n,p) -> text (show n) # translate (p .-. origin))
              . concatMap (\(n,ps) -> zip (repeat n) ps)
-             . (map . second . map) fst
+             . (map . second . map) location
              . M.assocs
              $ m)
                `atop`
