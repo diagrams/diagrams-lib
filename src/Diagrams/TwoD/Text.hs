@@ -2,6 +2,7 @@
            , GeneralizedNewtypeDeriving
            , FlexibleContexts
            , TypeFamilies
+           , MultiParamTypeClasses
   #-}
 -----------------------------------------------------------------------------
 -- |
@@ -58,6 +59,9 @@ instance Transformable Text where
 
 instance HasOrigin Text where
   moveOriginTo p = translate (origin .-. p)
+
+instance Renderable Text NullBackend where
+  render _ _ = mempty
 
 -- | Create a primitive text diagram from the given string, which
 --   /takes up no space/.  By default, the text is centered with

@@ -1,6 +1,7 @@
 {-# LANGUAGE TypeFamilies
            , FlexibleContexts
            , FlexibleInstances
+           , MultiParamTypeClasses
            , DeriveFunctor
            , UndecidableInstances
   #-}
@@ -53,6 +54,7 @@ import Data.AffineSpace
 import Data.VectorSpace
 
 import Control.Applicative (liftA2)
+import Data.Monoid (mempty)
 
 ------------------------------------------------------------
 --  Constructing segments  ---------------------------------
@@ -76,6 +78,9 @@ type instance V (Segment v) = v
 
 instance HasLinearMap v => Transformable (Segment v) where
   transform = fmap . apply
+
+instance HasLinearMap v => Renderable (Segment v) NullBackend where
+  render _ _ = mempty
 
 -- | @'straight' v@ constructs a translationally invariant linear
 --   segment with direction and length given by the vector @v@.

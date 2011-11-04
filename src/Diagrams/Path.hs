@@ -185,6 +185,9 @@ instance (InnerSpace v, OrderedField (Scalar v)) => Boundable (Trail v) where
           mempty
           segs
 
+instance HasLinearMap v => Renderable (Trail v) NullBackend where
+  render _ _ = mempty
+
 ------------------------------------------------------------
 --  Computing with trails  ---------------------------------
 ------------------------------------------------------------
@@ -279,6 +282,9 @@ instance (InnerSpace v, OrderedField (Scalar v)) => Boundable (Path v) where
           -- this type signature is necessary to work around an apparent bug in ghc 6.12.1
     where trailBounds :: (Point v, Trail v) -> Bounds v
           trailBounds (p, t) = moveOriginTo ((-1) *. p) (getBounds t)
+
+instance (HasLinearMap v, Ord v) => Renderable (Path v) NullBackend where
+  render _ _ = mempty
 
 ------------------------------------------------------------
 --  Constructing paths from trails  ------------------------
