@@ -96,8 +96,8 @@ arc start end = pathLike (rotate start $ P unitX)
 
 -- | Create a closed circular path of the given radius, centered at
 --   the origin, beginning at (r,0).
-circlePath :: (PathLike p, Closeable p, V p ~ R2, Transformable p) => Double -> p
-circlePath r = arc 0 (tau::Rad) # close # scale r
+circlePath :: (PathLike p, V p ~ R2) => Double -> p
+circlePath r = pathLikeFromTrail $ arc 0 (tau::Rad) # close # scale r
 
 -- | Create a circular wedge of the given radius, beginning at the
 --   first angle and extending counterclockwise to the second.
