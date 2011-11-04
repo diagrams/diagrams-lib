@@ -44,7 +44,6 @@ import Data.Data (Data)
 import Data.Typeable (Typeable)
 
 import Graphics.Rendering.Diagrams.Points (Point(..))
-import Graphics.Rendering.Diagrams.Transform (Transformable(..), HasLinearMap)
 import Graphics.Rendering.Diagrams.HasOrigin (HasOrigin(..))
 import Graphics.Rendering.Diagrams.Bounds (Boundable, boundary)
 import Graphics.Rendering.Diagrams.V (V)
@@ -55,10 +54,6 @@ data BoundingBox v = BoundingBox (Point v) (Point v)
   deriving (Show, Read, Eq, Data, Typeable, Functor)
 
 type instance V (BoundingBox v) = v
-
-instance (HasLinearMap v, Transformable v) => Transformable (BoundingBox v) where
-  transform t (BoundingBox p1 p2) = BoundingBox (transform t p1)
-                                                (transform t p2)
 
 instance VectorSpace v => HasOrigin (BoundingBox v) where
   moveOriginTo p (BoundingBox p1 p2) = BoundingBox (moveOriginTo p p1)
