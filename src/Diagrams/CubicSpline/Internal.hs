@@ -1,6 +1,7 @@
 {-# LANGUAGE TypeFamilies
            , FlexibleContexts
   #-}
+{-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.CubicSpline
@@ -21,12 +22,7 @@ module Diagrams.CubicSpline.Internal
        , solveCubicSplineCoefficients
        ) where
 
-import Control.Applicative
-import Control.Newtype
-import Data.Monoid
 import Data.List
-import Data.VectorSpace
-import Data.NumInstances
 
 -- | Solves a system of the form 'A*X=D' for 'x' where 'A' is an 
 --   'n' by 'n' matrix with 'bs' as the main diagonal and 
@@ -38,18 +34,23 @@ solveTriDiagonal as (b0:bs) (c0:cs) (d0:ds) = h cs' ds'
     cs' = c0 / b0 : f cs' as bs cs
     f _ [_] _ _ = []
     f (c':cs') (a:as) (b:bs) (c:cs) = c / (b - c' * a) : f cs' as bs cs
+    f _ _ _ _ = error "solveTriDiagonal.f: impossible!"
 
     ds' = d0 / b0 : g ds' as bs cs' ds 
     g _ [] _ _ _ = []
     g (d':ds') (a:as) (b:bs) (c':cs') (d:ds) = (d - d' * a)/(b - c' * a) : g ds' as bs cs' ds
+    g _ _ _ _ _ = error "solveTriDiagonal.g: impossible!"
     
     h _ [d] = [d]
     h (c:cs) (d:ds) = let xs@(x:_) = h cs ds in d - c * x : xs
+    h _ _ = error "solveTriDiagonal.h: impossible!"
+
+solveTriDiagonal _ _ _ _ = error "arguments 2,3,4 to solveTriDiagonal must be nonempty"
 
 -- Helper that applies the passed function only to the last element of a list
 modifyLast :: (a -> a) -> [a] -> [a]
-modifyLast f [] = []
-modifyLast f [a] = [f a]
+modifyLast _ []     = []
+modifyLast f [a]    = [f a]
 modifyLast f (a:as) = a : modifyLast f as
 
 -- Helper that builds a list of length n of the form: '[s,m,m,...,m,m,e]'
@@ -78,6 +79,8 @@ solveCyclicTriDiagonal as (b0:bs) cs ds alpha beta = zipWith ((+) . (fact *)) zs
     
     fact = -(x + beta * last xs / gamma) / (1.0 + z + beta * last zs / gamma)
 
+solveCyclicTriDiagonal _ _ _ _ _ _ = error "second argument to solveCyclicTriDiagonal must be nonempty"
+
 -- | Use the tri-diagonal solver with the appropriate parameters for an open cubic spline.
 solveCubicSplineDerivatives :: Fractional a => [a] -> [a]
 solveCubicSplineDerivatives (x:xs) = solveTriDiagonal as bs as ds
@@ -87,6 +90,8 @@ solveCubicSplineDerivatives (x:xs) = solveTriDiagonal as bs as ds
     l  = length ds
     ds = zipWith f (xs ++ [last xs]) (x:x:xs)
     f a b = 3*(a - b)
+
+solveCubicSplineDerivatives _ = error "argument to solveCubicSplineDerivatives must be nonempty"
 
 -- | Use the cyclic-tri-diagonal solver with the appropriate parameters for a closed cubic spline.
 solveCubicSplineDerivativesClosed :: Fractional a => [a] -> [a]
