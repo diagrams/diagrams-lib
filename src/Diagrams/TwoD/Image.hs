@@ -1,5 +1,6 @@
 {-# LANGUAGE TypeFamilies
            , FlexibleContexts
+           , MultiParamTypeClasses
   #-}
 -----------------------------------------------------------------------------
 -- |
@@ -45,6 +46,9 @@ instance Transformable Image where
 
 instance HasOrigin Image where
   moveOriginTo p = translate (origin .-. p)
+
+instance Renderable Image NullBackend where
+  render _ _ = mempty
 
 -- See Note [Image size specification]
 

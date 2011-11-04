@@ -57,6 +57,9 @@ type instance V Ellipse = R2
 instance Transformable Ellipse where
   transform t (Ellipse e) = Ellipse (t <> e)
 
+instance Renderable Ellipse NullBackend where
+  render _ _ = mempty
+
 -- | A circle of radius 1, with center at the origin.
 unitCircle :: (Backend b R2, Renderable Ellipse b) => Diagram b R2
 unitCircle = mkAD (Prim $ Ellipse mempty)
