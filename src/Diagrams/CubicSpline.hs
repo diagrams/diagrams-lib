@@ -24,6 +24,8 @@ import Graphics.Rendering.Diagrams
 import Diagrams.Segment
 import Diagrams.Path
 
+import Data.NumInstances ()   -- for e.g. the Fractional (Double, Double) instance
+
 import Control.Newtype
 import Data.Monoid
 
