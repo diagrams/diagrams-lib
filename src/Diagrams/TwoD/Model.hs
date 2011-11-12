@@ -22,10 +22,13 @@ module Diagrams.TwoD.Model
 import Graphics.Rendering.Diagrams
 import Graphics.Rendering.Diagrams.Names
 
+import Diagrams.Path
+
 import Diagrams.TwoD.Types
 import Diagrams.TwoD.Ellipse
 import Diagrams.TwoD.Size    (size2D)
 import Diagrams.TwoD.Text
+import Diagrams.TwoD.Path
 import Diagrams.Attributes
 import Diagrams.Util
 
@@ -44,10 +47,10 @@ import Data.Colour (Colour)
 ------------------------------------------------------------
 
 -- | Mark the origin of a diagram by placing a red dot 1/50th its size.
-showOrigin :: (Renderable Ellipse b, Backend b R2, Monoid m)
+showOrigin :: (Renderable (Path R2) b, Backend b R2, Monoid m)
            => AnnDiagram b R2 m -> AnnDiagram b R2 m
 showOrigin d = o <> d
-  where o     = circle (max (w/50) (h/50))
+  where o     = (stroke $ circle (max (w/50) (h/50)))
                 # fc red
                 # lw 0
                 # fmap (const mempty)
@@ -55,10 +58,10 @@ showOrigin d = o <> d
 
 -- | Mark the origin of a diagram, with control over colour and scale
 -- of marker dot.
-showOrigin' :: (Renderable Ellipse b, Backend b R2, Monoid m)
+showOrigin' :: (Renderable (Path R2) b, Backend b R2, Monoid m)
            => OriginOpts -> AnnDiagram b R2 m -> AnnDiagram b R2 m
 showOrigin' oo d = o <> d
-  where o     = circle (max (w * oScale oo) (h * oScale oo))
+  where o     = (stroke $ circle (max (w * oScale oo) (h * oScale oo)))
                 # fc (oColor oo)
                 # lw 0
                 # fmap (const mempty)
