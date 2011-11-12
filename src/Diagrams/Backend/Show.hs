@@ -20,11 +20,9 @@ module Diagrams.Backend.Show where
 
 import Diagrams.Prelude
 
-import Diagrams.TwoD.Ellipse
-
 import Data.Basis
 
-import Text.PrettyPrint (Doc, empty, ($+$), parens, hsep, nest)
+import Text.PrettyPrint (Doc, empty, ($+$), parens, hsep)
 import qualified Text.PrettyPrint as PP
 
 import Data.List (transpose)
@@ -65,11 +63,6 @@ renderTransf t = renderMat mat
 renderMat :: Show a => [[a]] -> Doc
 renderMat = PP.vcat . map renderRow . transpose
   where renderRow = parens . hsep . map (PP.text . show)
-
-instance Renderable Ellipse ShowBackend where
-  render _ (Ellipse t) = SR $ PP.text "Ellipse (" $+$
-                                nest 2 (renderTransf t) $+$
-                              PP.text ")"
 
 instance (Show v, HasLinearMap v) => Renderable (Segment v) ShowBackend where
   render _ s = SR $ PP.text (show s)

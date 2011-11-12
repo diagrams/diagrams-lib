@@ -12,6 +12,7 @@
 
 module Diagrams.TwoD.Arc
     ( arc
+    , arcT
     , bezierFromSweep
 
     , circlePath
