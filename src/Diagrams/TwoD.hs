@@ -147,7 +147,7 @@ module Diagrams.TwoD
          -- * Combinators
        , strutX, strutY
 
-       , (===), (|||)
+       , (===), (|||), atAngle
        , hcat, hcat'
        , vcat, vcat'
 

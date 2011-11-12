@@ -17,7 +17,7 @@ module Diagrams.TwoD.Combinators
     (
       -- * Binary combinators
 
-      (===), (|||)
+      (===), (|||), atAngle
 
       -- * n-ary combinators
     , hcat, hcat'
@@ -32,7 +32,7 @@ import Graphics.Rendering.Diagrams
 
 import Diagrams.TwoD.Transform (scaleX, scaleY)
 import Diagrams.TwoD.Types
-import Diagrams.TwoD.Vector (unitX, unitY)
+import Diagrams.TwoD.Vector (unitX, unitY, fromDirection)
 
 import Diagrams.Util ((#))
 import Diagrams.Combinators
@@ -68,6 +68,14 @@ infixl 6 |||
 --   identity.  See the documentation of 'beside' for more information.
 (|||) :: (HasOrigin a, Boundable a, V a ~ R2, Monoid a) => a -> a -> a
 (|||) = beside unitX
+
+-- | Place two diagrams (or other boundable objects) adjacent to one
+--   another, with the second diagram placed along a line at angle
+--   'th' from the first.  The local origin of the resulting combined
+--   diagram is the same as the local origin of the first.
+--   See the documentation of 'beside' for more information.
+atAngle :: (HasOrigin a, Boundable a, V a ~ R2, Monoid a, Angle b) => b -> a -> a -> a
+atAngle th = beside (fromDirection th)
 
 -- | Lay out a list of boundable objects in a row from left to right,
 --   so that their local origins lie along a single horizontal line,
