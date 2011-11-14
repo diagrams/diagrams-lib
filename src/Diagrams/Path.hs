@@ -141,7 +141,7 @@ instance VectorSpace v => Closeable (Trail v) where
   close (Trail segs _) = Trail segs True
   open  (Trail segs _) = Trail segs False
 
-instance (VectorSpace v, Ord v) => Closeable (Path v) where
+instance VectorSpace v => Closeable (Path v) where
   close = (over Path . map . second) close
   open  = (over Path . map . second) open
 
@@ -255,16 +255,16 @@ instance Newtype (Path v) [(Point v, Trail v)] where
   pack   = Path
   unpack = pathTrails
 
-instance (Ord v, VectorSpace v) => HasOrigin (Path v) where
+instance VectorSpace v => HasOrigin (Path v) where
   moveOriginTo = over Path . map . first . moveOriginTo
 
 -- | Paths are (of course) path-like. 'fromSegments' creates a path
 --   with start point at the origin.
-instance (Ord v, VectorSpace v) => PathLike (Path v) where
+instance VectorSpace v => PathLike (Path v) where
   pathLike s cl segs = Path [(s, pathLike origin cl segs)]
 
 -- See Note [Transforming paths]
-instance (HasLinearMap v, Ord v) => Transformable (Path v) where
+instance HasLinearMap v => Transformable (Path v) where
   transform t = (over Path . map) (transform t *** transform t)
 
 {- ~~~~ Note [Transforming paths]
@@ -283,7 +283,7 @@ instance (InnerSpace v, OrderedField (Scalar v)) => Boundable (Path v) where
     where trailBounds :: (Point v, Trail v) -> Bounds v
           trailBounds (p, t) = moveOriginTo ((-1) *. p) (getBounds t)
 
-instance (HasLinearMap v, Ord v) => Renderable (Path v) NullBackend where
+instance HasLinearMap v => Renderable (Path v) NullBackend where
   render _ _ = mempty
 
 ------------------------------------------------------------
