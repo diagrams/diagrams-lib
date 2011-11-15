@@ -22,7 +22,7 @@ module Diagrams.Combinators
        , pad
 
          -- * Binary operations
-       , beside, besideBounds
+       , beside
 
          -- * n-ary operations
        , appends
@@ -35,11 +35,9 @@ import Graphics.Rendering.Diagrams
 
 import Diagrams.Segment (Segment(..))
 import Diagrams.Path
-import Diagrams.Align
 import Diagrams.Util
 
 import Data.AdditiveGroup
-import Data.AffineSpace ((.-.))
 import Data.VectorSpace
 
 import Data.Monoid
@@ -91,12 +89,13 @@ strut v = phantom . translate ((-0.5) *^ v) . getBounds $ Linear v
 -- Combining two objects
 ------------------------------------------------------------
 
--- | Place two bounded, monoidal objects (/i.e./ diagrams or paths) next
---   to each other along the given vector.  In particular, place the
---   first object so that the vector points from its local origin to
---   the local origin of the second object, at a distance so that
---   their bounding regions are just tangent.  The local origin of the
---   new, combined object is the local origin of the first object.
+-- | Place two monoidal objects (/i.e./ diagrams, paths,
+--   animations...) next to each other along the given vector.  In
+--   particular, place the second object so that the vector points
+--   from the local origin of the first object to the local origin of
+--   the second object, at a distance so that their bounding regions
+--   are just tangent.  The local origin of the new, combined object
+--   is the local origin of the first object.
 --
 --   Note that @beside v@ is associative, so objects under @beside v@
 --   form a semigroup for any given vector @v@.  However, they do
@@ -115,20 +114,10 @@ strut v = phantom . translate ((-0.5) *^ v) . getBounds $ Linear v
 --   To get something like @beside v x1 x2@ whose local origin is
 --   identified with that of @x2@ instead of @x1@, use @beside
 --   (negateV v) x2 x1@.
-beside :: (HasOrigin a, Boundable a, Monoid a) => V a -> a -> a -> a
-beside v d1 d2
-  = d1 <> (d2 # moveOriginBy (v1 ^+^ v2))
-  where v1 = negateV (boundaryV v d1)
-        v2 = boundaryV (negateV v) d2
+beside :: (Juxtaposable a, Monoid a) => V a -> a -> a -> a
+beside v d1 d2 = d1 <> juxtapose v d1 d2
 
 -- XXX add picture to above documentation?
-
--- | @besideBounds b v x@ positions @x@ so it is beside the bounding
---   region @b@ in the direction of @v@.  The origin of the new
---   diagram is the origin of the bounding region.
-besideBounds :: (HasOrigin a, Boundable a) => Bounds (V a) -> V a -> a -> a
-besideBounds b v a
-  = moveOriginBy (origin .-. boundary v b) (align (negateV v) a)
 
 ------------------------------------------------------------
 -- Combining multiple objects
@@ -137,14 +126,13 @@ besideBounds b v a
 -- | @appends x ys@ appends each of the objects in @ys@ to the object
 --   @x@ in the corresponding direction.  Note that each object in
 --   @ys@ is positioned beside @x@ /without/ reference to the other
---   objects in @ys@, so this is not the same as iterating 'append'.
-appends :: (HasOrigin a, Boundable a, Monoid a) => a -> [(V a,a)] -> a
-appends d1 apps = d1 <> mconcat (map (uncurry (besideBounds b)) apps)
-  where b = getBounds d1
+--   objects in @ys@, so this is not the same as iterating 'beside'.
+appends :: (Juxtaposable a, Monoid a) => a -> [(V a,a)] -> a
+appends d1 apps = d1 <> mconcat (map (\(v,d) -> juxtapose v d1 d) apps)
 
 -- | Position things absolutely: combine a list of objects
--- (e.g. diagrams or paths) by assigning them absolute positions in
--- the vector space of the combined object.
+--   (e.g. diagrams or paths) by assigning them absolute positions in
+--   the vector space of the combined object.
 position :: (HasOrigin a, Monoid a) => [(Point (V a), a)] -> a
 position = mconcat . map (uncurry moveTo)
 
@@ -222,7 +210,10 @@ instance Num (Scalar v) => Default (CatOpts v) where
 --
 --   See also 'cat'', which takes an extra options record allowing
 --   certain aspects of the operation to be tweaked.
-cat :: (HasOrigin a, Boundable a, Monoid a) => V a -> [a] -> a
+cat :: ( Juxtaposable a, Monoid a, HasOrigin a
+       , InnerSpace (V a), Floating (Scalar (V a))
+       )
+       => V a -> [a] -> a
 cat v = cat' v def
 
 -- | Like 'cat', but taking an extra 'CatOpts' arguments allowing the
@@ -242,14 +233,13 @@ cat v = cat' v def
 --   Note that @cat' v with {catMethod = Distrib} === mconcat@
 --   (distributing with a separation of 0 is the same as
 --   superimposing).
-cat' :: (HasOrigin a, Boundable a, Monoid a)
+cat' :: ( Juxtaposable a, Monoid a, HasOrigin a
+        , InnerSpace (V a), Floating (Scalar (V a))
+        )
      => V a -> CatOpts (V a) -> [a] -> a
 cat' v (CatOpts { catMethod = Cat, sep = s }) = foldB comb mempty
-  where comb d1 d2 = let v1 = negateV (boundaryV v d1)
-                         v2 = boundaryV (negateV v) d2
-                         vs = withLength s (negateV v)
-                     in
-                         d1 <> (d2 # moveOriginBy (v1 ^+^ vs ^+^ v2))
+  where comb d1 d2 = d1 <> (juxtapose v d1 d2 # moveOriginBy vs)
+        vs = withLength s (negateV v)
 
 cat' v (CatOpts { catMethod = Distrib, sep = s }) =
   decorateTrail . fromOffsets . repeat $ withLength s v
