@@ -75,7 +75,7 @@ stroke :: Renderable (Path R2) b
        => Path R2 -> Diagram b R2
 stroke = stroke' (def :: StrokeOpts ())
 
-instance Renderable (Path R2) b => PathLike (AnnDiagram b R2 Any) where
+instance Renderable (Path R2) b => PathLike (QDiagram b R2 Any) where
   pathLike st cl segs = stroke $ pathLike st cl segs
 
 -- | A variant of 'stroke' that takes an extra record of options to
@@ -87,7 +87,7 @@ instance Renderable (Path R2) b => PathLike (AnnDiagram b R2 Any) where
 --   ... }@ syntax may be used.
 stroke' :: (Renderable (Path R2) b, IsName a) => StrokeOpts a -> Path R2 -> Diagram b R2
 stroke' opts p
-  = mkAD (Prim p)
+  = mkQD (Prim p)
          (getBounds p)
          (fromNames . concat $
            zipWith zip (vertexNames opts) (pathVertices p))

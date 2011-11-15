@@ -124,13 +124,13 @@ vcat' = cat' (negateV unitY)
 -- | @strutX d@ is an empty diagram with width @d@, height 0, and a
 --   centered local origin.  Note that @strutX (-w)@ behaves the same as
 --   @strutX w@.
-strutX :: (Backend b R2, Monoid m) => Double -> AnnDiagram b R2 m
+strutX :: (Backend b R2, Monoid m) => Double -> QDiagram b R2 m
 strutX d = strut (d,0)
 
 -- | @strutY d@ is an empty diagram with height @d@, width 0, and a
 --   centered local origin. Note that @strutX (-w)@ behaves the same as
 --   @strutX w@.
-strutY :: (Backend b R2, Monoid m) => Double -> AnnDiagram b R2 m
+strutY :: (Backend b R2, Monoid m) => Double -> QDiagram b R2 m
 strutY d = strut (0,d)
 
 -- | @padX s@ \"pads\" a diagram in the x-direction, expanding its
@@ -141,7 +141,7 @@ strutY d = strut (0,d)
 --   \"uneven\".  If this is not desired, the origin can be centered
 --   (using 'centerX') before applying @padX@.
 padX :: ( Backend b R2, Monoid m )
-     => Double -> AnnDiagram b R2 m -> AnnDiagram b R2 m
+     => Double -> QDiagram b R2 m -> QDiagram b R2 m
 padX s d = withBounds (d # scaleX s) d
 
 -- | @padY s@ \"pads\" a diagram in the y-direction, expanding its
@@ -152,5 +152,5 @@ padX s d = withBounds (d # scaleX s) d
 --   \"uneven\".  If this is not desired, the origin can be centered
 --   (using 'centerY') before applying @padY@.
 padY :: ( Backend b R2, Monoid m )
-     => Double -> AnnDiagram b R2 m -> AnnDiagram b R2 m
+     => Double -> QDiagram b R2 m -> QDiagram b R2 m
 padY s d = withBounds (d # scaleY s) d

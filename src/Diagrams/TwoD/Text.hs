@@ -67,7 +67,7 @@ instance Renderable Text NullBackend where
 --   /takes up no space/.  By default, the text is centered with
 --   respect to its local origin (see 'alignText').
 text :: Renderable Text b => String -> Diagram b R2
-text t = mkAD (Prim (Text mempty t))
+text t = mkQD (Prim (Text mempty t))
               mempty
               mempty
               mempty
