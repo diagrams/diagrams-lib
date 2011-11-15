@@ -45,7 +45,7 @@ import Data.Default
 infixl 6 ===
 infixl 6 |||
 
--- | Place two diagrams (or other boundable objects) vertically
+-- | Place two diagrams (or other objects) vertically
 --   adjacent to one another, with the first diagram above the second.
 --   Since Haskell ignores whitespace in expressions, one can thus write
 --
@@ -57,7 +57,7 @@ infixl 6 |||
 --   combined diagram is the same as the local origin of the first.
 --   @(===)@ is associative and has 'mempty' as a right (but not left)
 --   identity.  See the documentation of 'beside' for more information.
-(===) :: (HasOrigin a, Boundable a, V a ~ R2, Monoid a) => a -> a -> a
+(===) :: (Juxtaposable a, V a ~ R2, Monoid a) => a -> a -> a
 (===) = beside (negateV unitY)
 
 -- | Place two diagrams (or other boundable objects) horizontally
@@ -66,7 +66,7 @@ infixl 6 |||
 --   combined diagram is the same as the local origin of the first.
 --   @(===)@ is associative and has 'mempty' as a right (but not left)
 --   identity.  See the documentation of 'beside' for more information.
-(|||) :: (HasOrigin a, Boundable a, V a ~ R2, Monoid a) => a -> a -> a
+(|||) :: (Juxtaposable a, V a ~ R2, Monoid a) => a -> a -> a
 (|||) = beside unitX
 
 -- | Place two diagrams (or other boundable objects) adjacent to one
@@ -74,7 +74,7 @@ infixl 6 |||
 --   'th' from the first.  The local origin of the resulting combined
 --   diagram is the same as the local origin of the first.
 --   See the documentation of 'beside' for more information.
-atAngle :: (HasOrigin a, Boundable a, V a ~ R2, Monoid a, Angle b) => b -> a -> a -> a
+atAngle :: (Juxtaposable a, V a ~ R2, Monoid a, Angle b) => b -> a -> a -> a
 atAngle th = beside (fromDirection th)
 
 -- | Lay out a list of boundable objects in a row from left to right,
@@ -88,13 +88,15 @@ atAngle th = beside (fromDirection th)
 --     "Diagrams.TwoD.Align" before applying 'hcat'.
 --
 --   * For non-axis-aligned layout, see 'cat'.
-hcat :: (HasOrigin a, Boundable a, V a ~ R2, Monoid a) => [a] -> a
+hcat :: (Juxtaposable a, HasOrigin a, Monoid a, V a ~ R2)
+     => [a] -> a
 hcat = hcat' def
 
 -- | A variant of 'hcat' taking an extra 'CatOpts' record to control
 --   the spacing.  See the 'cat'' documentation for a description of
 --   the possibilities.
-hcat' :: (HasOrigin a, Boundable a, V a ~ R2, Monoid a) => CatOpts R2 -> [a] -> a
+hcat' :: (Juxtaposable a, HasOrigin a, Monoid a, V a ~ R2)
+      => CatOpts R2 -> [a] -> a
 hcat' = cat' unitX
 
 -- | Lay out a list of boundable objects in a column from top to bottom,
@@ -108,13 +110,15 @@ hcat' = cat' unitX
 --     "Diagrams.TwoD.Align" before applying 'vcat'.
 --
 --   * For non-axis-aligned layout, see 'cat'.
-vcat :: (HasOrigin a, Boundable a, V a ~ R2, Monoid a) => [a] -> a
+vcat :: (Juxtaposable a, HasOrigin a, Monoid a, V a ~ R2)
+     => [a] -> a
 vcat = vcat' def
 
 -- | A variant of 'vcat' taking an extra 'CatOpts' record to control
 --   the spacing.  See the 'cat'' documentation for a description of the
 --   possibilities.
-vcat' :: (HasOrigin a, Boundable a, V a ~ R2, Monoid a) => CatOpts R2 -> [a] -> a
+vcat' :: (Juxtaposable a, HasOrigin a, Monoid a, V a ~ R2)
+      => CatOpts R2 -> [a] -> a
 vcat' = cat' (negateV unitY)
 
 -- | @strutX d@ is an empty diagram with width @d@, height 0, and a

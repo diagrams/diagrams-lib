@@ -283,6 +283,9 @@ instance (InnerSpace v, OrderedField (Scalar v)) => Boundable (Path v) where
     where trailBounds :: (Point v, Trail v) -> Bounds v
           trailBounds (p, t) = moveOriginTo ((-1) *. p) (getBounds t)
 
+instance (InnerSpace v, OrderedField (Scalar v)) => Juxtaposable (Path v) where
+  juxtapose = juxtaposeDefault
+
 instance HasLinearMap v => Renderable (Path v) NullBackend where
   render _ _ = mempty
 
