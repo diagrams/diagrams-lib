@@ -48,7 +48,7 @@ import Data.Colour (Colour)
 
 -- | Mark the origin of a diagram by placing a red dot 1/50th its size.
 showOrigin :: (Renderable (Path R2) b, Backend b R2, Monoid m)
-           => AnnDiagram b R2 m -> AnnDiagram b R2 m
+           => QDiagram b R2 m -> QDiagram b R2 m
 showOrigin d = o <> d
   where o     = (stroke $ circle (max (w/50) (h/50)))
                 # fc red
@@ -59,7 +59,7 @@ showOrigin d = o <> d
 -- | Mark the origin of a diagram, with control over colour and scale
 -- of marker dot.
 showOrigin' :: (Renderable (Path R2) b, Backend b R2, Monoid m)
-           => OriginOpts -> AnnDiagram b R2 m -> AnnDiagram b R2 m
+           => OriginOpts -> QDiagram b R2 m -> QDiagram b R2 m
 showOrigin' oo d = o <> d
   where o     = (stroke $ circle (max (w * oScale oo) (h * oScale oo)))
                 # fc (oColor oo)
@@ -80,7 +80,7 @@ instance Default OriginOpts where
 ------------------------------------------------------------
 
 showLabels :: (Renderable Text b, Backend b R2)
-           => AnnDiagram b R2 m -> AnnDiagram b R2 Any
+           => QDiagram b R2 m -> QDiagram b R2 Any
 showLabels d = (mconcat
              . map (\(n,p) -> text (show n) # translate (p .-. origin))
              . concatMap (\(n,ps) -> zip (repeat n) ps)
@@ -98,7 +98,7 @@ showLabels d = (mconcat
 --   (or any combinators implemented in terms of 'beside', like '(|||)'
 --   or '(===)').
 
--- showSep :: AnnDiagram b R2 m -> AnnDiagram b R2 m
+-- showSep :: QDiagram b R2 m -> QDiagram b R2 m
 -- showSep d = s <> d
 --   where ... = case d of
---                 AnnDiagram (Branch u ds children) -> ...
+--                 QDiagram (Branch u ds children) -> ...

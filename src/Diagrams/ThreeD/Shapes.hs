@@ -33,7 +33,7 @@ instance Transformable Ellipsoid where
   transform t1 (Ellipsoid t2) = Ellipsoid (t1 <> t2)
 
 sphere :: (Backend b R3, Renderable Ellipsoid b) => Diagram b R3
-sphere = mkAD (Prim $ Ellipsoid mempty)
+sphere = mkQD (Prim $ Ellipsoid mempty)
               (Bounds sphereBounds)
               mempty
               (Query sphereQuery)

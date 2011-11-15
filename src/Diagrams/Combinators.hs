@@ -52,13 +52,13 @@ import Data.Default
 --   bounding region for a diagram, in place of the diagram's default
 --   bounding region.
 withBounds :: (Backend b (V a), Boundable a, Monoid m)
-           => a -> AnnDiagram b (V a) m -> AnnDiagram b (V a) m
+           => a -> QDiagram b (V a) m -> QDiagram b (V a) m
 withBounds = setBounds . getBounds
 
 -- | @phantom x@ produces a \"phantom\" diagram, which has the same
 --   bounding region as @x@ but produces no output.
-phantom :: (Backend b (V a), Boundable a, Monoid m) => a -> AnnDiagram b (V a) m
-phantom a = mkAD nullPrim (getBounds a) mempty mempty
+phantom :: (Backend b (V a), Boundable a, Monoid m) => a -> QDiagram b (V a) m
+phantom a = mkQD nullPrim (getBounds a) mempty mempty
 
 -- | @pad s@ \"pads\" a diagram, expanding its bounding region by a
 --   factor of @s@ (factors between 0 and 1 can be used to shrink the
@@ -70,7 +70,7 @@ phantom a = mkAD nullPrim (getBounds a) mempty mempty
 pad :: ( Backend b v
        , InnerSpace v, OrderedField (Scalar v)
        , Monoid m )
-    => Scalar v -> AnnDiagram b v m -> AnnDiagram b v m
+    => Scalar v -> QDiagram b v m -> QDiagram b v m
 pad s d = withBounds (d # scale s) d
 
 -- | @strut v@ is a diagram which produces no output, but for the
@@ -82,7 +82,7 @@ strut :: ( Backend b v, InnerSpace v
          , OrderedField (Scalar v)
          , Monoid m
          )
-      => v -> AnnDiagram b v m
+      => v -> QDiagram b v m
 strut v = phantom . translate ((-0.5) *^ v) . getBounds $ Linear v
 
 ------------------------------------------------------------
