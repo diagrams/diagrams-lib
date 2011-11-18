@@ -23,9 +23,12 @@ module Diagrams.TwoD.Combinators
     , hcat, hcat'
     , vcat, vcat'
 
-      -- * Spacing
+      -- * Spacing/bounds
     , strutX, strutY
     , padX, padY
+
+    , view
+
     ) where
 
 import Graphics.Rendering.Diagrams
@@ -33,6 +36,9 @@ import Graphics.Rendering.Diagrams
 import Diagrams.TwoD.Transform (scaleX, scaleY)
 import Diagrams.TwoD.Types
 import Diagrams.TwoD.Vector (unitX, unitY, fromDirection)
+import Diagrams.TwoD.Shapes
+import Diagrams.TwoD.Align
+import Diagrams.TwoD.Path ()   -- for PathLike (D R2) instance
 
 import Diagrams.Util ((#))
 import Diagrams.Combinators
@@ -154,3 +160,12 @@ padX s d = withBounds (d # scaleX s) d
 padY :: ( Backend b R2, Monoid m )
      => Double -> QDiagram b R2 m -> QDiagram b R2 m
 padY s d = withBounds (d # scaleY s) d
+
+-- | @view p v@ sets the bounding region of a diagram to a rectangle
+--   whose lower-left corner is at @p@ and whose upper-right corner is
+--   at @p .+^ v@.  Useful for selecting the rectangular portion of a
+--   diagram which should actually be \"viewed\" in the final render,
+--   if you don't want to see the entire diagram.
+view :: ( Backend b R2, Monoid m )
+     => P2 -> R2 -> QDiagram b R2 m -> QDiagram b R2 m
+view p (w,h) = withBounds (rect w h # alignBL # moveTo p :: D R2)
