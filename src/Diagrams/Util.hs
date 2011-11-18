@@ -17,6 +17,8 @@ module Diagrams.Util
        , applyAll
        , (#)
 
+       , iterateN
+
          -- * Internal utilities
        , Proxy(..)
        , foldB
@@ -96,6 +98,13 @@ infixl 8 #
 --   like @(|||)@ or @(\<\>)@ without needing parentheses.
 (#) :: a -> (a -> b) -> b
 (#) = flip ($)
+
+-- | @iterateN n f x@ returns the list of the first @n@ iterates of
+--   @f@ starting at @x@, that is, the list @[x, f x, f (f x), ...]@
+--   of length @n@. (Note that the last element of the list will be
+--   @f@ applied to @x@ @(n-1)@ times.)
+iterateN :: Int -> (a -> a) -> a -> [a]
+iterateN n f = take n . iterate f
 
 -- | A value of @Proxy a@ carries no information; it's used only to
 --   fix the type @a@.
