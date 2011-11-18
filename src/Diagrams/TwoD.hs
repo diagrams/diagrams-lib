@@ -145,11 +145,13 @@ module Diagrams.TwoD
        , shearingY, shearY
 
          -- * Combinators
-       , strutX, strutY
-
        , (===), (|||), atAngle
        , hcat, hcat'
        , vcat, vcat'
+
+       , strutX, strutY
+       , padX, padY
+       , view
 
          -- * Alignment
        , alignL, alignR, alignT, alignB, alignTL, alignTR, alignBL, alignBR
