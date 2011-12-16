@@ -43,7 +43,7 @@ instance Monoid (Render ShowBackend v) where
   mempty = SR empty
   (SR d1) `mappend` (SR d2) = SR (d1 $+$ d2)
 
-renderTransf :: forall v. (Num (Scalar v), HasLinearMap v)
+renderTransf :: forall v. (Num (Scalar v), HasLinearMap v, Show (Scalar v))
              => Transformation v -> Doc
 renderTransf t = renderMat mat
   where tr :: v
