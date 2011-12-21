@@ -52,6 +52,8 @@ Library
                        Diagrams.TwoD.Adjust,
                        Diagrams.ThreeD.Types,
                        Diagrams.ThreeD.Shapes,
+                       Diagrams.Animation,
+                       Diagrams.Animation.Active,
                        Diagrams.Util,
                        Diagrams.Backend.Show
   Build-depends:       base >= 4.2 && < 4.5,
@@ -59,6 +61,7 @@ Library
                        array >= 0.3 && < 0.4,
                        semigroups >= 0.3.4 && < 0.9,
                        diagrams-core >= 0.5 && < 0.6,
+                       active >= 0.1 && < 0.2,
                        vector-space >= 0.7.7 && < 0.9,
                        NumInstances >= 1.0 && < 1.1,
                        colour >= 2.3.1 && < 2.4,
