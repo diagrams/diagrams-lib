@@ -21,9 +21,8 @@ module Diagrams.ThreeD.Shapes
 import Graphics.Rendering.Diagrams
 
 import Diagrams.ThreeD.Types
-import Diagrams.Util
 
-import Data.Monoid
+import Data.Semigroup
 
 data Ellipsoid = Ellipsoid T3
 
@@ -34,7 +33,7 @@ instance Transformable Ellipsoid where
 
 sphere :: (Backend b R3, Renderable Ellipsoid b) => Diagram b R3
 sphere = mkQD (Prim $ Ellipsoid mempty)
-              (Bounds sphereBounds)
+              (mkBounds sphereBounds)
               mempty
               (Query sphereQuery)
   where sphereBounds (x,y,z) = 1 / sqrt(x*x + y*y + z*z)

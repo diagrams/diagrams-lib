@@ -34,12 +34,10 @@ module Diagrams.TwoD.Text (
 import Graphics.Rendering.Diagrams
 
 import Diagrams.TwoD.Types
-import Diagrams.Util
 
 import Data.AffineSpace ((.-.))
 
-import Data.Monoid (mempty)
-import Data.Semigroup (Semigroup, Last(..))
+import Data.Semigroup
 
 import Data.Typeable
 

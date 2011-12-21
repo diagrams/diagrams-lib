@@ -26,6 +26,7 @@ import Graphics.Rendering.Diagrams
 import Diagrams.TwoD.Types
 
 import Control.Arrow ((***), (&&&))
+import Control.Applicative ((<$>), liftA2)
 
 ------------------------------------------------------------
 -- Computing diagram sizes
@@ -33,33 +34,34 @@ import Control.Arrow ((***), (&&&))
 
 -- | Compute the width of a boundable object.
 width :: (Boundable a, V a ~ R2) => a -> Double
-width = negate . uncurry (-) . extentX
+width = maybe 0 (negate . uncurry (-)) . extentX
 
 -- | Compute the height of a boundable object.
 height :: (Boundable a, V a ~ R2) => a -> Double
-height = negate . uncurry (-) . extentY
+height = maybe 0 (negate . uncurry (-)) . extentY
 
 -- | Compute the width and height of a boundable object.
 size2D :: (Boundable a, V a ~ R2) => a -> (Double, Double)
 size2D = width &&& height
 
--- | Compute the absolute x-coordinate range of a boundable object in
---   R2, in the form (lo,hi).
-extentX :: (Boundable a, V a ~ R2) => a -> (Double, Double)
-extentX d = (-f (-1,0), f (1,0))
-  where f = appBounds $ getBounds d
+-- | Compute the absolute  x-coordinate range of a boundable object in
+--   R2, in  the form (lo,hi).   Return @Nothing@ for objects  with an
+--   empty bounding function.
+extentX :: (Boundable a, V a ~ R2) => a -> Maybe (Double, Double)
+extentX d = (\f -> (-f (-1,0), f (1,0))) <$> (appBounds . getBounds $ d)
 
 -- | Compute the absolute y-coordinate range of a boundable object in
 --   R2, in the form (lo,hi).
-extentY :: (Boundable a, V a ~ R2) => a -> (Double, Double)
-extentY d = (-f (0,-1), f (0,1))
-  where f = appBounds $ getBounds d
+extentY :: (Boundable a, V a ~ R2) => a -> Maybe (Double, Double)
+extentY d = (\f -> (-f (0,-1), f (0,1))) <$> (appBounds . getBounds $ d)
 
 -- | Compute the point at the center (in the x- and y-directions) of a
---   boundable object.
+--   boundable object.  Return the origin for objects with an empty
+--   bounding function.
 center2D :: (Boundable a, V a ~ R2) => a -> P2
-center2D = P . (mid *** mid) . (extentX &&& extentY)
-  where mid = (/2) . uncurry (+)
+center2D = maybe origin (P . (mid *** mid)) . mm . (extentX &&& extentY)
+  where mm = uncurry (liftA2 (,))
+        mid = (/2) . uncurry (+)
 
 ------------------------------------------------------------
 -- Size specifications

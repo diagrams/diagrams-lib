@@ -51,7 +51,8 @@ import Diagrams.TwoD.Types
 import Diagrams.TwoD.Size   (width, height)
 import Diagrams.TwoD.Vector (direction)
 import Diagrams.Transform
-import Diagrams.Util
+
+import Data.Semigroup
 
 import Data.AffineSpace
 

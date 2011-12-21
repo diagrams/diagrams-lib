@@ -40,7 +40,7 @@ import Diagrams.Util
 import Data.AdditiveGroup
 import Data.VectorSpace
 
-import Data.Monoid
+import Data.Semigroup
 
 import Data.Default
 
@@ -51,13 +51,13 @@ import Data.Default
 -- | Use the bounding region from some boundable object as the
 --   bounding region for a diagram, in place of the diagram's default
 --   bounding region.
-withBounds :: (Backend b (V a), Boundable a, Monoid m)
+withBounds :: (Backend b (V a), Boundable a, Monoid' m)
            => a -> QDiagram b (V a) m -> QDiagram b (V a) m
 withBounds = setBounds . getBounds
 
 -- | @phantom x@ produces a \"phantom\" diagram, which has the same
 --   bounding region as @x@ but produces no output.
-phantom :: (Backend b (V a), Boundable a, Monoid m) => a -> QDiagram b (V a) m
+phantom :: (Backend b (V a), Boundable a, Monoid' m) => a -> QDiagram b (V a) m
 phantom a = mkQD nullPrim (getBounds a) mempty mempty
 
 -- | @pad s@ \"pads\" a diagram, expanding its bounding region by a
@@ -69,7 +69,7 @@ phantom a = mkQD nullPrim (getBounds a) mempty mempty
 --   before applying @pad@.
 pad :: ( Backend b v
        , InnerSpace v, OrderedField (Scalar v)
-       , Monoid m )
+       , Monoid' m )
     => Scalar v -> QDiagram b v m -> QDiagram b v m
 pad s d = withBounds (d # scale s) d
 
@@ -80,7 +80,7 @@ pad s d = withBounds (d # scale s) d
 --   between two diagrams.
 strut :: ( Backend b v, InnerSpace v
          , OrderedField (Scalar v)
-         , Monoid m
+         , Monoid' m
          )
       => v -> QDiagram b v m
 strut v = phantom . translate ((-0.5) *^ v) . getBounds $ Linear v
@@ -114,7 +114,7 @@ strut v = phantom . translate ((-0.5) *^ v) . getBounds $ Linear v
 --   To get something like @beside v x1 x2@ whose local origin is
 --   identified with that of @x2@ instead of @x1@, use @beside
 --   (negateV v) x2 x1@.
-beside :: (Juxtaposable a, Monoid a) => V a -> a -> a -> a
+beside :: (Juxtaposable a, Semigroup a) => V a -> a -> a -> a
 beside v d1 d2 = d1 <> juxtapose v d1 d2
 
 -- XXX add picture to above documentation?
@@ -127,13 +127,13 @@ beside v d1 d2 = d1 <> juxtapose v d1 d2
 --   @x@ in the corresponding direction.  Note that each object in
 --   @ys@ is positioned beside @x@ /without/ reference to the other
 --   objects in @ys@, so this is not the same as iterating 'beside'.
-appends :: (Juxtaposable a, Monoid a) => a -> [(V a,a)] -> a
+appends :: (Juxtaposable a, Monoid' a) => a -> [(V a,a)] -> a
 appends d1 apps = d1 <> mconcat (map (\(v,d) -> juxtapose v d1 d) apps)
 
 -- | Position things absolutely: combine a list of objects
 --   (e.g. diagrams or paths) by assigning them absolute positions in
 --   the vector space of the combined object.
-position :: (HasOrigin a, Monoid a) => [(Point (V a), a)] -> a
+position :: (HasOrigin a, Monoid' a) => [(Point (V a), a)] -> a
 position = mconcat . map (uncurry moveTo)
 
 -- | Combine a list of diagrams (or paths) by using them to
@@ -142,7 +142,7 @@ position = mconcat . map (uncurry moveTo)
 --   trail is placed at the origin.  If the trail and list of objects
 --   have different lengths, the extra tail of the longer one is
 --   ignored.
-decorateTrail :: (HasOrigin a, Monoid a) => Trail (V a) -> [a] -> a
+decorateTrail :: (HasOrigin a, Monoid' a) => Trail (V a) -> [a] -> a
 decorateTrail t = position . zip (trailVertices origin t)
 
 -- | Combine a list of diagrams (or paths) by using them to
@@ -150,7 +150,7 @@ decorateTrail t = position . zip (trailVertices origin t)
 --   each successive vertex of the path.  If the path and list of objects
 --   have different lengths, the extra tail of the longer one is
 --   ignored.
-decoratePath :: (HasOrigin a, Monoid a) => Path (V a) -> [a] -> a
+decoratePath :: (HasOrigin a, Monoid' a) => Path (V a) -> [a] -> a
 decoratePath p = position . zip (concat $ pathVertices p)
 
 -- | Methods for concatenating diagrams.
@@ -210,7 +210,7 @@ instance Num (Scalar v) => Default (CatOpts v) where
 --
 --   See also 'cat'', which takes an extra options record allowing
 --   certain aspects of the operation to be tweaked.
-cat :: ( Juxtaposable a, Monoid a, HasOrigin a
+cat :: ( Juxtaposable a, Monoid' a, HasOrigin a
        , InnerSpace (V a), Floating (Scalar (V a))
        )
        => V a -> [a] -> a
@@ -233,7 +233,7 @@ cat v = cat' v def
 --   Note that @cat' v with {catMethod = Distrib} === mconcat@
 --   (distributing with a separation of 0 is the same as
 --   superimposing).
-cat' :: ( Juxtaposable a, Monoid a, HasOrigin a
+cat' :: ( Juxtaposable a, Monoid' a, HasOrigin a
         , InnerSpace (V a), Floating (Scalar (V a))
         )
      => V a -> CatOpts (V a) -> [a] -> a

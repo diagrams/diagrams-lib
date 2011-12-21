@@ -15,7 +15,7 @@ module Diagrams.Transform
        ) where
 
 import Graphics.Rendering.Diagrams
-import Diagrams.Util
+import Data.Semigroup
 
 -- | Conjugate one transformation by another. @conjugate t1 t2@ is the
 --   transformation which performs first @t1@, then @t2@, then the

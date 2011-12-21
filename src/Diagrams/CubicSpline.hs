@@ -27,7 +27,7 @@ import Diagrams.Path
 import Data.NumInstances ()   -- for e.g. the Fractional (Double, Double) instance
 
 import Control.Newtype
-import Data.Monoid
+import Data.Semigroup
 
 -- | Construct a spline path-like thing of cubic segments from a list of
 --   vertices, with the first vertex as the starting point.  The first

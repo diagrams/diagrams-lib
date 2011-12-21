@@ -33,7 +33,7 @@ import Diagrams.Attributes
 import Diagrams.Util
 
 import Control.Arrow (second)
-import Data.Monoid
+import Data.Semigroup
 import Data.Default
 import Data.AffineSpace ((.-.))
 
@@ -47,7 +47,7 @@ import Data.Colour (Colour)
 ------------------------------------------------------------
 
 -- | Mark the origin of a diagram by placing a red dot 1/50th its size.
-showOrigin :: (Renderable (Path R2) b, Backend b R2, Monoid m)
+showOrigin :: (Renderable (Path R2) b, Backend b R2, Monoid' m)
            => QDiagram b R2 m -> QDiagram b R2 m
 showOrigin d = o <> d
   where o     = (stroke $ circle (max (w/50) (h/50)))
@@ -58,7 +58,7 @@ showOrigin d = o <> d
 
 -- | Mark the origin of a diagram, with control over colour and scale
 -- of marker dot.
-showOrigin' :: (Renderable (Path R2) b, Backend b R2, Monoid m)
+showOrigin' :: (Renderable (Path R2) b, Backend b R2, Monoid' m)
            => OriginOpts -> QDiagram b R2 m -> QDiagram b R2 m
 showOrigin' oo d = o <> d
   where o     = (stroke $ circle (max (w * oScale oo) (h * oScale oo)))

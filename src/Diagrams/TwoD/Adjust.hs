@@ -28,7 +28,6 @@ import Diagrams.TwoD.Text   (fontSize)
 import Data.AffineSpace     ((.-.))
 
 import Data.Colour.Names    (black)
-import Data.Monoid          (Monoid)
 
 -- | @adjustDia2D@ provides a useful default implementation of
 --   the 'adjustDia' method from the 'Backend' type class.
@@ -54,7 +53,7 @@ import Data.Monoid          (Monoid)
 --   * Also return the actual adjusted size of the diagram.
 
 -- XXX should split out the attribute-setting into a separate function.
-adjustDia2D :: Monoid m
+adjustDia2D :: Monoid' m
             => (Options b R2 -> SizeSpec2D)
             -> (SizeSpec2D -> Options b R2 -> Options b R2)
             -> b -> Options b R2 -> QDiagram b R2 m
