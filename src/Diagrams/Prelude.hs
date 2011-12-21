@@ -50,6 +50,9 @@ module Diagrams.Prelude
          --   diagrams.
        , module Diagrams.TwoD
 
+         -- | Tools for making animations.
+       , module Diagrams.Animation
+
          -- | Various utility definitions.
        , module Diagrams.Util
 
@@ -64,6 +67,10 @@ module Diagrams.Prelude
          -- | For computing with points and vectors.
        , module Data.AffineSpace
 
+         -- | For working with 'Active' (i.e. animated) things.
+       , module Data.Active
+
+       , Applicative(..), (*>), (<*), (<$>), (<$), liftA, liftA2, liftA3
        ) where
 
 import Graphics.Rendering.Diagrams
@@ -77,9 +84,13 @@ import Diagrams.CubicSpline
 import Diagrams.Transform
 import Diagrams.BoundingBox
 import Diagrams.TwoD
+import Diagrams.Animation
 import Diagrams.Util
 
 import Data.Colour.Names
 import Data.Semigroup
 import Data.VectorSpace hiding (Sum(..))
 import Data.AffineSpace
+import Data.Active
+import Control.Applicative
+
