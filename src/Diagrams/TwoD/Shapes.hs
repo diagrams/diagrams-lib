@@ -53,7 +53,7 @@ import Diagrams.TwoD.Polygons
 
 import Diagrams.Util
 
-import Data.Monoid
+import Data.Semigroup
 import Data.VectorSpace
 
 -- | Create a centered horizontal (L-R) line of the given length.

@@ -26,11 +26,10 @@ import Diagrams.TwoD.Types
 import Diagrams.TwoD.Path
 import Diagrams.TwoD.Shapes
 import Diagrams.TwoD.Size (SizeSpec2D(..))
-import Diagrams.Util
 
 import Data.AffineSpace ((.-.))
 
-import Data.Monoid
+import Data.Semigroup
 
 -- | An external image primitive, representing an image the backend
 --   should import from another file when rendering.

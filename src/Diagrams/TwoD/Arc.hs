@@ -30,8 +30,9 @@ import Diagrams.TwoD.Vector (unitX, e)
 
 import Diagrams.Path
 import Diagrams.Segment
-import Diagrams.Util ((#), (<>))
+import Diagrams.Util ((#))
 
+import Data.Semigroup ((<>))
 import Data.VectorSpace((^-^), (*^), negateV)
 
 -- For details of this approximation see:

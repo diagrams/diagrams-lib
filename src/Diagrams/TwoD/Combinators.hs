@@ -45,7 +45,7 @@ import Diagrams.Combinators
 
 import Data.VectorSpace
 
-import Data.Monoid
+import Data.Semigroup
 import Data.Default
 
 infixl 6 ===
@@ -63,7 +63,7 @@ infixl 6 |||
 --   combined diagram is the same as the local origin of the first.
 --   @(===)@ is associative and has 'mempty' as a right (but not left)
 --   identity.  See the documentation of 'beside' for more information.
-(===) :: (Juxtaposable a, V a ~ R2, Monoid a) => a -> a -> a
+(===) :: (Juxtaposable a, V a ~ R2, Semigroup a) => a -> a -> a
 (===) = beside (negateV unitY)
 
 -- | Place two diagrams (or other boundable objects) horizontally
@@ -72,7 +72,7 @@ infixl 6 |||
 --   combined diagram is the same as the local origin of the first.
 --   @(===)@ is associative and has 'mempty' as a right (but not left)
 --   identity.  See the documentation of 'beside' for more information.
-(|||) :: (Juxtaposable a, V a ~ R2, Monoid a) => a -> a -> a
+(|||) :: (Juxtaposable a, V a ~ R2, Semigroup a) => a -> a -> a
 (|||) = beside unitX
 
 -- | Place two diagrams (or other boundable objects) adjacent to one
@@ -80,7 +80,7 @@ infixl 6 |||
 --   'th' from the first.  The local origin of the resulting combined
 --   diagram is the same as the local origin of the first.
 --   See the documentation of 'beside' for more information.
-atAngle :: (Juxtaposable a, V a ~ R2, Monoid a, Angle b) => b -> a -> a -> a
+atAngle :: (Juxtaposable a, V a ~ R2, Semigroup a, Angle b) => b -> a -> a -> a
 atAngle th = beside (fromDirection th)
 
 -- | Lay out a list of boundable objects in a row from left to right,
@@ -94,14 +94,14 @@ atAngle th = beside (fromDirection th)
 --     "Diagrams.TwoD.Align" before applying 'hcat'.
 --
 --   * For non-axis-aligned layout, see 'cat'.
-hcat :: (Juxtaposable a, HasOrigin a, Monoid a, V a ~ R2)
+hcat :: (Juxtaposable a, HasOrigin a, Monoid' a, V a ~ R2)
      => [a] -> a
 hcat = hcat' def
 
 -- | A variant of 'hcat' taking an extra 'CatOpts' record to control
 --   the spacing.  See the 'cat'' documentation for a description of
 --   the possibilities.
-hcat' :: (Juxtaposable a, HasOrigin a, Monoid a, V a ~ R2)
+hcat' :: (Juxtaposable a, HasOrigin a, Monoid' a, V a ~ R2)
       => CatOpts R2 -> [a] -> a
 hcat' = cat' unitX
 
@@ -116,27 +116,27 @@ hcat' = cat' unitX
 --     "Diagrams.TwoD.Align" before applying 'vcat'.
 --
 --   * For non-axis-aligned layout, see 'cat'.
-vcat :: (Juxtaposable a, HasOrigin a, Monoid a, V a ~ R2)
+vcat :: (Juxtaposable a, HasOrigin a, Monoid' a, V a ~ R2)
      => [a] -> a
 vcat = vcat' def
 
 -- | A variant of 'vcat' taking an extra 'CatOpts' record to control
 --   the spacing.  See the 'cat'' documentation for a description of the
 --   possibilities.
-vcat' :: (Juxtaposable a, HasOrigin a, Monoid a, V a ~ R2)
+vcat' :: (Juxtaposable a, HasOrigin a, Monoid' a, V a ~ R2)
       => CatOpts R2 -> [a] -> a
 vcat' = cat' (negateV unitY)
 
 -- | @strutX d@ is an empty diagram with width @d@, height 0, and a
 --   centered local origin.  Note that @strutX (-w)@ behaves the same as
 --   @strutX w@.
-strutX :: (Backend b R2, Monoid m) => Double -> QDiagram b R2 m
+strutX :: (Backend b R2, Monoid' m) => Double -> QDiagram b R2 m
 strutX d = strut (d,0)
 
 -- | @strutY d@ is an empty diagram with height @d@, width 0, and a
 --   centered local origin. Note that @strutX (-w)@ behaves the same as
 --   @strutX w@.
-strutY :: (Backend b R2, Monoid m) => Double -> QDiagram b R2 m
+strutY :: (Backend b R2, Monoid' m) => Double -> QDiagram b R2 m
 strutY d = strut (0,d)
 
 -- | @padX s@ \"pads\" a diagram in the x-direction, expanding its
@@ -146,7 +146,7 @@ strutY d = strut (0,d)
 --   so if the origin is not centered horizontally the padding may appear
 --   \"uneven\".  If this is not desired, the origin can be centered
 --   (using 'centerX') before applying @padX@.
-padX :: ( Backend b R2, Monoid m )
+padX :: ( Backend b R2, Monoid' m )
      => Double -> QDiagram b R2 m -> QDiagram b R2 m
 padX s d = withBounds (d # scaleX s) d
 
@@ -157,7 +157,7 @@ padX s d = withBounds (d # scaleX s) d
 --   so if the origin is not centered vertically the padding may appear
 --   \"uneven\".  If this is not desired, the origin can be centered
 --   (using 'centerY') before applying @padY@.
-padY :: ( Backend b R2, Monoid m )
+padY :: ( Backend b R2, Monoid' m )
      => Double -> QDiagram b R2 m -> QDiagram b R2 m
 padY s d = withBounds (d # scaleY s) d
 
@@ -166,6 +166,6 @@ padY s d = withBounds (d # scaleY s) d
 --   at @p .+^ v@.  Useful for selecting the rectangular portion of a
 --   diagram which should actually be \"viewed\" in the final render,
 --   if you don't want to see the entire diagram.
-view :: ( Backend b R2, Monoid m )
+view :: ( Backend b R2, Monoid' m )
      => P2 -> R2 -> QDiagram b R2 m -> QDiagram b R2 m
 view p (w,h) = withBounds (rect w h # alignBL # moveTo p :: D R2)

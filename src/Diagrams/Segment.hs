@@ -54,7 +54,7 @@ import Data.AffineSpace
 import Data.VectorSpace
 
 import Control.Applicative (liftA2)
-import Data.Monoid (mempty)
+import Data.Semigroup
 
 ------------------------------------------------------------
 --  Constructing segments  ---------------------------------
@@ -152,10 +152,10 @@ reverseSegment (Cubic c1 c2 x2) = Cubic (c2 ^-^ x2) (c1 ^-^ x2) (negateV x2)
 --   start.
 instance (InnerSpace v, OrderedField (Scalar v)) => Boundable (Segment v) where
 
-  getBounds (s@(Linear {})) = Bounds $ \v ->
+  getBounds (s@(Linear {})) = mkBounds $ \v ->
     maximum . map (\t -> ((s `atParam` t) <.> v) / magnitudeSq v) $ [0,1]
 
-  getBounds (s@(Cubic c1 c2 x2)) = Bounds $ \v ->
+  getBounds (s@(Cubic c1 c2 x2)) = mkBounds $ \v ->
     maximum .
     map (\t -> ((s `atParam` t) <.> v) / magnitudeSq v) $
     [0,1] ++

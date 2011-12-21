@@ -13,7 +13,6 @@ module Diagrams.Util
        ( -- * Utilities for users
 
          with
-       , (<>)
        , applyAll
        , (#)
 
@@ -49,40 +48,6 @@ import Data.Default
 --   @sides@ and @edgeSkip@ fields have been updated.
 with :: Default d => d
 with = def
-
--- | A convenient infix operator for 'mappend' (monoidal combination).
---   Many things in the diagrams library can be combined using @(\<\>)@,
---   with the meaning dependent on the types of things being combined.
---   For example:
---
---   * The combination of two transformations @t1 \<\> t2@ is a
---     transformation which performs first @t2@, then @t1@.
---
---   * Combining two diagrams @d1 \<\> d2@ results in a superimposed
---     diagram with @d1@ on top of @d2@ (with their local origins aligned).
---
---   * Combining two paths works in the same way as combining diagrams.
---
---   * Combining two trails results in a longer trail composed of the
---     first trail followed by the second.
---
---   * Combining two styles, @s1 \<\> s2@, results in a style with
---     combined attributes from both, biased to @s2@ when @s1@ and
---     @s2@ contain attributes of the same type.
---
---   * Combining two @'AlphaColour' Double@s results in a composited
---     color (the color that results when objects of the two colors are
---     superimposed).
---
---   In addition, 'mempty' always represents a suitably \"trivial\"
---   object which is the identity for @(\<\>)@ (that is, @mempty \<\>
---   x == x \<\> mempty == x@).  'mempty' can stand for the identity
---   transformation; the empty diagram, path, trail, or style; the
---   completely transparent color; and so on.
-(<>) :: Monoid m => m -> m -> m
-(<>) = mappend
-
-infixr 5 <>
 
 -- | @applyAll@ takes a list of functions and applies them all to a
 --   value, in sequence from the last function in the list to the first.

@@ -69,13 +69,12 @@ module Diagrams.Path
 import Graphics.Rendering.Diagrams
 
 import Diagrams.Segment
-import Diagrams.Util
 
 import Data.VectorSpace
 import Data.AffineSpace
 
 import Control.Newtype
-import Data.Monoid
+import Data.Semigroup
 import qualified Data.Foldable as F
 
 import Data.List (mapAccumL)
@@ -88,7 +87,7 @@ import Control.Arrow ((***), first, second)
 
 -- | Type class for path-like things, which must be monoids.
 --   Instances include 'Trail's, 'Path's, and two-dimensional 'Diagram's.
-class (Monoid p, VectorSpace (V p)) => PathLike p where
+class (Monoid' p, VectorSpace (V p)) => PathLike p where
 
   pathLike :: Point (V p)      -- ^ The starting point of the
                                --   path.  Some path-like things
@@ -96,6 +95,7 @@ class (Monoid p, VectorSpace (V p)) => PathLike p where
            -> Bool             -- ^ Should the path be closed?
            -> [Segment (V p)]  -- ^ Segments of the path.
            -> p
+
 -- | A list of points is path-like; this instance simply computes the
 --   vertices of a path-like thing.
 instance VectorSpace v => PathLike [Point v] where
@@ -161,12 +161,15 @@ data Trail v = Trail { trailSegments :: [Segment v]
 
 type instance V (Trail v) = v
 
+instance Semigroup (Trail v) where
+  Trail t1 c1 <> Trail t2 c2 = Trail (t1 ++ t2) (c1 || c2)
+
 -- | The empty trail has no segments.  Trails are composed via
 --   concatenation.  @t1 ``mappend`` t2@ is closed iff either @t1@ or
 --   @t2@ are.
 instance Monoid (Trail v) where
   mempty = Trail [] False
-  Trail t1 c1 `mappend` Trail t2 c2 = Trail (t1 ++ t2) (c1 || c2)
+  mappend = (<>)
 
 -- | Trails are 'PathLike' things.  Note that since trails are
 --   translationally invariant, 'setStart' has no effect.
@@ -247,7 +250,7 @@ fixTrail start tr = zipWith mkFixedSeg (trailVertices start tr)
 --   are /not/ translationally invariant, and form a monoid under
 --   superposition.
 newtype Path v = Path { pathTrails :: [(Point v, Trail v)] }
-  deriving (Show, Monoid, Eq, Ord)
+  deriving (Show, Semigroup, Monoid, Eq, Ord)
 
 type instance V (Path v) = v
 

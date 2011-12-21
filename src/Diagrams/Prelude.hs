@@ -56,9 +56,9 @@ module Diagrams.Prelude
          -- * Convenience re-exports
          -- | A large list of color names.
        , module Data.Colour.Names
-         -- | Monoids show up all over the place, so things from
-         --   Data.Monoid often come in handy.
-       , module Data.Monoid
+         -- | Semigroups and monoids show up all over the place, so things from
+         --   Data.Semigroup and Data.Monoid often come in handy.
+       , module Data.Semigroup
          -- | For computing with vectors.
        , module Data.VectorSpace
          -- | For computing with points and vectors.
@@ -79,8 +79,7 @@ import Diagrams.BoundingBox
 import Diagrams.TwoD
 import Diagrams.Util
 
-import Data.Monoid
+import Data.Colour.Names
+import Data.Semigroup
 import Data.VectorSpace hiding (Sum(..))
 import Data.AffineSpace
-
-import Data.Colour.Names
