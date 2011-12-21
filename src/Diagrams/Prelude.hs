@@ -45,9 +45,6 @@ module Diagrams.Prelude
          --   good old-fashioned, axis-aligned bounding boxes.
        , module Diagrams.BoundingBox
 
-         -- | Generic tools for computing sizes of diagrams.
-       , module Diagrams.Size
-
          -- | A wide range of things (shapes, transformations,
          --   combinators) specific to creating two-dimensional
          --   diagrams.
@@ -79,7 +76,6 @@ import Diagrams.Path
 import Diagrams.CubicSpline
 import Diagrams.Transform
 import Diagrams.BoundingBox
-import Diagrams.Size
 import Diagrams.TwoD
 import Diagrams.Util
 
