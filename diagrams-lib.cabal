@@ -64,7 +64,7 @@ Library
                        active >= 0.1 && < 0.2,
                        vector-space >= 0.7.7 && < 0.9,
                        NumInstances >= 1.0 && < 1.1,
-                       colour >= 2.3.1 && < 2.4,
+                       colour >= 2.3.2 && < 2.4,
                        data-default >= 0.2 && < 0.4,
                        pretty >= 1.0.1.2 && < 1.2,
                        newtype >= 0.2 && < 0.3,
