@@ -46,7 +46,7 @@ import Data.Typeable
 ------------------------------------------------------------
 
 -- | A text primitive consists of the string contents and alignment
----  specification, along with a transformation mapping from the local
+--   specification, along with a transformation mapping from the local
 --   vector space of the text to the vector space in which it is
 --   embedded.
 data Text = Text T2 TextAlignment String
