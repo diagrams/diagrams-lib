@@ -17,8 +17,8 @@
 
 module Diagrams.TwoD.Text (
   -- * Creating text diagrams
-    Text(..)
-  , text
+    Text(..), TextAlignment(..)
+  , text, topLeftText, alignedText, baselineText
 
   -- * Text attributes
   -- ** Font family
@@ -45,15 +45,16 @@ import Data.Typeable
 -- Text diagrams
 ------------------------------------------------------------
 
--- | A text primitive consists of the string contents along with a
---   transformation mapping from the local vector space of the text to
---   the vector space in which it is embedded.
-data Text = Text T2 String
+-- | A text primitive consists of the string contents and alignment
+---  specification, along with a transformation mapping from the local
+--   vector space of the text to the vector space in which it is
+--   embedded.
+data Text = Text T2 TextAlignment String
 
 type instance V Text = R2
 
 instance Transformable Text where
-  transform t (Text tt s) = Text (t <> tt) s
+  transform t (Text tt a s) = Text (t <> tt) a s
 
 instance HasOrigin Text where
   moveOriginTo p = translate (origin .-. p)
@@ -61,44 +62,56 @@ instance HasOrigin Text where
 instance Renderable Text NullBackend where
   render _ _ = mempty
 
--- | Create a primitive text diagram from the given string, which
---   /takes up no space/.  By default, the text is centered with
---   respect to its local origin (see 'alignText').
+-- | @TextAlignment@ specifies the alignment of the text's origin.
+data TextAlignment = BaselineText | BoxAlignedText R2
+
+mkText :: Renderable Text b => TextAlignment -> String -> Diagram b R2
+mkText a t = mkQD (Prim (Text mempty a t))
+                       mempty
+                       mempty
+                       mempty
+
+-- | Create a primitive text diagram from the given string, with center
+--   alignment, equivalent to @alignedText (0.5, 0.5)@.
+--    
+--   Note that it /takes up no space/, as text size information is not
+--   available.
 text :: Renderable Text b => String -> Diagram b R2
-text t = mkQD (Prim (Text mempty t))
-              mempty
-              mempty
-              mempty
+text = alignedText (0.5, 0.5)
+
+-- | Create a primitive text diagram from the given string, origin at
+--   the top left corner of the text's bounding box, equivalent to 
+--   @alignedText (0.5, 0.5)@.
+--    
+--   Note that it /takes up no space/.
+topLeftText :: Renderable Text b => String -> Diagram b R2
+topLeftText = alignedText (0, 1)
+
+-- | Create a primitive text diagram from the given string, with the
+--   origin set to a point interpolated within the bounding box.  The
+--   vector provided as the first parameter provides interpolation
+--   parameters, such that (0, 0) is at the bottom left, and (1, 1) is
+--   at the top right.
+--   
+--   The height of this box is determined by the font's potential ascent
+--   and descent, rather than the height of the particular string.
+--
+--   Note that it /takes up no space/.
+alignedText :: Renderable Text b => R2 -> String -> Diagram b R2
+alignedText v = mkText (BoxAlignedText v)
+
+-- | Create a primitive text diagram from the given string, with the
+--   origin set to be on the baseline, at the beginning (although not
+--   bounding).  This is the reference point of showText in the Cairo
+--   graphics library.
+--   
+--   Note that it /takes up no space/.
+baselineText :: Renderable Text b => String -> Diagram b R2
+baselineText = mkText BaselineText
 
 ------------------------------------------------------------
 -- Text attributes
 ------------------------------------------------------------
-
-{-
---------------------------------------------------
--- Alignment
-
--- | The @TextAlignment@ attribute specifies what alignment should be
---   applied to text.  Inner @TextAlignment@ attributes override outer
---   ones.
-newtype TextAlignment = TextAlignment (Last (Alignment R2))
-  deriving (Typeable, Semigroup)
-instance AttributeClass TextAlignment
-
--- | Extract an alignment from a @TextAlignment@ attribute.
-getTextAlignment :: TextAlignment -> Alignment R2
-getTextAlignment (TextAlignment (Last a)) = a
-
--- | The default alignment for text is centered.
-centeredText :: TextAlignment
-centeredText = TextAlignment (Last (asAlignment id))
-
--- | @alignText f@ aligns text by applying the alignment function @f@
---   (any transformation of boundable things with origins may be used;
---   for example, 'alignTL' and friends).
-alignText :: HasStyle a => (Alignment R2 -> Alignment R2) -> a -> a
-alignText = applyAttr . TextAlignment . Last . asAlignment
--}
 
 --------------------------------------------------
 -- Font family
