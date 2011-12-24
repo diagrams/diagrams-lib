@@ -117,7 +117,8 @@ module Diagrams.TwoD
        , roundedRect
 
          -- * Text
-       , text, font, fontSize, italic, oblique, bold
+       , text, topLeftText, alignedText, baselineText
+       , font, fontSize, italic, oblique, bold
 
          -- * Images
        , image
