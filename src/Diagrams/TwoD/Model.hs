@@ -36,6 +36,7 @@ import Control.Arrow (second)
 import Data.Semigroup
 import Data.Default
 import Data.AffineSpace ((.-.))
+import Data.VectorSpace ((^*))
 
 import qualified Data.Map as M
 
@@ -49,30 +50,27 @@ import Data.Colour (Colour)
 -- | Mark the origin of a diagram by placing a red dot 1/50th its size.
 showOrigin :: (Renderable (Path R2) b, Backend b R2, Monoid' m)
            => QDiagram b R2 m -> QDiagram b R2 m
-showOrigin d = o <> d
-  where o     = (stroke $ circle (max (w/50) (h/50)))
-                # fc red
-                # lw 0
-                # fmap (const mempty)
-        (w,h) = size2D d
+showOrigin = showOrigin' def 
 
 -- | Mark the origin of a diagram, with control over colour and scale
 -- of marker dot.
 showOrigin' :: (Renderable (Path R2) b, Backend b R2, Monoid' m)
            => OriginOpts -> QDiagram b R2 m -> QDiagram b R2 m
 showOrigin' oo d = o <> d
-  where o     = (stroke $ circle (max (w * oScale oo) (h * oScale oo)))
+  where o     = (stroke $ circle sz)
                 # fc (oColor oo)
                 # lw 0
                 # fmap (const mempty)
-        (w,h) = size2D d
+        (w,h) = size2D d ^* oScale oo
+        sz = maximum [w, h, oMinSize oo]
 
 data OriginOpts = OriginOpts { oColor :: Colour Double
                              , oScale :: Double
+                             , oMinSize :: Double
                              }
 
 instance Default OriginOpts where
-  def = OriginOpts red (1/50)
+  def = OriginOpts red (1/50) 0.001
 
 
 ------------------------------------------------------------
