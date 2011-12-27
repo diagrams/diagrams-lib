@@ -40,6 +40,7 @@ module Diagrams.Path
        , trailSegments'
        , trailOffsets, trailOffset
        , trailVertices, reverseTrail
+       , addClosingSegment
        , fixTrail
 
          -- * Paths
@@ -234,10 +235,12 @@ reverseRootedTrail (p, t)
 pathLikeFromTrail :: PathLike p => Trail (V p) -> p
 pathLikeFromTrail t = pathLike origin (isClosed t) (trailSegments t)
 
+-- | If the trail is closed, this adds in the closing segment. Otherwise,
+--   the trail is returned unmodified.
 addClosingSegment :: AdditiveGroup v => Trail v -> Trail v
-addClosingSegment t = Trail (trailSegments t ++ closeSeg) False
-  where closeSeg | isClosed t = [Linear . negateV . trailOffset $ t]
-                 | otherwise   = []
+addClosingSegment t | isClosed t = Trail (trailSegments t ++ [closeSeg]) False
+                    | otherwise = t
+ where closeSeg = Linear . negateV $ trailOffset t 
 
 -- | Convert a starting point and a trail into a list of fixed segments.
 fixTrail :: AdditiveGroup v => Point v -> Trail v -> [FixedSegment v]
