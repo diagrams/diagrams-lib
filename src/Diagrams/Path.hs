@@ -234,12 +234,15 @@ reverseRootedTrail (p, t)
 pathLikeFromTrail :: PathLike p => Trail (V p) -> p
 pathLikeFromTrail t = pathLike origin (isClosed t) (trailSegments t)
 
+addClosingSegment :: AdditiveGroup v => Trail v -> Trail v
+addClosingSegment t = Trail (trailSegments t ++ closeSeg) False
+  where closeSeg | isClosed t = [Linear . negateV . trailOffset $ t]
+                 | otherwise   = []
+
 -- | Convert a starting point and a trail into a list of fixed segments.
 fixTrail :: AdditiveGroup v => Point v -> Trail v -> [FixedSegment v]
-fixTrail start tr = zipWith mkFixedSeg (trailVertices start tr)
-                      (trailSegments tr ++ closeSeg)
-  where closeSeg | isClosed tr = [Linear . negateV . trailOffset $ tr]
-                 | otherwise   = []
+fixTrail start t = zipWith mkFixedSeg (trailVertices start t)
+                                      (trailSegments $ addClosingSegment t)
 
 ------------------------------------------------------------
 --  Paths  -------------------------------------------------
