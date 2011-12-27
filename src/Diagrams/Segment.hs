@@ -37,7 +37,6 @@ module Diagrams.Segment
        , adjustSegmentToParams
 
          -- * Fixed (absolutely located) segments
-
        , FixedSegment(..)
        , mkFixedSeg
        , fAtParam
@@ -260,6 +259,7 @@ data AdjustSide = Start  -- ^ Adjust only the beginning
 -- | How should a segment, trail, or path be adjusted?
 data AdjustOpts v = ALO { adjMethod :: AdjustMethod v
                         , adjSide   :: AdjustSide
+                        , adjEps    :: Scalar v
                         , adjOptsvProxy__ :: Proxy v
                         }
 
@@ -270,31 +270,26 @@ instance Default AdjustSide where
   def = Both
 
 instance Fractional (Scalar v) => Default (AdjustOpts v) where
-  def = ALO def def Proxy
+  def = ALO def def (1/10^(10 :: Integer)) Proxy
 
 -- | Adjust the length of a segment.  The second parameter is an
 --   option record which controls how the adjustment should be
 --   performed; see 'AdjustOpts'.
 adjustSegment :: (InnerSpace v, OrderedField (Scalar v))
               => Segment v -> AdjustOpts v -> Segment v
-adjustSegment s opts = adjustSegmentToParams s t1 t2
-  where t1 = case opts of
-               (ALO _ End _)                  -> 0
-               (ALO (ByParam p) Start _)      -> -p
-               (ALO (ByParam p) Both _)       -> -p/2
-               (ALO (ByAbsolute len) Start _) -> arcLengthToParam s (-len) eps
-               (ALO (ByAbsolute len) Both _)  -> arcLengthToParam s (-len/2) eps
-               (ALO (ToAbsolute len) Start _) -> arcLengthToParam s (arcLength s eps - len) eps
-               (ALO (ToAbsolute len) Both _)  -> arcLengthToParam s ((arcLength s eps - len)/2) eps
-        t2 = case opts of
-               (ALO _ Start _)               -> 1
-               (ALO (ByParam p) End _)       -> 1 + p
-               (ALO (ByParam p) Both _)      -> 1 + p/2
-               (ALO (ByAbsolute len) End _)  -> 1 - arcLengthToParam (reverseSegment s) (-len) eps
-               (ALO (ByAbsolute len) Both _) -> 1 - (arcLengthToParam (reverseSegment s) (-len) eps)/2
-               (ALO (ToAbsolute len) End _)  -> 1 - arcLengthToParam (reverseSegment s) (arcLength s eps - len) eps
-               (ALO (ToAbsolute len) Both _) -> 1 - arcLengthToParam (reverseSegment s) ((arcLength s eps - len)/2) eps
-        eps = 1/10^(10 :: Integer)
+adjustSegment s opts = adjustSegmentToParams s 
+    (if adjSide opts == End   then 0 else getParam s) 
+    (if adjSide opts == Start then 0 else 1 - getParam (reverseSegment s))
+  where
+    getParam seg = case adjMethod opts of
+      ByParam p -> -p * bothCoef
+      ByAbsolute len -> param (-len * bothCoef)
+      ToAbsolute len -> param (absDelta len * bothCoef)
+      where
+        param l = arcLengthToParam seg l eps
+        absDelta len = arcLength s eps - len
+    bothCoef = if adjSide opts == Both then 0.5 else 1
+    eps = adjEps opts
 
 -- | Given a segment and parameters @t1@, @t2@, produce the segment
 --   which lies on the (infinitely extended) original segment
