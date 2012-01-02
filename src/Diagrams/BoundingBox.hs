@@ -54,7 +54,7 @@ import Graphics.Rendering.Diagrams.HasOrigin (HasOrigin(..))
 import Graphics.Rendering.Diagrams.Bounds (Boundable(..), boundary)
 import Graphics.Rendering.Diagrams.V (V)
 import Graphics.Rendering.Diagrams.Transform
-  (Transformation(..), Transformable(..), HasLinearMap, (<->), fromLinear)
+  (Transformation(..), Transformable(..), HasLinearMap, (<->))
 
 -- | A bounding box is an axis-aligned region determined
 --   by two points indicating its \"lower\" and \"upper\" corners.
@@ -133,7 +133,7 @@ boxTransform a@(BoundingBox (P l1) _) b@(BoundingBox (P l2) _)
   = Transformation s s (l2 ^-^ boxTrans a b l1)
  where
   s = boxTrans a b <-> boxTrans b a
-  boxTrans a b = vcombineV (*) (vcombineV (/) (boxExtents b) (boxExtents a))
+  boxTrans b1 b2 = vcombineV (*) (vcombineV (/) (boxExtents b2) (boxExtents b1))
   vcombineV f x = toVector . combineV f x
 
 -- | Transforms a boundable thing to fit within a @BoundingBox@.
