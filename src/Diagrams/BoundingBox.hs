@@ -128,7 +128,6 @@ boxExtents (BoundingBox (P l) (P h)) = h ^-^ l
 boxTransform :: (AdditiveGroup v, HasLinearMap v, 
                  Fractional (Scalar v), AdditiveGroup (Scalar v), Ord (Basis v))
              => BoundingBox v -> BoundingBox v -> Transformation v
-  --TODO: is this right??
 boxTransform a@(BoundingBox (P l1) _) b@(BoundingBox (P l2) _)
   = Transformation s s (l2 ^-^ boxTrans a b l1)
  where
