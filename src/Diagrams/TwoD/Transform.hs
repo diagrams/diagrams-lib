@@ -97,7 +97,7 @@ rotationAbout p angle = conjugate (translation (origin .-. p)) (rotation angle)
 -- | @rotateAbout p@ is like 'rotate', except it rotates around the
 --   point @p@ instead of around the local origin.
 rotateAbout :: (Transformable t, V t ~ R2, Angle a) => P2 -> a -> t -> t
-rotateAbout p angle = rotate angle `under` (translation (origin .-. p))
+rotateAbout p angle = rotate angle `under` translation (origin .-. p)
 
 -- Scaling -------------------------------------------------
 
@@ -214,8 +214,8 @@ reflectAbout p v = transform (reflectionAbout p v)
 --   y coordinates and sends @(0,1)@ to @(d,1)@.
 shearingX :: Double -> T2
 shearingX d = fromLinear (sh d <-> sh (-d)) (sh' d <-> sh' (-d))
-  where sh k  = (\(x, y) -> (x+k*y, y))
-        sh' k = swap . sh k . swap
+  where sh  k (x, y) = (x+k*y, y)
+        sh' k        = swap . sh k . swap
         swap (x,y) = (y,x)
 
 -- | @shearX d@ performs a shear in the x-direction which sends
@@ -227,8 +227,8 @@ shearX = transform . shearingX
 --   x coordinates and sends @(1,0)@ to @(1,d)@.
 shearingY :: Double -> T2
 shearingY d = fromLinear (sh d <-> sh (-d)) (sh' d <-> sh' (-d))
-  where sh k  = (\(x, y) -> (x, y+k*x))
-        sh' k = swap . sh k . swap
+  where sh  k (x,y) = (x, y+k*x)
+        sh' k       = swap . sh k . swap
         swap (x,y) = (y,x)
 
 -- | @shearY d@ performs a shear in the y-direction which sends

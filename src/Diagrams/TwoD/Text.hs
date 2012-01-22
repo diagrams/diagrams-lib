@@ -160,7 +160,7 @@ data FontSlant = FontSlantNormal
 -- | The @FontSlantA@ attribute specifies the slant (normal, italic,
 --   or oblique) that should be used for all text within a diagram.
 --   Inner @FontSlantA@ attributes override outer ones.
-newtype FontSlantA = FontSlantA (Last (FontSlant))
+newtype FontSlantA = FontSlantA (Last FontSlant)
   deriving (Typeable, Semigroup)
 instance AttributeClass FontSlantA
 
