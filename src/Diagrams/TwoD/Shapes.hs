@@ -185,10 +185,10 @@ clamp x lo hi | x < lo    = lo
 
 -- | @roundedRect'@ works like @roundedRect@ but allows you to set the radius of 
 --   each corner indivually, using RoundedRectOpts. The default corner radius is 0.
---   Radius can also be negative, which results in the curves being reversed to be
---   inward instead of outward.
+--   Each radius can also be negative, which results in the curves being reversed 
+--   to be inward instead of outward.
 roundedRect' :: (PathLike p, V p ~ R2) => RoundedRectOpts -> R2 -> p
-roundedRect' opts v@(w,h) = pathLike (P (w/2, (abs rBR) - h/2)) True
+roundedRect' opts (w,h) = pathLike (P (w/2, (abs rBR) - h/2)) True
                         . trailSegments
                         $ seg (0, h - (abs rTR) - (abs rBR))
                         <> mkCorner 0 rTR
@@ -215,7 +215,7 @@ roundedRect' opts v@(w,h) = pathLike (P (w/2, (abs rBR) - h/2)) True
         mkCorner k r | r == 0    = mempty
                      | r < 0     = doArc 3 2
                      | otherwise = doArc 0 1
-                     where doArc d d' = arc ((k+d)/4) ((k+d')/4:: CircleFrac) # scale r
+                     where doArc d d' = arc ((k+d)/4) ((k+d')/4:: CircleFrac) # scale (abs r)
 
 data RoundedRectOpts = RoundedRectOpts { radiusTL :: Double
                                        , radiusTR :: Double
