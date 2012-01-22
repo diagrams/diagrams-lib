@@ -206,8 +206,8 @@ roundedRect' opts (w,h) = pathLike (P (w/2, (abs rBR) - h/2)) True
         rBL                 = clampCnr radiusBL radiusBR radiusTL
         rTR                 = clampCnr radiusTR radiusTL radiusBR
         rBR                 = clampCnr radiusBR radiusBL radiusTR
-        clampCnr r rh rv    = let (r',rh',rv') = (r opts, rh opts, rv opts)  
-                                in clampAxis (clampAxis r' (w - abs rh') w) (h - abs rv') h                     
+        clampCnr r rx ry    = let (r',rx',ry') = (r opts, rx opts, ry opts)  
+                                in clampAxis (clampAxis r' (w - abs rx') w) (h - abs ry') h
         clampAxis r rem len = if abs r > len/2 
                                 then sign r * (max (len/2) $ min (abs r) rem)
                                 else r
@@ -216,6 +216,7 @@ roundedRect' opts (w,h) = pathLike (P (w/2, (abs rBR) - h/2)) True
                      | r < 0     = doArc 3 2
                      | otherwise = doArc 0 1
                      where doArc d d' = arc ((k+d)/4) ((k+d')/4:: CircleFrac) # scale (abs r)
+
 
 data RoundedRectOpts = RoundedRectOpts { radiusTL :: Double
                                        , radiusTR :: Double
