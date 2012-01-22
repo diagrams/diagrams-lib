@@ -39,7 +39,8 @@ module Diagrams.TwoD.Shapes
          -- * Other shapes
 
        , roundedRect
-
+       , RoundedRectOpts(..)
+       , roundedRect'
        ) where
 
 import Graphics.Rendering.Diagrams
@@ -53,6 +54,7 @@ import Diagrams.TwoD.Polygons
 
 import Diagrams.Util
 
+import Data.Default
 import Data.Semigroup
 import Data.VectorSpace
 
@@ -170,7 +172,7 @@ roundedRect v r = pathLike (P (xOff/2 + r', -yOff/2)) True
         maxR = uncurry min v / 2
         (xOff,yOff) = v ^-^ (2*r', 2*r')
         mkCorner k | r' == 0   = mempty
-                   | otherwise = arc (k/4) ((k+1)/4::CircleFrac) # scale r'
+                   | otherwise = arc (k/4) ((k+1)/4:: CircleFrac) # scale r'
 
 -- | @clamp x lo hi@ clamps @x@ to lie between @lo@ and @hi@
 --   inclusive.  That is, if @lo <= x <= hi@ it returns @x@; if @x < lo@
@@ -179,3 +181,46 @@ clamp :: Ord a => a -> a -> a -> a
 clamp x lo hi | x < lo    = lo
               | x > hi    = hi
               | otherwise = x
+
+
+-- | @roundedRect'@ works like @roundedRect@ but allows you to set the radius of 
+--   each corner indivually, using RoundedRectOpts. The default corner radius is 0.
+--   Radius can also be negative, which results in the curves being reversed to be
+--   inward instead of outward.
+roundedRect' :: (PathLike p, V p ~ R2) => RoundedRectOpts -> R2 -> p
+roundedRect' opts v@(w,h) = pathLike (P (w/2, (abs rBR) - h/2)) True
+                        . trailSegments
+                        $ seg (0, h - (abs rTR) - (abs rBR))
+                        <> mkCorner 0 rTR
+                        <> seg ((abs rTR) + (abs rTL) - w,0)
+                        <> mkCorner 1 rTL
+                        <> seg (0, (abs rTL) + (abs rBL) - h)
+                        <> mkCorner 2 rBL
+                        <> seg (w - (abs rBL) - (abs rBR),0)
+                        <> mkCorner 3 rBR
+  where seg = fromOffsets  . (:[])
+        -- to clamp corner radius, need to compare with other corners that share an
+        -- edge. If the corners overlap then reduce the largest corner first, as far
+        -- as 50% of the edge in question.
+        rTL                 = clampCnr radiusTL radiusTR radiusBL
+        rBL                 = clampCnr radiusBL radiusBR radiusTL
+        rTR                 = clampCnr radiusTR radiusTL radiusBR
+        rBR                 = clampCnr radiusBR radiusBL radiusTR
+        clampCnr r rh rv    = let (r',rh',rv') = (r opts, rh opts, rv opts)  
+                                in clampAxis (clampAxis r' (w - abs rh') w) (h - abs rv') h                     
+        clampAxis r rem len = if abs r > len/2 
+                                then sign r * (max (len/2) $ min (abs r) rem)
+                                else r
+        sign n = if n < 0 then -1 else 1
+        mkCorner k r | r == 0    = mempty
+                     | r < 0     = doArc 3 2
+                     | otherwise = doArc 0 1
+                     where doArc d d' = arc ((k+d)/4) ((k+d')/4:: CircleFrac) # scale r
+
+data RoundedRectOpts = RoundedRectOpts { radiusTL :: Double
+                                       , radiusTR :: Double
+                                       , radiusBL :: Double
+                                       , radiusBR :: Double
+                                       }
+instance Default RoundedRectOpts where
+  def = RoundedRectOpts 0 0 0 0
