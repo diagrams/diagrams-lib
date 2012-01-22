@@ -178,25 +178,30 @@ roundedRect' opts (w,h) = pathLike (P (w/2, (abs rBR) - h/2)) True
                         <> mkCorner 2 rBL
                         <> seg (w - (abs rBL) - (abs rBR),0)
                         <> mkCorner 3 rBR
-  where seg = fromOffsets . (:[])
+  where seg   = fromOffsets . (:[])
+        diag  = sqrt (w * w + h * h)
         -- to clamp corner radius, need to compare with other corners that share an
         -- edge. If the corners overlap then reduce the largest corner first, as far
         -- as 50% of the edge in question.
-        rTL                 = clampCnr radiusTL radiusTR radiusBL
-        rBL                 = clampCnr radiusBL radiusBR radiusTL
-        rTR                 = clampCnr radiusTR radiusTL radiusBR
-        rBR                 = clampCnr radiusBR radiusBL radiusTR
-        clampCnr r rx ry    = let (r',rx',ry') = (r opts, rx opts, ry opts)  
-                                in clampAxis (clampAxis r' (w - abs rx') w) (h - abs ry') h
-        clampAxis r rem len = if abs r > len/2 
-                                then sign r * (max (len/2) $ min (abs r) rem)
+        rTL                 = clampCnr radiusTR radiusBL radiusBR radiusTL
+        rBL                 = clampCnr radiusBR radiusTL radiusTR radiusBL
+        rTR                 = clampCnr radiusTL radiusBR radiusBL radiusTR
+        rBR                 = clampCnr radiusBL radiusTR radiusTL radiusBR
+        clampCnr rx ry ro r = let (rx',ry',ro',r') = (rx opts, ry opts, ro opts, r opts)  
+                                in clampDiag ro' . clampAdj h ry' . clampAdj w rx' $ r'
+        -- prevent curves of adjacent corners from overlapping
+        clampAdj len adj r  = if abs r > len/2 
+                                then (sign r) * (max (len/2) (min (len - abs adj) (abs r)))
+                                else r
+        -- prevent inward curves of diagonally opposite corners from intersecting
+        clampDiag opp r     = if r < 0 && opp < 0 && abs r > diag / 2
+                                then (sign r) * (max (diag / 2) $ min (abs r) (diag + opp))
                                 else r
         sign n = if n < 0 then -1 else 1
         mkCorner k r | r == 0    = mempty
                      | r < 0     = doArc 3 2
                      | otherwise = doArc 0 1
                      where doArc d d' = arc ((k+d)/4) ((k+d')/4:: CircleFrac) # scale (abs r)
-
 
 data RoundedRectOpts = RoundedRectOpts { radiusTL :: Double
                                        , radiusTR :: Double
