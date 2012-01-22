@@ -157,30 +157,10 @@ dodecagon = regPoly 12
 -- dimension of @v@, respectively.  The trail or path begins with the
 -- right edge and proceeds counterclockwise.
 roundedRect :: (PathLike p, V p ~ R2) => R2 -> Double -> p
-roundedRect v r = pathLike (P (xOff/2 + r', -yOff/2)) True
-                . trailSegments
-                $ seg (0,yOff)
-                <> mkCorner 0
-                <> seg (-xOff,0)
-                <> mkCorner 1
-                <> seg (0, -yOff)
-                <> mkCorner 2
-                <> seg (xOff,0)
-                <> mkCorner 3
-  where seg = fromOffsets  . (:[])
-        r'   = clamp r 0 maxR
-        maxR = uncurry min v / 2
-        (xOff,yOff) = v ^-^ (2*r', 2*r')
-        mkCorner k | r' == 0   = mempty
-                   | otherwise = arc (k/4) ((k+1)/4:: CircleFrac) # scale r'
-
--- | @clamp x lo hi@ clamps @x@ to lie between @lo@ and @hi@
---   inclusive.  That is, if @lo <= x <= hi@ it returns @x@; if @x < lo@
---   it returns @lo@, and if @hi < x@ it returns @hi@.
-clamp :: Ord a => a -> a -> a -> a
-clamp x lo hi | x < lo    = lo
-              | x > hi    = hi
-              | otherwise = x
+roundedRect v r = roundedRect' (with { radiusTL = abs r, 
+                                       radiusBR = abs r, 
+                                       radiusTR = abs r, 
+                                       radiusBL = abs r}) v
 
 
 -- | @roundedRect'@ works like @roundedRect@ but allows you to set the radius of 
@@ -198,7 +178,7 @@ roundedRect' opts (w,h) = pathLike (P (w/2, (abs rBR) - h/2)) True
                         <> mkCorner 2 rBL
                         <> seg (w - (abs rBL) - (abs rBR),0)
                         <> mkCorner 3 rBR
-  where seg = fromOffsets  . (:[])
+  where seg = fromOffsets . (:[])
         -- to clamp corner radius, need to compare with other corners that share an
         -- edge. If the corners overlap then reduce the largest corner first, as far
         -- as 50% of the edge in question.
