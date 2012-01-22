@@ -94,7 +94,7 @@ fromPoints = unions . map fromPoint
 -- | Create a bounding box for any boundable object (such as a diagram or path).
 boundingBox :: forall a. (Boundable a, HasBasis (V a), Ord (Basis (V a)))
             => a -> BoundingBox (V a)
-boundingBox a = fromJust . fromPoints . map (flip boundary a) $ [id, negateV] <*> units
+boundingBox a = fromJust . fromPoints . map (`boundary` a) $ [id, negateV] <*> units
   where units = map (basisValue . fst) (decompose (zeroV :: V a))
 
 -- | Gets the lower and upper corners that define the bounding box.
@@ -116,7 +116,7 @@ getAllCorners :: (HasBasis v, AdditiveGroup (Scalar v), Ord (Basis v))
 getAllCorners (BoundingBox l u)
   = map (P . recompose)
   -- Enumerate all combinations of selections of lower / higher values. 
-  . sequence . map (\(b, (x, y)) -> [(b, x), (b, y)])
+  . mapM (\(b, (x, y)) -> [(b, x), (b, y)])
   . toList $ combineP (,) l u
 
 -- | Get the size of the bounding box - the vector from the lesser to the greater

@@ -221,7 +221,7 @@ reverseTrail :: AdditiveGroup v => Trail v -> Trail v
 reverseTrail t@(Trail {trailSegments = []}) = t
 reverseTrail t@(Trail {trailSegments = ss})
   | isClosed t = t { trailSegments = straight (trailOffset t) : reverseSegs ss }
-  | otherwise  = t { trailSegments = reverseSegs $ ss }
+  | otherwise  = t { trailSegments = reverseSegs ss }
   where reverseSegs = fmap reverseSegment . reverse
 
 -- | Reverse a trail with a fixed starting point.
