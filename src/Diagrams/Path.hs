@@ -353,12 +353,12 @@ fixPath = map (uncurry fixTrail) . unpack
 --   segment (including the implicit closing segment, if the trail is
 --   closed) into its own separate path.  Useful for (say) applying a
 --   different style to each segment.
-explodeTrail :: VectorSpace v => Point v -> Trail v -> [Path v]
+explodeTrail :: (VectorSpace (V p), PathLike p) => Point (V p) -> Trail (V p) -> [p]
 explodeTrail start = snd . mapAccumL mkPath start . trailSegments'
-  where mkPath p seg = (p .+^ segOffset seg, pathFromTrailAt (fromSegments [seg]) p)
+  where mkPath p seg = (p .+^ segOffset seg, pathLike p False [seg])
 
 -- | \"Explode\" a path by exploding every component trail (see 'explodeTrail').
-explodePath :: VectorSpace v => Path v -> [[Path v]]
+explodePath :: (VectorSpace (V p), PathLike p) => Path (V p) -> [[p]]
 explodePath = map (uncurry explodeTrail) . pathTrails
 
 -- | Create a single-segment path between two given points.
