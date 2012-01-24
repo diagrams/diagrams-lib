@@ -71,6 +71,7 @@ module Diagrams.Path
 
 import Graphics.Rendering.Diagrams
 
+import Diagrams.Align
 import Diagrams.Segment
 import Diagrams.Points
 import Diagrams.Transform
@@ -298,6 +299,9 @@ instance (InnerSpace v, OrderedField (Scalar v)) => Boundable (Path v) where
 
 instance (InnerSpace v, OrderedField (Scalar v)) => Juxtaposable (Path v) where
   juxtapose = juxtaposeDefault
+
+instance (InnerSpace v, OrderedField (Scalar v)) => Alignable (Path v) where
+  alignBy = alignByDefault
 
 instance HasLinearMap v => Renderable (Path v) NullBackend where
   render _ _ = mempty

@@ -30,6 +30,9 @@
 --     a1 a2@ therefore have different semantics: the second is an
 --     active value whose era is the /combination/ of the eras of @a1@
 --     and @a2@).
+--
+--   * An 'Alignable' instance for @'Active' a@ where @a@ is also
+--     'Alignable'; the active value is aligned pointwise over time.
 
 -----------------------------------------------------------------------------
 
@@ -38,6 +41,7 @@ module Diagrams.Animation.Active where
 import Graphics.Rendering.Diagrams
 import Control.Applicative ((<$>), pure)
 
+import Diagrams.Align
 import Diagrams.Path
 
 import Data.Active
@@ -92,3 +96,6 @@ instance Juxtaposable a => Juxtaposable (Active a) where
           a2
       )
       a1
+
+instance Alignable a => Alignable (Active a) where
+  alignBy v d a = alignBy v d <$> a
