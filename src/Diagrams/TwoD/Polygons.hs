@@ -40,8 +40,6 @@ module Diagrams.TwoD.Polygons(
         , GraphPart(..)
         , orbits, mkGraph
 
-        -- * Utility
-        , centroid
     ) where
 
 import Data.Ord          (comparing)
@@ -51,15 +49,13 @@ import Data.Monoid       (mconcat)
 
 import Math.Tau
 
-import Control.Arrow     ((&&&))
 import Control.Monad     (forM, liftM)
 
 import Control.Monad.ST  (runST, ST)
 import Data.Array.ST     (STUArray, newArray, readArray, writeArray)
-import Control.Newtype   (pack, unpack)
 
 import Data.AffineSpace  ((.-.), (.+^))
-import Data.VectorSpace  (sumV, magnitude, normalized, project, (^/), (<.>), (^*))
+import Data.VectorSpace  (magnitude, normalized, project, (<.>), (^*))
 import Data.Default
 
 import Graphics.Rendering.Diagrams
@@ -68,6 +64,7 @@ import Diagrams.TwoD.Types
 import Diagrams.TwoD.Transform
 import Diagrams.TwoD.Vector (unitX, unitY, unit_Y)
 import Diagrams.Path
+import Diagrams.Points      (centroid)
 import Diagrams.Util        ((#))
 
 -- | Method used to determine the vertices of a polygon.
@@ -222,11 +219,6 @@ orient v xs = rotate a xs
         sndOf3 (_,b,_) = b
         rightTurn (P (x1,y1)) (P (x2, y2)) (P (x3,y3)) =
           (x2 - x1)*(y3 - y1) - (y2 - y1)*(x3-x1) < 0
-
--- | The centroid of a set of /n/ points is the sum of vertices
---   divided by /n/.
-centroid :: [P2] -> P2
-centroid = pack . uncurry (^/) . (sumV &&& (fromIntegral . length)) . map unpack
 
 ------------------------------------------------------------
 -- Function graphs
