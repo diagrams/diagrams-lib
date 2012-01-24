@@ -27,6 +27,7 @@ Library
                        Diagrams.Align,
                        Diagrams.Combinators,
                        Diagrams.Attributes,
+                       Diagrams.Points,
                        Diagrams.Segment,
                        Diagrams.Path,
                        Diagrams.CubicSpline,
