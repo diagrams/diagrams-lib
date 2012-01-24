@@ -56,6 +56,8 @@ module Diagrams.Path
 
        , pathVertices
        , pathOffsets
+       , pathCentroid
+       , expandPath
        , reversePath
        , fixPath
 
@@ -70,11 +72,13 @@ module Diagrams.Path
 import Graphics.Rendering.Diagrams
 
 import Diagrams.Segment
+import Diagrams.Points
+import Diagrams.Transform
 
 import Data.VectorSpace
 import Data.AffineSpace
 
-import Control.Newtype
+import Control.Newtype hiding (under)
 import Data.Semigroup
 import qualified Data.Foldable as F
 
@@ -321,6 +325,17 @@ pathVertices = map (uncurry trailVertices) . pathTrails
 -- | Compute the total offset of each trail comprising a path.
 pathOffsets :: AdditiveGroup v => Path v -> [v]
 pathOffsets = map (trailOffset . snd) . pathTrails
+
+-- | Compute the /centroid/ of a path (/i.e./ the average of its
+--   vertices).
+pathCentroid :: (VectorSpace v, Fractional (Scalar v)) => Path v -> Point v
+pathCentroid = centroid . concat . pathVertices
+
+-- | Scale a path using its centroid (see 'pathCentroid') as the base
+--   point for the scale.
+expandPath :: (HasLinearMap v, VectorSpace v, Fractional (Scalar v))
+           => Scalar v -> Path v -> Path v
+expandPath d p = (scale d `under` translation (origin .-. pathCentroid p)) p
 
 -- | Reverse the direction of all the component trails of a path.
 reversePath :: AdditiveGroup v => Path v -> Path v
