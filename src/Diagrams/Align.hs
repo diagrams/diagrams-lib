@@ -60,6 +60,9 @@ instance (InnerSpace v, OrderedField (Scalar v)) => Alignable (Bounds v) where
 instance (Boundable b, HasOrigin b) => Alignable [b] where
   alignBy = alignByDefault
 
+instance (Boundable b, HasOrigin b) => Alignable (M.Map k b) where
+  alignBy = alignByDefault
+
 instance ( HasLinearMap v, InnerSpace v, OrderedField (Scalar v)
          , Monoid' m
          ) => Alignable (QDiagram b v m) where
