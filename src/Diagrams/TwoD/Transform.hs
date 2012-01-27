@@ -108,8 +108,7 @@ scalingX c = fromLinear s s
   where s = first (*c) <-> first (/c)
 
 -- | Scale a diagram by the given factor in the x (horizontal)
---   direction.  To scale uniformly, use
---   'Graphics.Rendering.Diagrams.Transform.scale'.
+--   direction.  To scale uniformly, use 'scale'.
 scaleX :: (Transformable t, V t ~ R2) => Double -> t -> t
 scaleX = transform . scalingX
 
@@ -120,8 +119,7 @@ scalingY c = fromLinear s s
   where s = second (*c) <-> second (/c)
 
 -- | Scale a diagram by the given factor in the y (vertical)
---   direction.  To scale uniformly, use
---   'Graphics.Rendering.Diagrams.Transform.scale'.
+--   direction.  To scale uniformly, use 'scale'.
 scaleY :: (Transformable t, V t ~ R2) => Double -> t -> t
 scaleY = transform . scalingY
 
@@ -134,7 +132,7 @@ scaleToX w d = scaleX (w / width d) d
 
 -- | @scaleToY h@ scales a diagram in the y (vertical) direction by
 --   whatever factor required to make its height @h@.  @scaleToY@
---   should not be applied to diagrams with a width of 0, such as
+--   should not be applied to diagrams with a height of 0, such as
 --   'hrule'.
 scaleToY :: (Boundable t, Transformable t, V t ~ R2) => Double -> t -> t
 scaleToY h d = scaleY (h / height d) d
@@ -145,10 +143,9 @@ scaleToY h d = scaleY (h / height d) d
 scaleUToX :: (Boundable t, Transformable t, V t ~ R2) => Double -> t -> t
 scaleUToX w d = scale (w / width d) d
 
--- | @scaleUToY h@ scales a diagram in the y (vertical) direction by
---   whatever factor required to make its height @h@.  @scaleUToY@
---   should not be applied to diagrams with a width of 0, such as
---   'hrule'.
+-- | @scaleUToY h@ scales a diagram /uniformly/ by whatever factor
+--   required to make its height @h@.  @scaleUToY@ should not be applied
+--   to diagrams with a height of 0, such as 'hrule'.
 scaleUToY :: (Boundable t, Transformable t, V t ~ R2) => Double -> t -> t
 scaleUToY h d = scale (h / height d) d
 
