@@ -151,24 +151,26 @@ dodecagon = regPoly 12
 
 -- | @roundedRect v r@ generates a closed trail, or closed path
 -- centered at the origin, of an axis-aligned rectangle with diagonal
--- @v@ and circular rounded corners of radius @r@.  @r@ must be
--- between @0@ and half the smaller dimension of @v@, inclusive; smaller or
--- larger values of @r@ will be treated as @0@ or half the smaller
--- dimension of @v@, respectively.  The trail or path begins with the
--- right edge and proceeds counterclockwise.
+-- @v@ and circular rounded corners of radius @r@.  If @r@ is negative the
+-- corner will be cut out in a reverse arc. If the size of @r@ is larger 
+-- than half the smaller dimension of @v@, then it will be reduced to fit in 
+-- that range, to prevent the corners from overlapping.  
+-- The trail or path begins with the right edge and proceeds counterclockwise.
+-- If you need to specify a different radius for each corner individually, use 
+-- @roundedRect'@ instead.
 roundedRect :: (PathLike p, V p ~ R2) => R2 -> Double -> p
-roundedRect v r = roundedRect' (with { radiusTL = abs r, 
-                                       radiusBR = abs r, 
-                                       radiusTR = abs r, 
-                                       radiusBL = abs r}) v
+roundedRect v r = roundedRect' v (with { radiusTL = r, 
+                                       radiusBR = r, 
+                                       radiusTR = r, 
+                                       radiusBL = r})
 
 
 -- | @roundedRect'@ works like @roundedRect@ but allows you to set the radius of 
---   each corner indivually, using RoundedRectOpts. The default corner radius is 0.
+--   each corner indivually, using @RoundedRectOpts@. The default corner radius is 0.
 --   Each radius can also be negative, which results in the curves being reversed 
 --   to be inward instead of outward.
-roundedRect' :: (PathLike p, V p ~ R2) => RoundedRectOpts -> R2 -> p
-roundedRect' opts (w,h) = pathLike (P (w/2, (abs rBR) - h/2)) True
+roundedRect' :: (PathLike p, V p ~ R2) => R2 -> RoundedRectOpts -> p
+roundedRect' (w,h) opts = pathLike (P (w/2, (abs rBR) - h/2)) True
                         . trailSegments
                         $ seg (0, h - (abs rTR) - (abs rBR))
                         <> mkCorner 0 rTR
