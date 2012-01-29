@@ -114,7 +114,8 @@ module Diagrams.TwoD
        , rect
 
          -- ** Other shapes
-       , roundedRect
+       , roundedRect, roundedRect'
+       , RoundedRectOpts(..)
 
          -- * Text
        , text, topLeftText, alignedText, baselineText
