@@ -34,6 +34,8 @@ import Graphics.Rendering.Diagrams
 import Data.VectorSpace
 import Data.AffineSpace (alerp)
 
+import qualified Data.Map as M
+
 -- | Class of things which can be aligned.
 class Alignable a where
 
