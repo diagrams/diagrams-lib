@@ -56,7 +56,6 @@ import Diagrams.Util
 
 import Data.Default
 import Data.Semigroup
-import Data.VectorSpace
 
 -- | Create a centered horizontal (L-R) line of the given length.
 hrule :: (PathLike p, V p ~ R2) => Double -> p
