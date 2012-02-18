@@ -16,7 +16,7 @@
 module Diagrams.Combinators
        ( -- * Unary operations
 
-         withBounds
+         withEnvelope
        , phantom, strut
 
        , pad
@@ -46,45 +46,42 @@ import Data.Semigroup
 import Data.Default
 
 ------------------------------------------------------------
--- Working with bounds
+-- Working with envelopes
 ------------------------------------------------------------
 
--- | Use the bounding region from some boundable object as the
---   bounding region for a diagram, in place of the diagram's default
---   bounding region.
-withBounds :: (Backend b (V a), Boundable a, Monoid' m)
+-- | Use the envelope from some object as the envelope for a
+--   diagram, in place of the diagram's default envelope.
+withEnvelope :: (Backend b (V a), Enveloped a, Monoid' m)
            => a -> QDiagram b (V a) m -> QDiagram b (V a) m
-withBounds = setBounds . getBounds
+withEnvelope = setEnvelope . getEnvelope
 
 -- | @phantom x@ produces a \"phantom\" diagram, which has the same
---   bounding region as @x@ but produces no output.
-phantom :: (Backend b (V a), Boundable a, Monoid' m) => a -> QDiagram b (V a) m
-phantom a = mkQD nullPrim (getBounds a) mempty mempty
+--   envelope as @x@ but produces no output.
+phantom :: (Backend b (V a), Enveloped a, Monoid' m) => a -> QDiagram b (V a) m
+phantom a = mkQD nullPrim (getEnvelope a) mempty mempty
 
--- | @pad s@ \"pads\" a diagram, expanding its bounding region by a
---   factor of @s@ (factors between 0 and 1 can be used to shrink the
---   bounding region).  Note that the bounding region will expand with
---   respect to the local origin, so if the origin is not centered the
---   padding may appear \"uneven\".  If this is not desired, the
---   origin can be centered (using, e.g., 'centerXY' for 2D diagrams)
---   before applying @pad@.
+-- | @pad s@ \"pads\" a diagram, expanding its envelope by a factor of
+--   @s@ (factors between 0 and 1 can be used to shrink the envelope).
+--   Note that the envelope will expand with respect to the local
+--   origin, so if the origin is not centered the padding may appear
+--   \"uneven\".  If this is not desired, the origin can be centered
+--   (using, e.g., 'centerXY' for 2D diagrams) before applying @pad@.
 pad :: ( Backend b v
        , InnerSpace v, OrderedField (Scalar v)
        , Monoid' m )
     => Scalar v -> QDiagram b v m -> QDiagram b v m
-pad s d = withBounds (d # scale s) d
+pad s d = withEnvelope (d # scale s) d
 
--- | @strut v@ is a diagram which produces no output, but for the
---   purposes of alignment and bounding regions acts like a
---   1-dimensional segment oriented along the vector @v@, with local
---   origin at its center.  Useful for manually creating separation
---   between two diagrams.
+-- | @strut v@ is a diagram which produces no output, but with respect
+--   to alignment and envelope acts like a 1-dimensional segment
+--   oriented along the vector @v@, with local origin at its center.
+--   Useful for manually creating separation between two diagrams.
 strut :: ( Backend b v, InnerSpace v
          , OrderedField (Scalar v)
          , Monoid' m
          )
       => v -> QDiagram b v m
-strut v = phantom . translate ((-0.5) *^ v) . getBounds $ Linear v
+strut v = phantom . translate ((-0.5) *^ v) . getEnvelope $ Linear v
 
 ------------------------------------------------------------
 -- Combining two objects
@@ -101,9 +98,9 @@ beneath = flip atop
 --   animations...) next to each other along the given vector.  In
 --   particular, place the second object so that the vector points
 --   from the local origin of the first object to the local origin of
---   the second object, at a distance so that their bounding regions
---   are just tangent.  The local origin of the new, combined object
---   is the local origin of the first object.
+--   the second object, at a distance so that their envelopes are just
+--   tangent.  The local origin of the new, combined object is the
+--   local origin of the first object.
 --
 --   Note that @beside v@ is associative, so objects under @beside v@
 --   form a semigroup for any given vector @v@.  However, they do
@@ -166,14 +163,14 @@ data CatMethod = Cat     -- ^ Normal catenation: simply put diagrams
                          --   next to one another (possibly with a
                          --   certain distance in between each). The
                          --   distance between successive diagram
-                         --   /boundaries/ will be consistent; the
+                         --   /envelopes/ will be consistent; the
                          --   distance between /origins/ may vary if
                          --   the diagrams are of different sizes.
                | Distrib -- ^ Distribution: place the local origins of
                          --   diagrams at regular intervals.  With
                          --   this method, the distance between
                          --   successive /origins/ will be consistent
-                         --   but the distance between boundaries may
+                         --   but the distance between envelopes may
                          --   not be.  Indeed, depending on the amount
                          --   of separation, diagrams may overlap.
 
@@ -187,7 +184,7 @@ data CatOpts v = CatOpts { catMethod       :: CatMethod
                              --   between successive diagrams
                              --   (default: 0)?  When @catMethod =
                              --   Cat@, this is the distance between
-                             --   /boundaries/; when @catMethod =
+                             --   /envelopes/; when @catMethod =
                              --   Distrib@, this is the distance
                              --   between /origins/.
                          , catOptsvProxy__ :: Proxy v
@@ -212,7 +209,7 @@ instance Num (Scalar v) => Default (CatOpts v) where
 
 -- | @cat v@ positions a list of objects so that their local origins
 --   lie along a line in the direction of @v@.  Successive objects
---   will have their bounding regions just touching.  The local origin
+--   will have their envelopes just touching.  The local origin
 --   of the result will be the same as the local origin of the first
 --   object.
 --
@@ -228,11 +225,11 @@ cat v = cat' v def
 --   user to specify
 --
 --   * The spacing method: catenation (uniform spacing between
---     boundaries) or distribution (uniform spacing between local
+--     envelopes) or distribution (uniform spacing between local
 --     origins).  The default is catenation.
 --
 --   * The amount of separation between successive diagram
---     boundaries/origins (depending on the spacing method).  The
+--     envelopes/origins (depending on the spacing method).  The
 --     default is 0.
 --
 --   'CatOpts' is an instance of 'Default', so 'with' may be used for

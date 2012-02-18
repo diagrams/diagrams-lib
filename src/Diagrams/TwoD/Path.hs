@@ -88,7 +88,7 @@ instance Renderable (Path R2) b => PathLike (QDiagram b R2 Any) where
 stroke' :: (Renderable (Path R2) b, IsName a) => StrokeOpts a -> Path R2 -> Diagram b R2
 stroke' opts p
   = mkQD (Prim p)
-         (getBounds p)
+         (getEnvelope p)
          (fromNames . concat $
            zipWith zip (vertexNames opts) (pathVertices p))
          (Query $ Any . flip (runFillRule (queryFillRule opts)) p)
@@ -265,11 +265,11 @@ instance Transformable Clip where
 --   * Only the parts of the diagram which lie in the interior of the
 --     path will be drawn.
 --
---   * The bounding function of the diagram is unaffected.
+--   * The envelope of the diagram is unaffected.
 clipBy :: (HasStyle a, V a ~ R2) => Path R2 -> a -> a
 clipBy = applyTAttr . Clip . (:[])
 
 -- XXX Should include a 'clipTo' function which clips a diagram AND
--- restricts its bounding function.  It will have to take a *pointwise
--- minimum* of the diagram's current bounding function and the path's
--- bounding function.  Not sure of the best way to do this at the moment.
+-- restricts its envelope.  It will have to take a *pointwise minimum*
+-- of the diagram's current envelope and the path's envelope.  Not
+-- sure of the best way to do this at the moment.

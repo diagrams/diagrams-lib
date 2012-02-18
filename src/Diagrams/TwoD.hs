@@ -51,8 +51,7 @@
 --     size of 2D objects.
 --
 --   * "Diagrams.TwoD.Model" defines some aids for visualizing
---     diagrams' internal model (local origins, bounding regions,
---     etc.)
+--     diagrams' internal model (local origins, envelopes, etc.)
 --
 -----------------------------------------------------------------------------
 module Diagrams.TwoD

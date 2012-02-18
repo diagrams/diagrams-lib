@@ -32,33 +32,33 @@ import Control.Applicative ((<$>), liftA2)
 -- Computing diagram sizes
 ------------------------------------------------------------
 
--- | Compute the width of a boundable object.
-width :: (Boundable a, V a ~ R2) => a -> Double
+-- | Compute the width of an enveloped object.
+width :: (Enveloped a, V a ~ R2) => a -> Double
 width = maybe 0 (negate . uncurry (-)) . extentX
 
--- | Compute the height of a boundable object.
-height :: (Boundable a, V a ~ R2) => a -> Double
+-- | Compute the height of an enveloped object.
+height :: (Enveloped a, V a ~ R2) => a -> Double
 height = maybe 0 (negate . uncurry (-)) . extentY
 
--- | Compute the width and height of a boundable object.
-size2D :: (Boundable a, V a ~ R2) => a -> (Double, Double)
+-- | Compute the width and height of an enveloped object.
+size2D :: (Enveloped a, V a ~ R2) => a -> (Double, Double)
 size2D = width &&& height
 
--- | Compute the absolute  x-coordinate range of a boundable object in
+-- | Compute the absolute  x-coordinate range of an enveloped object in
 --   R2, in  the form (lo,hi).   Return @Nothing@ for objects  with an
---   empty bounding function.
-extentX :: (Boundable a, V a ~ R2) => a -> Maybe (Double, Double)
-extentX d = (\f -> (-f (-1,0), f (1,0))) <$> (appBounds . getBounds $ d)
+--   empty envelope.
+extentX :: (Enveloped a, V a ~ R2) => a -> Maybe (Double, Double)
+extentX d = (\f -> (-f (-1,0), f (1,0))) <$> (appEnvelope . getEnvelope $ d)
 
--- | Compute the absolute y-coordinate range of a boundable object in
+-- | Compute the absolute y-coordinate range of an enveloped object in
 --   R2, in the form (lo,hi).
-extentY :: (Boundable a, V a ~ R2) => a -> Maybe (Double, Double)
-extentY d = (\f -> (-f (0,-1), f (0,1))) <$> (appBounds . getBounds $ d)
+extentY :: (Enveloped a, V a ~ R2) => a -> Maybe (Double, Double)
+extentY d = (\f -> (-f (0,-1), f (0,1))) <$> (appEnvelope . getEnvelope $ d)
 
 -- | Compute the point at the center (in the x- and y-directions) of a
---   boundable object.  Return the origin for objects with an empty
---   bounding function.
-center2D :: (Boundable a, V a ~ R2) => a -> P2
+--   enveloped object.  Return the origin for objects with an empty
+--   envelope.
+center2D :: (Enveloped a, V a ~ R2) => a -> P2
 center2D = maybe origin (P . (mid *** mid)) . mm . (extentX &&& extentY)
   where mm = uncurry (liftA2 (,))
         mid = (/2) . uncurry (+)
@@ -77,7 +77,7 @@ data SizeSpec2D = Width  Double       -- ^ Specify an explicit
                                       -- determined automatically (so
                                       -- as to preserve aspect ratio)
                 | Dims Double Double  -- ^ An explicit specification
-                                      --   of both dimensions.
+                                      -- of both dimensions.
                 | Absolute            -- ^ Absolute size: use whatever
                                       -- size an object already has;
                                       -- do not rescale.
