@@ -22,6 +22,7 @@ module Diagrams.Combinators
        , pad
 
          -- * Binary operations
+       , beneath
        , beside
 
          -- * n-ary operations
@@ -88,6 +89,13 @@ strut v = phantom . translate ((-0.5) *^ v) . getBounds $ Linear v
 ------------------------------------------------------------
 -- Combining two objects
 ------------------------------------------------------------
+
+-- | @beneath@ is just a convenient synonym for @'flip' 'atop'@; that is,
+--   @d1 \`beneath\` d2@ is the diagram with @d2@ superimposed on top of
+--   @d1@.
+beneath :: (HasLinearMap v, OrderedField (Scalar v), InnerSpace v, Monoid' m)
+     => QDiagram b v m -> QDiagram b v m -> QDiagram b v m
+beneath = flip atop
 
 -- | Place two monoidal objects (/i.e./ diagrams, paths,
 --   animations...) next to each other along the given vector.  In
