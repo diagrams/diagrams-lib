@@ -23,7 +23,7 @@ module Diagrams.Animation
 
          -- * Animation combinators and tools
          -- $animComb
-       , animBounds, animBounds'
+       , animEnvelope, animEnvelope'
 
        , animRect, animRect'
 
@@ -67,47 +67,50 @@ type Animation b v = QAnimation b v Any
 -- defines just a few combinators specifically for working with
 -- animated diagrams.
 
--- It would be cool to have a variant of animBounds that tries to do
+-- It would be cool to have a variant of animEnvelope that tries to do
 -- some sort of smart adaptive sampling to get good results more
 -- quickly.  One could also imagine trying to use some sort of
 -- automatic differentiation but that probably wouldn't work in all
 -- cases we want to handle.
 
--- | Automatically assign fixed bounds to an animation, by sampling
---   the bounds at a number of points in time and taking the union of
---   all the sampled bounds to form the \"hull\".  This hull is then
---   used uniformly throughout the animation.
+-- | Automatically assign fixed a envelope to the entirety of an
+--   animation by sampling the envelope at a number of points in time
+--   and taking the union of all the sampled envelopes to form the
+--   \"hull\".  This hull is then used uniformly throughout the
+--   animation.
 --
 --   This is useful when you have an animation that grows and shrinks
 --   in size or shape over time, but you want it to take up a fixed
 --   amount of space, /e.g./ so that the final rendered movie does not
---   zoom in and out.
+--   zoom in and out, or so that it occupies a fixed location with
+--   respect to another animation, when combining animations with
+--   something like '|||'.
 --
---   By default, does 30 samples per time unit; to adjust this number
---   see 'animBounds''.
+--   By default, 30 samples per time unit are used; to adjust this
+--   number see 'animEnvelope''.
 --
 --   See also 'animRect' for help constructing a background to go
 --   behind an animation.
-animBounds :: (Backend b v, OrderedField (Scalar v), InnerSpace v, Monoid' m)
+animEnvelope :: (Backend b v, OrderedField (Scalar v), InnerSpace v, Monoid' m)
            => QAnimation b v m -> QAnimation b v m
-animBounds = animBounds' 30
+animEnvelope = animEnvelope' 30
 
--- | Like 'animBounds', but with an adjustible sample rate.  The first
+-- | Like 'animEnvelope', but with an adjustible sample rate.  The first
 --   parameter is the number of samples per time unit to use.  Lower
 --   rates will be faster but less accurate; higher rates are more
 --   accurate but slower.
-animBounds' :: (Backend b v, OrderedField (Scalar v), InnerSpace v, Monoid' m)
+animEnvelope' :: (Backend b v, OrderedField (Scalar v), InnerSpace v, Monoid' m)
             => Rational -> QAnimation b v m -> QAnimation b v m
-animBounds' r a = withBounds (simulate r a) <$> a
+animEnvelope' r a = withEnvelope (simulate r a) <$> a
 
--- | @animRect@ works similarly to 'animBounds' for 2D diagrams, but
---   instead of adjusting the bounds, simply returns the smallest
+-- | @animRect@ works similarly to 'animEnvelope' for 2D diagrams, but
+--   instead of adjusting the envelope, simply returns the smallest
 --   bounding rectangle which encloses the entire animation.  Useful
 --   for /e.g./ creating a background to go behind an animation.
 --
---   By default, does 30 samples per time unit; to adjust this number
+--   Uses 30 samples per time unit by default; to adjust this number
 --   see 'animRect''.
-animRect :: (PathLike p, Boundable p, Transformable p, V p ~ R2)
+animRect :: (PathLike p, Enveloped p, Transformable p, V p ~ R2)
          => QAnimation b R2 m -> p
 animRect = animRect' 30
 
@@ -115,7 +118,7 @@ animRect = animRect' 30
 --   parameter is the number of samples per time unit to use.  Lower
 --   rates will be faster but less accurate; higher rates are more
 --   accurate but slower.
-animRect' :: (PathLike p, Boundable p, Transformable p, V p ~ R2)
+animRect' :: (PathLike p, Enveloped p, Transformable p, V p ~ R2)
           => Rational -> QAnimation b R2 m -> p
 animRect' r = fromMaybe (rect 1 1)
             . fmap (`boxFit` rect 1 1)

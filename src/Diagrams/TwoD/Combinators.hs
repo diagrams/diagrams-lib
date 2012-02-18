@@ -23,7 +23,7 @@ module Diagrams.TwoD.Combinators
     , hcat, hcat'
     , vcat, vcat'
 
-      -- * Spacing/bounds
+      -- * Spacing/envelopes
     , strutX, strutY
     , padX, padY
 
@@ -66,7 +66,7 @@ infixl 6 |||
 (===) :: (Juxtaposable a, V a ~ R2, Semigroup a) => a -> a -> a
 (===) = beside (negateV unitY)
 
--- | Place two diagrams (or other boundable objects) horizontally
+-- | Place two diagrams (or other juxtaposable objects) horizontally
 --   adjacent to one another, with the first diagram to the left of
 --   the second.  The local origin of the resulting
 --   combined diagram is the same as the local origin of the first.
@@ -75,7 +75,7 @@ infixl 6 |||
 (|||) :: (Juxtaposable a, V a ~ R2, Semigroup a) => a -> a -> a
 (|||) = beside unitX
 
--- | Place two diagrams (or other boundable objects) adjacent to one
+-- | Place two diagrams (or other juxtaposable objects) adjacent to one
 --   another, with the second diagram placed along a line at angle
 --   'th' from the first.  The local origin of the resulting combined
 --   diagram is the same as the local origin of the first.
@@ -83,9 +83,9 @@ infixl 6 |||
 atAngle :: (Juxtaposable a, V a ~ R2, Semigroup a, Angle b) => b -> a -> a -> a
 atAngle th = beside (fromDirection th)
 
--- | Lay out a list of boundable objects in a row from left to right,
+-- | Lay out a list of juxtaposable objects in a row from left to right,
 --   so that their local origins lie along a single horizontal line,
---   with successive bounding regions tangent to one another.
+--   with successive envelopes tangent to one another.
 --
 --   * For more control over the spacing, see 'hcat''.
 --
@@ -105,9 +105,9 @@ hcat' :: (Juxtaposable a, HasOrigin a, Monoid' a, V a ~ R2)
       => CatOpts R2 -> [a] -> a
 hcat' = cat' unitX
 
--- | Lay out a list of boundable objects in a column from top to bottom,
---   so that their local origins lie along a single vertical line,
---   with successive bounding regions tangent to one another.
+-- | Lay out a list of juxtaposable objects in a column from top to
+--   bottom, so that their local origins lie along a single vertical
+--   line, with successive envelopes tangent to one another.
 --
 --   * For more control over the spacing, see 'vcat''.
 --
@@ -140,32 +140,32 @@ strutY :: (Backend b R2, Monoid' m) => Double -> QDiagram b R2 m
 strutY d = strut (0,d)
 
 -- | @padX s@ \"pads\" a diagram in the x-direction, expanding its
---   bounding region horizontally by a factor of @s@ (factors between
---   0 and 1 can be used to shrink the bounding region).  Note that
---   the bounding region will expand with respect to the local origin,
---   so if the origin is not centered horizontally the padding may appear
---   \"uneven\".  If this is not desired, the origin can be centered
---   (using 'centerX') before applying @padX@.
+--   envelope horizontally by a factor of @s@ (factors between 0 and 1
+--   can be used to shrink the envelope).  Note that the envelope will
+--   expand with respect to the local origin, so if the origin is not
+--   centered horizontally the padding may appear \"uneven\".  If this
+--   is not desired, the origin can be centered (using 'centerX')
+--   before applying @padX@.
 padX :: ( Backend b R2, Monoid' m )
      => Double -> QDiagram b R2 m -> QDiagram b R2 m
-padX s d = withBounds (d # scaleX s) d
+padX s d = withEnvelope (d # scaleX s) d
 
 -- | @padY s@ \"pads\" a diagram in the y-direction, expanding its
---   bounding region vertically by a factor of @s@ (factors between
---   0 and 1 can be used to shrink the bounding region).  Note that
---   the bounding region will expand with respect to the local origin,
+--   envelope vertically by a factor of @s@ (factors between
+--   0 and 1 can be used to shrink the envelope).  Note that
+--   the envelope will expand with respect to the local origin,
 --   so if the origin is not centered vertically the padding may appear
 --   \"uneven\".  If this is not desired, the origin can be centered
 --   (using 'centerY') before applying @padY@.
 padY :: ( Backend b R2, Monoid' m )
      => Double -> QDiagram b R2 m -> QDiagram b R2 m
-padY s d = withBounds (d # scaleY s) d
+padY s d = withEnvelope (d # scaleY s) d
 
--- | @view p v@ sets the bounding region of a diagram to a rectangle
---   whose lower-left corner is at @p@ and whose upper-right corner is
---   at @p .+^ v@.  Useful for selecting the rectangular portion of a
+-- | @view p v@ sets the envelope of a diagram to a rectangle whose
+--   lower-left corner is at @p@ and whose upper-right corner is at @p
+--   .+^ v@.  Useful for selecting the rectangular portion of a
 --   diagram which should actually be \"viewed\" in the final render,
 --   if you don't want to see the entire diagram.
 view :: ( Backend b R2, Monoid' m )
      => P2 -> R2 -> QDiagram b R2 m -> QDiagram b R2 m
-view p (w,h) = withBounds (rect w h # alignBL # moveTo p :: D R2)
+view p (w,h) = withEnvelope (rect w h # alignBL # moveTo p :: D R2)

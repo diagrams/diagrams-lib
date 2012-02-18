@@ -8,7 +8,7 @@
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
 -- Tools for visualizing diagrams' internal model: local origins,
--- bounding regions, etc.
+-- envelopes, /etc./
 --
 -----------------------------------------------------------------------------
 module Diagrams.TwoD.Model

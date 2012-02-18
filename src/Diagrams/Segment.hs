@@ -122,7 +122,7 @@ reverseSegment (Linear v)       = Linear (negateV v)
 reverseSegment (Cubic c1 c2 x2) = Cubic (c2 ^-^ x2) (c1 ^-^ x2) (negateV x2)
 
 ------------------------------------------------------------
---  Computing segment bounds  ------------------------------
+--  Computing segment envelope  ------------------------------
 ------------------------------------------------------------
 
 {- 3 (1-t)^2 t c1 + 3 (1-t) t^2 c2 + t^3 x2
@@ -147,14 +147,13 @@ reverseSegment (Cubic c1 c2 x2) = Cubic (c2 ^-^ x2) (c1 ^-^ x2) (negateV x2)
    Set equal to zero, use quadratic formula.
 -}
 
--- | The bounding function for a segment is based at the segment's
---   start.
-instance (InnerSpace v, OrderedField (Scalar v)) => Boundable (Segment v) where
+-- | The envelope for a segment is based at the segment's start.
+instance (InnerSpace v, OrderedField (Scalar v)) => Enveloped (Segment v) where
 
-  getBounds (s@(Linear {})) = mkBounds $ \v ->
+  getEnvelope (s@(Linear {})) = mkEnvelope $ \v ->
     maximum . map (\t -> ((s `atParam` t) <.> v) / magnitudeSq v) $ [0,1]
 
-  getBounds (s@(Cubic c1 c2 x2)) = mkBounds $ \v ->
+  getEnvelope (s@(Cubic c1 c2 x2)) = mkEnvelope $ \v ->
     maximum .
     map (\t -> ((s `atParam` t) <.> v) / magnitudeSq v) $
     [0,1] ++
@@ -325,7 +324,7 @@ instance VectorSpace v => HasOrigin (FixedSegment v) where
                                                (moveOriginTo o c2)
                                                (moveOriginTo o p2)
 
--- instance Boundable (FixedSegment v) where
+-- instance Enveloped (FixedSegment v) where
   -- XXX write me
 
 -- | Create a 'FixedSegment' from a starting point and a 'Segment'.

@@ -186,11 +186,11 @@ instance VectorSpace v => PathLike (Trail v) where
 instance HasLinearMap v => Transformable (Trail v) where
   transform t (Trail segs c) = Trail (transform t segs) c
 
--- | The bounding function for a trail is based at the trail's start.
-instance (InnerSpace v, OrderedField (Scalar v)) => Boundable (Trail v) where
+-- | The envelope for a trail is based at the trail's start.
+instance (InnerSpace v, OrderedField (Scalar v)) => Enveloped (Trail v) where
 
-  getBounds (Trail segs _) =
-    foldr (\seg bds -> moveOriginTo (P . negateV . segOffset $ seg) bds <> getBounds seg)
+  getEnvelope (Trail segs _) =
+    foldr (\seg bds -> moveOriginTo (P . negateV . segOffset $ seg) bds <> getEnvelope seg)
           mempty
           segs
 
@@ -291,11 +291,11 @@ but that doesn't take into account the fact that some
 of the v's are inside Points and hence ought to be translated.
 -}
 
-instance (InnerSpace v, OrderedField (Scalar v)) => Boundable (Path v) where
-  getBounds = F.foldMap trailBounds . pathTrails
+instance (InnerSpace v, OrderedField (Scalar v)) => Enveloped (Path v) where
+  getEnvelope = F.foldMap trailEnvelope . pathTrails
           -- this type signature is necessary to work around an apparent bug in ghc 6.12.1
-    where trailBounds :: (Point v, Trail v) -> Bounds v
-          trailBounds (p, t) = moveOriginTo ((-1) *. p) (getBounds t)
+    where trailEnvelope :: (Point v, Trail v) -> Envelope v
+          trailEnvelope (p, t) = moveOriginTo ((-1) *. p) (getEnvelope t)
 
 instance (InnerSpace v, OrderedField (Scalar v)) => Juxtaposable (Path v) where
   juxtapose = juxtaposeDefault

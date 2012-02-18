@@ -33,8 +33,8 @@ instance Transformable Ellipsoid where
 
 sphere :: (Backend b R3, Renderable Ellipsoid b) => Diagram b R3
 sphere = mkQD (Prim $ Ellipsoid mempty)
-              (mkBounds sphereBounds)
+              (mkEnvelope sphereEnv)
               mempty
               (Query sphereQuery)
-  where sphereBounds (x,y,z) = 1 / sqrt(x*x + y*y + z*z)
+  where sphereEnv (x,y,z) = 1 / sqrt(x*x + y*y + z*z)
         sphereQuery (P (x,y,z)) = Any $ x*x + y*y + z*z <= 1

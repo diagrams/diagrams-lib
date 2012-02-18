@@ -51,7 +51,7 @@ import Data.Typeable (Typeable)
 
 import Graphics.Rendering.Diagrams.Points (Point(..))
 import Graphics.Rendering.Diagrams.HasOrigin (HasOrigin(..))
-import Graphics.Rendering.Diagrams.Bounds (Boundable(..), boundary)
+import Graphics.Rendering.Diagrams.Envelope (Enveloped(..), boundary)
 import Graphics.Rendering.Diagrams.V (V)
 import Graphics.Rendering.Diagrams.Transform
   (Transformation(..), Transformable(..), HasLinearMap, (<->))
@@ -69,8 +69,8 @@ instance VectorSpace v => HasOrigin (BoundingBox v) where
 
 instance ( InnerSpace v, Floating (Scalar v), Ord (Scalar v), AdditiveGroup (Scalar v)
          , HasBasis v, Ord (Basis v)
-         ) => Boundable (BoundingBox v) where
-  getBounds = getBounds . getAllCorners
+         ) => Enveloped (BoundingBox v) where
+  getEnvelope = getEnvelope . getAllCorners
 
 -- | Create a bounding box from any two opposite corners.
 fromCorners
@@ -92,7 +92,7 @@ fromPoints
 fromPoints = unions . map fromPoint
 
 -- | Create a bounding box for any boundable object (such as a diagram or path).
-boundingBox :: forall a. (Boundable a, HasBasis (V a), Ord (Basis (V a)))
+boundingBox :: forall a. (Enveloped a, HasBasis (V a), Ord (Basis (V a)))
             => a -> BoundingBox (V a)
 boundingBox a = fromJust . fromPoints . map (`boundary` a) $ [id, negateV] <*> units
   where units = map (basisValue . fst) (decompose (zeroV :: V a))
@@ -136,7 +136,7 @@ boxTransform a@(BoundingBox (P l1) _) b@(BoundingBox (P l2) _)
   vcombineV f x = toVector . combineV f x
 
 -- | Transforms a boundable thing to fit within a @BoundingBox@.
-boxFit :: (Boundable a, Transformable a, Ord (Basis (V a)))
+boxFit :: (Enveloped a, Transformable a, Ord (Basis (V a)))
        => BoundingBox (V a) -> a -> a
 boxFit b x = transform (boxTransform (boundingBox x) b) x
 

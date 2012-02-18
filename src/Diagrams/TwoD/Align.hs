@@ -12,11 +12,11 @@
 -- "Diagrams.Align" for more general alignment combinators.
 --
 -- The basic idea is that alignment is achieved by moving diagrams'
--- local origins relative to their bounding regions.  For example, to
--- align several diagrams along their tops, we first move their local
--- origins to the upper edge of their bounding regions (using
--- e.g. @map 'alignTop'@), and then put them together with their local
--- origins along a horizontal line (using e.g. 'hcat' from
+-- local origins relative to their envelopes.  For example, to align
+-- several diagrams along their tops, we first move their local
+-- origins to the upper edge of their envelopes (using e.g. @map
+-- 'alignTop'@), and then put them together with their local origins
+-- along a horizontal line (using e.g. 'hcat' from
 -- "Diagrams.TwoD.Combinators").
 --
 -----------------------------------------------------------------------------
@@ -44,7 +44,7 @@ import Data.VectorSpace
 
 -- | Align along the left edge, i.e. translate the diagram in a
 --   horizontal direction so that the local origin is on the left edge
---   of the bounding region.
+--   of the envelope.
 alignL :: (Alignable a, V a ~ R2) => a -> a
 alignL = align (negateV unitX)
 
@@ -68,7 +68,7 @@ alignBR = alignB . alignR
 
 -- | @alignX@ moves the local origin horizontally as follows:
 --
---   * @alignX (-1)@ moves the local origin to the left edge of the bounding region;
+--   * @alignX (-1)@ moves the local origin to the left edge of the envelope;
 --
 --   * @align 1@ moves the local origin to the right edge;
 --

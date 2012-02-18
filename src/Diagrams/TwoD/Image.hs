@@ -58,7 +58,7 @@ instance Renderable Image NullBackend where
 --   image's aspect ratio, there will be extra space in one dimension.
 image :: (Renderable Image b) => FilePath -> Double -> Double -> Diagram b R2
 image file w h = mkQD (Prim (Image file (Dims w h) mempty))
-                      (getBounds r)
+                      (getEnvelope r)
                       mempty
                       (Query $ \p -> Any (isInsideEvenOdd p r))
   where r :: Path R2
