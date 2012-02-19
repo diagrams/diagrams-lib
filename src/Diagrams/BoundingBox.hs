@@ -51,7 +51,7 @@ import Data.Typeable (Typeable)
 
 import Graphics.Rendering.Diagrams.Points (Point(..))
 import Graphics.Rendering.Diagrams.HasOrigin (HasOrigin(..))
-import Graphics.Rendering.Diagrams.Envelope (Enveloped(..), boundary)
+import Graphics.Rendering.Diagrams.Envelope (Enveloped(..), envelopeP)
 import Graphics.Rendering.Diagrams.V (V)
 import Graphics.Rendering.Diagrams.Transform
   (Transformation(..), Transformable(..), HasLinearMap, (<->))
@@ -94,7 +94,7 @@ fromPoints = unions . map fromPoint
 -- | Create a bounding box for any boundable object (such as a diagram or path).
 boundingBox :: forall a. (Enveloped a, HasBasis (V a), Ord (Basis (V a)))
             => a -> BoundingBox (V a)
-boundingBox a = fromJust . fromPoints . map (`boundary` a) $ [id, negateV] <*> units
+boundingBox a = fromJust . fromPoints . map (`envelopeP` a) $ [id, negateV] <*> units
   where units = map (basisValue . fst) (decompose (zeroV :: V a))
 
 -- | Gets the lower and upper corners that define the bounding box.

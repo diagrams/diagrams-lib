@@ -53,8 +53,8 @@ class Alignable a where
 --   and 'Enveloped' instances.
 alignByDefault :: (HasOrigin a, Enveloped a, Num (Scalar (V a)))
                => V a -> Scalar (V a) -> a -> a
-alignByDefault v d a = moveOriginTo (alerp (boundary (negateV v) a)
-                                    (boundary v a)
+alignByDefault v d a = moveOriginTo (alerp (envelopeP (negateV v) a)
+                                    (envelopeP v a)
                                     ((d + 1) / 2))
                              a
 
