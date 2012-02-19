@@ -12,8 +12,17 @@
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
--- Generic functionality for constructing and manipulating linear or
--- cubic Bezier segments.
+-- A /segment/ is a translation-invariant, atomic path.  There are two
+-- types: linear (/i.e./ just a straight line to the endpoint) and
+-- cubic Bézier curves (/i.e./ a curve to an endpoint with two control
+-- points).  This module contains tools for creating and manipulating
+-- segments, as well as a definition of segments with a fixed location
+-- (useful for backend implementors).
+--
+-- Generally speaking, casual users of diagrams should not need this
+-- module; the higher-level functionality provided by "Diagrams.Path"
+-- should usually suffice instead.  However, directly manipulating
+-- segments can occasionally be useful.
 --
 -----------------------------------------------------------------------------
 
@@ -60,13 +69,13 @@ import Data.Semigroup
 ------------------------------------------------------------
 
 -- | The atomic constituents of paths are /segments/, which are single
---   straight lines or cubic Bezier curves.  Segments are
+--   straight lines or cubic Bézier curves.  Segments are
 --   /translationally invariant/, that is, they have no particular
 --   \"location\" and are unaffected by translations.  They are,
 --   however, affected by other transformations such as rotations and
 --   scales.
 data Segment v = Linear v     -- ^ A linear segment with given offset.
-               | Cubic v v v  -- ^ A cubic bezier segment specified by
+               | Cubic v v v  -- ^ A cubic Bézier segment specified by
                               --   three offsets from the starting
                               --   point to the first control point,
                               --   second control point, and ending
@@ -92,7 +101,7 @@ straight = Linear
 -- observe how segments are parametrized.
 
 -- | @bezier3 v1 v2 v3@ constructs a translationally invariant cubic
---   Bezier curve where the offsets from the first endpoint to the
+--   Bézier curve where the offsets from the first endpoint to the
 --   first and second control point and endpoint are respectively
 --   given by @v1@, @v2@, and @v3@.
 bezier3 :: v -> v -> v -> Segment v
@@ -110,7 +119,7 @@ atParam (Cubic c1 c2 x2) t =     (3 * t'*t'*t ) *^ c1
   where t' = 1-t
 
 -- | Compute the offset from the start of a segment to the
---   end.  Note that in the case of a Bezier segment this is /not/ the
+--   end.  Note that in the case of a Bézier segment this is /not/ the
 --   same as the length of the curve itself; for that, see 'arcLength'.
 segOffset :: Segment v -> v
 segOffset (Linear v)    = v

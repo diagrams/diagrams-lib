@@ -9,7 +9,12 @@
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
--- Generic functionality for constructing cubic splines
+-- A /cubic spline/ is a smooth, connected sequence of cubic curves
+-- passing through a given sequence of points.  This module provides
+-- the 'cubicSpline' method, which can be used to create closed or
+-- open cubic splines from a list of points.  For access to the
+-- internals of the spline generation algorithm, see
+-- "Diagrams.CubicSpline.Internal".
 --
 -----------------------------------------------------------------------------
 module Diagrams.CubicSpline

@@ -22,7 +22,7 @@ module Diagrams.Prelude
          -- | Attributes (color, line style, etc.) and styles.
        , module Diagrams.Attributes
 
-         -- | General alignment of diagrams.
+         -- | Alignment of diagrams relative to their envelopes.
        , module Diagrams.Align
 
          -- | Combining multiple diagrams into one.
