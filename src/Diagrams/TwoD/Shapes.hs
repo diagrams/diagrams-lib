@@ -151,33 +151,33 @@ dodecagon = regPoly 12
 -- | @roundedRect v r@ generates a closed trail, or closed path
 -- centered at the origin, of an axis-aligned rectangle with diagonal
 -- @v@ and circular rounded corners of radius @r@.  If @r@ is negative the
--- corner will be cut out in a reverse arc. If the size of @r@ is larger 
--- than half the smaller dimension of @v@, then it will be reduced to fit in 
--- that range, to prevent the corners from overlapping.  
+-- corner will be cut out in a reverse arc. If the size of @r@ is larger
+-- than half the smaller dimension of @v@, then it will be reduced to fit in
+-- that range, to prevent the corners from overlapping.
 -- The trail or path begins with the right edge and proceeds counterclockwise.
--- If you need to specify a different radius for each corner individually, use 
+-- If you need to specify a different radius for each corner individually, use
 -- @roundedRect'@ instead.
 roundedRect :: (PathLike p, V p ~ R2) => R2 -> Double -> p
-roundedRect v r = roundedRect' v (with { radiusTL = r, 
-                                       radiusBR = r, 
-                                       radiusTR = r, 
-                                       radiusBL = r})
+roundedRect v r = roundedRect' v (with { radiusTL = r,
+                                         radiusBR = r,
+                                         radiusTR = r,
+                                         radiusBL = r})
 
 
--- | @roundedRect'@ works like @roundedRect@ but allows you to set the radius of 
+-- | @roundedRect'@ works like @roundedRect@ but allows you to set the radius of
 --   each corner indivually, using @RoundedRectOpts@. The default corner radius is 0.
---   Each radius can also be negative, which results in the curves being reversed 
+--   Each radius can also be negative, which results in the curves being reversed
 --   to be inward instead of outward.
 roundedRect' :: (PathLike p, V p ~ R2) => R2 -> RoundedRectOpts -> p
-roundedRect' (w,h) opts = pathLike (P (w/2, (abs rBR) - h/2)) True
+roundedRect' (w,h) opts = pathLike (P (w/2, abs rBR - h/2)) True
                         . trailSegments
-                        $ seg (0, h - (abs rTR) - (abs rBR))
+                        $ seg (0, h - abs rTR - abs rBR)
                         <> mkCorner 0 rTR
-                        <> seg ((abs rTR) + (abs rTL) - w,0)
+                        <> seg (abs rTR + abs rTL - w, 0)
                         <> mkCorner 1 rTL
-                        <> seg (0, (abs rTL) + (abs rBL) - h)
+                        <> seg (0, abs rTL + abs rBL - h)
                         <> mkCorner 2 rBL
-                        <> seg (w - (abs rBL) - (abs rBR),0)
+                        <> seg (w - abs rBL - abs rBR, 0)
                         <> mkCorner 3 rBR
   where seg   = fromOffsets . (:[])
         diag  = sqrt (w * w + h * h)
@@ -188,15 +188,15 @@ roundedRect' (w,h) opts = pathLike (P (w/2, (abs rBR) - h/2)) True
         rBL                 = clampCnr radiusBR radiusTL radiusTR radiusBL
         rTR                 = clampCnr radiusTL radiusBR radiusBL radiusTR
         rBR                 = clampCnr radiusBL radiusTR radiusTL radiusBR
-        clampCnr rx ry ro r = let (rx',ry',ro',r') = (rx opts, ry opts, ro opts, r opts)  
+        clampCnr rx ry ro r = let (rx',ry',ro',r') = (rx opts, ry opts, ro opts, r opts)
                                 in clampDiag ro' . clampAdj h ry' . clampAdj w rx' $ r'
         -- prevent curves of adjacent corners from overlapping
-        clampAdj len adj r  = if abs r > len/2 
-                                then (sign r) * (max (len/2) (min (len - abs adj) (abs r)))
+        clampAdj len adj r  = if abs r > len/2
+                                then sign r * max (len/2) (min (len - abs adj) (abs r))
                                 else r
         -- prevent inward curves of diagonally opposite corners from intersecting
         clampDiag opp r     = if r < 0 && opp < 0 && abs r > diag / 2
-                                then (sign r) * (max (diag / 2) $ min (abs r) (diag + opp))
+                                then sign r * max (diag / 2) (min (abs r) (diag + opp))
                                 else r
         sign n = if n < 0 then -1 else 1
         mkCorner k r | r == 0    = mempty

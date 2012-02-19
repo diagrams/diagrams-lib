@@ -120,8 +120,7 @@ animRect = animRect' 30
 --   accurate but slower.
 animRect' :: (PathLike p, Enveloped p, Transformable p, V p ~ R2)
           => Rational -> QAnimation b R2 m -> p
-animRect' r = fromMaybe (rect 1 1)
-            . fmap (`boxFit` rect 1 1)
+animRect' r = fromMaybe (rect 1 1) (`boxFit` rect 1 1)
             . unions
             . map boundingBox
             . simulate r

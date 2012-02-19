@@ -57,7 +57,7 @@ showOrigin = showOrigin' def
 showOrigin' :: (Renderable (Path R2) b, Backend b R2, Monoid' m)
            => OriginOpts -> QDiagram b R2 m -> QDiagram b R2 m
 showOrigin' oo d = o <> d
-  where o     = (stroke $ circle sz)
+  where o     = stroke (circle sz)
                 # fc (oColor oo)
                 # lw 0
                 # fmap (const mempty)
@@ -79,14 +79,15 @@ instance Default OriginOpts where
 
 showLabels :: (Renderable Text b, Backend b R2)
            => QDiagram b R2 m -> QDiagram b R2 Any
-showLabels d = (mconcat
+showLabels d = 
+             ( mconcat
              . map (\(n,p) -> text (show n) # translate (p .-. origin))
              . concatMap (\(n,ps) -> zip (repeat n) ps)
              . (map . second . map) location
              . M.assocs
-             $ m)
-               `atop`
-               (fmap (const (Any False)) d)
+             $ m
+             ) <>
+             fmap (const (Any False)) d
   where
     NameMap m = names d
 
