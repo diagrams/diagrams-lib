@@ -14,9 +14,11 @@
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
--- Generic functionality for constructing and manipulating /trails/
--- (sequences of linear or cubic Bezier segments) and /paths/
--- (collections of concretely located trails).
+-- This module defines /trails/ (translationally invariant sequences
+-- of linear or cubic Bézier segments) and /paths/ (collections of
+-- concretely located trails).  Trails and paths can be used for
+-- drawing shapes, laying out other diagrams, clipping, and other
+-- things.
 --
 -----------------------------------------------------------------------------
 

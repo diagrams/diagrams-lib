@@ -9,7 +9,10 @@
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
--- Generic functionality for constructing cubic splines
+-- A /cubic spline/ is a smooth, connected sequence of cubic curves
+-- passing through a given sequence of points.  This module implements
+-- a straightforward spline generation algorithm based on solving
+-- tridiagonal systems of linear equations.
 --
 -----------------------------------------------------------------------------
 module Diagrams.CubicSpline.Internal
@@ -63,8 +66,8 @@ sparseVector n s m e
     h n = m : h (n - 1)
     
 -- | Solves a system similar to the tri-diagonal system using a special case
---   of the Sherman--Morrison formula <http://en.wikipedia.org/wiki/Sherman-Morrison_formula>.
---   This code is based on /Numerical Recpies in C/'s "cyclic" function in section 2.7.
+--   of the Sherman-Morrison formula <http://en.wikipedia.org/wiki/Sherman-Morrison_formula>.
+--   This code is based on /Numerical Recpies in C/'s @cyclic@ function in section 2.7.
 solveCyclicTriDiagonal :: Fractional a => [a] -> [a] -> [a] -> [a] -> a -> a -> [a]
 solveCyclicTriDiagonal as (b0:bs) cs ds alpha beta = zipWith ((+) . (fact *)) zs xs
   where

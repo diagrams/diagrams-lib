@@ -10,9 +10,11 @@
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
--- General tools for alignment.  Any enveloped object with a local
--- origin can be aligned; this includes diagrams, of course, but it also
--- includes paths.
+-- The /alignment/ of an object refers to the position of its local
+-- origin with respect to its envelope.  This module defines the
+-- 'Alignable' class for things which can be aligned, as well as a
+-- default implementation in terms of 'HasOrigin' and 'Enveloped',
+-- along with several utility methods for alignment.
 --
 -----------------------------------------------------------------------------
 
@@ -22,7 +24,7 @@ module Diagrams.Align
          Alignable(..)
        , alignByDefault
 
-         -- * Generic alignment functions
+         -- * General alignment functions
 
        , align
        , center

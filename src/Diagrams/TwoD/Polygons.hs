@@ -11,7 +11,8 @@
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
--- General API for creating various types of polygons.
+-- This module defines a general API for creating various types of
+-- polygons.
 --
 -----------------------------------------------------------------------------
 
