@@ -40,7 +40,6 @@ import Diagrams.Path
 
 import Data.Active
 import Data.Semigroup
-import Data.Maybe
 
 import Data.VectorSpace
 
@@ -120,7 +119,7 @@ animRect = animRect' 30
 --   accurate but slower.
 animRect' :: (PathLike p, Enveloped p, Transformable p, V p ~ R2)
           => Rational -> QAnimation b R2 m -> p
-animRect' r = fromMaybe (rect 1 1) (`boxFit` rect 1 1)
+animRect' r = maybe (rect 1 1) (`boxFit` rect 1 1)
             . unions
             . map boundingBox
             . simulate r
