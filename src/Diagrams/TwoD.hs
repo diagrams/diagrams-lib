@@ -82,7 +82,6 @@ module Diagrams.TwoD
          -- ** Circle-ish things
        , unitCircle
        , circle
-       , circlePath
        , ellipse
        , ellipseXY
        , arc
