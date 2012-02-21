@@ -63,7 +63,7 @@ instance Renderable Text NullBackend where
   render _ _ = mempty
 
 -- | @TextAlignment@ specifies the alignment of the text's origin.
-data TextAlignment = BaselineText | BoxAlignedText R2
+data TextAlignment = BaselineText | BoxAlignedText Double Double
 
 mkText :: Renderable Text b => TextAlignment -> String -> Diagram b R2
 mkText a t = mkQD (Prim (Text mempty a t))
@@ -72,33 +72,32 @@ mkText a t = mkQD (Prim (Text mempty a t))
                        mempty
 
 -- | Create a primitive text diagram from the given string, with center
---   alignment, equivalent to @alignedText (0.5, 0.5)@.
+--   alignment, equivalent to @alignedText 0.5 0.5@.
 --    
 --   Note that it /takes up no space/, as text size information is not
 --   available.
 text :: Renderable Text b => String -> Diagram b R2
-text = alignedText (0.5, 0.5)
+text = alignedText 0.5 0.5
 
 -- | Create a primitive text diagram from the given string, origin at
 --   the top left corner of the text's bounding box, equivalent to 
---   @alignedText (0.5, 0.5)@.
+--   @alignedText 0.5 0.5@.
 --    
 --   Note that it /takes up no space/.
 topLeftText :: Renderable Text b => String -> Diagram b R2
-topLeftText = alignedText (0, 1)
+topLeftText = alignedText 0 1
 
 -- | Create a primitive text diagram from the given string, with the
 --   origin set to a point interpolated within the bounding box.  The
---   vector provided as the first parameter provides interpolation
---   parameters, such that (0, 0) is at the bottom left, and (1, 1) is
---   at the top right.
+--   first parameter varies from 0 (left) to 1 (right), and the second
+--   parameter from 0 (bottom) to 1 (top).
 --   
 --   The height of this box is determined by the font's potential ascent
 --   and descent, rather than the height of the particular string.
 --
 --   Note that it /takes up no space/.
-alignedText :: Renderable Text b => R2 -> String -> Diagram b R2
-alignedText v = mkText (BoxAlignedText v)
+alignedText :: Renderable Text b => Double -> Double -> String -> Diagram b R2
+alignedText w h = mkText (BoxAlignedText w h)
 
 -- | Create a primitive text diagram from the given string, with the
 --   origin set to be on the baseline, at the beginning (although not

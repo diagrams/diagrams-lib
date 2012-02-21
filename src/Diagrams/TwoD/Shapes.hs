@@ -1,5 +1,6 @@
 {-# LANGUAGE TypeFamilies
            , FlexibleContexts
+           , ViewPatterns
   #-}
 
 -----------------------------------------------------------------------------
@@ -59,11 +60,11 @@ import Data.Semigroup
 
 -- | Create a centered horizontal (L-R) line of the given length.
 hrule :: (PathLike p, V p ~ R2) => Double -> p
-hrule d = pathLike (P (-d/2,0)) False [Linear (d,0)]
+hrule d = pathLike (p2 (-d/2,0)) False [Linear (r2 (d,0))]
 
 -- | Create a centered vertical (T-B) line of the given length.
 vrule :: (PathLike p, V p ~ R2) => Double -> p
-vrule d = pathLike (P (0,d/2)) False [Linear (0,-d)]
+vrule d = pathLike (p2 (0,d/2)) False [Linear (r2 (0,-d))]
 
 -- | A sqaure with its center at the origin and sides of length 1,
 --   oriented parallel to the axes.
@@ -148,38 +149,39 @@ dodecagon = regPoly 12
 --  Other shapes  ------------------------------------------
 ------------------------------------------------------------
 
--- | @roundedRect v r@ generates a closed trail, or closed path
--- centered at the origin, of an axis-aligned rectangle with diagonal
--- @v@ and circular rounded corners of radius @r@.  If @r@ is negative the
--- corner will be cut out in a reverse arc. If the size of @r@ is larger
--- than half the smaller dimension of @v@, then it will be reduced to fit in
--- that range, to prevent the corners from overlapping.
--- The trail or path begins with the right edge and proceeds counterclockwise.
--- If you need to specify a different radius for each corner individually, use
--- @roundedRect'@ instead.
-roundedRect :: (PathLike p, V p ~ R2) => R2 -> Double -> p
-roundedRect v r = roundedRect' v (with { radiusTL = r,
-                                         radiusBR = r,
-                                         radiusTR = r,
-                                         radiusBL = r})
-
+-- | @roundedRect w h r@ generates a closed trail, or closed path
+--   centered at the origin, of an axis-aligned rectangle with width
+--   @w@, height @h@, and circular rounded corners of radius @r@.  If
+--   @r@ is negative the corner will be cut out in a reverse arc. If
+--   the size of @r@ is larger than half the smaller dimension of @w@
+--   and @h@, then it will be reduced to fit in that range, to prevent
+--   the corners from overlapping.  The trail or path begins with the
+--   right edge and proceeds counterclockwise.  If you need to specify
+--   a different radius for each corner individually, use
+--   @roundedRect'@ instead.
+roundedRect :: (PathLike p, V p ~ R2) => Double -> Double -> Double -> p
+roundedRect w h r = roundedRect' w h (with { radiusTL = r,
+                                             radiusBR = r,
+                                             radiusTR = r,
+                                             radiusBL = r})
 
 -- | @roundedRect'@ works like @roundedRect@ but allows you to set the radius of
 --   each corner indivually, using @RoundedRectOpts@. The default corner radius is 0.
 --   Each radius can also be negative, which results in the curves being reversed
 --   to be inward instead of outward.
-roundedRect' :: (PathLike p, V p ~ R2) => R2 -> RoundedRectOpts -> p
-roundedRect' (w,h) opts = pathLike (P (w/2, abs rBR - h/2)) True
-                        . trailSegments
-                        $ seg (0, h - abs rTR - abs rBR)
-                        <> mkCorner 0 rTR
-                        <> seg (abs rTR + abs rTL - w, 0)
-                        <> mkCorner 1 rTL
-                        <> seg (0, abs rTL + abs rBL - h)
-                        <> mkCorner 2 rBL
-                        <> seg (w - abs rBL - abs rBR, 0)
-                        <> mkCorner 3 rBR
-  where seg   = fromOffsets . (:[])
+roundedRect' :: (PathLike p, V p ~ R2) => Double -> Double -> RoundedRectOpts -> p
+roundedRect' w h opts
+   = pathLike (p2 (w/2, abs rBR - h/2)) True
+   . trailSegments
+   $ seg (0, h - abs rTR - abs rBR)
+   <> mkCorner 0 rTR
+   <> seg (abs rTR + abs rTL - w, 0)
+   <> mkCorner 1 rTL
+   <> seg (0, abs rTL + abs rBL - h)
+   <> mkCorner 2 rBL
+   <> seg (w - abs rBL - abs rBR, 0)
+   <> mkCorner 3 rBR
+  where seg   = fromOffsets . (:[]) . r2
         diag  = sqrt (w * w + h * h)
         -- to clamp corner radius, need to compare with other corners that share an
         -- edge. If the corners overlap then reduce the largest corner first, as far

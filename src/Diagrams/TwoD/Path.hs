@@ -3,6 +3,7 @@
            , DeriveDataTypeable
            , GeneralizedNewtypeDeriving
            , TypeFamilies
+           , ViewPatterns
   #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 -----------------------------------------------------------------------------
@@ -183,7 +184,7 @@ fillRule :: HasStyle a => FillRule -> a -> a
 fillRule = applyAttr . FillRuleA . Last
 
 cross :: R2 -> R2 -> Double
-cross (x,y) (x',y') = x * y' - y * x'
+cross (unr2 -> (x,y)) (unr2 -> (x',y')) = x * y' - y * x'
 
 -- XXX link to more info on this
 
@@ -214,22 +215,26 @@ trailCrossings :: P2 -> (P2, Trail R2) -> Int
   -- open trails have no inside or outside, so don't contribute crossings
 trailCrossings _ (_, t) | not (isClosed t) = 0
 
-trailCrossings p@(P (x,y)) (start, tr)
+trailCrossings p@(unp2 -> (x,y)) (start, tr)
   = sum . map test $ fixTrail start tr
   where
-    test (FLinear a@(P (_,ay)) b@(P (_,by)))
+    test (FLinear a@(unp2 -> (_,ay)) b@(unp2 -> (_,by)))
       | ay <= y && by > y && isLeft a b > 0 =  1
       | by <= y && ay > y && isLeft a b < 0 = -1
       | otherwise                           =  0
 
-    test c@(FCubic (P x1@(_,x1y)) (P c1@(_,c1y)) (P c2@(_,c2y)) (P x2@(_,x2y))) =
+    test c@(FCubic (unp2 -> x1@(_,x1y))
+                   (unp2 -> c1@(_,c1y))
+                   (unp2 -> c2@(_,c2y))
+                   (unp2 -> x2@(_,x2y))
+           ) =
         sum . map testT $ ts
       where ts = filter (liftA2 (&&) (>=0) (<=1))
                $ cubForm (-  x1y + 3*c1y - 3*c2y + x2y)
                          ( 3*x1y - 6*c1y + 3*c2y)
                          (-3*x1y + 3*c1y)
                          (x1y - y)
-            testT t = let (P (px,_)) = c `fAtParam` t
+            testT t = let (unp2 -> (px,_)) = c `fAtParam` t
                       in  if px > x then signFromDerivAt t else 0
             signFromDerivAt t =
               let (dx,dy) = (3*t*t) *^ ((-1)*^x1 ^+^ 3*^c1 ^-^ 3*^c2 ^+^ x2)

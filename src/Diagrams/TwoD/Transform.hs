@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleContexts
            , TypeFamilies
+           , ViewPatterns
   #-}
 -----------------------------------------------------------------------------
 -- |
@@ -47,6 +48,8 @@ module Diagrams.TwoD.Transform
 
 import Graphics.Rendering.Diagrams
 
+import Control.Newtype (over)
+
 import Diagrams.TwoD.Types
 import Diagrams.TwoD.Size   (width, height)
 import Diagrams.TwoD.Vector (direction)
@@ -67,7 +70,7 @@ rotation ang = fromLinear r (linv r)
   where
     r            = rot theta <-> rot (-theta)
     Rad theta    = convertAngle ang
-    rot th (x,y) = (cos th * x - sin th * y, sin th * x + cos th * y)
+    rot th (unr2 -> (x,y)) = r2 (cos th * x - sin th * y, sin th * x + cos th * y)
 
 -- | Rotate by the given angle. Positive angles correspond to
 --   counterclockwise rotation, negative to clockwise. The angle can
@@ -105,7 +108,7 @@ rotateAbout p angle = rotate angle `under` translation (origin .-. p)
 --   the x (horizontal) direction.
 scalingX :: Double -> T2
 scalingX c = fromLinear s s
-  where s = first (*c) <-> first (/c)
+  where s = (over r2 . first) (*c) <-> (over r2 . first) (/c)
 
 -- | Scale a diagram by the given factor in the x (horizontal)
 --   direction.  To scale uniformly, use 'scale'.
@@ -116,7 +119,7 @@ scaleX = transform . scalingX
 --   the y (vertical) direction.
 scalingY :: Double -> T2
 scalingY c = fromLinear s s
-  where s = second (*c) <-> second (/c)
+  where s = (over r2 . second) (*c) <-> (over r2 . second) (/c)
 
 -- | Scale a diagram by the given factor in the y (vertical)
 --   direction.  To scale uniformly, use 'scale'.
@@ -154,7 +157,7 @@ scaleUToY h d = scale (h / height d) d
 -- | Construct a transformation which translates by the given distance
 --   in the x (horizontal) direction.
 translationX :: Double -> T2
-translationX x = translation (x,0)
+translationX x = translation (r2 (x,0))
 
 -- | Translate a diagram by the given distance in the x (horizontal)
 --   direction.
@@ -164,7 +167,7 @@ translateX = transform . translationX
 -- | Construct a transformation which translates by the given distance
 --   in the y (vertical) direction.
 translationY :: Double -> T2
-translationY y = translation (0,y)
+translationY y = translation (r2 (0,y))
 
 -- | Translate a diagram by the given distance in the y (vertical)
 --   direction.
@@ -210,7 +213,8 @@ reflectAbout p v = transform (reflectionAbout p v)
 -- | @shearingX d@ is the linear transformation which is the identity on
 --   y coordinates and sends @(0,1)@ to @(d,1)@.
 shearingX :: Double -> T2
-shearingX d = fromLinear (sh d <-> sh (-d)) (sh' d <-> sh' (-d))
+shearingX d = fromLinear (over r2 (sh d)  <-> over r2 (sh (-d)))
+                         (over r2 (sh' d) <-> over r2 (sh' (-d)))
   where sh  k (x, y) = (x+k*y, y)
         sh' k        = swap . sh k . swap
         swap (x,y) = (y,x)
@@ -223,7 +227,8 @@ shearX = transform . shearingX
 -- | @shearingY d@ is the linear transformation which is the identity on
 --   x coordinates and sends @(1,0)@ to @(1,d)@.
 shearingY :: Double -> T2
-shearingY d = fromLinear (sh d <-> sh (-d)) (sh' d <-> sh' (-d))
+shearingY d = fromLinear (over r2 (sh d)  <-> over r2 (sh (-d)))
+                         (over r2 (sh' d) <-> over r2 (sh' (-d)))
   where sh  k (x,y) = (x, y+k*x)
         sh' k       = swap . sh k . swap
         swap (x,y) = (y,x)

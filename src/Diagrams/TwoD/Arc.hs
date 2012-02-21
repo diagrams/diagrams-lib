@@ -1,4 +1,6 @@
-{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeFamilies
+           , ViewPatterns
+  #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Arc
@@ -41,11 +43,11 @@ import Data.VectorSpace((^-^), (*^), negateV)
 --   radians.  The approximation is only valid for angles in the first
 --   quadrant.
 bezierFromSweepQ1 :: Rad -> Segment R2
-bezierFromSweepQ1 s = fmap (^-^ v) . rotate (s/2) $ Cubic p2 p1 p0
-  where p0@(x,y) = rotate (s/2) v
-        p1       = ((4-x)/3, (1-x)*(3-x)/(3*y))
-        p2       = reflectY p1
-        v        = (1,0)
+bezierFromSweepQ1 s = fmap (^-^ v) . rotate (s/2) $ Cubic c2 c1 p0
+  where p0@(unr2 -> (x,y)) = rotate (s/2) v
+        c1                 = r2 ((4-x)/3, (1-x)*(3-x)/(3*y))
+        c2                 = reflectY c1
+        v                  = unitX
 
 -- | @bezierFromSweep s@ constructs a series of 'Cubic' segments that
 --   start in the positive y direction and sweep counter clockwise
@@ -90,7 +92,7 @@ arcT start end = Trail bs (sweep >= tau)
 -- | Given a start angle @s@ and an end angle @e@, @'arc' s e@ is the
 --   path of a radius one arc counterclockwise between the two angles.
 arc :: (Angle a, PathLike p, V p ~ R2) => a -> a -> p
-arc start end = pathLike (rotate start $ P unitX)
+arc start end = pathLike (rotate start $ p2 (1,0))
                          False
                          (trailSegments $ arcT start end)
 

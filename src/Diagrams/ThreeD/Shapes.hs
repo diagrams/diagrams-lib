@@ -1,5 +1,6 @@
 {-# LANGUAGE TypeFamilies
            , FlexibleContexts
+           , ViewPatterns
   #-}
 -----------------------------------------------------------------------------
 -- |
@@ -36,5 +37,5 @@ sphere = mkQD (Prim $ Ellipsoid mempty)
               (mkEnvelope sphereEnv)
               mempty
               (Query sphereQuery)
-  where sphereEnv (x,y,z) = 1 / sqrt(x*x + y*y + z*z)
-        sphereQuery (P (x,y,z)) = Any $ x*x + y*y + z*z <= 1
+  where sphereEnv (unr3 -> (x,y,z))   = 1 / sqrt(x*x + y*y + z*z)
+        sphereQuery (unp3 -> (x,y,z)) = Any $ x*x + y*y + z*z <= 1

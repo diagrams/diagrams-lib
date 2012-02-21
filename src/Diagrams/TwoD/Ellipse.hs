@@ -36,9 +36,10 @@ import Diagrams.Util
 
 -- | A circle of radius 1, with center at the origin.
 unitCircle :: (PathLike p, V p ~ R2) => p
-unitCircle = pathLike (P (1,0)) True $ trailSegments (arcT 0 (tau::Rad))
+unitCircle = pathLike (p2 (1,0)) True $ trailSegments (arcT 0 (tau::Rad))
 
--- | A circle of the given radius, centered at the origin.
+-- | A circle of the given radius, centered at the origin.  As a path,
+--   it begins at (r,0).
 circle :: (PathLike p, V p ~ R2, Transformable p) => Double -> p
 circle d = unitCircle # scale d
 

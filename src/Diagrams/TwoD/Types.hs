@@ -2,6 +2,9 @@
            , TypeSynonymInstances
            , FlexibleInstances
            , GeneralizedNewtypeDeriving
+           , MultiParamTypeClasses
+           , ViewPatterns
+           , DeriveDataTypeable
   #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 -----------------------------------------------------------------------------
@@ -17,8 +20,8 @@
 
 module Diagrams.TwoD.Types
        ( -- * 2D Euclidean space
-         R2
-       , P2
+         R2, r2, unr2
+       , P2, p2, unp2
        , T2
 
          -- * Angles
@@ -29,18 +32,80 @@ module Diagrams.TwoD.Types
 
 import Graphics.Rendering.Diagrams
 
+import Control.Newtype
+
+import Data.Basis
+import Data.NumInstances ()
+import Data.VectorSpace
+
 import Math.Tau
+
+import Data.Typeable
 
 ------------------------------------------------------------
 -- 2D Euclidean space
 
--- | The two-dimensional Euclidean vector space R^2.
-type R2 = (Double, Double)
+-- | The two-dimensional Euclidean vector space R^2.  This type is
+--   intentionally abstract.
+--
+--   * To construct a vector, use 'r2'.
+--
+--   * To construct the vector from the origin to a point @p@, use
+--     @p .-. origin@.
+--
+--   * To convert a vector @v@ into the point obtained by following
+--     @v@ from the origin, use @'origin' '.+^' v@.
+--
+--   * To convert a vector back into a pair of components, use 'unv2'.
+newtype R2 = R2 { unR2 :: (Double, Double) }
+  deriving (AdditiveGroup, Eq, Ord, Show, Read, Typeable, Num, Fractional)
+
+instance Newtype R2 (Double, Double) where
+  pack   = R2
+  unpack = unR2
+
+-- | Construct a 2D vector from a pair of components.
+r2 :: (Double, Double) -> R2
+r2 = pack
+
+-- | Convert a 2D vector back into a pair of components.
+unr2 :: R2 -> (Double, Double)
+unr2 = unpack
 
 type instance V R2 = R2
 
--- | Points in R^2.
+instance VectorSpace R2 where
+  type Scalar R2 = Double
+  (*^) = over R2 . (*^)
+
+instance HasBasis R2 where
+  type Basis R2 = Either () () -- = Basis (Double, Double)
+  basisValue = R2 . basisValue
+  decompose  = decompose  . unR2
+  decompose' = decompose' . unR2
+
+instance InnerSpace R2 where
+  (unR2 -> vec1) <.> (unR2 -> vec2) = vec1 <.> vec2
+
+-- | Points in R^2.  This type is intentionally abstract.
+--
+--   * To construct a point, use 'p2'.
+--
+--   * To construct a point from a vector @v@, use @origin .+^ v@.
+--
+--   * To convert a point @p@ into the vector from the origin to @p@,
+--   use @p '.-.' 'origin'@.
+--
+--   * To convert a point back into a pair of coordinates, use 'unp2'.
 type P2 = Point R2
+
+-- | Construct a 2D point from a pair of coordinates.
+p2 :: (Double, Double) -> P2
+p2 = pack . pack
+
+-- | Convert a 2D point back into a pair of coordinates.
+unp2 :: P2 -> (Double, Double)
+unp2 = unpack . unpack
 
 -- | Transformations in R^2.
 type T2 = Transformation R2

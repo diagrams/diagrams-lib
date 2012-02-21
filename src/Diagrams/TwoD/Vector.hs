@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleContexts
            , TypeFamilies
+           , ViewPatterns
   #-}
 -----------------------------------------------------------------------------
 -- |
@@ -23,29 +24,29 @@ import Diagrams.TwoD.Types
 
 -- | The unit vector in the positive X direction.
 unitX :: R2
-unitX = (1,0)
+unitX = r2 (1,0)
 
 -- | The unit vector in the positive Y direction.
 unitY :: R2
-unitY = (0,1)
+unitY = r2 (0,1)
 
 -- | The unit vector in the negative X direction.
 unit_X :: R2
-unit_X = (-1,0)
+unit_X = r2 (-1,0)
 
 -- | The unit vector in the negative Y direction.
 unit_Y :: R2
-unit_Y = (0,-1)
+unit_Y = r2 (0,-1)
 
 -- | Compute the direction of a vector, measured counterclockwise from
 --   the positive x-axis as a fraction of a full turn.  The zero
 --   vector is arbitrarily assigned the direction 0.
 direction :: Angle a => R2 -> a
-direction (x,y) = convertAngle . Rad $ atan2 y x
+direction (unr2 -> (x,y)) = convertAngle . Rad $ atan2 y x
 
 -- | Convert an angle into a unit vector pointing in that direction.
 fromDirection :: Angle a => a -> R2
-fromDirection a = (cos a', sin a')
+fromDirection a = r2 (cos a', sin a')
   where Rad a' = convertAngle a
 
 -- | A convenient synonym for 'fromDirection'.

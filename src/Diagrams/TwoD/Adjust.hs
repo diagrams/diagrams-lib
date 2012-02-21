@@ -1,3 +1,6 @@
+{-# LANGUAGE ViewPatterns
+  #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Adjust
@@ -21,7 +24,7 @@ import Graphics.Rendering.Diagrams
 import Diagrams.Attributes  (lw, lc)
 import Diagrams.Util        ((#))
 
-import Diagrams.TwoD.Types  (R2)
+import Diagrams.TwoD.Types  (R2, p2)
 import Diagrams.TwoD.Size   (size2D, center2D, SizeSpec2D(..))
 import Diagrams.TwoD.Text   (fontSize)
 
@@ -73,12 +76,12 @@ adjustDia2D getSize setSize _ opts d =
         finalSz = case spec of
                     Dims w h -> (w,h)
                     _        -> scale s size
-        tr = (0.5 *. P finalSz) .-. (s *. center2D d)
+        tr = (0.5 *. p2 finalSz) .-. (s *. center2D d)
 
 -- | @adjustSize spec sz@ returns a transformation (a uniform scale)
 --   which can be applied to something of size @sz@ to make it the
 --   requested size @spec@.
-adjustSize :: SizeSpec2D -> R2 -> Transformation R2
+adjustSize :: SizeSpec2D -> (Double, Double) -> Transformation R2
 adjustSize spec size = scaling (requiredScale spec size)
 
 -- | @requiredScale spec sz@ returns a scaling factor necessary to
@@ -87,7 +90,7 @@ adjustSize spec size = scaling (requiredScale spec size)
 --   specification of both dimensions may not be honored if the aspect
 --   ratios do not match; in that case the scaling will be as large as
 --   possible so that the object still fits within the requested size.
-requiredScale :: SizeSpec2D -> R2 -> Double
+requiredScale :: SizeSpec2D -> (Double, Double) -> Double
 requiredScale Absolute _    = 1
 requiredScale (Width wSpec) (w,_)
   | wSpec == 0 || w == 0 = 1
