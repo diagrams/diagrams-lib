@@ -26,6 +26,8 @@ module Diagrams.CubicSpline
 import Diagrams.CubicSpline.Internal
 
 import Graphics.Rendering.Diagrams
+import Graphics.Rendering.Diagrams.Points
+
 import Diagrams.Segment
 import Diagrams.Path
 

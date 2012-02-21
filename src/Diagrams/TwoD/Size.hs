@@ -24,6 +24,7 @@ module Diagrams.TwoD.Size
 
 import Graphics.Rendering.Diagrams
 import Diagrams.TwoD.Types
+import Diagrams.TwoD.Vector
 
 import Control.Arrow ((***), (&&&))
 import Control.Applicative ((<$>), liftA2)
@@ -48,18 +49,18 @@ size2D = width &&& height
 --   R2, in  the form (lo,hi).   Return @Nothing@ for objects  with an
 --   empty envelope.
 extentX :: (Enveloped a, V a ~ R2) => a -> Maybe (Double, Double)
-extentX d = (\f -> (-f (-1,0), f (1,0))) <$> (appEnvelope . getEnvelope $ d)
+extentX d = (\f -> (-f unit_X, f unitX)) <$> (appEnvelope . getEnvelope $ d)
 
 -- | Compute the absolute y-coordinate range of an enveloped object in
 --   R2, in the form (lo,hi).
 extentY :: (Enveloped a, V a ~ R2) => a -> Maybe (Double, Double)
-extentY d = (\f -> (-f (0,-1), f (0,1))) <$> (appEnvelope . getEnvelope $ d)
+extentY d = (\f -> (-f unit_Y, f unitY)) <$> (appEnvelope . getEnvelope $ d)
 
 -- | Compute the point at the center (in the x- and y-directions) of a
 --   enveloped object.  Return the origin for objects with an empty
 --   envelope.
 center2D :: (Enveloped a, V a ~ R2) => a -> P2
-center2D = maybe origin (P . (mid *** mid)) . mm . (extentX &&& extentY)
+center2D = maybe origin (p2 . (mid *** mid)) . mm . (extentX &&& extentY)
   where mm = uncurry (liftA2 (,))
         mid = (/2) . uncurry (+)
 

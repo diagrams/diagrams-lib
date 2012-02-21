@@ -2,6 +2,7 @@
            , ScopedTypeVariables
            , DeriveFunctor
            , ExistentialQuantification
+           , ViewPatterns
   #-}
 
 -----------------------------------------------------------------------------
@@ -177,7 +178,7 @@ polygon opts = case pts of
 -- | Generate the vertices of a polygon specified by polar data
 --   (central angles and radii). See 'PolyPolar'.
 polyPolarVs :: Angle a => [a] -> [Double] -> [P2]
-polyPolarVs ans ls = zipWith (\a l -> P . rotate a . scale l $ unitX)
+polyPolarVs ans ls = zipWith (\a l -> rotate a . scale l $ p2 (1,0))
                              (scanl (+) 0 ans)
                              ls
 
@@ -211,14 +212,14 @@ orient v xs = rotate a xs
     where
         (n1,x,n2) = maximumBy (comparing (distAlong v . sndOf3))
                        (zip3 (tail xs ++ take 1 xs) xs (last xs : init xs))
-        distAlong w (P p) = signum (w <.> p) * magnitude (project w p)
+        distAlong w ((.-. origin) -> p) = signum (w <.> p) * magnitude (project w p)
         x'        = maximumBy (comparing (distAlong v)) [n1, n2]
         e         = x' .-. x
         th        = Rad $ acos ((e <.> normalized v) / magnitude e)
         a | rightTurn (x .+^ v) x x' = tau/4 - th
           | otherwise                = th - tau/4
         sndOf3 (_,b,_) = b
-        rightTurn (P (x1,y1)) (P (x2, y2)) (P (x3,y3)) =
+        rightTurn (unp2 -> (x1,y1)) (unp2 -> (x2, y2)) (unp2 -> (x3,y3)) =
           (x2 - x1)*(y3 - y1) - (y2 - y1)*(x3-x1) < 0
 
 ------------------------------------------------------------
