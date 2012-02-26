@@ -167,6 +167,7 @@ module Diagrams.TwoD
 
          -- ** Specifying size
        , SizeSpec2D(..)
+       , mkSizeSpec
 
          -- * Visual aids for understanding the internal model
        , showOrigin
