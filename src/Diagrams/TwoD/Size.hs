@@ -20,6 +20,7 @@ module Diagrams.TwoD.Size
 
          -- ** Specifying sizes
        , SizeSpec2D(..)
+       , mkSizeSpec
        ) where
 
 import Graphics.Rendering.Diagrams
@@ -76,9 +77,17 @@ data SizeSpec2D = Width  Double       -- ^ Specify an explicit
                 | Height Double       -- ^ Specify an explicit
                                       -- height. The width should be
                                       -- determined automatically (so
-                                      -- as to preserve aspect ratio)
+                                      -- as to preserve aspect ratio).
                 | Dims Double Double  -- ^ An explicit specification
-                                      -- of both dimensions.
+                                      -- of a width and height.
                 | Absolute            -- ^ Absolute size: use whatever
                                       -- size an object already has;
                                       -- do not rescale.
+
+-- | Create a size specification from a possibly-specified width and
+--   height.
+mkSizeSpec :: Maybe Double -> Maybe Double -> SizeSpec2D
+mkSizeSpec Nothing  Nothing  = Absolute
+mkSizeSpec (Just w) Nothing  = Width w
+mkSizeSpec Nothing  (Just h) = Height h
+mkSizeSpec (Just w) (Just h) = Dims w h
