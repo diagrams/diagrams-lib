@@ -25,8 +25,6 @@ module Diagrams.TwoD.Ellipse
 
 import Graphics.Rendering.Diagrams
 
-import Math.Tau
-
 import Diagrams.TwoD.Types
 import Diagrams.TwoD.Transform
 import Diagrams.TwoD.Arc

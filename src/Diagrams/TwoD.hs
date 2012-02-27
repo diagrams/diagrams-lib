@@ -177,8 +177,6 @@ module Diagrams.TwoD
 
        ) where
 
-import Math.Tau
-
 import Diagrams.TwoD.Types
 import Diagrams.TwoD.Path
 import Diagrams.TwoD.Ellipse
@@ -193,3 +191,5 @@ import Diagrams.TwoD.Size
 import Diagrams.TwoD.Model
 import Diagrams.TwoD.Text
 import Diagrams.TwoD.Image
+
+import Diagrams.Util (tau)

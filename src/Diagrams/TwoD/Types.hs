@@ -31,14 +31,13 @@ module Diagrams.TwoD.Types
        ) where
 
 import Graphics.Rendering.Diagrams
+import Diagrams.Util (tau)
 
 import Control.Newtype
 
 import Data.Basis
 import Data.NumInstances ()
 import Data.VectorSpace
-
-import Math.Tau
 
 import Data.Typeable
 

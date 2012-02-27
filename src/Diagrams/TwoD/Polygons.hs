@@ -49,8 +49,6 @@ import Data.List         (maximumBy)
 import Data.Maybe        (catMaybes)
 import Data.Monoid       (mconcat)
 
-import Math.Tau
-
 import Control.Monad     (forM, liftM)
 
 import Control.Monad.ST  (runST, ST)
@@ -67,7 +65,7 @@ import Diagrams.TwoD.Transform
 import Diagrams.TwoD.Vector (unitX, unitY, unit_Y)
 import Diagrams.Path
 import Diagrams.Points      (centroid)
-import Diagrams.Util        ((#))
+import Diagrams.Util        ((#), tau)
 
 -- | Method used to determine the vertices of a polygon.
 data PolyType = forall a. Angle a => PolyPolar [a] [Double]
