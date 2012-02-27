@@ -22,15 +22,13 @@ module Diagrams.TwoD.Arc
 
 import Graphics.Rendering.Diagrams
 
-import Math.Tau
-
 import Diagrams.TwoD.Types
 import Diagrams.TwoD.Transform
 import Diagrams.TwoD.Vector (unitX, e)
 
 import Diagrams.Path
 import Diagrams.Segment
-import Diagrams.Util ((#))
+import Diagrams.Util ((#), tau)
 
 import Data.Semigroup ((<>))
 import Data.VectorSpace((^-^), (*^), negateV)

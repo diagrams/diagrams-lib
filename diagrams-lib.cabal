@@ -68,6 +68,5 @@ Library
                        colour >= 2.3.2 && < 2.4,
                        data-default >= 0.2 && < 0.4,
                        pretty >= 1.0.1.2 && < 1.2,
-                       newtype >= 0.2 && < 0.3,
-                       tau >= 6.28
+                       newtype >= 0.2 && < 0.3
   Hs-source-dirs:      src

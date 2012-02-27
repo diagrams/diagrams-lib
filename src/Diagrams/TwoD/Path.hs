@@ -41,7 +41,7 @@ module Diagrams.TwoD.Path
 
 import Graphics.Rendering.Diagrams
 
-import Math.Tau
+import Diagrams.Util (tau)
 
 import Diagrams.Segment
 import Diagrams.Path

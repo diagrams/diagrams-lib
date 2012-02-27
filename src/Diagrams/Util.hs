@@ -18,6 +18,8 @@ module Diagrams.Util
 
        , iterateN
 
+       , tau
+
          -- * Internal utilities
        , Proxy(..)
        , foldB
@@ -70,6 +72,18 @@ infixl 8 #
 --   @f@ applied to @x@ @(n-1)@ times.)
 iterateN :: Int -> (a -> a) -> a -> [a]
 iterateN n f = take n . iterate f
+
+-- | The circle constant, the ratio of a circle's circumference to its
+--   /radius/.  Note that @pi = tau/2@.
+--
+--   For more information and a well-reasoned argument why we should
+--   all be using tau instead of pi, see /The Tau Manifesto/,
+--   <http://tauday.com/>.
+--
+--   To hear what it sounds like (and to easily memorize the first 30
+--   digits or so), try <http://youtu.be/3174T-3-59Q>.
+tau :: Floating a => a
+tau = 2*pi
 
 -- | A value of @Proxy a@ carries no information; it's used only to
 --   fix the type @a@.
