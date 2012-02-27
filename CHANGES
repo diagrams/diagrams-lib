@@ -113,6 +113,9 @@
     - 'beside' and related functions are now implemented in terms of
       'juxtapose'.
 
+    - Instead of taking an R2, roundedRect now takes a pair of
+      Doubles, to be more consistent with 'rect'.
+
   * Dependency/version changes
 
     - Support for GHC 7.4.1:
