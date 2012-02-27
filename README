@@ -7,11 +7,3 @@ for more information about the project, including installation
 instructions, tutorials, a user manual, a gallery of example images,
 and links to the mailing list, IRC channel, developer wiki and bug
 tracker.
-
-The source repository is mirrored on both patch-tag (darcs) and github
-(git):
-
-  http://patch-tag.com/r/byorgey/diagrams-lib
-  https://github.com/byorgey/diagrams-lib
-
-Patches/pull requests welcome in either place.
