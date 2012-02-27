@@ -38,10 +38,7 @@
       of BoundingBox bounds, corners, extents, and transformation of
       objects to fit within a given box.
 
-    - Improvements to text API from Michael Sloan
-      + Text alignment options
-      + Proper vertical alignment of default text based on font
-        parameters
+    - Text alignment options from Michael Sloan
 
     - 'view' function for restricting a diagram's envelope to a
       rectangular region.
