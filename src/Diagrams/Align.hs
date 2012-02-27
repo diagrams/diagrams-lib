@@ -36,6 +36,7 @@ import Graphics.Rendering.Diagrams
 import Data.VectorSpace
 import Data.AffineSpace (alerp)
 
+import qualified Data.Set as S
 import qualified Data.Map as M
 
 -- | Class of things which can be aligned.
@@ -62,6 +63,9 @@ instance (InnerSpace v, OrderedField (Scalar v)) => Alignable (Envelope v) where
   alignBy = alignByDefault
 
 instance (Enveloped b, HasOrigin b) => Alignable [b] where
+  alignBy = alignByDefault
+
+instance (Enveloped b, HasOrigin b, Ord b) => Alignable (S.Set b) where
   alignBy = alignByDefault
 
 instance (Enveloped b, HasOrigin b) => Alignable (M.Map k b) where
