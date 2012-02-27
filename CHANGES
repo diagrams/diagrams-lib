@@ -1,52 +1,6 @@
-0.1: 17 May 2011
-  * initial preview release
+0.4.0.1: 30 October 2011
 
-0.1.1: 18 May 2011
-  * minor documentation fixes
-  * link to new website
-
-0.2: 3 June 2011
-
-  * documentation fixes
-
-  * New functions and primitives:
-    + scaleToX and scaleToY for scaling to an absolute width/height
-    + reverseTrail
-    + new Angle class and ability to use radians, degrees, or circle fractions
-      for specifying angles
-    + rotateAbout and reflectAbout transformations based on new conjugation functions
-    + rect and roundedRect primitives
-    + explodeTrail/Path for breaking trails and paths into individual segments
-
-  * New features:
-    + opacity attribute
-    + support for path clipping
-
-  * New modules:
-    + Diagrams.BoundingBox
-
-  * Fixes and updates:
-    + withBounds now properly uses the new bounds instead of just combining
-      them with the old
-
-0.3: 18 June 2011
-
-  * New features:
-    + new customizable stroke' function which lets you assign names to
-      path vertices
-    + circle and square functions now take a size argument
-    + function for adjusting 2D diagrams to requested size abstracted
-      from cairo backend
-    + generalize PathLike class to include an instance for diagrams,
-      and collapse things like polygon/polygonPath into a single
-      polymorphic function
-    + basic text support
-    + basic support for external images
-    + very sketchy initial proof-of-concept library of 3D primitives.
-      See also http://patch-tag.com/r/byorgey/diagrams-povray.
-
-  * Bug fixes:
-    + Issue 32 (mempty not behaving correctly within concatenations)
+  * bump data-default dependency to allow version 0.3
 
 0.4: 23 October 2011
 
@@ -73,6 +27,53 @@
     + fix incorrect corner case in arc generation
     + fix incorrect reverseTrail function
 
-0.4.0.1: 30 October 2011
+0.3: 18 June 2011
 
-  * bump data-default dependency to allow version 0.3
+  * New features:
+    + new customizable stroke' function which lets you assign names to
+      path vertices
+    + circle and square functions now take a size argument
+    + function for adjusting 2D diagrams to requested size abstracted
+      from cairo backend
+    + generalize PathLike class to include an instance for diagrams,
+      and collapse things like polygon/polygonPath into a single
+      polymorphic function
+    + basic text support
+    + basic support for external images
+    + very sketchy initial proof-of-concept library of 3D primitives.
+      See also http://patch-tag.com/r/byorgey/diagrams-povray.
+
+  * Bug fixes:
+    + Issue 32 (mempty not behaving correctly within concatenations)
+
+0.2: 3 June 2011
+
+  * documentation fixes
+
+  * New functions and primitives:
+    + scaleToX and scaleToY for scaling to an absolute width/height
+    + reverseTrail
+    + new Angle class and ability to use radians, degrees, or circle fractions
+      for specifying angles
+    + rotateAbout and reflectAbout transformations based on new conjugation functions
+    + rect and roundedRect primitives
+    + explodeTrail/Path for breaking trails and paths into individual segments
+
+  * New features:
+    + opacity attribute
+    + support for path clipping
+
+  * New modules:
+    + Diagrams.BoundingBox
+
+  * Fixes and updates:
+    + withBounds now properly uses the new bounds instead of just combining
+      them with the old
+
+0.1.1: 18 May 2011
+  * minor documentation fixes
+  * link to new website
+
+0.1: 17 May 2011
+  * initial preview release
+
