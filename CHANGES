@@ -1,3 +1,20 @@
+0.5.1: XXX
+
+  * New features:
+
+    - 'boundingRect' function for constructing a bounding rectangle
+
+    - 'bg' function for "setting the background color" (i.e. placing
+      atop a colored bounding rectangle)
+
+  * New instances:
+
+  * API changes
+
+  * Dependency/version changes
+
+  * Bug fixes
+
 0.5: 9 March 2012
 
   * New features:

@@ -155,6 +155,8 @@ module Diagrams.TwoD
        , padX, padY
        , view
 
+       , boundingRect, bg
+
          -- * Alignment
        , alignL, alignR, alignT, alignB, alignTL, alignTR, alignBL, alignBR
        , alignX, alignY

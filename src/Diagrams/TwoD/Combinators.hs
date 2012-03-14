@@ -30,9 +30,13 @@ module Diagrams.TwoD.Combinators
 
     , view
 
+    , boundingRect, bg
+
     ) where
 
 import Graphics.Rendering.Diagrams
+
+import Diagrams.BoundingBox
 
 import Diagrams.TwoD.Transform (scaleX, scaleY)
 import Diagrams.TwoD.Types
@@ -41,13 +45,17 @@ import Diagrams.TwoD.Shapes
 import Diagrams.TwoD.Align
 import Diagrams.TwoD.Path ()   -- for PathLike (D R2) instance
 
-import Diagrams.Util ((#))
+import Diagrams.Attributes (lw, fc)
 import Diagrams.Combinators
+import Diagrams.Path
+import Diagrams.Util ((#))
 
 import Data.VectorSpace
 
 import Data.Semigroup
 import Data.Default
+
+import Data.Colour
 
 infixl 6 ===
 infixl 6 |||
@@ -170,3 +178,16 @@ padY s d = withEnvelope (d # scaleY s) d
 view :: ( Backend b R2, Monoid' m )
      => P2 -> R2 -> QDiagram b R2 m -> QDiagram b R2 m
 view p (unr2 -> (w,h)) = withEnvelope (rect w h # alignBL # moveTo p :: D R2)
+
+-- | Construct a bounding rectangle for an enveloped object, that is,
+--   the smallest axis-aligned rectangle which encloses the object.
+boundingRect :: ( Enveloped p, Transformable p, PathLike p, V p ~ R2
+                , Enveloped a, V a ~ R2
+                )
+             => a -> p
+boundingRect = (`boxFit` rect 1 1) . boundingBox
+
+-- | \"Set the background color\" of a diagram.  That is, place a
+--   diagram atop a bounding rectangle of the given color.
+bg :: (Renderable (Path R2) b) => Colour Double -> Diagram b R2 -> Diagram b R2
+bg c d = d <> boundingRect d # lw 0 # fc c
