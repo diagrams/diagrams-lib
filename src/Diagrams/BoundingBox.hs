@@ -13,7 +13,11 @@
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
--- Definitions and functions for working with bounding boxes.
+-- Bounding boxes are not very compositional (/e.g./ it is not
+-- possible to do anything sensible with them under rotation), so they
+-- are not used in the diagrams core.  However, they do have their
+-- uses; this module provides definitions and functions for working
+-- with them.
 --
 -----------------------------------------------------------------------------
 
@@ -56,8 +60,8 @@ import Graphics.Rendering.Diagrams.V (V)
 import Graphics.Rendering.Diagrams.Transform
   (Transformation(..), Transformable(..), HasLinearMap, (<->))
 
--- | A bounding box is an axis-aligned region determined
---   by two points indicating its \"lower\" and \"upper\" corners.
+-- | A bounding box is an axis-aligned region determined by two points
+--   indicating its \"lower\" and \"upper\" corners.
 data BoundingBox v = BoundingBox (Point v) (Point v)
   deriving (Show, Read, Eq, Data, Typeable, Functor)
 
@@ -91,7 +95,7 @@ fromPoints
   => [Point v] -> Maybe (BoundingBox v)
 fromPoints = unions . map fromPoint
 
--- | Create a bounding box for any boundable object (such as a diagram or path).
+-- | Create a bounding box for any enveloped object (such as a diagram or path).
 boundingBox :: forall a. (Enveloped a, HasBasis (V a), Ord (Basis (V a)))
             => a -> BoundingBox (V a)
 boundingBox a = fromJust . fromPoints . map (`envelopeP` a) $ [id, negateV] <*> units
@@ -135,7 +139,7 @@ boxTransform a@(BoundingBox (P l1) _) b@(BoundingBox (P l2) _)
   boxTrans b1 b2 = vcombineV (*) (vcombineV (/) (boxExtents b2) (boxExtents b1))
   vcombineV f x = toVector . combineV f x
 
--- | Transforms a boundable thing to fit within a @BoundingBox@.
+-- | Transforms an enveloped thing to fit within a @BoundingBox@.
 boxFit :: (Enveloped a, Transformable a, Ord (Basis (V a)))
        => BoundingBox (V a) -> a -> a
 boxFit b x = transform (boxTransform (boundingBox x) b) x
