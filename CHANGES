@@ -1,4 +1,4 @@
-0.5.1: XXX
+Trunk:
 
   * New features:
 
@@ -12,6 +12,8 @@
   * API changes
 
   * Dependency/version changes
+  
+    - Allow data-default 0.4
 
   * Bug fixes
 
