@@ -7,7 +7,7 @@
 
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Diagrams.TwoD.Polygon
+-- Module      :  Diagrams.TwoD.Polygons
 -- Copyright   :  (c) 2011 diagrams-lib team (see LICENSE)
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
@@ -39,6 +39,7 @@ module Diagrams.TwoD.Polygons(
         , star
 
         -- ** Function graphs
+        -- $graphs
         , GraphPart(..)
         , orbits, mkGraph
 
@@ -224,11 +225,16 @@ orient v xs = rotate a xs
 -- Function graphs
 ------------------------------------------------------------
 
--- | Pieces of a function graph can either be cycles or "hairs".
+-- $graphs
+-- These functions are used to implement 'star', but are exported on
+-- the offchance that someone else finds them useful.
+
+-- | Pieces of a function graph can either be cycles or \"hairs\".
 data GraphPart a = Cycle [a]
                  | Hair  [a]
   deriving (Show, Functor)
 
+-- | @orbits f n@ computes the graph of @f@ on the integers mod @n@.
 orbits :: (Int -> Int) -> Int -> [GraphPart Int]
 orbits f n = runST genOrbits
   where
