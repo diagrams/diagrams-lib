@@ -11,6 +11,8 @@ Trunk:
 
   * API changes
 
+    - re-export Data.Colour (minus 'atop' and 'AffineSpace') from Diagrams.Prelude
+
   * Dependency/version changes
   
     - Allow data-default 0.4
