@@ -244,8 +244,8 @@ cat' :: ( Juxtaposable a, Monoid' a, HasOrigin a
      => V a -> CatOpts (V a) -> [a] -> a
 cat' v (CatOpts { catMethod = Cat, sep = s }) = foldB comb mempty
   where comb d1 d2 = d1 <> (juxtapose v d1 d2 # moveOriginBy vs)
-        vs = withLength s (negateV v)
+        vs = s *^ normalized (negateV v)
 
 cat' v (CatOpts { catMethod = Distrib, sep = s }) =
-  decorateTrail . fromOffsets . repeat $ withLength s v
+  decorateTrail . fromOffsets . repeat $ s *^ normalized v
   -- infinite trail, no problem for Haskell =D
