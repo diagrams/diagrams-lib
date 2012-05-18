@@ -17,33 +17,36 @@
 
 module Diagrams.TwoD.Segment where
 
+import Control.Applicative (liftA2)
+
 import Data.AffineSpace
-import Data.Monoid.PosInf
+import Data.Monoid.PosInf hiding (minimum)
 import Data.VectorSpace
 
 import Graphics.Rendering.Diagrams
 import Graphics.Rendering.Diagrams.Trace
 
 import Diagrams.Segment
+import Diagrams.Solve
 import Diagrams.TwoD.Transform
 import Diagrams.TwoD.Types
+import Diagrams.TwoD.Vector
+import Diagrams.Util
 
 instance Traced (Segment R2) where
   getTrace = getTrace . mkFixedSeg origin
 
-{-
+instance Traced (FixedSegment R2) where
 
-Given lines defined by p0 + t0 * v0 and p1 + t1 * v1, their point of
-intersection in 2D is given by
+{- Given lines defined by p0 + t0 * v0 and p1 + t1 * v1, their point of
+   intersection in 2D is given by
 
-  t_i = (v_(1-i)^ . (p1 - p0)) / (v1^ . v0)
+     t_i = (v_(1-i)^ . (p1 - p0)) / (v1^ . v0)
 
-where v^ denotes the perpendicular to v, i.e. v rotated by
--tau/4.
-
+   where v^ denotes the perpendicular to v, i.e. v rotated by
+   -tau/4.
 -}
 
-instance Traced (FixedSegment R2) where
   getTrace (FLinear p0 p0') = mkTrace $ \p1 v1 ->
     let
       v0     = p0' .-. p0
@@ -57,4 +60,31 @@ instance Traced (FixedSegment R2) where
         then PosInfty
         else Finite t1
 
-  getTrace (FCubic x1 c1 c2 x2) = undefined   -- XXX write me
+{- To do intersection of a line with a cubic Bezier, we first rotate
+   and scale everything so that the line has parameters (origin, unitX);
+   then we find the intersection(s) of the Bezier with the x-axis.
+
+   XXX could we speed this up by first checking whether all the
+   control point y-coordinates lie on the same side of the x-axis (if so,
+   there can't possibly be any intersections)?  Need to set up some
+   benchmarks.
+-}
+
+  getTrace bez@(FCubic {}) = mkTrace $ \p1 v1 ->
+    let
+      bez'@(FCubic x1 c1 c2 x2) =
+        bez # moveOriginTo p1
+            # rotateBy (negate (direction v1))
+            # scale (1/magnitude v1)
+      [y0,y1,y2,y3] = map (snd . unp2) [x1,c1,c2,x2]
+      a  = -y0 + 3*y1 - 3*y2 + y3
+      b  = 3*y0 - 6*y1 + 3*y2
+      c  = -3*y0 + 3*y1
+      d  = y0
+      ts = filter (liftA2 (&&) (>= 0) (<= 1)) (cubForm a b c d)
+      xs = map (fst . unp2 . fAtParam bez') ts
+    in
+      case xs of
+        [] -> PosInfty
+        _  -> Finite (minimum xs)
+
