@@ -70,6 +70,7 @@ mkText a t = mkQD (Prim (Text mempty a t))
                        mempty
                        mempty
                        mempty
+                       mempty
 
 -- | Create a primitive text diagram from the given string, with center
 --   alignment, equivalent to @alignedText 0.5 0.5@.

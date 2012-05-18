@@ -15,7 +15,8 @@
 --
 -- Paths in two dimensions are special since we may stroke them to
 -- create a 2D diagram, and (eventually) perform operations such as
--- intersection and union.
+-- intersection and union.  They also have a trace, whereas paths in
+-- higher dimensions do not.
 --
 -----------------------------------------------------------------------------
 
@@ -39,24 +40,42 @@ module Diagrams.TwoD.Path
        , Clip(..), clipBy
        ) where
 
-import Graphics.Rendering.Diagrams
-
-import Diagrams.Util (tau)
-
-import Diagrams.Segment
-import Diagrams.Path
-import Diagrams.TwoD.Types
-import Diagrams.Solve
-
-import Data.AffineSpace
-import Data.VectorSpace
-
-import Data.Semigroup hiding ((<>))
-import Control.Applicative (liftA2)
+import           Control.Applicative (liftA2)
 import qualified Data.Foldable as F
-import Data.Default
+import           Data.Semigroup
+import           Data.Typeable
 
-import Data.Typeable
+import           Data.AffineSpace
+import           Data.Default
+import           Data.VectorSpace
+
+import           Graphics.Rendering.Diagrams
+
+import           Diagrams.Path
+import           Diagrams.Segment
+import           Diagrams.Solve
+import           Diagrams.TwoD.Segment
+import           Diagrams.TwoD.Types
+import           Diagrams.Util (tau)
+
+------------------------------------------------------------
+--  Trail and path traces  ---------------------------------
+------------------------------------------------------------
+
+-- Only 2D trails and paths have a trace.
+
+-- XXX can the efficiency of this be improved?  See the comment in
+-- Diagrams.Path on the Enveloped instance for Trail.
+instance Traced (Trail R2) where
+  getTrace t = case addClosingSegment t of
+    (Trail segs _) ->
+      foldr (\seg bds -> moveOriginBy (negateV . segOffset $ seg) bds <> getTrace seg)
+            mempty
+            segs
+
+instance Traced (Path R2) where
+  getTrace = F.foldMap trailTrace . pathTrails
+    where trailTrace (p, t) = moveOriginTo ((-1) *. p) (getTrace t)
 
 ------------------------------------------------------------
 --  Constructing path-based diagrams  ----------------------
@@ -90,6 +109,7 @@ stroke' :: (Renderable (Path R2) b, IsName a) => StrokeOpts a -> Path R2 -> Diag
 stroke' opts p
   = mkQD (Prim p)
          (getEnvelope p)
+         (getTrace p)
          (fromNames . concat $
            zipWith zip (vertexNames opts) (pathVertices p))
          (Query $ Any . flip (runFillRule (queryFillRule opts)) p)

@@ -59,6 +59,7 @@ instance Renderable Image NullBackend where
 image :: (Renderable Image b) => FilePath -> Double -> Double -> Diagram b R2
 image file w h = mkQD (Prim (Image file (Dims w h) mempty))
                       (getEnvelope r)
+                      (getTrace r)
                       mempty
                       (Query $ \p -> Any (isInsideEvenOdd p r))
   where r :: Path R2

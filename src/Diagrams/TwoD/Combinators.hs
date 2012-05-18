@@ -25,6 +25,7 @@ module Diagrams.TwoD.Combinators
     , vcat, vcat'
 
       -- * Spacing/envelopes
+    , strutR2
     , strutX, strutY
     , padX, padY
 
@@ -34,28 +35,28 @@ module Diagrams.TwoD.Combinators
 
     ) where
 
+import Data.AffineSpace
+import Data.Colour
+import Data.Default
+import Data.Semigroup
+import Data.VectorSpace
+
 import Graphics.Rendering.Diagrams
 
+import Diagrams.Attributes (lw, fc)
 import Diagrams.BoundingBox
-
+import Diagrams.Combinators
+import Diagrams.Path
+import Diagrams.Segment
+import Diagrams.TwoD.Align
+import Diagrams.TwoD.Path ()   -- for PathLike (D R2) instance
+import Diagrams.TwoD.Segment
+import Diagrams.TwoD.Shapes
 import Diagrams.TwoD.Transform (scaleX, scaleY)
 import Diagrams.TwoD.Types
 import Diagrams.TwoD.Vector (unitX, unitY, fromDirection)
-import Diagrams.TwoD.Shapes
-import Diagrams.TwoD.Align
-import Diagrams.TwoD.Path ()   -- for PathLike (D R2) instance
-
-import Diagrams.Attributes (lw, fc)
-import Diagrams.Combinators
-import Diagrams.Path
 import Diagrams.Util ((#))
 
-import Data.VectorSpace
-
-import Data.Semigroup
-import Data.Default
-
-import Data.Colour
 
 infixl 6 ===
 infixl 6 |||
@@ -135,6 +136,17 @@ vcat = vcat' def
 vcat' :: (Juxtaposable a, HasOrigin a, Monoid' a, V a ~ R2)
       => CatOpts R2 -> [a] -> a
 vcat' = cat' (negateV unitY)
+
+-- | @strutR2 v@ is a two-dimensional diagram which produces no
+--   output, but with respect to alignment, envelope, /and trace/ acts
+--   like a 1-dimensional segment oriented along the vector @v@, with
+--   local origin at its center.  If you don't care about the trace
+--   then there's no difference between @strutR2@ and the more general
+--   'strut'.
+strutR2 :: (Backend b R2, Monoid' m) => R2 -> QDiagram b R2 m
+strutR2 v = phantom seg
+  where
+    seg = FLinear (origin .+^ 0.5 *^ v) (origin .+^ (-0.5) *^ v)
 
 -- | @strutX d@ is an empty diagram with width @d@, height 0, and a
 --   centered local origin.  Note that @strutX (-w)@ behaves the same as

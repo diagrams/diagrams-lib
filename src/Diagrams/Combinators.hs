@@ -56,9 +56,9 @@ withEnvelope :: (Backend b (V a), Enveloped a, Monoid' m)
 withEnvelope = setEnvelope . getEnvelope
 
 -- | @phantom x@ produces a \"phantom\" diagram, which has the same
---   envelope as @x@ but produces no output.
-phantom :: (Backend b (V a), Enveloped a, Monoid' m) => a -> QDiagram b (V a) m
-phantom a = mkQD nullPrim (getEnvelope a) mempty mempty
+--   envelope and trace as @x@ but produces no output.
+phantom :: (Backend b (V a), Enveloped a, Traced a, Monoid' m) => a -> QDiagram b (V a) m
+phantom a = mkQD nullPrim (getEnvelope a) (getTrace a) mempty mempty
 
 -- | @pad s@ \"pads\" a diagram, expanding its envelope by a factor of
 --   @s@ (factors between 0 and 1 can be used to shrink the envelope).
@@ -74,14 +74,26 @@ pad s d = withEnvelope (d # scale s) d
 
 -- | @strut v@ is a diagram which produces no output, but with respect
 --   to alignment and envelope acts like a 1-dimensional segment
---   oriented along the vector @v@, with local origin at its center.
---   Useful for manually creating separation between two diagrams.
+--   oriented along the vector @v@, with local origin at its
+--   center. (Note, however, that it has an empty trace; for 2D struts
+--   with a nonempty trace see 'strutR2', 'strutX', and 'strutY' from
+--   "Diagrams.TwoD.Combinators".) Useful for manually creating
+--   separation between two diagrams.
 strut :: ( Backend b v, InnerSpace v
          , OrderedField (Scalar v)
          , Monoid' m
          )
       => v -> QDiagram b v m
-strut v = phantom . translate ((-0.5) *^ v) . getEnvelope $ Linear v
+strut v = mkQD nullPrim env mempty mempty mempty
+  where env = translate ((-0.5) *^ v) . getEnvelope $ Linear v
+  -- note we can't use 'phantom' here because it tries to construct a
+  -- trace as well, and segments do not have a trace in general (only
+  -- in 2D; see Diagrams.TwoD.Segment).  This is a good reason to have
+  -- a special 'strut' combinator (before the introduction of traces
+  -- it was mostly just for convenience).
+  --
+  -- also note that we can't remove the call to getEnvelope, since
+  -- translating a segment has no effect.
 
 ------------------------------------------------------------
 -- Combining two objects
