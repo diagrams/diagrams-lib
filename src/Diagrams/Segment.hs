@@ -47,7 +47,7 @@ module Diagrams.Segment
 
          -- * Fixed (absolutely located) segments
        , FixedSegment(..)
-       , mkFixedSeg
+       , mkFixedSeg, fromFixedSeg
        , fAtParam
 
        ) where
@@ -340,6 +340,11 @@ instance VectorSpace v => HasOrigin (FixedSegment v) where
 mkFixedSeg :: AdditiveGroup v => Point v -> Segment v -> FixedSegment v
 mkFixedSeg p (Linear v)       = FLinear p (p .+^ v)
 mkFixedSeg p (Cubic c1 c2 x2) = FCubic p (p .+^ c1) (p .+^ c2) (p .+^ x2)
+
+-- | Decompose a 'FixedSegment' into a starting point and a 'Segment'.
+fromFixedSeg :: AdditiveGroup v => FixedSegment v -> (Point v, Segment v)
+fromFixedSeg (FLinear p1 p2)      = (p1, Linear (p2 .-. p1))
+fromFixedSeg (FCubic x1 c1 c2 x2) = (x1, Cubic (c1 .-. x1) (c2 .-. x1) (x2 .-. x1))
 
 -- | Compute the point on a fixed segment at a given parameter.  A
 --   parameter of 0 corresponds to the starting point and 1 corresponds
