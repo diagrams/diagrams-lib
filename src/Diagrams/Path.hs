@@ -193,9 +193,22 @@ instance HasLinearMap v => Transformable (Trail v) where
 instance (InnerSpace v, OrderedField (Scalar v)) => Enveloped (Trail v) where
 
   getEnvelope (Trail segs _) =
-    foldr (\seg bds -> moveOriginTo (P . negateV . segOffset $ seg) bds <> getEnvelope seg)
+    foldr (\seg bds -> moveOriginBy (negateV . segOffset $ seg) bds <> getEnvelope seg)
           mempty
           segs
+
+  -- XXX can we improve the efficiency of the above?  E.g. note the
+  -- last segment in each trail ends up getting translated O(n) times,
+  -- so overall we do O(n^2) work!  (to find the max over the bounds
+  -- for O(n) segments, where the ith segment requires working through
+  -- a stack of i translations...)
+  --
+  -- The idea would be to first convert to a list of FixedSegments (to
+  -- cache the translation work) then take the bounds of those.
+  --
+  -- Also, use a balanced fold!
+  --
+  -- Need to make some benchmarks I guess.
 
 instance HasLinearMap v => Renderable (Trail v) NullBackend where
   render _ _ = mempty
