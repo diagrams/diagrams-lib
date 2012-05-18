@@ -74,16 +74,16 @@ mkText a t = mkQD (Prim (Text mempty a t))
 
 -- | Create a primitive text diagram from the given string, with center
 --   alignment, equivalent to @alignedText 0.5 0.5@.
---    
+--
 --   Note that it /takes up no space/, as text size information is not
 --   available.
 text :: Renderable Text b => String -> Diagram b R2
 text = alignedText 0.5 0.5
 
 -- | Create a primitive text diagram from the given string, origin at
---   the top left corner of the text's bounding box, equivalent to 
+--   the top left corner of the text's bounding box, equivalent to
 --   @alignedText 0.5 0.5@.
---    
+--
 --   Note that it /takes up no space/.
 topLeftText :: Renderable Text b => String -> Diagram b R2
 topLeftText = alignedText 0 1
@@ -92,7 +92,7 @@ topLeftText = alignedText 0 1
 --   origin set to a point interpolated within the bounding box.  The
 --   first parameter varies from 0 (left) to 1 (right), and the second
 --   parameter from 0 (bottom) to 1 (top).
---   
+--
 --   The height of this box is determined by the font's potential ascent
 --   and descent, rather than the height of the particular string.
 --
@@ -104,7 +104,7 @@ alignedText w h = mkText (BoxAlignedText w h)
 --   origin set to be on the baseline, at the beginning (although not
 --   bounding).  This is the reference point of showText in the Cairo
 --   graphics library.
---   
+--
 --   Note that it /takes up no space/.
 baselineText :: Renderable Text b => String -> Diagram b R2
 baselineText = mkText BaselineText

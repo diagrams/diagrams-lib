@@ -248,7 +248,7 @@ pathLikeFromTrail t = pathLike origin (isClosed t) (trailSegments t)
 addClosingSegment :: AdditiveGroup v => Trail v -> Trail v
 addClosingSegment t | isClosed t = Trail (trailSegments t ++ [closeSeg]) False
                     | otherwise = t
- where closeSeg = Linear . negateV $ trailOffset t 
+ where closeSeg = Linear . negateV $ trailOffset t
 
 -- | Convert a starting point and a trail into a list of fixed segments.
 fixTrail :: AdditiveGroup v => Point v -> Trail v -> [FixedSegment v]

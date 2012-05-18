@@ -285,8 +285,8 @@ instance Fractional (Scalar v) => Default (AdjustOpts v) where
 --   performed; see 'AdjustOpts'.
 adjustSegment :: (InnerSpace v, OrderedField (Scalar v))
               => Segment v -> AdjustOpts v -> Segment v
-adjustSegment s opts = adjustSegmentToParams s 
-    (if adjSide opts == End   then 0 else getParam s) 
+adjustSegment s opts = adjustSegmentToParams s
+    (if adjSide opts == End   then 0 else getParam s)
     (if adjSide opts == Start then 0 else 1 - getParam (reverseSegment s))
   where
     getParam seg = case adjMethod opts of
