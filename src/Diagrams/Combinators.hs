@@ -16,7 +16,7 @@
 module Diagrams.Combinators
        ( -- * Unary operations
 
-         withEnvelope
+         withEnvelope, withTrace
        , phantom, strut
 
        , pad
@@ -54,6 +54,12 @@ import Data.Default
 withEnvelope :: (Backend b (V a), Enveloped a, Monoid' m)
            => a -> QDiagram b (V a) m -> QDiagram b (V a) m
 withEnvelope = setEnvelope . getEnvelope
+
+-- | Use the trace from some object as the trace for a diagram, in
+--   place of the diagram's default trace.
+withTrace :: (HasLinearMap (V a), Traced a, OrderedField (Scalar (V a)), InnerSpace (V a), Monoid' m)
+          => a -> QDiagram b (V a) m -> QDiagram b (V a) m
+withTrace = setTrace . getTrace
 
 -- | @phantom x@ produces a \"phantom\" diagram, which has the same
 --   envelope and trace as @x@ but produces no output.
