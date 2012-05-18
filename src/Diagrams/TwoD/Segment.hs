@@ -45,6 +45,18 @@ instance Traced (FixedSegment R2) where
 
    where v^ denotes the perpendicular to v, i.e. v rotated by
    -tau/4.
+
+   This can be derived by starting with the parametric equation
+
+     p0 + v0 t0 = p1 + v1 t1
+
+   and rearranging to get the matrix equation
+
+     [v0 -v1] [ t0 ]  =  (p1 - p0)
+              [ t1 ]
+
+   Working out the product of the inverse of [v0 -v1] with (p1 - p0)
+   results in the above formulas for t_i.
 -}
 
   getTrace (FLinear p0 p0') = mkTrace $ \p1 v1 ->
