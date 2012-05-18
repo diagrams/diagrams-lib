@@ -51,7 +51,7 @@ import Data.Default
 
 -- | Use the envelope from some object as the envelope for a
 --   diagram, in place of the diagram's default envelope.
-withEnvelope :: (Backend b (V a), Enveloped a, Monoid' m)
+withEnvelope :: (HasLinearMap (V a), Enveloped a, Monoid' m)
            => a -> QDiagram b (V a) m -> QDiagram b (V a) m
 withEnvelope = setEnvelope . getEnvelope
 
