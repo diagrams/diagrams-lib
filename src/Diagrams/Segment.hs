@@ -319,19 +319,30 @@ data FixedSegment v = FLinear (Point v) (Point v)
 type instance V (FixedSegment v) = v
 
 instance HasLinearMap v => Transformable (FixedSegment v) where
-  transform t (FLinear p1 p2) = FLinear (transform t p1) (transform t p2)
-  transform t (FCubic p1 c1 c2 p2) = FCubic (transform t p1)
-                                            (transform t c1)
-                                            (transform t c2)
-                                            (transform t p2)
+  transform t (FLinear p1 p2)
+    = FLinear
+      (transform t p1)
+      (transform t p2)
+
+  transform t (FCubic p1 c1 c2 p2)
+    = FCubic
+      (transform t p1)
+      (transform t c1)
+      (transform t c2)
+      (transform t p2)
 
 instance VectorSpace v => HasOrigin (FixedSegment v) where
-  moveOriginTo o (FLinear p1 p2) = FLinear (moveOriginTo o p1)
-                                           (moveOriginTo o p2)
-  moveOriginTo o (FCubic p1 c1 c2 p2) = FCubic (moveOriginTo o p1)
-                                               (moveOriginTo o c1)
-                                               (moveOriginTo o c2)
-                                               (moveOriginTo o p2)
+  moveOriginTo o (FLinear p1 p2)
+    = FLinear
+      (moveOriginTo o p1)
+      (moveOriginTo o p2)
+
+  moveOriginTo o (FCubic p1 c1 c2 p2)
+    = FCubic
+      (moveOriginTo o p1)
+      (moveOriginTo o c1)
+      (moveOriginTo o c2)
+      (moveOriginTo o p2)
 
 -- instance Enveloped (FixedSegment v) where
   -- XXX write me
