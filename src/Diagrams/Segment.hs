@@ -344,8 +344,14 @@ instance VectorSpace v => HasOrigin (FixedSegment v) where
       (moveOriginTo o c2)
       (moveOriginTo o p2)
 
--- instance Enveloped (FixedSegment v) where
-  -- XXX write me
+instance (InnerSpace v, OrderedField (Scalar v)) => Enveloped (FixedSegment v) where
+  getEnvelope f = moveTo p (getEnvelope s)
+    where (p, s) = fromFixedSeg f
+
+    -- Eventually we might decide it's cleaner/more efficient (?) to
+    -- have all the computation in the FixedSegment instance of
+    -- Envelope, and implement the Segment instance in terms of it,
+    -- instead of the other way around
 
 -- | Create a 'FixedSegment' from a starting point and a 'Segment'.
 mkFixedSeg :: AdditiveGroup v => Point v -> Segment v -> FixedSegment v
