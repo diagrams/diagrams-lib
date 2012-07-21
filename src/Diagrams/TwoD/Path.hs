@@ -111,7 +111,8 @@ stroke' opts p
          (getEnvelope p)
          (getTrace p)
          (fromNames . concat $
-           zipWith zip (vertexNames opts) (pathVertices p))
+           zipWith zip (vertexNames opts) ((map . map) subPoint (pathVertices p))
+         )
          (Query $ Any . flip (runFillRule (queryFillRule opts)) p)
 
 -- | A record of options that control how a path is stroked.

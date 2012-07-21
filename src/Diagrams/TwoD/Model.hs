@@ -89,7 +89,7 @@ showLabels d =
              ) <>
              fmap (const (Any False)) d
   where
-    NameMap m = names d
+    SubMap m = names d
 
 -- XXX finish:
 
