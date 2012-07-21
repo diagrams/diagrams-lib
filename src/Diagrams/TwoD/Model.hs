@@ -50,7 +50,7 @@ import Data.Colour (Colour)
 -- | Mark the origin of a diagram by placing a red dot 1/50th its size.
 showOrigin :: (Renderable (Path R2) b, Backend b R2, Monoid' m)
            => QDiagram b R2 m -> QDiagram b R2 m
-showOrigin = showOrigin' def 
+showOrigin = showOrigin' def
 
 -- | Mark the origin of a diagram, with control over colour and scale
 -- of marker dot.
@@ -79,7 +79,7 @@ instance Default OriginOpts where
 
 showLabels :: (Renderable Text b, Backend b R2)
            => QDiagram b R2 m -> QDiagram b R2 Any
-showLabels d = 
+showLabels d =
              ( mconcat
              . map (\(n,p) -> text (show n) # translate (p .-. origin))
              . concatMap (\(n,ps) -> zip (repeat n) ps)
