@@ -51,6 +51,7 @@ import           Data.VectorSpace
 
 import           Graphics.Rendering.Diagrams
 
+import           Diagrams.Coordinates
 import           Diagrams.Path
 import           Diagrams.Segment
 import           Diagrams.Solve
@@ -205,7 +206,7 @@ fillRule :: HasStyle a => FillRule -> a -> a
 fillRule = applyAttr . FillRuleA . Last
 
 cross :: R2 -> R2 -> Double
-cross (unr2 -> (x,y)) (unr2 -> (x',y')) = x * y' - y * x'
+cross (coords -> x :& y) (coords -> x' :& y') = x * y' - y * x'
 
 -- XXX link to more info on this
 

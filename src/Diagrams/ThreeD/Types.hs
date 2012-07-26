@@ -1,10 +1,11 @@
-{-# LANGUAGE TypeSynonymInstances
-           , FlexibleInstances
-           , TypeFamilies
-           , ViewPatterns
-           , MultiParamTypeClasses
-           , GeneralizedNewtypeDeriving
-  #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 -----------------------------------------------------------------------------
@@ -26,6 +27,8 @@ module Diagrams.ThreeD.Types
 
        ) where
 
+import Diagrams.Coordinates
+import Diagrams.TwoD.Types
 import Graphics.Rendering.Diagrams
 
 import Control.Newtype
@@ -66,6 +69,14 @@ instance HasBasis R3 where
 
 instance InnerSpace R3 where
   (unR3 -> vec1) <.> (unR3 -> vec2) = vec1 <.> vec2
+
+instance Coordinates R3 where
+  type CoordElt R3         = Double
+  type PrevDim R3          = R2
+  type Decomposition R3    = Double :& Double :& Double
+
+  (coords -> x :& y) & z   = r3 (x,y,z)
+  coords (unR3 -> (x,y,z)) = x :& y :& z
 
 -- | Points in R^3.
 type P3 = Point R3

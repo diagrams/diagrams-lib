@@ -1,11 +1,12 @@
-{-# LANGUAGE TypeFamilies
-           , TypeSynonymInstances
-           , FlexibleInstances
-           , GeneralizedNewtypeDeriving
-           , MultiParamTypeClasses
-           , ViewPatterns
-           , DeriveDataTypeable
-  #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE DeriveDataTypeable #-}
+
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 -----------------------------------------------------------------------------
 -- |
@@ -30,8 +31,9 @@ module Diagrams.TwoD.Types
        , fullCircle, convertAngle
        ) where
 
-import Graphics.Rendering.Diagrams
+import Diagrams.Coordinates
 import Diagrams.Util (tau)
+import Graphics.Rendering.Diagrams
 
 import Control.Newtype
 
@@ -47,15 +49,24 @@ import Data.Typeable
 -- | The two-dimensional Euclidean vector space R^2.  This type is
 --   intentionally abstract.
 --
---   * To construct a vector, use 'r2'.
+--   * To construct a vector, use 'r2', or '&' (from "Diagrams.Coordinates"):
+--
+-- > r2 (3,4) :: R2
+-- > 3 & 4    :: R2
 --
 --   * To construct the vector from the origin to a point @p@, use
---     @p .-. origin@.
+--     @p 'Data.AffineSpace..-.' 'origin'@.
 --
 --   * To convert a vector @v@ into the point obtained by following
---     @v@ from the origin, use @'origin' '.+^' v@.
+--     @v@ from the origin, use @'origin' 'Data.AffineSpace..+^' v@.
 --
---   * To convert a vector back into a pair of components, use 'unv2'.
+--   * To convert a vector back into a pair of components, use 'unv2'
+--     or 'coords' (from "Diagrams.Coordinates").  These are typically
+--     used in conjunction with the @ViewPatterns@ extension:
+--
+-- > foo (unr2 -> (x,y)) = ...
+-- > foo (coords -> x :& y) = ...
+
 newtype R2 = R2 { unR2 :: (Double, Double) }
   deriving (AdditiveGroup, Eq, Ord, Show, Read, Typeable, Num, Fractional)
 
@@ -63,11 +74,11 @@ instance Newtype R2 (Double, Double) where
   pack   = R2
   unpack = unR2
 
--- | Construct a 2D vector from a pair of components.
+-- | Construct a 2D vector from a pair of components.  See also '&'.
 r2 :: (Double, Double) -> R2
 r2 = pack
 
--- | Convert a 2D vector back into a pair of components.
+-- | Convert a 2D vector back into a pair of components.  See also 'coords'.
 unr2 :: R2 -> (Double, Double)
 unr2 = unpack
 
@@ -86,23 +97,40 @@ instance HasBasis R2 where
 instance InnerSpace R2 where
   (unR2 -> vec1) <.> (unR2 -> vec2) = vec1 <.> vec2
 
+instance Coordinates R2 where
+  type CoordElt R2       = Double
+  type PrevDim R2        = Double
+  type Decomposition R2  = Double :& Double
+
+  x & y                  = r2 (x,y)
+  coords (unR2 -> (x,y)) = x :& y
+
 -- | Points in R^2.  This type is intentionally abstract.
 --
---   * To construct a point, use 'p2'.
+--   * To construct a point, use 'p2', or '&' (see
+--     "Diagrams.Coordinates"):
 --
---   * To construct a point from a vector @v@, use @origin .+^ v@.
+-- > p2 (3,4)  :: P2
+-- > 3 & 4     :: P2
+--
+--   * To construct a point from a vector @v@, use @'origin' 'Data.AffineSpace..+^' v@.
 --
 --   * To convert a point @p@ into the vector from the origin to @p@,
---   use @p '.-.' 'origin'@.
+--   use @p 'Data.AffineSpace..-.' 'origin'@.
 --
---   * To convert a point back into a pair of coordinates, use 'unp2'.
+--   * To convert a point back into a pair of coordinates, use 'unp2',
+--     or 'coords' (from "Diagrams.Coordinates").  It's common to use
+--     these in conjunction with the @ViewPatterns@ extension:
+--
+-- > foo (unp2 -> (x,y)) = ...
+-- > foo (coords -> x :& y) = ...
 type P2 = Point R2
 
--- | Construct a 2D point from a pair of coordinates.
+-- | Construct a 2D point from a pair of coordinates.  See also '&'.
 p2 :: (Double, Double) -> P2
 p2 = pack . pack
 
--- | Convert a 2D point back into a pair of coordinates.
+-- | Convert a 2D point back into a pair of coordinates.  See also 'coords'.
 unp2 :: P2 -> (Double, Double)
 unp2 = unpack . unpack
 
