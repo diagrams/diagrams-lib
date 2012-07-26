@@ -22,6 +22,7 @@
 -- with them.
 --
 -----------------------------------------------------------------------------
+
 module Diagrams.BoundingBox
        ( -- * Bounding boxes
          BoundingBox()
@@ -178,11 +179,9 @@ boxTransform :: (AdditiveGroup v, HasLinearMap v,
 boxTransform u v = do
     ((P ul), _) <- getCorners u
     ((P vl), _) <- getCorners v
-
     let lin_map = box_scale (u, v) <-> box_scale (v, u)
         box_scale = combineV' (*) . uncurry (combineV' (/)) . mapT boxExtents
         combineV' f x = toVector . combineV f x
-
     return $ Transformation lin_map lin_map (vl ^-^ box_scale (u, v) ul)
 
 -- | Transforms an enveloped thing to fit within a @BoundingBox@.  If it's
