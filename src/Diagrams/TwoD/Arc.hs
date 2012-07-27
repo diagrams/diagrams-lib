@@ -22,12 +22,12 @@ module Diagrams.TwoD.Arc
 
 import Graphics.Rendering.Diagrams
 
-import Diagrams.TwoD.Types
-import Diagrams.TwoD.Transform
-import Diagrams.TwoD.Vector (unitX, e)
-
+import Diagrams.Coordinates
 import Diagrams.Path
 import Diagrams.Segment
+import Diagrams.TwoD.Transform
+import Diagrams.TwoD.Types
+import Diagrams.TwoD.Vector (unitX, e)
 import Diagrams.Util ((#), tau)
 
 import Data.Semigroup ((<>))
@@ -42,10 +42,10 @@ import Data.VectorSpace((^-^), (*^), negateV)
 --   quadrant.
 bezierFromSweepQ1 :: Rad -> Segment R2
 bezierFromSweepQ1 s = fmap (^-^ v) . rotate (s/2) $ Cubic c2 c1 p0
-  where p0@(unr2 -> (x,y)) = rotate (s/2) v
-        c1                 = r2 ((4-x)/3, (1-x)*(3-x)/(3*y))
-        c2                 = reflectY c1
-        v                  = unitX
+  where p0@(coords -> x :& y) = rotate (s/2) v
+        c1                    = ((4-x)/3)  &  ((1-x)*(3-x)/(3*y))
+        c2                    = reflectY c1
+        v                     = unitX
 
 -- | @bezierFromSweep s@ constructs a series of 'Cubic' segments that
 --   start in the positive y direction and sweep counter clockwise

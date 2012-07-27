@@ -19,6 +19,11 @@ module Diagrams.Prelude
          module Graphics.Rendering.Diagrams
 
          -- * Standard library
+
+         -- | Nice syntax for constructing and pattern-matching
+         --   literal points and vectors.
+       , module Diagrams.Coordinates
+
          -- | Attributes (color, line style, etc.) and styles.
        , module Diagrams.Attributes
 
@@ -77,16 +82,17 @@ module Diagrams.Prelude
 
 import Graphics.Rendering.Diagrams
 
-import Diagrams.Attributes
 import Diagrams.Align
-import Diagrams.Combinators
-import Diagrams.Segment
-import Diagrams.Path
-import Diagrams.CubicSpline
-import Diagrams.Transform
-import Diagrams.BoundingBox
-import Diagrams.TwoD
 import Diagrams.Animation
+import Diagrams.Attributes
+import Diagrams.BoundingBox
+import Diagrams.Combinators
+import Diagrams.Coordinates
+import Diagrams.CubicSpline
+import Diagrams.Path
+import Diagrams.Segment
+import Diagrams.Transform
+import Diagrams.TwoD
 import Diagrams.Util
 
 import Data.Colour hiding (atop, AffineSpace(..))
@@ -96,4 +102,3 @@ import Data.VectorSpace hiding (Sum(..))
 import Data.AffineSpace
 import Data.Active
 import Control.Applicative
-
