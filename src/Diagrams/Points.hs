@@ -31,7 +31,7 @@ centroid :: (VectorSpace v, Fractional (Scalar v)) => [Point v] -> Point v
 centroid = pack . uncurry (^/) . (sumV &&& (fromIntegral . length)) . map unpack
 
 instance Coordinates v => Coordinates (Point v) where
-  type CoordElt (Point v) = CoordElt v
+  type FinalCoord (Point v) = FinalCoord v
   type PrevDim (Point v)  = PrevDim v
   type Decomposition (Point v) = Decomposition v
 

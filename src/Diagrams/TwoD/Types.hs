@@ -98,7 +98,7 @@ instance InnerSpace R2 where
   (unR2 -> vec1) <.> (unR2 -> vec2) = vec1 <.> vec2
 
 instance Coordinates R2 where
-  type CoordElt R2       = Double
+  type FinalCoord R2     = Double
   type PrevDim R2        = Double
   type Decomposition R2  = Double :& Double
 

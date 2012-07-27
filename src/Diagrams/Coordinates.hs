@@ -35,14 +35,14 @@ infixl 7 :&
 class Coordinates c where
 
   -- | The type of the final coordinate.
-  type CoordElt c      :: *
+  type FinalCoord c    :: *
 
   -- | The type of everything other than the final coordinate.
   type PrevDim c       :: *
 
   -- | Decomposition of @c@ into applications of ':&'.
   type Decomposition c :: *
-    -- Decomposition c = Decomposition (PrevDim c) :& CoordElt c  (essentially)
+    -- Decomposition c = Decomposition (PrevDim c) :& FinalCoord c  (essentially)
 
   -- | Construct a value of type @c@ by providing something of one
   --   less dimension (which is perhaps itself recursively constructed
@@ -52,7 +52,7 @@ class Coordinates c where
   -- > 3 & 5 & 6 :: R3
   --
   --   Note that @&@ is left-associative.
-  (&)    :: PrevDim c -> CoordElt c -> c
+  (&)    :: PrevDim c -> FinalCoord c -> c
 
   -- | Decompose a value of type @c@ into its constituent coordinates,
   --   stored in a nested @(:&)@ structure.
@@ -63,7 +63,7 @@ infixl 7 &
 -- Some standard instances for plain old tuples
 
 instance Coordinates (a,b) where
-  type CoordElt (a,b)      = b
+  type FinalCoord (a,b)    = b
   type PrevDim (a,b)       = a
   type Decomposition (a,b) = a :& b
 
@@ -71,7 +71,7 @@ instance Coordinates (a,b) where
   coords (x,y)             = x :& y
 
 instance Coordinates (a,b,c) where
-  type CoordElt (a,b,c)      = c
+  type FinalCoord (a,b,c)    = c
   type PrevDim (a,b,c)       = (a,b)
   type Decomposition (a,b,c) = Decomposition (a,b) :& c
 
@@ -79,7 +79,7 @@ instance Coordinates (a,b,c) where
   coords (x,y,z)             = coords (x,y) :& z
 
 instance Coordinates (a,b,c,d) where
-  type CoordElt (a,b,c,d) = d
+  type FinalCoord (a,b,c,d) = d
   type PrevDim (a,b,c,d) = (a,b,c)
   type Decomposition (a,b,c,d) = Decomposition (a,b,c) :& d
   (w,x,y) & z = (w,x,y,z)
