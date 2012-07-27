@@ -79,8 +79,9 @@ instance Coordinates (a,b,c) where
   coords (x,y,z)             = coords (x,y) :& z
 
 instance Coordinates (a,b,c,d) where
-  type FinalCoord (a,b,c,d) = d
-  type PrevDim (a,b,c,d) = (a,b,c)
+  type FinalCoord (a,b,c,d)    = d
+  type PrevDim (a,b,c,d)       = (a,b,c)
   type Decomposition (a,b,c,d) = Decomposition (a,b,c) :& d
-  (w,x,y) & z = (w,x,y,z)
-  coords (w,x,y,z) = coords (w,x,y) :& z
+
+  (w,x,y) & z                  = (w,x,y,z)
+  coords (w,x,y,z)             = coords (w,x,y) :& z
