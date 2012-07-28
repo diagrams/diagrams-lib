@@ -32,6 +32,7 @@ module Diagrams.BoundingBox
        , boundingBox
 
          -- * Queries on bounding boxes
+       , isEmptyBox
        , getCorners, getAllCorners
        , boxExtents, boxTransform, boxFit
        , contains, contains'
@@ -46,7 +47,7 @@ import Control.Monad (join, liftM2)
 import Data.Map (Map, fromList, toList, fromDistinctAscList, toAscList)
 import qualified Data.Foldable as F
 
-import Data.Maybe (fromJust)
+import Data.Maybe (fromMaybe)
 
 import Data.VectorSpace
 -- (VectorSpace, Scalar, AdditiveGroup, zeroV, negateV, (^+^), (^-^))
@@ -73,7 +74,7 @@ fromNonEmpty :: NonEmptyBoundingBox v -> BoundingBox v
 fromNonEmpty = BoundingBox . Option . Just
 
 fromMaybeEmpty :: ( HasBasis v, Ord (Basis v)
-                  , s ~ Scalar v, AdditiveGroup (Scalar v), Ord (Scalar v))
+                  , s ~ Scalar v, AdditiveGroup s, Ord s)
   => Maybe (NonEmptyBoundingBox v) -> BoundingBox v
 fromMaybeEmpty = maybe mempty fromNonEmpty
 
@@ -151,6 +152,11 @@ boundingBox a = fromMaybeEmpty $ do
     -- Might not work if 0-components aren't reported.
     units = map fst $ decompose (zeroV :: V a)
 
+-- | Queries whether the BoundingBox is empty.
+isEmptyBox :: BoundingBox v -> Bool
+isEmptyBox (BoundingBox (Option Nothing)) = True
+isEmptyBox _ = False
+
 -- | Gets the lower and upper corners that define the bounding box.
 getCorners :: BoundingBox v -> Maybe (Point v, Point v)
 getCorners (BoundingBox p) = nonEmptyCorners <$> getOption p
@@ -179,10 +185,10 @@ boxTransform :: (AdditiveGroup v, HasLinearMap v,
 boxTransform u v = do
     ((P ul), _) <- getCorners u
     ((P vl), _) <- getCorners v
-    let lin_map = box_scale (u, v) <-> box_scale (v, u)
+    let lin_map = box_scale (v, u) <-> box_scale (u, v)
         box_scale = combineV' (*) . uncurry (combineV' (/)) . mapT boxExtents
         combineV' f x = toVector . combineV f x
-    return $ Transformation lin_map lin_map (vl ^-^ box_scale (u, v) ul)
+    return $ Transformation lin_map lin_map (vl ^-^ box_scale (v, u) ul)
 
 -- | Transforms an enveloped thing to fit within a @BoundingBox@.  If it's
 --   empty, then the result is also @mempty@.
@@ -212,7 +218,7 @@ contains' b p = maybe False check $ getCorners b
 --   boxes. @Just@ @mempty@ is returned if there is no mutual intersection
 --   intersections. @Nothing@ is returned if the empty list is provided.
 intersections :: (HasBasis v, Ord (Basis v), AdditiveGroup (Scalar v), Ord (Scalar v))
-              => [BoundingBox v] -> BoundingBox v
+              => [BoundingBox v] -> Maybe (BoundingBox v)
 intersections [] = Nothing
 intersections xs = Just $ foldr1 intersection xs
 
@@ -227,7 +233,7 @@ unions = mconcat
 inside
   :: (HasBasis v, Ord (Basis v), AdditiveGroup (Scalar v), Ord (Scalar v))
   => BoundingBox v -> BoundingBox v -> Bool
-inside u v = maybe False id $ do
+inside u v = fromMaybe False $ do
   (ul, uh) <- getCorners u
   (vl, vh) <- getCorners v
   return $ F.and (combineP (>=) ul vl)
@@ -238,7 +244,7 @@ inside u v = maybe False id $ do
 inside'
   :: (HasBasis v, Ord (Basis v), AdditiveGroup (Scalar v), Ord (Scalar v))
   => BoundingBox v -> BoundingBox v -> Bool
-inside' u v = maybe False id $ do
+inside' u v = fromMaybe False $ do
   (ul, uh) <- getCorners u
   (vl, vh) <- getCorners v
   return $ F.and (combineP (>) ul vl)
@@ -249,22 +255,22 @@ inside' u v = maybe False id $ do
 outside
   :: (HasBasis v, Ord (Basis v), AdditiveGroup (Scalar v), Ord (Scalar v))
   => BoundingBox v -> BoundingBox v -> Bool
-outside u v = maybe True id $ do
+outside u v = fromMaybe True $ do
   (ul, uh) <- getCorners u
   (vl, vh) <- getCorners v
-  return $ F.and (combineP (>=) ul vh)
-        && F.and (combineP (<=) uh vl)
+  return $ F.or (combineP (<=) uh vl)
+        && F.or (combineP (>=) ul vh)
 
 -- | Test whether the first bounding box lies /strictly/ outside the second
 --   (they do not intersect at all).
 outside'
   :: (HasBasis v, Ord (Basis v), AdditiveGroup (Scalar v), Ord (Scalar v))
   => BoundingBox v -> BoundingBox v -> Bool
-outside' u v = maybe True id $ do
+outside' u v = fromMaybe True $ do
   (ul, uh) <- getCorners u
   (vl, vh) <- getCorners v
-  return $ F.and (combineP (>) ul vh)
-        && F.and (combineP (<) uh vl)
+  return $ F.or (combineP (<) uh vl)
+        && F.or (combineP (>) ul vh)
 
 -- | Form the largest bounding box contained within this given two
 --   bounding boxes, or @Nothing@ if the two bounding boxes do not
