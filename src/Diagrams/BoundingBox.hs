@@ -1,8 +1,10 @@
 {-# LANGUAGE DeriveDataTypeable
            , DeriveFunctor
            , FlexibleContexts
+           , GeneralizedNewtypeDeriving
            , NoMonomorphismRestriction
            , ScopedTypeVariables
+           , StandaloneDeriving
            , TypeFamilies
            , UndecidableInstances
   #-}
@@ -26,201 +28,267 @@ module Diagrams.BoundingBox
          BoundingBox()
 
          -- * Constructing bounding boxes
-       , fromCorners, fromPoint, fromPoints
+       , emptyBox, fromCorners, fromPoint, fromPoints
        , boundingBox
 
          -- * Queries on bounding boxes
+       , isEmptyBox
        , getCorners, getAllCorners
        , boxExtents, boxTransform, boxFit
        , contains, contains'
        , inside, inside', outside, outside'
 
          -- * Operations on bounding boxes
-       , union, intersection, unions, intersections
+       , union, intersection
        ) where
 
-import Control.Applicative ((<*>))
+import Control.Applicative ((<$>))
 import Control.Monad (join, liftM2)
 import Data.Map (Map, fromList, toList, fromDistinctAscList, toAscList)
 import qualified Data.Foldable as F
 
-import Data.Maybe (fromJust)
+import Data.Maybe (fromMaybe)
 
 import Data.VectorSpace
 -- (VectorSpace, Scalar, AdditiveGroup, zeroV, negateV, (^+^), (^-^))
 import Data.Basis (HasBasis, Basis, decompose, recompose, basisValue)
+import Data.Monoid (Monoid(..))
+import Data.Semigroup (Semigroup(..), Option(..))
 
 import Data.Data (Data)
 import Data.Typeable (Typeable)
 
 import Graphics.Rendering.Diagrams.Points (Point(..))
 import Graphics.Rendering.Diagrams.HasOrigin (HasOrigin(..))
-import Graphics.Rendering.Diagrams.Envelope (Enveloped(..), envelopeP)
+import Graphics.Rendering.Diagrams.Envelope (Enveloped(..), appEnvelope)
 import Graphics.Rendering.Diagrams.V (V)
 import Graphics.Rendering.Diagrams.Transform
   (Transformation(..), Transformable(..), HasLinearMap, (<->))
 
+-- Unexported utility newtype
+
+newtype NonEmptyBoundingBox v = NonEmptyBoundingBox (Point v, Point v)
+  deriving (Eq, Data, Typeable)
+
+fromNonEmpty :: NonEmptyBoundingBox v -> BoundingBox v
+fromNonEmpty = BoundingBox . Option . Just
+
+fromMaybeEmpty :: Maybe (NonEmptyBoundingBox v) -> BoundingBox v
+fromMaybeEmpty = maybe emptyBox fromNonEmpty
+
+nonEmptyCorners :: NonEmptyBoundingBox v -> (Point v, Point v)
+nonEmptyCorners (NonEmptyBoundingBox x) = x
+
+instance (HasBasis v, Ord (Basis v), AdditiveGroup (Scalar v), Ord (Scalar v))
+    => Semigroup (NonEmptyBoundingBox v) where
+  (NonEmptyBoundingBox (ul, uh)) <> (NonEmptyBoundingBox (vl, vh))
+    = NonEmptyBoundingBox
+    $ mapT toPoint (combineP min ul vl, combineP max uh vh)
+
+
 -- | A bounding box is an axis-aligned region determined by two points
---   indicating its \"lower\" and \"upper\" corners.
-data BoundingBox v = BoundingBox (Point v) (Point v)
-  deriving (Show, Read, Eq, Data, Typeable, Functor)
+--   indicating its \"lower\" and \"upper\" corners.  It can also represent
+--   an empty bounding box - the points are wrapped in @Maybe@.
+newtype BoundingBox v = BoundingBox (Option (NonEmptyBoundingBox v))
+  deriving (Eq, Data, Typeable)
+
+deriving instance
+  ( HasBasis v, Ord (Basis v), AdditiveGroup (Scalar v), Ord (Scalar v)
+  ) => Semigroup (BoundingBox v)
+deriving instance
+  ( HasBasis v, Ord (Basis v), AdditiveGroup (Scalar v), Ord (Scalar v)
+  ) => Monoid (BoundingBox v)
 
 type instance V (BoundingBox v) = v
 
-instance VectorSpace v => HasOrigin (BoundingBox v) where
-  moveOriginTo p (BoundingBox p1 p2) = BoundingBox (moveOriginTo p p1)
-                                                   (moveOriginTo p p2)
+-- Map a function on a homogenous 2-tuple. (unexported utility)
+mapT :: (a -> b) -> (a, a) -> (b, b)
+mapT f (x, y) = (f x, f y)
 
-instance ( InnerSpace v, Floating (Scalar v), Ord (Scalar v), AdditiveGroup (Scalar v)
-         , HasBasis v, Ord (Basis v)
+instance ( VectorSpace v, HasBasis v, Ord (Basis v)
+         , AdditiveGroup (Scalar v), Ord (Scalar v)
+         )  => HasOrigin (BoundingBox v) where
+  moveOriginTo p b
+    = fromMaybeEmpty
+    ( NonEmptyBoundingBox . mapT (moveOriginTo p) <$> getCorners b )
+
+instance ( InnerSpace v, HasBasis v, Ord (Basis v)
+         , AdditiveGroup (Scalar v), Ord (Scalar v), Floating (Scalar v)
          ) => Enveloped (BoundingBox v) where
   getEnvelope = getEnvelope . getAllCorners
 
--- | Create a bounding box from any two opposite corners.
+instance Show v => Show (BoundingBox v) where
+  show
+    = maybe "emptyBox" (\(l, u) -> "fromCorners " ++ show l ++ " " ++ show u)
+    . getCorners
+
+{- TODO
+instance Read v => Read (BoundingBox v) where
+  read "emptyBox" = emptyBox
+-}
+
+-- | An empty bounding box.  This is the same thing as @mempty@, but it doesn't
+--   require the same type constraints that the @Monoid@ 
+emptyBox :: BoundingBox v
+emptyBox = BoundingBox $ Option Nothing
+
+-- | Create a bounding box from a point that is component-wise @(<=)@ than the
+--   other.  If this is not the case, then @mempty@ is returned.
 fromCorners
   :: (HasBasis v, Ord (Basis v), AdditiveGroup (Scalar v), Ord (Scalar v))
   => Point v -> Point v -> BoundingBox v
-fromCorners u v = BoundingBox (toPoint (combineP min u v))
-                              (toPoint (combineP max u v))
+fromCorners l h
+  | F.and (combineP (<=) l h) = fromNonEmpty $ NonEmptyBoundingBox (l, h)
+  | otherwise = mempty
 
 -- | Create a degenerate bounding \"box\" containing only a single point.
 fromPoint
   :: (HasBasis v, Ord (Basis v), AdditiveGroup (Scalar v), Ord (Scalar v))
   => Point v -> BoundingBox v
-fromPoint p = BoundingBox p p
+fromPoint p = fromNonEmpty $ NonEmptyBoundingBox (p, p)
 
 -- | Create the smallest bounding box containing all the given points.
 fromPoints
   :: (HasBasis v, Ord (Basis v), AdditiveGroup (Scalar v), Ord (Scalar v))
-  => [Point v] -> Maybe (BoundingBox v)
-fromPoints = unions . map fromPoint
+  => [Point v] -> BoundingBox v
+fromPoints = mconcat . map fromPoint
 
 -- | Create a bounding box for any enveloped object (such as a diagram or path).
-boundingBox :: forall a. (Enveloped a, HasBasis (V a), Ord (Basis (V a)))
-            => a -> BoundingBox (V a)
-boundingBox a = fromJust . fromPoints . map (`envelopeP` a) $ [id, negateV] <*> units
-  where units = map (basisValue . fst) (decompose (zeroV :: V a))
+boundingBox :: forall a. ( Enveloped a, HasBasis (V a), AdditiveGroup (V a)
+                         , Ord (Basis (V a))
+                         ) => a -> BoundingBox (V a)
+boundingBox a = fromMaybeEmpty $ do
+    env <- appEnvelope $ getEnvelope a
+    let h = recompose $ map (\v -> (v,          env           $ basisValue v)) us
+        l = recompose $ map (\v -> (v, negate . env . negateV $ basisValue v)) us
+    return $ NonEmptyBoundingBox (P l, P h)
+  where
+    -- The units. Might not work if 0-components aren't reported.
+    --TODO: Depend on Enum Basis?
+    us = map fst $ decompose (zeroV :: V a)
+
+-- | Queries whether the BoundingBox is empty.
+isEmptyBox :: BoundingBox v -> Bool
+isEmptyBox (BoundingBox (Option Nothing)) = True
+isEmptyBox _ = False
 
 -- | Gets the lower and upper corners that define the bounding box.
-getCorners :: BoundingBox v -> (Point v, Point v)
-getCorners (BoundingBox l u) = (l, u)
-
-{-
-Ord (Data.Basis.Basis b),
-      Data.AdditiveGroup.AdditiveGroup (Data.VectorSpace.Scalar b),
-      Data.Basis.HasBasis b,
-      Data.Basis.HasBasis v,
-      Data.Basis.Basis v ~ Data.Basis.Basis b,
-      Data.VectorSpace.Scalar v ~ Data.VectorSpace.Scalar b) =>
--}
+getCorners :: BoundingBox v -> Maybe (Point v, Point v)
+getCorners (BoundingBox p) = nonEmptyCorners <$> getOption p
 
 -- | Computes all of the corners of the bounding box.
 getAllCorners :: (HasBasis v, AdditiveGroup (Scalar v), Ord (Basis v))
               => BoundingBox v -> [Point v]
-getAllCorners (BoundingBox l u)
+getAllCorners (BoundingBox (Option Nothing)) = []
+getAllCorners (BoundingBox (Option (Just (NonEmptyBoundingBox (l, u)))))
   = map (P . recompose)
   -- Enumerate all combinations of selections of lower / higher values. 
-  . mapM (\(b, (x, y)) -> [(b, x), (b, y)])
-  . toList $ combineP (,) l u
+  . mapM (\(b, (l', u')) -> [(b, l'), (b, u')])
+  -- List of [(basis, (lower, upper))]
+  . toList
+  $ combineP (,) l u
 
--- | Get the size of the bounding box - the vector from the lesser to the greater
---   point.
+-- | Get the size of the bounding box - the vector from the (component-wise)
+--   lesser point to the greater point.
 boxExtents :: (AdditiveGroup v) => BoundingBox v -> v
-boxExtents (BoundingBox (P l) (P h)) = h ^-^ l
+boxExtents = maybe zeroV (\(P l, P h) -> h ^-^ l) . getCorners
 
 -- | Create a transformation mapping points from one bounding box to the other.
 boxTransform :: (AdditiveGroup v, HasLinearMap v, 
                  Fractional (Scalar v), AdditiveGroup (Scalar v), Ord (Basis v))
-             => BoundingBox v -> BoundingBox v -> Transformation v
-boxTransform a@(BoundingBox (P l1) _) b@(BoundingBox (P l2) _)
-  = Transformation s s (l2 ^-^ boxTrans a b l1)
- where
-  s = boxTrans a b <-> boxTrans b a
-  boxTrans b1 b2 = vcombineV (*) (vcombineV (/) (boxExtents b2) (boxExtents b1))
-  vcombineV f x = toVector . combineV f x
+             => BoundingBox v -> BoundingBox v -> Maybe (Transformation v)
+boxTransform u v = do
+    ((P ul), _) <- getCorners u
+    ((P vl), _) <- getCorners v
+    let lin_map = box_scale (v, u) <-> box_scale (u, v)
+        box_scale = combineV' (*) . uncurry (combineV' (/)) . mapT boxExtents
+        combineV' f x = toVector . combineV f x
+    return $ Transformation lin_map lin_map (vl ^-^ box_scale (v, u) ul)
 
--- | Transforms an enveloped thing to fit within a @BoundingBox@.
-boxFit :: (Enveloped a, Transformable a, Ord (Basis (V a)))
+-- | Transforms an enveloped thing to fit within a @BoundingBox@.  If it's
+--   empty, then the result is also @mempty@.
+boxFit :: (Enveloped a, Transformable a, Monoid a, Ord (Basis (V a)))
        => BoundingBox (V a) -> a -> a
-boxFit b x = transform (boxTransform (boundingBox x) b) x
+boxFit b x = maybe mempty (`transform` x) $ boxTransform (boundingBox x) b
 
 -- | Check whether a point is contained in a bounding box (including its edges).
 contains
   :: (HasBasis v, Ord (Basis v), AdditiveGroup (Scalar v), Ord (Scalar v))
   => BoundingBox v -> Point v -> Bool
-contains (BoundingBox l h) p = F.and (combineP (<=) l p)
-                            && F.and (combineP (<=) p h)
+contains b p = maybe False check $ getCorners b
+  where
+    check (l, h) = F.and (combineP (<=) l p)
+                && F.and (combineP (<=) p h)
 
 -- | Check whether a point is /strictly/ contained in a bounding box.
 contains'
   :: (HasBasis v, Ord (Basis v), AdditiveGroup (Scalar v), Ord (Scalar v))
   => BoundingBox v -> Point v -> Bool
-contains' (BoundingBox l h) p = F.and (combineP (< ) l p)
-                             && F.and (combineP (< ) p h)
-
--- | Compute the smallest bounding box containing all the given
---   bounding boxes (or @Nothing@ if the list is empty).
-unions
-  :: (HasBasis v, Ord (Basis v), AdditiveGroup (Scalar v), Ord (Scalar v))
-  => [BoundingBox v] -> Maybe (BoundingBox v)
-unions [] = Nothing
-unions ps = Just . foldr1 union $ ps
-
--- | Compute the largest bounding box contained in all the given
---   bounding boxes (or @Nothing@ is the list is empty).
-intersections
-  :: (HasBasis v, Ord (Basis v), AdditiveGroup (Scalar v), Ord (Scalar v))
-  => [BoundingBox v] -> Maybe (BoundingBox v)
-intersections [] = Nothing
-intersections ps = foldr1 ((join .) . liftM2 intersection) (map Just ps)
+contains' b p = maybe False check $ getCorners b
+  where
+    check (l, h) = F.and (combineP (<) l p)
+                && F.and (combineP (<) p h)
 
 -- | Test whether the first bounding box is contained inside
 --   the second.
 inside
   :: (HasBasis v, Ord (Basis v), AdditiveGroup (Scalar v), Ord (Scalar v))
   => BoundingBox v -> BoundingBox v -> Bool
-inside   (BoundingBox ul uh) (BoundingBox vl vh) =  F.and (combineP (<=) uh vh)
-                                                 && F.and (combineP (>=) ul vl)
+inside u v = fromMaybe False $ do
+  (ul, uh) <- getCorners u
+  (vl, vh) <- getCorners v
+  return $ F.and (combineP (>=) ul vl)
+        && F.and (combineP (<=) uh vh)
 
 -- | Test whether the first bounding box is /strictly/ contained
 --   inside the second.
 inside'
   :: (HasBasis v, Ord (Basis v), AdditiveGroup (Scalar v), Ord (Scalar v))
   => BoundingBox v -> BoundingBox v -> Bool
-inside'  (BoundingBox ul uh) (BoundingBox vl vh) =  F.and (combineP (< ) uh vh)
-                                                 && F.and (combineP (> ) ul vl)
+inside' u v = fromMaybe False $ do
+  (ul, uh) <- getCorners u
+  (vl, vh) <- getCorners v
+  return $ F.and (combineP (>) ul vl)
+        && F.and (combineP (<) uh vh)
 
 -- | Test whether the first bounding box lies outside the second
 --   (although they may intersect in their boundaries).
 outside
   :: (HasBasis v, Ord (Basis v), AdditiveGroup (Scalar v), Ord (Scalar v))
   => BoundingBox v -> BoundingBox v -> Bool
-outside  (BoundingBox ul uh) (BoundingBox vl vh) =  F.or  (combineP (<=) uh vl)
-                                                 || F.or  (combineP (>=) ul vh)
+outside u v = fromMaybe True $ do
+  (ul, uh) <- getCorners u
+  (vl, vh) <- getCorners v
+  return $ F.or (combineP (<=) uh vl)
+        || F.or (combineP (>=) ul vh)
 
 -- | Test whether the first bounding box lies /strictly/ outside the second
 --   (they do not intersect at all).
 outside'
   :: (HasBasis v, Ord (Basis v), AdditiveGroup (Scalar v), Ord (Scalar v))
   => BoundingBox v -> BoundingBox v -> Bool
-outside' (BoundingBox ul uh) (BoundingBox vl vh) =  F.or  (combineP (< ) uh vl)
-                                                 || F.or  (combineP (> ) ul vh)
+outside' u v = fromMaybe True $ do
+  (ul, uh) <- getCorners u
+  (vl, vh) <- getCorners v
+  return $ F.or (combineP (<) uh vl)
+        || F.or (combineP (>) ul vh)
 
 -- | Form the largest bounding box contained within this given two
 --   bounding boxes, or @Nothing@ if the two bounding boxes do not
 --   overlap at all.
 intersection
   :: (HasBasis v, Ord (Basis v), AdditiveGroup (Scalar v), Ord (Scalar v))
-  => BoundingBox v -> BoundingBox v -> Maybe (BoundingBox v)
-intersection u@(BoundingBox ul uh) v@(BoundingBox vl vh)
-  | u `outside'` v = Nothing
-  | otherwise = Just (fromCorners (toPoint (combineP max ul vl)) (toPoint (combineP min uh vh)))
-
--- | Form the smallest bounding box containing the given two bounding boxes.
-union
-  :: (HasBasis v, Ord (Basis v), AdditiveGroup (Scalar v), Ord (Scalar v))
   => BoundingBox v -> BoundingBox v -> BoundingBox v
-union (BoundingBox ul uh) (BoundingBox vl vh) = BoundingBox (toPoint (combineP min ul vl)) (toPoint (combineP max uh vh))
+intersection u v = maybe mempty (uncurry fromCorners) $ do
+  (ul, uh) <- getCorners u
+  (vl, vh) <- getCorners v
+  return $ mapT toPoint (combineP max ul vl, combineP min uh vh)
+
+-- | Form the smallest bounding box containing the given two bound union.  This
+--   function is just an alias for @mappend@.
+union :: (HasBasis v, Ord (Basis v), AdditiveGroup (Scalar v), Ord (Scalar v))
+      => BoundingBox v -> BoundingBox v -> BoundingBox v
+union = mappend
 
 -- internals using Map (Basis v) (Scalar v)
 -- probably paranoia, but decompose might not always
