@@ -41,9 +41,9 @@ import Diagrams.Path
 import Data.Active
 import Data.Semigroup
 
-import Data.VectorSpace
-
 import Control.Applicative ((<$>))
+import Data.Foldable       (foldMap)
+import Data.VectorSpace
 
 -- | A value of type @QAnimation b v m@ is an animation (a
 --   time-varying diagram with start and end times) that can be
@@ -119,7 +119,8 @@ animRect = animRect' 30
 --   accurate but slower.
 animRect' :: (PathLike p, Enveloped p, Transformable p, V p ~ R2)
           => Rational -> QAnimation b R2 m -> p
-animRect' r = (\bb -> if isEmptyBox bb then rect 1 1 else boxFit bb (rect 1 1))
-            . unions
-            . map boundingBox
-            . simulate r
+animRect' r anim
+    | null results = rect 1 1
+    | otherwise    = boxFit (foldMap boundingBox results) (rect 1 1)
+  where
+    results = simulate r anim
