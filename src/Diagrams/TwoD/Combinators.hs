@@ -186,8 +186,10 @@ padY s d = withEnvelope (d # scaleY s) d
 -- | @padR2 v d@ asymmetrically \"pads\" the diagram in the given direction.
 --   Unlike 'padX' and 'padY', the magnitude of the vector is not a scaling
 --   factor, but an absolute amount to move the envelope, \"along\" the
---   direction.
--- TODO: explain better.
+--   direction.  In order to preserve the properties of envelopes, queries to
+--   the envelope that are less than 90 degrees rotated from the padding
+--   direction are also scaled, though with less magnitude (proportional to the
+--   cosine of angle).
 padR2 :: ( Backend b R2, Monoid' m )
       => R2 -> QDiagram b R2 m -> QDiagram b R2 m
 padR2 = deformEnvelope 1
@@ -195,8 +197,10 @@ padR2 = deformEnvelope 1
 -- | @unpadR2 v d@ asymmetrically \"pads\" the diagram in the given direction.
 --   Unlike 'padX' and 'padY', the magnitude of the vector is not a scaling
 --   factor, but an absolute amount to move the envelope, \"along\" the
---   direction.
--- TODO: explain better.
+--   direction.  In order to preserve the properties of envelopes, queries to
+--   the envelope that are less than 90 degrees rotated from the padding
+--   direction are also scaled, though with less magnitude (proportional to the
+--   cosine of angle).
 unpadR2 :: ( Backend b R2, Monoid' m )
        => R2 -> QDiagram b R2 m -> QDiagram b R2 m
 unpadR2 = deformEnvelope (-1)
