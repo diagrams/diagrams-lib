@@ -27,6 +27,7 @@ module Diagrams.TwoD.Combinators
       -- * Spacing/envelopes
     , strutR2
     , strutX, strutY
+    , padR2
     , padX, padY
 
     , view
@@ -148,17 +149,17 @@ strutR2 v = phantom seg
   where
     seg = FLinear (origin .+^ 0.5 *^ v) (origin .+^ (-0.5) *^ v)
 
--- | @strutX d@ is an empty diagram with width @d@, height 0, and a
+-- | @strutX w@ is an empty diagram with width @w@, height 0, and a
 --   centered local origin.  Note that @strutX (-w)@ behaves the same as
 --   @strutX w@.
 strutX :: (Backend b R2, Monoid' m) => Double -> QDiagram b R2 m
-strutX d = strut (r2 (d,0))
+strutX w = strut (r2 (w,0))
 
--- | @strutY d@ is an empty diagram with height @d@, width 0, and a
+-- | @strutY h@ is an empty diagram with height @h@, width 0, and a
 --   centered local origin. Note that @strutY (-w)@ behaves the same as
 --   @strutY w@.
 strutY :: (Backend b R2, Monoid' m) => Double -> QDiagram b R2 m
-strutY d = strut (r2 (0,d))
+strutY h = strut (r2 (0,h))
 
 -- | @padX s@ \"pads\" a diagram in the x-direction, expanding its
 --   envelope horizontally by a factor of @s@ (factors between 0 and 1
@@ -181,6 +182,37 @@ padX s d = withEnvelope (d # scaleX s) d
 padY :: ( Backend b R2, Monoid' m )
      => Double -> QDiagram b R2 m -> QDiagram b R2 m
 padY s d = withEnvelope (d # scaleY s) d
+
+-- | @padR2 v d@ asymmetrically \"pads\" the diagram in the given direction.
+--   Unlike 'padX' and 'padY', the magnitude of the vector is not a scaling
+--   factor, but an absolute amount to move the envelope, \"along\" the
+--   direction.
+-- TODO: explain better.
+padR2 :: ( Backend b R2, Monoid' m )
+      => R2 -> QDiagram b R2 m -> QDiagram b R2 m
+padR2 = deformEnvelope 1
+
+-- | @unpadR2 v d@ asymmetrically \"pads\" the diagram in the given direction.
+--   Unlike 'padX' and 'padY', the magnitude of the vector is not a scaling
+--   factor, but an absolute amount to move the envelope, \"along\" the
+--   direction.
+-- TODO: explain better.
+unpadR2 :: ( Backend b R2, Monoid' m )
+       => R2 -> QDiagram b R2 m -> QDiagram b R2 m
+unpadR2 = deformEnvelope (-1)
+
+-- Helper function to implement padR2 / unpadR2
+deformEnvelope
+  :: ( Backend b R2, Monoid' m )
+  => Double -> R2 -> QDiagram b R2 m -> QDiagram b R2 m
+deformEnvelope s v d = setEnvelope (inEnvelope (over_option pad_env) $ getEnvelope d) d
+  where
+    over_option f = Option . fmap f . getOption
+    pad_env env v'
+        | dot > 0   = Max $ (getMax $ env v') + dot * s
+        | otherwise = env v'
+      where
+        dot = normalized v' <.> v
 
 -- | @view p v@ sets the envelope of a diagram to a rectangle whose
 --   lower-left corner is at @p@ and whose upper-right corner is at @p
