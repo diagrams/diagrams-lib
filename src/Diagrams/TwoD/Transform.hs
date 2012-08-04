@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts
+           , FlexibleInstances
            , TypeFamilies
            , ViewPatterns
   #-}
@@ -43,6 +44,7 @@ module Diagrams.TwoD.Transform
          -- * Shears
        , shearingX, shearX
        , shearingY, shearY
+       , ScaleInv(..)
 
        ) where
 
@@ -238,4 +240,38 @@ shearingY d = fromLinear (over r2 (sh d)  <-> over r2 (sh (-d)))
 --   @(1,0)@ to @(1,d)@.
 shearY :: (Transformable t, V t ~ R2) => Double -> t -> t
 shearY = transform . shearingY
+
+
+---------
+---------
+--Scale invariant
+
+--1 find unit vector
+--2 apply transformation to unit vector
+--3 find angle difference b/w transformed unit vector and original vector
+--4 rotate arrowhead
+--5 add rotated arrowhead
+
+data ScaleInv t = ScaleInv t ( R2 )
+  deriving (Show )
+
+type instance V (ScaleInv t) = R2
+
+instance (V t ~ R2, HasOrigin t) => HasOrigin (ScaleInv t) where
+  moveOriginTo p (ScaleInv s v) = ScaleInv ( moveOriginTo p s ) v 
+
+instance (V t ~ R2, Transformable t) => Transformable (ScaleInv t) where
+  transform tr (ScaleInv t v) = ScaleInv obj rotUnitVec where
+        transUnitVec :: R2
+        transUnitVec = transform tr v
+        angle :: Rad
+        angle = direction transUnitVec  - direction v
+        rTrans :: ( Transformable t,  (V t ~ R2) ) => t -> t
+        rTrans = rotate angle
+        obj = rTrans t
+        rotUnitVec :: R2
+        rotUnitVec = rTrans v
+
+
+--------
 
