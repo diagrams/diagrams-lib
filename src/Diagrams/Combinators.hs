@@ -112,6 +112,8 @@ beneath :: (HasLinearMap v, OrderedField (Scalar v), InnerSpace v, Monoid' m)
      => QDiagram b v m -> QDiagram b v m -> QDiagram b v m
 beneath = flip atop
 
+infixl 6 `beneath`
+
 -- | Place two monoidal objects (/i.e./ diagrams, paths,
 --   animations...) next to each other along the given vector.  In
 --   particular, place the second object so that the vector points
