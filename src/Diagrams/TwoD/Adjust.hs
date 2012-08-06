@@ -13,11 +13,15 @@
 --
 -----------------------------------------------------------------------------
 
-module Diagrams.TwoD.Adjust (
-    adjustDia2D
-  , adjustSize
-  , requiredScale
-  ) where
+module Diagrams.TwoD.Adjust
+    (
+      setDefault2DAttributes
+    , adjustDiaSize2D
+    , adjustDia2D
+    , adjustSize
+    , requiredScale
+
+    ) where
 
 import Graphics.Rendering.Diagrams
 
@@ -32,42 +36,33 @@ import Data.AffineSpace     ((.-.))
 
 import Data.Colour.Names    (black)
 
--- | @adjustDia2D@ provides a useful default implementation of
---   the 'adjustDia' method from the 'Backend' type class.
---
---   As its first two arguments it requires a method for extracting
---   the requested output size from the rendering options, and a way
---   of updating the rendering options with a new (more specific) size.
---
---   It then performs the following adjustments:
---
---   * Set some default attributes (in case they have not been set):
+-- | Set default attributes of a 2D diagram (in case they have not
+--   been set):
 --
 --       * Line width 0.01
 --
 --       * Line color black
 --
 --       * Font size 1
---
---   * Freeze the diagram in its final form
---
---   * Scale and translate the diagram to fit within the requested size
---
---   * Also return the actual adjusted size of the diagram.
+setDefault2DAttributes :: QDiagram b R2 m -> QDiagram b R2 m
+setDefault2DAttributes d = d # lw 0.01 # lc black # fontSize 1
 
--- XXX should split out the attribute-setting into a separate function.
-adjustDia2D :: Monoid' m
-            => (Options b R2 -> SizeSpec2D)
-            -> (SizeSpec2D -> Options b R2 -> Options b R2)
-            -> b -> Options b R2 -> QDiagram b R2 m
-            -> (Options b R2, QDiagram b R2 m)
-adjustDia2D getSize setSize _ opts d =
+-- | Adjust the size and position of a 2D diagram to fit within the
+--   requested size. The first two arguments specify a method for
+--   extracting the requested output size from the rendering options,
+--   and a way of updating the rendering options with a new (more
+--   specific) size.
+adjustDiaSize2D :: Monoid' m
+                => (Options b R2 -> SizeSpec2D)
+                -> (SizeSpec2D -> Options b R2 -> Options b R2)
+                -> b -> Options b R2 -> QDiagram b R2 m
+                -> (Options b R2, QDiagram b R2 m)
+adjustDiaSize2D getSize setSize _ opts d =
   ( case spec of
        Dims _ _ -> opts
        _        -> setSize (uncurry Dims . scale s $ size) opts
 
-  , d # lw 0.01 # lc black # fontSize 1 # freeze
-      # scale s
+  , d # scale s
       # translate tr
   )
   where spec = getSize opts
@@ -77,6 +72,31 @@ adjustDia2D getSize setSize _ opts d =
                     Dims w h -> (w,h)
                     _        -> scale s size
         tr = (0.5 *. p2 finalSz) .-. (s *. center2D d)
+
+-- | @adjustDia2D@ provides a useful default implementation of
+--   the 'adjustDia' method from the 'Backend' type class.
+--
+--   As its first two arguments it requires a method for extracting
+--   the requested output size from the rendering options, and a way
+--   of updating the rendering options with a new (more specific) size.
+--
+--   It then performs the following adjustments:
+--
+--   * Set default attributes (see 'setDefault2DAttributes')
+--
+--   * Freeze the diagram in its final form
+--
+--   * Scale and translate the diagram to fit within the requested
+--     size (see 'adjustDiaSize2D')
+--
+--   * Also return the actual adjusted size of the diagram.
+adjustDia2D :: Monoid' m
+            => (Options b R2 -> SizeSpec2D)
+            -> (SizeSpec2D -> Options b R2 -> Options b R2)
+            -> b -> Options b R2 -> QDiagram b R2 m
+            -> (Options b R2, QDiagram b R2 m)
+adjustDia2D getSize setSize b opts d
+  = adjustDiaSize2D getSize setSize b opts (d # setDefault2DAttributes # freeze)
 
 -- | @adjustSize spec sz@ returns a transformation (a uniform scale)
 --   which can be applied to something of size @sz@ to make it the
