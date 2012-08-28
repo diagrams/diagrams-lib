@@ -27,6 +27,7 @@ Library
   Exposed-modules:     Diagrams.Prelude,
                        Diagrams.Align,
                        Diagrams.Combinators,
+                       Diagrams.Coordinates,
                        Diagrams.Attributes,
                        Diagrams.Points,
                        Diagrams.Segment,

@@ -47,6 +47,7 @@ import Graphics.Rendering.Diagrams
 import Diagrams.Attributes (lw, fc)
 import Diagrams.BoundingBox
 import Diagrams.Combinators
+import Diagrams.Coordinates
 import Diagrams.Path
 import Diagrams.Segment
 import Diagrams.TwoD.Align
@@ -153,13 +154,13 @@ strutR2 v = phantom seg
 --   centered local origin.  Note that @strutX (-w)@ behaves the same as
 --   @strutX w@.
 strutX :: (Backend b R2, Monoid' m) => Double -> QDiagram b R2 m
-strutX w = strut (r2 (w,0))
+strutX d = strut (d & 0)
 
 -- | @strutY h@ is an empty diagram with height @h@, width 0, and a
 --   centered local origin. Note that @strutY (-w)@ behaves the same as
 --   @strutY w@.
 strutY :: (Backend b R2, Monoid' m) => Double -> QDiagram b R2 m
-strutY h = strut (r2 (0,h))
+strutY d = strut (0 & d)
 
 -- | @padX s@ \"pads\" a diagram in the x-direction, expanding its
 --   envelope horizontally by a factor of @s@ (factors between 0 and 1
@@ -225,7 +226,7 @@ deformEnvelope s v d = setEnvelope (inEnvelope (over_option pad_env) $ getEnvelo
 --   if you don't want to see the entire diagram.
 view :: ( Backend b R2, Monoid' m )
      => P2 -> R2 -> QDiagram b R2 m -> QDiagram b R2 m
-view p (unr2 -> (w,h)) = withEnvelope (rect w h # alignBL # moveTo p :: D R2)
+view p (coords -> w :& h) = withEnvelope (rect w h # alignBL # moveTo p :: D R2)
 
 -- | Construct a bounding rectangle for an enveloped object, that is,
 --   the smallest axis-aligned rectangle which encloses the object.

@@ -46,12 +46,13 @@ module Diagrams.TwoD.Shapes
 
 import Graphics.Rendering.Diagrams
 
-import Diagrams.Segment
+import Diagrams.Coordinates
 import Diagrams.Path
+import Diagrams.Segment
 import Diagrams.TwoD.Arc
-import Diagrams.TwoD.Types
-import Diagrams.TwoD.Transform
 import Diagrams.TwoD.Polygons
+import Diagrams.TwoD.Transform
+import Diagrams.TwoD.Types
 
 import Diagrams.Util
 
@@ -60,11 +61,11 @@ import Data.Semigroup
 
 -- | Create a centered horizontal (L-R) line of the given length.
 hrule :: (PathLike p, V p ~ R2) => Double -> p
-hrule d = pathLike (p2 (-d/2,0)) False [Linear (r2 (d,0))]
+hrule d = pathLike (p2 (-d/2,0)) False [Linear (d & 0)]
 
 -- | Create a centered vertical (T-B) line of the given length.
 vrule :: (PathLike p, V p ~ R2) => Double -> p
-vrule d = pathLike (p2 (0,d/2)) False [Linear (r2 (0,-d))]
+vrule d = pathLike (p2 (0,d/2)) False [Linear (0 & (-d))]
 
 -- | A sqaure with its center at the origin and sides of length 1,
 --   oriented parallel to the axes.
