@@ -60,8 +60,8 @@ Library
                        Diagrams.Animation.Active,
                        Diagrams.Util,
                        Diagrams.Backend.Show
-  Build-depends:       base >= 4.2 && < 4.6,
-                       containers >= 0.3 && < 0.5,
+  Build-depends:       base >= 4.2 && < 4.7,
+                       containers >= 0.3 && < 0.6,
                        array >= 0.3 && < 0.5,
                        semigroups >= 0.3.4 && < 0.9,
                        monoid-extras >= 0.1 && < 0.2,
