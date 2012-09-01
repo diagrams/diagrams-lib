@@ -144,7 +144,7 @@ instance Transformable R2 where
 -- Angles
 
 -- | Newtype wrapper used to represent angles as fractions of a
---   circle.  For example, 1/3 = tau/3 radians = 120 degrees.
+--   circle.  For example, 1\/3 = tau\/3 radians = 120 degrees.
 newtype CircleFrac = CircleFrac { getCircleFrac :: Double }
   deriving (Read, Show, Eq, Ord, Enum, Floating, Fractional, Num, Real, RealFloat, RealFrac)
 
