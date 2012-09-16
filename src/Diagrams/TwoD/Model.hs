@@ -90,14 +90,3 @@ showLabels d =
              fmap (const (Any False)) d
   where
     SubMap m = names d
-
--- XXX finish:
-
---   Draw the separating lines between diagrams composed with 'beside'
---   (or any combinators implemented in terms of 'beside', like '(|||)'
---   or '(===)').
-
--- showSep :: QDiagram b R2 m -> QDiagram b R2 m
--- showSep d = s <> d
---   where ... = case d of
---                 QDiagram (Branch u ds children) -> ...
