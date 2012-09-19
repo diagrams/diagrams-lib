@@ -68,7 +68,7 @@ import Data.Typeable
 -- > foo (coords -> x :& y) = ...
 
 newtype R2 = R2 { unR2 :: (Double, Double) }
-  deriving (AdditiveGroup, Eq, Ord, Read, Typeable, Num, Fractional)
+  deriving (AdditiveGroup, Eq, Ord, Typeable, Num, Fractional)
 
 instance Show R2 where
   showsPrec p (R2 (x,y)) = showParen (p >= 7) $
@@ -76,6 +76,18 @@ instance Show R2 where
    where
     showCoord x | x < 0     = showParen True (shows x)
                 | otherwise = shows x
+
+instance Read R2 where
+  readsPrec d r = readParen (d > app_prec)
+                  (\r -> [ (R2 (x,y), r''')
+                         | (x,r')    <- readsPrec (amp_prec + 1) r
+                         , ("&",r'') <- lex r'
+                         , (y,r''')  <- readsPrec (amp_prec + 1) r''
+                         ])
+                  r
+    where
+      app_prec = 10
+      amp_prec = 7
 
 instance Newtype R2 (Double, Double) where
   pack   = R2
