@@ -1,0 +1,8 @@
+language: haskell
+before_install:
+  - git clone --quiet git://github.com/diagrams/monoid-extras.git diagrams/monoid-extras
+  - git clone --quiet git://github.com/diagrams/dual-tree.git diagrams/dual-tree
+  - git clone --quiet git://github.com/diagrams/diagrams-core.git diagrams/diagrams-core
+  - cd diagrams
+  - cabal install monoid-extras/ dual-tree/ core/
+  - cd ..
