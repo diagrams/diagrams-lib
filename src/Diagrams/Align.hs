@@ -31,7 +31,7 @@ module Diagrams.Align
 
        ) where
 
-import Graphics.Rendering.Diagrams
+import Diagrams.Core
 
 import Data.VectorSpace
 import Data.AffineSpace (alerp)

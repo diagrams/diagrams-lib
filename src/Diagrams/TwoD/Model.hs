@@ -19,8 +19,8 @@ module Diagrams.TwoD.Model
        , showLabels
        ) where
 
-import Graphics.Rendering.Diagrams
-import Graphics.Rendering.Diagrams.Names
+import Diagrams.Core
+import Diagrams.Core.Names
 
 import Diagrams.Path
 

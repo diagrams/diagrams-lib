@@ -52,7 +52,7 @@ module Diagrams.Segment
 
        ) where
 
-import Graphics.Rendering.Diagrams
+import Diagrams.Core
 
 import Diagrams.Solve
 import Diagrams.Util

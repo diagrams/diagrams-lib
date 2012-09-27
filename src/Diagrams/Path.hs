@@ -71,8 +71,8 @@ module Diagrams.Path
 
        ) where
 
-import Graphics.Rendering.Diagrams
-import Graphics.Rendering.Diagrams.Points
+import Diagrams.Core
+import Diagrams.Core.Points
 
 import Diagrams.Align
 import Diagrams.Segment

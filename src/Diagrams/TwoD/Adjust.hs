@@ -23,7 +23,7 @@ module Diagrams.TwoD.Adjust
 
     ) where
 
-import Graphics.Rendering.Diagrams
+import Diagrams.Core
 
 import Diagrams.Attributes  (lw, lc)
 import Diagrams.Util        ((#))

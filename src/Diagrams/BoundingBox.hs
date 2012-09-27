@@ -58,11 +58,11 @@ import Data.Semigroup (Semigroup(..), Option(..))
 import Data.Data (Data)
 import Data.Typeable (Typeable)
 
-import Graphics.Rendering.Diagrams.Points (Point(..))
-import Graphics.Rendering.Diagrams.HasOrigin (HasOrigin(..))
-import Graphics.Rendering.Diagrams.Envelope (Enveloped(..), appEnvelope)
-import Graphics.Rendering.Diagrams.V (V)
-import Graphics.Rendering.Diagrams.Transform
+import Diagrams.Core.Points (Point(..))
+import Diagrams.Core.HasOrigin (HasOrigin(..))
+import Diagrams.Core.Envelope (Enveloped(..), appEnvelope)
+import Diagrams.Core.V (V)
+import Diagrams.Core.Transform
   (Transformation(..), Transformable(..), HasLinearMap, (<->))
 
 -- Unexported utility newtype

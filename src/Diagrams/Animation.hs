@@ -29,7 +29,7 @@ module Diagrams.Animation
 
        ) where
 
-import Graphics.Rendering.Diagrams
+import Diagrams.Core
 
 import Diagrams.Combinators
 import Diagrams.Animation.Active ()

@@ -33,7 +33,7 @@ module Diagrams.TwoD.Types
 
 import Diagrams.Coordinates
 import Diagrams.Util (tau)
-import Graphics.Rendering.Diagrams
+import Diagrams.Core
 
 import Control.Newtype
 

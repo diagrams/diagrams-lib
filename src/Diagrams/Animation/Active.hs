@@ -38,7 +38,7 @@
 
 module Diagrams.Animation.Active where
 
-import Graphics.Rendering.Diagrams
+import Diagrams.Core
 import Control.Applicative ((<$>), pure)
 
 import Diagrams.Align

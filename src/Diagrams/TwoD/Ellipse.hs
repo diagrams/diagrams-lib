@@ -23,7 +23,7 @@ module Diagrams.TwoD.Ellipse
     , ellipseXY
     ) where
 
-import Graphics.Rendering.Diagrams
+import Diagrams.Core
 
 import Diagrams.TwoD.Types
 import Diagrams.TwoD.Transform

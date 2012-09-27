@@ -31,7 +31,7 @@ module Diagrams.TwoD.Text (
   , FontWeight(..), FontWeightA, getFontWeight, fontWeight, bold
   ) where
 
-import Graphics.Rendering.Diagrams
+import Diagrams.Core
 
 import Diagrams.TwoD.Types
 

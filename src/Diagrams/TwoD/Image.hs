@@ -19,7 +19,7 @@ module Diagrams.TwoD.Image
     , image
     ) where
 
-import Graphics.Rendering.Diagrams
+import Diagrams.Core
 
 import Diagrams.Path
 import Diagrams.TwoD.Types

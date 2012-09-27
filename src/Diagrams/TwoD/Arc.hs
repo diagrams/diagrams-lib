@@ -20,7 +20,7 @@ module Diagrams.TwoD.Arc
     , wedge
     ) where
 
-import Graphics.Rendering.Diagrams
+import Diagrams.Core
 
 import Diagrams.Coordinates
 import Diagrams.Path

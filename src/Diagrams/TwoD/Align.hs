@@ -34,7 +34,7 @@ module Diagrams.TwoD.Align
 
     ) where
 
-import Graphics.Rendering.Diagrams
+import Diagrams.Core
 
 import Diagrams.TwoD.Types
 import Diagrams.TwoD.Vector
