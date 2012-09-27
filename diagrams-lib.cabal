@@ -13,15 +13,15 @@ License:             BSD3
 License-file:        LICENSE
 Author:              Brent Yorgey
 Maintainer:          diagrams-discuss@googlegroups.com
-Bug-reports:         http://code.google.com/p/diagrams/issues/list
+Bug-reports:         http://github.com/diagrams/diagrams-lib/issues
 Category:            Graphics
 Build-type:          Simple
 Cabal-version:       >=1.6
 Extra-source-files:  CHANGES, README
 Tested-with:         GHC == 6.12.3, GHC == 7.0.4, GHC == 7.2.1, GHC == 7.4.1
 Source-repository head
-  type:     darcs
-  location: http://patch-tag.com/r/byorgey/diagrams-lib
+  type:     git
+  location: http://github.com/diagrams/diagrams-lib.git
 
 Library
   Exposed-modules:     Diagrams.Prelude,
