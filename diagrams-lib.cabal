@@ -1,5 +1,5 @@
 Name:                diagrams-lib
-Version:             0.5.1
+Version:             0.6
 Synopsis:            Embedded domain-specific language for declarative graphics
 Description:         Diagrams is a flexible, extensible EDSL for creating
                      graphics of many types.  Graphics can be created
@@ -65,7 +65,7 @@ Library
                        array >= 0.3 && < 0.5,
                        semigroups >= 0.3.4 && < 0.9,
                        monoid-extras >= 0.2 && < 0.3,
-                       diagrams-core >= 0.5 && < 0.6,
+                       diagrams-core >= 0.6 && < 0.7,
                        active >= 0.1 && < 0.2,
                        vector-space >= 0.7.7 && < 0.9,
                        NumInstances >= 1.0 && < 1.1,
