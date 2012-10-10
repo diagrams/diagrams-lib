@@ -49,7 +49,7 @@ import           Data.AffineSpace
 import           Data.Default
 import           Data.VectorSpace
 
-import           Graphics.Rendering.Diagrams
+import           Diagrams.Core
 
 import           Diagrams.Coordinates
 import           Diagrams.Path

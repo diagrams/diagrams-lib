@@ -1,23 +1,63 @@
-Trunk:
+0.6: XXX
 
-  * New features:
+  * New features
 
     - 'boundingRect' function for constructing a bounding rectangle
 
     - 'bg' function for "setting the background color" (i.e. placing
       atop a colored bounding rectangle)
 
-  * New instances:
+    - New functions 'setDefault2DAttributes' and 'adjustDiaSize2D'.
+      'adjustDia2D' does both --- so the behavior of 'adjustDia2D' has
+      not changed, but it is now possible to apply just one of the two
+      adjustments using the new functions.
+
+    - Diagrams.TwoD.Transform now exports a ScaleInv type for creating
+      scale-invariant objects, which are only affected by rotational
+      and translational components of transformations.
+
+    - The new Diagrams.Coordinates module provides nicer syntax for
+      constructing and pattern-matching point and vector literals.
+
+    - New 'fromFixedSeg' function in Diagrams.Segment, which
+      decomposes a FixedSegment into a starting point and a Segment.
+
+    - New 'withTrace' function for setting the Trace of a diagram
+
+    - New 'boundingRect' and 'bg' functions, for computing a bounding
+      rectangle and "setting the background color" (by placing atop a
+      colored bounding rectangle)
+
+  * New instances
+
+    - The Show instance for R2 now produces something like "2 & 6"
+      instead of "R2 { unR2 = (2,6) }".  The Read instance has also
+      been changed to match, so read . show = id.
+
+    - Enveloped instance for FixedSegment
+
+    - Traced instances for Segment, FixedSegment, Trail, and Path
 
   * API changes
 
     - re-export Data.Colour (minus 'atop' and 'AffineSpace') from Diagrams.Prelude
 
+    - The 'beneath' function is now infixl 6.
+
+    - The BoundingBox module has had a complete overhaul.  There is
+      now a special empty bounding box, and bounding boxes are an
+      instance of Monoid.
+
+    - The type of 'withEnvelope' has been slightly generalized.
+
+    - Data.Colour is now re-exported from Diagrams.Prelude for
+      convenience.
+
   * Dependency/version changes
   
-    - Allow data-default 0.4
-
-  * Bug fixes
+    - Allow data-default 0.4 and 0.5
+    - Allow base-4.6
+    - Allow containers-0.5
 
 0.5: 9 March 2012
 

@@ -33,7 +33,7 @@ module Diagrams.TwoD.Types
 
 import Diagrams.Coordinates
 import Diagrams.Util (tau)
-import Graphics.Rendering.Diagrams
+import Diagrams.Core
 
 import Control.Newtype
 
@@ -68,7 +68,26 @@ import Data.Typeable
 -- > foo (coords -> x :& y) = ...
 
 newtype R2 = R2 { unR2 :: (Double, Double) }
-  deriving (AdditiveGroup, Eq, Ord, Show, Read, Typeable, Num, Fractional)
+  deriving (AdditiveGroup, Eq, Ord, Typeable, Num, Fractional)
+
+instance Show R2 where
+  showsPrec p (R2 (x,y)) = showParen (p >= 7) $
+    showCoord x . showString " & " . showCoord y
+   where
+    showCoord x | x < 0     = showParen True (shows x)
+                | otherwise = shows x
+
+instance Read R2 where
+  readsPrec d r = readParen (d > app_prec)
+                  (\r -> [ (R2 (x,y), r''')
+                         | (x,r')    <- readsPrec (amp_prec + 1) r
+                         , ("&",r'') <- lex r'
+                         , (y,r''')  <- readsPrec (amp_prec + 1) r''
+                         ])
+                  r
+    where
+      app_prec = 10
+      amp_prec = 7
 
 instance Newtype R2 (Double, Double) where
   pack   = R2
@@ -144,7 +163,7 @@ instance Transformable R2 where
 -- Angles
 
 -- | Newtype wrapper used to represent angles as fractions of a
---   circle.  For example, 1/3 = tau/3 radians = 120 degrees.
+--   circle.  For example, 1\/3 = tau\/3 radians = 120 degrees.
 newtype CircleFrac = CircleFrac { getCircleFrac :: Double }
   deriving (Read, Show, Eq, Ord, Enum, Floating, Fractional, Num, Real, RealFloat, RealFrac)
 

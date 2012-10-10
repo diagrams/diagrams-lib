@@ -23,7 +23,7 @@ module Diagrams.TwoD.Adjust
 
     ) where
 
-import Graphics.Rendering.Diagrams
+import Diagrams.Core
 
 import Diagrams.Attributes  (lw, lc)
 import Diagrams.Util        ((#))
@@ -33,6 +33,7 @@ import Diagrams.TwoD.Size   (size2D, center2D, SizeSpec2D(..))
 import Diagrams.TwoD.Text   (fontSize)
 
 import Data.AffineSpace     ((.-.))
+import Data.Semigroup
 
 import Data.Colour.Names    (black)
 
@@ -44,7 +45,7 @@ import Data.Colour.Names    (black)
 --       * Line color black
 --
 --       * Font size 1
-setDefault2DAttributes :: QDiagram b R2 m -> QDiagram b R2 m
+setDefault2DAttributes :: Semigroup m => QDiagram b R2 m -> QDiagram b R2 m
 setDefault2DAttributes d = d # lw 0.01 # lc black # fontSize 1
 
 -- | Adjust the size and position of a 2D diagram to fit within the

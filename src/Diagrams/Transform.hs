@@ -14,7 +14,7 @@ module Diagrams.Transform
 
        ) where
 
-import Graphics.Rendering.Diagrams
+import Diagrams.Core
 import Data.Semigroup
 
 -- | Conjugate one transformation by another. @conjugate t1 t2@ is the

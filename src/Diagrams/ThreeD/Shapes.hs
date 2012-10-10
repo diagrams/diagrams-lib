@@ -26,7 +26,7 @@ import Data.AffineSpace
 import Data.Monoid.PosInf (minimum)
 import Data.VectorSpace
 
-import Graphics.Rendering.Diagrams
+import Diagrams.Core
 
 import Diagrams.ThreeD.Types
 import Diagrams.Solve

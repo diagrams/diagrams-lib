@@ -32,7 +32,7 @@ module Diagrams.Combinators
 
        ) where
 
-import Graphics.Rendering.Diagrams
+import Diagrams.Core
 
 import Diagrams.Segment (Segment(..))
 import Diagrams.Path

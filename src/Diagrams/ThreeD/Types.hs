@@ -29,7 +29,7 @@ module Diagrams.ThreeD.Types
 
 import Diagrams.Coordinates
 import Diagrams.TwoD.Types
-import Graphics.Rendering.Diagrams
+import Diagrams.Core
 
 import Control.Newtype
 

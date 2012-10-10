@@ -16,7 +16,7 @@ module Diagrams.Prelude
          -- * Core library
          -- | The core definitions of transformations, diagrams,
          --   backends, and so on.
-         module Graphics.Rendering.Diagrams
+         module Diagrams.Core
 
          -- * Standard library
 
@@ -80,7 +80,7 @@ module Diagrams.Prelude
        , Applicative(..), (*>), (<*), (<$>), (<$), liftA, liftA2, liftA3
        ) where
 
-import Graphics.Rendering.Diagrams
+import Diagrams.Core
 
 import Diagrams.Align
 import Diagrams.Animation

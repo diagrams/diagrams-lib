@@ -59,7 +59,7 @@ import Data.AffineSpace  ((.-.), (.+^))
 import Data.VectorSpace  (magnitude, normalized, project, (<.>), (^*))
 import Data.Default
 
-import Graphics.Rendering.Diagrams
+import Diagrams.Core
 
 import Diagrams.TwoD.Types
 import Diagrams.TwoD.Transform

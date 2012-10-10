@@ -48,7 +48,7 @@ module Diagrams.TwoD.Transform
 
        ) where
 
-import Graphics.Rendering.Diagrams
+import Diagrams.Core
 
 import Control.Newtype (over)
 

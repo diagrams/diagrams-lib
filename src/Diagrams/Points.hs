@@ -18,7 +18,7 @@ module Diagrams.Points
        ) where
 
 import Diagrams.Coordinates
-import Graphics.Rendering.Diagrams.Points
+import Diagrams.Core.Points
 
 import Control.Newtype
 

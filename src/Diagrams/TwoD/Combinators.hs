@@ -42,7 +42,7 @@ import Data.Default
 import Data.Semigroup
 import Data.VectorSpace
 
-import Graphics.Rendering.Diagrams
+import Diagrams.Core
 
 import Diagrams.Attributes (lw, fc)
 import Diagrams.BoundingBox

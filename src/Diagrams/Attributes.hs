@@ -52,7 +52,7 @@ module Diagrams.Attributes (
 
   ) where
 
-import Graphics.Rendering.Diagrams
+import Diagrams.Core
 
 import Data.Colour
 import qualified Data.Colour.SRGB as RGB

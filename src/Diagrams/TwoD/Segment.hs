@@ -23,8 +23,8 @@ import Data.AffineSpace
 import Data.Monoid.PosInf hiding (minimum)
 import Data.VectorSpace
 
-import Graphics.Rendering.Diagrams
-import Graphics.Rendering.Diagrams.Trace
+import Diagrams.Core
+import Diagrams.Core.Trace
 
 import Diagrams.Segment
 import Diagrams.Solve
