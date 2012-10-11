@@ -24,10 +24,6 @@
 
     - New 'withTrace' function for setting the Trace of a diagram
 
-    - New 'boundingRect' and 'bg' functions, for computing a bounding
-      rectangle and "setting the background color" (by placing atop a
-      colored bounding rectangle)
-
   * New instances
 
     - The Show instance for R2 now produces something like "2 & 6"
