@@ -164,12 +164,15 @@ module Diagrams.TwoD
 
          -- * Size
          -- ** Computing size
-       , width, height, size2D
+       , width, height, size2D, sizeSpec2D
        , extentX, extentY, center2D
 
          -- ** Specifying size
        , SizeSpec2D(..)
        , mkSizeSpec
+
+         -- ** Adjusting size
+       , sized, sizedAs
 
          -- * Visual aids for understanding the internal model
        , showOrigin
