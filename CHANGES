@@ -27,14 +27,14 @@
     - Three new size-related functions:
 
       - New 'sized' function for scaling an object to a particular size.
-	One particularly nice use of this is to obviate the need to keep
-	fiddling with the line width to get diagrams to "look right";
-	just set the line width relative to some arbitrary scale
-	(e.g. assuming the final diagram will fit into a 1x1 box) and
-	then apply 'sized' to the final diagram to make it that given
-	arbitrary size.  It can also be used for easily making something
-	(a diagram, path, trail, ...) the same size as something else,
-	with the help of the new 'sizeSpec2D' function.
+        One particularly nice use of this is to obviate the need to keep
+        fiddling with the line width to get diagrams to "look right";
+        just set the line width relative to some arbitrary scale
+        (e.g. assuming the final diagram will fit into a 1x1 box) and
+        then apply 'sized' to the final diagram to make it that given
+        arbitrary size.  It can also be used for easily making something
+        (a diagram, path, trail, ...) the same size as something else,
+        with the help of the new 'sizeSpec2D' function.
 
       - New 'sizedAs' function, for setting the size of some object to
         be "the same as" some other object.
