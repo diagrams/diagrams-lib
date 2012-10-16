@@ -18,9 +18,8 @@ module Diagrams.TwoD.Adjust
       setDefault2DAttributes
     , adjustDiaSize2D
     , adjustDia2D
-    , adjustSize
-    , requiredScale
-
+    , adjustSize     -- for backwards compatibility
+    , requiredScale  -- re-exported for backwards compatibility
     ) where
 
 import Diagrams.Core
@@ -29,7 +28,9 @@ import Diagrams.Attributes  (lw, lc)
 import Diagrams.Util        ((#))
 
 import Diagrams.TwoD.Types  (R2, p2)
-import Diagrams.TwoD.Size   (size2D, center2D, SizeSpec2D(..))
+import Diagrams.TwoD.Size   ( size2D, center2D, SizeSpec2D(..)
+                            , requiredScaleT, requiredScale
+                            )
 import Diagrams.TwoD.Text   (fontSize)
 
 import Data.AffineSpace     ((.-.))
@@ -99,29 +100,8 @@ adjustDia2D :: Monoid' m
 adjustDia2D getSize setSize b opts d
   = adjustDiaSize2D getSize setSize b opts (d # setDefault2DAttributes # freeze)
 
--- | @adjustSize spec sz@ returns a transformation (a uniform scale)
---   which can be applied to something of size @sz@ to make it the
---   requested size @spec@.
+{-# DEPRECATED adjustSize "Use Diagrams.TwoD.Size.requiredScaleT instead." #-}
+-- | Re-export 'requiredScaleT' with the name 'adjustSize' for
+--   backwards compatibility.
 adjustSize :: SizeSpec2D -> (Double, Double) -> Transformation R2
-adjustSize spec size = scaling (requiredScale spec size)
-
--- | @requiredScale spec sz@ returns a scaling factor necessary to
---   make something of size @sz@ fit the requested size @spec@,
---   without changing the aspect ratio.  Hence an explicit
---   specification of both dimensions may not be honored if the aspect
---   ratios do not match; in that case the scaling will be as large as
---   possible so that the object still fits within the requested size.
-requiredScale :: SizeSpec2D -> (Double, Double) -> Double
-requiredScale Absolute _    = 1
-requiredScale (Width wSpec) (w,_)
-  | wSpec == 0 || w == 0 = 1
-  | otherwise            = wSpec / w
-requiredScale (Height hSpec) (_,h)
-  | hSpec == 0 || h == 0 = 1
-  | otherwise            = hSpec / h
-requiredScale (Dims wSpec hSpec) (w,h) = s
-  where xscale  = wSpec / w
-        yscale  = hSpec / h
-        s'      = min xscale yscale
-        s | isInfinite s' = 1
-          | otherwise     = s'
+adjustSize = requiredScaleT
