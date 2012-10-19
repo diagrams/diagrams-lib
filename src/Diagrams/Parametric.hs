@@ -11,7 +11,7 @@ module Diagrams.Parametric
   , DomainBounds(..), EndValues(..), Sectionable(..)
 
   -- * Adjusting
-  , Adjustable(..), AdjustOpts(..), AdjustMethod(..), AdjustSide(..)
+  , AdjustOpts(..), AdjustMethod(..), AdjustSide(..)
   ) where
 
 import Diagrams.Core
@@ -135,12 +135,6 @@ class ArcLength p => ArcLengthToParam p where
 --  Adjusting length
 --------------------------------------------------
 
-class Adjustable a where
-  -- | Adjust the length of a segment / trail / path.  The second parameter is
-  --   an option record which controls how the adjustment should be performed;
-  --   see 'AdjustOpts'.
-  adjust :: a -> AdjustOpts (V a) -> a
-
 -- | What method should be used for adjusting a segment, trail, or
 --   path?
 data AdjustMethod v = ByParam (Scalar v)     -- ^ Extend by the given parameter value
@@ -171,3 +165,22 @@ instance Default AdjustSide where
 
 instance Fractional (Scalar v) => Default (AdjustOpts v) where
   def = ALO def def (1/10^(10 :: Integer)) Proxy
+
+-- | Adjust the length of a parametric path.  The second parameter is an
+--   option record which controls how the adjustment should be performed;
+--   see 'AdjustOpts'.
+adjust :: (DomainBounds a, Sectionable a, ArcLengthToParam a, Fractional (Scalar (V a)))
+       => a -> AdjustOpts (V a) -> a
+adjust s opts = section s
+  (if adjSide opts == End   then domainLower s else getParam s)
+  (if adjSide opts == Start then domainLower s else domainUpper s - getParam (reverseDomain s))
+ where
+  getParam seg = case adjMethod opts of
+    ByParam p -> -p * bothCoef
+    ByAbsolute len -> param (-len * bothCoef)
+    ToAbsolute len -> param (absDelta len * bothCoef)
+   where
+    param l = arcLengthToParam seg l eps
+    absDelta len = arcLength s eps - len
+  bothCoef = if adjSide opts == Both then 0.5 else 1
+  eps = adjEps opts
