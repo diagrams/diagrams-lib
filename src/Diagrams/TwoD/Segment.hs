@@ -26,6 +26,7 @@ import Data.VectorSpace
 import Diagrams.Core
 import Diagrams.Core.Trace
 
+import Diagrams.Parametric
 import Diagrams.Segment
 import Diagrams.Solve
 import Diagrams.TwoD.Transform
@@ -94,7 +95,7 @@ instance Traced (FixedSegment R2) where
       c  = -3*y0 + 3*y1
       d  = y0
       ts = filter (liftA2 (&&) (>= 0) (<= 1)) (cubForm a b c d)
-      xs = map (fst . unp2 . fAtParam bez') ts
+      xs = map (fst . unp2 . atParam bez') ts
     in
       case xs of
         [] -> PosInfty

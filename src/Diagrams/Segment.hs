@@ -31,33 +31,17 @@ module Diagrams.Segment
 
          Segment(..), straight, bezier3
 
-         -- * Computing with segments
-       , atParam, segOffset
-       , reverseSegment
-       , splitAtParam, arcLength
-       , arcLengthToParam
-
-         -- * Adjusting segments
-       , adjustSegment
-       , AdjustOpts(..)
-       , AdjustMethod(..)
-       , AdjustSide(..)
-
-       , adjustSegmentToParams
-
          -- * Fixed (absolutely located) segments
        , FixedSegment(..)
        , mkFixedSeg, fromFixedSeg
-       , fAtParam
 
        ) where
 
 import Diagrams.Core
-
+import Diagrams.Parametric
 import Diagrams.Solve
 import Diagrams.Util
 
-import Data.Default
 import Data.AffineSpace
 import Data.VectorSpace
 
@@ -107,28 +91,25 @@ straight = Linear
 bezier3 :: v -> v -> v -> Segment v
 bezier3 = Cubic
 
+type instance Codomain (Segment v) = v
+
 -- | 'atParam' yields a parametrized view of segments as continuous
 --   functions @[0,1] -> v@, which give the offset from the start of
 --   the segment for each value of the parameter between @0@ and @1@.
 --   It is designed to be used infix, like @seg ``atParam`` 0.5@.
-atParam :: (VectorSpace v, Num (Scalar v)) => Segment v -> Scalar v -> v
-atParam (Linear x) t       = t *^ x
-atParam (Cubic c1 c2 x2) t =     (3 * t'*t'*t ) *^ c1
-                             ^+^ (3 * t'*t *t ) *^ c2
-                             ^+^ (    t *t *t ) *^ x2
-  where t' = 1-t
+instance (VectorSpace v, Num (Scalar v)) => Parametric (Segment v) where
+  atParam (Linear x) t       = t *^ x
+  atParam (Cubic c1 c2 x2) t =     (3 * t'*t'*t ) *^ c1
+                               ^+^ (3 * t'*t *t ) *^ c2
+                               ^+^ (    t *t *t ) *^ x2
+    where t' = 1-t
 
--- | Compute the offset from the start of a segment to the
---   end.  Note that in the case of a Bézier segment this is /not/ the
---   same as the length of the curve itself; for that, see 'arcLength'.
-segOffset :: Segment v -> v
-segOffset (Linear v)    = v
-segOffset (Cubic _ _ v) = v
+instance  Num (Scalar v) => DomainBounds (Segment v) where
 
--- | Reverse the direction of a segment.
-reverseSegment :: AdditiveGroup v => Segment v -> Segment v
-reverseSegment (Linear v)       = Linear (negateV v)
-reverseSegment (Cubic c1 c2 x2) = Cubic (c2 ^-^ x2) (c1 ^-^ x2) (negateV x2)
+instance AdditiveGroup v => EndValues (Segment v) where
+  atStart = const zeroV
+  atEnd (Linear v) = v
+  atEnd (Cubic _ _ v) = v
 
 ------------------------------------------------------------
 --  Computing segment envelope  ------------------------------
@@ -158,7 +139,6 @@ reverseSegment (Cubic c1 c2 x2) = Cubic (c2 ^-^ x2) (c1 ^-^ x2) (negateV x2)
 
 -- | The envelope for a segment is based at the segment's start.
 instance (InnerSpace v, OrderedField (Scalar v)) => Enveloped (Segment v) where
-
   getEnvelope (s@(Linear {})) = mkEnvelope $ \v ->
     maximum . map (\t -> ((s `atParam` t) <.> v) / magnitudeSq v) $ [0,1]
 
@@ -175,136 +155,76 @@ instance (InnerSpace v, OrderedField (Scalar v)) => Enveloped (Segment v) where
 --  Manipulating segments
 ------------------------------------------------------------
 
--- | 'splitAtParam' splits a segment @s@ into two new segments @(l,r)@
---   at the parameter @t@ where @l@ corresponds to the portion of
---   @s@ for parameter values from @0@ to @t@ and @r@ for @s@ from @t@ to @1@.
---   The following should hold for splitting:
---
--- > paramSplit s t u
--- >   | u < t     = atParam s u == atParam l (u / t)
--- >   | otherwise = atParam s u == atParam s t ^+^ atParam l ((u - t) / (1.0 - t))
--- >   where (l,r) = splitAtParam s t
---
---   That is to say, the parameterization scales linearly with splitting.
---
---   'splitAtParam' can also be used with parameters outside the range
---   (0,1).  For example, using the parameter @2@ gives two result
---   segments where the first is the original segment extended to the
---   parameter 2, and the second result segment travels /backwards/
---   from the end of the first to the end of the original segment.
-splitAtParam :: (VectorSpace v) => Segment v -> Scalar v -> (Segment v, Segment v)
-splitAtParam (Linear x1) t = (left, right)
-  where left  = Linear p
-        right = Linear (x1 ^-^ p)
-        p = lerp zeroV x1 t
-splitAtParam (Cubic c1 c2 x2) t = (left, right)
-  where left  = Cubic a b e
-        right = Cubic (c ^-^ e) (d ^-^ e) (x2 ^-^ e)
-        p = lerp c1    c2 t
-        a = lerp zeroV c1 t
-        b = lerp a     p  t
-        d = lerp c2    x2 t
-        c = lerp p     d  t
-        e = lerp b     c  t
+instance (VectorSpace v, Fractional (Scalar v)) => Sectionable (Segment v) where
+  splitAtParam (Linear x1) t = (left, right)
+    where left  = Linear p
+          right = Linear (x1 ^-^ p)
+          p = lerp zeroV x1 t
+  splitAtParam (Cubic c1 c2 x2) t = (left, right)
+    where left  = Cubic a b e
+          right = Cubic (c ^-^ e) (d ^-^ e) (x2 ^-^ e)
+          p = lerp c1    c2 t
+          a = lerp zeroV c1 t
+          b = lerp a     p  t
+          d = lerp c2    x2 t
+          c = lerp p     d  t
+          e = lerp b     c  t
+  
+  reverseDomain (Linear v)       = Linear (negateV v)
+  reverseDomain (Cubic c1 c2 x2) = Cubic (c2 ^-^ x2) (c1 ^-^ x2) (negateV x2)
 
 -- | 'arcLength' @s m@ approximates the arc length of the segment curve @s@ with
 --   accuracy of at least plus or minus @m@.  For a 'Cubic' segment this is computed
 --   by subdividing until the arc length of the path through the control points is
 --   within @m@ of distance from start to end.
-arcLength :: (InnerSpace v, Floating (Scalar v), Ord (Scalar v))
-          => Segment v -> Scalar v -> Scalar v
-arcLength (Linear x1) _ = magnitude x1
-arcLength s@(Cubic c1 c2 x2) m
-  | ub - lb < m = (ub + lb) / 2
-  | otherwise   = arcLength l m + arcLength r m
- where (l,r) = splitAtParam s 0.5
-       ub    = sum (map magnitude [c1, c2 ^-^ c1, x2 ^-^ c2])
-       lb    = magnitude x2
+instance (InnerSpace v, Floating (Scalar v), Ord (Scalar v))
+      => ArcLength (Segment v) where
+  arcLength (Linear x1) _ = magnitude x1
+  arcLength s@(Cubic c1 c2 x2) m
+    | ub - lb < m = (ub + lb) / 2
+    | otherwise   = arcLength l m + arcLength r m
+   where (l,r) = splitAtParam s 0.5
+         ub    = sum (map magnitude [c1, c2 ^-^ c1, x2 ^-^ c2])
+         lb    = magnitude x2
 
 -- | @'arcLengthToParam' s l m@ converts the absolute arc length @l@,
 --   measured from the segment starting point, to a parameter on the
 --   segment @s@, with accuracy of at least plus or minus @m@.  Works
 --   for /any/ arc length, and may return any parameter value (not
 --   just parameters between 0 and 1).
-arcLengthToParam :: (InnerSpace v, Floating (Scalar v), Ord (Scalar v), AdditiveGroup v)
-                 => Segment v -> Scalar v -> Scalar v -> Scalar v
-arcLengthToParam s _ m | arcLength s m == 0 = 0.5
-arcLengthToParam s@(Linear {}) len m = len / arcLength s m
-arcLengthToParam s@(Cubic {})  len m
-  | len == 0             = 0
-  | len < 0              = - arcLengthToParam (fst (splitAtParam s (-1))) (-len) m
-  | abs (len - slen) < m = 1
-  | len > slen           = 2 * arcLengthToParam (fst (splitAtParam s 2)) len m
-  | len < ll             = (*0.5) $ arcLengthToParam l len m
-  | otherwise            = (+0.5) . (*0.5) $ arcLengthToParam r (len - ll) m
-  where (l,r) = splitAtParam s 0.5
-        ll    = arcLength l m
-        slen  = arcLength s m
+instance (InnerSpace v, Floating (Scalar v), Ord (Scalar v), AdditiveGroup v)
+      => ArcLengthToParam (Segment v) where
+  arcLengthToParam s _ m | arcLength s m == 0 = 0.5
+  arcLengthToParam s@(Linear {}) len m = len / arcLength s m
+  arcLengthToParam s@(Cubic {})  len m
+    | len == 0             = 0
+    | len < 0              = - arcLengthToParam (fst (splitAtParam s (-1))) (-len) m
+    | abs (len - slen) < m = 1
+    | len > slen           = 2 * arcLengthToParam (fst (splitAtParam s 2)) len m
+    | len < ll             = (*0.5) $ arcLengthToParam l len m
+    | otherwise            = (+0.5) . (*0.5) $ arcLengthToParam r (len - ll) m
+    where (l,r) = splitAtParam s 0.5
+          ll    = arcLength l m
+          slen  = arcLength s m
 
 -- Note, the above seems to be quite slow since it duplicates a lot of
 -- work.  We could trade off some time for space by building a tree of
 -- parameter values (up to a certain depth...)
 
---------------------------------------------------
---  Adjusting segment length
---------------------------------------------------
-
--- | What method should be used for adjusting a segment, trail, or
---   path?
-data AdjustMethod v = ByParam (Scalar v)     -- ^ Extend by the given parameter value
-                                             --   (use a negative parameter to shrink)
-                    | ByAbsolute (Scalar v)  -- ^ Extend by the given arc length
-                                             --   (use a negative length to shrink)
-                    | ToAbsolute (Scalar v)  -- ^ Extend or shrink to the given
-                                             --   arc length
-
--- | Which side of a segment, trail, or path should be adjusted?
-data AdjustSide = Start  -- ^ Adjust only the beginning
-                | End    -- ^ Adjust only the end
-                | Both   -- ^ Adjust both sides equally
-  deriving (Show, Read, Eq, Ord, Bounded, Enum)
-
--- | How should a segment, trail, or path be adjusted?
-data AdjustOpts v = ALO { adjMethod :: AdjustMethod v
-                        , adjSide   :: AdjustSide
-                        , adjEps    :: Scalar v
-                        , adjOptsvProxy__ :: Proxy v
-                        }
-
-instance Fractional (Scalar v) => Default (AdjustMethod v) where
-  def = ByParam 0.2
-
-instance Default AdjustSide where
-  def = Both
-
-instance Fractional (Scalar v) => Default (AdjustOpts v) where
-  def = ALO def def (1/10^(10 :: Integer)) Proxy
-
--- | Adjust the length of a segment.  The second parameter is an
---   option record which controls how the adjustment should be
---   performed; see 'AdjustOpts'.
-adjustSegment :: (InnerSpace v, OrderedField (Scalar v))
-              => Segment v -> AdjustOpts v -> Segment v
-adjustSegment s opts = adjustSegmentToParams s
-    (if adjSide opts == End   then 0 else getParam s)
-    (if adjSide opts == Start then 0 else 1 - getParam (reverseSegment s))
-  where
-    getParam seg = case adjMethod opts of
-      ByParam p -> -p * bothCoef
-      ByAbsolute len -> param (-len * bothCoef)
-      ToAbsolute len -> param (absDelta len * bothCoef)
-      where
-        param l = arcLengthToParam seg l eps
-        absDelta len = arcLength s eps - len
-    bothCoef = if adjSide opts == Both then 0.5 else 1
-    eps = adjEps opts
-
--- | Given a segment and parameters @t1@, @t2@, produce the segment
---   which lies on the (infinitely extended) original segment
---   beginning at @t1@ and ending at @t2@.
-adjustSegmentToParams :: (Fractional (Scalar v), VectorSpace v)
-                      => Segment v -> Scalar v -> Scalar v -> Segment v
-adjustSegmentToParams s t1 t2 = snd (splitAtParam (fst (splitAtParam s t2)) (t1/t2))
+instance (InnerSpace v, OrderedField (Scalar v)) => Adjustable (Segment v) where
+  adjust s opts = section s
+      (if adjSide opts == End   then 0 else getParam s)
+      (if adjSide opts == Start then 0 else 1 - getParam (reverseDomain s))
+    where
+      getParam seg = case adjMethod opts of
+        ByParam p -> -p * bothCoef
+        ByAbsolute len -> param (-len * bothCoef)
+        ToAbsolute len -> param (absDelta len * bothCoef)
+        where
+          param l = arcLengthToParam seg l eps
+          absDelta len = arcLength s eps - len
+      bothCoef = if adjSide opts == Both then 0.5 else 1
+      eps = adjEps opts
 
 ------------------------------------------------------------
 --  Fixed segments
@@ -363,17 +283,16 @@ fromFixedSeg :: AdditiveGroup v => FixedSegment v -> (Point v, Segment v)
 fromFixedSeg (FLinear p1 p2)      = (p1, Linear (p2 .-. p1))
 fromFixedSeg (FCubic x1 c1 c2 x2) = (x1, Cubic (c1 .-. x1) (c2 .-. x1) (x2 .-. x1))
 
--- | Compute the point on a fixed segment at a given parameter.  A
---   parameter of 0 corresponds to the starting point and 1 corresponds
---   to the ending point.
-fAtParam :: VectorSpace v => FixedSegment v -> Scalar v -> Point v
-fAtParam (FLinear p1 p2) t = alerp p1 p2 t
-fAtParam (FCubic x1 c1 c2 x2) t = p3
-  where p11 = alerp x1 c1 t
-        p12 = alerp c1 c2 t
-        p13 = alerp c2 x2 t
+type instance Codomain (FixedSegment v) = Point v
 
-        p21 = alerp p11 p12 t
-        p22 = alerp p12 p13 t
+instance VectorSpace v => Parametric (FixedSegment v) where
+  atParam (FLinear p1 p2) t = alerp p1 p2 t
+  atParam (FCubic x1 c1 c2 x2) t = p3
+    where p11 = alerp x1 c1 t
+          p12 = alerp c1 c2 t
+          p13 = alerp c2 x2 t
 
-        p3  = alerp p21 p22 t
+          p21 = alerp p11 p12 t
+          p22 = alerp p12 p13 t
+
+          p3  = alerp p21 p22 t

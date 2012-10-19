@@ -76,6 +76,7 @@ import Diagrams.Core.Points
 
 import Diagrams.Align
 import Diagrams.Segment
+import Diagrams.Parametric
 import Diagrams.Points
 import Diagrams.Transform
 
@@ -193,7 +194,7 @@ instance HasLinearMap v => Transformable (Trail v) where
 instance (InnerSpace v, OrderedField (Scalar v)) => Enveloped (Trail v) where
 
   getEnvelope (Trail segs _) =
-    foldr (\seg bds -> moveOriginBy (negateV . segOffset $ seg) bds <> getEnvelope seg)
+    foldr (\seg bds -> moveOriginBy (negateV . atEnd $ seg) bds <> getEnvelope seg)
           mempty
           segs
 
@@ -225,8 +226,8 @@ trailSegments' t | isClosed t = trailSegments t
                  | otherwise  = trailSegments t
 
 -- | Extract the offsets of the segments of a trail.
-trailOffsets :: Trail v -> [v]
-trailOffsets (Trail segs _) = map segOffset segs
+trailOffsets :: AdditiveGroup v => Trail v -> [v]
+trailOffsets (Trail segs _) = map atEnd segs
 
 -- | Compute the offset from the start of a trail to the end.
 trailOffset :: AdditiveGroup v => Trail v -> v
@@ -238,15 +239,15 @@ trailVertices :: AdditiveGroup v => Point v -> Trail v -> [Point v]
 trailVertices p = scanl (.+^) p . trailOffsets
 
 -- | Reverse a trail's direction of travel.
-reverseTrail :: AdditiveGroup v => Trail v -> Trail v
+reverseTrail :: (VectorSpace v, Fractional (Scalar v)) => Trail v -> Trail v
 reverseTrail t@(Trail {trailSegments = []}) = t
 reverseTrail t@(Trail {trailSegments = ss})
   | isClosed t = t { trailSegments = straight (trailOffset t) : reverseSegs ss }
   | otherwise  = t { trailSegments = reverseSegs ss }
-  where reverseSegs = fmap reverseSegment . reverse
+  where reverseSegs = fmap reverseDomain . reverse
 
 -- | Reverse a trail with a fixed starting point.
-reverseRootedTrail :: AdditiveGroup v => (Point v, Trail v) -> (Point v, Trail v)
+reverseRootedTrail :: (VectorSpace v, Fractional (Scalar v)) => (Point v, Trail v) -> (Point v, Trail v)
 reverseRootedTrail (p, t)
   | isClosed t = (p, reverseTrail t)
   | otherwise  = (p .+^ trailOffset t, reverseTrail t)
@@ -358,7 +359,7 @@ expandPath :: (HasLinearMap v, VectorSpace v, Fractional (Scalar v), Eq (Scalar 
 expandPath d p = (scale d `under` translation (origin .-. pathCentroid p)) p
 
 -- | Reverse the direction of all the component trails of a path.
-reversePath :: AdditiveGroup v => Path v -> Path v
+reversePath :: (VectorSpace v, Fractional (Scalar v)) => Path v -> Path v
 reversePath = (over Path . map) reverseRootedTrail
 
 -- | Convert a path into a list of lists of 'FixedSegment's.
@@ -375,7 +376,7 @@ fixPath = map (uncurry fixTrail) . unpack
 --   different style to each segment.
 explodeTrail :: (VectorSpace (V p), PathLike p) => Point (V p) -> Trail (V p) -> [p]
 explodeTrail start = snd . mapAccumL mkPath start . trailSegments'
-  where mkPath p seg = (p .+^ segOffset seg, pathLike p False [seg])
+  where mkPath p seg = (p .+^ atEnd seg, pathLike p False [seg])
 
 -- | \"Explode\" a path by exploding every component trail (see 'explodeTrail').
 explodePath :: (VectorSpace (V p), PathLike p) => Path (V p) -> [[p]]
