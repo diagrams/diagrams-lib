@@ -67,13 +67,13 @@ hrule d = pathLike (p2 (-d/2,0)) False [Linear (d & 0)]
 vrule :: (PathLike p, V p ~ R2) => Double -> p
 vrule d = pathLike (p2 (0,d/2)) False [Linear (0 & (-d))]
 
--- | A sqaure with its center at the origin and sides of length 1,
+-- | A square with its center at the origin and sides of length 1,
 --   oriented parallel to the axes.
 unitSquare :: (PathLike p, V p ~ R2) => p
 unitSquare = polygon with { polyType   = PolyRegular 4 (sqrt 2 / 2)
                           , polyOrient = OrientH }
 
--- | A sqaure with its center at the origin and sides of the given
+-- | A square with its center at the origin and sides of the given
 --   length, oriented parallel to the axes.
 square :: (PathLike p, Transformable p, V p ~ R2) => Double -> p
 square d = unitSquare # scale d
