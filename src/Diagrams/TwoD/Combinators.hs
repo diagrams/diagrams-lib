@@ -158,8 +158,8 @@ strutX :: (Backend b R2, Monoid' m) => Double -> QDiagram b R2 m
 strutX d = strut (d & 0)
 
 -- | @strutY d@ is an empty diagram with height @d@, width 0, and a
---   centered local origin. Note that @strutY (-w)@ behaves the same as
---   @strutY w@.
+--   centered local origin. Note that @strutY (-h)@ behaves the same as
+--   @strutY h@.
 strutY :: (Backend b R2, Monoid' m) => Double -> QDiagram b R2 m
 strutY d = strut (0 & d)
 
