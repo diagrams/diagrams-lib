@@ -87,6 +87,8 @@ module Diagrams.TwoD
        , ellipse
        , ellipseXY
        , arc
+       , arc'
+       , arcCW
        , wedge
 
          -- ** General polygons
