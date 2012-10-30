@@ -29,6 +29,8 @@ module Diagrams.TwoD.Combinators
     , strutX, strutY
     , padX, padY
 
+    , extrudeLeft, extrudeRight, extrudeBottom, extrudeTop
+
     , view
 
     , boundingRect, bg
@@ -182,6 +184,42 @@ padX s d = withEnvelope (d # scaleX s) d
 padY :: ( Backend b R2, Monoid' m )
      => Double -> QDiagram b R2 m -> QDiagram b R2 m
 padY s d = withEnvelope (d # scaleY s) d
+
+-- | @extrudeLeft s@ \"extrudes\" a diagram in the negative x-direction,
+--   offsetting its envelope by the provided distance. When @ s < 0 @,
+--   the envelope is inset instead.
+--
+--   See the documentation for "extrudeEnvelope" for more information.
+extrudeLeft s
+  | s >= 0    = extrudeEnvelope $ unitX ^* negate s
+  | otherwise = intrudeEnvelope $ unitX ^* negate s
+
+-- | @extrudeRight s@ \"extrudes\" a diagram in the positive x-direction,
+--   offsetting its envelope by the provided distance. When @ s < 0 @,
+--   the envelope is inset instead.
+--
+--   See the documentation for "extrudeEnvelope" for more information.
+extrudeRight s
+  | s >= 0    = extrudeEnvelope $ unitX ^* s
+  | otherwise = intrudeEnvelope $ unitX ^* s
+
+-- | @extrudeBottom s@ \"extrudes\" a diagram in the negative y-direction,
+--   offsetting its envelope by the provided distance. When @ s < 0 @,
+--   the envelope is inset instead.
+--
+--   See the documentation for "extrudeEnvelope" for more information.
+extrudeBottom s
+  | s >= 0    = extrudeEnvelope $ unitY ^* negate s
+  | otherwise = intrudeEnvelope $ unitY ^* negate s
+
+-- | @extrudeTop s@ \"extrudes\" a diagram in the positive y-direction,
+--   offsetting its envelope by the provided distance. When @ s < 0 @,
+--   the envelope is inset instead.
+--
+--   See the documentation for "extrudeEnvelope" for more information.
+extrudeTop s
+  | s >= 0    = extrudeEnvelope $ unitY ^* s
+  | otherwise = intrudeEnvelope $ unitY ^* s
 
 -- | @view p v@ sets the envelope of a diagram to a rectangle whose
 --   lower-left corner is at @p@ and whose upper-right corner is at @p
