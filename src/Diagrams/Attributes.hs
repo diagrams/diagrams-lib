@@ -238,7 +238,7 @@ data LineCap = LineCapButt   -- ^ Lines end precisely at their endpoints.
   deriving (Eq,Show,Typeable)
 
 newtype LineCapA = LineCapA (Last LineCap)
-  deriving (Typeable, Semigroup)
+  deriving (Typeable, Semigroup, Eq)
 instance AttributeClass LineCapA
 
 getLineCap :: LineCapA -> LineCap
@@ -258,7 +258,7 @@ data LineJoin = LineJoinMiter    -- ^ Use a \"miter\" shape (whatever that is).
   deriving (Eq,Show,Typeable)
 
 newtype LineJoinA = LineJoinA (Last LineJoin)
-  deriving (Typeable, Semigroup)
+  deriving (Typeable, Semigroup, Eq)
 instance AttributeClass LineJoinA
 
 getLineJoin :: LineJoinA -> LineJoin
@@ -270,10 +270,10 @@ lineJoin = applyAttr . LineJoinA . Last
 
 -- | Create lines that are dashing... er, dashed.
 data Dashing = Dashing [Double] Double
-  deriving Typeable
+  deriving (Typeable, Eq)
 
 newtype DashingA = DashingA (Last Dashing)
-  deriving (Typeable, Semigroup)
+  deriving (Typeable, Semigroup, Eq)
 instance AttributeClass DashingA
 
 getDashing :: DashingA -> Dashing
