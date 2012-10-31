@@ -88,7 +88,7 @@ the approximation error.
 --   'Trail' of a radius one arc counterclockwise between the two angles.
 arcT :: Angle a => a -> a -> Trail R2
 arcT start end
-    | e < s     = arcT s (e + 1) -- Try again closer to CCW
+    | e < s     = arcT s (e + fromIntegral d)
     | otherwise = Trail bs (sweep >= tau)
   where sweep = convertAngle $ end - start
         bs    = map (rotate start) . bezierFromSweep $ sweep
@@ -98,6 +98,7 @@ arcT start end
         -- known 'Angle' for that.
         s = convertAngle start :: CircleFrac
         e = convertAngle end
+        d = ceiling (s - e) :: Integer
 
 -- | Given a start angle @s@ and an end angle @e@, @'arc' s e@ is the
 --   path of a radius one arc counterclockwise between the two angles.
