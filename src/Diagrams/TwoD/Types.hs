@@ -7,6 +7,8 @@
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 
+{-# LANGUAGE UndecidableInstances #-}
+
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 -----------------------------------------------------------------------------
 -- |
@@ -23,6 +25,7 @@ module Diagrams.TwoD.Types
        ( -- * 2D Euclidean space
          R2, r2, unr2
        , P2, p2, unp2
+       , D2, d2, und2
        , T2
 
          -- * Angles
@@ -67,19 +70,30 @@ import Data.Typeable
 -- > foo (unr2 -> (x,y)) = ...
 -- > foo (coords -> x :& y) = ...
 
-newtype R2 = R2 { unR2 :: (Double, Double) }
-  deriving (AdditiveGroup, Eq, Ord, Typeable, Num, Fractional)
+newtype D2 a = D2 { unD2 :: (a, a) }
+  deriving (Eq, Ord, Typeable, Num, Fractional)
 
-instance Show R2 where
-  showsPrec p (R2 (x,y)) = showParen (p >= 7) $
+d2 :: (a, a) -> D2 a
+d2 = D2
+
+und2 :: D2 a -> (a, a)
+und2 = unpack
+
+type R2 = D2 Double
+
+unR2 :: R2 -> (Double, Double)
+unR2 = unD2
+
+instance (Show a, Num a, Ord a) => Show (D2 a) where
+  showsPrec p (D2 (x,y)) = showParen (p >= 7) $
     showCoord x . showString " & " . showCoord y
    where
     showCoord x | x < 0     = showParen True (shows x)
                 | otherwise = shows x
 
-instance Read R2 where
+instance (Read a) => Read (D2 a) where
   readsPrec d r = readParen (d > app_prec)
-                  (\r -> [ (R2 (x,y), r''')
+                  (\r -> [ (D2 (x,y), r''')
                          | (x,r')    <- readsPrec (amp_prec + 1) r
                          , ("&",r'') <- lex r'
                          , (y,r''')  <- readsPrec (amp_prec + 1) r''
@@ -89,9 +103,9 @@ instance Read R2 where
       app_prec = 10
       amp_prec = 7
 
-instance Newtype R2 (Double, Double) where
-  pack   = R2
-  unpack = unR2
+instance Newtype (D2 a) (a, a) where
+  pack   = D2
+  unpack = unD2
 
 -- | Construct a 2D vector from a pair of components.  See also '&'.
 r2 :: (Double, Double) -> R2
@@ -103,26 +117,37 @@ unr2 = unpack
 
 type instance V R2 = R2
 
-instance VectorSpace R2 where
-  type Scalar R2 = Double
-  (*^) = over R2 . (*^)
+instance (AdditiveGroup a) => AdditiveGroup (D2 a) where
+  zeroV = d2 (zeroV, zeroV)
+  a ^+^ b = let (ax, ay) = und2 a
+                (bx, by) = und2 b
+            in d2 (ax ^+^ bx, ay ^+^ by)
+  negateV a = let (ax, ay) = und2 a 
+              in d2 (negateV ax, negateV ay)
 
-instance HasBasis R2 where
-  type Basis R2 = Either () () -- = Basis (Double, Double)
-  basisValue = R2 . basisValue
-  decompose  = decompose  . unR2
-  decompose' = decompose' . unR2
+instance (AdditiveGroup a, Num a) => VectorSpace (D2 a) where
+  type Scalar (D2 a) = a
+  s *^ v = let (vx, vy) = und2 v
+           in d2 (s * vx, s * vy)
 
-instance InnerSpace R2 where
-  (unR2 -> vec1) <.> (unR2 -> vec2) = vec1 <.> vec2
+-- GHC can't deduce "a ~ Scalar a", so it has to be added here.
+-- This is why "UndecidableInstances" is needed.
+instance (AdditiveGroup a, Num a, HasBasis a, a ~ Scalar a) => HasBasis (D2 a) where
+  type Basis (D2 a) = Basis (a,a) -- should be equal to: Either (Basis a) (Basis a)
+  basisValue = d2 . basisValue
+  decompose  = decompose  . und2
+  decompose' = decompose' . und2
 
-instance Coordinates R2 where
-  type FinalCoord R2     = Double
-  type PrevDim R2        = Double
-  type Decomposition R2  = Double :& Double
+instance (AdditiveGroup a, Num a, InnerSpace a, a ~ Scalar a) => InnerSpace (D2 a) where
+  (und2 -> vec1) <.> (und2 -> vec2) = vec1 <.> vec2
 
-  x & y                  = r2 (x,y)
-  coords (unR2 -> (x,y)) = x :& y
+instance Coordinates (D2 a) where
+  type FinalCoord (D2 a)     = a
+  type PrevDim (D2 a)        = a
+  type Decomposition (D2 a)  = a :& a
+
+  x & y                  = d2 (x,y)
+  coords (unD2 -> (x,y)) = x :& y
 
 -- | Points in R^2.  This type is intentionally abstract.
 --
