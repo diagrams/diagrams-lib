@@ -18,8 +18,8 @@ module Diagrams.Combinators
 
          withEnvelope, withTrace
        , phantom, strut
-
        , pad
+       , extrudeEnvelope, intrudeEnvelope
 
          -- * Binary operations
        , beneath
@@ -100,6 +100,47 @@ strut v = mkQD nullPrim env mempty mempty mempty
   --
   -- also note that we can't remove the call to getEnvelope, since
   -- translating a segment has no effect.
+
+-- | @extrudeEnvelope v d@ asymmetrically \"extrudes\" the envelope of
+--   a diagram in the given direction.  All parts of the envelope
+--   within 90 degrees of this direction are modified, offset outwards
+--   by the magnitude of the vector.
+--
+--   This works by offsetting the envelope distance proportionally to
+--   the cosine of the difference in angle, and leaving it unchanged
+--   when this factor is negative.
+extrudeEnvelope
+  :: ( Ord (Scalar v), Num (Scalar v), AdditiveGroup (Scalar v)
+     , Floating (Scalar v), HasLinearMap v, InnerSpace v, Monoid' m )
+  => v -> QDiagram b v m -> QDiagram b v m
+extrudeEnvelope = deformEnvelope 0.5
+
+-- | @intrudeEnvelope v d@ asymmetrically \"intrudes\" the envelope of
+--   a diagram away from the given direction.  All parts of the envelope
+--   within 90 degrees of this direction are modified, offset inwards
+--   by the magnitude of the vector.
+--
+--   Note that this could create strange inverted envelopes, where
+--   @ diameter v d < 0 @.
+intrudeEnvelope
+  :: ( Ord (Scalar v), Num (Scalar v), AdditiveGroup (Scalar v)
+     , Floating (Scalar v), HasLinearMap v, InnerSpace v, Monoid' m )
+  => v -> QDiagram b v m -> QDiagram b v m
+intrudeEnvelope = deformEnvelope (-0.5)
+
+-- Utility for extrudeEnvelope / intrudeEnvelope
+deformEnvelope
+  :: ( Ord (Scalar v), Num (Scalar v), AdditiveGroup (Scalar v)
+     , Floating (Scalar v), HasLinearMap v, InnerSpace v, Monoid' m )
+  => (Scalar v) -> v -> QDiagram b v m -> QDiagram b v m
+deformEnvelope s v d = setEnvelope (inEnvelope deform $ getEnvelope d) d
+  where
+    deform = Option . fmap deform' . getOption
+    deform' env v'
+        | dot > 0 = Max $ getMax (env v') + (dot * s) / magnitude v'
+        | otherwise = env v'
+      where
+        dot = v' <.> v
 
 ------------------------------------------------------------
 -- Combining two objects
