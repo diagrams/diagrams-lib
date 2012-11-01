@@ -113,7 +113,7 @@ extrudeEnvelope
   :: ( Ord (Scalar v), Num (Scalar v), AdditiveGroup (Scalar v)
      , Floating (Scalar v), HasLinearMap v, InnerSpace v, Monoid' m )
   => v -> QDiagram b v m -> QDiagram b v m
-extrudeEnvelope = deformEnvelope 1
+extrudeEnvelope = deformEnvelope 0.5
 
 -- | @intrudeEnvelope v d@ asymmetrically \"intrudes\" the envelope of
 --   a diagram away from the given direction.  All parts of the envelope
@@ -126,7 +126,7 @@ intrudeEnvelope
   :: ( Ord (Scalar v), Num (Scalar v), AdditiveGroup (Scalar v)
      , Floating (Scalar v), HasLinearMap v, InnerSpace v, Monoid' m )
   => v -> QDiagram b v m -> QDiagram b v m
-intrudeEnvelope = deformEnvelope (-1)
+intrudeEnvelope = deformEnvelope (-0.5)
 
 -- Utility for extrudeEnvelope / intrudeEnvelope
 deformEnvelope
@@ -137,7 +137,7 @@ deformEnvelope s v d = setEnvelope (inEnvelope deform $ getEnvelope d) d
   where
     deform = Option . fmap deform' . getOption
     deform' env v'
-        | dot > 0 = Max $ getMax (env v') + dot * s
+        | dot > 0 = Max $ getMax (env v') + (dot * s) / magnitude v'
         | otherwise = env v'
       where
         dot = v' <.> v
