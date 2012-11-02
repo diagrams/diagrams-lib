@@ -189,7 +189,7 @@ padY s d = withEnvelope (d # scaleY s) d
 --   offsetting its envelope by the provided distance. When @ s < 0 @,
 --   the envelope is inset instead.
 --
---   See the documentation for "extrudeEnvelope" for more information.
+--   See the documentation for 'extrudeEnvelope' for more information.
 extrudeLeft s
   | s >= 0    = extrudeEnvelope $ unitX ^* negate s
   | otherwise = intrudeEnvelope $ unitX ^* negate s
@@ -198,7 +198,7 @@ extrudeLeft s
 --   offsetting its envelope by the provided distance. When @ s < 0 @,
 --   the envelope is inset instead.
 --
---   See the documentation for "extrudeEnvelope" for more information.
+--   See the documentation for 'extrudeEnvelope' for more information.
 extrudeRight s
   | s >= 0    = extrudeEnvelope $ unitX ^* s
   | otherwise = intrudeEnvelope $ unitX ^* s
@@ -207,7 +207,7 @@ extrudeRight s
 --   offsetting its envelope by the provided distance. When @ s < 0 @,
 --   the envelope is inset instead.
 --
---   See the documentation for "extrudeEnvelope" for more information.
+--   See the documentation for 'extrudeEnvelope' for more information.
 extrudeBottom s
   | s >= 0    = extrudeEnvelope $ unitY ^* negate s
   | otherwise = intrudeEnvelope $ unitY ^* negate s
@@ -216,7 +216,7 @@ extrudeBottom s
 --   offsetting its envelope by the provided distance. When @ s < 0 @,
 --   the envelope is inset instead.
 --
---   See the documentation for "extrudeEnvelope" for more information.
+--   See the documentation for 'extrudeEnvelope' for more information.
 extrudeTop s
   | s >= 0    = extrudeEnvelope $ unitY ^* s
   | otherwise = intrudeEnvelope $ unitY ^* s
