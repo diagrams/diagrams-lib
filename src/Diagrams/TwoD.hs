@@ -155,6 +155,9 @@ module Diagrams.TwoD
 
        , strutX, strutY
        , padX, padY
+
+       , extrudeLeft, extrudeRight, extrudeBottom, extrudeTop
+
        , view
 
        , boundingRect, bg
