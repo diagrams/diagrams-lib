@@ -40,11 +40,11 @@ import Control.Applicative ((<$>), liftA2)
 ------------------------------------------------------------
 
 -- | Compute the width of an enveloped object.
-width :: (Enveloped a, V a ~ R2) => a -> Double
+width :: (Enveloped a, V a ~ D2 b) => a -> b
 width = maybe 0 (negate . uncurry (-)) . extentX
 
 -- | Compute the height of an enveloped object.
-height :: (Enveloped a, V a ~ R2) => a -> Double
+height :: (Enveloped a, V a ~ D2 b) => a -> b
 height = maybe 0 (negate . uncurry (-)) . extentY
 
 -- | Compute the width and height of an enveloped object.
@@ -58,18 +58,18 @@ sizeSpec2D = uncurry Dims . size2D
 -- | Compute the absolute  x-coordinate range of an enveloped object in
 --   R2, in  the form (lo,hi).   Return @Nothing@ for objects  with an
 --   empty envelope.
-extentX :: (Enveloped a, V a ~ R2) => a -> Maybe (Double, Double)
+extentX :: (Enveloped a, V a ~ D2 b) => a -> Maybe (b, b)
 extentX d = (\f -> (-f unit_X, f unitX)) <$> (appEnvelope . getEnvelope $ d)
 
 -- | Compute the absolute y-coordinate range of an enveloped object in
 --   R2, in the form (lo,hi).
-extentY :: (Enveloped a, V a ~ R2) => a -> Maybe (Double, Double)
+extentY :: (Enveloped a, V a ~ D2 b) => a -> Maybe (b, b)
 extentY d = (\f -> (-f unit_Y, f unitY)) <$> (appEnvelope . getEnvelope $ d)
 
 -- | Compute the point at the center (in the x- and y-directions) of a
 --   enveloped object.  Return the origin for objects with an empty
 --   envelope.
-center2D :: (Enveloped a, V a ~ R2) => a -> P2
+center2D :: (Enveloped a, V a ~ D2 b) => a -> P2 b
 center2D = maybe origin (p2 . (mid *** mid)) . mm . (extentX &&& extentY)
   where mm = uncurry (liftA2 (,))
         mid = (/2) . uncurry (+)
@@ -78,6 +78,7 @@ center2D = maybe origin (p2 . (mid *** mid)) . mm . (extentX &&& extentY)
 -- Size specifications
 ------------------------------------------------------------
 
+-- TODO
 -- | A specification of a (requested) rectangular size.
 data SizeSpec2D = Width  Double       -- ^ Specify an explicit
                                       -- width. The height should be

@@ -27,19 +27,19 @@ import Diagrams.Coordinates
 import Diagrams.TwoD.Types
 
 -- | The unit vector in the positive X direction.
-unitX :: (Num a, HasBasis a, a ~ Scalar a, Basis a ~ ()) => D2 a
-unitX = basisValue (Left ())
+unitX :: (Num a) => D2 a
+unitX = 1 & 0 --basisValue (Left ())
 
 -- | The unit vector in the positive Y direction.
-unitY :: (Num a, HasBasis a, a ~ Scalar a, Basis a ~ ()) => D2 a
-unitY = basisValue (Right ())
+unitY :: (Num a) => D2 a
+unitY = 0 & 1
 
 -- | The unit vector in the negative X direction.
-unit_X :: (Num a, AdditiveGroup (D2 a), HasBasis a, a ~ Scalar a, Basis a ~ ()) => D2 a
+unit_X :: (Num a, AdditiveGroup (D2 a)) => D2 a
 unit_X = negateV unitX
 
 -- | The unit vector in the negative Y direction.
-unit_Y :: (Num a, AdditiveGroup (D2 a), HasBasis a, a ~ Scalar a, Basis a ~ ()) => D2 a
+unit_Y :: (Num a, AdditiveGroup (D2 a)) => D2 a
 unit_Y = negateV unitY
 
 -- | Compute the direction of a vector, measured counterclockwise from
