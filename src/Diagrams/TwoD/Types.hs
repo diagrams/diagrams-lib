@@ -23,12 +23,14 @@
 
 module Diagrams.TwoD.Types
        ( -- * 2D Euclidean space
-         R2, r2, unr2
-       , P2, p2, unp2
-       , D2, d2, und2
-       , T2
-
-         -- * Angles
+         R2
+       , r2, unr2
+       , P2, P2D
+       , p2, unp2
+       , D2
+       , d2, und2
+       , T2, T2D
+       -- * Angles
        , Angle(..)
        , CircleFrac(..), Rad(..), Deg(..)
        , fullCircle, convertAngle
@@ -115,7 +117,7 @@ r2 = pack
 unr2 :: R2 -> (Double, Double)
 unr2 = unpack
 
-type instance V R2 = R2
+type instance V (D2 a) = D2 a
 
 instance (AdditiveGroup a) => AdditiveGroup (D2 a) where
   zeroV = d2 (zeroV, zeroV)
@@ -168,20 +170,22 @@ instance Coordinates (D2 a) where
 --
 -- > foo (unp2 -> (x,y)) = ...
 -- > foo (coords -> x :& y) = ...
-type P2 = Point R2
+type P2 a = Point (D2 a)
+type P2D = P2 Double
 
 -- | Construct a 2D point from a pair of coordinates.  See also '&'.
-p2 :: (Double, Double) -> P2
+p2 :: (a, a) -> P2 a
 p2 = pack . pack
 
 -- | Convert a 2D point back into a pair of coordinates.  See also 'coords'.
-unp2 :: P2 -> (Double, Double)
+unp2 :: P2 a -> (a, a)
 unp2 = unpack . unpack
 
 -- | Transformations in R^2.
-type T2 = Transformation R2
+type T2 a = Transformation (D2 a)
+type T2D = T2 Double
 
-instance Transformable R2 where
+instance (HasLinearMap (D2 a)) => Transformable (D2 a) where
   transform = apply
 
 ------------------------------------------------------------
