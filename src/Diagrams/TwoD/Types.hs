@@ -73,7 +73,7 @@ import Data.Typeable
 -- > foo (coords -> x :& y) = ...
 
 newtype D2 a = D2 { unD2 :: (a, a) }
-  deriving (Eq, Ord, Typeable, Num, Fractional)
+  deriving (AdditiveGroup, Eq, Ord, Typeable, Num, Fractional)
 
 d2 :: (a, a) -> D2 a
 d2 = D2
@@ -118,14 +118,6 @@ unr2 :: R2 -> (Double, Double)
 unr2 = unpack
 
 type instance V (D2 a) = D2 a
-
-instance (AdditiveGroup a) => AdditiveGroup (D2 a) where
-  zeroV = d2 (zeroV, zeroV)
-  a ^+^ b = let (ax, ay) = und2 a
-                (bx, by) = und2 b
-            in d2 (ax ^+^ bx, ay ^+^ by)
-  negateV a = let (ax, ay) = und2 a 
-              in d2 (negateV ax, negateV ay)
 
 instance (AdditiveGroup a, Num a) => VectorSpace (D2 a) where
   type Scalar (D2 a) = a

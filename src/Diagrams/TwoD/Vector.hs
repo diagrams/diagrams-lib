@@ -35,11 +35,11 @@ unitY :: (Num a) => D2 a
 unitY = 0 & 1
 
 -- | The unit vector in the negative X direction.
-unit_X :: (Num a, AdditiveGroup (D2 a)) => D2 a
+unit_X :: (Num a, AdditiveGroup a) => D2 a
 unit_X = negateV unitX
 
 -- | The unit vector in the negative Y direction.
-unit_Y :: (Num a, AdditiveGroup (D2 a)) => D2 a
+unit_Y :: (Num a, AdditiveGroup a) => D2 a
 unit_Y = negateV unitY
 
 -- | Compute the direction of a vector, measured counterclockwise from
