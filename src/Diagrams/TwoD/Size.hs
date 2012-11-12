@@ -82,7 +82,6 @@ center2D = maybe origin (p2 . (mid *** mid)) . mm . (extentX &&& extentY)
 -- Size specifications
 ------------------------------------------------------------
 
--- TODO
 -- | A specification of a (requested) rectangular size.
 data SizeSpec2D a = Width a  -- ^ Specify an explicit
                              -- width. The height should be
