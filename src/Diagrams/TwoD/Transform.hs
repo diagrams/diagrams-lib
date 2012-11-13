@@ -61,6 +61,9 @@ import Diagrams.TwoD.Vector (direction)
 import Data.Semigroup
 
 import Data.AffineSpace
+import Data.VectorSpace
+import Data.Basis
+import Data.MemoTrie
 
 import Control.Arrow (first, second)
 
@@ -68,7 +71,7 @@ import Control.Arrow (first, second)
 
 -- | Create a transformation which performs a rotation by the given
 --   angle.  See also 'rotate'.
-rotation :: Angle a => a -> T2
+rotation :: Angle a => a -> T2 b
 rotation ang = fromLinear r (linv r)
   where
     r            = rot theta <-> rot (-theta)
@@ -97,91 +100,116 @@ rotateBy = transform . rotation
 
 -- | @rotationAbout p@ is a rotation about the point @p@ (instead of
 --   around the local origin).
-rotationAbout :: Angle a => P2 -> a -> T2
+rotationAbout :: ( Angle a
+                 , Num b
+                 , HasBasis b
+                 , HasTrie (Basis b)
+                 , b ~ Scalar b
+                 ) => P2 b -> a -> T2 b
 rotationAbout p angle = conjugate (translation (origin .-. p)) (rotation angle)
 
 -- | @rotateAbout p@ is like 'rotate', except it rotates around the
 --   point @p@ instead of around the local origin.
-rotateAbout :: (Transformable t, V t ~ R2, Angle a) => P2 -> a -> t -> t
+rotateAbout :: (Transformable t, V t ~ D2 b, Angle a) => P2 b -> a -> t -> t
 rotateAbout p angle = rotate angle `under` translation (origin .-. p)
 
 -- Scaling -------------------------------------------------
 
 -- | Construct a transformation which scales by the given factor in
 --   the x (horizontal) direction.
-scalingX :: Double -> T2
+scalingX :: a -> T2 a
 scalingX c = fromLinear s s
   where s = (over r2 . first) (*c) <-> (over r2 . first) (/c)
 
 -- | Scale a diagram by the given factor in the x (horizontal)
 --   direction.  To scale uniformly, use 'scale'.
-scaleX :: (Transformable t, V t ~ R2) => Double -> t -> t
+scaleX :: (Transformable t, V t ~ D2 a) => a -> t -> t
 scaleX = transform . scalingX
 
 -- | Construct a transformation which scales by the given factor in
 --   the y (vertical) direction.
-scalingY :: Double -> T2
+scalingY :: a -> T2 a
 scalingY c = fromLinear s s
   where s = (over r2 . second) (*c) <-> (over r2 . second) (/c)
 
 -- | Scale a diagram by the given factor in the y (vertical)
 --   direction.  To scale uniformly, use 'scale'.
-scaleY :: (Transformable t, V t ~ R2) => Double -> t -> t
+scaleY :: (Transformable t, V t ~ D2 a) => a -> t -> t
 scaleY = transform . scalingY
 
 -- | @scaleToX w@ scales a diagram in the x (horizontal) direction by
 --   whatever factor required to make its width @w@.  @scaleToX@
 --   should not be applied to diagrams with a width of 0, such as
 --   'vrule'.
-scaleToX :: (Enveloped t, Transformable t, V t ~ R2) => Double -> t -> t
+scaleToX :: (Enveloped t, Transformable t, V t ~ D2 a) => a -> t -> t
 scaleToX w d = scaleX (w / width d) d
 
 -- | @scaleToY h@ scales a diagram in the y (vertical) direction by
 --   whatever factor required to make its height @h@.  @scaleToY@
 --   should not be applied to diagrams with a height of 0, such as
 --   'hrule'.
-scaleToY :: (Enveloped t, Transformable t, V t ~ R2) => Double -> t -> t
+scaleToY :: (Enveloped t, Transformable t, V t ~ D2 a) => a -> t -> t
 scaleToY h d = scaleY (h / height d) d
 
 -- | @scaleUToX w@ scales a diagram /uniformly/ by whatever factor
 --   required to make its width @w@.  @scaleUToX@ should not be
 --   applied to diagrams with a width of 0, such as 'vrule'.
-scaleUToX :: (Enveloped t, Transformable t, V t ~ R2) => Double -> t -> t
+scaleUToX :: (Enveloped t, Transformable t, V t ~ D2 a) => a -> t -> t
 scaleUToX w d = scale (w / width d) d
 
 -- | @scaleUToY h@ scales a diagram /uniformly/ by whatever factor
 --   required to make its height @h@.  @scaleUToY@ should not be applied
 --   to diagrams with a height of 0, such as 'hrule'.
-scaleUToY :: (Enveloped t, Transformable t, V t ~ R2) => Double -> t -> t
+scaleUToY :: (Enveloped t, Transformable t, V t ~ D2 a) => a -> t -> t
 scaleUToY h d = scale (h / height d) d
 
 -- Translation ---------------------------------------------
 
 -- | Construct a transformation which translates by the given distance
 --   in the x (horizontal) direction.
-translationX :: Double -> T2
+translationX :: ( Num a
+                , HasBasis a
+                , HasTrie (Basis a)
+                , a ~ Scalar a
+                ) => a -> T2 a
 translationX x = translation (x & 0)
 
 -- | Translate a diagram by the given distance in the x (horizontal)
 --   direction.
-translateX :: (Transformable t, V t ~ R2) => Double -> t -> t
+translateX :: ( Transformable t
+              , Num a
+              , HasBasis a
+              , HasTrie (Basis a)
+              , a ~ Scalar a
+              , V t ~ D2 a
+              ) => a -> t -> t
 translateX = transform . translationX
 
 -- | Construct a transformation which translates by the given distance
 --   in the y (vertical) direction.
-translationY :: Double -> T2
+translationY :: ( Num a
+                , HasBasis a
+                , HasTrie (Basis a)
+                , a ~ Scalar a
+                ) => a -> T2 a
 translationY y = translation (0 & y)
 
 -- | Translate a diagram by the given distance in the y (vertical)
 --   direction.
-translateY :: (Transformable t, V t ~ R2) => Double -> t -> t
+translateY :: ( Transformable t
+              , Num a
+              , HasBasis a
+              , HasTrie (Basis a)
+              , a ~ Scalar a
+              , V t ~ D2 a
+              ) => a -> t -> t
 translateY = transform . translationY
 
 -- Reflection ----------------------------------------------
 
 -- | Construct a transformation which flips a diagram from left to
 --   right, i.e. sends the point (x,y) to (-x,y).
-reflectionX :: T2
+reflectionX :: (Num a) => T2 a
 reflectionX = scalingX (-1)
 
 -- | Flip a diagram from left to right, i.e. send the point (x,y) to
@@ -191,7 +219,7 @@ reflectX = transform reflectionX
 
 -- | Construct a transformation which flips a diagram from top to
 --   bottom, i.e. sends the point (x,y) to (x,-y).
-reflectionY :: T2
+reflectionY :: (Num a) => T2 a
 reflectionY = scalingY (-1)
 
 -- | Flip a diagram from top to bottom, i.e. send the point (x,y) to
@@ -201,21 +229,30 @@ reflectY = transform reflectionY
 
 -- | @reflectionAbout p v@ is a reflection in the line determined by
 --   the point @p@ and vector @v@.
-reflectionAbout :: P2 -> R2 -> T2
+reflectionAbout :: ( a ~ Scalar a
+                   , RealFloat a
+                   , HasBasis a
+                   , HasTrie (Basis a)
+                   ) => P2 a -> D2 a -> T2 a
 reflectionAbout p v =
   conjugate (rotation (-direction v :: Rad) <> translation (origin .-. p))
             reflectionY
 
 -- | @reflectAbout p v@ reflects a diagram in the line determined by
 --   the point @p@ and the vector @v@.
-reflectAbout :: (Transformable t, V t ~ R2) => P2 -> R2 -> t -> t
+reflectAbout :: (Transformable t
+                , a ~ Scalar a
+                , RealFloat a
+                , HasTrie (Basis a)
+                , HasBasis a
+                , V t ~ D2 a) => P2 a -> D2 a -> t -> t
 reflectAbout p v = transform (reflectionAbout p v)
 
 -- Shears --------------------------------------------------
 
 -- | @shearingX d@ is the linear transformation which is the identity on
 --   y coordinates and sends @(0,1)@ to @(d,1)@.
-shearingX :: Double -> T2
+shearingX :: a -> T2 a
 shearingX d = fromLinear (over r2 (sh d)  <-> over r2 (sh (-d)))
                          (over r2 (sh' d) <-> over r2 (sh' (-d)))
   where sh  k (x, y) = (x+k*y, y)
@@ -224,12 +261,12 @@ shearingX d = fromLinear (over r2 (sh d)  <-> over r2 (sh (-d)))
 
 -- | @shearX d@ performs a shear in the x-direction which sends
 --   @(0,1)@ to @(d,1)@.
-shearX :: (Transformable t, V t ~ R2) => Double -> t -> t
+shearX :: (Transformable t, V t ~ D2 a) => a -> t -> t
 shearX = transform . shearingX
 
 -- | @shearingY d@ is the linear transformation which is the identity on
 --   x coordinates and sends @(1,0)@ to @(1,d)@.
-shearingY :: Double -> T2
+shearingY :: a -> T2 a
 shearingY d = fromLinear (over r2 (sh d)  <-> over r2 (sh (-d)))
                          (over r2 (sh' d) <-> over r2 (sh' (-d)))
   where sh  k (x,y) = (x, y+k*x)
@@ -238,10 +275,10 @@ shearingY d = fromLinear (over r2 (sh d)  <-> over r2 (sh (-d)))
 
 -- | @shearY d@ performs a shear in the y-direction which sends
 --   @(1,0)@ to @(1,d)@.
-shearY :: (Transformable t, V t ~ R2) => Double -> t -> t
+shearY :: (Transformable t, V t ~ D2 a) => a -> t -> t
 shearY = transform . shearingY
 
-
+-- TODO
 ---------
 ---------
 --Scale invariant
