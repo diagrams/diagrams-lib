@@ -185,43 +185,43 @@ instance (HasLinearMap (D2 a)) => Transformable (D2 a) where
 
 -- | Newtype wrapper used to represent angles as fractions of a
 --   circle.  For example, 1\/3 = tau\/3 radians = 120 degrees.
-newtype CircleFrac = CircleFrac { getCircleFrac :: Double }
+newtype CircleFrac a = CircleFrac { getCircleFrac :: a }
   deriving (Read, Show, Eq, Ord, Enum, Floating, Fractional, Num, Real, RealFloat, RealFrac)
 
 -- | Newtype wrapper for representing angles in radians.
-newtype Rad = Rad { getRad :: Double }
+newtype Rad a = Rad { getRad :: a }
   deriving (Read, Show, Eq, Ord, Enum, Floating, Fractional, Num, Real, RealFloat, RealFrac)
 
 -- | Newtype wrapper for representing angles in degrees.
-newtype Deg = Deg { getDeg :: Double }
+newtype Deg a = Deg { getDeg :: a }
   deriving (Read, Show, Eq, Ord, Enum, Floating, Fractional, Num, Real, RealFloat, RealFrac)
 
 -- | Type class for types that measure angles.
-class Num a => Angle a where
+class (Num a, Num (m a)) => Angle m a where
   -- | Convert to a fraction of a circle.
-  toCircleFrac   :: a -> CircleFrac
+  toCircleFrac   :: m a -> CircleFrac a
 
   -- | Convert from a fraction of a circle.
-  fromCircleFrac :: CircleFrac -> a
+  fromCircleFrac :: CircleFrac a -> m a
 
-instance Angle CircleFrac where
+instance (Num a) => Angle CircleFrac a where
   toCircleFrac   = id
   fromCircleFrac = id
 
 -- | tau radians = 1 full circle.
-instance Angle Rad where
+instance (Floating a) => Angle Rad a where
   toCircleFrac   = CircleFrac . (/tau) . getRad
   fromCircleFrac = Rad . (*tau) . getCircleFrac
 
 -- | 360 degrees = 1 full circle.
-instance Angle Deg where
+instance (Fractional a) => Angle Deg a where
   toCircleFrac   = CircleFrac . (/360) . getDeg
   fromCircleFrac = Deg . (*360) . getCircleFrac
 
 -- | An angle representing a full circle.
-fullCircle :: Angle a => a
+fullCircle :: Angle m a => m a
 fullCircle = fromCircleFrac 1
 
 -- | Convert between two angle representations.
-convertAngle :: (Angle a, Angle b) => a -> b
+convertAngle :: (Angle ma a, Angle mb a) => ma a -> mb a
 convertAngle = fromCircleFrac . toCircleFrac

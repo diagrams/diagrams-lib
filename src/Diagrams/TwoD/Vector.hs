@@ -45,15 +45,14 @@ unit_Y = negateV unitY
 -- | Compute the direction of a vector, measured counterclockwise from
 --   the positive x-axis as a fraction of a full turn.  The zero
 --   vector is arbitrarily assigned the direction 0.
-direction :: (RealFloat b, Angle a) => D2 b -> a
-direction (coords -> x :& y) = convertAngle . Rad $ (uncurry encodeFloat).decodeFloat $ atan2 y x
+direction :: (RealFloat a, Angle m a) => D2 a -> m a
+direction (coords -> x :& y) = convertAngle . Rad $ atan2 y x
 
 -- | Convert an angle into a unit vector pointing in that direction.
-fromDirection :: (RealFloat b, Angle a) => a -> D2 b
-fromDirection a = ((uncurry encodeFloat).decodeFloat.cos) a' 
-                & ((uncurry encodeFloat).decodeFloat.sin) a'
+fromDirection :: (Floating a, Angle m a) => m a -> D2 a
+fromDirection a = cos a' & sin a'
   where Rad a' = convertAngle a
 
 -- | A convenient synonym for 'fromDirection'.
-e :: (RealFloat b, Angle a) => a -> D2 b
+e :: (Floating a, Angle m a) => m a -> D2 a
 e = fromDirection
