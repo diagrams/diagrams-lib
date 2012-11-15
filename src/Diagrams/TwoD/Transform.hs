@@ -3,6 +3,7 @@
            , TypeFamilies
            , ViewPatterns
   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Transform
@@ -302,11 +303,11 @@ reflectY = transform reflectionY
 
 -- | @reflectionAbout p v@ is a reflection in the line determined by
 --   the point @p@ and vector @v@.
-reflectionAbout :: ( a ~ Scalar a
+reflectionAbout :: forall a. ( a ~ Scalar a
                    , RealFloat a
                    , HasBasis a
                    , HasTrie (Basis a)
-                   , Angle m a
+                   , Angle Rad a
                    ) => P2 a -> D2 a -> T2 a
 reflectionAbout p v =
   conjugate (rotation (-direction v :: Rad a) <> translation (origin .-. p))
@@ -387,7 +388,7 @@ type instance V (ScaleInv t) = R2
 instance (V t ~ R2, HasOrigin t) => HasOrigin (ScaleInv t) where
   moveOriginTo p (ScaleInv s v) = ScaleInv ( moveOriginTo p s ) v 
 
-instance (V t ~ R2, Transformable t) => Transformable (ScaleInv t) where
+instance forall t. (V t ~ R2, Transformable t) => Transformable (ScaleInv t) where
   transform tr (ScaleInv t v) = ScaleInv obj rotUnitVec where
         transUnitVec :: R2
         transUnitVec = transform tr v
@@ -398,7 +399,6 @@ instance (V t ~ R2, Transformable t) => Transformable (ScaleInv t) where
         obj = rTrans t
         rotUnitVec :: R2
         rotUnitVec = rTrans v
-
 
 --------
 
