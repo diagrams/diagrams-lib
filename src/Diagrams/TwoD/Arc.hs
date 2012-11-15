@@ -1,6 +1,7 @@
 {-# LANGUAGE TypeFamilies
            , ViewPatterns
   #-}
+{-# LANGUAGE FlexibleContexts #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Arc
@@ -31,7 +32,10 @@ import Diagrams.TwoD.Vector (unitX, e)
 import Diagrams.Util ((#), tau)
 
 import Data.Semigroup ((<>))
-import Data.VectorSpace((^-^), (*^), negateV)
+import Data.VectorSpace((^-^), (*^), negateV, Scalar(..))
+import Data.AdditiveGroup (AdditiveGroup(..))
+import Data.Basis (HasBasis(..), Basis(..))
+import Data.MemoTrie (HasTrie(..))
 
 -- For details of this approximation see:
 --   http://www.tinaja.com/glib/bezcirc2.pdf
@@ -40,7 +44,12 @@ import Data.VectorSpace((^-^), (*^), negateV)
 --   the positive y direction and sweeps counterclockwise through @s@
 --   radians.  The approximation is only valid for angles in the first
 --   quadrant.
-bezierFromSweepQ1 :: Rad -> Segment R2
+bezierFromSweepQ1 :: ( Floating a
+                     , AdditiveGroup a
+                     , HasBasis a
+                     , HasTrie (Basis a)
+                     , a ~ Scalar a
+                     ) => Rad a -> Segment (D2 a)
 bezierFromSweepQ1 s = fmap (^-^ v) . rotate (s/2) $ Cubic c2 c1 p0
   where p0@(coords -> x :& y) = rotate (s/2) v
         c1                    = ((4-x)/3)  &  ((1-x)*(3-x)/(3*y))
@@ -53,7 +62,13 @@ bezierFromSweepQ1 s = fmap (^-^ v) . rotate (s/2) $ Cubic c2 c1 p0
 --   negative y direction and sweep clockwise.  When @s@ is less than
 --   0.0001 the empty list results.  If the sweep is greater than tau
 --   then it is truncated to tau.
-bezierFromSweep :: Rad -> [Segment R2]
+bezierFromSweep :: ( Ord a
+                   , Floating a
+                   , AdditiveGroup a
+                   , HasBasis a
+                   , HasTrie (Basis a)
+                   , a ~ Scalar a
+                   ) => Rad a -> [Segment (D2 a)]
 bezierFromSweep s
   | s > tau    = bezierFromSweep tau
   | s < 0      = fmap reflectY . bezierFromSweep $ (-s)
@@ -82,21 +97,45 @@ across a situation with large enough arcs that they can actually see
 the approximation error.
 -}
 
-arcT :: Angle a => a -> a -> Trail R2
+arcT :: ( Ord a
+        , Floating a
+        , AdditiveGroup a
+        , HasBasis a
+        , HasTrie (Basis a)
+        , a ~ Scalar a
+        , Angle m a
+        ) => m a -> m a -> Trail (D2 a)
 arcT start end = Trail bs (sweep >= tau)
   where sweep = convertAngle $ end - start
         bs    = map (rotate start) . bezierFromSweep $ sweep
 
 -- | Given a start angle @s@ and an end angle @e@, @'arc' s e@ is the
 --   path of a radius one arc counterclockwise between the two angles.
-arc :: (Angle a, PathLike p, V p ~ R2) => a -> a -> p
+arc :: ( Ord a
+       , Floating a
+       , AdditiveGroup a
+       , HasBasis a
+       , HasTrie (Basis a)
+       , a ~ Scalar a
+       , Angle m a
+       , PathLike p
+       , V p ~ D2 a
+       ) => m a -> m a -> p
 arc start end = pathLike (rotate start $ p2 (1,0))
                          False
                          (trailSegments $ arcT start end)
 
 -- | Create a circular wedge of the given radius, beginning at the
 --   first angle and extending counterclockwise to the second.
-wedge :: (Angle a, PathLike p, V p ~ R2) => Double -> a -> a -> p
+wedge :: ( Ord a
+         , Floating a
+         , HasBasis a
+         , HasTrie (Basis a)
+         , a ~ Scalar a
+         , Angle m a
+         , PathLike p
+         , V p ~ D2 a
+         ) => a -> m a -> m a -> p
 wedge r a1 a2 = pathLikeFromTrail $ fromOffsets [r *^ e a1]
                                  <> arc a1 a2 # scale r
                                  <> fromOffsets [r *^ negateV (e a2)]
