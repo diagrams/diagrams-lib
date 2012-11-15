@@ -4,6 +4,7 @@
            , ViewPatterns
   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE UndecidableInstances #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Transform
@@ -380,24 +381,31 @@ shearY = transform . shearingY
 --4 rotate arrowhead
 --5 add rotated arrowhead
 
-data ScaleInv t = ScaleInv t ( R2 )
-  deriving (Show )
+data ScaleInv t a = ScaleInv t (D2 a)
+  deriving (Show)
 
-type instance V (ScaleInv t) = R2
+type instance V (ScaleInv t a) = D2 a
 
-instance (V t ~ R2, HasOrigin t) => HasOrigin (ScaleInv t) where
+instance (V t ~ D2 a, HasOrigin t) => HasOrigin (ScaleInv t a) where
   moveOriginTo p (ScaleInv s v) = ScaleInv ( moveOriginTo p s ) v 
 
-instance forall t. (V t ~ R2, Transformable t) => Transformable (ScaleInv t) where
+instance forall t a. ( RealFloat a
+                     , HasBasis a
+                     , HasTrie (Basis a)
+                     , a ~ Scalar a
+                     , V t ~ D2 a
+                     , t ~ D2 a
+                     , Transformable t
+                     ) => Transformable (ScaleInv t a) where
   transform tr (ScaleInv t v) = ScaleInv obj rotUnitVec where
-        transUnitVec :: R2
+        transUnitVec :: D2 a
         transUnitVec = transform tr v
-        angle :: Rad Double
+        angle :: Rad a
         angle = direction transUnitVec  - direction v
-        rTrans :: ( Transformable t,  (V t ~ R2) ) => t -> t
+        rTrans :: ( Transformable t,  (V t ~ D2 a)) => t -> t
         rTrans = rotate angle
         obj = rTrans t
-        rotUnitVec :: R2
+        rotUnitVec :: D2 a
         rotUnitVec = rTrans v
 
 --------
