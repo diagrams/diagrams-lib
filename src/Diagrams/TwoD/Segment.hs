@@ -2,7 +2,7 @@
            , FlexibleInstances
            , UndecidableInstances
   #-}
-
+{-# LANGUAGE TypeFamilies #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Segment
@@ -22,6 +22,8 @@ import Control.Applicative (liftA2)
 import Data.AffineSpace
 import Data.Monoid.PosInf hiding (minimum)
 import Data.VectorSpace
+import Data.Basis    (HasBasis(..), Basis(..))
+import Data.MemoTrie (HasTrie(..))
 
 import Diagrams.Core
 import Diagrams.Core.Trace
@@ -33,10 +35,24 @@ import Diagrams.TwoD.Types
 import Diagrams.TwoD.Vector
 import Diagrams.Util
 
-instance Traced (Segment R2) where
+instance ( Ord a
+         , RealFloat a
+         , AdditiveGroup a
+         , InnerSpace a
+         , HasBasis a
+         , HasTrie (Basis a)
+         , a ~ Scalar a
+         ) => Traced (Segment (D2 a)) where
   getTrace = getTrace . mkFixedSeg origin
 
-instance Traced (FixedSegment R2) where
+instance ( Ord a
+         , RealFloat a
+         , AdditiveGroup a
+         , InnerSpace a
+         , HasBasis a
+         , HasTrie (Basis a)
+         , a ~ Scalar a
+         ) => Traced (FixedSegment (D2 a)) where
 
 {- Given lines defined by p0 + t0 * v0 and p1 + t1 * v1, their point of
    intersection in 2D is given by
