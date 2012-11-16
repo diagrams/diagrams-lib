@@ -73,7 +73,7 @@ mkText a t = mkQD (Prim (Text mempty a t))
                        mempty
 
 -- | Create a primitive text diagram from the given string, with center
---   alignment, equivalent to @alignedText 0.5 0.5@.
+--   alignment, equivalent to @'alignedText' 0.5 0.5@.
 --
 --   Note that it /takes up no space/, as text size information is not
 --   available.
@@ -82,7 +82,7 @@ text = alignedText 0.5 0.5
 
 -- | Create a primitive text diagram from the given string, origin at
 --   the top left corner of the text's bounding box, equivalent to
---   @alignedText 0.5 0.5@.
+--   @'alignedText' 0 1@.
 --
 --   Note that it /takes up no space/.
 topLeftText :: Renderable Text b => String -> Diagram b R2
