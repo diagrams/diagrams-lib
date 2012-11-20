@@ -37,6 +37,9 @@ module Diagrams.Attributes (
   -- ** Opacity
   , Opacity, getOpacity, opacity
 
+  -- ** Converting colors
+  , toRGBAUsingSpace, colorToSRGBA, colorToRGBA
+
   -- * Lines
   -- ** Width
   , LineWidth, getLineWidth, lineWidth, lw
@@ -55,7 +58,8 @@ module Diagrams.Attributes (
 import Diagrams.Core
 
 import Data.Colour
-import qualified Data.Colour.SRGB as RGB
+import Data.Colour.RGBSpace
+import Data.Colour.SRGB (sRGBSpace)
 
 import Data.Typeable
 
@@ -78,9 +82,8 @@ import Data.Semigroup
 --   both the 'Data.Colour.Colour' and 'Data.Colour.AlphaColour' types
 --   from the "Data.Colour" library.
 class Color c where
-  -- | Convert a color to red, green, blue, and alpha channels in the
-  --   range [0,1].
-  colorToRGBA :: c -> (Double,Double,Double,Double)
+  -- | Convert a color to its standard representation, AlphaColour
+  toAlphaColour :: c -> AlphaColour Double
 
 -- | An existential wrapper for instances of the 'Color' class.
 data SomeColor = forall c. Color c => SomeColor c
@@ -146,29 +149,37 @@ fcA :: HasStyle a => AlphaColour Double -> a -> a
 fcA = fillColor
 
 instance (Floating a, Real a) => Color (Colour a) where
-  colorToRGBA col = (r,g,b,1)
-    where c' = RGB.toSRGB . colourConvert $ col
-          r  = RGB.channelRed c'
-          g  = RGB.channelGreen c'
-          b  = RGB.channelBlue c'
+  toAlphaColour = opaque . colourConvert
 
 instance (Floating a, Real a) => Color (AlphaColour a) where
-  colorToRGBA col = (r,g,b,a)
-    where col' = alphaColourConvert col
-          a  = alphaChannel col'
-          c' = RGB.toSRGB . alphaToColour $ col'
-          r  = RGB.channelRed c'
-          g  = RGB.channelGreen c'
-          b  = RGB.channelBlue c'
+  toAlphaColour = alphaColourConvert
 
 instance Color SomeColor where
-  colorToRGBA (SomeColor c) = colorToRGBA c
+  toAlphaColour (SomeColor c) = toAlphaColour c
 
 instance Color LineColor where
-  colorToRGBA (LineColor (Last c)) = colorToRGBA c
+  toAlphaColour (LineColor (Last c)) = toAlphaColour c
 
 instance Color FillColor where
-  colorToRGBA (FillColor (Last c)) = colorToRGBA c
+  toAlphaColour (FillColor (Last c)) = toAlphaColour c
+
+-- | Convert to an RGB space while preserving the alpha channel.
+toRGBAUsingSpace :: Color c => RGBSpace Double -> c
+                            -> (Double, Double, Double, Double)
+toRGBAUsingSpace s col = (r,g,b,a)
+  where c' = toAlphaColour col
+        c  = toRGBUsingSpace s (alphaToColour c')
+        a  = alphaChannel  c'
+        r  = channelRed   c
+        g  = channelGreen c
+        b  = channelBlue  c
+
+-- | Convert to sRGBA.
+colorToSRGBA, colorToRGBA :: Color c => c -> (Double, Double, Double, Double)
+colorToSRGBA = toRGBAUsingSpace sRGBSpace
+
+colorToRGBA = colorToSRGBA
+{-# DEPRECATED colorToRGBA "Renamed to colorToSRGBA." #-}
 
 alphaToColour :: (Floating a, Ord a, Fractional a) => AlphaColour a -> Colour a
 alphaToColour ac | alphaChannel ac == 0 = ac `over` black
