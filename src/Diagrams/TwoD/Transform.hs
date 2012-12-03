@@ -66,8 +66,8 @@ import Control.Arrow (first, second)
 
 -- Rotation ------------------------------------------------
 
--- | Create a transformation which performs a rotation by the given
---   angle.  See also 'rotate'.
+-- | Create a transformation which performs a rotation about the local
+--   origin by the given angle.  See also 'rotate'.
 rotation :: Angle a => a -> T2
 rotation ang = fromLinear r (linv r)
   where
@@ -75,12 +75,14 @@ rotation ang = fromLinear r (linv r)
     Rad theta    = convertAngle ang
     rot th (coords -> x :& y) = (cos th * x - sin th * y) & (sin th * x + cos th * y)
 
--- | Rotate by the given angle. Positive angles correspond to
---   counterclockwise rotation, negative to clockwise. The angle can
---   be expressed using any type which is an instance of 'Angle'.  For
---   example, @rotate (1\/4 :: 'CircleFrac')@, @rotate (tau\/4 :: 'Rad')@, and
---   @rotate (90 :: 'Deg')@ all represent the same transformation, namely,
---   a counterclockwise rotation by a right angle.
+-- | Rotate about the local origin by the given angle. Positive angles
+--   correspond to counterclockwise rotation, negative to
+--   clockwise. The angle can be expressed using any type which is an
+--   instance of 'Angle'.  For example, @rotate (1\/4 ::
+--   'CircleFrac')@, @rotate (tau\/4 :: 'Rad')@, and @rotate (90 ::
+--   'Deg')@ all represent the same transformation, namely, a
+--   counterclockwise rotation by a right angle.  To rotate about some
+--   point other than the local origin, see 'rotateAbout'.
 --
 --   Note that writing @rotate (1\/4)@, with no type annotation, will
 --   yield an error since GHC cannot figure out which sort of angle
