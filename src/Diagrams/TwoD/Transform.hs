@@ -44,6 +44,8 @@ module Diagrams.TwoD.Transform
          -- * Shears
        , shearingX, shearX
        , shearingY, shearY
+
+         -- * Scale invariance
        , ScaleInv(..)
 
        ) where
@@ -244,36 +246,61 @@ shearY :: (Transformable t, V t ~ R2) => Double -> t -> t
 shearY = transform . shearingY
 
 
----------
----------
---Scale invariant
+-- Scale invariance ----------------------------------------
 
---1 find unit vector
---2 apply transformation to unit vector
---3 find angle difference b/w transformed unit vector and original vector
---4 rotate arrowhead
---5 add rotated arrowhead
+-- XXX what about freezing?  Doesn't interact with ScaleInv the way it
+-- ought.
 
-data ScaleInv t = ScaleInv t ( R2 )
-  deriving (Show )
+-- | The @ScaleInv@ wrapper creates two-dimensional /scale-invariant/
+--   objects.  Intuitively, a scale-invariant object is affected by
+--   transformations like translations and rotations, but not by scales.
+--
+--   However, this is problematic when it comes to /non-uniform/
+--   scales (/e.g./ @scaleX 2 . scaleY 3@) since they can introduce a
+--   perceived rotational component.  The prototypical example is an
+--   arrowhead on the end of a path, which should be scale-invariant.
+--   However, applying a non-uniform scale to the path but not the
+--   arrowhead would leave the arrowhead pointing in the wrong
+--   direction.
+--
+--   Moreover, for objects whose local origin is not at the local
+--   origin of the parent diagram, any scale can result in a
+--   translational component as well.
+--
+--   The solution is to also store a point (indicating the location,
+--   /i.e./ the local origin) and a unit vector (indicating the
+--   /direction/) along with a scale-invariant object.  A
+--   transformation to be applied is decomposed into rotational and
+--   translational components as follows:
+--
+--   * The transformation is applied to the direction vector, and the
+--   difference in angle between the original direction vector and its
+--   image under the transformation determines the rotational
+--   component.  The rotation is applied with respect to the stored
+--   location, rather than the global origin.
+--
+--   * The vector from the location to the image of the location under
+--   the transformation determines the translational component.
+
+data ScaleInv t =
+  ScaleInv
+  { unScaleInv :: t
+  , scaleInvDir :: R2
+  , scaleInvLoc :: P2
+  }
+  deriving (Show)
 
 type instance V (ScaleInv t) = R2
 
 instance (V t ~ R2, HasOrigin t) => HasOrigin (ScaleInv t) where
-  moveOriginTo p (ScaleInv s v) = ScaleInv ( moveOriginTo p s ) v 
+  moveOriginTo p (ScaleInv t v l) = ScaleInv (moveOriginTo p t) v (moveOriginTo p l)
 
 instance (V t ~ R2, Transformable t) => Transformable (ScaleInv t) where
-  transform tr (ScaleInv t v) = ScaleInv obj rotUnitVec where
-        transUnitVec :: R2
-        transUnitVec = transform tr v
-        angle :: Rad
-        angle = direction transUnitVec  - direction v
-        rTrans :: ( Transformable t,  (V t ~ R2) ) => t -> t
-        rTrans = rotate angle
-        obj = rTrans t
-        rotUnitVec :: R2
-        rotUnitVec = rTrans v
-
-
---------
-
+  transform tr (ScaleInv t v l) = ScaleInv (trans . rot $ t) (rot v) l'
+    where
+      angle :: Rad
+      angle = direction (transform tr v) - direction v
+      rot :: ( Transformable t,  (V t ~ R2) ) => t -> t
+      rot = rotateAbout l angle
+      l'  = transform tr l
+      trans = translate (l' .-. l)
