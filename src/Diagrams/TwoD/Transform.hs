@@ -46,7 +46,7 @@ module Diagrams.TwoD.Transform
        , shearingY, shearY
 
          -- * Scale invariance
-       , ScaleInv(..)
+       , ScaleInv(..), scaleInv
 
        ) where
 
@@ -289,6 +289,10 @@ data ScaleInv t =
   , scaleInvLoc :: P2
   }
   deriving (Show)
+
+-- | Create a scale-invariant object pointing in the given direction.
+scaleInv :: t -> R2 -> ScaleInv t
+scaleInv t d = ScaleInv t d origin
 
 type instance V (ScaleInv t) = R2
 
