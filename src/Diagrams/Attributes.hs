@@ -32,7 +32,7 @@ module Diagrams.Attributes (
   , LineColor, getLineColor, lineColor, lc, lcA
 
   -- ** Fill color
-  , FillColor, getFillColor, fillColor, fc, fcA
+  , FillColor, getFillColor, recommendFillColor, fillColor, fc, fcA
 
   -- ** Opacity
   , Opacity, getOpacity, opacity
@@ -52,14 +52,15 @@ module Diagrams.Attributes (
 
   ) where
 
-import Diagrams.Core
+import           Diagrams.Core
 
-import Data.Colour
+import           Data.Colour
 import qualified Data.Colour.SRGB as RGB
 
-import Data.Typeable
+import           Data.Typeable
 
-import Data.Semigroup
+import           Data.Monoid.Recommend
+import           Data.Semigroup
 
 ------------------------------------------------------------
 --  Color  -------------------------------------------------
@@ -121,7 +122,7 @@ lcA = lineColor
 --   . 'fillColor' c2 $ d@ is equivalent to @'lineColor' c2 $ d@.
 --   More precisely, the semigroup structure on fill color attributes
 --   is that of 'Last'.
-newtype FillColor = FillColor (Last SomeColor)
+newtype FillColor = FillColor (Recommend (Last SomeColor))
   deriving (Typeable, Semigroup)
 instance AttributeClass FillColor
 
@@ -130,10 +131,15 @@ instance AttributeClass FillColor
 --   but this can sometimes create problems for type inference, so the
 --   'fc' and 'fcA' variants are provided with more concrete types.
 fillColor :: (Color c, HasStyle a) => c -> a -> a
-fillColor = applyAttr . FillColor . Last . SomeColor
+fillColor = applyAttr . FillColor . Commit . Last . SomeColor
+
+-- | Set a \"recommended\" fill color, to be used only if no explicit
+--   calls to 'fillColor' (or 'fc', or 'fcA') are used.
+recommendFillColor :: (Color c, HasStyle a) => c -> a -> a
+recommendFillColor = applyAttr . FillColor . Recommend . Last . SomeColor
 
 getFillColor :: FillColor -> SomeColor
-getFillColor (FillColor (Last c)) = c
+getFillColor (FillColor c) = getLast . getRecommend $ c
 
 -- | A synonym for 'fillColor', specialized to @'Colour' Double@
 --   (i.e. opaque colors).
@@ -168,7 +174,7 @@ instance Color LineColor where
   colorToRGBA (LineColor (Last c)) = colorToRGBA c
 
 instance Color FillColor where
-  colorToRGBA (FillColor (Last c)) = colorToRGBA c
+  colorToRGBA (FillColor c) = colorToRGBA . getLast . getRecommend $ c
 
 alphaToColour :: (Floating a, Ord a, Fractional a) => AlphaColour a -> Colour a
 alphaToColour ac | alphaChannel ac == 0 = ac `over` black
