@@ -31,13 +31,15 @@ module Diagrams.TwoD.Text (
   , FontWeight(..), FontWeightA, getFontWeight, fontWeight, bold
   ) where
 
+import Diagrams.Attributes
 import Diagrams.Core
-
 import Diagrams.TwoD.Types
 
 import Data.AffineSpace ((.-.))
 
 import Data.Semigroup
+
+import Data.Colour
 
 import Data.Typeable
 
@@ -66,7 +68,8 @@ instance Renderable Text NullBackend where
 data TextAlignment = BaselineText | BoxAlignedText Double Double
 
 mkText :: Renderable Text b => TextAlignment -> String -> Diagram b R2
-mkText a t = mkQD (Prim (Text mempty a t))
+mkText a t = recommendFillColor black
+           $ mkQD (Prim (Text mempty a t))
                        mempty
                        mempty
                        mempty
