@@ -43,6 +43,19 @@
         of an object as a SizeSpec2D value (for use with the new 'sized'
         funtion).
 
+    - New 'extrudeEnvelope' and 'intrudeEnvelope' functions for
+      modifying envelopes in a single direction only, as well as new
+      functions 'extrude{Left,Right,Bottom,Top}' specializing
+      'extrudeEnvelope' to 2D.
+
+    - 'arcCW' draws clockwise arcs; 'arc'' draws arcs counterclockwise
+      or clockwise as the radius is positive or negative,
+      respectively.
+
+    - fill color attribute is generalized to support 'recommended' and
+      'committed' colors; text objects use a recommended fill color of
+      black.
+
   * New instances
 
     - The Show instance for R2 now produces something like "2 & 6"
@@ -52,6 +65,12 @@
     - Enveloped instance for FixedSegment
 
     - Traced instances for Segment, FixedSegment, Trail, and Path
+
+    - New derived Eq instances for LineCapA, LineJoinA, Dashing,
+      DashingA, FillRule, Font, FontSize, FontSlant, FontSlantA,
+      FontWeight, and FontWeightA
+
+    - Renderable Ellipsoid NullBackend instance
 
   * API changes
 
@@ -71,11 +90,18 @@
     - Diagrams.TwoD.Adjust.adjustSize is now deprecated; it has been
       renamed and moved to Diagrams.TwoD.Size.requiredScaleT.
 
+    - expandPath has been renamed to scalePath.
+
   * Dependency/version changes
-  
+
     - Allow data-default 0.4 and 0.5
     - Allow base-4.6
     - Allow containers-0.5
+
+  * Bug fixes
+
+    - arc and arcT functions now always produce counterclockwise arcs,
+      as claimed.
 
 0.5: 9 March 2012
 
