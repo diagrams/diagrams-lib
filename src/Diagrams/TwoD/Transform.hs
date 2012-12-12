@@ -46,7 +46,9 @@ module Diagrams.TwoD.Transform
          -- * Shears
        , shearingX, shearX
        , shearingY, shearY
-       , ScaleInv(..)
+
+         -- * Scale invariance
+       , ScaleInv(..), scaleInv
 
        ) where
 
@@ -86,12 +88,14 @@ rotation ang = fromLinear r (linv r)
     Rad theta    = convertAngle ang
     rot th (coords -> x :& y) = (cos th * x - sin th * y) & (sin th * x + cos th * y)
 
--- | Rotate by the given angle. Positive angles correspond to
---   counterclockwise rotation, negative to clockwise. The angle can
---   be expressed using any type which is an instance of 'Angle'.  For
---   example, @rotate (1\/4 :: 'CircleFrac')@, @rotate (tau\/4 :: 'Rad')@, and
---   @rotate (90 :: 'Deg')@ all represent the same transformation, namely,
---   a counterclockwise rotation by a right angle.
+-- | Rotate about the local origin by the given angle. Positive angles
+--   correspond to counterclockwise rotation, negative to
+--   clockwise. The angle can be expressed using any type which is an
+--   instance of 'Angle'.  For example, @rotate (1\/4 ::
+--   'CircleFrac')@, @rotate (tau\/4 :: 'Rad')@, and @rotate (90 ::
+--   'Deg')@ all represent the same transformation, namely, a
+--   counterclockwise rotation by a right angle.  To rotate about some
+--   point other than the local origin, see 'rotateAbout'.
 --
 --   Note that writing @rotate (1\/4)@, with no type annotation, will
 --   yield an error since GHC cannot figure out which sort of angle
@@ -370,24 +374,58 @@ shearY :: ( Num a
           ) => a -> t -> t
 shearY = transform . shearingY
 
--- TODO
----------
----------
---Scale invariant
+-- Scale invariance ----------------------------------------
 
---1 find unit vector
---2 apply transformation to unit vector
---3 find angle difference b/w transformed unit vector and original vector
---4 rotate arrowhead
---5 add rotated arrowhead
+-- XXX what about freezing?  Doesn't interact with ScaleInv the way it
+-- ought.
 
-data ScaleInv t a = ScaleInv t (D2 a)
+-- | The @ScaleInv@ wrapper creates two-dimensional /scale-invariant/
+--   objects.  Intuitively, a scale-invariant object is affected by
+--   transformations like translations and rotations, but not by scales.
+--
+--   However, this is problematic when it comes to /non-uniform/
+--   scales (/e.g./ @scaleX 2 . scaleY 3@) since they can introduce a
+--   perceived rotational component.  The prototypical example is an
+--   arrowhead on the end of a path, which should be scale-invariant.
+--   However, applying a non-uniform scale to the path but not the
+--   arrowhead would leave the arrowhead pointing in the wrong
+--   direction.
+--
+--   Moreover, for objects whose local origin is not at the local
+--   origin of the parent diagram, any scale can result in a
+--   translational component as well.
+--
+--   The solution is to also store a point (indicating the location,
+--   /i.e./ the local origin) and a unit vector (indicating the
+--   /direction/) along with a scale-invariant object.  A
+--   transformation to be applied is decomposed into rotational and
+--   translational components as follows:
+--
+--   * The transformation is applied to the direction vector, and the
+--   difference in angle between the original direction vector and its
+--   image under the transformation determines the rotational
+--   component.  The rotation is applied with respect to the stored
+--   location, rather than the global origin.
+--
+--   * The vector from the location to the image of the location under
+--   the transformation determines the translational component.
+
+data ScaleInv t a =
+  ScaleInv
+  { unScaleInv :: t
+  , scaleInvDir :: D2 a
+  , scaleInvLoc :: P2 a
+  }
   deriving (Show)
+
+-- | Create a scale-invariant object pointing in the given direction.
+scaleInv :: t -> D2 a -> ScaleInv t a
+scaleInv t d = ScaleInv t d origin
 
 type instance V (ScaleInv t a) = D2 a
 
 instance (V t ~ D2 a, HasOrigin t) => HasOrigin (ScaleInv t a) where
-  moveOriginTo p (ScaleInv s v) = ScaleInv ( moveOriginTo p s ) v 
+  moveOriginTo p (ScaleInv t v l) = ScaleInv (moveOriginTo p t) v (moveOriginTo p l)
 
 instance forall t a. ( RealFloat a
                      , HasBasis a
@@ -397,16 +435,12 @@ instance forall t a. ( RealFloat a
                      , t ~ D2 a
                      , Transformable t
                      ) => Transformable (ScaleInv t a) where
-  transform tr (ScaleInv t v) = ScaleInv obj rotUnitVec where
-        transUnitVec :: D2 a
-        transUnitVec = transform tr v
-        angle :: Rad a
-        angle = direction transUnitVec  - direction v
-        rTrans :: ( Transformable t,  (V t ~ D2 a)) => t -> t
-        rTrans = rotate angle
-        obj = rTrans t
-        rotUnitVec :: D2 a
-        rotUnitVec = rTrans v
-
---------
+  transform tr (ScaleInv t v l) = ScaleInv (trans . rot $ t) (rot v) l'
+    where
+      angle :: Rad
+      angle = direction (transform tr v) - direction v
+      rot :: ( Transformable t,  (V t ~ R2) ) => t -> t
+      rot = rotateAbout l angle
+      l'  = transform tr l
+      trans = translate (l' .-. l)
 

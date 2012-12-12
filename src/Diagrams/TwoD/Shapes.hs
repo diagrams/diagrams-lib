@@ -70,7 +70,7 @@ hrule d = pathLike (p2 (-d/2,0)) False [Linear (d & 0)]
 vrule :: (Fractional a, PathLike p, V p ~ D2 a) => a -> p
 vrule d = pathLike (p2 (0,d/2)) False [Linear (0 & (-d))]
 
--- | A sqaure with its center at the origin and sides of length 1,
+-- | A square with its center at the origin and sides of length 1,
 --   oriented parallel to the axes.
 unitSquare :: ( Ord a
               , Floating a
@@ -84,7 +84,7 @@ unitSquare :: ( Ord a
 unitSquare = polygon with { polyType   = PolyRegular 4 (sqrt 2 / 2)
                           , polyOrient = OrientH }
 
--- | A sqaure with its center at the origin and sides of the given
+-- | A square with its center at the origin and sides of the given
 --   length, oriented parallel to the axes.
 square :: ( Ord a
           , Floating a
@@ -328,7 +328,7 @@ roundedRect' w h opts
         mkCorner k r | r == 0    = mempty
                      | r < 0     = doArc 3 2
                      | otherwise = doArc 0 1
-          where doArc d d' = arc ((k+d)/4) ((k+d')/4:: CircleFrac a) # scale (abs r)
+          where doArc d d' = arc' r ((k+d)/4) ((k+d')/4:: CircleFrac)
 
 data RoundedRectOpts a = RoundedRectOpts { radiusTL :: a
                                          , radiusTR :: a

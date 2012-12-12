@@ -91,6 +91,8 @@ module Diagrams.TwoD
        , ellipse
        , ellipseXY
        , arc
+       , arc'
+       , arcCW
        , wedge
 
          -- ** General polygons
@@ -151,13 +153,20 @@ module Diagrams.TwoD
        , shearingY, shearY
 
          -- * Combinators
+         -- ** Combining multiple diagrams
        , (===), (|||), atAngle
        , hcat, hcat'
        , vcat, vcat'
 
+         -- ** Spacing and envelopes
        , strutX, strutY
        , padX, padY
+
+       , extrudeLeft, extrudeRight, extrudeBottom, extrudeTop
+
        , view
+
+         -- ** Background
 
        , boundingRect, bg
 

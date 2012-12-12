@@ -43,8 +43,10 @@ quadForm a b c
     -- multiplicity 2 solution
   | d == 0    = [-b/(2*a)]
 
-  | otherwise = [(-b + sqrt d)/(2*a), (-b - sqrt d)/(2*a)]
+    -- see http://www.mpi-hd.mpg.de/astrophysik/HEA/internal/Numerical_Recipes/f5-6.pdf
+  | otherwise = [q/a, c/q]
  where d = b*b - 4*a*c
+       q = -1/2*(b + signum b * sqrt d)
 
 quadForm_prop :: Double -> Double -> Double -> Bool
 quadForm_prop a b c = all (aboutZero . eval) (quadForm a b c)

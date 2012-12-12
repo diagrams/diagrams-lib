@@ -235,6 +235,7 @@ data FillRule = Winding  -- ^ Interior points are those with a nonzero
                          --   direction crosses the path an odd number
                          --   of times. See
                          --   <http://en.wikipedia.org/wiki/Even-odd_rule>.
+    deriving (Eq)
 
 runFillRule :: ( RealFloat a
                , VectorSpace a

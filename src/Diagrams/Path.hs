@@ -59,7 +59,7 @@ module Diagrams.Path
        , pathVertices
        , pathOffsets
        , pathCentroid
-       , expandPath
+       , scalePath
        , reversePath
        , fixPath
 
@@ -353,9 +353,9 @@ pathCentroid = centroid . concat . pathVertices
 
 -- | Scale a path using its centroid (see 'pathCentroid') as the base
 --   point for the scale.
-expandPath :: (HasLinearMap v, VectorSpace v, Fractional (Scalar v), Eq (Scalar v))
-           => Scalar v -> Path v -> Path v
-expandPath d p = (scale d `under` translation (origin .-. pathCentroid p)) p
+scalePath :: (HasLinearMap v, VectorSpace v, Fractional (Scalar v), Eq (Scalar v))
+          => Scalar v -> Path v -> Path v
+scalePath d p = (scale d `under` translation (origin .-. pathCentroid p)) p
 
 -- | Reverse the direction of all the component trails of a path.
 reversePath :: AdditiveGroup v => Path v -> Path v
