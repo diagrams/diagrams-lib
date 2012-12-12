@@ -115,6 +115,7 @@ rotate = transform . rotation
 --   @CircleFrac@ arguments; it can be more convenient to write
 --   @rotateBy (1\/4)@ than @'rotate' (1\/4 :: 'CircleFrac')@.
 rotateBy :: ( Floating a
+            , Ord a
             , HasBasis a
             , HasTrie (Basis a)
             , a ~ Scalar a
@@ -419,7 +420,7 @@ data ScaleInv t a =
   deriving (Show)
 
 -- | Create a scale-invariant object pointing in the given direction.
-scaleInv :: t -> D2 a -> ScaleInv t a
+scaleInv :: (AdditiveGroup a) => t -> D2 a -> ScaleInv t a
 scaleInv t d = ScaleInv t d origin
 
 type instance V (ScaleInv t a) = D2 a
@@ -437,9 +438,9 @@ instance forall t a. ( RealFloat a
                      ) => Transformable (ScaleInv t a) where
   transform tr (ScaleInv t v l) = ScaleInv (trans . rot $ t) (rot v) l'
     where
-      angle :: Rad
+      angle :: Rad a
       angle = direction (transform tr v) - direction v
-      rot :: ( Transformable t,  (V t ~ R2) ) => t -> t
+      rot :: ( Transformable t,  (V t ~ D2 a) ) => t -> t
       rot = rotateAbout l angle
       l'  = transform tr l
       trans = translate (l' .-. l)

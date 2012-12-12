@@ -2,6 +2,7 @@
            , FlexibleContexts
            , MultiParamTypeClasses
   #-}
+{-# LANGUAGE UndecidableInstances #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Image
@@ -28,25 +29,42 @@ import Diagrams.TwoD.Shapes
 import Diagrams.TwoD.Size (SizeSpec2D(..))
 
 import Data.AffineSpace ((.-.))
+import Data.VectorSpace (Scalar)
+import Data.AdditiveGroup (AdditiveGroup)
+import Data.MemoTrie (HasTrie)
+import Data.Basis (HasBasis, Basis)
 
 import Data.Semigroup
 
 -- | An external image primitive, representing an image the backend
 --   should import from another file when rendering.
-data Image = Image { imgFile   :: FilePath
-                   , imgSize   :: SizeSpec2D
-                   , imgTransf :: T2
-                   }
+data Image a = Image { imgFile   :: FilePath
+                     , imgSize   :: SizeSpec2D a
+                     , imgTransf :: T2 a
+                     }
 
-type instance V Image = R2
+type instance V (Image a) = D2 a
 
-instance Transformable Image where
+instance ( Num a
+         , HasBasis a
+         , HasTrie (Basis a)
+         , a ~ Scalar a
+         ) => Transformable (Image a) where
   transform t1 (Image file sz t2) = Image file sz (t1 <> t2)
 
-instance HasOrigin Image where
+instance ( Num a
+         , AdditiveGroup a
+         , HasBasis a
+         , HasTrie (Basis a)
+         , a ~ Scalar a
+         ) => HasOrigin (Image a) where
   moveOriginTo p = translate (origin .-. p)
 
-instance Renderable Image NullBackend where
+instance ( Num a
+         , HasBasis a
+         , HasTrie (Basis a)
+         , a ~ Scalar a
+         ) => Renderable (Image a) NullBackend where
   render _ _ = mempty
 
 -- See Note [Image size specification]
@@ -56,7 +74,7 @@ instance Renderable Image NullBackend where
 --   origin.  Note that the image's aspect ratio will be preserved; if
 --   the specified width and height have a different ratio than the
 --   image's aspect ratio, there will be extra space in one dimension.
-image :: (Renderable Image b) => FilePath -> Double -> Double -> Diagram b R2
+image :: (Renderable (Image a) b) => FilePath -> a -> a -> Diagram b (D2 a)
 image file w h = mkQD (Prim (Image file (Dims w h) mempty))
                       (getEnvelope r)
                       (getTrace r)

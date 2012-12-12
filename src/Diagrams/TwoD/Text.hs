@@ -4,6 +4,7 @@
            , TypeFamilies
            , MultiParamTypeClasses
   #-}
+{-# LANGUAGE UndecidableInstances #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Text
@@ -36,7 +37,10 @@ import Diagrams.Core
 import Diagrams.TwoD.Types
 
 import Data.AffineSpace ((.-.))
-
+import Data.VectorSpace (Scalar, InnerSpace)
+import Data.Basis (Basis, HasBasis)
+import Data.MemoTrie (HasTrie)
+import Data.AdditiveGroup (AdditiveGroup)
 import Data.Semigroup
 
 import Data.Colour
@@ -51,23 +55,40 @@ import Data.Typeable
 --   specification, along with a transformation mapping from the local
 --   vector space of the text to the vector space in which it is
 --   embedded.
-data Text = Text T2 TextAlignment String
+data Text a = Text (T2 a) (TextAlignment a) String
 
-type instance V Text = R2
+type instance V (Text a) = D2 a
 
-instance Transformable Text where
+instance ( Num a
+         , HasBasis a
+         , HasTrie (Basis a)
+         , a ~ Scalar a
+         ) => Transformable (Text a) where
   transform t (Text tt a s) = Text (t <> tt) a s
 
-instance HasOrigin Text where
+instance ( Num a
+         , AdditiveGroup a
+         , HasBasis a
+         , HasTrie (Basis a)
+         , a ~ Scalar a
+         ) => HasOrigin (Text a) where
   moveOriginTo p = translate (origin .-. p)
 
-instance Renderable Text NullBackend where
+instance ( Num a
+         , HasBasis a
+         , HasTrie (Basis a)
+         , a ~ Scalar a) => Renderable (Text a) NullBackend where
   render _ _ = mempty
 
 -- | @TextAlignment@ specifies the alignment of the text's origin.
-data TextAlignment = BaselineText | BoxAlignedText Double Double
+data TextAlignment a = BaselineText | BoxAlignedText a a
 
-mkText :: Renderable Text b => TextAlignment -> String -> Diagram b R2
+mkText :: ( Ord a
+          , Floating a
+          , InnerSpace a
+          , a ~ Scalar a
+          , Renderable (Text a) b
+          ) => TextAlignment a -> String -> Diagram b (D2 a)
 mkText a t = recommendFillColor black
            $ mkQD (Prim (Text mempty a t))
                        mempty
@@ -80,7 +101,13 @@ mkText a t = recommendFillColor black
 --
 --   Note that it /takes up no space/, as text size information is not
 --   available.
-text :: Renderable Text b => String -> Diagram b R2
+text :: ( Fractional a
+        , Floating a
+        , Ord a
+        , a ~ Scalar a
+        , InnerSpace a
+        , Renderable (Text a) b
+        ) => String -> Diagram b (D2 a)
 text = alignedText 0.5 0.5
 
 -- | Create a primitive text diagram from the given string, origin at
@@ -88,7 +115,13 @@ text = alignedText 0.5 0.5
 --   @'alignedText' 0 1@.
 --
 --   Note that it /takes up no space/.
-topLeftText :: Renderable Text b => String -> Diagram b R2
+topLeftText :: ( Num a
+               , Ord a
+               , Floating a
+               , a ~ Scalar a
+               , InnerSpace a
+               , Renderable (Text a) b
+               ) => String -> Diagram b (D2 a)
 topLeftText = alignedText 0 1
 
 -- | Create a primitive text diagram from the given string, with the
@@ -100,7 +133,12 @@ topLeftText = alignedText 0 1
 --   and descent, rather than the height of the particular string.
 --
 --   Note that it /takes up no space/.
-alignedText :: Renderable Text b => Double -> Double -> String -> Diagram b R2
+alignedText :: ( Ord a
+               , Floating a
+               , a ~ Scalar a
+               , InnerSpace a
+               , Renderable (Text a) b
+               ) => a -> a -> String -> Diagram b (D2 a)
 alignedText w h = mkText (BoxAlignedText w h)
 
 -- | Create a primitive text diagram from the given string, with the
@@ -109,7 +147,12 @@ alignedText w h = mkText (BoxAlignedText w h)
 --   graphics library.
 --
 --   Note that it /takes up no space/.
-baselineText :: Renderable Text b => String -> Diagram b R2
+baselineText :: ( Ord a
+                , Floating a
+                , a ~ Scalar a
+                , InnerSpace a
+                , Renderable (Text a) b
+                ) => String -> Diagram b (D2 a)
 baselineText = mkText BaselineText
 
 ------------------------------------------------------------

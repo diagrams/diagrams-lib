@@ -2,6 +2,7 @@
            , ViewPatterns
   #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Arc
@@ -47,6 +48,7 @@ import Data.MemoTrie (HasTrie(..))
 --   radians.  The approximation is only valid for angles in the first
 --   quadrant.
 bezierFromSweepQ1 :: ( Floating a
+                     , Ord a
                      , AdditiveGroup a
                      , HasBasis a
                      , HasTrie (Basis a)
@@ -101,14 +103,16 @@ the approximation error.
 
 -- | Given a start angle @s@ and an end angle @e@, @'arcT' s e@ is the
 --   'Trail' of a radius one arc counterclockwise between the two angles.
-arcT :: ( Ord a
-        , Floating a
-        , AdditiveGroup a
-        , HasBasis a
-        , HasTrie (Basis a)
-        , a ~ Scalar a
-        , Angle m a
-        ) => m a -> m a -> Trail (D2 a)
+arcT :: forall a m . ( Ord a
+                     , Floating a
+                     , RealFrac a
+                     , AdditiveGroup a
+                     , HasBasis a
+                     , HasTrie (Basis a)
+                     , a ~ Scalar a
+                     , Angle m a
+                     , Ord (m a)
+                     ) => m a -> m a -> Trail (D2 a)
 arcT start end
     | e < s     = arcT s (e + fromIntegral d)
     | otherwise = Trail bs (sweep >= tau)
@@ -118,7 +122,7 @@ arcT start end
         -- We want to compare the start and the end and in case
         -- there isn't some law about 'Angle' ordering, we use a
         -- known 'Angle' for that.
-        s = convertAngle start :: CircleFrac
+        s = convertAngle start :: CircleFrac a
         e = convertAngle end
         d = ceiling (s - e) :: Integer
 
@@ -127,11 +131,13 @@ arcT start end
 --   The origin of the arc is its center.
 arc :: ( Ord a
        , Floating a
+       , RealFrac a
        , AdditiveGroup a
        , HasBasis a
        , HasTrie (Basis a)
        , a ~ Scalar a
        , Angle m a
+       , Ord (m a)
        , PathLike p
        , V p ~ D2 a
        ) => m a -> m a -> p
@@ -140,7 +146,16 @@ arc start end = pathLike (rotate start $ p2 (1,0))
                          (trailSegments $ arcT start end)
 
 -- | Like 'arc' but clockwise.
-arcCW :: (Angle a, PathLike p, V p ~ R2) => a -> a -> p
+arcCW :: ( Floating a
+         , RealFrac a
+         , HasBasis a
+         , HasTrie (Basis a)
+         , a ~ Scalar a
+         , Angle m a
+         , Ord (m a)
+         , PathLike p
+         , V p ~ D2 a
+         ) => m a -> m a -> p
 arcCW start end = pathLike (rotate start $ p2 (1,0))
                            False
                            -- flipped arguments to get the path we want
@@ -154,7 +169,18 @@ arcCW start end = pathLike (rotate start $ p2 (1,0))
 --   the two angles.  If a negative radius is given, the arc will
 --   be clockwise, otherwise it will be counterclockwise. The origin 
 --   of the arc is its center.
-arc' :: (Angle a, PathLike p, V p ~ R2) => Double -> a -> a -> p
+arc' :: ( Eq a
+        , Ord a
+        , Floating a
+        , RealFrac a
+        , HasBasis a
+        , HasTrie (Basis a)
+        , a ~ Scalar a
+        , Angle m a
+        , Ord (m a)
+        , PathLike p
+        , V p ~ D2 a
+        ) => a -> m a -> m a -> p
 arc' r start end = pathLike (rotate start $ p2 (abs r,0))
                    False
                    (trailSegments . scale (abs r) $ ts)
@@ -165,10 +191,12 @@ arc' r start end = pathLike (rotate start $ p2 (abs r,0))
 --   first angle and extending counterclockwise to the second.
 wedge :: ( Ord a
          , Floating a
+         , RealFrac a
          , HasBasis a
          , HasTrie (Basis a)
          , a ~ Scalar a
          , Angle m a
+         , Ord (m a)
          , PathLike p
          , V p ~ D2 a
          ) => a -> m a -> m a -> p

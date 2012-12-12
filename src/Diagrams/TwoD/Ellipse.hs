@@ -40,6 +40,7 @@ import Diagrams.Util
 -- | A circle of radius 1, with center at the origin.
 unitCircle :: forall a p. ( Ord a
                           , Floating a
+                          , RealFrac a
                           , HasBasis a
                           , HasTrie (Basis a)
                           , a ~ Scalar a
@@ -52,6 +53,7 @@ unitCircle = pathLike (p2 (1,0)) True $ trailSegments (arcT 0 (tau::Rad a))
 --   it begins at (r,0).
 circle :: ( Ord a
           , Floating a
+          , RealFrac a
           , HasBasis a
           , HasTrie (Basis a)
           , a ~ Scalar a
@@ -66,6 +68,7 @@ circle d = unitCircle # scale d
 --   be within the interval [0,1).
 ellipse :: ( Ord a
            , Floating a
+           , RealFrac a
            , HasBasis a
            , HasTrie (Basis a)
            , a ~ Scalar a
@@ -82,6 +85,7 @@ ellipse e
 --   y-axis.
 ellipseXY :: ( Ord a
              , Floating a
+             , RealFrac a
              , HasBasis a
              , HasTrie (Basis a)
              , a ~ Scalar a

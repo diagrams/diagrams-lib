@@ -271,6 +271,7 @@ dodecagon = regPoly 12
 --   @roundedRect'@ instead.
 roundedRect :: ( Ord a
                , Floating a
+               , RealFrac a
                , HasBasis a
                , HasTrie (Basis a)
                , a ~ Scalar a
@@ -288,6 +289,7 @@ roundedRect w h r = roundedRect' w h (with { radiusTL = r,
 --   to be inward instead of outward.
 roundedRect' :: forall a p. ( Ord a
                             , Floating a
+                            , RealFrac a
                             , HasBasis a
                             , HasTrie (Basis a)
                             , a ~ Scalar a
@@ -328,7 +330,7 @@ roundedRect' w h opts
         mkCorner k r | r == 0    = mempty
                      | r < 0     = doArc 3 2
                      | otherwise = doArc 0 1
-          where doArc d d' = arc' r ((k+d)/4) ((k+d')/4:: CircleFrac)
+          where doArc d d' = arc' r ((k+d)/4) ((k+d')/4:: CircleFrac a)
 
 data RoundedRectOpts a = RoundedRectOpts { radiusTL :: a
                                          , radiusTR :: a

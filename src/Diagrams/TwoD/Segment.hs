@@ -3,6 +3,7 @@
            , UndecidableInstances
   #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Segment
@@ -45,7 +46,7 @@ instance ( Ord a
          ) => Traced (Segment (D2 a)) where
   getTrace = getTrace . mkFixedSeg origin
 
-instance ( Ord a
+instance forall a. ( Ord a
          , RealFloat a
          , AdditiveGroup a
          , InnerSpace a
