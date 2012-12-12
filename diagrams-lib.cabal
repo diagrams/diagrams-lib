@@ -17,7 +17,7 @@ Bug-reports:         http://github.com/diagrams/diagrams-lib/issues
 Category:            Graphics
 Build-type:          Simple
 Cabal-version:       >=1.6
-Extra-source-files:  CHANGES, README
+Extra-source-files:  CHANGES.markdown, README.markdown
 Tested-with:         GHC == 7.0.4, GHC == 7.2.1, GHC == 7.4.2, GHC == 7.6.1
 Source-repository head
   type:     git
