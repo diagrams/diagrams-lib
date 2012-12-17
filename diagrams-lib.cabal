@@ -72,5 +72,6 @@ Library
                        colour >= 2.3.2 && < 2.4,
                        data-default >= 0.2 && < 0.6,
                        pretty >= 1.0.1.2 && < 1.2,
-                       newtype >= 0.2 && < 0.3
+                       newtype >= 0.2 && < 0.3,
+                       MemoTrie >= 0.6 && < 0.7
   Hs-source-dirs:      src
