@@ -3,6 +3,7 @@
            , MultiParamTypeClasses
   #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Image
@@ -29,7 +30,7 @@ import Diagrams.TwoD.Shapes
 import Diagrams.TwoD.Size (SizeSpec2D(..))
 
 import Data.AffineSpace ((.-.))
-import Data.VectorSpace (Scalar)
+import Data.VectorSpace (Scalar, VectorSpace, InnerSpace)
 import Data.AdditiveGroup (AdditiveGroup)
 import Data.MemoTrie (HasTrie)
 import Data.Basis (HasBasis, Basis)
@@ -74,13 +75,22 @@ instance ( Num a
 --   origin.  Note that the image's aspect ratio will be preserved; if
 --   the specified width and height have a different ratio than the
 --   image's aspect ratio, there will be extra space in one dimension.
-image :: (Renderable (Image a) b) => FilePath -> a -> a -> Diagram b (D2 a)
+image :: forall a b . ( Ord a
+                      , RealFloat a
+                      , AdditiveGroup a
+                      , VectorSpace a
+                      , InnerSpace a
+                      , HasBasis a
+                      , HasTrie (Basis a)
+                      , a ~ Scalar a
+                      , Renderable (Image a) b
+                      ) => FilePath -> a -> a -> Diagram b (D2 a)
 image file w h = mkQD (Prim (Image file (Dims w h) mempty))
                       (getEnvelope r)
                       (getTrace r)
                       mempty
                       (Query $ \p -> Any (isInsideEvenOdd p r))
-  where r :: Path R2
+  where r :: Path (D2 a)
         r = rect w h
 
 {- ~~~~ Note [Image size specification]
