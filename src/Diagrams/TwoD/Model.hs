@@ -58,9 +58,9 @@ showOrigin :: ( Ord a
               , HasTrie (Basis a)
               , a ~ Scalar a
               , InnerSpace a
-              , Renderable (Path (D2 a)) b
-              , Backend b (D2 a), Monoid' m
-              ) => QDiagram b (D2 a) m -> QDiagram b (D2 a) m
+              , Renderable (Path (V2 a)) b
+              , Backend b (V2 a), Monoid' m
+              ) => QDiagram b (V2 a) m -> QDiagram b (V2 a) m
 showOrigin = showOrigin' def
 
 -- | Mark the origin of a diagram, with control over colour and scale
@@ -72,10 +72,10 @@ showOrigin' :: ( Ord a
                , HasTrie (Basis a)
                , a ~ Scalar a
                , InnerSpace a
-               , Renderable (Path (D2 a)) b
-               , Backend b (D2 a)
+               , Renderable (Path (V2 a)) b
+               , Backend b (V2 a)
                , Monoid' m
-               ) => OriginOpts a -> QDiagram b (D2 a) m -> QDiagram b (D2 a) m
+               ) => OriginOpts a -> QDiagram b (V2 a) m -> QDiagram b (V2 a) m
 showOrigin' oo d = o <> d
   where o     = stroke (circle sz)
                 # fc (oColor oo)
@@ -102,8 +102,8 @@ showLabels :: ( Ord a
               , a ~ Scalar a
               , InnerSpace a
               , Renderable (Text a) b
-              , Backend b (D2 a)
-              ) => QDiagram b (D2 a) m -> QDiagram b (D2 a) Any
+              , Backend b (V2 a)
+              ) => QDiagram b (V2 a) m -> QDiagram b (V2 a) Any
 showLabels d =
              ( mconcat
              . map (\(n,p) -> text (show n) # translate (p .-. origin))

@@ -77,7 +77,7 @@ instance ( Ord a
          , HasBasis a
          , HasTrie (Basis a)
          , a ~ Scalar a
-         ) => Traced (Trail (D2 a)) where
+         ) => Traced (Trail (V2 a)) where
   getTrace t = case addClosingSegment t of
     (Trail segs _) ->
       foldr (\seg bds -> moveOriginBy (negateV . segOffset $ seg) bds <> getTrace seg)
@@ -91,7 +91,7 @@ instance ( Ord a
          , HasBasis a
          , HasTrie (Basis a)
          , a ~ Scalar a
-         ) => Traced (Path (D2 a)) where
+         ) => Traced (Path (V2 a)) where
   getTrace = F.foldMap trailTrace . pathTrails
     where trailTrace (p, t) = moveOriginTo ((-1) *. p) (getTrace t)
 
@@ -114,8 +114,8 @@ stroke :: ( RealFloat a
           , HasBasis a
           , HasTrie (Basis a)
           , a ~ Scalar a
-          , Renderable (Path (D2 a)) b
-          ) => Path (D2 a) -> Diagram b (D2 a)
+          , Renderable (Path (V2 a)) b
+          ) => Path (V2 a) -> Diagram b (V2 a)
 stroke = stroke' (def :: StrokeOpts ())
 
 instance ( Ord a
@@ -124,8 +124,8 @@ instance ( Ord a
          , HasBasis a
          , HasTrie (Basis a)
          , a ~ Scalar a
-         , Renderable (Path (D2 a)) b
-         ) => PathLike (QDiagram b (D2 a) Any) where
+         , Renderable (Path (V2 a)) b
+         ) => PathLike (QDiagram b (V2 a) Any) where
   pathLike st cl segs = stroke $ pathLike st cl segs
 
 -- | A variant of 'stroke' that takes an extra record of options to
@@ -141,9 +141,9 @@ stroke' :: ( Ord a
            , HasBasis a
            , HasTrie (Basis a)
            , a ~ Scalar a
-           , Renderable (Path (D2 a)) b
+           , Renderable (Path (V2 a)) b
            , IsName c
-           ) => StrokeOpts c -> Path (D2 a) -> Diagram b (D2 a)
+           ) => StrokeOpts c -> Path (V2 a) -> Diagram b (V2 a)
 stroke' opts p
   = mkQD (Prim p)
          (getEnvelope p)
@@ -204,8 +204,8 @@ strokeT :: ( RealFloat a
            , HasBasis a
            , HasTrie (Basis a)
            , a ~ Scalar a
-           , Renderable (Path (D2 a)) b
-           ) => Trail (D2 a) -> Diagram b (D2 a)
+           , Renderable (Path (V2 a)) b
+           ) => Trail (V2 a) -> Diagram b (V2 a)
 strokeT = stroke . pathFromTrail
 
 -- | A composition of 'stroke'' and 'pathFromTrail' for conveniently
@@ -215,9 +215,9 @@ strokeT' :: ( RealFloat a
             , HasBasis a
             , HasTrie (Basis a)
             , a ~ Scalar a
-            , Renderable (Path (D2 a)) b
+            , Renderable (Path (V2 a)) b
             , IsName c
-            ) => StrokeOpts c -> Trail (D2 a) -> Diagram b (D2 a)
+            ) => StrokeOpts c -> Trail (V2 a) -> Diagram b (V2 a)
 strokeT' opts = stroke' opts . pathFromTrail
 
 ------------------------------------------------------------
@@ -240,7 +240,7 @@ data FillRule = Winding  -- ^ Interior points are those with a nonzero
 runFillRule :: ( RealFloat a
                , VectorSpace a
                , a ~ Scalar a
-               ) => FillRule -> P2 a -> Path (D2 a) -> Bool
+               ) => FillRule -> P2 a -> Path (V2 a) -> Bool
 runFillRule Winding = isInsideWinding
 runFillRule EvenOdd = isInsideEvenOdd
 
@@ -257,7 +257,7 @@ getFillRule (FillRuleA (Last r)) = r
 fillRule :: HasStyle a => FillRule -> a -> a
 fillRule = applyAttr . FillRuleA . Last
 
-cross :: (Num a) => D2 a -> D2 a -> a
+cross :: (Num a) => V2 a -> V2 a -> a
 cross (coords -> x :& y) (coords -> x' :& y') = x * y' - y * x'
 
 -- XXX link to more info on this
@@ -269,7 +269,7 @@ cross (coords -> x :& y) (coords -> x' :& y') = x * y' - y * x'
 isInsideWinding :: ( RealFloat a
                    , VectorSpace a
                    , a ~ Scalar a
-                   ) => P2 a -> Path (D2 a) -> Bool
+                   ) => P2 a -> Path (V2 a) -> Bool
 isInsideWinding p = (/= 0) . crossings p
 
 -- | Test whether the given point is inside the given (closed) path,
@@ -280,7 +280,7 @@ isInsideWinding p = (/= 0) . crossings p
 isInsideEvenOdd :: ( RealFloat a
                    , VectorSpace a
                    , a ~ Scalar a
-                   ) => P2 a -> Path (D2 a) -> Bool
+                   ) => P2 a -> Path (V2 a) -> Bool
 isInsideEvenOdd p = odd . crossings p
 
 -- | Compute the sum of /signed/ crossings of a path as we travel in the
@@ -288,7 +288,7 @@ isInsideEvenOdd p = odd . crossings p
 crossings :: ( RealFloat a
              , VectorSpace a
              , a ~ Scalar a
-             ) => P2 a -> Path (D2 a) -> Int
+             ) => P2 a -> Path (V2 a) -> Int
 crossings p = F.sum . map (trailCrossings p) . pathTrails
 
 -- | Compute the sum of signed crossings of a trail starting from the
@@ -298,7 +298,7 @@ trailCrossings ::( Ord a
                  , AdditiveGroup a
                  , VectorSpace a
                  , a ~ Scalar a
-                 ) => P2 a -> (P2 a, Trail (D2 a)) -> Int
+                 ) => P2 a -> (P2 a, Trail (V2 a)) -> Int
 
   -- open trails have no inside or outside, so don't contribute crossings
 trailCrossings _ (_, t) | not (isClosed t) = 0
@@ -344,12 +344,12 @@ trailCrossings p@(unp2 -> (x,y)) (start, tr)
 --   concatenation, so applying multiple clipping paths is sensible.
 --   The clipping region is the intersection of all the applied
 --   clipping paths.
-newtype Clip a = Clip { getClip :: [Path (D2 a)] }
+newtype Clip a = Clip { getClip :: [Path (V2 a)] }
   deriving (Typeable, Semigroup)
 
 instance (Typeable a) => AttributeClass (Clip a)
 
-type instance V (Clip a) = D2 a
+type instance V (Clip a) = V2 a
 
 instance ( Num a
          , HasBasis a
@@ -370,8 +370,8 @@ clipBy :: ( Num a
           , HasTrie (Basis a)
           , a ~ Scalar a
           , HasStyle b
-          , V b ~ D2 a
-          ) => Path (D2 a) -> b -> b
+          , V b ~ V2 a
+          ) => Path (V2 a) -> b -> b
 clipBy = applyTAttr . Clip . (:[])
 
 -- XXX Should include a 'clipTo' function which clips a diagram AND

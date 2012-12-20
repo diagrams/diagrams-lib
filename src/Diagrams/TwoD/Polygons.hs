@@ -135,7 +135,7 @@ data PolyOrientation a = NoOrient        -- ^ No special orientation; the first
                        | OrientV         -- ^ Orient /vertically/, so the
                                          --   leftmost edge is parallel to the
                                          --   y-axis.
-                       | OrientTo (D2 a) -- ^ Orient so some edge is
+                       | OrientTo (V2 a) -- ^ Orient so some edge is
                                          --   /facing/ /in/ /the/ /direction/
                                          --   /of/, that is, perpendicular
                                          --   to, the given vector.
@@ -192,7 +192,7 @@ polygon :: ( Ord a
            , InnerSpace a
            , a ~ Scalar a
            , PathLike p
-           , V p ~ D2 a
+           , V p ~ V2 a
            ) => PolygonOpts a -> p
 polygon opts = case pts of
                  []     -> pathLike origin True []
@@ -258,7 +258,7 @@ orient :: ( Ord a
           , HasTrie (Basis a)
           , InnerSpace a
           , a ~ Scalar a
-          ) => D2 a -> [P2 a] -> [P2 a]
+          ) => V2 a -> [P2 a] -> [P2 a]
 orient _ [] = []
 orient v xs = rotate a xs
     where
@@ -357,7 +357,7 @@ data StarOpts = StarFun (Int -> Int)
 --   returned (instead of any 'PathLike') because the resulting path
 --   may have more than one component, for example if the vertices are
 --   to be connected in several disjoint cycles.
-star :: (Num a, AdditiveGroup a) => StarOpts -> [P2 a] -> Path (D2 a)
+star :: (Num a, AdditiveGroup a) => StarOpts -> [P2 a] -> Path (V2 a)
 star sOpts vs = graphToPath $ mkGraph f vs
   where f = case sOpts of
               StarFun g  -> g

@@ -53,7 +53,7 @@ bezierFromSweepQ1 :: ( Floating a
                      , HasBasis a
                      , HasTrie (Basis a)
                      , a ~ Scalar a
-                     ) => Rad a -> Segment (D2 a)
+                     ) => Rad a -> Segment (V2 a)
 bezierFromSweepQ1 s = fmap (^-^ v) . rotate (s/2) $ Cubic c2 c1 p0
   where p0@(coords -> x :& y) = rotate (s/2) v
         c1                    = ((4-x)/3)  &  ((1-x)*(3-x)/(3*y))
@@ -72,7 +72,7 @@ bezierFromSweep :: ( Ord a
                    , HasBasis a
                    , HasTrie (Basis a)
                    , a ~ Scalar a
-                   ) => Rad a -> [Segment (D2 a)]
+                   ) => Rad a -> [Segment (V2 a)]
 bezierFromSweep s
   | s > tau    = bezierFromSweep tau
   | s < 0      = fmap reflectY . bezierFromSweep $ (-s)
@@ -112,7 +112,7 @@ arcT :: forall a m . ( Ord a
                      , a ~ Scalar a
                      , Angle m a
                      , Ord (m a)
-                     ) => m a -> m a -> Trail (D2 a)
+                     ) => m a -> m a -> Trail (V2 a)
 arcT start end
     | e < s     = arcT s (e + fromIntegral d)
     | otherwise = Trail bs (sweep >= tau)
@@ -139,7 +139,7 @@ arc :: ( Ord a
        , Angle m a
        , Ord (m a)
        , PathLike p
-       , V p ~ D2 a
+       , V p ~ V2 a
        ) => m a -> m a -> p
 arc start end = pathLike (rotate start $ p2 (1,0))
                          False
@@ -154,7 +154,7 @@ arcCW :: ( Floating a
          , Angle m a
          , Ord (m a)
          , PathLike p
-         , V p ~ D2 a
+         , V p ~ V2 a
          ) => m a -> m a -> p
 arcCW start end = pathLike (rotate start $ p2 (1,0))
                            False
@@ -179,7 +179,7 @@ arc' :: ( Eq a
         , Angle m a
         , Ord (m a)
         , PathLike p
-        , V p ~ D2 a
+        , V p ~ V2 a
         ) => a -> m a -> m a -> p
 arc' r start end = pathLike (rotate start $ p2 (abs r,0))
                    False
@@ -198,7 +198,7 @@ wedge :: ( Ord a
          , Angle m a
          , Ord (m a)
          , PathLike p
-         , V p ~ D2 a
+         , V p ~ V2 a
          ) => a -> m a -> m a -> p
 wedge r a1 a2 = pathLikeFromTrail $ fromOffsets [r *^ e a1]
                                  <> arc a1 a2 # scale r

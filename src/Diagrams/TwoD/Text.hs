@@ -57,7 +57,7 @@ import Data.Typeable
 --   embedded.
 data Text a = Text (T2 a) (TextAlignment a) String
 
-type instance V (Text a) = D2 a
+type instance V (Text a) = V2 a
 
 instance ( Num a
          , HasBasis a
@@ -88,7 +88,7 @@ mkText :: ( Ord a
           , InnerSpace a
           , a ~ Scalar a
           , Renderable (Text a) b
-          ) => TextAlignment a -> String -> Diagram b (D2 a)
+          ) => TextAlignment a -> String -> Diagram b (V2 a)
 mkText a t = recommendFillColor black
            $ mkQD (Prim (Text mempty a t))
                        mempty
@@ -107,7 +107,7 @@ text :: ( Fractional a
         , a ~ Scalar a
         , InnerSpace a
         , Renderable (Text a) b
-        ) => String -> Diagram b (D2 a)
+        ) => String -> Diagram b (V2 a)
 text = alignedText 0.5 0.5
 
 -- | Create a primitive text diagram from the given string, origin at
@@ -121,7 +121,7 @@ topLeftText :: ( Num a
                , a ~ Scalar a
                , InnerSpace a
                , Renderable (Text a) b
-               ) => String -> Diagram b (D2 a)
+               ) => String -> Diagram b (V2 a)
 topLeftText = alignedText 0 1
 
 -- | Create a primitive text diagram from the given string, with the
@@ -138,7 +138,7 @@ alignedText :: ( Ord a
                , a ~ Scalar a
                , InnerSpace a
                , Renderable (Text a) b
-               ) => a -> a -> String -> Diagram b (D2 a)
+               ) => a -> a -> String -> Diagram b (V2 a)
 alignedText w h = mkText (BoxAlignedText w h)
 
 -- | Create a primitive text diagram from the given string, with the
@@ -152,7 +152,7 @@ baselineText :: ( Ord a
                 , a ~ Scalar a
                 , InnerSpace a
                 , Renderable (Text a) b
-                ) => String -> Diagram b (D2 a)
+                ) => String -> Diagram b (V2 a)
 baselineText = mkText BaselineText
 
 ------------------------------------------------------------

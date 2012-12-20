@@ -27,8 +27,8 @@ module Diagrams.TwoD.Types
        , r2, unr2
        , P2, P2D
        , p2, unp2
-       , D2
-       , d2, und2
+       , V2
+       , v2, unv2
        , T2, T2D
        -- * Angles
        , Angle(..)
@@ -72,30 +72,30 @@ import Data.Typeable
 -- > foo (unr2 -> (x,y)) = ...
 -- > foo (coords -> x :& y) = ...
 
-newtype D2 a = D2 { unD2 :: (a, a) }
+newtype V2 a = V2 { unV2 :: (a, a) }
   deriving (AdditiveGroup, Eq, Ord, Typeable, Num, Fractional)
 
-d2 :: (a, a) -> D2 a
-d2 = D2
+v2 :: (a, a) -> V2 a
+v2 = V2
 
-und2 :: D2 a -> (a, a)
-und2 = unpack
+unv2 :: V2 a -> (a, a)
+unv2 = unpack
 
-type R2 = D2 Double
+type R2 = V2 Double
 
 unR2 :: R2 -> (Double, Double)
-unR2 = unD2
+unR2 = unV2
 
-instance (Show a, Num a, Ord a) => Show (D2 a) where
-  showsPrec p (D2 (x,y)) = showParen (p >= 7) $
+instance (Show a, Num a, Ord a) => Show (V2 a) where
+  showsPrec p (V2 (x,y)) = showParen (p >= 7) $
     showCoord x . showString " & " . showCoord y
    where
     showCoord x | x < 0     = showParen True (shows x)
                 | otherwise = shows x
 
-instance (Read a) => Read (D2 a) where
+instance (Read a) => Read (V2 a) where
   readsPrec d r = readParen (d > app_prec)
-                  (\r -> [ (D2 (x,y), r''')
+                  (\r -> [ (V2 (x,y), r''')
                          | (x,r')    <- readsPrec (amp_prec + 1) r
                          , ("&",r'') <- lex r'
                          , (y,r''')  <- readsPrec (amp_prec + 1) r''
@@ -105,9 +105,9 @@ instance (Read a) => Read (D2 a) where
       app_prec = 10
       amp_prec = 7
 
-instance Newtype (D2 a) (a, a) where
-  pack   = D2
-  unpack = unD2
+instance Newtype (V2 a) (a, a) where
+  pack   = V2
+  unpack = unV2
 
 -- | Construct a 2D vector from a pair of components.  See also '&'.
 r2 :: (Double, Double) -> R2
@@ -117,31 +117,31 @@ r2 = pack
 unr2 :: R2 -> (Double, Double)
 unr2 = unpack
 
-type instance V (D2 a) = D2 a
+type instance V (V2 a) = V2 a
 
-instance (AdditiveGroup a, Num a) => VectorSpace (D2 a) where
-  type Scalar (D2 a) = a
-  s *^ v = let (vx, vy) = und2 v
-           in d2 (s * vx, s * vy)
+instance (AdditiveGroup a, Num a) => VectorSpace (V2 a) where
+  type Scalar (V2 a) = a
+  s *^ v = let (vx, vy) = unv2 v
+           in v2 (s * vx, s * vy)
 
 -- GHC can't deduce "a ~ Scalar a", so it has to be added here.
 -- This is why "UndecidableInstances" is needed.
-instance (AdditiveGroup a, Num a, HasBasis a, a ~ Scalar a) => HasBasis (D2 a) where
-  type Basis (D2 a) = Basis (a,a) -- should be equal to: Either (Basis a) (Basis a)
-  basisValue = d2 . basisValue
-  decompose  = decompose  . und2
-  decompose' = decompose' . und2
+instance (AdditiveGroup a, Num a, HasBasis a, a ~ Scalar a) => HasBasis (V2 a) where
+  type Basis (V2 a) = Basis (a,a) -- should be equal to: Either (Basis a) (Basis a)
+  basisValue = v2 . basisValue
+  decompose  = decompose  . unv2
+  decompose' = decompose' . unv2
 
-instance (AdditiveGroup a, Num a, InnerSpace a, a ~ Scalar a) => InnerSpace (D2 a) where
-  (und2 -> vec1) <.> (und2 -> vec2) = vec1 <.> vec2
+instance (AdditiveGroup a, Num a, InnerSpace a, a ~ Scalar a) => InnerSpace (V2 a) where
+  (unv2 -> vec1) <.> (unv2 -> vec2) = vec1 <.> vec2
 
-instance Coordinates (D2 a) where
-  type FinalCoord (D2 a)     = a
-  type PrevDim (D2 a)        = a
-  type Decomposition (D2 a)  = a :& a
+instance Coordinates (V2 a) where
+  type FinalCoord (V2 a)     = a
+  type PrevDim (V2 a)        = a
+  type Decomposition (V2 a)  = a :& a
 
-  x & y                  = d2 (x,y)
-  coords (unD2 -> (x,y)) = x :& y
+  x & y                  = v2 (x,y)
+  coords (unv2 -> (x,y)) = x :& y
 
 -- | Points in R^2.  This type is intentionally abstract.
 --
@@ -162,7 +162,7 @@ instance Coordinates (D2 a) where
 --
 -- > foo (unp2 -> (x,y)) = ...
 -- > foo (coords -> x :& y) = ...
-type P2 a = Point (D2 a)
+type P2 a = Point (V2 a)
 type P2D = P2 Double
 
 -- | Construct a 2D point from a pair of coordinates.  See also '&'.
@@ -174,10 +174,10 @@ unp2 :: P2 a -> (a, a)
 unp2 = unpack . unpack
 
 -- | Transformations in R^2.
-type T2 a = Transformation (D2 a)
+type T2 a = Transformation (V2 a)
 type T2D = T2 Double
 
-instance (HasLinearMap (D2 a)) => Transformable (D2 a) where
+instance (HasLinearMap (V2 a)) => Transformable (V2 a) where
   transform = apply
 
 ------------------------------------------------------------

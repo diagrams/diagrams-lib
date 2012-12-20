@@ -45,7 +45,7 @@ unitCircle :: forall a p. ( Ord a
                           , HasTrie (Basis a)
                           , a ~ Scalar a
                           , PathLike p
-                          , V p ~ D2 a
+                          , V p ~ V2 a
                           ) => p
 unitCircle = pathLike (p2 (1,0)) True $ trailSegments (arcT 0 (tau::Rad a))
 
@@ -58,7 +58,7 @@ circle :: ( Ord a
           , HasTrie (Basis a)
           , a ~ Scalar a
           , PathLike p
-          , V p ~ D2 a
+          , V p ~ V2 a
           , Transformable p
           ) => a -> p
 circle d = unitCircle # scale d
@@ -73,7 +73,7 @@ ellipse :: ( Ord a
            , HasTrie (Basis a)
            , a ~ Scalar a
            , PathLike p
-           , V p ~ D2 a
+           , V p ~ V2 a
            , Transformable p
            ) => a -> p
 ellipse e
@@ -90,7 +90,7 @@ ellipseXY :: ( Ord a
              , HasTrie (Basis a)
              , a ~ Scalar a
              , PathLike p
-             , V p ~ D2 a
+             , V p ~ V2 a
              , Transformable p
              ) => a -> a -> p
 ellipseXY x y = unitCircle # scaleX x # scaleY y

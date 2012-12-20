@@ -63,11 +63,11 @@ import Data.Basis       (HasBasis(..), Basis(..))
 import Data.MemoTrie    (HasTrie(..))
 
 -- | Create a centered horizontal (L-R) line of the given length.
-hrule :: (Fractional a, PathLike p, V p ~ D2 a) => a -> p
+hrule :: (Fractional a, PathLike p, V p ~ V2 a) => a -> p
 hrule d = pathLike (p2 (-d/2,0)) False [Linear (d & 0)]
 
 -- | Create a centered vertical (T-B) line of the given length.
-vrule :: (Fractional a, PathLike p, V p ~ D2 a) => a -> p
+vrule :: (Fractional a, PathLike p, V p ~ V2 a) => a -> p
 vrule d = pathLike (p2 (0,d/2)) False [Linear (0 & (-d))]
 
 -- | A square with its center at the origin and sides of length 1,
@@ -79,7 +79,7 @@ unitSquare :: ( Ord a
               , HasTrie (Basis a)
               , a ~ Scalar a
               , PathLike p
-              , V p ~ D2 a
+              , V p ~ V2 a
               ) => p
 unitSquare = polygon with { polyType   = PolyRegular 4 (sqrt 2 / 2)
                           , polyOrient = OrientH }
@@ -94,7 +94,7 @@ square :: ( Ord a
           , a ~ Scalar a
           , PathLike p
           , Transformable p
-          , V p ~ D2 a
+          , V p ~ V2 a
           ) => a -> p
 square d = unitSquare # scale d
 
@@ -108,7 +108,7 @@ rect :: ( Ord a
         , a ~ Scalar a
         , PathLike p
         , Transformable p
-        , V p ~ D2 a
+        , V p ~ V2 a
         ) => a -> a -> p
 rect w h = unitSquare # scaleX w # scaleY h
 
@@ -129,7 +129,7 @@ regPoly :: forall a p. ( Floating a
                        , HasBasis a
                        , a ~ Scalar a
                        , PathLike p
-                       , V p ~ D2 a
+                       , V p ~ V2 a
                        ) => Int -> a -> p
 regPoly n l = polygon with { polyType =
                                PolySides
@@ -147,7 +147,7 @@ eqTriangle :: ( Floating a
               , HasBasis a
               , a ~ Scalar a
               , PathLike p
-              , V p ~ D2 a
+              , V p ~ V2 a
               ) => a -> p
 eqTriangle = regPoly 3
 
@@ -160,7 +160,7 @@ pentagon :: ( Floating a
             , HasBasis a
             , a ~ Scalar a
             , PathLike p
-            , V p ~ D2 a
+            , V p ~ V2 a
             ) => a -> p
 pentagon = regPoly 5
 
@@ -173,7 +173,7 @@ hexagon :: ( Floating a
            , HasBasis a
            , a ~ Scalar a
            , PathLike p
-           , V p ~ D2 a
+           , V p ~ V2 a
            ) => a -> p
 hexagon = regPoly 6
 
@@ -186,7 +186,7 @@ septagon :: ( Floating a
             , HasBasis a
             , a ~ Scalar a
             , PathLike p
-            , V p ~ D2 a
+            , V p ~ V2 a
             ) => a -> p
 septagon = regPoly 7
 
@@ -199,7 +199,7 @@ octagon :: ( Floating a
            , HasBasis a
            , a ~ Scalar a
            , PathLike p
-           , V p ~ D2 a
+           , V p ~ V2 a
            ) => a -> p
 octagon = regPoly 8
 
@@ -212,7 +212,7 @@ nonagon :: ( Floating a
            , HasBasis a
            , a ~ Scalar a
            , PathLike p
-           , V p ~ D2 a
+           , V p ~ V2 a
            ) => a -> p
 nonagon = regPoly 9
 
@@ -225,7 +225,7 @@ decagon :: ( Floating a
            , HasBasis a
            , a ~ Scalar a
            , PathLike p
-           , V p ~ D2 a
+           , V p ~ V2 a
            ) => a -> p
 decagon = regPoly 10
 
@@ -238,7 +238,7 @@ hendecagon :: ( Floating a
               , HasBasis a
               , a ~ Scalar a
               , PathLike p
-              , V p ~ D2 a
+              , V p ~ V2 a
               ) => a -> p
 hendecagon = regPoly 11
 
@@ -251,7 +251,7 @@ dodecagon :: ( Floating a
              , HasBasis a
              , a ~ Scalar a
              , PathLike p
-             , V p ~ D2 a
+             , V p ~ V2 a
              ) => a -> p
 dodecagon = regPoly 12
 
@@ -276,7 +276,7 @@ roundedRect :: ( Ord a
                , HasTrie (Basis a)
                , a ~ Scalar a
                , PathLike p
-               , V p ~ D2 a
+               , V p ~ V2 a
                ) => a -> a -> a -> p
 roundedRect w h r = roundedRect' w h (with { radiusTL = r,
                                              radiusBR = r,
@@ -294,7 +294,7 @@ roundedRect' :: forall a p. ( Ord a
                             , HasTrie (Basis a)
                             , a ~ Scalar a
                             , PathLike p
-                            , V p ~ D2 a
+                            , V p ~ V2 a
                             ) => a -> a -> RoundedRectOpts a -> p
 roundedRect' w h opts
    = pathLike (p2 (w/2, abs rBR - h/2)) True
@@ -307,7 +307,7 @@ roundedRect' w h opts
    <> mkCorner 2 rBL
    <> seg (w - abs rBL - abs rBR, 0)
    <> mkCorner 3 rBR
-  where seg   = fromOffsets . (:[]) . d2
+  where seg   = fromOffsets . (:[]) . v2
         diag  = sqrt (w * w + h * h)
         -- to clamp corner radius, need to compare with other corners that share an
         -- edge. If the corners overlap then reduce the largest corner first, as far

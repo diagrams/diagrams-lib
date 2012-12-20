@@ -27,7 +27,7 @@ import Diagrams.Core
 import Diagrams.Attributes  (lw, lc)
 import Diagrams.Util        ((#))
 
-import Diagrams.TwoD.Types  (D2, R2, p2)
+import Diagrams.TwoD.Types  (V2, R2, p2)
 import Diagrams.TwoD.Size   ( size2D, center2D, SizeSpec2D(..)
                             , requiredScaleT, requiredScale
                             )
@@ -57,7 +57,7 @@ setDefault2DAttributes :: ( Ord a
                           , HasTrie (Basis a)
                           , a ~ Scalar a
                           , Semigroup m
-                          ) => QDiagram b (D2 a) m -> QDiagram b (D2 a) m
+                          ) => QDiagram b (V2 a) m -> QDiagram b (V2 a) m
 setDefault2DAttributes d = d # lw 0.01 # lc black # fontSize 1
 
 -- | Adjust the size and position of a 2D diagram to fit within the
@@ -70,12 +70,12 @@ adjustDiaSize2D :: ( Eq a
                    , InnerSpace a
                    , a ~ Scalar a
                    , Transformable a
-                   , V a ~ D2 a
+                   , V a ~ V2 a
                    , Monoid' m
-                   ) => (Options b (D2 a) -> SizeSpec2D a)
-                     -> (SizeSpec2D a -> Options b (D2 a) -> Options b (D2 a))
-                     -> b -> Options b (D2 a) -> QDiagram b (D2 a) m
-                     -> (Options b (D2 a), QDiagram b (D2 a) m)
+                   ) => (Options b (V2 a) -> SizeSpec2D a)
+                     -> (SizeSpec2D a -> Options b (V2 a) -> Options b (V2 a))
+                     -> b -> Options b (V2 a) -> QDiagram b (V2 a) m
+                     -> (Options b (V2 a), QDiagram b (V2 a) m)
 adjustDiaSize2D getSize setSize _ opts d =
   ( case spec of
        Dims _ _ -> opts
@@ -117,12 +117,12 @@ adjustDia2D :: ( Ord a
                , HasTrie (Basis a)
                , a ~ Scalar a
                , Transformable a
-               , V a ~ D2 a
+               , V a ~ V2 a
                , Monoid' m
-               ) => (Options b (D2 a) -> SizeSpec2D a)
-                 -> (SizeSpec2D a -> Options b (D2 a) -> Options b (D2 a))
-                 -> b -> Options b (D2 a) -> QDiagram b (D2 a) m
-                 -> (Options b (D2 a), QDiagram b (D2 a) m)
+               ) => (Options b (V2 a) -> SizeSpec2D a)
+                 -> (SizeSpec2D a -> Options b (V2 a) -> Options b (V2 a))
+                 -> b -> Options b (V2 a) -> QDiagram b (V2 a) m
+                 -> (Options b (V2 a), QDiagram b (V2 a) m)
 adjustDia2D getSize setSize b opts d
   = adjustDiaSize2D getSize setSize b opts (d # setDefault2DAttributes # freeze)
 
@@ -133,5 +133,5 @@ adjustSize :: ( RealFloat a
               , HasBasis a
               , HasTrie (Basis a)
               , a ~ Scalar a
-              ) => SizeSpec2D a -> (a, a) -> Transformation (D2 a)
+              ) => SizeSpec2D a -> (a, a) -> Transformation (V2 a)
 adjustSize = requiredScaleT

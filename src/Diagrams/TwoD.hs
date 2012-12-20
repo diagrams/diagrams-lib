@@ -58,8 +58,8 @@ module Diagrams.TwoD
        ( -- * R^2
          R2
        , r2, unr2
-       , D2
-       , d2, und2
+       , V2
+       , v2, unv2
        , P2, P2D
        , p2, unp2
        , T2, T2D

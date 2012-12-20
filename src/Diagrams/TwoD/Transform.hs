@@ -106,7 +106,7 @@ rotate :: ( Floating a
           , HasTrie (Basis a)
           , a ~ Scalar a
           , Transformable t
-          , V t ~ D2 a
+          , V t ~ V2 a
           , Angle m a
           ) => m a -> t -> t
 rotate = transform . rotation
@@ -120,7 +120,7 @@ rotateBy :: ( Floating a
             , HasTrie (Basis a)
             , a ~ Scalar a
             , Transformable t
-            , V t ~ D2 a
+            , V t ~ V2 a
             ) => CircleFrac a -> t -> t
 rotateBy = transform . rotation
 
@@ -141,7 +141,7 @@ rotateAbout :: ( Floating a
                , HasTrie (Basis a)
                , a ~ Scalar a
                , Transformable t
-               , V t ~ D2 a
+               , V t ~ V2 a
                , Angle m a
                ) => P2 a -> m a -> t -> t
 rotateAbout p angle = rotate angle `under` translation (origin .-. p)
@@ -157,7 +157,7 @@ scalingX :: ( AdditiveGroup a
             , a ~ Scalar a
             ) => a -> T2 a
 scalingX c = fromLinear s s
-  where s = (over d2 . first) (*c) <-> (over d2 . first) (/c)
+  where s = (over v2 . first) (*c) <-> (over v2 . first) (/c)
 
 -- | Scale a diagram by the given factor in the x (horizontal)
 --   direction.  To scale uniformly, use 'scale'.
@@ -166,7 +166,7 @@ scaleX :: ( Fractional a
           , HasTrie (Basis a)
           , a ~ Scalar a
           , Transformable t
-          , V t ~ D2 a
+          , V t ~ V2 a
           ) => a -> t -> t
 scaleX = transform . scalingX
 
@@ -179,7 +179,7 @@ scalingY :: ( AdditiveGroup a
             , a ~ Scalar a
             ) => a -> T2 a
 scalingY c = fromLinear s s
-  where s = (over d2 . second) (*c) <-> (over d2 . second) (/c)
+  where s = (over v2 . second) (*c) <-> (over v2 . second) (/c)
 
 -- | Scale a diagram by the given factor in the y (vertical)
 --   direction.  To scale uniformly, use 'scale'.
@@ -187,7 +187,7 @@ scaleY :: ( Fractional a
           , HasBasis a
           , HasTrie (Basis a)
           , a ~ Scalar a
-          , Transformable t, V t ~ D2 a
+          , Transformable t, V t ~ V2 a
           ) => a -> t -> t
 scaleY = transform . scalingY
 
@@ -200,7 +200,7 @@ scaleToX :: ( HasBasis a
             , a ~ Scalar a
             , Enveloped t
             , Transformable t
-            , V t ~ D2 a
+            , V t ~ V2 a
             ) => a -> t -> t
 scaleToX w d = scaleX (w / width d) d
 
@@ -208,19 +208,31 @@ scaleToX w d = scaleX (w / width d) d
 --   whatever factor required to make its height @h@.  @scaleToY@
 --   should not be applied to diagrams with a height of 0, such as
 --   'hrule'.
-scaleToY :: (HasBasis a, HasTrie (Basis a), a ~ Scalar a, Enveloped t, Transformable t, V t ~ D2 a) => a -> t -> t
+scaleToY :: ( HasBasis a
+            , HasTrie (Basis a)
+            , a ~ Scalar a
+            , Enveloped t
+            , Transformable t
+            , V t ~ V2 a
+            ) => a -> t -> t
 scaleToY h d = scaleY (h / height d) d
 
 -- | @scaleUToX w@ scales a diagram /uniformly/ by whatever factor
 --   required to make its width @w@.  @scaleUToX@ should not be
 --   applied to diagrams with a width of 0, such as 'vrule'.
-scaleUToX :: (Enveloped t, Transformable t, V t ~ D2 a) => a -> t -> t
+scaleUToX :: ( Enveloped t
+             , Transformable t
+             , V t ~ V2 a
+             ) => a -> t -> t
 scaleUToX w d = scale (w / width d) d
 
 -- | @scaleUToY h@ scales a diagram /uniformly/ by whatever factor
 --   required to make its height @h@.  @scaleUToY@ should not be applied
 --   to diagrams with a height of 0, such as 'hrule'.
-scaleUToY :: (Enveloped t, Transformable t, V t ~ D2 a) => a -> t -> t
+scaleUToY :: ( Enveloped t
+             , Transformable t
+             , V t ~ V2 a
+             ) => a -> t -> t
 scaleUToY h d = scale (h / height d) d
 
 -- Translation ---------------------------------------------
@@ -241,7 +253,7 @@ translateX :: ( Transformable t
               , HasBasis a
               , HasTrie (Basis a)
               , a ~ Scalar a
-              , V t ~ D2 a
+              , V t ~ V2 a
               ) => a -> t -> t
 translateX = transform . translationX
 
@@ -261,7 +273,7 @@ translateY :: ( Transformable t
               , HasBasis a
               , HasTrie (Basis a)
               , a ~ Scalar a
-              , V t ~ D2 a
+              , V t ~ V2 a
               ) => a -> t -> t
 translateY = transform . translationY
 
@@ -283,7 +295,7 @@ reflectX :: ( Fractional a
             , HasTrie (Basis a)
             , a ~ Scalar a
             , Transformable t
-            , V t ~ D2 a
+            , V t ~ V2 a
             ) => t -> t
 reflectX = transform reflectionX
 
@@ -303,7 +315,7 @@ reflectY :: ( Fractional a
             , HasTrie (Basis a)
             , a ~ Scalar a
             , Transformable t
-            , V t ~ D2 a
+            , V t ~ V2 a
             ) => t -> t
 reflectY = transform reflectionY
 
@@ -314,7 +326,7 @@ reflectionAbout :: forall a. ( a ~ Scalar a
                    , HasBasis a
                    , HasTrie (Basis a)
                    , Angle Rad a
-                   ) => P2 a -> D2 a -> T2 a
+                   ) => P2 a -> V2 a -> T2 a
 reflectionAbout p v =
   conjugate (rotation (-direction v :: Rad a) <> translation (origin .-. p))
             reflectionY
@@ -326,7 +338,7 @@ reflectAbout :: (Transformable t
                 , RealFloat a
                 , HasTrie (Basis a)
                 , HasBasis a
-                , V t ~ D2 a) => P2 a -> D2 a -> t -> t
+                , V t ~ V2 a) => P2 a -> V2 a -> t -> t
 reflectAbout p v = transform (reflectionAbout p v)
 
 -- Shears --------------------------------------------------
@@ -338,8 +350,8 @@ shearingX :: ( Num a
              , HasTrie (Basis a)
              , a ~ Scalar a
              ) => a -> T2 a
-shearingX d = fromLinear (over d2 (sh d)  <-> over d2 (sh (-d)))
-                         (over d2 (sh' d) <-> over d2 (sh' (-d)))
+shearingX d = fromLinear (over v2 (sh d)  <-> over v2 (sh (-d)))
+                         (over v2 (sh' d) <-> over v2 (sh' (-d)))
   where sh  k (x, y) = (x+k*y, y)
         sh' k        = swap . sh k . swap
         swap (x,y) = (y,x)
@@ -351,15 +363,15 @@ shearX :: ( Num a
           , HasTrie (Basis a)
           , a ~ Scalar a
           , Transformable t
-          , V t ~ D2 a
+          , V t ~ V2 a
           ) => a -> t -> t
 shearX = transform . shearingX
 
 -- | @shearingY d@ is the linear transformation which is the identity on
 --   x coordinates and sends @(1,0)@ to @(1,d)@.
 shearingY :: (Num a, HasBasis a, HasTrie (Basis a), a ~ Scalar a) => a -> T2 a
-shearingY d = fromLinear (over d2 (sh d)  <-> over d2 (sh (-d)))
-                         (over d2 (sh' d) <-> over d2 (sh' (-d)))
+shearingY d = fromLinear (over v2 (sh d)  <-> over v2 (sh (-d)))
+                         (over v2 (sh' d) <-> over v2 (sh' (-d)))
   where sh  k (x,y) = (x, y+k*x)
         sh' k       = swap . sh k . swap
         swap (x,y) = (y,x)
@@ -371,7 +383,7 @@ shearY :: ( Num a
           , HasTrie (Basis a)
           , a ~ Scalar a
           , Transformable t
-          , V t ~ D2 a
+          , V t ~ V2 a
           ) => a -> t -> t
 shearY = transform . shearingY
 
@@ -414,33 +426,33 @@ shearY = transform . shearingY
 data ScaleInv t a =
   ScaleInv
   { unScaleInv :: t
-  , scaleInvDir :: D2 a
+  , scaleInvDir :: V2 a
   , scaleInvLoc :: P2 a
   }
   deriving (Show)
 
 -- | Create a scale-invariant object pointing in the given direction.
-scaleInv :: (AdditiveGroup a) => t -> D2 a -> ScaleInv t a
+scaleInv :: (AdditiveGroup a) => t -> V2 a -> ScaleInv t a
 scaleInv t d = ScaleInv t d origin
 
-type instance V (ScaleInv t a) = D2 a
+type instance V (ScaleInv t a) = V2 a
 
-instance (V t ~ D2 a, HasOrigin t) => HasOrigin (ScaleInv t a) where
+instance (V t ~ V2 a, HasOrigin t) => HasOrigin (ScaleInv t a) where
   moveOriginTo p (ScaleInv t v l) = ScaleInv (moveOriginTo p t) v (moveOriginTo p l)
 
 instance forall t a. ( RealFloat a
                      , HasBasis a
                      , HasTrie (Basis a)
                      , a ~ Scalar a
-                     , V t ~ D2 a
-                     , t ~ D2 a
+                     , V t ~ V2 a
+                     , t ~ V2 a
                      , Transformable t
                      ) => Transformable (ScaleInv t a) where
   transform tr (ScaleInv t v l) = ScaleInv (trans . rot $ t) (rot v) l'
     where
       angle :: Rad a
       angle = direction (transform tr v) - direction v
-      rot :: ( Transformable t,  (V t ~ D2 a) ) => t -> t
+      rot :: ( Transformable t,  (V t ~ V2 a) ) => t -> t
       rot = rotateAbout l angle
       l'  = transform tr l
       trans = translate (l' .-. l)

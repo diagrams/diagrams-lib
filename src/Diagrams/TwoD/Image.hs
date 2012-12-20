@@ -44,7 +44,7 @@ data Image a = Image { imgFile   :: FilePath
                      , imgTransf :: T2 a
                      }
 
-type instance V (Image a) = D2 a
+type instance V (Image a) = V2 a
 
 instance ( Num a
          , HasBasis a
@@ -84,13 +84,13 @@ image :: forall a b . ( Ord a
                       , HasTrie (Basis a)
                       , a ~ Scalar a
                       , Renderable (Image a) b
-                      ) => FilePath -> a -> a -> Diagram b (D2 a)
+                      ) => FilePath -> a -> a -> Diagram b (V2 a)
 image file w h = mkQD (Prim (Image file (Dims w h) mempty))
                       (getEnvelope r)
                       (getTrace r)
                       mempty
                       (Query $ \p -> Any (isInsideEvenOdd p r))
-  where r :: Path (D2 a)
+  where r :: Path (V2 a)
         r = rect w h
 
 {- ~~~~ Note [Image size specification]

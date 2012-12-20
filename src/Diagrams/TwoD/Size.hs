@@ -44,36 +44,36 @@ import Data.MemoTrie
 ------------------------------------------------------------
 
 -- | Compute the width of an enveloped object.
-width :: (Enveloped a, V a ~ D2 b) => a -> b
+width :: (Enveloped a, V a ~ V2 b) => a -> b
 width = maybe 0 (negate . uncurry (-)) . extentX
 
 -- | Compute the height of an enveloped object.
-height :: (Enveloped a, V a ~ D2 b) => a -> b
+height :: (Enveloped a, V a ~ V2 b) => a -> b
 height = maybe 0 (negate . uncurry (-)) . extentY
 
 -- | Compute the width and height of an enveloped object.
-size2D :: (Enveloped a, V a ~ (D2 b)) => a -> (b, b)
+size2D :: (Enveloped a, V a ~ (V2 b)) => a -> (b, b)
 size2D = width &&& height
 
 -- | Compute the size of an enveloped object as a 'SizeSpec2D' value.
-sizeSpec2D :: (Enveloped a, V a ~ (D2 b)) => a -> SizeSpec2D b
+sizeSpec2D :: (Enveloped a, V a ~ (V2 b)) => a -> SizeSpec2D b
 sizeSpec2D = uncurry Dims . size2D
 
 -- | Compute the absolute  x-coordinate range of an enveloped object in
 --   R2, in  the form (lo,hi).   Return @Nothing@ for objects  with an
 --   empty envelope.
-extentX :: (Enveloped a, V a ~ D2 b) => a -> Maybe (b, b)
+extentX :: (Enveloped a, V a ~ V2 b) => a -> Maybe (b, b)
 extentX d = (\f -> (-f unit_X, f unitX)) <$> (appEnvelope . getEnvelope $ d)
 
 -- | Compute the absolute y-coordinate range of an enveloped object in
 --   R2, in the form (lo,hi).
-extentY :: (Enveloped a, V a ~ D2 b) => a -> Maybe (b, b)
+extentY :: (Enveloped a, V a ~ V2 b) => a -> Maybe (b, b)
 extentY d = (\f -> (-f unit_Y, f unitY)) <$> (appEnvelope . getEnvelope $ d)
 
 -- | Compute the point at the center (in the x- and y-directions) of a
 --   enveloped object.  Return the origin for objects with an empty
 --   envelope.
-center2D :: (Enveloped a, V a ~ D2 b) => a -> P2 b
+center2D :: (Enveloped a, V a ~ V2 b) => a -> P2 b
 center2D = maybe origin (p2 . (mid *** mid)) . mm . (extentX &&& extentY)
   where mm = uncurry (liftA2 (,))
         mid = (/2) . uncurry (+)
@@ -113,7 +113,7 @@ requiredScaleT :: ( Ord a
                   , HasBasis a
                   , HasTrie (Basis a)
                   , Scalar a ~ a
-                  ) => SizeSpec2D a -> (a, a) -> Transformation (D2 a)
+                  ) => SizeSpec2D a -> (a, a) -> Transformation (V2 a)
 requiredScaleT spec size = scaling (requiredScale spec size)
 
 -- | @requiredScale spec sz@ returns a scaling factor necessary to
@@ -147,7 +147,7 @@ sized :: ( Transformable a
          , HasBasis b
          , b ~ Scalar b
          , HasTrie (Basis b)
-         , V a ~ (D2 b)
+         , V a ~ (V2 b)
          ) => SizeSpec2D b -> a -> a
 sized spec a = transform (requiredScaleT spec (size2D a)) a
 
@@ -159,7 +159,7 @@ sizedAs :: ( Transformable a
            , HasBasis c
            , HasTrie (Basis c)
            , c ~ Scalar c
-           , Enveloped a, V a ~ (D2 c)
-           , Enveloped b, V b ~ (D2 c)
+           , Enveloped a, V a ~ (V2 c)
+           , Enveloped b, V b ~ (V2 c)
            ) => b -> a -> a
 sizedAs other = sized (sizeSpec2D other)

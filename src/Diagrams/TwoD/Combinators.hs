@@ -82,7 +82,7 @@ infixl 6 |||
 (===) :: ( Num b
          , AdditiveGroup b
          , Juxtaposable a
-         , V a ~ D2 b
+         , V a ~ V2 b
          , Semigroup a
          ) => a -> a -> a
 (===) = beside (negateV unitY)
@@ -95,7 +95,7 @@ infixl 6 |||
 --   identity.  See the documentation of 'beside' for more information.
 (|||) :: (Num b
          , Juxtaposable a
-         , V a ~ D2 b
+         , V a ~ V2 b
          , Semigroup a
          ) => a -> a -> a
 (|||) = beside unitX
@@ -107,7 +107,7 @@ infixl 6 |||
 --   See the documentation of 'beside' for more information.
 atAngle :: ( Floating b
            , Juxtaposable a
-           , V a ~ D2 b
+           , V a ~ V2 b
            , Semigroup a
            , Angle m b
            ) => m b -> a -> a -> a
@@ -130,7 +130,7 @@ hcat :: ( Floating b
         , Juxtaposable a
         , HasOrigin a
         , Monoid' a
-        , V a ~ D2 b
+        , V a ~ V2 b
         ) => [a] -> a
 hcat = hcat' def
 
@@ -143,8 +143,8 @@ hcat' :: ( Floating b
          , Juxtaposable a
          , HasOrigin a
          , Monoid' a
-         , V a ~ D2 b
-         ) => CatOpts (D2 b) -> [a] -> a
+         , V a ~ V2 b
+         ) => CatOpts (V2 b) -> [a] -> a
 hcat' = cat' unitX
 
 -- | Lay out a list of juxtaposable objects in a column from top to
@@ -164,7 +164,7 @@ vcat :: ( Floating b
         , Juxtaposable a
         , HasOrigin a
         , Monoid' a
-        , V a ~ D2 b
+        , V a ~ V2 b
         ) => [a] -> a
 vcat = vcat' def
 
@@ -177,8 +177,8 @@ vcat' :: ( Floating b
          , Juxtaposable a
          , HasOrigin a
          , Monoid' a
-         , V a ~ D2 b
-         ) => CatOpts (D2 b) -> [a] -> a
+         , V a ~ V2 b
+         ) => CatOpts (V2 b) -> [a] -> a
 vcat' = cat' (negateV unitY)
 
 -- | @strutR2 v@ is a two-dimensional diagram which produces no
@@ -192,9 +192,9 @@ strutR2 :: ( RealFloat a
            , HasBasis a
            , HasTrie (Basis a)
            , a ~ Scalar a
-           , Backend b (D2 a)
+           , Backend b (V2 a)
            , Monoid' m
-           ) => D2 a -> QDiagram b (D2 a) m
+           ) => V2 a -> QDiagram b (V2 a) m
 strutR2 v = phantom seg
   where
     seg = FLinear (origin .+^ 0.5 *^ v) (origin .+^ (-0.5) *^ v)
@@ -206,9 +206,9 @@ strutX :: (Ord a
           , Floating a
           , InnerSpace a
           , a ~ Scalar a
-          , Backend b (D2 a)
+          , Backend b (V2 a)
           , Monoid' m
-          ) => a -> QDiagram b (D2 a) m
+          ) => a -> QDiagram b (V2 a) m
 strutX d = strut (d & 0)
 
 -- | @strutY d@ is an empty diagram with height @d@, width 0, and a
@@ -218,9 +218,9 @@ strutY :: (Ord a
           , Floating a
           , InnerSpace a
           , a ~ Scalar a
-          , Backend b (D2 a)
+          , Backend b (V2 a)
           , Monoid' m
-          ) => a -> QDiagram b (D2 a) m
+          ) => a -> QDiagram b (V2 a) m
 strutY d = strut (0 & d)
 
 -- | @padX s@ \"pads\" a diagram in the x-direction, expanding its
@@ -236,9 +236,9 @@ padX :: (Ord a
         , HasBasis a
         , HasTrie (Basis a)
         , a ~ Scalar a
-        , Backend b (D2 a)
+        , Backend b (V2 a)
         , Monoid' m 
-        ) => a -> QDiagram b (D2 a) m -> QDiagram b (D2 a) m
+        ) => a -> QDiagram b (V2 a) m -> QDiagram b (V2 a) m
 padX s d = withEnvelope (d # scaleX s) d
 
 -- | @padY s@ \"pads\" a diagram in the y-direction, expanding its
@@ -254,9 +254,9 @@ padY :: (Ord a
         , HasBasis a
         , HasTrie (Basis a)
         , a ~ Scalar a
-        , Backend b (D2 a)
+        , Backend b (V2 a)
         , Monoid' m 
-        ) => a -> QDiagram b (D2 a) m -> QDiagram b (D2 a) m
+        ) => a -> QDiagram b (V2 a) m -> QDiagram b (V2 a) m
 padY s d = withEnvelope (d # scaleY s) d
 
 -- | @extrudeLeft s@ \"extrudes\" a diagram in the negative x-direction,
@@ -307,10 +307,10 @@ view :: forall a b m.
         , HasBasis a
         , HasTrie (Basis a)
         , a ~ Scalar a
-        , Backend b (D2 a)
+        , Backend b (V2 a)
         , Monoid' m 
-        ) => P2 a -> D2 a -> QDiagram b (D2 a) m -> QDiagram b (D2 a) m
-view p (coords -> w :& h) = withEnvelope (rect w h # alignBL # moveTo p :: D (D2 a))
+        ) => P2 a -> V2 a -> QDiagram b (V2 a) m -> QDiagram b (V2 a) m
+view p (coords -> w :& h) = withEnvelope (rect w h # alignBL # moveTo p :: D (V2 a))
 
 -- | Construct a bounding rectangle for an enveloped object, that is,
 --   the smallest axis-aligned rectangle which encloses the object.
@@ -322,9 +322,9 @@ boundingRect :: ( InnerSpace b
                 , Enveloped p
                 , Transformable p
                 , PathLike p
-                , V p ~ D2 b
+                , V p ~ V2 b
                 , Enveloped a
-                , V a ~ D2 b
+                , V a ~ V2 b
                 ) => a -> p
 boundingRect = (`boxFit` rect 1 1) . boundingBox
 
@@ -336,6 +336,6 @@ bg :: ( RealFloat a
       , InnerSpace a
       , Ord (Basis a)
       , a ~ Scalar a
-      , Renderable (Path (D2 a)) b 
-      ) => Colour Double -> Diagram b (D2 a) -> Diagram b (D2 a)
+      , Renderable (Path (V2 a)) b 
+      ) => Colour Double -> Diagram b (V2 a) -> Diagram b (V2 a)
 bg c d = d <> boundingRect d # lw 0 # fc c

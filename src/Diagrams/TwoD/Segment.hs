@@ -43,7 +43,7 @@ instance ( Ord a
          , HasBasis a
          , HasTrie (Basis a)
          , a ~ Scalar a
-         ) => Traced (Segment (D2 a)) where
+         ) => Traced (Segment (V2 a)) where
   getTrace = getTrace . mkFixedSeg origin
 
 instance forall a. ( Ord a
@@ -53,7 +53,7 @@ instance forall a. ( Ord a
          , HasBasis a
          , HasTrie (Basis a)
          , a ~ Scalar a
-         ) => Traced (FixedSegment (D2 a)) where
+         ) => Traced (FixedSegment (V2 a)) where
 
 {- Given lines defined by p0 + t0 * v0 and p1 + t1 * v1, their point of
    intersection in 2D is given by

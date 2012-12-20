@@ -48,21 +48,21 @@ import Data.VectorSpace
 alignL :: ( Num a
           , AdditiveGroup a
           , Alignable b
-          , V b ~ D2 a
+          , V b ~ V2 a
           ) => b -> b
 alignL = align (negateV unitX)
 
 -- | Align along the right edge.
 alignR :: ( Num a
           , Alignable b
-          , V b ~ D2 a
+          , V b ~ V2 a
           ) => b -> b
 alignR = align unitX
 
 -- | Align along the top edge.
 alignT :: ( Num a
           , Alignable b
-          , V b ~ D2 a
+          , V b ~ V2 a
           ) => b -> b
 alignT = align unitY
 
@@ -70,35 +70,35 @@ alignT = align unitY
 alignB :: ( Num a
           , AdditiveGroup a
           , Alignable b
-          , V b ~ D2 a
+          , V b ~ V2 a
           ) => b -> b
 alignB = align (negateV unitY)
 
 alignTL :: ( Num a
            , AdditiveGroup a
            , Alignable b
-           , V b ~ D2 a
+           , V b ~ V2 a
            ) => b -> b
 alignTL = alignT . alignL
 
 alignTR :: ( Num a
            , AdditiveGroup a
            , Alignable b
-           , V b ~ D2 a
+           , V b ~ V2 a
            ) => b -> b
 alignTR = alignT . alignR
 
 alignBL :: ( Num a
            , AdditiveGroup a
            , Alignable b
-           , V b ~ D2 a
+           , V b ~ V2 a
            ) => b -> b
 alignBL = alignB . alignL
 
 alignBR :: ( Num a
            , AdditiveGroup a
            , Alignable b
-           , V b ~ D2 a
+           , V b ~ V2 a
            ) => b -> b
 alignBR = alignB . alignR
 
@@ -113,7 +113,7 @@ alignBR = alignB . alignR
 --     \"radius\" to the right of the right edge, and so on.
 alignX :: ( Num a
           , Alignable b
-          , V b ~ D2 a
+          , V b ~ V2 a
           ) => a -> b -> b
 alignX = alignBy unitX
 
@@ -122,27 +122,27 @@ alignX = alignBy unitX
 --   to the bottom edge.
 alignY :: ( Num a
           , Alignable b
-          , V b ~ D2 a
+          , V b ~ V2 a
           ) => a -> b -> b
 alignY = alignBy unitY
 
 -- | Center the local origin along the X-axis.
 centerX  :: ( Num a
             , Alignable b
-            , V b ~ D2 a
+            , V b ~ V2 a
             ) => b -> b
 centerX  = alignBy unitX 0
 
 -- | Center the local origin along the Y-axis.
 centerY  :: ( Num a
             , Alignable b
-            , V b ~ D2 a
+            , V b ~ V2 a
             ) => b -> b
 centerY  = alignBy unitY 0
 
 -- | Center along both the X- and Y-axes.
 centerXY :: ( Num a
             , Alignable b
-            , V b ~ D2 a
+            , V b ~ V2 a
             ) => b -> b
 centerXY = centerX . centerY
