@@ -46,6 +46,7 @@ import Data.VectorSpace
 --   horizontal direction so that the local origin is on the left edge
 --   of the envelope.
 alignL :: ( Num a
+          , Num (Scalar (V2 a))
           , AdditiveGroup a
           , Alignable b
           , V b ~ V2 a
@@ -54,6 +55,7 @@ alignL = align (negateV unitX)
 
 -- | Align along the right edge.
 alignR :: ( Num a
+          , Num (Scalar (V2 a))
           , Alignable b
           , V b ~ V2 a
           ) => b -> b
@@ -61,6 +63,7 @@ alignR = align unitX
 
 -- | Align along the top edge.
 alignT :: ( Num a
+          , Num (Scalar (V2 a))
           , Alignable b
           , V b ~ V2 a
           ) => b -> b
@@ -68,6 +71,7 @@ alignT = align unitY
 
 -- | Align along the bottom edge.
 alignB :: ( Num a
+          , Num (Scalar (V2 a))
           , AdditiveGroup a
           , Alignable b
           , V b ~ V2 a
@@ -75,6 +79,7 @@ alignB :: ( Num a
 alignB = align (negateV unitY)
 
 alignTL :: ( Num a
+           , Num (Scalar (V2 a))
            , AdditiveGroup a
            , Alignable b
            , V b ~ V2 a
@@ -82,6 +87,7 @@ alignTL :: ( Num a
 alignTL = alignT . alignL
 
 alignTR :: ( Num a
+           , Num (Scalar (V2 a))
            , AdditiveGroup a
            , Alignable b
            , V b ~ V2 a
@@ -89,6 +95,7 @@ alignTR :: ( Num a
 alignTR = alignT . alignR
 
 alignBL :: ( Num a
+           , Num (Scalar (V2 a))
            , AdditiveGroup a
            , Alignable b
            , V b ~ V2 a
@@ -96,6 +103,7 @@ alignBL :: ( Num a
 alignBL = alignB . alignL
 
 alignBR :: ( Num a
+           , Num (Scalar (V2 a))
            , AdditiveGroup a
            , Alignable b
            , V b ~ V2 a
@@ -114,7 +122,7 @@ alignBR = alignB . alignR
 alignX :: ( Num a
           , Alignable b
           , V b ~ V2 a
-          ) => a -> b -> b
+          ) => Scalar a -> b -> b
 alignX = alignBy unitX
 
 -- | Like 'alignX', but moving the local origin vertically, with an
@@ -123,11 +131,12 @@ alignX = alignBy unitX
 alignY :: ( Num a
           , Alignable b
           , V b ~ V2 a
-          ) => a -> b -> b
+          ) => Scalar a -> b -> b
 alignY = alignBy unitY
 
 -- | Center the local origin along the X-axis.
 centerX  :: ( Num a
+            , Num (Scalar (V2 a))
             , Alignable b
             , V b ~ V2 a
             ) => b -> b
@@ -135,6 +144,7 @@ centerX  = alignBy unitX 0
 
 -- | Center the local origin along the Y-axis.
 centerY  :: ( Num a
+            , Num (Scalar (V2 a))
             , Alignable b
             , V b ~ V2 a
             ) => b -> b
@@ -142,6 +152,7 @@ centerY  = alignBy unitY 0
 
 -- | Center along both the X- and Y-axes.
 centerXY :: ( Num a
+            , Num (Scalar (V2 a))
             , Alignable b
             , V b ~ V2 a
             ) => b -> b
