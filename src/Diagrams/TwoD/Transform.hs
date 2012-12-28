@@ -143,7 +143,8 @@ rotateAbout p angle = rotate angle `under` translation (origin .-. p)
 
 -- | Construct a transformation which scales by the given factor in
 --   the x (horizontal) direction.
-scalingX :: ( Fractional (Scalar (V2 a))
+scalingX :: ( AdditiveGroup a
+            , Fractional (Scalar (V2 a))
             , HasBasis a
             , HasTrie (Basis a)
             ) => Scalar (V2 a) -> T2 a
@@ -162,7 +163,8 @@ scaleX = transform . scalingX
 
 -- | Construct a transformation which scales by the given factor in
 --   the y (vertical) direction.
-scalingY :: ( Fractional (Scalar (V2 a))
+scalingY :: ( AdditiveGroup a
+            , Fractional (Scalar (V2 a))
             , HasBasis a
             , HasTrie (Basis a)
             ) => Scalar (V2 a) -> T2 a
