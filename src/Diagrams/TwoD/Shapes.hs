@@ -22,6 +22,7 @@ module Diagrams.TwoD.Shapes
          -- * Regular polygons
 
        , regPoly
+       , triangle
        , eqTriangle
        , square
        , pentagon
@@ -101,10 +102,14 @@ regPoly n l = polygon with { polyType =
                            , polyOrient = OrientH
                            }
 
--- | An equilateral triangle, with sides of the given length and base parallel
---   to the x-axis.
+-- | A synonym for 'triangle', provided for backwards compatibility.
 eqTriangle :: (PathLike p, V p ~ R2) => Double -> p
-eqTriangle = regPoly 3
+eqTriangle = triangle
+
+-- | An equilateral triangle, with sides of the given length and base
+--   parallel to the x-axis.
+triangle :: (PathLike p, V p ~ R2) => Double -> p
+triangle = regPoly 3
 
 -- | A regular pentagon, with sides of the given length and base
 --   parallel to the x-axis.
