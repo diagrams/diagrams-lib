@@ -77,12 +77,32 @@ unitSquare = polygon with { polyType   = PolyRegular 4 (sqrt 2 / 2)
 -- | A square with its center at the origin and sides of the given
 --   length, oriented parallel to the axes.
 square :: (PathLike p, Transformable p, V p ~ R2) => Double -> p
-square d = unitSquare # scale d
+square d = rect d d
 
 -- | @rect w h@ is an axis-aligned rectangle of width @w@ and height
 --   @h@, centered at the origin.
 rect :: (PathLike p, Transformable p, V p ~ R2) => Double -> Double -> p
-rect w h = unitSquare # scaleX w # scaleY h
+rect w h = pathLike p True (trailSegments t)
+  where
+    r     = unitSquare # scaleX w # scaleY h
+    (p,t) = head . pathTrails $ r
+
+    -- The above may seem a bit roundabout.  In fact, we used to have
+    --
+    --   rect w h = unitSquare # scaleX w # scaleY h
+    --
+    -- since unitSquare can produce any PathLike.  The current code
+    -- instead uses (unitSquare # scaleX w # scaleY h) to specifically
+    -- produce a Path, which is then deconstructed and passed into
+    -- 'pathLike' to create any PathLike.
+    --
+    -- The difference is that while scaling by zero works fine for
+    -- Path it does not work very well for, say, Diagrams (leading to
+    -- NaNs or worse).  This way, we force the scaling to happen on a
+    -- Path, where we know it will behave properly, and then use the
+    -- resulting geometry to construct an arbitrary PathLike.
+    --
+    -- See https://github.com/diagrams/diagrams-lib/issues/43 .
 
 ------------------------------------------------------------
 --  Regular polygons
