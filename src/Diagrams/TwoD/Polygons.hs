@@ -170,7 +170,7 @@ polyVertices :: ( Ord a
                 , HasBasis a
                 , HasTrie (Basis a)
                 , InnerSpace a
-                , a ~ Scalar a
+                , a ~ Scalar (V (P2 a))
                 ) => PolygonOpts a -> [P2 a]
 polyVertices po = moveTo (polyCenter po) ori
     where
@@ -190,7 +190,7 @@ polygon :: ( Ord a
            , HasBasis a
            , HasTrie (Basis a)
            , InnerSpace a
-           , a ~ Scalar a
+           , a ~ Scalar (V (P2 a))
            , PathLike p
            , V p ~ V2 a
            ) => PolygonOpts a -> p
@@ -201,13 +201,13 @@ polygon opts = case pts of
 
 -- | Generate the vertices of a polygon specified by polar data
 --   (central angles and radii). See 'PolyPolar'.
-polyPolarVs :: ( Eq a
+polyPolarVs :: ( Eq (Scalar (V (P2 a)))
+               , Fractional (Scalar (V (P2 a)))
                , Floating a
                , HasBasis a
                , HasTrie (Basis a)
-               , a ~ Scalar a
                , Angle m a
-               ) => [m a] -> [a] -> [P2 a]
+               ) => [m a] -> [Scalar (V (P2 a))] -> [P2 a]
 polyPolarVs ans ls = zipWith (\a l -> rotate a . scale l $ p2 (1,0))
                              (scanl (+) 0 ans)
                              ls
@@ -218,9 +218,8 @@ polyPolarVs ans ls = zipWith (\a l -> rotate a . scale l $ p2 (1,0))
 polySidesVs' :: ( Floating a
                 , HasBasis a
                 , HasTrie (Basis a)
-                , a ~ Scalar a
                 , Angle m a
-                ) => [m a] -> [a] -> [P2 a]
+                ) => [m a] -> [Scalar (V (P2 a))] -> [P2 a]
 polySidesVs' ans ls = scanl (.+^) origin
                       $ zipWith rotate ans' (map (unitY ^*) ls)
   where
@@ -229,23 +228,22 @@ polySidesVs' ans ls = scanl (.+^) origin
 -- | Generate the vertices of a polygon specified by side length and
 --   angles, with the origin placed at the centroid.  See 'PolySides'.
 polySidesVs :: ( Floating a
-               , AdditiveGroup a
+               , Fractional (Scalar (V (P2 a)))
                , HasBasis a
                , HasTrie (Basis a)
-               , a ~ Scalar a
                , Angle m a
-               ) => [m a] -> [a] -> [P2 a]
+               ) => [m a] -> [Scalar (V (P2 a))] -> [P2 a]
 polySidesVs ans ls = p0 # moveOriginTo (centroid p0)
   where p0 = polySidesVs' ans ls
 
 -- | Generate the vertices of a regular polygon.  See 'PolyRegular'.
-polyRegularVs :: forall a. ( Eq a
-                           , Floating a
-                           , HasBasis a
-                           , HasTrie (Basis a)
-                           , a ~ Scalar a
-                           ) => Int -> a -> [P2 a]
-polyRegularVs n r = polyPolarVs (take (n-1) . repeat $ (tau::Rad a) / fromIntegral n)
+polyRegularVs :: ( Eq (Scalar (V (P2 a)))
+                 , Fractional (Scalar (V (P2 a)))
+                 , Floating a
+                 , HasBasis a
+                 , HasTrie (Basis a)
+                 ) => Int -> Scalar (V (P2 a)) -> [P2 a]
+polyRegularVs n r = polyPolarVs (take (n-1) . repeat $ (rad tau) / fromIntegral n)
                                 (repeat r)
 
 -- | Orient a list of points, rotating them as little as possible.
@@ -257,11 +255,14 @@ orient :: ( Ord a
           , HasBasis a
           , HasTrie (Basis a)
           , InnerSpace a
-          , a ~ Scalar a
+          , a ~ Scalar (V (P2 a))
           ) => V2 a -> [P2 a] -> [P2 a]
 orient _ [] = []
 orient v xs = rotate a xs
     where
+        -- The constraint 'a ~ Scalar (V (P2 a))' comes into play because 
+        -- of 'rotate' which makes 'a :: Rad a' but at the same time 
+        -- 'th :: Scalar (V (P2 a))'.
         (n1,x,n2) = maximumBy (comparing (distAlong v . sndOf3))
                        (zip3 (tail xs ++ take 1 xs) xs (last xs : init xs))
         distAlong w ((.-. origin) -> p) = signum (w <.> p) * magnitude (project w p)
@@ -357,7 +358,7 @@ data StarOpts = StarFun (Int -> Int)
 --   returned (instead of any 'PathLike') because the resulting path
 --   may have more than one component, for example if the vertices are
 --   to be connected in several disjoint cycles.
-star :: (Num a, AdditiveGroup a) => StarOpts -> [P2 a] -> Path (V2 a)
+star :: (VectorSpace a) => StarOpts -> [P2 a] -> Path (V2 a)
 star sOpts vs = graphToPath $ mkGraph f vs
   where f = case sOpts of
               StarFun g  -> g
