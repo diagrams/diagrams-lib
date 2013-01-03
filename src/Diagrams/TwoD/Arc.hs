@@ -48,8 +48,7 @@ import Data.MemoTrie (HasTrie(..))
 --   radians.  The approximation is only valid for angles in the first
 --   quadrant.
 bezierFromSweepQ1 :: ( Floating a
-                     , Ord a
-                     , AdditiveGroup a
+                     , Fractional (Scalar a)
                      , HasBasis a
                      , HasTrie (Basis a)
                      , a ~ Scalar a
