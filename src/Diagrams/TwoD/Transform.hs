@@ -423,7 +423,7 @@ type instance V (ScaleInv t a) = V2 a
 instance (V t ~ V2 a, HasOrigin t) => HasOrigin (ScaleInv t a) where
   moveOriginTo p (ScaleInv t v l) = ScaleInv (moveOriginTo p t) v (moveOriginTo p l)
 
-instance ( RealFloatB a
+instance ( RealFloat a
          , HasBasis a
          , HasTrie (Basis a)
          , Transformable (V2 a)

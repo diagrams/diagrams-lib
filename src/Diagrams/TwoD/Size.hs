@@ -44,36 +44,64 @@ import Data.MemoTrie
 ------------------------------------------------------------
 
 -- | Compute the width of an enveloped object.
-width :: (Enveloped a, V a ~ V2 b) => a -> b
+width :: ( Num b
+         , AdditiveGroup b
+         , Enveloped a
+         , V a ~ V2 b
+         ) => a -> Scalar (V2 b)
 width = maybe 0 (negate . uncurry (-)) . extentX
 
 -- | Compute the height of an enveloped object.
-height :: (Enveloped a, V a ~ V2 b) => a -> b
+height :: ( Num b
+          , AdditiveGroup b
+          , Enveloped a
+          , V a ~ V2 b
+          ) => a -> Scalar (V2 b)
 height = maybe 0 (negate . uncurry (-)) . extentY
 
 -- | Compute the width and height of an enveloped object.
-size2D :: (Enveloped a, V a ~ (V2 b)) => a -> (b, b)
+size2D :: ( Num b
+          , AdditiveGroup b
+          , Enveloped a
+          , V a ~ (V2 b)
+          ) => a -> (Scalar (V2 b), Scalar (V2 b))
 size2D = width &&& height
 
 -- | Compute the size of an enveloped object as a 'SizeSpec2D' value.
-sizeSpec2D :: (Enveloped a, V a ~ (V2 b)) => a -> SizeSpec2D b
+sizeSpec2D :: ( Num b
+              , AdditiveGroup b
+              , Enveloped a
+              , V a ~ (V2 b)
+              ) => a -> SizeSpec2D (Scalar (V2 b))
 sizeSpec2D = uncurry Dims . size2D
 
 -- | Compute the absolute  x-coordinate range of an enveloped object in
 --   R2, in  the form (lo,hi).   Return @Nothing@ for objects  with an
 --   empty envelope.
-extentX :: (Enveloped a, V a ~ V2 b) => a -> Maybe (b, b)
+extentX :: ( Num b
+           , AdditiveGroup b
+           , Enveloped a
+           , V a ~ V2 b
+           ) => a -> Maybe (Scalar (V2 b), Scalar (V2 b))
 extentX d = (\f -> (-f unit_X, f unitX)) <$> (appEnvelope . getEnvelope $ d)
 
 -- | Compute the absolute y-coordinate range of an enveloped object in
 --   R2, in the form (lo,hi).
-extentY :: (Enveloped a, V a ~ V2 b) => a -> Maybe (b, b)
+extentY :: (Num b
+           , AdditiveGroup b
+           , Enveloped a
+           , V a ~ V2 b
+           ) => a -> Maybe (Scalar (V2 b), Scalar (V2 b))
 extentY d = (\f -> (-f unit_Y, f unitY)) <$> (appEnvelope . getEnvelope $ d)
 
 -- | Compute the point at the center (in the x- and y-directions) of a
 --   enveloped object.  Return the origin for objects with an empty
 --   envelope.
-center2D :: (Enveloped a, V a ~ V2 b) => a -> P2 b
+center2D :: ( Num b
+            , AdditiveGroup b
+            , Enveloped a
+            , V a ~ V2 b
+            ) => a -> P2 (Scalar (V2 b))
 center2D = maybe origin (p2 . (mid *** mid)) . mm . (extentX &&& extentY)
   where mm = uncurry (liftA2 (,))
         mid = (/2) . uncurry (+)
