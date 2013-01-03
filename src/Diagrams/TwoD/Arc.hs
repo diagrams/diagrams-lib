@@ -49,9 +49,10 @@ import Data.MemoTrie (HasTrie(..))
 --   quadrant.
 bezierFromSweepQ1 :: ( Floating a
                      , Fractional (Scalar a)
+                     , Ord a
+                     , AdditiveGroup a
                      , HasBasis a
                      , HasTrie (Basis a)
-                     , a ~ Scalar a
                      ) => Rad a -> Segment (V2 a)
 bezierFromSweepQ1 s = fmap (^-^ v) . rotate (s/2) $ Cubic c2 c1 p0
   where p0@(coords -> x :& y) = rotate (s/2) v
@@ -67,10 +68,10 @@ bezierFromSweepQ1 s = fmap (^-^ v) . rotate (s/2) $ Cubic c2 c1 p0
 --   then it is truncated to tau.
 bezierFromSweep :: ( Ord a
                    , Floating a
+                   , Fractional (Scalar a)
                    , AdditiveGroup a
                    , HasBasis a
                    , HasTrie (Basis a)
-                   , a ~ Scalar a
                    ) => Rad a -> [Segment (V2 a)]
 bezierFromSweep s
   | s > tau    = bezierFromSweep tau
@@ -102,16 +103,16 @@ the approximation error.
 
 -- | Given a start angle @s@ and an end angle @e@, @'arcT' s e@ is the
 --   'Trail' of a radius one arc counterclockwise between the two angles.
-arcT :: forall a m . ( Ord a
-                     , Floating a
-                     , RealFrac a
-                     , AdditiveGroup a
-                     , HasBasis a
-                     , HasTrie (Basis a)
-                     , a ~ Scalar a
-                     , Angle m a
-                     , Ord (m a)
-                     ) => m a -> m a -> Trail (V2 a)
+arcT :: ( Ord a
+        , Floating a
+        , RealFrac a
+        , Fractional (Scalar a)
+        , AdditiveGroup a
+        , HasBasis a
+        , HasTrie (Basis a)
+        , Angle m a
+        , Ord (m a)
+        ) => m a -> m a -> Trail (V2 a)
 arcT start end
     | e < s     = arcT s (e + fromIntegral d)
     | otherwise = Trail bs (sweep >= tau)
@@ -121,7 +122,7 @@ arcT start end
         -- We want to compare the start and the end and in case
         -- there isn't some law about 'Angle' ordering, we use a
         -- known 'Angle' for that.
-        s = convertAngle start :: CircleFrac a
+        s = circleFrac $ convertAngle start
         e = convertAngle end
         d = ceiling (s - e) :: Integer
 
@@ -131,10 +132,10 @@ arcT start end
 arc :: ( Ord a
        , Floating a
        , RealFrac a
+       , Fractional (Scalar a)
        , AdditiveGroup a
        , HasBasis a
        , HasTrie (Basis a)
-       , a ~ Scalar a
        , Angle m a
        , Ord (m a)
        , PathLike p
@@ -147,9 +148,9 @@ arc start end = pathLike (rotate start $ p2 (1,0))
 -- | Like 'arc' but clockwise.
 arcCW :: ( Floating a
          , RealFrac a
+         , Fractional (Scalar a)
          , HasBasis a
          , HasTrie (Basis a)
-         , a ~ Scalar a
          , Angle m a
          , Ord (m a)
          , PathLike p
@@ -174,7 +175,7 @@ arc' :: ( Eq a
         , RealFrac a
         , HasBasis a
         , HasTrie (Basis a)
-        , a ~ Scalar a
+        , a ~ Scalar (V (Trail (V2 a)))
         , Angle m a
         , Ord (m a)
         , PathLike p
@@ -193,7 +194,7 @@ wedge :: ( Ord a
          , RealFrac a
          , HasBasis a
          , HasTrie (Basis a)
-         , a ~ Scalar a
+         , a ~ Scalar (V (V2 a))
          , Angle m a
          , Ord (m a)
          , PathLike p
