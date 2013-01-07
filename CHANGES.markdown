@@ -15,6 +15,11 @@ HEAD
       some incorrect behavior of `juxtapose`
       ([\#46](https://github.com/diagrams/diagrams-lib/issues/46))
 
+0.6.0.1: 7 January 2013
+-----------------------
+
+* allow `semigroups-0.9`
+
 0.6: 11 December 2012
 ---------------------
 
