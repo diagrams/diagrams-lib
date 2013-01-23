@@ -1,3 +1,4 @@
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleContexts
            , FlexibleInstances
            , TypeFamilies
@@ -308,3 +309,6 @@ instance (V t ~ R2, Transformable t) => Transformable (ScaleInv t) where
       rot = rotateAbout l angle
       l'  = transform tr l
       trans = translate (l' .-. l)
+
+instance (Renderable t b, V t ~ R2) => Renderable (ScaleInv t) b where
+  render b = render b . unScaleInv
