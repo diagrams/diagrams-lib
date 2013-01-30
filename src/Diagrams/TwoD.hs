@@ -104,6 +104,7 @@ module Diagrams.TwoD
 
          -- ** Regular polygons
        , regPoly
+       , triangle
        , eqTriangle
        , square
        , pentagon

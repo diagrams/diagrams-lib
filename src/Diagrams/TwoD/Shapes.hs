@@ -22,6 +22,7 @@ module Diagrams.TwoD.Shapes
          -- * Regular polygons
 
        , regPoly
+       , triangle
        , eqTriangle
        , square
        , pentagon
@@ -96,7 +97,7 @@ square :: ( Ord a
           , Transformable p
           , V p ~ V2 a
           ) => a -> p
-square d = unitSquare # scale d
+square d = rect d d
 
 -- | @rect w h@ is an axis-aligned rectangle of width @w@ and height
 --   @h@, centered at the origin.
@@ -110,7 +111,27 @@ rect :: ( Ord a
         , Transformable p
         , V p ~ V2 a
         ) => a -> a -> p
-rect w h = unitSquare # scaleX w # scaleY h
+rect w h = pathLike p True (trailSegments t)
+  where
+    r     = unitSquare # scaleX w # scaleY h
+    (p,t) = head . pathTrails $ r
+
+    -- The above may seem a bit roundabout.  In fact, we used to have
+    --
+    --   rect w h = unitSquare # scaleX w # scaleY h
+    --
+    -- since unitSquare can produce any PathLike.  The current code
+    -- instead uses (unitSquare # scaleX w # scaleY h) to specifically
+    -- produce a Path, which is then deconstructed and passed into
+    -- 'pathLike' to create any PathLike.
+    --
+    -- The difference is that while scaling by zero works fine for
+    -- Path it does not work very well for, say, Diagrams (leading to
+    -- NaNs or worse).  This way, we force the scaling to happen on a
+    -- Path, where we know it will behave properly, and then use the
+    -- resulting geometry to construct an arbitrary PathLike.
+    --
+    -- See https://github.com/diagrams/diagrams-lib/issues/43 .
 
 ------------------------------------------------------------
 --  Regular polygons
@@ -138,8 +159,7 @@ regPoly n l = polygon with { polyType =
                            , polyOrient = OrientH
                            }
 
--- | An equilateral triangle, with sides of the given length and base parallel
---   to the x-axis.
+-- | A synonym for 'triangle', provided for backwards compatibility.
 eqTriangle :: ( Floating a
               , Ord a
               , InnerSpace a
@@ -149,7 +169,20 @@ eqTriangle :: ( Floating a
               , PathLike p
               , V p ~ V2 a
               ) => a -> p
-eqTriangle = regPoly 3
+eqTriangle = triangle
+
+-- | An equilateral triangle, with sides of the given length and base
+--   parallel to the x-axis.
+triangle :: ( Floating a
+            , Ord a
+            , InnerSpace a
+            , HasTrie (Basis a)
+            , HasBasis a
+            , a ~ Scalar a
+            , PathLike p
+            , V p ~ V2 a
+            ) => a -> p
+triangle = regPoly 3
 
 -- | A regular pentagon, with sides of the given length and base
 --   parallel to the x-axis.
