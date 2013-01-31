@@ -1,6 +1,6 @@
-{-# LANGUAGE TypeFamilies
-           , FlexibleContexts
-  #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE UndecidableInstances #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Animation
@@ -27,23 +27,29 @@ module Diagrams.Animation
 
        , animRect, animRect'
 
+       , keyframe2, keyframe2'
+       , smooth
        ) where
 
-import Diagrams.Core
+import           Diagrams.Core
 
-import Diagrams.Combinators
-import Diagrams.Animation.Active ()
-import Diagrams.BoundingBox
-import Diagrams.TwoD.Shapes
-import Diagrams.TwoD.Types
-import Diagrams.Path
+import           Diagrams.Animation.Active ()
+import           Diagrams.BoundingBox
+import           Diagrams.Combinators
+import           Diagrams.Path
+import           Diagrams.TwoD.Shapes
+import           Diagrams.TwoD.Types
+import           Diagrams.Util
 
-import Data.Active
-import Data.Semigroup
-
-import Control.Applicative ((<$>))
-import Data.Foldable       (foldMap)
-import Data.VectorSpace
+import           Control.Applicative ((<$>))
+import           Control.Newtype
+import           Data.Active
+import           Data.AffineSpace
+import           Data.Default
+import           Data.Foldable       (foldMap)
+import qualified Data.Map as M
+import           Data.Semigroup
+import           Data.VectorSpace
 
 -- | A value of type @QAnimation b v m@ is an animation (a
 --   time-varying diagram with start and end times) that can be
@@ -124,3 +130,35 @@ animRect' r anim
     | otherwise    = boxFit (foldMap boundingBox results) (rect 1 1)
   where
     results = simulate r anim
+
+------------------------------------------------------------
+-- Keyframing
+------------------------------------------------------------
+
+data KeyframeOpts v
+  = KeyframeOpts
+    { keyframeTransition :: Active (Scalar v) }
+
+instance Fractional (Scalar v) => Default (KeyframeOpts v) where
+  def = KeyframeOpts
+        { keyframeTransition = ui }
+
+smooth = (\t -> (-cos (t * tau/2) + 1)/2) <$> ui
+
+keyframe2 :: ( OrderedField (Scalar v), HasLinearMap v, InnerSpace v
+             , Semigroup m )
+          => QDiagram b v m -> QDiagram b v m -> QAnimation b v m
+keyframe2 = keyframe2' def
+
+keyframe2' :: ( OrderedField (Scalar v), HasLinearMap v, InnerSpace v
+              , Semigroup m )
+           => KeyframeOpts v -> QDiagram b v m -> QDiagram b v m -> QAnimation b v m
+keyframe2' opts d1 d2 = f <$> keyframeTransition opts
+  where
+    pairs = concat . M.elems
+          $ M.intersectionWith zip (unpack $ subMap d1) (unpack $ subMap d2)
+    f t = mconcat
+        . map (\(x1,x2) -> getSub x1
+                           # translate (lerp zeroV (location x2 .-. location x1) t)
+              )
+        $ pairs
