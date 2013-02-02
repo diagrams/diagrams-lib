@@ -27,7 +27,12 @@ module Diagrams.Animation
 
        , animRect, animRect'
 
+         -- * Keyframing
+         -- $keyframe
+
        , keyframe2, keyframe2'
+
+       , KeyframeOpts(..)
        , smooth
        ) where
 
@@ -39,6 +44,7 @@ import           Diagrams.Combinators
 import           Diagrams.Path
 import           Diagrams.TwoD.Shapes
 import           Diagrams.TwoD.Types
+import           Diagrams.TwoD.Vector
 import           Diagrams.Util
 
 import           Control.Applicative ((<$>))
@@ -135,30 +141,53 @@ animRect' r anim
 -- Keyframing
 ------------------------------------------------------------
 
+-- $keyframe
+-- XXX explain
+
+-- | XXX
 data KeyframeOpts v
   = KeyframeOpts
-    { keyframeTransition :: Active (Scalar v) }
+    { keyframePath       :: Name -> Trail R2
+    , keyframeTransition :: Name -> Active (Scalar v)
+    }
 
+-- | XXX
 instance Fractional (Scalar v) => Default (KeyframeOpts v) where
   def = KeyframeOpts
-        { keyframeTransition = ui }
+        { keyframePath       = const $ fromOffsets [unitX]
+        , keyframeTransition = const ui
+        }
 
+-- | An active value that transitions \"smoothly\" from the value 0 at
+--   time 0 to 1 at time 1, following a sinusoidal path.  Appropriate
+--   for use as a 'keyframeTransition' to make objects begin slowly,
+--   pick up speed, then decelerate into the final position.
+smooth :: Floating a => Active a
 smooth = (\t -> (-cos (t * tau/2) + 1)/2) <$> ui
 
+-- | Construct an animation between two \"keyframes\" by matching up XXX
 keyframe2 :: ( OrderedField (Scalar v), HasLinearMap v, InnerSpace v
              , Semigroup m )
           => QDiagram b v m -> QDiagram b v m -> QAnimation b v m
 keyframe2 = keyframe2' def
 
+-- | Like 'keyframe2', but with an additional 'KeyframeOpts' argument
+--   allowing customization of the behavior.
 keyframe2' :: ( OrderedField (Scalar v), HasLinearMap v, InnerSpace v
               , Semigroup m )
            => KeyframeOpts v -> QDiagram b v m -> QDiagram b v m -> QAnimation b v m
-keyframe2' opts d1 d2 = f <$> keyframeTransition opts
+keyframe2' opts d1 d2 = f <$> ui
   where
-    pairs = concat . M.elems
+    pairs = concat . map strength . M.assocs
           $ M.intersectionWith zip (unpack $ subMap d1) (unpack $ subMap d2)
+    strength (a,fb) = fmap ((,) a) fb
     f t = mconcat
-        . map (\(x1,x2) -> getSub x1
-                           # translate (lerp zeroV (location x2 .-. location x1) t)
+        . map (\(n,(x1,x2)) ->
+                let tr = keyframeTransition opts n
+                in  getSub x1
+                    # translate
+                      ( lerp zeroV (location x2 .-. location x1)
+                        (runActive tr t)
+                      )
               )
         $ pairs
