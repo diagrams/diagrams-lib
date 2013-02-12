@@ -6,3 +6,10 @@ before_install:
   - cd diagrams
   - cabal install monoid-extras/ dual-tree/ diagrams-core/
   - cd ..
+notifications:
+  irc:
+    channels:
+      - irc.freenode.org#diagrams
+    skip_join: true
+    template:
+      - "\x0313diagrams-lib\x03/\x0306%{branch}\x03 \x0314%{commit}\x03 %{build_url} %{message}"
