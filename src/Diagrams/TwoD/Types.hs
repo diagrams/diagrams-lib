@@ -6,7 +6,6 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE DeriveDataTypeable #-}
-
 {-# LANGUAGE UndecidableInstances #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
@@ -33,6 +32,7 @@ module Diagrams.TwoD.Types
        -- * Angles
        , Angle(..)
        , CircleFrac(..), Rad(..), Deg(..)
+       , circleFrac, rad, deg
        , fullCircle, convertAngle
        ) where
 
@@ -119,20 +119,20 @@ unr2 = unpack
 
 type instance V (V2 a) = V2 a
 
-instance (AdditiveGroup a, Num a) => VectorSpace (V2 a) where
-  type Scalar (V2 a) = a
+instance (VectorSpace a) => VectorSpace (V2 a) where
+  type Scalar (V2 a) = Scalar a
   s *^ v = let (vx, vy) = unv2 v
-           in v2 (s * vx, s * vy)
+           in v2 (s *^ vx, s *^ vy)
 
 -- GHC can't deduce "a ~ Scalar a", so it has to be added here.
 -- This is why "UndecidableInstances" is needed.
-instance (AdditiveGroup a, Num a, HasBasis a, a ~ Scalar a) => HasBasis (V2 a) where
+instance (HasBasis a) => HasBasis (V2 a) where
   type Basis (V2 a) = Basis (a,a) -- should be equal to: Either (Basis a) (Basis a)
   basisValue = v2 . basisValue
   decompose  = decompose  . unv2
   decompose' = decompose' . unv2
 
-instance (AdditiveGroup a, Num a, InnerSpace a, a ~ Scalar a) => InnerSpace (V2 a) where
+instance (InnerSpace a) => InnerSpace (V2 a) where
   (unv2 -> vec1) <.> (unv2 -> vec2) = vec1 <.> vec2
 
 instance Coordinates (V2 a) where
@@ -195,6 +195,18 @@ newtype Rad a = Rad { getRad :: a }
 -- | Newtype wrapper for representing angles in degrees.
 newtype Deg a = Deg { getDeg :: a }
   deriving (Read, Show, Eq, Ord, Enum, Floating, Fractional, Num, Real, RealFloat, RealFrac)
+
+-- | Utility to make angles unambiguous.
+deg :: Deg a -> Deg a
+deg = id
+
+-- | Utility to make angles unambiguous.
+rad :: Rad a -> Rad a
+rad = id
+
+-- | Utility to make angles unambiguous.
+circleFrac :: CircleFrac a -> CircleFrac a
+circleFrac = id
 
 -- | Type class for types that measure angles.
 class (Num a, Num (m a)) => Angle m a where
