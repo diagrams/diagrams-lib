@@ -5,6 +5,7 @@
            , TypeFamilies
            , ViewPatterns
   #-}
+{-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 -----------------------------------------------------------------------------
 -- |
@@ -48,6 +49,8 @@ import           Data.Typeable
 import           Data.AffineSpace
 import           Data.Default
 import           Data.VectorSpace
+import           Data.Basis (HasBasis(..), Basis(..))
+import           Data.MemoTrie (HasTrie(..))
 
 import           Diagrams.Core
 
@@ -67,14 +70,28 @@ import           Diagrams.Util (tau)
 
 -- XXX can the efficiency of this be improved?  See the comment in
 -- Diagrams.Path on the Enveloped instance for Trail.
-instance Traced (Trail R2) where
+instance ( Ord a
+         , RealFloat a
+         , AdditiveGroup a
+         , InnerSpace a
+         , HasBasis a
+         , HasTrie (Basis a)
+         , a ~ Scalar a
+         ) => Traced (Trail (V2 a)) where
   getTrace t = case addClosingSegment t of
     (Trail segs _) ->
       foldr (\seg bds -> moveOriginBy (negateV . segOffset $ seg) bds <> getTrace seg)
             mempty
             segs
 
-instance Traced (Path R2) where
+instance ( Ord a
+         , RealFloat a
+         , AdditiveGroup a
+         , InnerSpace a
+         , HasBasis a
+         , HasTrie (Basis a)
+         , a ~ Scalar a
+         ) => Traced (Path (V2 a)) where
   getTrace = F.foldMap trailTrace . pathTrails
     where trailTrace (p, t) = moveOriginTo ((-1) *. p) (getTrace t)
 
@@ -92,11 +109,23 @@ instance Traced (Path R2) where
 --   inferring the type of @stroke@.  The solution is to give a type
 --   signature to expressions involving @stroke@, or (recommended)
 --   upgrade GHC (the bug is fixed in 7.0.2 onwards).
-stroke :: Renderable (Path R2) b
-       => Path R2 -> Diagram b R2
+stroke :: ( RealFloat a
+          , InnerSpace a
+          , HasBasis a
+          , HasTrie (Basis a)
+          , a ~ Scalar a
+          , Renderable (Path (V2 a)) b
+          ) => Path (V2 a) -> Diagram b (V2 a)
 stroke = stroke' (def :: StrokeOpts ())
 
-instance Renderable (Path R2) b => PathLike (QDiagram b R2 Any) where
+instance ( Ord a
+         , RealFloat a
+         , InnerSpace a
+         , HasBasis a
+         , HasTrie (Basis a)
+         , a ~ Scalar a
+         , Renderable (Path (V2 a)) b
+         ) => PathLike (QDiagram b (V2 a) Any) where
   pathLike st cl segs = stroke $ pathLike st cl segs
 
 -- | A variant of 'stroke' that takes an extra record of options to
@@ -106,7 +135,15 @@ instance Renderable (Path R2) b => PathLike (QDiagram b R2 Any) where
 --
 --   'StrokeOpts' is an instance of 'Default', so @stroke' 'with' {
 --   ... }@ syntax may be used.
-stroke' :: (Renderable (Path R2) b, IsName a) => StrokeOpts a -> Path R2 -> Diagram b R2
+stroke' :: ( Ord a
+           , RealFloat a
+           , InnerSpace a
+           , HasBasis a
+           , HasTrie (Basis a)
+           , a ~ Scalar a
+           , Renderable (Path (V2 a)) b
+           , IsName c
+           ) => StrokeOpts c -> Path (V2 a) -> Diagram b (V2 a)
 stroke' opts p
   = mkQD (Prim p)
          (getEnvelope p)
@@ -162,14 +199,25 @@ instance Default (StrokeOpts a) where
 --   The solution is to give a type signature to expressions involving
 --   @strokeT@, or (recommended) upgrade GHC (the bug is fixed in 7.0.2
 --   onwards).
-strokeT :: (Renderable (Path R2) b)
-        => Trail R2 -> Diagram b R2
+strokeT :: ( RealFloat a
+           , InnerSpace a
+           , HasBasis a
+           , HasTrie (Basis a)
+           , a ~ Scalar a
+           , Renderable (Path (V2 a)) b
+           ) => Trail (V2 a) -> Diagram b (V2 a)
 strokeT = stroke . pathFromTrail
 
 -- | A composition of 'stroke'' and 'pathFromTrail' for conveniently
 --   converting a trail directly into a diagram.
-strokeT' :: (Renderable (Path R2) b, IsName a)
-         => StrokeOpts a -> Trail R2 -> Diagram b R2
+strokeT' :: ( RealFloat a
+            , InnerSpace a
+            , HasBasis a
+            , HasTrie (Basis a)
+            , a ~ Scalar a
+            , Renderable (Path (V2 a)) b
+            , IsName c
+            ) => StrokeOpts c -> Trail (V2 a) -> Diagram b (V2 a)
 strokeT' opts = stroke' opts . pathFromTrail
 
 ------------------------------------------------------------
@@ -189,7 +237,10 @@ data FillRule = Winding  -- ^ Interior points are those with a nonzero
                          --   <http://en.wikipedia.org/wiki/Even-odd_rule>.
     deriving (Eq)
 
-runFillRule :: FillRule -> P2 -> Path R2 -> Bool
+runFillRule :: ( RealFloat a
+               , VectorSpace a
+               , a ~ Scalar a
+               ) => FillRule -> P2 a -> Path (V2 a) -> Bool
 runFillRule Winding = isInsideWinding
 runFillRule EvenOdd = isInsideEvenOdd
 
@@ -206,7 +257,7 @@ getFillRule (FillRuleA (Last r)) = r
 fillRule :: HasStyle a => FillRule -> a -> a
 fillRule = applyAttr . FillRuleA . Last
 
-cross :: R2 -> R2 -> Double
+cross :: (Num a) => V2 a -> V2 a -> a
 cross (coords -> x :& y) (coords -> x' :& y') = x * y' - y * x'
 
 -- XXX link to more info on this
@@ -215,7 +266,10 @@ cross (coords -> x :& y) (coords -> x' :& y') = x * y' - y * x'
 --   by testing whether the point's /winding number/ is nonzero. Note
 --   that @False@ is /always/ returned for /open/ paths, regardless of
 --   the winding number.
-isInsideWinding :: P2 -> Path R2 -> Bool
+isInsideWinding :: ( RealFloat a
+                   , VectorSpace a
+                   , a ~ Scalar a
+                   ) => P2 a -> Path (V2 a) -> Bool
 isInsideWinding p = (/= 0) . crossings p
 
 -- | Test whether the given point is inside the given (closed) path,
@@ -223,17 +277,28 @@ isInsideWinding p = (/= 0) . crossings p
 --   x direction crosses the path an even (outside) or odd (inside)
 --   number of times.  Note that @False@ is /always/ returned for
 --   /open/ paths, regardless of the number of crossings.
-isInsideEvenOdd :: P2 -> Path R2 -> Bool
+isInsideEvenOdd :: ( RealFloat a
+                   , VectorSpace a
+                   , a ~ Scalar a
+                   ) => P2 a -> Path (V2 a) -> Bool
 isInsideEvenOdd p = odd . crossings p
 
 -- | Compute the sum of /signed/ crossings of a path as we travel in the
 --   positive x direction from a given point.
-crossings :: P2 -> Path R2 -> Int
+crossings :: ( RealFloat a
+             , VectorSpace a
+             , a ~ Scalar a
+             ) => P2 a -> Path (V2 a) -> Int
 crossings p = F.sum . map (trailCrossings p) . pathTrails
 
 -- | Compute the sum of signed crossings of a trail starting from the
 --   given point in the positive x direction.
-trailCrossings :: P2 -> (P2, Trail R2) -> Int
+trailCrossings ::( Ord a
+                 , RealFloat a
+                 , AdditiveGroup a
+                 , VectorSpace a
+                 , a ~ Scalar a
+                 ) => P2 a -> (P2 a, Trail (V2 a)) -> Int
 
   -- open trails have no inside or outside, so don't contribute crossings
 trailCrossings _ (_, t) | not (isClosed t) = 0
@@ -279,13 +344,18 @@ trailCrossings p@(unp2 -> (x,y)) (start, tr)
 --   concatenation, so applying multiple clipping paths is sensible.
 --   The clipping region is the intersection of all the applied
 --   clipping paths.
-newtype Clip = Clip { getClip :: [Path R2] }
+newtype Clip a = Clip { getClip :: [Path (V2 a)] }
   deriving (Typeable, Semigroup)
-instance AttributeClass Clip
 
-type instance V Clip = R2
+instance (Typeable a) => AttributeClass (Clip a)
 
-instance Transformable Clip where
+type instance V (Clip a) = V2 a
+
+instance ( Num a
+         , HasBasis a
+         , HasTrie (Basis a)
+         , a ~ Scalar a
+         ) => Transformable (Clip a) where
   transform t (Clip ps) = Clip (transform t ps)
 
 -- | Clip a diagram by the given path:
@@ -294,7 +364,14 @@ instance Transformable Clip where
 --     path will be drawn.
 --
 --   * The envelope of the diagram is unaffected.
-clipBy :: (HasStyle a, V a ~ R2) => Path R2 -> a -> a
+clipBy :: ( Num a
+          , Typeable a
+          , HasBasis a
+          , HasTrie (Basis a)
+          , a ~ Scalar a
+          , HasStyle b
+          , V b ~ V2 a
+          ) => Path (V2 a) -> b -> b
 clipBy = applyTAttr . Clip . (:[])
 
 -- XXX Should include a 'clipTo' function which clips a diagram AND

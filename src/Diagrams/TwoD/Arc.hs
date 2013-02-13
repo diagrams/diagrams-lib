@@ -1,6 +1,8 @@
 {-# LANGUAGE TypeFamilies
            , ViewPatterns
   #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Arc
@@ -33,7 +35,10 @@ import Diagrams.TwoD.Vector (unitX, e)
 import Diagrams.Util ((#), tau)
 
 import Data.Semigroup ((<>))
-import Data.VectorSpace((^-^), (*^), negateV)
+import Data.VectorSpace((^-^), (*^), negateV, Scalar(..))
+import Data.AdditiveGroup (AdditiveGroup(..))
+import Data.Basis (HasBasis(..), Basis(..))
+import Data.MemoTrie (HasTrie(..))
 
 -- For details of this approximation see:
 --   http://www.tinaja.com/glib/bezcirc2.pdf
@@ -42,7 +47,13 @@ import Data.VectorSpace((^-^), (*^), negateV)
 --   the positive y direction and sweeps counterclockwise through @s@
 --   radians.  The approximation is only valid for angles in the first
 --   quadrant.
-bezierFromSweepQ1 :: Rad -> Segment R2
+bezierFromSweepQ1 :: ( Floating a
+                     , Fractional (Scalar a)
+                     , Ord a
+                     , AdditiveGroup a
+                     , HasBasis a
+                     , HasTrie (Basis a)
+                     ) => Rad a -> Segment (V2 a)
 bezierFromSweepQ1 s = fmap (^-^ v) . rotate (s/2) $ Cubic c2 c1 p0
   where p0@(coords -> x :& y) = rotate (s/2) v
         c1                    = ((4-x)/3)  &  ((1-x)*(3-x)/(3*y))
@@ -55,7 +66,13 @@ bezierFromSweepQ1 s = fmap (^-^ v) . rotate (s/2) $ Cubic c2 c1 p0
 --   negative y direction and sweep clockwise.  When @s@ is less than
 --   0.0001 the empty list results.  If the sweep is greater than tau
 --   then it is truncated to tau.
-bezierFromSweep :: Rad -> [Segment R2]
+bezierFromSweep :: ( Ord a
+                   , Floating a
+                   , Fractional (Scalar a)
+                   , AdditiveGroup a
+                   , HasBasis a
+                   , HasTrie (Basis a)
+                   ) => Rad a -> [Segment (V2 a)]
 bezierFromSweep s
   | s > tau    = bezierFromSweep tau
   | s < 0      = fmap reflectY . bezierFromSweep $ (-s)
@@ -86,7 +103,16 @@ the approximation error.
 
 -- | Given a start angle @s@ and an end angle @e@, @'arcT' s e@ is the
 --   'Trail' of a radius one arc counterclockwise between the two angles.
-arcT :: Angle a => a -> a -> Trail R2
+arcT :: ( Ord a
+        , Floating a
+        , RealFrac a
+        , Fractional (Scalar a)
+        , AdditiveGroup a
+        , HasBasis a
+        , HasTrie (Basis a)
+        , Angle m a
+        , Ord (m a)
+        ) => m a -> m a -> Trail (V2 a)
 arcT start end
     | e < s     = arcT s (e + fromIntegral d)
     | otherwise = Trail bs (sweep >= tau)
@@ -96,20 +122,40 @@ arcT start end
         -- We want to compare the start and the end and in case
         -- there isn't some law about 'Angle' ordering, we use a
         -- known 'Angle' for that.
-        s = convertAngle start :: CircleFrac
+        s = circleFrac $ convertAngle start
         e = convertAngle end
         d = ceiling (s - e) :: Integer
 
 -- | Given a start angle @s@ and an end angle @e@, @'arc' s e@ is the
 --   path of a radius one arc counterclockwise between the two angles.
 --   The origin of the arc is its center.
-arc :: (Angle a, PathLike p, V p ~ R2) => a -> a -> p
+arc :: ( Ord a
+       , Floating a
+       , RealFrac a
+       , Fractional (Scalar a)
+       , AdditiveGroup a
+       , HasBasis a
+       , HasTrie (Basis a)
+       , Angle m a
+       , Ord (m a)
+       , PathLike p
+       , V p ~ V2 a
+       ) => m a -> m a -> p
 arc start end = pathLike (rotate start $ p2 (1,0))
                          False
                          (trailSegments $ arcT start end)
 
 -- | Like 'arc' but clockwise.
-arcCW :: (Angle a, PathLike p, V p ~ R2) => a -> a -> p
+arcCW :: ( Floating a
+         , RealFrac a
+         , Fractional (Scalar a)
+         , HasBasis a
+         , HasTrie (Basis a)
+         , Angle m a
+         , Ord (m a)
+         , PathLike p
+         , V p ~ V2 a
+         ) => m a -> m a -> p
 arcCW start end = pathLike (rotate start $ p2 (1,0))
                            False
                            -- flipped arguments to get the path we want
@@ -123,7 +169,18 @@ arcCW start end = pathLike (rotate start $ p2 (1,0))
 --   the two angles.  If a negative radius is given, the arc will
 --   be clockwise, otherwise it will be counterclockwise. The origin 
 --   of the arc is its center.
-arc' :: (Angle a, PathLike p, V p ~ R2) => Double -> a -> a -> p
+arc' :: ( Eq a
+        , Ord a
+        , Floating a
+        , RealFrac a
+        , HasBasis a
+        , HasTrie (Basis a)
+        , a ~ Scalar (V (Trail (V2 a)))
+        , Angle m a
+        , Ord (m a)
+        , PathLike p
+        , V p ~ V2 a
+        ) => a -> m a -> m a -> p
 arc' r start end = pathLike (rotate start $ p2 (abs r,0))
                    False
                    (trailSegments . scale (abs r) $ ts)
@@ -132,7 +189,17 @@ arc' r start end = pathLike (rotate start $ p2 (abs r,0))
 
 -- | Create a circular wedge of the given radius, beginning at the
 --   first angle and extending counterclockwise to the second.
-wedge :: (Angle a, PathLike p, V p ~ R2) => Double -> a -> a -> p
+wedge :: ( Ord a
+         , Floating a
+         , RealFrac a
+         , HasBasis a
+         , HasTrie (Basis a)
+         , a ~ Scalar (V (V2 a))
+         , Angle m a
+         , Ord (m a)
+         , PathLike p
+         , V p ~ V2 a
+         ) => a -> m a -> m a -> p
 wedge r a1 a2 = pathLikeFromTrail $ fromOffsets [r *^ e a1]
                                  <> arc a1 a2 # scale r
                                  <> fromOffsets [r *^ negateV (e a2)]

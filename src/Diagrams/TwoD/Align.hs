@@ -45,25 +45,69 @@ import Data.VectorSpace
 -- | Align along the left edge, i.e. translate the diagram in a
 --   horizontal direction so that the local origin is on the left edge
 --   of the envelope.
-alignL :: (Alignable a, V a ~ R2) => a -> a
+alignL :: ( Num a
+          , Num (Scalar (V2 a))
+          , AdditiveGroup a
+          , Alignable b
+          , V b ~ V2 a
+          ) => b -> b
 alignL = align (negateV unitX)
 
 -- | Align along the right edge.
-alignR :: (Alignable a, V a ~ R2) => a -> a
+alignR :: ( Num a
+          , Num (Scalar (V2 a))
+          , Alignable b
+          , V b ~ V2 a
+          ) => b -> b
 alignR = align unitX
 
 -- | Align along the top edge.
-alignT :: (Alignable a, V a ~ R2) => a -> a
+alignT :: ( Num a
+          , Num (Scalar (V2 a))
+          , Alignable b
+          , V b ~ V2 a
+          ) => b -> b
 alignT = align unitY
 
 -- | Align along the bottom edge.
-alignB :: (Alignable a, V a ~ R2) => a -> a
+alignB :: ( Num a
+          , Num (Scalar (V2 a))
+          , AdditiveGroup a
+          , Alignable b
+          , V b ~ V2 a
+          ) => b -> b
 alignB = align (negateV unitY)
 
-alignTL, alignTR, alignBL, alignBR :: (Alignable a, V a ~ R2) => a -> a
+alignTL :: ( Num a
+           , Num (Scalar (V2 a))
+           , AdditiveGroup a
+           , Alignable b
+           , V b ~ V2 a
+           ) => b -> b
 alignTL = alignT . alignL
+
+alignTR :: ( Num a
+           , Num (Scalar (V2 a))
+           , AdditiveGroup a
+           , Alignable b
+           , V b ~ V2 a
+           ) => b -> b
 alignTR = alignT . alignR
+
+alignBL :: ( Num a
+           , Num (Scalar (V2 a))
+           , AdditiveGroup a
+           , Alignable b
+           , V b ~ V2 a
+           ) => b -> b
 alignBL = alignB . alignL
+
+alignBR :: ( Num a
+           , Num (Scalar (V2 a))
+           , AdditiveGroup a
+           , Alignable b
+           , V b ~ V2 a
+           ) => b -> b
 alignBR = alignB . alignR
 
 -- | @alignX@ moves the local origin horizontally as follows:
@@ -75,23 +119,41 @@ alignBR = alignB . alignR
 --   * any other argument interpolates linearly between these.  For
 --     example, @alignX 0@ centers, @alignX 2@ moves the origin one
 --     \"radius\" to the right of the right edge, and so on.
-alignX :: (Alignable a, V a ~ R2) => Double -> a -> a
+alignX :: ( Num a
+          , Alignable b
+          , V b ~ V2 a
+          ) => Scalar a -> b -> b
 alignX = alignBy unitX
 
 -- | Like 'alignX', but moving the local origin vertically, with an
 --   argument of @1@ corresponding to the top edge and @(-1)@ corresponding
 --   to the bottom edge.
-alignY :: (Alignable a, V a ~ R2) => Double -> a -> a
+alignY :: ( Num a
+          , Alignable b
+          , V b ~ V2 a
+          ) => Scalar a -> b -> b
 alignY = alignBy unitY
 
 -- | Center the local origin along the X-axis.
-centerX  :: (Alignable a, V a ~ R2) => a -> a
+centerX  :: ( Num a
+            , Num (Scalar (V2 a))
+            , Alignable b
+            , V b ~ V2 a
+            ) => b -> b
 centerX  = alignBy unitX 0
 
 -- | Center the local origin along the Y-axis.
-centerY  :: (Alignable a, V a ~ R2) => a -> a
+centerY  :: ( Num a
+            , Num (Scalar (V2 a))
+            , Alignable b
+            , V b ~ V2 a
+            ) => b -> b
 centerY  = alignBy unitY 0
 
 -- | Center along both the X- and Y-axes.
-centerXY :: (Alignable a, V a ~ R2) => a -> a
+centerXY :: ( Num a
+            , Num (Scalar (V2 a))
+            , Alignable b
+            , V b ~ V2 a
+            ) => b -> b
 centerXY = centerX . centerY

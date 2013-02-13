@@ -20,36 +20,39 @@ module Diagrams.TwoD.Vector
        , direction, fromDirection,  e
        ) where
 
+import Data.Basis
+import Data.VectorSpace
+
 import Diagrams.Coordinates
 import Diagrams.TwoD.Types
 
 -- | The unit vector in the positive X direction.
-unitX :: R2
-unitX = 1 & 0
+unitX :: (Num a) => V2 a
+unitX = 1 & 0 --basisValue (Left ())
 
 -- | The unit vector in the positive Y direction.
-unitY :: R2
+unitY :: (Num a) => V2 a
 unitY = 0 & 1
 
 -- | The unit vector in the negative X direction.
-unit_X :: R2
-unit_X = (-1) & 0
+unit_X :: (Num a, AdditiveGroup a) => V2 a
+unit_X = negateV unitX
 
 -- | The unit vector in the negative Y direction.
-unit_Y :: R2
-unit_Y = 0 & (-1)
+unit_Y :: (Num a, AdditiveGroup a) => V2 a
+unit_Y = negateV unitY
 
 -- | Compute the direction of a vector, measured counterclockwise from
 --   the positive x-axis as a fraction of a full turn.  The zero
 --   vector is arbitrarily assigned the direction 0.
-direction :: Angle a => R2 -> a
+direction :: (RealFloat a, Angle m a) => V2 a -> m a
 direction (coords -> x :& y) = convertAngle . Rad $ atan2 y x
 
 -- | Convert an angle into a unit vector pointing in that direction.
-fromDirection :: Angle a => a -> R2
+fromDirection :: (Floating a, Angle m a) => m a -> V2 a
 fromDirection a = cos a' & sin a'
   where Rad a' = convertAngle a
 
 -- | A convenient synonym for 'fromDirection'.
-e :: Angle a => a -> R2
+e :: (Floating a, Angle m a) => m a -> V2 a
 e = fromDirection

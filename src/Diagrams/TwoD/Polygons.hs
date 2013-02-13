@@ -4,7 +4,7 @@
            , ExistentialQuantification
            , ViewPatterns
   #-}
-
+{-# LANGUAGE FlexibleContexts #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Polygons
@@ -55,8 +55,17 @@ import Control.Monad     (forM, liftM)
 import Control.Monad.ST  (runST, ST)
 import Data.Array.ST     (STUArray, newArray, readArray, writeArray)
 
-import Data.AffineSpace  ((.-.), (.+^))
-import Data.VectorSpace  (magnitude, normalized, project, (<.>), (^*))
+import Data.AffineSpace   ((.-.), (.+^))
+import Data.VectorSpace ( magnitude
+                        , normalized
+                        , project
+                        , (<.>), (^*)
+                        , Scalar(..)
+                        , InnerSpace(..)
+                        )
+import Data.AdditiveGroup (AdditiveGroup(..))
+import Data.Basis         (HasBasis(..), Basis(..))
+import Data.MemoTrie      (HasTrie(..))
 import Data.Default
 
 import Diagrams.Core
@@ -69,7 +78,7 @@ import Diagrams.Points      (centroid)
 import Diagrams.Util        ((#), tau)
 
 -- | Method used to determine the vertices of a polygon.
-data PolyType = forall a. Angle a => PolyPolar [a] [Double]
+data PolyType a = forall m. Angle m a => PolyPolar [m a] [a]
                 -- ^ A \"polar\" polygon.
                 --
                 --   * The first argument is a list of /central/
@@ -86,7 +95,7 @@ data PolyType = forall a. Angle a => PolyPolar [a] [Double]
                 --   circle) can be constructed using a second
                 --   argument of @(repeat r)@.
 
-              | forall a. Angle a => PolySides [a] [Double]
+                | forall m. Angle m a => PolySides [m a] [a]
                 -- ^ A polygon determined by the distance between
                 --   successive vertices and the angles formed by
                 --   each three successive vertices.  In other
@@ -111,38 +120,38 @@ data PolyType = forall a. Angle a => PolyPolar [a] [Double]
                 --   angles and /n-1/ edge lengths.  Extra angles or
                 --   lengths are ignored.
 
-              | PolyRegular Int Double
+                | PolyRegular Int a
                 -- ^ A regular polygon with the given number of
                 --   sides (first argument) and the given radius
                 --   (second argument).
 
 -- | Determine how a polygon should be oriented.
-data PolyOrientation = NoOrient     -- ^ No special orientation; the first
-                                    --   vertex will be at (1,0).
-                                    --   This is the default.
-                     | OrientH      -- ^ Orient /horizontally/, so the
-                                    --   bottommost edge is parallel to
-                                    --   the x-axis.
-                     | OrientV      -- ^ Orient /vertically/, so the
-                                    --   leftmost edge is parallel to the
-                                    --   y-axis.
-                     | OrientTo R2  -- ^ Orient so some edge is
-                                    --   /facing/ /in/ /the/ /direction/
-                                    --   /of/, that is, perpendicular
-                                    --   to, the given vector.
+data PolyOrientation a = NoOrient        -- ^ No special orientation; the first
+                                         --   vertex will be at (1,0).
+                                         --   This is the default.
+                       | OrientH         -- ^ Orient /horizontally/, so the
+                                         --   bottommost edge is parallel to
+                                         --   the x-axis.
+                       | OrientV         -- ^ Orient /vertically/, so the
+                                         --   leftmost edge is parallel to the
+                                         --   y-axis.
+                       | OrientTo (V2 a) -- ^ Orient so some edge is
+                                         --   /facing/ /in/ /the/ /direction/
+                                         --   /of/, that is, perpendicular
+                                         --   to, the given vector.
   deriving (Eq, Ord, Show, Read)
 
 -- | Options for specifying a polygon.
-data PolygonOpts = PolygonOpts
-                   { polyType       :: PolyType
+data PolygonOpts a = PolygonOpts
+                   { polyType       :: PolyType a
                      -- ^ Specification for the polygon's vertices.
 
-                   , polyOrient     :: PolyOrientation
+                   , polyOrient     :: PolyOrientation a
                      -- ^ Should a rotation be applied to the
                      --   polygon in order to orient it in a
                      --   particular way?
 
-                   , polyCenter     :: P2
+                   , polyCenter     :: P2 a
                      -- ^ Should a translation be applied to the
                      --   polygon in order to place the center at a
                      --   particular location?
@@ -150,12 +159,19 @@ data PolygonOpts = PolygonOpts
 
 -- | The default polygon is a regular pentagon of radius 1, centered
 --   at the origin, aligned to the x-axis.
-instance Default PolygonOpts where
+instance (Num a, AdditiveGroup a) => Default (PolygonOpts a) where
     def = PolygonOpts (PolyRegular 5 1) OrientH origin
 
 -- | Generate the vertices of a polygon.  See 'PolygonOpts' for more
 --   information.
-polyVertices :: PolygonOpts -> [P2]
+polyVertices :: ( Ord a
+                , Floating a
+                , AdditiveGroup a
+                , HasBasis a
+                , HasTrie (Basis a)
+                , InnerSpace a
+                , a ~ Scalar (V (P2 a))
+                ) => PolygonOpts a -> [P2 a]
 polyVertices po = moveTo (polyCenter po) ori
     where
         ps = case polyType po of
@@ -168,7 +184,16 @@ polyVertices po = moveTo (polyCenter po) ori
             OrientTo v   -> orient v      ps
             NoOrient     -> ps
 
-polygon :: (PathLike p, V p ~ R2) => PolygonOpts -> p
+polygon :: ( Ord a
+           , Floating a
+           , AdditiveGroup a
+           , HasBasis a
+           , HasTrie (Basis a)
+           , InnerSpace a
+           , a ~ Scalar (V (P2 a))
+           , PathLike p
+           , V p ~ V2 a
+           ) => PolygonOpts a -> p
 polygon opts = case pts of
                  []     -> pathLike origin True []
                  (p1:_) -> pathLike p1 True (segmentsFromVertices pts)
@@ -176,7 +201,13 @@ polygon opts = case pts of
 
 -- | Generate the vertices of a polygon specified by polar data
 --   (central angles and radii). See 'PolyPolar'.
-polyPolarVs :: Angle a => [a] -> [Double] -> [P2]
+polyPolarVs :: ( Eq (Scalar (V (P2 a)))
+               , Fractional (Scalar (V (P2 a)))
+               , Floating a
+               , HasBasis a
+               , HasTrie (Basis a)
+               , Angle m a
+               ) => [m a] -> [Scalar (V (P2 a))] -> [P2 a]
 polyPolarVs ans ls = zipWith (\a l -> rotate a . scale l $ p2 (1,0))
                              (scanl (+) 0 ans)
                              ls
@@ -184,7 +215,11 @@ polyPolarVs ans ls = zipWith (\a l -> rotate a . scale l $ p2 (1,0))
 -- | Generate the vertices of a polygon specified by side length and
 --   angles, with the origin corresponding to the first vertex.  See
 --   'PolySides'.
-polySidesVs' :: Angle a => [a] -> [Double] -> [P2]
+polySidesVs' :: ( Floating a
+                , HasBasis a
+                , HasTrie (Basis a)
+                , Angle m a
+                ) => [m a] -> [Scalar (V (P2 a))] -> [P2 a]
 polySidesVs' ans ls = scanl (.+^) origin
                       $ zipWith rotate ans' (map (unitY ^*) ls)
   where
@@ -192,23 +227,42 @@ polySidesVs' ans ls = scanl (.+^) origin
 
 -- | Generate the vertices of a polygon specified by side length and
 --   angles, with the origin placed at the centroid.  See 'PolySides'.
-polySidesVs :: Angle a => [a] -> [Double] -> [P2]
+polySidesVs :: ( Floating a
+               , Fractional (Scalar (V (P2 a)))
+               , HasBasis a
+               , HasTrie (Basis a)
+               , Angle m a
+               ) => [m a] -> [Scalar (V (P2 a))] -> [P2 a]
 polySidesVs ans ls = p0 # moveOriginTo (centroid p0)
   where p0 = polySidesVs' ans ls
 
 -- | Generate the vertices of a regular polygon.  See 'PolyRegular'.
-polyRegularVs :: Int -> Double -> [P2]
-polyRegularVs n r = polyPolarVs (take (n-1) . repeat $ (tau::Rad) / fromIntegral n)
+polyRegularVs :: ( Eq (Scalar (V (P2 a)))
+                 , Fractional (Scalar (V (P2 a)))
+                 , Floating a
+                 , HasBasis a
+                 , HasTrie (Basis a)
+                 ) => Int -> Scalar (V (P2 a)) -> [P2 a]
+polyRegularVs n r = polyPolarVs (take (n-1) . repeat $ (rad tau) / fromIntegral n)
                                 (repeat r)
 
 -- | Orient a list of points, rotating them as little as possible.
 --   The points are rotated so that the edge furthest in the direction
 --   of the given vector is perpendicular to it.  (Note: this may do odd
 --   things to non-convex lists of points.)
-orient :: R2 -> [P2] -> [P2]
+orient :: ( Ord a
+          , Floating a
+          , HasBasis a
+          , HasTrie (Basis a)
+          , InnerSpace a
+          , a ~ Scalar (V (P2 a))
+          ) => V2 a -> [P2 a] -> [P2 a]
 orient _ [] = []
 orient v xs = rotate a xs
     where
+        -- The constraint 'a ~ Scalar (V (P2 a))' comes into play because 
+        -- of 'rotate' which makes 'a :: Rad a' but at the same time 
+        -- 'th :: Scalar (V (P2 a))'.
         (n1,x,n2) = maximumBy (comparing (distAlong v . sndOf3))
                        (zip3 (tail xs ++ take 1 xs) xs (last xs : init xs))
         distAlong w ((.-. origin) -> p) = signum (w <.> p) * magnitude (project w p)
@@ -304,7 +358,7 @@ data StarOpts = StarFun (Int -> Int)
 --   returned (instead of any 'PathLike') because the resulting path
 --   may have more than one component, for example if the vertices are
 --   to be connected in several disjoint cycles.
-star :: StarOpts -> [P2] -> Path R2
+star :: (VectorSpace a) => StarOpts -> [P2 a] -> Path (V2 a)
 star sOpts vs = graphToPath $ mkGraph f vs
   where f = case sOpts of
               StarFun g  -> g

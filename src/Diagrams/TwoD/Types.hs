@@ -6,6 +6,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 -----------------------------------------------------------------------------
@@ -21,13 +22,17 @@
 
 module Diagrams.TwoD.Types
        ( -- * 2D Euclidean space
-         R2, r2, unr2
-       , P2, p2, unp2
-       , T2
-
-         -- * Angles
+         R2
+       , r2, unr2
+       , P2, P2D
+       , p2, unp2
+       , V2
+       , v2, unv2
+       , T2, T2D
+       -- * Angles
        , Angle(..)
        , CircleFrac(..), Rad(..), Deg(..)
+       , circleFrac, rad, deg
        , fullCircle, convertAngle
        ) where
 
@@ -67,19 +72,30 @@ import Data.Typeable
 -- > foo (unr2 -> (x,y)) = ...
 -- > foo (coords -> x :& y) = ...
 
-newtype R2 = R2 { unR2 :: (Double, Double) }
+newtype V2 a = V2 { unV2 :: (a, a) }
   deriving (AdditiveGroup, Eq, Ord, Typeable, Num, Fractional)
 
-instance Show R2 where
-  showsPrec p (R2 (x,y)) = showParen (p >= 7) $
+v2 :: (a, a) -> V2 a
+v2 = V2
+
+unv2 :: V2 a -> (a, a)
+unv2 = unpack
+
+type R2 = V2 Double
+
+unR2 :: R2 -> (Double, Double)
+unR2 = unV2
+
+instance (Show a, Num a, Ord a) => Show (V2 a) where
+  showsPrec p (V2 (x,y)) = showParen (p >= 7) $
     showCoord x . showString " & " . showCoord y
    where
     showCoord x | x < 0     = showParen True (shows x)
                 | otherwise = shows x
 
-instance Read R2 where
+instance (Read a) => Read (V2 a) where
   readsPrec d r = readParen (d > app_prec)
-                  (\r -> [ (R2 (x,y), r''')
+                  (\r -> [ (V2 (x,y), r''')
                          | (x,r')    <- readsPrec (amp_prec + 1) r
                          , ("&",r'') <- lex r'
                          , (y,r''')  <- readsPrec (amp_prec + 1) r''
@@ -89,9 +105,9 @@ instance Read R2 where
       app_prec = 10
       amp_prec = 7
 
-instance Newtype R2 (Double, Double) where
-  pack   = R2
-  unpack = unR2
+instance Newtype (V2 a) (a, a) where
+  pack   = V2
+  unpack = unV2
 
 -- | Construct a 2D vector from a pair of components.  See also '&'.
 r2 :: (Double, Double) -> R2
@@ -101,28 +117,31 @@ r2 = pack
 unr2 :: R2 -> (Double, Double)
 unr2 = unpack
 
-type instance V R2 = R2
+type instance V (V2 a) = V2 a
 
-instance VectorSpace R2 where
-  type Scalar R2 = Double
-  (*^) = over R2 . (*^)
+instance (VectorSpace a) => VectorSpace (V2 a) where
+  type Scalar (V2 a) = Scalar a
+  s *^ v = let (vx, vy) = unv2 v
+           in v2 (s *^ vx, s *^ vy)
 
-instance HasBasis R2 where
-  type Basis R2 = Either () () -- = Basis (Double, Double)
-  basisValue = R2 . basisValue
-  decompose  = decompose  . unR2
-  decompose' = decompose' . unR2
+-- GHC can't deduce "a ~ Scalar a", so it has to be added here.
+-- This is why "UndecidableInstances" is needed.
+instance (HasBasis a) => HasBasis (V2 a) where
+  type Basis (V2 a) = Basis (a,a) -- should be equal to: Either (Basis a) (Basis a)
+  basisValue = v2 . basisValue
+  decompose  = decompose  . unv2
+  decompose' = decompose' . unv2
 
-instance InnerSpace R2 where
-  (unR2 -> vec1) <.> (unR2 -> vec2) = vec1 <.> vec2
+instance (InnerSpace a) => InnerSpace (V2 a) where
+  (unv2 -> vec1) <.> (unv2 -> vec2) = vec1 <.> vec2
 
-instance Coordinates R2 where
-  type FinalCoord R2     = Double
-  type PrevDim R2        = Double
-  type Decomposition R2  = Double :& Double
+instance Coordinates (V2 a) where
+  type FinalCoord (V2 a)     = a
+  type PrevDim (V2 a)        = a
+  type Decomposition (V2 a)  = a :& a
 
-  x & y                  = r2 (x,y)
-  coords (unR2 -> (x,y)) = x :& y
+  x & y                  = v2 (x,y)
+  coords (unv2 -> (x,y)) = x :& y
 
 -- | Points in R^2.  This type is intentionally abstract.
 --
@@ -143,20 +162,22 @@ instance Coordinates R2 where
 --
 -- > foo (unp2 -> (x,y)) = ...
 -- > foo (coords -> x :& y) = ...
-type P2 = Point R2
+type P2 a = Point (V2 a)
+type P2D = P2 Double
 
 -- | Construct a 2D point from a pair of coordinates.  See also '&'.
-p2 :: (Double, Double) -> P2
+p2 :: (a, a) -> P2 a
 p2 = pack . pack
 
 -- | Convert a 2D point back into a pair of coordinates.  See also 'coords'.
-unp2 :: P2 -> (Double, Double)
+unp2 :: P2 a -> (a, a)
 unp2 = unpack . unpack
 
 -- | Transformations in R^2.
-type T2 = Transformation R2
+type T2 a = Transformation (V2 a)
+type T2D = T2 Double
 
-instance Transformable R2 where
+instance (HasLinearMap (V2 a)) => Transformable (V2 a) where
   transform = apply
 
 ------------------------------------------------------------
@@ -164,43 +185,55 @@ instance Transformable R2 where
 
 -- | Newtype wrapper used to represent angles as fractions of a
 --   circle.  For example, 1\/3 = tau\/3 radians = 120 degrees.
-newtype CircleFrac = CircleFrac { getCircleFrac :: Double }
+newtype CircleFrac a = CircleFrac { getCircleFrac :: a }
   deriving (Read, Show, Eq, Ord, Enum, Floating, Fractional, Num, Real, RealFloat, RealFrac)
 
 -- | Newtype wrapper for representing angles in radians.
-newtype Rad = Rad { getRad :: Double }
+newtype Rad a = Rad { getRad :: a }
   deriving (Read, Show, Eq, Ord, Enum, Floating, Fractional, Num, Real, RealFloat, RealFrac)
 
 -- | Newtype wrapper for representing angles in degrees.
-newtype Deg = Deg { getDeg :: Double }
+newtype Deg a = Deg { getDeg :: a }
   deriving (Read, Show, Eq, Ord, Enum, Floating, Fractional, Num, Real, RealFloat, RealFrac)
 
+-- | Utility to make angles unambiguous.
+deg :: Deg a -> Deg a
+deg = id
+
+-- | Utility to make angles unambiguous.
+rad :: Rad a -> Rad a
+rad = id
+
+-- | Utility to make angles unambiguous.
+circleFrac :: CircleFrac a -> CircleFrac a
+circleFrac = id
+
 -- | Type class for types that measure angles.
-class Num a => Angle a where
+class (Num a, Num (m a)) => Angle m a where
   -- | Convert to a fraction of a circle.
-  toCircleFrac   :: a -> CircleFrac
+  toCircleFrac   :: m a -> CircleFrac a
 
   -- | Convert from a fraction of a circle.
-  fromCircleFrac :: CircleFrac -> a
+  fromCircleFrac :: CircleFrac a -> m a
 
-instance Angle CircleFrac where
+instance (Num a) => Angle CircleFrac a where
   toCircleFrac   = id
   fromCircleFrac = id
 
 -- | tau radians = 1 full circle.
-instance Angle Rad where
+instance (Floating a) => Angle Rad a where
   toCircleFrac   = CircleFrac . (/tau) . getRad
   fromCircleFrac = Rad . (*tau) . getCircleFrac
 
 -- | 360 degrees = 1 full circle.
-instance Angle Deg where
+instance (Fractional a) => Angle Deg a where
   toCircleFrac   = CircleFrac . (/360) . getDeg
   fromCircleFrac = Deg . (*360) . getCircleFrac
 
 -- | An angle representing a full circle.
-fullCircle :: Angle a => a
+fullCircle :: Angle m a => m a
 fullCircle = fromCircleFrac 1
 
 -- | Convert between two angle representations.
-convertAngle :: (Angle a, Angle b) => a -> b
+convertAngle :: (Angle ma a, Angle mb a) => ma a -> mb a
 convertAngle = fromCircleFrac . toCircleFrac

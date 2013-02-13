@@ -1,6 +1,6 @@
-{-# LANGUAGE ViewPatterns
-  #-}
-
+{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE FlexibleContexts #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Adjust
@@ -27,7 +27,7 @@ import Diagrams.Core
 import Diagrams.Attributes  (lw, lc)
 import Diagrams.Util        ((#))
 
-import Diagrams.TwoD.Types  (R2, p2)
+import Diagrams.TwoD.Types  (V2, R2, p2)
 import Diagrams.TwoD.Size   ( size2D, center2D, SizeSpec2D(..)
                             , requiredScaleT, requiredScale
                             )
@@ -35,6 +35,10 @@ import Diagrams.TwoD.Text   (fontSize)
 
 import Data.AffineSpace     ((.-.))
 import Data.Semigroup
+import Data.VectorSpace     (Scalar, InnerSpace)
+import Data.Basis           (Basis, HasBasis)
+import Data.MemoTrie        (HasTrie)
+import Data.AdditiveGroup   (AdditiveGroup)
 
 import Data.Colour.Names    (black)
 
@@ -46,7 +50,14 @@ import Data.Colour.Names    (black)
 --       * Line color black
 --
 --       * Font size 1
-setDefault2DAttributes :: Semigroup m => QDiagram b R2 m -> QDiagram b R2 m
+setDefault2DAttributes :: ( Ord a
+                          , Floating a
+                          , HasBasis a
+                          , InnerSpace a
+                          , HasTrie (Basis a)
+                          , a ~ Scalar a
+                          , Semigroup m
+                          ) => QDiagram b (V2 a) m -> QDiagram b (V2 a) m
 setDefault2DAttributes d = d # lw 0.01 # lc black # fontSize 1
 
 -- | Adjust the size and position of a 2D diagram to fit within the
@@ -54,11 +65,17 @@ setDefault2DAttributes d = d # lw 0.01 # lc black # fontSize 1
 --   extracting the requested output size from the rendering options,
 --   and a way of updating the rendering options with a new (more
 --   specific) size.
-adjustDiaSize2D :: Monoid' m
-                => (Options b R2 -> SizeSpec2D)
-                -> (SizeSpec2D -> Options b R2 -> Options b R2)
-                -> b -> Options b R2 -> QDiagram b R2 m
-                -> (Options b R2, QDiagram b R2 m)
+adjustDiaSize2D :: ( Eq a
+                   , RealFloat a
+                   , InnerSpace a
+                   , a ~ Scalar a
+                   , Transformable a
+                   , V a ~ V2 a
+                   , Monoid' m
+                   ) => (Options b (V2 a) -> SizeSpec2D a)
+                     -> (SizeSpec2D a -> Options b (V2 a) -> Options b (V2 a))
+                     -> b -> Options b (V2 a) -> QDiagram b (V2 a) m
+                     -> (Options b (V2 a), QDiagram b (V2 a) m)
 adjustDiaSize2D getSize setSize _ opts d =
   ( case spec of
        Dims _ _ -> opts
@@ -92,16 +109,29 @@ adjustDiaSize2D getSize setSize _ opts d =
 --     size (see 'adjustDiaSize2D')
 --
 --   * Also return the actual adjusted size of the diagram.
-adjustDia2D :: Monoid' m
-            => (Options b R2 -> SizeSpec2D)
-            -> (SizeSpec2D -> Options b R2 -> Options b R2)
-            -> b -> Options b R2 -> QDiagram b R2 m
-            -> (Options b R2, QDiagram b R2 m)
+adjustDia2D :: ( Ord a
+               , RealFloat a
+               , AdditiveGroup a
+               , HasBasis a
+               , InnerSpace a
+               , HasTrie (Basis a)
+               , a ~ Scalar a
+               , Transformable a
+               , V a ~ V2 a
+               , Monoid' m
+               ) => (Options b (V2 a) -> SizeSpec2D a)
+                 -> (SizeSpec2D a -> Options b (V2 a) -> Options b (V2 a))
+                 -> b -> Options b (V2 a) -> QDiagram b (V2 a) m
+                 -> (Options b (V2 a), QDiagram b (V2 a) m)
 adjustDia2D getSize setSize b opts d
   = adjustDiaSize2D getSize setSize b opts (d # setDefault2DAttributes # freeze)
 
 {-# DEPRECATED adjustSize "Use Diagrams.TwoD.Size.requiredScaleT instead." #-}
 -- | Re-export 'requiredScaleT' with the name 'adjustSize' for
 --   backwards compatibility.
-adjustSize :: SizeSpec2D -> (Double, Double) -> Transformation R2
+adjustSize :: ( RealFloat a
+              , HasBasis a
+              , HasTrie (Basis a)
+              , a ~ Scalar a
+              ) => SizeSpec2D a -> (a, a) -> Transformation (V2 a)
 adjustSize = requiredScaleT

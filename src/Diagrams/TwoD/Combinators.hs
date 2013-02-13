@@ -2,6 +2,7 @@
            , TypeFamilies
            , ViewPatterns
   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Combinators
@@ -42,6 +43,8 @@ import Data.Colour
 import Data.Default
 import Data.Semigroup
 import Data.VectorSpace
+import Data.Basis (HasBasis, Basis)
+import Data.MemoTrie (HasTrie)
 
 import Diagrams.Core
 
@@ -76,7 +79,12 @@ infixl 6 |||
 --   combined diagram is the same as the local origin of the first.
 --   @(===)@ is associative and has 'mempty' as a right (but not left)
 --   identity.  See the documentation of 'beside' for more information.
-(===) :: (Juxtaposable a, V a ~ R2, Semigroup a) => a -> a -> a
+(===) :: ( Num b
+         , AdditiveGroup b
+         , Juxtaposable a
+         , V a ~ V2 b
+         , Semigroup a
+         ) => a -> a -> a
 (===) = beside (negateV unitY)
 
 -- | Place two diagrams (or other juxtaposable objects) horizontally
@@ -85,7 +93,11 @@ infixl 6 |||
 --   combined diagram is the same as the local origin of the first.
 --   @(===)@ is associative and has 'mempty' as a right (but not left)
 --   identity.  See the documentation of 'beside' for more information.
-(|||) :: (Juxtaposable a, V a ~ R2, Semigroup a) => a -> a -> a
+(|||) :: (Num b
+         , Juxtaposable a
+         , V a ~ V2 b
+         , Semigroup a
+         ) => a -> a -> a
 (|||) = beside unitX
 
 -- | Place two diagrams (or other juxtaposable objects) adjacent to one
@@ -93,7 +105,12 @@ infixl 6 |||
 --   'th' from the first.  The local origin of the resulting combined
 --   diagram is the same as the local origin of the first.
 --   See the documentation of 'beside' for more information.
-atAngle :: (Juxtaposable a, V a ~ R2, Semigroup a, Angle b) => b -> a -> a -> a
+atAngle :: ( Floating b
+           , Juxtaposable a
+           , V a ~ V2 b
+           , Semigroup a
+           , Angle m b
+           ) => m b -> a -> a -> a
 atAngle th = beside (fromDirection th)
 
 -- | Lay out a list of juxtaposable objects in a row from left to right,
@@ -107,15 +124,27 @@ atAngle th = beside (fromDirection th)
 --     "Diagrams.TwoD.Align" before applying 'hcat'.
 --
 --   * For non-axis-aligned layout, see 'cat'.
-hcat :: (Juxtaposable a, HasOrigin a, Monoid' a, V a ~ R2)
-     => [a] -> a
+hcat :: ( Floating b
+        , InnerSpace b
+        , b ~ Scalar b
+        , Juxtaposable a
+        , HasOrigin a
+        , Monoid' a
+        , V a ~ V2 b
+        ) => [a] -> a
 hcat = hcat' def
 
 -- | A variant of 'hcat' taking an extra 'CatOpts' record to control
 --   the spacing.  See the 'cat'' documentation for a description of
 --   the possibilities.
-hcat' :: (Juxtaposable a, HasOrigin a, Monoid' a, V a ~ R2)
-      => CatOpts R2 -> [a] -> a
+hcat' :: ( Floating b
+         , InnerSpace b
+         , b ~ Scalar b
+         , Juxtaposable a
+         , HasOrigin a
+         , Monoid' a
+         , V a ~ V2 b
+         ) => CatOpts (V2 b) -> [a] -> a
 hcat' = cat' unitX
 
 -- | Lay out a list of juxtaposable objects in a column from top to
@@ -129,15 +158,27 @@ hcat' = cat' unitX
 --     "Diagrams.TwoD.Align" before applying 'vcat'.
 --
 --   * For non-axis-aligned layout, see 'cat'.
-vcat :: (Juxtaposable a, HasOrigin a, Monoid' a, V a ~ R2)
-     => [a] -> a
+vcat :: ( Floating b
+        , InnerSpace b
+        , b ~ Scalar b
+        , Juxtaposable a
+        , HasOrigin a
+        , Monoid' a
+        , V a ~ V2 b
+        ) => [a] -> a
 vcat = vcat' def
 
 -- | A variant of 'vcat' taking an extra 'CatOpts' record to control
 --   the spacing.  See the 'cat'' documentation for a description of the
 --   possibilities.
-vcat' :: (Juxtaposable a, HasOrigin a, Monoid' a, V a ~ R2)
-      => CatOpts R2 -> [a] -> a
+vcat' :: ( Floating b
+         , InnerSpace b
+         , b ~ Scalar b
+         , Juxtaposable a
+         , HasOrigin a
+         , Monoid' a
+         , V a ~ V2 b
+         ) => CatOpts (V2 b) -> [a] -> a
 vcat' = cat' (negateV unitY)
 
 -- | @strutR2 v@ is a two-dimensional diagram which produces no
@@ -146,7 +187,14 @@ vcat' = cat' (negateV unitY)
 --   local origin at its center.  If you don't care about the trace
 --   then there's no difference between @strutR2@ and the more general
 --   'strut'.
-strutR2 :: (Backend b R2, Monoid' m) => R2 -> QDiagram b R2 m
+strutR2 :: ( RealFloat a
+           , InnerSpace a
+           , HasBasis a
+           , HasTrie (Basis a)
+           , a ~ Scalar a
+           , Backend b (V2 a)
+           , Monoid' m
+           ) => V2 a -> QDiagram b (V2 a) m
 strutR2 v = phantom seg
   where
     seg = FLinear (origin .+^ 0.5 *^ v) (origin .+^ (-0.5) *^ v)
@@ -154,13 +202,25 @@ strutR2 v = phantom seg
 -- | @strutX d@ is an empty diagram with width @d@, height 0, and a
 --   centered local origin.  Note that @strutX (-w)@ behaves the same as
 --   @strutX w@.
-strutX :: (Backend b R2, Monoid' m) => Double -> QDiagram b R2 m
+strutX :: (Ord a
+          , Floating a
+          , InnerSpace a
+          , a ~ Scalar a
+          , Backend b (V2 a)
+          , Monoid' m
+          ) => a -> QDiagram b (V2 a) m
 strutX d = strut (d & 0)
 
 -- | @strutY d@ is an empty diagram with height @d@, width 0, and a
 --   centered local origin. Note that @strutY (-h)@ behaves the same as
 --   @strutY h@.
-strutY :: (Backend b R2, Monoid' m) => Double -> QDiagram b R2 m
+strutY :: (Ord a
+          , Floating a
+          , InnerSpace a
+          , a ~ Scalar a
+          , Backend b (V2 a)
+          , Monoid' m
+          ) => a -> QDiagram b (V2 a) m
 strutY d = strut (0 & d)
 
 -- | @padX s@ \"pads\" a diagram in the x-direction, expanding its
@@ -170,8 +230,15 @@ strutY d = strut (0 & d)
 --   centered horizontally the padding may appear \"uneven\".  If this
 --   is not desired, the origin can be centered (using 'centerX')
 --   before applying @padX@.
-padX :: ( Backend b R2, Monoid' m )
-     => Double -> QDiagram b R2 m -> QDiagram b R2 m
+padX :: (Ord a
+        , Floating a
+        , InnerSpace a
+        , HasBasis a
+        , HasTrie (Basis a)
+        , a ~ Scalar a
+        , Backend b (V2 a)
+        , Monoid' m 
+        ) => a -> QDiagram b (V2 a) m -> QDiagram b (V2 a) m
 padX s d = withEnvelope (d # scaleX s) d
 
 -- | @padY s@ \"pads\" a diagram in the y-direction, expanding its
@@ -181,8 +248,15 @@ padX s d = withEnvelope (d # scaleX s) d
 --   so if the origin is not centered vertically the padding may appear
 --   \"uneven\".  If this is not desired, the origin can be centered
 --   (using 'centerY') before applying @padY@.
-padY :: ( Backend b R2, Monoid' m )
-     => Double -> QDiagram b R2 m -> QDiagram b R2 m
+padY :: (Ord a
+        , Floating a
+        , InnerSpace a
+        , HasBasis a
+        , HasTrie (Basis a)
+        , a ~ Scalar a
+        , Backend b (V2 a)
+        , Monoid' m 
+        ) => a -> QDiagram b (V2 a) m -> QDiagram b (V2 a) m
 padY s d = withEnvelope (d # scaleY s) d
 
 -- | @extrudeLeft s@ \"extrudes\" a diagram in the negative x-direction,
@@ -226,19 +300,42 @@ extrudeTop s
 --   .+^ v@.  Useful for selecting the rectangular portion of a
 --   diagram which should actually be \"viewed\" in the final render,
 --   if you don't want to see the entire diagram.
-view :: ( Backend b R2, Monoid' m )
-     => P2 -> R2 -> QDiagram b R2 m -> QDiagram b R2 m
-view p (coords -> w :& h) = withEnvelope (rect w h # alignBL # moveTo p :: D R2)
+view :: forall a b m. 
+        ( Ord a
+        , RealFloat a
+        , InnerSpace a
+        , HasBasis a
+        , HasTrie (Basis a)
+        , a ~ Scalar a
+        , Backend b (V2 a)
+        , Monoid' m 
+        ) => P2 a -> V2 a -> QDiagram b (V2 a) m -> QDiagram b (V2 a) m
+view p (coords -> w :& h) = withEnvelope (rect w h # alignBL # moveTo p :: D (V2 a))
 
 -- | Construct a bounding rectangle for an enveloped object, that is,
 --   the smallest axis-aligned rectangle which encloses the object.
-boundingRect :: ( Enveloped p, Transformable p, PathLike p, V p ~ R2
-                , Enveloped a, V a ~ R2
-                )
-             => a -> p
+boundingRect :: ( InnerSpace b
+                , HasBasis b
+                , HasTrie (Basis b)
+                , Ord (Basis b)
+                , b ~ Scalar b
+                , Enveloped p
+                , Transformable p
+                , PathLike p
+                , V p ~ V2 b
+                , Enveloped a
+                , V a ~ V2 b
+                ) => a -> p
 boundingRect = (`boxFit` rect 1 1) . boundingBox
 
 -- | \"Set the background color\" of a diagram.  That is, place a
 --   diagram atop a bounding rectangle of the given color.
-bg :: (Renderable (Path R2) b) => Colour Double -> Diagram b R2 -> Diagram b R2
+bg :: ( RealFloat a
+      , HasBasis a
+      , HasTrie (Basis a)
+      , InnerSpace a
+      , Ord (Basis a)
+      , a ~ Scalar a
+      , Renderable (Path (V2 a)) b 
+      ) => Colour Double -> Diagram b (V2 a) -> Diagram b (V2 a)
 bg c d = d <> boundingRect d # lw 0 # fc c

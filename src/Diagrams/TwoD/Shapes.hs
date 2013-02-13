@@ -2,7 +2,7 @@
            , FlexibleContexts
            , ViewPatterns
   #-}
-
+{-# LANGUAGE ScopedTypeVariables #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Shapes
@@ -59,29 +59,58 @@ import Diagrams.Util
 
 import Data.Default
 import Data.Semigroup
+import Data.VectorSpace (Scalar(..), InnerSpace(..))
+import Data.Basis       (HasBasis(..), Basis(..))
+import Data.MemoTrie    (HasTrie(..))
 
 -- | Create a centered horizontal (L-R) line of the given length.
-hrule :: (PathLike p, V p ~ R2) => Double -> p
+hrule :: (Fractional a, PathLike p, V p ~ V2 a) => a -> p
 hrule d = pathLike (p2 (-d/2,0)) False [Linear (d & 0)]
 
 -- | Create a centered vertical (T-B) line of the given length.
-vrule :: (PathLike p, V p ~ R2) => Double -> p
+vrule :: (Fractional a, PathLike p, V p ~ V2 a) => a -> p
 vrule d = pathLike (p2 (0,d/2)) False [Linear (0 & (-d))]
 
 -- | A square with its center at the origin and sides of length 1,
 --   oriented parallel to the axes.
-unitSquare :: (PathLike p, V p ~ R2) => p
+unitSquare :: ( Ord a
+              , Floating a
+              , HasBasis a
+              , InnerSpace a
+              , HasTrie (Basis a)
+              , a ~ Scalar (V (P2 a))
+              , PathLike p
+              , V p ~ V2 a
+              ) => p
 unitSquare = polygon with { polyType   = PolyRegular 4 (sqrt 2 / 2)
                           , polyOrient = OrientH }
 
 -- | A square with its center at the origin and sides of the given
 --   length, oriented parallel to the axes.
-square :: (PathLike p, Transformable p, V p ~ R2) => Double -> p
+square :: ( Ord a
+          , Floating a
+          , HasBasis a
+          , InnerSpace a
+          , HasTrie (Basis a)
+          , a ~ Scalar (V (P2 a))
+          , PathLike p
+          , Transformable p
+          , V p ~ V2 a
+          ) => a -> p
 square d = rect d d
 
 -- | @rect w h@ is an axis-aligned rectangle of width @w@ and height
 --   @h@, centered at the origin.
-rect :: (PathLike p, Transformable p, V p ~ R2) => Double -> Double -> p
+rect :: ( Ord a
+        , Floating a
+        , HasBasis a
+        , InnerSpace a
+        , HasTrie (Basis a)
+        , a ~ Scalar (V (P2 a))
+        , PathLike p
+        , Transformable p
+        , V p ~ V2 a
+        ) => a -> a -> p
 rect w h = pathLike p True (trailSegments t)
   where
     r     = unitSquare # scaleX w # scaleY h
@@ -114,61 +143,149 @@ rect w h = pathLike p True (trailSegments t)
 --   polygons of a given /radius/).
 --
 --   The polygon will be oriented with one edge parallel to the x-axis.
-regPoly :: (PathLike p, V p ~ R2) => Int -> Double -> p
+regPoly :: ( Floating a
+           , Ord a
+           , InnerSpace a
+           , HasTrie (Basis a)
+           , HasBasis a
+           , a ~ Scalar (V (P2 a))
+           , PathLike p
+           , V p ~ V2 a
+           ) => Int -> a -> p
 regPoly n l = polygon with { polyType =
                                PolySides
-                                 (repeat (1/ fromIntegral n :: CircleFrac))
+                                 (repeat (circleFrac $ 1/ fromIntegral n))
                                  (replicate (n-1) l)
                            , polyOrient = OrientH
                            }
 
 -- | A synonym for 'triangle', provided for backwards compatibility.
-eqTriangle :: (PathLike p, V p ~ R2) => Double -> p
+eqTriangle :: ( Floating a
+              , Ord a
+              , InnerSpace a
+              , HasTrie (Basis a)
+              , HasBasis a
+              , a ~ Scalar (V (P2 a))
+              , PathLike p
+              , V p ~ V2 a
+              ) => a -> p
 eqTriangle = triangle
 
 -- | An equilateral triangle, with sides of the given length and base
 --   parallel to the x-axis.
-triangle :: (PathLike p, V p ~ R2) => Double -> p
+triangle :: ( Floating a
+            , Ord a
+            , InnerSpace a
+            , HasTrie (Basis a)
+            , HasBasis a
+            , a ~ Scalar (V (P2 a))
+            , PathLike p
+            , V p ~ V2 a
+            ) => a -> p
 triangle = regPoly 3
 
 -- | A regular pentagon, with sides of the given length and base
 --   parallel to the x-axis.
-pentagon :: (PathLike p, V p ~ R2) => Double -> p
+pentagon :: ( Floating a
+            , Ord a
+            , InnerSpace a
+            , HasTrie (Basis a)
+            , HasBasis a
+            , a ~ Scalar (V (P2 a))
+            , PathLike p
+            , V p ~ V2 a
+            ) => a -> p
 pentagon = regPoly 5
 
 -- | A regular hexagon, with sides of the given length and base
 --   parallel to the x-axis.
-hexagon :: (PathLike p, V p ~ R2) => Double -> p
+hexagon :: ( Floating a
+           , Ord a
+           , InnerSpace a
+           , HasTrie (Basis a)
+           , HasBasis a
+           , a ~ Scalar (V (P2 a))
+           , PathLike p
+           , V p ~ V2 a
+           ) => a -> p
 hexagon = regPoly 6
 
 -- | A regular septagon, with sides of the given length and base
 --   parallel to the x-axis.
-septagon :: (PathLike p, V p ~ R2) => Double -> p
+septagon :: ( Floating a
+            , Ord a
+            , InnerSpace a
+            , HasTrie (Basis a)
+            , HasBasis a
+            , a ~ Scalar (V (P2 a))
+            , PathLike p
+            , V p ~ V2 a
+            ) => a -> p
 septagon = regPoly 7
 
 -- | A regular octagon, with sides of the given length and base
 --   parallel to the x-axis.
-octagon :: (PathLike p, V p ~ R2) => Double -> p
+octagon :: ( Floating a
+           , Ord a
+           , InnerSpace a
+           , HasTrie (Basis a)
+           , HasBasis a
+           , a ~ Scalar (V (P2 a))
+           , PathLike p
+           , V p ~ V2 a
+           ) => a -> p
 octagon = regPoly 8
 
 -- | A regular nonagon, with sides of the given length and base
 --   parallel to the x-axis.
-nonagon :: (PathLike p, V p ~ R2) => Double -> p
+nonagon :: ( Floating a
+           , Ord a
+           , InnerSpace a
+           , HasTrie (Basis a)
+           , HasBasis a
+           , a ~ Scalar (V (P2 a))
+           , PathLike p
+           , V p ~ V2 a
+           ) => a -> p
 nonagon = regPoly 9
 
 -- | A regular decagon, with sides of the given length and base
 --   parallel to the x-axis.
-decagon :: (PathLike p, V p ~ R2) => Double -> p
+decagon :: ( Floating a
+           , Ord a
+           , InnerSpace a
+           , HasTrie (Basis a)
+           , HasBasis a
+           , a ~ Scalar (V (P2 a))
+           , PathLike p
+           , V p ~ V2 a
+           ) => a -> p
 decagon = regPoly 10
 
 -- | A regular hendecagon, with sides of the given length and base
 --   parallel to the x-axis.
-hendecagon :: (PathLike p, V p ~ R2) => Double -> p
+hendecagon :: ( Floating a
+              , Ord a
+              , InnerSpace a
+              , HasTrie (Basis a)
+              , HasBasis a
+              , a ~ Scalar (V (P2 a))
+              , PathLike p
+              , V p ~ V2 a
+              ) => a -> p
 hendecagon = regPoly 11
 
 -- | A regular dodecagon, with sides of the given length and base
 --   parallel to the x-axis.
-dodecagon :: (PathLike p, V p ~ R2) => Double -> p
+dodecagon :: ( Floating a
+             , Ord a
+             , InnerSpace a
+             , HasTrie (Basis a)
+             , HasBasis a
+             , a ~ Scalar (V (P2 a))
+             , PathLike p
+             , V p ~ V2 a
+             ) => a -> p
 dodecagon = regPoly 12
 
 ------------------------------------------------------------
@@ -185,7 +302,15 @@ dodecagon = regPoly 12
 --   right edge and proceeds counterclockwise.  If you need to specify
 --   a different radius for each corner individually, use
 --   @roundedRect'@ instead.
-roundedRect :: (PathLike p, V p ~ R2) => Double -> Double -> Double -> p
+roundedRect :: ( Ord a
+               , Floating a
+               , RealFrac a
+               , HasBasis a
+               , HasTrie (Basis a)
+               , a ~ Scalar (V (P2 a))
+               , PathLike p
+               , V p ~ V2 a
+               ) => a -> a -> a -> p
 roundedRect w h r = roundedRect' w h (with { radiusTL = r,
                                              radiusBR = r,
                                              radiusTR = r,
@@ -195,7 +320,15 @@ roundedRect w h r = roundedRect' w h (with { radiusTL = r,
 --   each corner indivually, using @RoundedRectOpts@. The default corner radius is 0.
 --   Each radius can also be negative, which results in the curves being reversed
 --   to be inward instead of outward.
-roundedRect' :: (PathLike p, V p ~ R2) => Double -> Double -> RoundedRectOpts -> p
+roundedRect' :: ( Ord a
+                , Floating a
+                , RealFrac a
+                , HasBasis a
+                , HasTrie (Basis a)
+                , a ~ Scalar a
+                , PathLike p
+                , V p ~ V2 a
+                ) => a -> a -> RoundedRectOpts a -> p
 roundedRect' w h opts
    = pathLike (p2 (w/2, abs rBR - h/2)) True
    . trailSegments
@@ -207,7 +340,7 @@ roundedRect' w h opts
    <> mkCorner 2 rBL
    <> seg (w - abs rBL - abs rBR, 0)
    <> mkCorner 3 rBR
-  where seg   = fromOffsets . (:[]) . r2
+  where seg   = fromOffsets . (:[]) . v2
         diag  = sqrt (w * w + h * h)
         -- to clamp corner radius, need to compare with other corners that share an
         -- edge. If the corners overlap then reduce the largest corner first, as far
@@ -230,12 +363,13 @@ roundedRect' w h opts
         mkCorner k r | r == 0    = mempty
                      | r < 0     = doArc 3 2
                      | otherwise = doArc 0 1
-                     where doArc d d' = arc' r ((k+d)/4) ((k+d')/4:: CircleFrac)
+          where doArc d d' = arc' r ((k+d)/4) (circleFrac $ (k+d')/4)
 
-data RoundedRectOpts = RoundedRectOpts { radiusTL :: Double
-                                       , radiusTR :: Double
-                                       , radiusBL :: Double
-                                       , radiusBR :: Double
-                                       }
-instance Default RoundedRectOpts where
+data RoundedRectOpts a = RoundedRectOpts { radiusTL :: a
+                                         , radiusTR :: a
+                                         , radiusBL :: a
+                                         , radiusBR :: a
+                                         }
+
+instance (Num a) => Default (RoundedRectOpts a) where
   def = RoundedRectOpts 0 0 0 0

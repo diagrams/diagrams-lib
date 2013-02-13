@@ -1,5 +1,5 @@
-{-# LANGUAGE FlexibleContexts
-  #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TypeFamilies #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Model
@@ -36,7 +36,10 @@ import Control.Arrow (second)
 import Data.Semigroup
 import Data.Default
 import Data.AffineSpace ((.-.))
-import Data.VectorSpace ((^*))
+import Data.VectorSpace ((^*), Scalar, InnerSpace)
+import Data.AdditiveGroup (AdditiveGroup)
+import Data.Basis (HasBasis, Basis)
+import Data.MemoTrie (HasTrie)
 
 import qualified Data.Map as M
 
@@ -48,14 +51,31 @@ import Data.Colour (Colour)
 ------------------------------------------------------------
 
 -- | Mark the origin of a diagram by placing a red dot 1/50th its size.
-showOrigin :: (Renderable (Path R2) b, Backend b R2, Monoid' m)
-           => QDiagram b R2 m -> QDiagram b R2 m
+showOrigin :: ( Ord a
+              , RealFloat a
+              , AdditiveGroup a
+              , HasBasis a
+              , HasTrie (Basis a)
+              , a ~ Scalar a
+              , InnerSpace a
+              , Renderable (Path (V2 a)) b
+              , Backend b (V2 a), Monoid' m
+              ) => QDiagram b (V2 a) m -> QDiagram b (V2 a) m
 showOrigin = showOrigin' def
 
 -- | Mark the origin of a diagram, with control over colour and scale
 -- of marker dot.
-showOrigin' :: (Renderable (Path R2) b, Backend b R2, Monoid' m)
-           => OriginOpts -> QDiagram b R2 m -> QDiagram b R2 m
+showOrigin' :: ( Ord a
+               , RealFloat a
+               , AdditiveGroup a
+               , HasBasis a
+               , HasTrie (Basis a)
+               , a ~ Scalar a
+               , InnerSpace a
+               , Renderable (Path (V2 a)) b
+               , Backend b (V2 a)
+               , Monoid' m
+               ) => OriginOpts a -> QDiagram b (V2 a) m -> QDiagram b (V2 a) m
 showOrigin' oo d = o <> d
   where o     = stroke (circle sz)
                 # fc (oColor oo)
@@ -64,12 +84,12 @@ showOrigin' oo d = o <> d
         (w,h) = size2D d ^* oScale oo
         sz = maximum [w, h, oMinSize oo]
 
-data OriginOpts = OriginOpts { oColor :: Colour Double
-                             , oScale :: Double
-                             , oMinSize :: Double
-                             }
+data OriginOpts a = OriginOpts { oColor :: Colour Double
+                               , oScale :: a
+                               , oMinSize :: a
+                               }
 
-instance Default OriginOpts where
+instance (Fractional a) => Default (OriginOpts a) where
   def = OriginOpts red (1/50) 0.001
 
 
@@ -77,8 +97,13 @@ instance Default OriginOpts where
 -- Labeling named points
 ------------------------------------------------------------
 
-showLabels :: (Renderable Text b, Backend b R2)
-           => QDiagram b R2 m -> QDiagram b R2 Any
+showLabels :: ( Ord a
+              , Floating a
+              , a ~ Scalar a
+              , InnerSpace a
+              , Renderable (Text a) b
+              , Backend b (V2 a)
+              ) => QDiagram b (V2 a) m -> QDiagram b (V2 a) Any
 showLabels d =
              ( mconcat
              . map (\(n,p) -> text (show n) # translate (p .-. origin))
