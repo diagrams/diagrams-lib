@@ -10,7 +10,7 @@
 --
 -----------------------------------------------------------------------------
 
-module Diagrams.TwoD.Segment
+module Diagrams.TwoD.Curvature
     (
       curvature
     , squaredCurvature
@@ -48,13 +48,13 @@ curvature :: Segment R2       -- ^ Segment to measure on.
           -> Double           -- ^ Parameter to measure at.
           -> (Double, Double) -- ^ Result is a numerator denominator pair (p,q) where
                               -- the curvature is p/q and radius of curvature is q/p
-curvature s = first sqrt . curvaturePair (fmap unr2 s) -- TODO: Use the generalized unr2
+curvature s = second sqrt . curvaturePair (fmap unr2 s) -- TODO: Use the generalized unr2
 
 -- | With squaredCurvature we can compute values in spaces that do not support
 -- sqrt and it is just as useful for relative ordering of curvatures or looking
 -- for zeros.
 squaredCurvature :: Segment R2 -> Double -> (Double, Double)
-squaredCurvature s = second (join (*)) . curvaturePair (fmap unr2 s) -- TODO: Use the generalized unr2
+squaredCurvature s = first (join (*)) . curvaturePair (fmap unr2 s) -- TODO: Use the generalized unr2
 
 -- Internal function that is not quite curvature or squaredCurvature but lets
 -- us get there by either taking the square root of the numerator or squaring
@@ -62,7 +62,7 @@ squaredCurvature s = second (join (*)) . curvaturePair (fmap unr2 s) -- TODO: Us
 curvaturePair :: (Num t, Num (Scalar t), VectorSpace t)
     => Segment (t, t) -> Scalar t -> (t, t)
 curvaturePair (Linear _)    t = (0,1) -- Linear segments always have zero curvature (infinite radius).
-curvaturePair (Cubic b c d) t = ((x'*x' + y'*y')^3, (x'*y'' - y'*x''))
+curvaturePair (Cubic b c d) t = ((x'*y'' - y'*x''), (x'*x' + y'*y')^3)
   where
     (x' ,y' ) = firstDerivative  b c d t -- TODO: Use the generalized unr2
     (x'',y'') = secondDerivative b c d t
