@@ -1,10 +1,10 @@
-{-# LANGUAGE FlexibleContexts
-           , FlexibleInstances
-           , DeriveDataTypeable
-           , GeneralizedNewtypeDeriving
-           , TypeFamilies
-           , ViewPatterns
-  #-}
+{-# LANGUAGE DeriveDataTypeable         #-}
+{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE ViewPatterns               #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 -----------------------------------------------------------------------------
 -- |
@@ -40,8 +40,8 @@ module Diagrams.TwoD.Path
        , Clip(..), clipBy
        ) where
 
-import           Control.Applicative (liftA2)
-import qualified Data.Foldable as F
+import           Control.Applicative   (liftA2)
+import qualified Data.Foldable         as F
 import           Data.Semigroup
 import           Data.Typeable
 
@@ -57,7 +57,7 @@ import           Diagrams.Segment
 import           Diagrams.Solve
 import           Diagrams.TwoD.Segment
 import           Diagrams.TwoD.Types
-import           Diagrams.Util (tau)
+import           Diagrams.Util         (tau)
 
 ------------------------------------------------------------
 --  Trail and path traces  ---------------------------------
@@ -121,7 +121,7 @@ stroke' opts p
 --   records can be created using @'with' { ... }@ notation.
 data StrokeOpts a
   = StrokeOpts
-    { vertexNames :: [[a]]  -- ^ Atomic names that should be assigned
+    { vertexNames   :: [[a]]  -- ^ Atomic names that should be assigned
                             --   to the vertices of the path so that
                             --   they can be referenced later.  If
                             --   there are not enough names, the extra

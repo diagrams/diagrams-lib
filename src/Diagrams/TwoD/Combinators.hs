@@ -1,7 +1,7 @@
-{-# LANGUAGE FlexibleContexts
-           , TypeFamilies
-           , ViewPatterns
-  #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE ViewPatterns          #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Combinators
@@ -37,28 +37,28 @@ module Diagrams.TwoD.Combinators
 
     ) where
 
-import Data.AffineSpace
-import Data.Colour
-import Data.Default
-import Data.Semigroup
-import Data.VectorSpace
+import           Data.AffineSpace
+import           Data.Colour
+import           Data.Default
+import           Data.Semigroup
+import           Data.VectorSpace
 
-import Diagrams.Core
+import           Diagrams.Core
 
-import Diagrams.Attributes (lw, fc)
-import Diagrams.BoundingBox
-import Diagrams.Combinators
-import Diagrams.Coordinates
-import Diagrams.Path
-import Diagrams.Segment
-import Diagrams.TwoD.Align
-import Diagrams.TwoD.Path ()   -- for PathLike (D R2) instance
-import Diagrams.TwoD.Segment
-import Diagrams.TwoD.Shapes
-import Diagrams.TwoD.Transform (scaleX, scaleY)
-import Diagrams.TwoD.Types
-import Diagrams.TwoD.Vector (unitX, unitY, fromDirection)
-import Diagrams.Util ((#))
+import           Diagrams.Attributes     (fc, lw)
+import           Diagrams.BoundingBox
+import           Diagrams.Combinators
+import           Diagrams.Coordinates
+import           Diagrams.Path
+import           Diagrams.Segment
+import           Diagrams.TwoD.Align
+import           Diagrams.TwoD.Path      ()
+import           Diagrams.TwoD.Segment
+import           Diagrams.TwoD.Shapes
+import           Diagrams.TwoD.Transform (scaleX, scaleY)
+import           Diagrams.TwoD.Types
+import           Diagrams.TwoD.Vector    (fromDirection, unitX, unitY)
+import           Diagrams.Util           (( # ))
 
 
 infixl 6 ===
