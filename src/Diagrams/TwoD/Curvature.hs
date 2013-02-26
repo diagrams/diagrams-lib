@@ -13,11 +13,14 @@
 module Diagrams.TwoD.Curvature
     (
       curvature
+    , radiusOfCurvature
     , squaredCurvature
+    , squaredRadiusOfCurvature
     ) where
 
 import Data.AffineSpace
 import Data.VectorSpace
+import Data.Monoid.PosInf
 
 import Control.Arrow (first, second)
 import Control.Monad (join)
@@ -62,6 +65,7 @@ import Diagrams.TwoD.Vector
 -- <<diagramNeg.svg#diagram=diagramNeg&height=200&width=400>>
 --
 -- > import Diagrams.TwoD.Curvature
+-- > import Data.Monoid.PosInf
 -- > 
 -- > segmentA = Cubic (12 & 0) (8 & 10) (20 & 8)
 -- > 
@@ -82,29 +86,54 @@ import Diagrams.TwoD.Vector
 -- >          # lw 0.05 # lc red
 -- > 
 -- > showCurvature bez@(Cubic b c d) t
--- >   | p == 0 || v == 0 = mempty
--- >   | otherwise        = (circle (abs r) # translate vpr
--- >                     <> stroke (origin ~~ (origin .+^ vpr)))
--- >                      # moveTo (origin .+^ atParam bez t)
--- >   where
--- >     vpr = r2 (normalized vp ^* r)
+-- >   | v == 0    = mempty
+-- >   | otherwise = go (radiusOfCurvature bez t)
+-- >   where 
 -- >     v@(x,y) = unr2 $ firstDerivative b c d t
 -- >     vp = (-y) & x
--- >     (p, q) = curvature bez t
--- >     r = q / p
+-- > 
 -- >     firstDerivative b c d t = let tt = t*t in (3*(3*tt-4*t+1))*^b + (3*(2-3*t)*t)*^c + (3*tt)*^d
+-- > 
+-- >     go PosInfty   = mempty
+-- >     go (Finite r) = (circle (abs r) # translate vpr
+-- >                  <> stroke (origin ~~ (origin .+^ vpr)))
+-- >                   # moveTo (origin .+^ atParam bez t)
+-- >       where
+-- >         vpr = r2 (normalized vp ^* r)
+-- >  
 --
 curvature :: Segment R2       -- ^ Segment to measure on.
           -> Double           -- ^ Parameter to measure at.
-          -> (Double, Double) -- ^ Result is a numerator denominator pair (p,q) where
-                              -- the curvature is p\/q and radius of curvature is q\/p
-curvature s = second sqrt . curvaturePair (fmap unr2 s) -- TODO: Use the generalized unr2
+          -> PosInf Double    -- ^ Result is a @PosInf@ value where @PosInfty@ represents
+                              -- infinite curvature or zero radius of curvature.
+curvature s = toPosInf . second sqrt . curvaturePair (fmap unr2 s) -- TODO: Use the generalized unr2
 
 -- | With @squaredCurvature@ we can compute values in spaces that do not support
 -- 'sqrt' and it is just as useful for relative ordering of curvatures or looking
 -- for zeros.
-squaredCurvature :: Segment R2 -> Double -> (Double, Double)
-squaredCurvature s = first (join (*)) . curvaturePair (fmap unr2 s) -- TODO: Use the generalized unr2
+squaredCurvature :: Segment R2 -> Double -> PosInf Double
+squaredCurvature s = toPosInf . first (join (*)) . curvaturePair (fmap unr2 s) -- TODO: Use the generalized unr2
+
+
+-- | Reciprocal of @curvature@.
+radiusOfCurvature :: Segment R2       -- ^ Segment to measure on.
+                  -> Double           -- ^ Parameter to measure at.
+                  -> PosInf Double    -- ^ Result is a @PosInf@ value where @PosInfty@ represents
+                                      -- infinite radius of curvature or zero curvature.
+radiusOfCurvature s = toPosInf . (\(p,q) -> (q,p)) . second sqrt . curvaturePair (fmap unr2 s)
+
+-- | Reciprocal of @squaredCurvature@
+squaredRadiusOfCurvature :: Segment R2 -> Double -> PosInf Double
+squaredRadiusOfCurvature s = toPosInf . (\(p,q) -> (q,p)) . first (join (*)) . curvaturePair (fmap unr2 s)
+
+
+-- Package up problematic values with the appropriate infinity.
+toPosInf :: RealFloat a => (a,a) -> PosInf a
+toPosInf (_,0) = PosInfty
+toPosInf (p,q)
+  | isInfinite r || isNaN r = PosInfty
+  | otherwise               = Finite r
+  where r = p / q
 
 -- Internal function that is not quite curvature or squaredCurvature but lets
 -- us get there by either taking the square root of the numerator or squaring
