@@ -91,6 +91,7 @@ data SizeSpec2D = Width  Double       -- ^ Specify an explicit
                 | Absolute            -- ^ Absolute size: use whatever
                                       -- size an object already has;
                                       -- do not rescale.
+  deriving (Eq, Ord, Show)
 
 -- | Create a size specification from a possibly-specified width and
 --   height.
