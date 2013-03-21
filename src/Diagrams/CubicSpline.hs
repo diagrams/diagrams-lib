@@ -28,8 +28,8 @@ import           Diagrams.CubicSpline.Internal
 import           Diagrams.Path
 import           Diagrams.Segment
 
-
-import Data.NumInstances ()   -- for e.g. the Fractional (Double, Double) instance
+-- for e.g. the Fractional (Double, Double) instance
+import           Data.NumInstances.Tuple       ()
 
 import           Control.Newtype
 import           Data.Semigroup
