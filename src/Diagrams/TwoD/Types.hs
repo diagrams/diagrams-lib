@@ -1,11 +1,11 @@
-{-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE TypeSynonymInstances #-}
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE DeriveDataTypeable         #-}
+{-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE ViewPatterns #-}
-{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE TypeOperators              #-}
+{-# LANGUAGE TypeSynonymInstances       #-}
+{-# LANGUAGE ViewPatterns               #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 -----------------------------------------------------------------------------
@@ -31,17 +31,17 @@ module Diagrams.TwoD.Types
        , fullCircle, convertAngle
        ) where
 
-import Diagrams.Coordinates
-import Diagrams.Util (tau)
-import Diagrams.Core
+import           Diagrams.Coordinates
+import           Diagrams.Core
+import           Diagrams.Util           (tau)
 
-import Control.Newtype
+import           Control.Newtype
 
-import Data.Basis
-import Data.NumInstances ()
-import Data.VectorSpace
+import           Data.Basis
+import           Data.NumInstances.Tuple ()
+import           Data.VectorSpace
 
-import Data.Typeable
+import           Data.Typeable
 
 ------------------------------------------------------------
 -- 2D Euclidean space
