@@ -1,5 +1,6 @@
 language: haskell
 before_install:
+  - cabal update
   - git clone --quiet git://github.com/diagrams/diagrams-core.git diagrams/diagrams-core
   - cd diagrams
   - cabal install diagrams-core/
