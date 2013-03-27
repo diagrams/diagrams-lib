@@ -1,8 +1,6 @@
-{-# LANGUAGE TypeFamilies
-           , FlexibleContexts
-           , ViewPatterns
-  #-}
+{-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies        #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Shapes
@@ -45,23 +43,23 @@ module Diagrams.TwoD.Shapes
        , roundedRect'
        ) where
 
-import Diagrams.Core
+import           Diagrams.Core
 
-import Diagrams.Coordinates
-import Diagrams.Path
-import Diagrams.Segment
-import Diagrams.TwoD.Arc
-import Diagrams.TwoD.Polygons
-import Diagrams.TwoD.Transform
-import Diagrams.TwoD.Types
+import           Diagrams.Coordinates
+import           Diagrams.Path
+import           Diagrams.Segment
+import           Diagrams.TwoD.Arc
+import           Diagrams.TwoD.Polygons
+import           Diagrams.TwoD.Transform
+import           Diagrams.TwoD.Types
 
-import Diagrams.Util
+import           Diagrams.Util
 
-import Data.Default
-import Data.Semigroup
-import Data.VectorSpace (Scalar(..), InnerSpace(..))
-import Data.Basis       (HasBasis(..), Basis(..))
-import Data.MemoTrie    (HasTrie(..))
+import           Data.Basis              (Basis (..), HasBasis (..))
+import           Data.Default
+import           Data.MemoTrie           (HasTrie (..))
+import           Data.Semigroup
+import           Data.VectorSpace        (InnerSpace (..), Scalar (..))
 
 -- | Create a centered horizontal (L-R) line of the given length.
 hrule :: (Fractional a, PathLike p, V p ~ V2 a) => a -> p

@@ -1,10 +1,9 @@
-{-# LANGUAGE DeriveDataTypeable
-           , GeneralizedNewtypeDeriving
-           , FlexibleContexts
-           , TypeFamilies
-           , MultiParamTypeClasses
-  #-}
-{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE DeriveDataTypeable         #-}
+{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE UndecidableInstances       #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Text
@@ -32,20 +31,20 @@ module Diagrams.TwoD.Text (
   , FontWeight(..), FontWeightA, getFontWeight, fontWeight, bold
   ) where
 
-import Diagrams.Attributes
-import Diagrams.Core
-import Diagrams.TwoD.Types
+import           Diagrams.Attributes
+import           Diagrams.Core
+import           Diagrams.TwoD.Types
 
-import Data.AffineSpace ((.-.))
-import Data.VectorSpace (Scalar, InnerSpace)
-import Data.Basis (Basis, HasBasis)
-import Data.MemoTrie (HasTrie)
-import Data.AdditiveGroup (AdditiveGroup)
-import Data.Semigroup
+import           Data.AdditiveGroup  (AdditiveGroup)
+import           Data.AffineSpace    ((.-.))
+import           Data.Basis          (Basis, HasBasis)
+import           Data.MemoTrie       (HasTrie)
+import           Data.Semigroup
+import           Data.VectorSpace    (InnerSpace, Scalar)
 
-import Data.Colour
+import           Data.Colour
 
-import Data.Typeable
+import           Data.Typeable
 
 ------------------------------------------------------------
 -- Text diagrams
