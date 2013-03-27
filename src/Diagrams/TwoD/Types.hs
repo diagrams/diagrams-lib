@@ -125,8 +125,6 @@ instance (VectorSpace a) => VectorSpace (V2 a) where
   s *^ v = let (vx, vy) = unv2 v
            in v2 (s *^ vx, s *^ vy)
 
--- GHC can't deduce "a ~ Scalar a", so it has to be added here.
--- This is why "UndecidableInstances" is needed.
 instance (HasBasis a) => HasBasis (V2 a) where
   type Basis (V2 a) = Basis (a,a) -- should be equal to: Either (Basis a) (Basis a)
   basisValue = v2 . basisValue
