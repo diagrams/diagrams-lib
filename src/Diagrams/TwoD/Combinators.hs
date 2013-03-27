@@ -1,8 +1,8 @@
-{-# LANGUAGE FlexibleContexts
-           , TypeFamilies
-           , ViewPatterns
-  #-}
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE ViewPatterns          #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Combinators
@@ -38,30 +38,30 @@ module Diagrams.TwoD.Combinators
 
     ) where
 
-import Data.AffineSpace
-import Data.Colour
-import Data.Default
-import Data.Semigroup
-import Data.VectorSpace
-import Data.Basis (HasBasis, Basis)
-import Data.MemoTrie (HasTrie)
+import           Data.AffineSpace
+import           Data.Basis
+import           Data.Colour
+import           Data.Default
+import           Data.MemoTrie
+import           Data.Semigroup
+import           Data.VectorSpace
 
-import Diagrams.Core
+import           Diagrams.Core
 
-import Diagrams.Attributes (lw, fc)
-import Diagrams.BoundingBox
-import Diagrams.Combinators
-import Diagrams.Coordinates
-import Diagrams.Path
-import Diagrams.Segment
-import Diagrams.TwoD.Align
-import Diagrams.TwoD.Path ()   -- for PathLike (D R2) instance
-import Diagrams.TwoD.Segment
-import Diagrams.TwoD.Shapes
-import Diagrams.TwoD.Transform (scaleX, scaleY)
-import Diagrams.TwoD.Types
-import Diagrams.TwoD.Vector (unitX, unitY, fromDirection)
-import Diagrams.Util ((#))
+import           Diagrams.Attributes     (fc, lw)
+import           Diagrams.BoundingBox
+import           Diagrams.Combinators
+import           Diagrams.Coordinates
+import           Diagrams.Path
+import           Diagrams.Segment
+import           Diagrams.TwoD.Align
+import           Diagrams.TwoD.Path      ()
+import           Diagrams.TwoD.Segment
+import           Diagrams.TwoD.Shapes
+import           Diagrams.TwoD.Transform (scaleX, scaleY)
+import           Diagrams.TwoD.Types
+import           Diagrams.TwoD.Vector    (fromDirection, unitX, unitY)
+import           Diagrams.Util           (( # ))
 
 
 infixl 6 ===
@@ -237,7 +237,7 @@ padX :: (Ord a
         , HasTrie (Basis a)
         , a ~ Scalar a
         , Backend b (V2 a)
-        , Monoid' m 
+        , Monoid' m
         ) => a -> QDiagram b (V2 a) m -> QDiagram b (V2 a) m
 padX s d = withEnvelope (d # scaleX s) d
 
@@ -255,7 +255,7 @@ padY :: (Ord a
         , HasTrie (Basis a)
         , a ~ Scalar a
         , Backend b (V2 a)
-        , Monoid' m 
+        , Monoid' m
         ) => a -> QDiagram b (V2 a) m -> QDiagram b (V2 a) m
 padY s d = withEnvelope (d # scaleY s) d
 
@@ -300,7 +300,7 @@ extrudeTop s
 --   .+^ v@.  Useful for selecting the rectangular portion of a
 --   diagram which should actually be \"viewed\" in the final render,
 --   if you don't want to see the entire diagram.
-view :: forall a b m. 
+view :: forall a b m.
         ( Ord a
         , RealFloat a
         , InnerSpace a
@@ -308,7 +308,7 @@ view :: forall a b m.
         , HasTrie (Basis a)
         , a ~ Scalar a
         , Backend b (V2 a)
-        , Monoid' m 
+        , Monoid' m
         ) => P2 a -> V2 a -> QDiagram b (V2 a) m -> QDiagram b (V2 a) m
 view p (coords -> w :& h) = withEnvelope (rect w h # alignBL # moveTo p :: D (V2 a))
 
@@ -336,6 +336,6 @@ bg :: ( RealFloat a
       , InnerSpace a
       , Ord (Basis a)
       , a ~ Scalar a
-      , Renderable (Path (V2 a)) b 
+      , Renderable (Path (V2 a)) b
       ) => Colour Double -> Diagram b (V2 a) -> Diagram b (V2 a)
 bg c d = d <> boundingRect d # lw 0 # fc c

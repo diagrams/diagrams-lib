@@ -1,6 +1,5 @@
-{-# LANGUAGE TypeFamilies
-           , FlexibleContexts
-  #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TypeFamilies     #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 -----------------------------------------------------------------------------
 -- |
@@ -23,18 +22,17 @@ module Diagrams.CubicSpline
          cubicSpline
        ) where
 
-import Diagrams.CubicSpline.Internal
+import           Diagrams.Core
+import           Diagrams.Core.Points
+import           Diagrams.CubicSpline.Internal
+import           Diagrams.Path
+import           Diagrams.Segment
 
-import Diagrams.Core
-import Diagrams.Core.Points
+-- for e.g. the Fractional (Double, Double) instance
+import           Data.NumInstances.Tuple       ()
 
-import Diagrams.Segment
-import Diagrams.Path
-
-import Data.NumInstances ()   -- for e.g. the Fractional (Double, Double) instance
-
-import Control.Newtype
-import Data.Semigroup
+import           Control.Newtype
+import           Data.Semigroup
 
 -- | Construct a spline path-like thing of cubic segments from a list of
 --   vertices, with the first vertex as the starting point.  The first

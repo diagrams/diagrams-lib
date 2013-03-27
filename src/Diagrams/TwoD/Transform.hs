@@ -50,9 +50,12 @@ module Diagrams.TwoD.Transform
          -- * Scale invariance
        , ScaleInv(..), scaleInv
 
+         -- * component-wise
+       , onBasis
        ) where
 
 import Diagrams.Core
+import qualified Diagrams.Core.Transform as T
 
 import Control.Newtype (over)
 
@@ -438,3 +441,9 @@ instance ( RealFloat a
       l'  = transform tr l
       trans = translate (l' .-. l)
 
+-- | Get the matrix equivalent of the linear transform,
+--   (as a pair of columns) and the translation vector.  This
+--   is mostly useful for implementing backends.
+onBasis :: Transformation R2 -> ((R2, R2), R2)
+onBasis t = ((x, y), v)
+  where ((x:y:[]), v) = T.onBasis t

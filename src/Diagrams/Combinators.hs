@@ -1,6 +1,7 @@
 {-# LANGUAGE TypeFamilies
            , FlexibleContexts
            , UndecidableInstances
+           , MultiParamTypeClasses
   #-}
 -----------------------------------------------------------------------------
 -- |
