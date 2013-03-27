@@ -1,6 +1,5 @@
-{-# LANGUAGE ViewPatterns #-}
-{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TypeFamilies     #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Adjust
@@ -22,25 +21,24 @@ module Diagrams.TwoD.Adjust
     , requiredScale  -- re-exported for backwards compatibility
     ) where
 
-import Diagrams.Core
+import           Diagrams.Core
 
-import Diagrams.Attributes  (lw, lc)
-import Diagrams.Util        ((#))
+import           Diagrams.Attributes (lc, lw)
+import           Diagrams.Util       (( # ))
 
-import Diagrams.TwoD.Types  (V2, R2, p2)
-import Diagrams.TwoD.Size   ( size2D, center2D, SizeSpec2D(..)
-                            , requiredScaleT, requiredScale
-                            )
-import Diagrams.TwoD.Text   (fontSize)
+import           Diagrams.TwoD.Size  (SizeSpec2D (..), center2D, requiredScale,
+                                      requiredScaleT, size2D)
+import           Diagrams.TwoD.Text  (fontSize)
+import           Diagrams.TwoD.Types (R2, V2, p2)
 
-import Data.AffineSpace     ((.-.))
-import Data.Semigroup
-import Data.VectorSpace     (Scalar, InnerSpace)
-import Data.Basis           (Basis, HasBasis)
-import Data.MemoTrie        (HasTrie)
-import Data.AdditiveGroup   (AdditiveGroup)
+import           Data.AdditiveGroup  (AdditiveGroup)
+import           Data.AffineSpace    ((.-.))
+import           Data.Basis          (Basis, HasBasis)
+import           Data.MemoTrie       (HasTrie)
+import           Data.Semigroup
+import           Data.VectorSpace    (InnerSpace, Scalar)
 
-import Data.Colour.Names    (black)
+import           Data.Colour.Names   (black)
 
 -- | Set default attributes of a 2D diagram (in case they have not
 --   been set):
