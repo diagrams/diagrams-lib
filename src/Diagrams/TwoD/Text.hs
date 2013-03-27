@@ -61,7 +61,6 @@ type instance V (Text a) = V2 a
 instance ( Num a
          , HasBasis a
          , HasTrie (Basis a)
-         , a ~ Scalar a
          ) => Transformable (Text a) where
   transform t (Text tt a s) = Text (t <> tt) a s
 
@@ -69,23 +68,20 @@ instance ( Num a
          , AdditiveGroup a
          , HasBasis a
          , HasTrie (Basis a)
-         , a ~ Scalar a
          ) => HasOrigin (Text a) where
   moveOriginTo p = translate (origin .-. p)
 
 instance ( Num a
          , HasBasis a
          , HasTrie (Basis a)
-         , a ~ Scalar a) => Renderable (Text a) NullBackend where
+         ) => Renderable (Text a) NullBackend where
   render _ _ = mempty
 
 -- | @TextAlignment@ specifies the alignment of the text's origin.
 data TextAlignment a = BaselineText | BoxAlignedText a a
 
-mkText :: ( Ord a
-          , Floating a
+mkText :: ( Ord (Scalar a), Floating (Scalar a)
           , InnerSpace a
-          , a ~ Scalar a
           , Renderable (Text a) b
           ) => TextAlignment a -> String -> Diagram b (V2 a)
 mkText a t = recommendFillColor black
@@ -100,10 +96,7 @@ mkText a t = recommendFillColor black
 --
 --   Note that it /takes up no space/, as text size information is not
 --   available.
-text :: ( Fractional a
-        , Floating a
-        , Ord a
-        , a ~ Scalar a
+text :: ( Ord (Scalar a), Floating (Scalar a), Fractional a
         , InnerSpace a
         , Renderable (Text a) b
         ) => String -> Diagram b (V2 a)
@@ -114,10 +107,7 @@ text = alignedText 0.5 0.5
 --   @'alignedText' 0 1@.
 --
 --   Note that it /takes up no space/.
-topLeftText :: ( Num a
-               , Ord a
-               , Floating a
-               , a ~ Scalar a
+topLeftText :: ( Num a, Ord (Scalar a), Floating (Scalar a)
                , InnerSpace a
                , Renderable (Text a) b
                ) => String -> Diagram b (V2 a)
@@ -132,9 +122,7 @@ topLeftText = alignedText 0 1
 --   and descent, rather than the height of the particular string.
 --
 --   Note that it /takes up no space/.
-alignedText :: ( Ord a
-               , Floating a
-               , a ~ Scalar a
+alignedText :: ( Ord (Scalar a), Floating (Scalar a)
                , InnerSpace a
                , Renderable (Text a) b
                ) => a -> a -> String -> Diagram b (V2 a)
@@ -146,9 +134,7 @@ alignedText w h = mkText (BoxAlignedText w h)
 --   graphics library.
 --
 --   Note that it /takes up no space/.
-baselineText :: ( Ord a
-                , Floating a
-                , a ~ Scalar a
+baselineText :: ( Ord (Scalar a), Floating (Scalar a)
                 , InnerSpace a
                 , Renderable (Text a) b
                 ) => String -> Diagram b (V2 a)
