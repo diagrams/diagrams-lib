@@ -66,9 +66,11 @@ setDefault2DAttributes d = d # lw 0.01 # lc black # fontSize 1
 adjustDiaSize2D :: ( Eq a
                    , RealFloat a
                    , InnerSpace a
+                   , HasBasis a
+                   , HasTrie (Basis a)
                    , a ~ Scalar a
+                   , a ~ Scalar (V a)
                    , Transformable a
-                   , V a ~ V2 a
                    , Monoid' m
                    ) => (Options b (V2 a) -> SizeSpec2D a)
                      -> (SizeSpec2D a -> Options b (V2 a) -> Options b (V2 a))
@@ -114,8 +116,8 @@ adjustDia2D :: ( Ord a
                , InnerSpace a
                , HasTrie (Basis a)
                , a ~ Scalar a
+               , a ~ Scalar (V a)
                , Transformable a
-               , V a ~ V2 a
                , Monoid' m
                ) => (Options b (V2 a) -> SizeSpec2D a)
                  -> (SizeSpec2D a -> Options b (V2 a) -> Options b (V2 a))
