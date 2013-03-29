@@ -1,20 +1,3 @@
-HEAD
-----
-
-* **New features**
-
-* **New instances**
-
-* **API changes**
-
-* **Dependency/version changes**
-
-* **Bug fixes**
-
-    - Quadratic solver is now more numerically stable, getting rid of
-      some incorrect behavior of `juxtapose`
-      ([\#46](https://github.com/diagrams/diagrams-lib/issues/46))
-
 0.6.0.1: 7 January 2013
 -----------------------
 
