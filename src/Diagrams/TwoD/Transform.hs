@@ -1,9 +1,8 @@
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE FlexibleContexts
-           , FlexibleInstances
-           , TypeFamilies
-           , ViewPatterns
-  #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE ViewPatterns          #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Transform
@@ -49,23 +48,26 @@ module Diagrams.TwoD.Transform
          -- * Scale invariance
        , ScaleInv(..), scaleInv, scaleInvPrim
 
+         -- * component-wise
+       , onBasis
        ) where
 
-import Diagrams.Core
+import           Diagrams.Core
+import qualified Diagrams.Core.Transform as T
 
-import Control.Newtype (over)
+import           Control.Newtype         (over)
 
-import Diagrams.Coordinates
-import Diagrams.Transform
-import Diagrams.TwoD.Size   (width, height)
-import Diagrams.TwoD.Types
-import Diagrams.TwoD.Vector (direction)
+import           Diagrams.Coordinates
+import           Diagrams.Transform
+import           Diagrams.TwoD.Size      (height, width)
+import           Diagrams.TwoD.Types
+import           Diagrams.TwoD.Vector    (direction)
 
-import Data.Semigroup
+import           Data.Semigroup
 
-import Data.AffineSpace
+import           Data.AffineSpace
 
-import Control.Arrow (first, second)
+import           Control.Arrow           (first, second)
 
 -- Rotation ------------------------------------------------
 
@@ -285,7 +287,7 @@ shearY = transform . shearingY
 
 data ScaleInv t =
   ScaleInv
-  { unScaleInv :: t
+  { unScaleInv  :: t
   , scaleInvDir :: R2
   , scaleInvLoc :: P2
   }
@@ -305,7 +307,7 @@ instance (V t ~ R2, Transformable t) => Transformable (ScaleInv t) where
     where
       angle :: Rad
       angle = direction (transform tr v) - direction v
-      rot :: ( Transformable t,  (V t ~ R2) ) => t -> t
+      rot :: (Transformable t, V t ~ R2) => t -> t
       rot = rotateAbout l angle
       l'  = transform tr l
       trans = translate (l' .-. l)
@@ -324,3 +326,10 @@ instance (Renderable t b, V t ~ R2) => Renderable (ScaleInv t) b where
 scaleInvPrim :: (Transformable t, Renderable t b, V t ~ R2, Monoid m)
              => t -> R2 -> QDiagram b R2 m
 scaleInvPrim t d = mkQD (Prim $ scaleInv t d) mempty mempty mempty mempty
+
+-- | Get the matrix equivalent of the linear transform,
+--   (as a pair of columns) and the translation vector.  This
+--   is mostly useful for implementing backends.
+onBasis :: Transformation R2 -> ((R2, R2), R2)
+onBasis t = ((x, y), v)
+  where ((x:y:[]), v) = T.onBasis t

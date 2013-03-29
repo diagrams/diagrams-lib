@@ -1,6 +1,5 @@
-{-# LANGUAGE FlexibleContexts
-           , TypeFamilies
-  #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TypeFamilies     #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Size
@@ -28,12 +27,12 @@ module Diagrams.TwoD.Size
        , sized, sizedAs
        ) where
 
-import Diagrams.Core
-import Diagrams.TwoD.Types
-import Diagrams.TwoD.Vector
+import           Diagrams.Core
+import           Diagrams.TwoD.Types
+import           Diagrams.TwoD.Vector
 
-import Control.Arrow ((***), (&&&))
-import Control.Applicative ((<$>), liftA2)
+import           Control.Applicative  (liftA2, (<$>))
+import           Control.Arrow        ((&&&), (***))
 
 ------------------------------------------------------------
 -- Computing diagram sizes
@@ -92,6 +91,7 @@ data SizeSpec2D = Width  Double       -- ^ Specify an explicit
                 | Absolute            -- ^ Absolute size: use whatever
                                       -- size an object already has;
                                       -- do not rescale.
+  deriving (Eq, Ord, Show)
 
 -- | Create a size specification from a possibly-specified width and
 --   height.

@@ -182,7 +182,7 @@ instance (InnerSpace v, OrderedField (Scalar v)) => Enveloped (Segment v) where
 --
 -- > paramSplit s t u
 -- >   | u < t     = atParam s u == atParam l (u / t)
--- >   | otherwise = atParam s u == atParam s t ^+^ atParam l ((u - t) / (1.0 - t))
+-- >   | otherwise = atParam s u == atParam s t ^+^ atParam r ((u - t) / (1.0 - t))
 -- >   where (l,r) = splitAtParam s t
 --
 --   That is to say, the parameterization scales linearly with splitting.

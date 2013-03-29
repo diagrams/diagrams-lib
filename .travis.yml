@@ -1,8 +1,14 @@
 language: haskell
 before_install:
-  - git clone --quiet git://github.com/diagrams/monoid-extras.git diagrams/monoid-extras
-  - git clone --quiet git://github.com/diagrams/dual-tree.git diagrams/dual-tree
+  - cabal update
   - git clone --quiet git://github.com/diagrams/diagrams-core.git diagrams/diagrams-core
   - cd diagrams
-  - cabal install monoid-extras/ dual-tree/ diagrams-core/
+  - cabal install diagrams-core/
   - cd ..
+notifications:
+  irc:
+    channels:
+      - irc.freenode.org#diagrams
+    skip_join: true
+    template:
+      - "\x0313diagrams-lib\x03/\x0306%{branch}\x03 \x0314%{commit}\x03 %{build_url} %{message}"
