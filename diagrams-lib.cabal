@@ -45,6 +45,7 @@ Library
                        Diagrams.TwoD.Ellipse,
                        Diagrams.TwoD.Arc,
                        Diagrams.TwoD.Segment,
+                       Diagrams.TwoD.Curvature,
                        Diagrams.TwoD.Path,
                        Diagrams.TwoD.Polygons,
                        Diagrams.TwoD.Shapes,
