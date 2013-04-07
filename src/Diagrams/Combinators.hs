@@ -44,7 +44,7 @@ import Data.VectorSpace
 
 import Data.Semigroup
 
-import Data.Default
+import Data.Default.Class
 
 ------------------------------------------------------------
 -- Working with envelopes

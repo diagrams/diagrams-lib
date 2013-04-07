@@ -34,7 +34,7 @@ import           Diagrams.Util
 
 import           Control.Arrow         (second)
 import           Data.AffineSpace      ((.-.))
-import           Data.Default
+import           Data.Default.Class
 import           Data.Semigroup
 import           Data.VectorSpace      ((^*))
 

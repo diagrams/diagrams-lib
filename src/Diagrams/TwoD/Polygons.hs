@@ -57,7 +57,7 @@ import Data.Array.ST     (STUArray, newArray, readArray, writeArray)
 
 import Data.AffineSpace  ((.-.), (.+^))
 import Data.VectorSpace  (magnitude, normalized, project, (<.>), (^*))
-import Data.Default
+import Data.Default.Class
 
 import Diagrams.Core
 

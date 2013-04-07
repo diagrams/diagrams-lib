@@ -57,7 +57,7 @@ import Diagrams.Core
 import Diagrams.Solve
 import Diagrams.Util
 
-import Data.Default
+import Data.Default.Class
 import Data.AffineSpace
 import Data.VectorSpace
 
