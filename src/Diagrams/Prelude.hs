@@ -20,10 +20,6 @@ module Diagrams.Prelude
 
          -- * Standard library
 
-         -- | Nice syntax for constructing and pattern-matching
-         --   literal points and vectors.
-       , module Diagrams.Coordinates
-
          -- | Attributes (color, line style, etc.) and styles.
        , module Diagrams.Attributes
 
