@@ -313,7 +313,7 @@ instance (V t ~ R2, Transformable t) => Transformable (ScaleInv t) where
       trans = translate (l' .-. l)
 
 instance (V t ~ R2, Transformable t) => IsPrim (ScaleInv t) where
-  transformWithFreeze t1 t2 s = ScaleInv t1'' d'' origin''
+  transformWithFreeze t1 t2 s = ScaleInv t'' d'' origin''
     where
       -- first, apply t2 normally
       s'@(ScaleInv t' _ _)      = transform t2 s
