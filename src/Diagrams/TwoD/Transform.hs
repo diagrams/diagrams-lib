@@ -1,8 +1,8 @@
-{-# LANGUAGE FlexibleContexts
-           , FlexibleInstances
-           , TypeFamilies
-           , ViewPatterns
-  #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE ViewPatterns          #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Transform
@@ -46,28 +46,28 @@ module Diagrams.TwoD.Transform
        , shearingY, shearY
 
          -- * Scale invariance
-       , ScaleInv(..), scaleInv
+       , ScaleInv(..), scaleInv, scaleInvPrim
 
          -- * component-wise
        , onBasis
        ) where
 
-import Diagrams.Core
+import           Diagrams.Core
 import qualified Diagrams.Core.Transform as T
 
-import Control.Newtype (over)
+import           Control.Newtype         (over)
 
-import Diagrams.Coordinates
-import Diagrams.Transform
-import Diagrams.TwoD.Size   (width, height)
-import Diagrams.TwoD.Types
-import Diagrams.TwoD.Vector (direction)
+import           Diagrams.Coordinates
+import           Diagrams.Transform
+import           Diagrams.TwoD.Size      (height, width)
+import           Diagrams.TwoD.Types
+import           Diagrams.TwoD.Vector    (direction)
 
-import Data.Semigroup
+import           Data.Semigroup
 
-import Data.AffineSpace
+import           Data.AffineSpace
 
-import Control.Arrow (first, second)
+import           Control.Arrow           (first, second)
 
 -- Rotation ------------------------------------------------
 
@@ -251,9 +251,6 @@ shearY = transform . shearingY
 
 -- Scale invariance ----------------------------------------
 
--- XXX what about freezing?  Doesn't interact with ScaleInv the way it
--- ought.
-
 -- | The @ScaleInv@ wrapper creates two-dimensional /scale-invariant/
 --   objects.  Intuitively, a scale-invariant object is affected by
 --   transformations like translations and rotations, but not by scales.
@@ -287,7 +284,7 @@ shearY = transform . shearingY
 
 data ScaleInv t =
   ScaleInv
-  { unScaleInv :: t
+  { unScaleInv  :: t
   , scaleInvDir :: R2
   , scaleInvLoc :: P2
   }
@@ -311,6 +308,39 @@ instance (V t ~ R2, Transformable t) => Transformable (ScaleInv t) where
       rot = rotateAbout l angle
       l'  = transform tr l
       trans = translate (l' .-. l)
+
+-- This is how we handle freezing properly with ScaleInv wrappers.
+-- Normal transformations are applied ignoring scaling; "frozen"
+-- transformations (i.e. transformations applied after a freeze) are
+-- applied directly to the underlying object, scales and all.  We must
+-- take care to transform the reference point and direction vector
+-- appropriately.
+instance (V t ~ R2, Transformable t) => IsPrim (ScaleInv t) where
+  transformWithFreeze t1 t2 s = ScaleInv t'' d'' origin''
+    where
+      -- first, apply t2 normally, i.e. ignoring scaling
+      s'@(ScaleInv t' _ _)      = transform t2 s
+
+      -- now apply t1 to get the new direction and origin
+      (ScaleInv _ d'' origin'') = transform t1 s'
+
+      -- but apply t1 directly to the underlying thing, scales and all.
+      t''                       = transform t1 t'
+
+instance (Renderable t b, V t ~ R2) => Renderable (ScaleInv t) b where
+  render b = render b . unScaleInv
+
+-- | Create a diagram from a single scale-invariant primitive, which
+--   will have an /empty/ envelope, trace, and query.  The reason is
+--   that the envelope, trace, and query cannot be cached---applying a
+--   transformation would cause the cached envelope, etc. to get "out
+--   of sync" with the scale-invariant object.  The intention, at any
+--   rate, is that scale-invariant things will be used only as
+--   "decorations" (/e.g./ arrowheads) which should not affect the
+--   envelope, trace, and query.
+scaleInvPrim :: (Transformable t, Renderable t b, V t ~ R2, Monoid m)
+             => t -> R2 -> QDiagram b R2 m
+scaleInvPrim t d = mkQD (Prim $ scaleInv t d) mempty mempty mempty mempty
 
 -- | Get the matrix equivalent of the linear transform,
 --   (as a pair of columns) and the translation vector.  This
