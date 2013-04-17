@@ -251,9 +251,6 @@ shearY = transform . shearingY
 
 -- Scale invariance ----------------------------------------
 
--- XXX what about freezing?  Doesn't interact with ScaleInv the way it
--- ought.
-
 -- | The @ScaleInv@ wrapper creates two-dimensional /scale-invariant/
 --   objects.  Intuitively, a scale-invariant object is affected by
 --   transformations like translations and rotations, but not by scales.
@@ -312,10 +309,16 @@ instance (V t ~ R2, Transformable t) => Transformable (ScaleInv t) where
       l'  = transform tr l
       trans = translate (l' .-. l)
 
+-- This is how we handle freezing properly with ScaleInv wrappers.
+-- Normal transformations are applied ignoring scaling; "frozen"
+-- transformations (i.e. transformations applied after a freeze) are
+-- applied directly to the underlying object, scales and all.  We must
+-- take care to transform the reference point and direction vector
+-- appropriately.
 instance (V t ~ R2, Transformable t) => IsPrim (ScaleInv t) where
   transformWithFreeze t1 t2 s = ScaleInv t'' d'' origin''
     where
-      -- first, apply t2 normally
+      -- first, apply t2 normally, i.e. ignoring scaling
       s'@(ScaleInv t' _ _)      = transform t2 s
 
       -- now apply t1 to get the new direction and origin
