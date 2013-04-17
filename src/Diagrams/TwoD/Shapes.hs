@@ -57,7 +57,7 @@ import Diagrams.TwoD.Types
 
 import Diagrams.Util
 
-import Data.Default
+import Data.Default.Class
 import Data.Semigroup
 
 -- | Create a centered horizontal (L-R) line of the given length.

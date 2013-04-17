@@ -46,7 +46,7 @@ import           Data.Semigroup
 import           Data.Typeable
 
 import           Data.AffineSpace
-import           Data.Default
+import           Data.Default.Class
 import           Data.VectorSpace
 
 import           Diagrams.Core
