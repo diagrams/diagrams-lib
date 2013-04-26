@@ -1,6 +1,5 @@
-{-# LANGUAGE TypeFamilies
-           , ViewPatterns
-  #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE ViewPatterns #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Arc
@@ -22,18 +21,18 @@ module Diagrams.TwoD.Arc
     , wedge
     ) where
 
-import Diagrams.Core
+import           Diagrams.Core
 
-import Diagrams.Coordinates
-import Diagrams.Path
-import Diagrams.Segment
-import Diagrams.TwoD.Transform
-import Diagrams.TwoD.Types
-import Diagrams.TwoD.Vector (unitX, e)
-import Diagrams.Util ((#), tau)
+import           Diagrams.Coordinates
+import           Diagrams.Path
+import           Diagrams.Segment
+import           Diagrams.TwoD.Transform
+import           Diagrams.TwoD.Types
+import           Diagrams.TwoD.Vector    (e, unitX)
+import           Diagrams.Util           (tau, ( # ))
 
-import Data.Semigroup ((<>))
-import Data.VectorSpace((^-^), (*^), negateV)
+import           Data.Semigroup          ((<>))
+import           Data.VectorSpace        (negateV, (*^), (^-^))
 
 -- For details of this approximation see:
 --   http://www.tinaja.com/glib/bezcirc2.pdf
@@ -92,7 +91,7 @@ arcT start end
     | otherwise = Trail bs (sweep >= tau)
   where sweep = convertAngle $ end - start
         bs    = map (rotate start) . bezierFromSweep $ sweep
-        
+
         -- We want to compare the start and the end and in case
         -- there isn't some law about 'Angle' ordering, we use a
         -- known 'Angle' for that.
@@ -119,9 +118,9 @@ arcCW start end = pathLike (rotate start $ p2 (1,0))
                    -- but that wouldn't be `PathLike`.
 
 -- | Given a radus @r@, a start angle @s@ and an end angle @e@,
---   @'arc'' r s e@ is the path of a radius @(abs r)@ arc between 
+--   @'arc'' r s e@ is the path of a radius @(abs r)@ arc between
 --   the two angles.  If a negative radius is given, the arc will
---   be clockwise, otherwise it will be counterclockwise. The origin 
+--   be clockwise, otherwise it will be counterclockwise. The origin
 --   of the arc is its center.
 arc' :: (Angle a, PathLike p, V p ~ R2) => Double -> a -> a -> p
 arc' r start end = pathLike (rotate start $ p2 (abs r,0))
