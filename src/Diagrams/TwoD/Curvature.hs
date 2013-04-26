@@ -50,19 +50,19 @@ import Diagrams.TwoD.Vector
 --
 -- Lets consider the following curve:
 --
--- <<diagramA.svg#diagram=diagramA&height=200&width=400>>
+-- <<diagrams/diagramA.svg#diagram=diagramA&height=200&width=400>>
 --
 -- The curve starts with positive curvature,
 --
--- <<diagramPos.svg#diagram=diagramPos&height=200&width=400>>
+-- <<diagrams/diagramPos.svg#diagram=diagramPos&height=200&width=400>>
 --
 -- approaches zero curvature
 --
--- <<diagramZero.svg#diagram=diagramZero&height=200&width=400>>
+-- <<diagrams/diagramZero.svg#diagram=diagramZero&height=200&width=400>>
 --
 -- then has negative curvature
 --
--- <<diagramNeg.svg#diagram=diagramNeg&height=200&width=400>>
+-- <<diagrams/diagramNeg.svg#diagram=diagramNeg&height=200&width=400>>
 --
 -- > import Diagrams.TwoD.Curvature
 -- > import Data.Monoid.PosInf
