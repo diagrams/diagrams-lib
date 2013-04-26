@@ -307,6 +307,8 @@ but that doesn't take into account the fact that some
 of the v's are inside Points and hence ought to be translated.
 -}
 
+instance HasLinearMap v => IsPrim (Path v)
+
 instance (InnerSpace v, OrderedField (Scalar v)) => Enveloped (Path v) where
   getEnvelope = F.foldMap trailEnvelope . pathTrails
           -- this type signature is necessary to work around an apparent bug in ghc 6.12.1

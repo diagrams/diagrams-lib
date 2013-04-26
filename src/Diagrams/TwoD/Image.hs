@@ -43,6 +43,8 @@ type instance V Image = R2
 instance Transformable Image where
   transform t1 (Image file sz t2) = Image file sz (t1 <> t2)
 
+instance IsPrim Image
+
 instance HasOrigin Image where
   moveOriginTo p = translate (origin .-. p)
 
