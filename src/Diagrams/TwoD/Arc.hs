@@ -19,6 +19,7 @@ module Diagrams.TwoD.Arc
     , bezierFromSweep
 
     , wedge
+    , arcBetween
     ) where
 
 import           Diagrams.Core
@@ -28,11 +29,13 @@ import           Diagrams.Path
 import           Diagrams.Segment
 import           Diagrams.TwoD.Transform
 import           Diagrams.TwoD.Types
-import           Diagrams.TwoD.Vector    (e, unitX)
+import           Diagrams.TwoD.Vector    (direction, e, unitX)
 import           Diagrams.Util           (tau, ( # ))
 
+import           Data.AffineSpace        ((.+^), (.-.))
 import           Data.Semigroup          ((<>))
-import           Data.VectorSpace        (negateV, (*^), (^-^))
+import           Data.VectorSpace        (magnitude, negateV, normalized, (*^),
+                                          (^-^))
 
 -- For details of this approximation see:
 --   http://www.tinaja.com/glib/bezcirc2.pdf
@@ -135,3 +138,14 @@ wedge :: (Angle a, PathLike p, V p ~ R2) => Double -> a -> a -> p
 wedge r a1 a2 = pathLikeFromTrail $ fromOffsets [r *^ e a1]
                                  <> arc a1 a2 # scale r
                                  <> fromOffsets [r *^ negateV (e a2)]
+
+-- data ArcSize = ArcRadius Double | ArcOffset Double
+
+arcBetween :: (Transformable p, HasOrigin p, PathLike p, V p ~ R2) => Double -> P2 -> P2 -> p
+arcBetween r p q = arc' r 0 phi # rotate psi # moveTo c
+  where
+    d     = magnitude (p .-. q)
+    theta = Rad $ acos (d / (2*r))
+    phi   = 2*(tau/4 - theta)
+    psi   = direction (p .-. c) :: Rad
+    c     = p .+^ (normalized (q .-. p) # scale r # rotate theta)
