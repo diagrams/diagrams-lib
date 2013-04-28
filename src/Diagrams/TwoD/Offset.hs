@@ -106,7 +106,7 @@ offsetSegment epsilon r s@(Cubic a b c) = (origin .+^ va, t)
         close = and [epsilon > (magnitude (p o + va - p s - pp s))
                     | t <- [0.25, 0.5, 0.75]
                     , let p = (`atParam` t)
-                    , let pp = (signum r *^) . (`perpAtParam` t)
+                    , let pp = (r *^) . (`perpAtParam` t)
                     ]
 
 
