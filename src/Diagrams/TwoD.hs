@@ -89,9 +89,10 @@ module Diagrams.TwoD
        , ellipse
        , ellipseXY
        , arc
-       , arc'
        , arcCW
+       , arc'
        , arcBetween
+       , ArcParam(..)
        , wedge
 
          -- ** General polygons

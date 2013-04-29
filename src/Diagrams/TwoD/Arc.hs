@@ -12,14 +12,21 @@
 -----------------------------------------------------------------------------
 
 module Diagrams.TwoD.Arc
-    ( arc
-    , arc'
+    ( -- * Creating arcs
+
+      arc
     , arcCW
+    , arc'
+
+    , arcBetween
+    , ArcParam(..)
+
+      -- * Creating arc-ish things
+    , wedge
+
+      -- * Internals
     , arcT
     , bezierFromSweep
-
-    , wedge
-    , arcBetween
     ) where
 
 import           Diagrams.Core
@@ -139,13 +146,56 @@ wedge r a1 a2 = pathLikeFromTrail $ fromOffsets [r *^ e a1]
                                  <> arc a1 a2 # scale r
                                  <> fromOffsets [r *^ negateV (e a2)]
 
--- data ArcSize = ArcRadius Double | ArcOffset Double
+-- | Parameters controlling an arc drawn between two points.
+data ArcParam = ArcRadius
+                  Double
+                  Bool      -- ^ The radius of the arc, and a Boolean
+                            --   value where @True@ means the /longer/
+                            --   of the two possible arcs should be
+                            --   used, /i.e./ the one subtending an
+                            --   obtuse angle.
+                            --
+                            -- > arcRadFalse = arcBetween (ArcRadius 2 False) origin (1&0)
+                            --
+                            -- <<dia#diagram=arcRadFalse&width=200>>
+                            --
+                            -- > arcRadTrue = arcBetween (ArcRadius 2 True) origin (1&0)
+                            --
+                            -- <<dia#diagram=arcRadTrue&width=200>>
+              | ArcOffset
+                  Double    -- ^ The distance of the arc midpoint from
+                            --   the straight line between the points.
+                            --
+                            -- > arcOffs = mconcat $ [arcBetween (ArcOffset h) origin (1&0) | h <- [1, 0.8 .. (-1)] ]
+                            --
+                            -- <<dia#diagram=arcOffs&width=200>>
 
-arcBetween :: (Transformable p, HasOrigin p, PathLike p, V p ~ R2) => Double -> P2 -> P2 -> p
-arcBetween r p q = arc' r 0 phi # rotate psi # moveTo c
+-- | Generate an arc from the first point to the second, according to
+--   the given parameters.  Note that the result is wrapped in
+--   @Maybe@; it will fail to produce an arc precisely when the radius
+--   specified with @ArcRadius@ is smaller than half the distance
+--   between the points.
+arcBetween :: (Transformable p, HasOrigin p, PathLike p, V p ~ R2)
+           => ArcParam -> P2 -> P2 -> Maybe p
+arcBetween (ArcOffset offs) p q
+  | abs offs < 0.00001 = Just (p ~~ q)    -- XXX how to deal with this properly?
+arcBetween (ArcOffset offs) p q
+  = arcBetween (ArcRadius r (h > abs r)) p q
   where
+    d    = magnitude (p .-. q)
+    h    = abs offs
+    phi2 = acos ((d*d - 4*h*h) / (d*d + 4*h*h))
+    r    = signum offs * d / (2 * sin phi2)
+arcBetween (ArcRadius r obtuse) p q
+  | d > 2*r'  = Nothing
+  | otherwise = Just $ arc' (if obtuse then -r else r) 0 phi
+                     # rotate psi
+                     # moveTo c
+                     # if obtuse then reflectAbout p (q .-. p) else id
+  where
+    r'    = abs r
     d     = magnitude (p .-. q)
-    theta = Rad $ acos (d / (2*r))
-    phi   = 2*(tau/4 - theta)
+    theta = Rad $ acos (d / (2*r')) * signum r
+    phi   = 2 * (tau/4 - abs theta) * (Rad $ signum r)
     psi   = direction (p .-. c) :: Rad
-    c     = p .+^ (normalized (q .-. p) # scale r # rotate theta)
+    c     = p .+^ (normalized (q .-. p) # scale r' # rotate theta)
