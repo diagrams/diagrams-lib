@@ -155,20 +155,26 @@ data ArcParam = ArcRadius
                             --   used, /i.e./ the one subtending an
                             --   obtuse angle.
                             --
-                            -- > arcRadFalse = arcBetween (ArcRadius 2 False) origin (1&0)
+                            -- > import Data.Maybe (fromJust)
+                            -- > arcRadFalse = arcBetween (ArcRadius 0.8 False) origin (1&0)
+                            -- >             # fromJust # centerXY # pad 1.1
                             --
-                            -- <<dia#diagram=arcRadFalse&width=200>>
+                            -- <<diagrams/arcRadFalse.svg#diagram=arcRadFalse&width=200>>
                             --
-                            -- > arcRadTrue = arcBetween (ArcRadius 2 True) origin (1&0)
+                            -- > import Data.Maybe (fromJust)
+                            -- > arcRadTrue = arcBetween (ArcRadius 0.8 True) origin (1&0)
+                            -- >            # fromJust # centerXY # pad 1.1
                             --
-                            -- <<dia#diagram=arcRadTrue&width=200>>
+                            -- <<diagrams/arcRadTrue.svg#diagram=arcRadTrue&width=200>>
               | ArcOffset
                   Double    -- ^ The distance of the arc midpoint from
                             --   the straight line between the points.
                             --
-                            -- > arcOffs = mconcat $ [arcBetween (ArcOffset h) origin (1&0) | h <- [1, 0.8 .. (-1)] ]
+                            -- > import Data.Maybe (fromJust)
+                            -- > arcOffs = [fromJust $ arcBetween (ArcOffset h) origin (1&0) | h <- [1, 0.8 .. (-1)] ]
+                            -- >         # mconcat # centerXY # pad 1.1
                             --
-                            -- <<dia#diagram=arcOffs&width=200>>
+                            -- <<diagrams/arcOffs.svg#diagram=arcOffs&width=200>>
 
 -- | Generate an arc from the first point to the second, according to
 --   the given parameters.  Note that the result is wrapped in
