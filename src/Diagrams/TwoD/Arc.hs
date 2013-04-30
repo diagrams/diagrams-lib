@@ -176,6 +176,7 @@ data ArcParam = ArcRadius
                             --
                             -- <<diagrams/arcOffs.svg#diagram=arcOffs&width=200>>
 
+-- See Note [arcBetween] below
 -- | Generate an arc from the first point to the second, according to
 --   the given parameters.  Note that the result is wrapped in
 --   @Maybe@; it will fail to produce an arc precisely when the radius
@@ -205,3 +206,61 @@ arcBetween (ArcRadius r obtuse) p q
     phi   = 2 * (tau/4 - abs theta) * (Rad $ signum r)
     psi   = direction (p .-. c) :: Rad
     c     = p .+^ (normalized (q .-. p) # scale r' # rotate theta)
+
+{- ~~~~ Note [arcBetween]
+
+   To aid in understanding the above code, consult the following
+   diagram, the output of which is available in diagrams/ArcBetween.pdf.
+   Note that we have the relations
+
+   cos theta = sin (phi/2) = d/2r
+   cos (phi/2) = (d^2 - 4h^2) / (d^2 + 4h^2)
+
+
+a1 = 9*tau/40 :: Rad
+a2 = 9*tau/20 :: Rad
+
+arcDia = mconcat
+  [ wedge 1 a1 a2
+  , loc p "p" ((-0.08) & 0)
+  , loc q "q" (0.08 & 0)
+  , loc origin "c" (0 & (-0.08))
+  , p ~~ q
+  , (origin ~~ (0.5&0)) # dashing [0.03,0.03] 0
+  , labelAngle "φ" 0.1 a1 a2 Nothing
+  , labelAngle "ψ" 0.3 0 a2 (Just $ a1/2)
+  , labelAngle "θ" 0.1 (a2 - tau/2) (direction (q .-. p)) Nothing
+    # moveTo p
+  , labelSeg "d" p q 0.08
+  , mid ~~ arcMid
+  , labelSeg "h" mid arcMid 0.08
+  , labelSeg "r" p origin 0.08
+  , labelSeg "r" origin q 0.08
+  ]
+  where
+    p      = (origin .+^ unitX) # rotate a2
+    q      = (origin .+^ unitX) # rotate a1
+    mid    = alerp p q 0.5
+    arcMid = (1&0) # rotate ((a1+a2)/2)
+
+loc pt txt offs
+  = circle 0.02 # fc black # moveTo pt
+    <> text txt # fontSize 0.1 # beneath (square 0.1 # lw 0)
+       # moveTo (pt .+^ offs)
+
+labelAngle txt dist a1 a2 Nothing = labelAngle txt dist a1 a2 (Just $ (a1 + a2)/2)
+labelAngle txt dist a1 a2 (Just la)
+  = arc' dist a1 a2 # dashing [0.01,0.01] 0
+ <> text txt
+    # fontSize 0.1
+    # moveTo ((1&0) # scale (dist + 0.08) # rotate la)
+
+labelSeg txt x y off
+  = text txt # fontSize 0.1 # offsetFromSeg x y off
+
+offsetFromSeg x y off
+  = moveTo (alerp x y 0.5 .+^ scale off (normalized ((y .-. x) # rotateBy (-1/4))))
+
+dia = arcDia # centerXY # pad 1.1
+
+-}
