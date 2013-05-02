@@ -1,12 +1,12 @@
 {-# LANGUAGE FlexibleContexts #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Diagrams.Arrow
+-- Module      :  Diagrams.TwoD.Arrow
 -- Copyright   :  (c) 2013 diagrams-lib team (see LICENSE)
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
--- Drawing arrows.
+-- Drawing arrows in two dimensions.
 --
 -----------------------------------------------------------------------------
 

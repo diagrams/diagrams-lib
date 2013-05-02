@@ -26,7 +26,6 @@ Source-repository head
 Library
   Exposed-modules:     Diagrams.Prelude,
                        Diagrams.Align,
-                       Diagrams.Arrow,
                        Diagrams.Combinators,
                        Diagrams.Coordinates,
                        Diagrams.Attributes,
@@ -41,6 +40,7 @@ Library
                        Diagrams.TwoD,
                        Diagrams.TwoD.Types,
                        Diagrams.TwoD.Align,
+                       Diagrams.TwoD.Arrow,
                        Diagrams.TwoD.Combinators,
                        Diagrams.TwoD.Transform,
                        Diagrams.TwoD.Ellipse,

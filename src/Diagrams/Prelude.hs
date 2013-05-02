@@ -39,9 +39,6 @@ module Diagrams.Prelude
          -- | Trails and paths.
        , module Diagrams.Path
 
-         -- | Support for drawing arrows.
-       , module Diagrams.Arrow
-
          -- | Cubic splines.
        , module Diagrams.CubicSpline
 
@@ -87,7 +84,6 @@ import           Diagrams.Core
 
 import           Diagrams.Align
 import           Diagrams.Animation
-import           Diagrams.Arrow
 import           Diagrams.Attributes
 import           Diagrams.BoundingBox
 import           Diagrams.Combinators
