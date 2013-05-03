@@ -1,6 +1,8 @@
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE UndecidableInstances  #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -41,10 +43,10 @@ import           Diagrams.TwoD.Transform (rotateBy)
 import           Diagrams.TwoD.Types
 import           Diagrams.Util           (( # ))
 
-data ArrowOpts b m
+data ArrowOpts b
   = ArrowOpts
-    { arrowHead :: QDiagram b R2 m
-    , arrowTail :: QDiagram b R2 m
+    { arrowHead :: Diagram b R2
+    , arrowTail :: Diagram b R2
     -- add other options:
     --   + arrow head/tail size
     --   + style attributes
@@ -54,17 +56,17 @@ data ArrowOpts b m
     --   + whether to draw the arrow over or under other stuff
     }
 
-instance Semigroup m => Default (ArrowOpts b m) where
+instance Renderable (Path R2) b => Default (ArrowOpts b) where
   def = ArrowOpts
         { arrowHead = triangle 0.1 # rotateBy (-1/4) # fc black
           -- XXX define standard arrow heads/tails in another module
         , arrowTail = mempty
         }
 
-arrow :: Semigroup m => P2 -> P2 -> QDiagram b R2 m
+arrow :: Renderable (Path R2) b => P2 -> P2 -> Diagram b R2
 arrow = arrow' def
 
-arrow' :: ArrowOpts b m -> P2 -> P2 -> QDiagram b R2 m
+arrow' :: Renderable (Path R2) b => ArrowOpts b -> P2 -> P2 -> Diagram b R2
 arrow' opts s e = stroke p <> hd <> tl
   where
     p  = arrowPath' opts s e
@@ -73,36 +75,40 @@ arrow' opts s e = stroke p <> hd <> tl
          -- XXX wrap in scaleInv
     tl = arrowTail opts # moveTo s
 
-arrowPath :: PathLike p => P2 -> P2 -> p
-arrowPath = arrowPath' (def :: ArrowOpts NullBackend Any)
+arrowPath :: (V p ~ R2, PathLike p) => P2 -> P2 -> p
+arrowPath = arrowPath' (def :: ArrowOpts NullBackend)
 
-arrowPath' :: PathLike p => ArrowOpts b m -> P2 -> P2 -> p
+arrowPath' :: (V p ~ R2, PathLike p) => ArrowOpts b -> P2 -> P2 -> p
 arrowPath' opts s e = s ~~ e
 
 connect
   :: forall b n1 n2. ( Renderable (Path R2) b, IsName n1, IsName n2 )
   => n1 -> n2 -> (Diagram b R2 -> Diagram b R2)
-connect = connect' (def :: ArrowOpts b Any)
+connect = connect' (def :: ArrowOpts b)
 
 connect'
   :: (Renderable (Path R2) b, IsName n1, IsName n2)
-  => ArrowOpts b Any -> n1 -> n2 -> (Diagram b R2 -> Diagram b R2)
+  => ArrowOpts b -> n1 -> n2 -> (Diagram b R2 -> Diagram b R2)
 connect' opts n1 n2 =
   withName n1 $ \sub1 ->
   withName n2 $ \sub2 ->
     let [s,e] = map location [sub1, sub2]
     in  atop (arrow' opts s e)
 
-connectPath :: forall b n1 n2. (IsName n1, IsName n2) => n1 -> n2 -> Diagram b R2 -> Path R2
-connectPath = connectPath' (def :: ArrowOpts b Any)
+connectPath :: forall b n1 n2. (Renderable (Path R2) b, IsName n1, IsName n2) => n1 -> n2 -> Diagram b R2 -> Path R2
+connectPath = connectPath' (def :: ArrowOpts b)
 
 connectPath'
   :: (IsName n1, IsName n2)
-  => ArrowOpts b m -> n1 -> n2 -> Diagram b R2 -> Path R2
+  => ArrowOpts b -> n1 -> n2 -> Diagram b R2 -> Path R2
 connectPath' opts n1 n2 =
   withName n1 $ \sub1 ->
   withName n2 $ \sub2 ->
     let [s,e] = map location [sub1, sub2]
-    in  arrowPath' opts s e
+    in  const (arrowPath' opts s e)
+
+    -- XXX ugh, how to actually make the above work?
 
     -- XXX how to remove duplication between connect' and connectPath'?
+
+
