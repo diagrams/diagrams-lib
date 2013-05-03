@@ -31,9 +31,9 @@ import           Data.Semigroup
 import           Data.VectorSpace
 import           Diagrams.Core
 
+import           Data.Colour             (black)
 import           Diagrams.Attributes     (fc)
 import           Diagrams.Path
-import           Diagrams.Prelude        (black)
 import           Diagrams.TwoD.Path      ()
 import           Diagrams.TwoD.Path      (stroke)
 import           Diagrams.TwoD.Shapes    (triangle)
