@@ -132,7 +132,7 @@ module Diagrams.TwoD
        , arrow, arrow'
        , arrowPath, arrowPath'
        , connect, connect'
-       , connectPath, connectPath'
+       -- , connectPath, connectPath'
 
        , ArrowOpts(..)
 

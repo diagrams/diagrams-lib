@@ -22,8 +22,8 @@ module Diagrams.TwoD.Arrow
        , arrowPath'
        , connect
        , connect'
-       , connectPath
-       , connectPath'
+       -- , connectPath
+       -- , connectPath'
 
        , ArrowOpts(..)
        ) where
@@ -95,6 +95,7 @@ connect' opts n1 n2 =
     let [s,e] = map location [sub1, sub2]
     in  atop (arrow' opts s e)
 
+{-
 connectPath :: forall b n1 n2. (Renderable (Path R2) b, IsName n1, IsName n2) => n1 -> n2 -> Diagram b R2 -> Path R2
 connectPath = connectPath' (def :: ArrowOpts b)
 
@@ -110,5 +111,4 @@ connectPath' opts n1 n2 =
     -- XXX ugh, how to actually make the above work?
 
     -- XXX how to remove duplication between connect' and connectPath'?
-
-
+-}
