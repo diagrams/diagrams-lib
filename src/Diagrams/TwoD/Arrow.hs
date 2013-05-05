@@ -1,6 +1,5 @@
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
@@ -36,17 +35,27 @@ import           Diagrams.Core
 import           Data.Colour             (black)
 import           Diagrams.Attributes     (fc)
 import           Diagrams.Path
-import           Diagrams.TwoD.Path      ()
 import           Diagrams.TwoD.Path      (stroke)
 import           Diagrams.TwoD.Shapes    (triangle)
-import           Diagrams.TwoD.Transform (rotateBy)
+import           Diagrams.TwoD.Transform (rotateBy, scaleInvPrim)
 import           Diagrams.TwoD.Types
+import           Diagrams.TwoD.Vector    (unitX)
 import           Diagrams.Util           (( # ))
 
-data ArrowOpts b
+data ArrowOpts
   = ArrowOpts
-    { arrowHead :: Diagram b R2
-    , arrowTail :: Diagram b R2
+    { arrowHead :: Path R2   -- XXX investigate whether we can make
+                             -- these Diagrams. Because of ScaleInv,
+                             -- would have to have a Renderable
+                             -- instance for Diagrams themselves.
+                             -- This might be possible but there is
+                             -- some trickiness involved.
+
+                             -- However, just having paths does
+                             -- simplify a lot of things (no type
+                             -- parameter required for ArrowOpts, no
+                             -- ScopedTypeVariables, etc.
+    , arrowTail :: Path R2
     -- add other options:
     --   + arrow head/tail size
     --   + style attributes
@@ -56,9 +65,9 @@ data ArrowOpts b
     --   + whether to draw the arrow over or under other stuff
     }
 
-instance Renderable (Path R2) b => Default (ArrowOpts b) where
+instance Default ArrowOpts where
   def = ArrowOpts
-        { arrowHead = triangle 0.1 # rotateBy (-1/4) # fc black
+        { arrowHead = triangle 0.1 # rotateBy (-1/4)
           -- XXX define standard arrow heads/tails in another module
         , arrowTail = mempty
         }
@@ -66,29 +75,28 @@ instance Renderable (Path R2) b => Default (ArrowOpts b) where
 arrow :: Renderable (Path R2) b => P2 -> P2 -> Diagram b R2
 arrow = arrow' def
 
-arrow' :: Renderable (Path R2) b => ArrowOpts b -> P2 -> P2 -> Diagram b R2
+arrow' :: Renderable (Path R2) b => ArrowOpts -> P2 -> P2 -> Diagram b R2
 arrow' opts s e = stroke p <> hd <> tl
   where
     p  = arrowPath' opts s e
-    hd = arrowHead opts # moveTo e
-         -- XXX rotate hd appropriately
-         -- XXX wrap in scaleInv
-    tl = arrowTail opts # moveTo s
+    hd = scaleInvPrim (arrowHead opts # moveTo e) unitX
+    tl = scaleInvPrim (arrowTail opts # moveTo s) unitX
+         -- XXX rotate hd and tl appropriately
 
 arrowPath :: (V p ~ R2, PathLike p) => P2 -> P2 -> p
-arrowPath = arrowPath' (def :: ArrowOpts NullBackend)
+arrowPath = arrowPath' def
 
-arrowPath' :: (V p ~ R2, PathLike p) => ArrowOpts b -> P2 -> P2 -> p
+arrowPath' :: (V p ~ R2, PathLike p) => ArrowOpts -> P2 -> P2 -> p
 arrowPath' opts s e = s ~~ e
 
 connect
-  :: forall b n1 n2. ( Renderable (Path R2) b, IsName n1, IsName n2 )
+  :: (Renderable (Path R2) b, IsName n1, IsName n2)
   => n1 -> n2 -> (Diagram b R2 -> Diagram b R2)
-connect = connect' (def :: ArrowOpts b)
+connect = connect' def
 
 connect'
   :: (Renderable (Path R2) b, IsName n1, IsName n2)
-  => ArrowOpts b -> n1 -> n2 -> (Diagram b R2 -> Diagram b R2)
+  => ArrowOpts -> n1 -> n2 -> (Diagram b R2 -> Diagram b R2)
 connect' opts n1 n2 =
   withName n1 $ \sub1 ->
   withName n2 $ \sub2 ->
