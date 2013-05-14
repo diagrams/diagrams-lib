@@ -16,7 +16,7 @@ module Diagrams.Parametric
 import           Diagrams.Core
 import           Diagrams.Util
 
-import           Data.Default
+import           Data.Default.Class
 import           Data.VectorSpace
 
 -- | Codomain of parametric classes.  This is usually either (V p), for relative
