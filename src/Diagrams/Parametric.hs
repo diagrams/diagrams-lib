@@ -1,10 +1,9 @@
-{-# LANGUAGE DefaultSignatures
-           , FlexibleContexts
-           , TypeFamilies
-           , UndecidableInstances
-  #-}
+{-# LANGUAGE DefaultSignatures    #-}
+{-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE TypeFamilies         #-}
+{-# LANGUAGE UndecidableInstances #-}
 module Diagrams.Parametric
-  ( 
+  (
   -- * Parametric functions
   	Codomain, Parametric(..), ArcLength(..), ArcLengthToParam(..)
 
@@ -14,11 +13,11 @@ module Diagrams.Parametric
   , AdjustOpts(..), AdjustMethod(..), AdjustSide(..)
   ) where
 
-import Diagrams.Core
-import Diagrams.Util
+import           Diagrams.Core
+import           Diagrams.Util
 
-import Data.Default
-import Data.VectorSpace
+import           Data.Default
+import           Data.VectorSpace
 
 -- | Codomain of parametric classes.  This is usually either (V p), for relative
 --   vector results, or (Point (V p)), for functions with absolute coordinates.
@@ -43,7 +42,7 @@ class DomainBounds p where
   default domainLower :: Num (Scalar (V p)) => p -> Scalar (V p)
   domainLower = const 0
 
-  -- | 'domainUpper' defaults to (0, 1), as the unit domain is common. 
+  -- | 'domainUpper' defaults to (0, 1), as the unit domain is common.
   domainUpper :: p -> Scalar (V p)
 
   default domainUpper :: Num (Scalar (V p)) => p -> Scalar (V p)
@@ -151,9 +150,9 @@ data AdjustSide = Start  -- ^ Adjust only the beginning
   deriving (Show, Read, Eq, Ord, Bounded, Enum)
 
 -- | How should a segment, trail, or path be adjusted?
-data AdjustOpts v = ALO { adjMethod :: AdjustMethod v
-                        , adjSide   :: AdjustSide
-                        , adjEps    :: Scalar v
+data AdjustOpts v = ALO { adjMethod       :: AdjustMethod v
+                        , adjSide         :: AdjustSide
+                        , adjEps          :: Scalar v
                         , adjOptsvProxy__ :: Proxy v
                         }
 
