@@ -27,7 +27,7 @@ module Diagrams.Util
        ) where
 
 import Data.Monoid
-import Data.Default
+import Data.Default.Class
 
 -- | Several functions exported by the diagrams library take a number
 --   of arguments giving the user control to \"tweak\" various aspects

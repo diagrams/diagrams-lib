@@ -1,10 +1,10 @@
-{-# LANGUAGE FlexibleContexts
-           , FlexibleInstances
-           , DeriveDataTypeable
-           , GeneralizedNewtypeDeriving
-           , TypeFamilies
-           , ViewPatterns
-  #-}
+{-# LANGUAGE DeriveDataTypeable         #-}
+{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE ViewPatterns               #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 -----------------------------------------------------------------------------
 -- |
@@ -40,13 +40,13 @@ module Diagrams.TwoD.Path
        , Clip(..), clipBy
        ) where
 
-import           Control.Applicative (liftA2)
-import qualified Data.Foldable as F
+import           Control.Applicative   (liftA2)
+import qualified Data.Foldable         as F
 import           Data.Semigroup
 import           Data.Typeable
 
 import           Data.AffineSpace
-import           Data.Default
+import           Data.Default.Class
 import           Data.VectorSpace
 
 import           Diagrams.Core
@@ -58,7 +58,7 @@ import           Diagrams.Segment
 import           Diagrams.Solve
 import           Diagrams.TwoD.Segment
 import           Diagrams.TwoD.Types
-import           Diagrams.Util (tau)
+import           Diagrams.Util         (tau)
 
 ------------------------------------------------------------
 --  Trail and path traces  ---------------------------------
@@ -122,7 +122,7 @@ stroke' opts p
 --   records can be created using @'with' { ... }@ notation.
 data StrokeOpts a
   = StrokeOpts
-    { vertexNames :: [[a]]  -- ^ Atomic names that should be assigned
+    { vertexNames   :: [[a]]  -- ^ Atomic names that should be assigned
                             --   to the vertices of the path so that
                             --   they can be referenced later.  If
                             --   there are not enough names, the extra
@@ -188,6 +188,7 @@ data FillRule = Winding  -- ^ Interior points are those with a nonzero
                          --   direction crosses the path an odd number
                          --   of times. See
                          --   <http://en.wikipedia.org/wiki/Even-odd_rule>.
+    deriving (Eq)
 
 runFillRule :: FillRule -> P2 -> Path R2 -> Bool
 runFillRule Winding = isInsideWinding

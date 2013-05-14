@@ -10,3 +10,4 @@ cabal-dev
 dist_*
 history
 TAGS
+.diagrams-cache

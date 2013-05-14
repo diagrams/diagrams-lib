@@ -1,5 +1,5 @@
-{-# LANGUAGE FlexibleContexts
-  #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Model
@@ -19,29 +19,29 @@ module Diagrams.TwoD.Model
        , showLabels
        ) where
 
-import Diagrams.Core
-import Diagrams.Core.Names
+import           Diagrams.Core
+import           Diagrams.Core.Names
 
-import Diagrams.Path
+import           Diagrams.Path
 
-import Diagrams.TwoD.Types
-import Diagrams.TwoD.Ellipse
-import Diagrams.TwoD.Size    (size2D)
-import Diagrams.TwoD.Text
-import Diagrams.TwoD.Path
-import Diagrams.Attributes
-import Diagrams.Util
+import           Diagrams.Attributes
+import           Diagrams.TwoD.Ellipse
+import           Diagrams.TwoD.Path
+import           Diagrams.TwoD.Size    (size2D)
+import           Diagrams.TwoD.Text
+import           Diagrams.TwoD.Types
+import           Diagrams.Util
 
-import Control.Arrow (second)
-import Data.Semigroup
-import Data.Default
-import Data.AffineSpace ((.-.))
-import Data.VectorSpace ((^*))
+import           Control.Arrow         (second)
+import           Data.AffineSpace      ((.-.))
+import           Data.Default.Class
+import           Data.Semigroup
+import           Data.VectorSpace      ((^*))
 
-import qualified Data.Map as M
+import qualified Data.Map              as M
 
-import Data.Colour.Names
-import Data.Colour (Colour)
+import           Data.Colour           (Colour)
+import           Data.Colour.Names
 
 ------------------------------------------------------------
 -- Marking the origin
@@ -64,8 +64,8 @@ showOrigin' oo d = o <> d
         (w,h) = size2D d ^* oScale oo
         sz = maximum [w, h, oMinSize oo]
 
-data OriginOpts = OriginOpts { oColor :: Colour Double
-                             , oScale :: Double
+data OriginOpts = OriginOpts { oColor   :: Colour Double
+                             , oScale   :: Double
                              , oMinSize :: Double
                              }
 

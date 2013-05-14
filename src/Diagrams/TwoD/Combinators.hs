@@ -1,7 +1,7 @@
-{-# LANGUAGE FlexibleContexts
-           , TypeFamilies
-           , ViewPatterns
-  #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE ViewPatterns          #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Combinators
@@ -27,8 +27,9 @@ module Diagrams.TwoD.Combinators
       -- * Spacing/envelopes
     , strutR2
     , strutX, strutY
-    , padR2
     , padX, padY
+
+    , extrudeLeft, extrudeRight, extrudeBottom, extrudeTop
 
     , view
 
@@ -36,28 +37,28 @@ module Diagrams.TwoD.Combinators
 
     ) where
 
-import Data.AffineSpace
-import Data.Colour
-import Data.Default
-import Data.Semigroup
-import Data.VectorSpace
+import           Data.AffineSpace
+import           Data.Colour
+import           Data.Default.Class
+import           Data.Semigroup
+import           Data.VectorSpace
 
-import Diagrams.Core
+import           Diagrams.Core
 
-import Diagrams.Attributes (lw, fc)
-import Diagrams.BoundingBox
-import Diagrams.Combinators
-import Diagrams.Coordinates
-import Diagrams.Path
-import Diagrams.Segment
-import Diagrams.TwoD.Align
-import Diagrams.TwoD.Path ()   -- for PathLike (D R2) instance
-import Diagrams.TwoD.Segment
-import Diagrams.TwoD.Shapes
-import Diagrams.TwoD.Transform (scaleX, scaleY)
-import Diagrams.TwoD.Types
-import Diagrams.TwoD.Vector (unitX, unitY, fromDirection)
-import Diagrams.Util ((#))
+import           Diagrams.Attributes     (fc, lw)
+import           Diagrams.BoundingBox
+import           Diagrams.Combinators
+import           Diagrams.Coordinates
+import           Diagrams.Path
+import           Diagrams.Segment
+import           Diagrams.TwoD.Align
+import           Diagrams.TwoD.Path      ()
+import           Diagrams.TwoD.Segment
+import           Diagrams.TwoD.Shapes
+import           Diagrams.TwoD.Transform (scaleX, scaleY)
+import           Diagrams.TwoD.Types
+import           Diagrams.TwoD.Vector    (fromDirection, unitX, unitY)
+import           Diagrams.Util           (( # ))
 
 
 infixl 6 ===
@@ -184,40 +185,41 @@ padY :: ( Backend b R2, Monoid' m )
      => Double -> QDiagram b R2 m -> QDiagram b R2 m
 padY s d = withEnvelope (d # scaleY s) d
 
--- | @padR2 v d@ asymmetrically \"pads\" the diagram in the given direction.
---   Unlike 'padX' and 'padY', the magnitude of the vector is not a scaling
---   factor, but an absolute amount to move the envelope, \"along\" the
---   direction.  In order to preserve the properties of envelopes, queries to
---   the envelope that are less than 90 degrees rotated from the padding
---   direction are also scaled, though with less magnitude (proportional to the
---   cosine of angle).
-padR2 :: ( Backend b R2, Monoid' m )
-      => R2 -> QDiagram b R2 m -> QDiagram b R2 m
-padR2 = deformEnvelope 1
+-- | @extrudeLeft s@ \"extrudes\" a diagram in the negative x-direction,
+--   offsetting its envelope by the provided distance. When @ s < 0 @,
+--   the envelope is inset instead.
+--
+--   See the documentation for 'extrudeEnvelope' for more information.
+extrudeLeft s
+  | s >= 0    = extrudeEnvelope $ unitX ^* negate s
+  | otherwise = intrudeEnvelope $ unitX ^* negate s
 
--- | @unpadR2 v d@ asymmetrically \"pads\" the diagram in the given direction.
---   Unlike 'padX' and 'padY', the magnitude of the vector is not a scaling
---   factor, but an absolute amount to move the envelope, \"along\" the
---   direction.  In order to preserve the properties of envelopes, queries to
---   the envelope that are less than 90 degrees rotated from the padding
---   direction are also scaled, though with less magnitude (proportional to the
---   cosine of angle).
-unpadR2 :: ( Backend b R2, Monoid' m )
-       => R2 -> QDiagram b R2 m -> QDiagram b R2 m
-unpadR2 = deformEnvelope (-1)
+-- | @extrudeRight s@ \"extrudes\" a diagram in the positive x-direction,
+--   offsetting its envelope by the provided distance. When @ s < 0 @,
+--   the envelope is inset instead.
+--
+--   See the documentation for 'extrudeEnvelope' for more information.
+extrudeRight s
+  | s >= 0    = extrudeEnvelope $ unitX ^* s
+  | otherwise = intrudeEnvelope $ unitX ^* s
 
--- Helper function to implement padR2 / unpadR2
-deformEnvelope
-  :: ( Backend b R2, Monoid' m )
-  => Double -> R2 -> QDiagram b R2 m -> QDiagram b R2 m
-deformEnvelope s v d = setEnvelope (inEnvelope (over_option pad_env) $ getEnvelope d) d
-  where
-    over_option f = Option . fmap f . getOption
-    pad_env env v'
-        | dot > 0   = Max $ (getMax $ env v') + dot * s
-        | otherwise = env v'
-      where
-        dot = normalized v' <.> v
+-- | @extrudeBottom s@ \"extrudes\" a diagram in the negative y-direction,
+--   offsetting its envelope by the provided distance. When @ s < 0 @,
+--   the envelope is inset instead.
+--
+--   See the documentation for 'extrudeEnvelope' for more information.
+extrudeBottom s
+  | s >= 0    = extrudeEnvelope $ unitY ^* negate s
+  | otherwise = intrudeEnvelope $ unitY ^* negate s
+
+-- | @extrudeTop s@ \"extrudes\" a diagram in the positive y-direction,
+--   offsetting its envelope by the provided distance. When @ s < 0 @,
+--   the envelope is inset instead.
+--
+--   See the documentation for 'extrudeEnvelope' for more information.
+extrudeTop s
+  | s >= 0    = extrudeEnvelope $ unitY ^* s
+  | otherwise = intrudeEnvelope $ unitY ^* s
 
 -- | @view p v@ sets the envelope of a diagram to a rectangle whose
 --   lower-left corner is at @p@ and whose upper-right corner is at @p

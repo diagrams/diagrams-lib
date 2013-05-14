@@ -31,13 +31,15 @@ module Diagrams.TwoD.Text (
   , FontWeight(..), FontWeightA, getFontWeight, fontWeight, bold
   ) where
 
+import Diagrams.Attributes
 import Diagrams.Core
-
 import Diagrams.TwoD.Types
 
 import Data.AffineSpace ((.-.))
 
 import Data.Semigroup
+
+import Data.Colour
 
 import Data.Typeable
 
@@ -56,6 +58,8 @@ type instance V Text = R2
 instance Transformable Text where
   transform t (Text tt a s) = Text (t <> tt) a s
 
+instance IsPrim Text
+
 instance HasOrigin Text where
   moveOriginTo p = translate (origin .-. p)
 
@@ -66,14 +70,15 @@ instance Renderable Text NullBackend where
 data TextAlignment = BaselineText | BoxAlignedText Double Double
 
 mkText :: Renderable Text b => TextAlignment -> String -> Diagram b R2
-mkText a t = mkQD (Prim (Text mempty a t))
+mkText a t = recommendFillColor black
+           $ mkQD (Prim (Text mempty a t))
                        mempty
                        mempty
                        mempty
                        mempty
 
 -- | Create a primitive text diagram from the given string, with center
---   alignment, equivalent to @alignedText 0.5 0.5@.
+--   alignment, equivalent to @'alignedText' 0.5 0.5@.
 --
 --   Note that it /takes up no space/, as text size information is not
 --   available.
@@ -82,7 +87,7 @@ text = alignedText 0.5 0.5
 
 -- | Create a primitive text diagram from the given string, origin at
 --   the top left corner of the text's bounding box, equivalent to
---   @alignedText 0.5 0.5@.
+--   @'alignedText' 0 1@.
 --
 --   Note that it /takes up no space/.
 topLeftText :: Renderable Text b => String -> Diagram b R2
@@ -119,7 +124,7 @@ baselineText = mkText BaselineText
 -- | The @Font@ attribute specifies the name of a font family.  Inner
 --   @Font@ attributes override outer ones.
 newtype Font = Font (Last String)
-  deriving (Typeable, Semigroup)
+  deriving (Typeable, Semigroup, Eq)
 instance AttributeClass Font
 
 -- | Extract the font family name from a @Font@ attribute.
@@ -137,7 +142,7 @@ font = applyAttr . Font . Last
 --   em-square, measured with respect to the current local vector space.
 --   Inner @FontSize@ attributes override outer ones.
 newtype FontSize = FontSize (Last Double)
-  deriving (Typeable, Semigroup)
+  deriving (Typeable, Semigroup, Eq)
 instance AttributeClass FontSize
 
 -- | Extract the size from a @FontSize@ attribute.
@@ -156,12 +161,13 @@ fontSize = applyAttr . FontSize . Last
 data FontSlant = FontSlantNormal
                | FontSlantItalic
                | FontSlantOblique
+    deriving (Eq)
 
 -- | The @FontSlantA@ attribute specifies the slant (normal, italic,
 --   or oblique) that should be used for all text within a diagram.
 --   Inner @FontSlantA@ attributes override outer ones.
 newtype FontSlantA = FontSlantA (Last FontSlant)
-  deriving (Typeable, Semigroup)
+  deriving (Typeable, Semigroup, Eq)
 instance AttributeClass FontSlantA
 
 -- | Extract the font slant from a 'FontSlantA' attribute.
@@ -187,12 +193,13 @@ oblique = fontSlant FontSlantOblique
 
 data FontWeight = FontWeightNormal
                 | FontWeightBold
+    deriving (Eq)
 
 -- | The @FontWeightA@ attribute specifies the weight (normal or bold)
 --   that should be used for all text within a diagram.  Inner
 --   @FontWeightA@ attributes override outer ones.
 newtype FontWeightA = FontWeightA (Last FontWeight)
-  deriving (Typeable, Semigroup)
+  deriving (Typeable, Semigroup, Eq)
 instance AttributeClass FontWeightA
 
 -- | Extract the font weight from a 'FontWeightA' attribute.

@@ -1,10 +1,9 @@
-{-# LANGUAGE TypeFamilies
-           , FlexibleContexts
-           , FlexibleInstances
-           , MultiParamTypeClasses
-           , DeriveFunctor
-           , UndecidableInstances
-  #-}
+{-# LANGUAGE DeriveFunctor         #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE UndecidableInstances  #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Segment
@@ -37,16 +36,17 @@ module Diagrams.Segment
 
        ) where
 
-import Diagrams.Core
-import Diagrams.Parametric
-import Diagrams.Solve
-import Diagrams.Util
+import           Diagrams.Core
+import           Diagrams.Parametric
+import           Diagrams.Solve
+import           Diagrams.Util
 
-import Data.AffineSpace
-import Data.VectorSpace
+import           Data.AffineSpace
+import           Data.Default.Class
+import           Data.VectorSpace
 
-import Control.Applicative (liftA2)
-import Data.Semigroup
+import           Control.Applicative (liftA2)
+import           Data.Semigroup
 
 ------------------------------------------------------------
 --  Constructing segments  ---------------------------------
@@ -169,7 +169,7 @@ instance (VectorSpace v, Fractional (Scalar v)) => Sectionable (Segment v) where
           d = lerp c2    x2 t
           c = lerp p     d  t
           e = lerp b     c  t
-  
+
   reverseDomain (Linear v)       = Linear (negateV v)
   reverseDomain (Cubic c1 c2 x2) = Cubic (c2 ^-^ x2) (c1 ^-^ x2) (negateV x2)
 

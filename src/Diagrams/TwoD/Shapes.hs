@@ -22,6 +22,7 @@ module Diagrams.TwoD.Shapes
          -- * Regular polygons
 
        , regPoly
+       , triangle
        , eqTriangle
        , square
        , pentagon
@@ -56,7 +57,7 @@ import Diagrams.TwoD.Types
 
 import Diagrams.Util
 
-import Data.Default
+import Data.Default.Class
 import Data.Semigroup
 
 -- | Create a centered horizontal (L-R) line of the given length.
@@ -67,21 +68,41 @@ hrule d = pathLike (p2 (-d/2,0)) False [Linear (d & 0)]
 vrule :: (PathLike p, V p ~ R2) => Double -> p
 vrule d = pathLike (p2 (0,d/2)) False [Linear (0 & (-d))]
 
--- | A sqaure with its center at the origin and sides of length 1,
+-- | A square with its center at the origin and sides of length 1,
 --   oriented parallel to the axes.
 unitSquare :: (PathLike p, V p ~ R2) => p
 unitSquare = polygon with { polyType   = PolyRegular 4 (sqrt 2 / 2)
                           , polyOrient = OrientH }
 
--- | A sqaure with its center at the origin and sides of the given
+-- | A square with its center at the origin and sides of the given
 --   length, oriented parallel to the axes.
 square :: (PathLike p, Transformable p, V p ~ R2) => Double -> p
-square d = unitSquare # scale d
+square d = rect d d
 
 -- | @rect w h@ is an axis-aligned rectangle of width @w@ and height
 --   @h@, centered at the origin.
 rect :: (PathLike p, Transformable p, V p ~ R2) => Double -> Double -> p
-rect w h = unitSquare # scaleX w # scaleY h
+rect w h = pathLike p True (trailSegments t)
+  where
+    r     = unitSquare # scaleX w # scaleY h
+    (p,t) = head . pathTrails $ r
+
+    -- The above may seem a bit roundabout.  In fact, we used to have
+    --
+    --   rect w h = unitSquare # scaleX w # scaleY h
+    --
+    -- since unitSquare can produce any PathLike.  The current code
+    -- instead uses (unitSquare # scaleX w # scaleY h) to specifically
+    -- produce a Path, which is then deconstructed and passed into
+    -- 'pathLike' to create any PathLike.
+    --
+    -- The difference is that while scaling by zero works fine for
+    -- Path it does not work very well for, say, Diagrams (leading to
+    -- NaNs or worse).  This way, we force the scaling to happen on a
+    -- Path, where we know it will behave properly, and then use the
+    -- resulting geometry to construct an arbitrary PathLike.
+    --
+    -- See https://github.com/diagrams/diagrams-lib/issues/43 .
 
 ------------------------------------------------------------
 --  Regular polygons
@@ -101,10 +122,14 @@ regPoly n l = polygon with { polyType =
                            , polyOrient = OrientH
                            }
 
--- | An equilateral triangle, with sides of the given length and base parallel
---   to the x-axis.
+-- | A synonym for 'triangle', provided for backwards compatibility.
 eqTriangle :: (PathLike p, V p ~ R2) => Double -> p
-eqTriangle = regPoly 3
+eqTriangle = triangle
+
+-- | An equilateral triangle, with sides of the given length and base
+--   parallel to the x-axis.
+triangle :: (PathLike p, V p ~ R2) => Double -> p
+triangle = regPoly 3
 
 -- | A regular pentagon, with sides of the given length and base
 --   parallel to the x-axis.
@@ -205,7 +230,7 @@ roundedRect' w h opts
         mkCorner k r | r == 0    = mempty
                      | r < 0     = doArc 3 2
                      | otherwise = doArc 0 1
-                     where doArc d d' = arc ((k+d)/4) ((k+d')/4:: CircleFrac) # scale (abs r)
+                     where doArc d d' = arc' r ((k+d)/4) ((k+d')/4:: CircleFrac)
 
 data RoundedRectOpts = RoundedRectOpts { radiusTL :: Double
                                        , radiusTR :: Double

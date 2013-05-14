@@ -32,10 +32,13 @@ module Diagrams.Attributes (
   , LineColor, getLineColor, lineColor, lc, lcA
 
   -- ** Fill color
-  , FillColor, getFillColor, fillColor, fc, fcA
+  , FillColor, getFillColor, recommendFillColor, fillColor, fc, fcA
 
   -- ** Opacity
   , Opacity, getOpacity, opacity
+
+  -- ** Converting colors
+  , toRGBAUsingSpace, colorToSRGBA, colorToRGBA
 
   -- * Lines
   -- ** Width
@@ -52,14 +55,16 @@ module Diagrams.Attributes (
 
   ) where
 
-import Diagrams.Core
+import           Diagrams.Core
 
-import Data.Colour
-import qualified Data.Colour.SRGB as RGB
+import           Data.Colour
+import           Data.Colour.RGBSpace
+import           Data.Colour.SRGB (sRGBSpace)
 
-import Data.Typeable
+import           Data.Typeable
 
-import Data.Semigroup
+import           Data.Monoid.Recommend
+import           Data.Semigroup
 
 ------------------------------------------------------------
 --  Color  -------------------------------------------------
@@ -78,9 +83,8 @@ import Data.Semigroup
 --   both the 'Data.Colour.Colour' and 'Data.Colour.AlphaColour' types
 --   from the "Data.Colour" library.
 class Color c where
-  -- | Convert a color to red, green, blue, and alpha channels in the
-  --   range [0,1].
-  colorToRGBA :: c -> (Double,Double,Double,Double)
+  -- | Convert a color to its standard representation, AlphaColour
+  toAlphaColour :: c -> AlphaColour Double
 
 -- | An existential wrapper for instances of the 'Color' class.
 data SomeColor = forall c. Color c => SomeColor c
@@ -121,7 +125,7 @@ lcA = lineColor
 --   . 'fillColor' c2 $ d@ is equivalent to @'lineColor' c2 $ d@.
 --   More precisely, the semigroup structure on fill color attributes
 --   is that of 'Last'.
-newtype FillColor = FillColor (Last SomeColor)
+newtype FillColor = FillColor (Recommend (Last SomeColor))
   deriving (Typeable, Semigroup)
 instance AttributeClass FillColor
 
@@ -130,10 +134,15 @@ instance AttributeClass FillColor
 --   but this can sometimes create problems for type inference, so the
 --   'fc' and 'fcA' variants are provided with more concrete types.
 fillColor :: (Color c, HasStyle a) => c -> a -> a
-fillColor = applyAttr . FillColor . Last . SomeColor
+fillColor = applyAttr . FillColor . Commit . Last . SomeColor
+
+-- | Set a \"recommended\" fill color, to be used only if no explicit
+--   calls to 'fillColor' (or 'fc', or 'fcA') are used.
+recommendFillColor :: (Color c, HasStyle a) => c -> a -> a
+recommendFillColor = applyAttr . FillColor . Recommend . Last . SomeColor
 
 getFillColor :: FillColor -> SomeColor
-getFillColor (FillColor (Last c)) = c
+getFillColor (FillColor c) = getLast . getRecommend $ c
 
 -- | A synonym for 'fillColor', specialized to @'Colour' Double@
 --   (i.e. opaque colors).
@@ -146,29 +155,37 @@ fcA :: HasStyle a => AlphaColour Double -> a -> a
 fcA = fillColor
 
 instance (Floating a, Real a) => Color (Colour a) where
-  colorToRGBA col = (r,g,b,1)
-    where c' = RGB.toSRGB . colourConvert $ col
-          r  = RGB.channelRed c'
-          g  = RGB.channelGreen c'
-          b  = RGB.channelBlue c'
+  toAlphaColour = opaque . colourConvert
 
 instance (Floating a, Real a) => Color (AlphaColour a) where
-  colorToRGBA col = (r,g,b,a)
-    where col' = alphaColourConvert col
-          a  = alphaChannel col'
-          c' = RGB.toSRGB . alphaToColour $ col'
-          r  = RGB.channelRed c'
-          g  = RGB.channelGreen c'
-          b  = RGB.channelBlue c'
+  toAlphaColour = alphaColourConvert
 
 instance Color SomeColor where
-  colorToRGBA (SomeColor c) = colorToRGBA c
+  toAlphaColour (SomeColor c) = toAlphaColour c
 
 instance Color LineColor where
-  colorToRGBA (LineColor (Last c)) = colorToRGBA c
+  toAlphaColour (LineColor (Last c)) = toAlphaColour c
 
 instance Color FillColor where
-  colorToRGBA (FillColor (Last c)) = colorToRGBA c
+  toAlphaColour (FillColor c) = toAlphaColour . getLast . getRecommend $ c
+
+-- | Convert to an RGB space while preserving the alpha channel.
+toRGBAUsingSpace :: Color c => RGBSpace Double -> c
+                            -> (Double, Double, Double, Double)
+toRGBAUsingSpace s col = (r,g,b,a)
+  where c' = toAlphaColour col
+        c  = toRGBUsingSpace s (alphaToColour c')
+        a  = alphaChannel  c'
+        r  = channelRed   c
+        g  = channelGreen c
+        b  = channelBlue  c
+
+-- | Convert to sRGBA.
+colorToSRGBA, colorToRGBA :: Color c => c -> (Double, Double, Double, Double)
+colorToSRGBA = toRGBAUsingSpace sRGBSpace
+
+colorToRGBA = colorToSRGBA
+{-# DEPRECATED colorToRGBA "Renamed to colorToSRGBA." #-}
 
 alphaToColour :: (Floating a, Ord a, Fractional a) => AlphaColour a -> Colour a
 alphaToColour ac | alphaChannel ac == 0 = ac `over` black
@@ -238,7 +255,7 @@ data LineCap = LineCapButt   -- ^ Lines end precisely at their endpoints.
   deriving (Eq,Show,Typeable)
 
 newtype LineCapA = LineCapA (Last LineCap)
-  deriving (Typeable, Semigroup)
+  deriving (Typeable, Semigroup, Eq)
 instance AttributeClass LineCapA
 
 getLineCap :: LineCapA -> LineCap
@@ -258,7 +275,7 @@ data LineJoin = LineJoinMiter    -- ^ Use a \"miter\" shape (whatever that is).
   deriving (Eq,Show,Typeable)
 
 newtype LineJoinA = LineJoinA (Last LineJoin)
-  deriving (Typeable, Semigroup)
+  deriving (Typeable, Semigroup, Eq)
 instance AttributeClass LineJoinA
 
 getLineJoin :: LineJoinA -> LineJoin
@@ -270,10 +287,10 @@ lineJoin = applyAttr . LineJoinA . Last
 
 -- | Create lines that are dashing... er, dashed.
 data Dashing = Dashing [Double] Double
-  deriving Typeable
+  deriving (Typeable, Eq)
 
 newtype DashingA = DashingA (Last Dashing)
-  deriving (Typeable, Semigroup)
+  deriving (Typeable, Semigroup, Eq)
 instance AttributeClass DashingA
 
 getDashing :: DashingA -> Dashing

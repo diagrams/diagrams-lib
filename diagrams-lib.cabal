@@ -1,5 +1,5 @@
 Name:                diagrams-lib
-Version:             0.6
+Version:             0.6.1
 Synopsis:            Embedded domain-specific language for declarative graphics
 Description:         Diagrams is a flexible, extensible EDSL for creating
                      graphics of many types.  Graphics can be created
@@ -17,8 +17,8 @@ Bug-reports:         http://github.com/diagrams/diagrams-lib/issues
 Category:            Graphics
 Build-type:          Simple
 Cabal-version:       >=1.6
-Extra-source-files:  CHANGES, README
-Tested-with:         GHC == 6.12.3, GHC == 7.0.4, GHC == 7.2.1, GHC == 7.4.1
+Extra-source-files:  CHANGES.markdown, README.markdown
+Tested-with:         GHC == 7.0.4, GHC == 7.2.1, GHC == 7.4.2, GHC == 7.6.1
 Source-repository head
   type:     git
   location: http://github.com/diagrams/diagrams-lib.git
@@ -45,6 +45,8 @@ Library
                        Diagrams.TwoD.Ellipse,
                        Diagrams.TwoD.Arc,
                        Diagrams.TwoD.Segment,
+                       Diagrams.TwoD.Curvature,
+                       Diagrams.TwoD.Offset,
                        Diagrams.TwoD.Path,
                        Diagrams.TwoD.Polygons,
                        Diagrams.TwoD.Shapes,
@@ -60,17 +62,17 @@ Library
                        Diagrams.Animation.Active,
                        Diagrams.Util,
                        Diagrams.Backend.Show
-  Build-depends:       base >= 4.2 && < 4.7,
+  Build-depends:       base >= 4.2 && < 4.8,
                        containers >= 0.3 && < 0.6,
                        array >= 0.3 && < 0.5,
-                       semigroups >= 0.3.4 && < 0.9,
-                       monoid-extras >= 0.2 && < 0.3,
+                       semigroups >= 0.3.4 && < 0.10,
+                       monoid-extras >= 0.2.2 && < 0.3,
                        diagrams-core >= 0.6 && < 0.7,
                        active >= 0.1 && < 0.2,
                        vector-space >= 0.7.7 && < 0.9,
-                       NumInstances >= 1.0 && < 1.1,
+                       NumInstances >= 1.2 && < 1.4,
                        colour >= 2.3.2 && < 2.4,
-                       data-default >= 0.2 && < 0.6,
+                       data-default-class < 0.1,
                        pretty >= 1.0.1.2 && < 1.2,
                        newtype >= 0.2 && < 0.3
   Hs-source-dirs:      src

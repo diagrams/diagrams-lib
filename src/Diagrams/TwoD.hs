@@ -87,6 +87,8 @@ module Diagrams.TwoD
        , ellipse
        , ellipseXY
        , arc
+       , arc'
+       , arcCW
        , wedge
 
          -- ** General polygons
@@ -98,6 +100,7 @@ module Diagrams.TwoD
 
          -- ** Regular polygons
        , regPoly
+       , triangle
        , eqTriangle
        , square
        , pentagon
@@ -147,13 +150,20 @@ module Diagrams.TwoD
        , shearingY, shearY
 
          -- * Combinators
+         -- ** Combining multiple diagrams
        , (===), (|||), atAngle
        , hcat, hcat'
        , vcat, vcat'
 
+         -- ** Spacing and envelopes
        , strutX, strutY
        , padX, padY
+
+       , extrudeLeft, extrudeRight, extrudeBottom, extrudeTop
+
        , view
+
+         -- ** Background
 
        , boundingRect, bg
 
@@ -164,12 +174,15 @@ module Diagrams.TwoD
 
          -- * Size
          -- ** Computing size
-       , width, height, size2D
+       , width, height, size2D, sizeSpec2D
        , extentX, extentY, center2D
 
          -- ** Specifying size
        , SizeSpec2D(..)
        , mkSizeSpec
+
+         -- ** Adjusting size
+       , sized, sizedAs
 
          -- * Visual aids for understanding the internal model
        , showOrigin

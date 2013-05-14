@@ -19,6 +19,7 @@
 module Diagrams.Backend.Show where
 
 import Diagrams.Prelude
+import Diagrams.Core.Transform (onBasis)
 
 import Data.Basis
 
@@ -46,14 +47,8 @@ instance Monoid (Render ShowBackend v) where
 renderTransf :: forall v. (Num (Scalar v), HasLinearMap v, Show (Scalar v))
              => Transformation v -> Doc
 renderTransf t = renderMat mat
-  where tr :: v
-        tr    = transl t
-        basis :: [Basis v]
-        basis = map fst (decompose tr)
-        es :: [v]
-        es    = map basisValue basis
-        vmat :: [v]
-        vmat = map (apply t) es
+  where vmat :: [v]
+        (vmat, _) = onBasis t
         mat :: [[Scalar v]]
         mat = map decompV vmat
 --        mat' :: [[Scalar v]]
