@@ -200,7 +200,7 @@ adjust :: (DomainBounds a, Sectionable a, ArcLengthToParam a, Fractional (Scalar
        => a -> AdjustOpts (V a) -> a
 adjust s opts = section s
   (if adjSide opts == End   then domainLower s else getParam s)
-  (if adjSide opts == Start then domainLower s else domainUpper s - getParam (reverseDomain s))
+  (if adjSide opts == Start then domainUpper s else domainUpper s - getParam (reverseDomain s))
  where
   getParam seg = case adjMethod opts of
     ByParam p -> -p * bothCoef
