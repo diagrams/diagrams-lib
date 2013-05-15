@@ -2,10 +2,21 @@
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE UndecidableInstances #-}
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  Diagrams.Parametric
+-- Copyright   :  (c) 2013 diagrams-lib team (see LICENSE)
+-- License     :  BSD-style (see LICENSE)
+-- Maintainer  :  diagrams-discuss@googlegroups.com
+--
+-- Type classes for things which are parameterized in some way, /e.g./
+-- segments, trails, and paths.
+--
+-----------------------------------------------------------------------------
 module Diagrams.Parametric
   (
   -- * Parametric functions
-  	Codomain, Parametric(..), ArcLength(..), ArcLengthToParam(..)
+    Codomain, Parametric(..), ArcLength(..), ArcLengthToParam(..)
 
   , DomainBounds(..), EndValues(..), Sectionable(..)
 
@@ -19,115 +30,132 @@ import           Diagrams.Util
 import           Data.Default.Class
 import           Data.VectorSpace
 
--- | Codomain of parametric classes.  This is usually either (V p), for relative
---   vector results, or (Point (V p)), for functions with absolute coordinates.
+-- | Codomain of parametric classes.  This is usually either @(V p)@, for relative
+--   vector results, or @(Point (V p))@, for functions with absolute coordinates.
 type family Codomain p :: *
 
--- | Type class for parameteric functions.
+-- | Type class for parametric functions.
 class Parametric p where
--- | 'atParam' yields a parametrized view of relative paths as continuous
---   functions. It is designed to be used infix, like @path ``atParam`` 0.5@.
+-- | 'atParam' yields a parameterized view of an object as a
+--   continuous function. It is designed to be used infix, like @path
+--   ``atParam`` 0.5@.
   atParam :: p -> Scalar (V p) -> Codomain p
 
--- | Type class for parametric functions with a bounded domain.
+-- | Type class for parametric functions with a bounded domain.  The
+--   default bounds are @[0,1]@.
 --
 --   Note that this domain indicates the main \"interesting\" portion of the
 --   function.  It must be defined within this range, but for some instances may
 --   still have sensible values outside.
 class DomainBounds p where
-  -- | 'domainLower' defaults to being constantly 0 (for vectorspaces with
+  -- | 'domainLower' defaults to being constantly 0 (for vector spaces with
   --   numeric scalars).
   domainLower :: p -> Scalar (V p)
 
   default domainLower :: Num (Scalar (V p)) => p -> Scalar (V p)
   domainLower = const 0
 
-  -- | 'domainUpper' defaults to (0, 1), as the unit domain is common.
+  -- | 'domainUpper' defaults to being constantly 1 (for vector spaces
+  --   with numeric scalars).
   domainUpper :: p -> Scalar (V p)
 
   default domainUpper :: Num (Scalar (V p)) => p -> Scalar (V p)
   domainUpper = const 1
 
--- | Type class for querying the value of the function at the ends of its domain.
+-- | Type class for querying the values of a parametric object at the
+--   ends of its domain.
 class EndValues p where
-  -- | 'startPoint' is the vector to / point at the start of the path.
+  -- | 'atStart' is the value at the start of the domain.  That is,
   --
-  --   @ offset path = path ``atParam`` fst (domainBounds path) @
+  --   > atStart x = x `atParam` domainLower x
   --
   --   This is the default implementation, but some representations will
-  --   have a more efficient and precise implementation.
+  --   have a more efficient and/or precise implementation.
   atStart :: p -> Codomain p
 
   default atStart :: (Parametric p, DomainBounds p) => p -> Codomain p
-  atStart path = path `atParam` domainLower path
+  atStart x = x `atParam` domainLower x
 
-  -- | 'endPoint' is the vector to / point at the end of the path.
+  -- | 'atEnd' is the value at the end of the domain. That is,
   --
-  --   @ offset path = path ``atParam`` snd (domainBounds path) @
+  --   > atEnd x = x `atParam` domainUpper x
   --
   --   This is the default implementation, but some representations will
-  --   have a more efficient and precise implementation.
+  --   have a more efficient and/or precise implementation.
   atEnd :: p -> Codomain p
 
   default atEnd :: (Parametric p, DomainBounds p) => p -> Codomain p
-  atEnd path = path `atParam` domainUpper path
+  atEnd x = x `atParam` domainUpper x
 
+-- | Return the lower and upper bounds of a parametric domain together
+--   as a pair.
 domainBounds :: DomainBounds p => p -> (Scalar (V p), Scalar (V p))
-domainBounds path = (domainLower path, domainUpper path)
+domainBounds x = (domainLower x, domainUpper x)
 
--- | Type class for domain manipulation of parametric functions.
+-- | Type class for parametric objects which can be split into
+--   subobjects.
 --
 --   Minimal definition: Either 'splitAtParam' or 'section'.
 class DomainBounds p => Sectionable p where
-  -- | 'splitAtParam' splits a path @p@ into two new paths @(l,r)@
-  --   at the parameter @t@ where @l@ corresponds to the portion of
-  --   @f@ for parameter values from @0@ to @t@ and @r@ for @s@ from @t@ to @1@.
-  --   The following should hold for splitting:
+  -- | 'splitAtParam' splits an object @p@ into two new objects
+  --   @(l,r)@ at the parameter @t@, where @l@ corresponds to the
+  --   portion of @p@ for parameter values from @0@ to @t@ and @r@ for
+  --   to that from @t@ to @1@.  The following property should hold:
   --
-  -- > paramSplit f t u =
+  -- > prop_splitAtParam f t u =
   -- >   | u < t     = atParam f u == atParam l (u / t)
-  -- >   | otherwise = atParam f u == atParam f t ^+^ atParam l ((u - t) / (snd (domainBounds f) - t))
+  -- >   | otherwise = atParam f u == atParam f t ??? atParam l ((u - t) / (domainUpper f - t))
   -- >   where (l,r) = splitAtParam f t
   --
-  --   That is to say, the parameterization scales linearly with splitting.
+  --   where @(???) = (^+^)@ if the codomain is a vector type, or
+  --   @const flip@ if the codomain is a point type.  Stated more
+  --   intuitively, all this is to say that the parameterization
+  --   scales linearly with splitting.
   --
-  --   'splitAtParam' can also be used with parameters outside the range
-  --   of the domain.  For example, using the parameter @2@ gives two result
-  --   paths where the first is the original path extended to the
-  --   parameter 2, and the second result path travels /backwards/
-  --   from the end of the first to the end of the original function.
+  --   'splitAtParam' can also be used with parameters outside the
+  --   range of the domain.  For example, using the parameter @2@ with
+  --   a path (where the domain is the default @[0,1]@) gives two
+  --   result paths where the first is the original path extended to
+  --   the parameter 2, and the second result path travels /backwards/
+  --   from the end of the first to the end of the original path.
   splitAtParam :: p -> Scalar (V p) -> (p, p)
-  splitAtParam path t
-    = ( section path (domainLower path) t
-      , section path t (domainUpper path))
+  splitAtParam x t
+    = ( section x (domainLower x) t
+      , section x t (domainUpper x))
 
-  -- > \path l u t -> let s = section path l u
-  -- >   in domainLower path == domainLower s
-  -- >   && domainUpper path == domainUpper s
-  -- >   && (path `atParam` lerp l u t) == (s `atParam` t)
+  -- | Extract a particular section of the domain, linearly
+  --   reparameterized to the same domain as the original.  Should
+  --   satisfy the property:
+  --
+  -- > prop_section x l u t =
+  -- >   let s = section x l u
+  -- >   in     domainBounds x == domainBounds x
+  -- >       && (x `atParam` lerp l u t) == (s `atParam` t)
+  --
+  --   That is, the section should have the same domain as the
+  --   original, and the reparameterization should be linear.
   section :: p -> Scalar (V p) -> Scalar (V p) -> p
   default section :: Fractional (Scalar (V p)) => p -> Scalar (V p) -> Scalar (V p) -> p
-  section path t1 t2 = snd (splitAtParam (fst (splitAtParam path t2)) (t1/t2))
+  section x t1 t2 = snd (splitAtParam (fst (splitAtParam x t2)) (t1/t2))
 
-  -- Flip about the domain bounds.  This has the following default definition
+  -- | Flip the parameterization on the domain.  This has the
+  --   following default definition:
   --
-  -- > reverse path = section path (domainUpper path) (domainLower path)
+  -- > reverse x = section x (domainUpper x) (domainLower x)
   reverseDomain :: p -> p
-  reverseDomain path = section path (domainUpper path) (domainLower path)
+  reverseDomain x = section x (domainUpper x) (domainLower x)
 
-
--- | Type class for computing the arc length of a parametric path.
+-- | Type class for parametric things with a notion of arc length.
 class Parametric p => ArcLength p where
-  -- Approximates the arc length up to the given accuracy (plus or minus).
+  -- | @arcLength x eps@ approximates the arc length of @x@ up to the
+  --   accuracy @eps@ (plus or minus).
   arcLength :: p -> Scalar (V p) -> Scalar (V p)
 
--- | Type class for computing the parameter for a given arc length.
-class ArcLength p => ArcLengthToParam p where
-  -- | @'arcLengthToParam' s l m@ converts the absolute arc length @l@,
-  --   measured from the segment starting point, to a parameter on the
-  --   segment @s@, with accuracy of at least plus or minus @m@.  Works
-  --   for /any/ arc length, and may return any parameter value (not
-  --   just parameters between 0 and 1).
+  -- | @'arcLengthToParam' s l m@ converts the absolute arc length
+  --   @l@, measured from the start of the domain, to a parameter on
+  --   the object @s@, with accuracy of at least plus or minus @m@.
+  --   This should work for /any/ arc length, and may return any
+  --   parameter value (not just parameters in the domain).
   arcLengthToParam :: p -> Scalar (V p) -> Scalar (V p) -> Scalar (V p)
 
 --------------------------------------------------
@@ -150,11 +178,11 @@ data AdjustSide = Start  -- ^ Adjust only the beginning
   deriving (Show, Read, Eq, Ord, Bounded, Enum)
 
 -- | How should a segment, trail, or path be adjusted?
-data AdjustOpts v = ALO { adjMethod       :: AdjustMethod v
-                        , adjSide         :: AdjustSide
-                        , adjEps          :: Scalar v
-                        , adjOptsvProxy__ :: Proxy v
-                        }
+data AdjustOpts v = AO { adjMethod       :: AdjustMethod v
+                       , adjSide         :: AdjustSide
+                       , adjEps          :: Scalar v
+                       , adjOptsvProxy__ :: Proxy v
+                       }
 
 instance Fractional (Scalar v) => Default (AdjustMethod v) where
   def = ByParam 0.2
@@ -163,7 +191,7 @@ instance Default AdjustSide where
   def = Both
 
 instance Fractional (Scalar v) => Default (AdjustOpts v) where
-  def = ALO def def (1/10^(10 :: Integer)) Proxy
+  def = AO def def (1/10^(10 :: Integer)) Proxy
 
 -- | Adjust the length of a parametric path.  The second parameter is an
 --   option record which controls how the adjustment should be performed;
