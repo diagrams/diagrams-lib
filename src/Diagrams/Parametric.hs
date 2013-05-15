@@ -16,7 +16,7 @@
 module Diagrams.Parametric
   (
   -- * Parametric functions
-    Codomain, Parametric(..), ArcLength(..), ArcLengthToParam(..)
+    Codomain, Parametric(..), ArcLength(..)
 
   , DomainBounds(..), EndValues(..), Sectionable(..)
 

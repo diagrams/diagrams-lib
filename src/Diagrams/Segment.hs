@@ -177,7 +177,7 @@ instance (VectorSpace v, Fractional (Scalar v)) => Sectionable (Segment v) where
 --   accuracy of at least plus or minus @m@.  For a 'Cubic' segment this is computed
 --   by subdividing until the arc length of the path through the control points is
 --   within @m@ of distance from start to end.
-instance (InnerSpace v, Floating (Scalar v), Ord (Scalar v))
+instance (InnerSpace v, Floating (Scalar v), Ord (Scalar v), AdditiveGroup v)
       => ArcLength (Segment v) where
   arcLength (Linear x1) _ = magnitude x1
   arcLength s@(Cubic c1 c2 x2) m
@@ -187,13 +187,6 @@ instance (InnerSpace v, Floating (Scalar v), Ord (Scalar v))
          ub    = sum (map magnitude [c1, c2 ^-^ c1, x2 ^-^ c2])
          lb    = magnitude x2
 
--- | @'arcLengthToParam' s l m@ converts the absolute arc length @l@,
---   measured from the segment starting point, to a parameter on the
---   segment @s@, with accuracy of at least plus or minus @m@.  Works
---   for /any/ arc length, and may return any parameter value (not
---   just parameters between 0 and 1).
-instance (InnerSpace v, Floating (Scalar v), Ord (Scalar v), AdditiveGroup v)
-      => ArcLengthToParam (Segment v) where
   arcLengthToParam s _ m | arcLength s m == 0 = 0.5
   arcLengthToParam s@(Linear {}) len m = len / arcLength s m
   arcLengthToParam s@(Cubic {})  len m
