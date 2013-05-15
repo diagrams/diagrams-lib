@@ -196,7 +196,7 @@ instance Fractional (Scalar v) => Default (AdjustOpts v) where
 -- | Adjust the length of a parametric path.  The second parameter is an
 --   option record which controls how the adjustment should be performed;
 --   see 'AdjustOpts'.
-adjust :: (DomainBounds a, Sectionable a, ArcLengthToParam a, Fractional (Scalar (V a)))
+adjust :: (DomainBounds a, Sectionable a, ArcLength a, Fractional (Scalar (V a)))
        => a -> AdjustOpts (V a) -> a
 adjust s opts = section s
   (if adjSide opts == End   then domainLower s else getParam s)
