@@ -118,5 +118,9 @@ connectPath' opts n1 n2 =
 
     -- XXX ugh, how to actually make the above work?
 
+    -- XXX just do the name lookups directly.  I guess we need to
+    -- return a Maybe (Path R2). Probably want to export some nicer functions
+    -- for doing name lookups and use those.
+
     -- XXX how to remove duplication between connect' and connectPath'?
 -}
