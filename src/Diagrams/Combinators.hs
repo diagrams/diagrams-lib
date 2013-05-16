@@ -1,8 +1,7 @@
-{-# LANGUAGE TypeFamilies
-           , FlexibleContexts
-           , UndecidableInstances
-           , MultiParamTypeClasses
-  #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE UndecidableInstances  #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Combinators
@@ -28,23 +27,24 @@ module Diagrams.Combinators
 
          -- * n-ary operations
        , appends
-       , position, decorateTrail, decoratePath
+       , position, decorateTrail, decorateLocatedTrail, decoratePath
        , cat, cat', CatOpts(..), CatMethod(..)
 
        ) where
 
-import Diagrams.Core
+import           Data.AdditiveGroup
+import           Data.AffineSpace   ((.+^))
+import           Data.Default.Class
+import           Data.Semigroup
+import           Data.VectorSpace
 
-import Diagrams.Segment (Segment(..))
-import Diagrams.Path
-import Diagrams.Util
-
-import Data.AdditiveGroup
-import Data.VectorSpace
-
-import Data.Semigroup
-
-import Data.Default.Class
+import           Diagrams.Core
+import           Diagrams.Located
+import           Diagrams.Path
+import           Diagrams.Segment   (Segment (..), straight)
+import           Diagrams.Trail     (Trail, trailVertices)
+import           Diagrams.TrailLike (fromOffsets)
+import           Diagrams.Util
 
 ------------------------------------------------------------
 -- Working with envelopes
@@ -92,7 +92,7 @@ strut :: ( Backend b v, InnerSpace v
          )
       => v -> QDiagram b v m
 strut v = mkQD nullPrim env mempty mempty mempty
-  where env = translate ((-0.5) *^ v) . getEnvelope $ Linear v
+  where env = translate ((-0.5) *^ v) . getEnvelope $ straight v
   -- note we can't use 'phantom' here because it tries to construct a
   -- trace as well, and segments do not have a trace in general (only
   -- in 2D; see Diagrams.TwoD.Segment).  This is a good reason to have
@@ -209,15 +209,26 @@ position = mconcat . map (uncurry moveTo)
 --   trail is placed at the origin.  If the trail and list of objects
 --   have different lengths, the extra tail of the longer one is
 --   ignored.
-decorateTrail :: (HasOrigin a, Monoid' a) => Trail (V a) -> [a] -> a
-decorateTrail t = position . zip (trailVertices origin t)
+decorateTrail :: (InnerSpace (V a), OrderedField (Scalar (V a)), HasOrigin a, Monoid' a)
+              => Trail (V a) -> [a] -> a
+decorateTrail = decorateLocatedTrail . (`at` origin)
+
+-- | Combine a list of diagrams (or paths) by using them to
+--   \"decorate\" a concretely located trail, placing the local origin
+--   of one object at each successive vertex of the trail. If the
+--   trail and list of objects have different lengths, the extra tail
+--   of the longer one is ignored.
+decorateLocatedTrail :: (InnerSpace (V a), OrderedField (Scalar (V a)), HasOrigin a, Monoid' a)
+              => Located (Trail (V a)) -> [a] -> a
+decorateLocatedTrail t = position . zip (trailVertices t)
 
 -- | Combine a list of diagrams (or paths) by using them to
 --   \"decorate\" a path, placing the local origin of one object at
 --   each successive vertex of the path.  If the path and list of objects
 --   have different lengths, the extra tail of the longer one is
 --   ignored.
-decoratePath :: (HasOrigin a, Monoid' a) => Path (V a) -> [a] -> a
+decoratePath :: (InnerSpace (V a), OrderedField (Scalar (V a)), HasOrigin a, Monoid' a)
+             => Path (V a) -> [a] -> a
 decoratePath p = position . zip (concat $ pathVertices p)
 
 -- | Methods for concatenating diagrams.
@@ -278,7 +289,7 @@ instance Num (Scalar v) => Default (CatOpts v) where
 --   See also 'cat'', which takes an extra options record allowing
 --   certain aspects of the operation to be tweaked.
 cat :: ( Juxtaposable a, Monoid' a, HasOrigin a
-       , InnerSpace (V a), Floating (Scalar (V a))
+       , InnerSpace (V a), OrderedField (Scalar (V a))
        )
        => V a -> [a] -> a
 cat v = cat' v def
@@ -301,7 +312,7 @@ cat v = cat' v def
 --   (distributing with a separation of 0 is the same as
 --   superimposing).
 cat' :: ( Juxtaposable a, Monoid' a, HasOrigin a
-        , InnerSpace (V a), Floating (Scalar (V a))
+        , InnerSpace (V a), OrderedField (Scalar (V a))
         )
      => V a -> CatOpts (V a) -> [a] -> a
 cat' v (CatOpts { catMethod = Cat, sep = s }) = foldB comb mempty
@@ -309,5 +320,4 @@ cat' v (CatOpts { catMethod = Cat, sep = s }) = foldB comb mempty
         vs = s *^ normalized (negateV v)
 
 cat' v (CatOpts { catMethod = Distrib, sep = s }) =
-  decorateTrail . fromOffsets . repeat $ s *^ normalized v
-  -- infinite trail, no problem for Haskell =D
+  position . zip (iterate (.+^ (s *^ normalized v)) origin)

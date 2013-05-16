@@ -1,7 +1,6 @@
-{-# LANGUAGE TypeFamilies
-           , FlexibleContexts
-           , MultiParamTypeClasses
-  #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeFamilies          #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Animation
@@ -30,21 +29,21 @@ module Diagrams.Animation
 
        ) where
 
-import Diagrams.Core
+import           Diagrams.Core
 
-import Diagrams.Combinators
-import Diagrams.Animation.Active ()
-import Diagrams.BoundingBox
-import Diagrams.TwoD.Shapes
-import Diagrams.TwoD.Types
-import Diagrams.Path
+import           Diagrams.Animation.Active ()
+import           Diagrams.BoundingBox
+import           Diagrams.Combinators
+import           Diagrams.TrailLike
+import           Diagrams.TwoD.Shapes
+import           Diagrams.TwoD.Types
 
-import Data.Active
-import Data.Semigroup
+import           Data.Active
+import           Data.Semigroup
 
-import Control.Applicative ((<$>))
-import Data.Foldable       (foldMap)
-import Data.VectorSpace
+import           Control.Applicative       ((<$>))
+import           Data.Foldable             (foldMap)
+import           Data.VectorSpace
 
 -- | A value of type @QAnimation b v m@ is an animation (a
 --   time-varying diagram with start and end times) that can be
@@ -110,16 +109,16 @@ animEnvelope' r a = withEnvelope (simulate r a) <$> a
 --
 --   Uses 30 samples per time unit by default; to adjust this number
 --   see 'animRect''.
-animRect :: (PathLike p, Enveloped p, Transformable p, V p ~ R2)
-         => QAnimation b R2 m -> p
+animRect :: (TrailLike t, Enveloped t, Transformable t, Monoid t, V t ~ R2)
+         => QAnimation b R2 m -> t
 animRect = animRect' 30
 
 -- | Like 'animRect', but with an adjustible sample rate.  The first
 --   parameter is the number of samples per time unit to use.  Lower
 --   rates will be faster but less accurate; higher rates are more
 --   accurate but slower.
-animRect' :: (PathLike p, Enveloped p, Transformable p, V p ~ R2)
-          => Rational -> QAnimation b R2 m -> p
+animRect' :: (TrailLike t, Enveloped t, Transformable t, Monoid t, V t ~ R2)
+          => Rational -> QAnimation b R2 m -> t
 animRect' r anim
     | null results = rect 1 1
     | otherwise    = boxFit (foldMap boundingBox results) (rect 1 1)

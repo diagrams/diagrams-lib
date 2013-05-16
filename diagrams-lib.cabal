@@ -30,7 +30,10 @@ Library
                        Diagrams.Coordinates,
                        Diagrams.Attributes,
                        Diagrams.Points,
+                       Diagrams.Located,
                        Diagrams.Segment,
+                       Diagrams.Trail,
+                       Diagrams.TrailLike,
                        Diagrams.Path,
                        Diagrams.CubicSpline,
                        Diagrams.CubicSpline.Internal,
@@ -74,5 +77,6 @@ Library
                        colour >= 2.3.2 && < 2.4,
                        data-default-class < 0.1,
                        pretty >= 1.0.1.2 && < 1.2,
-                       newtype >= 0.2 && < 0.3
+                       newtype >= 0.2 && < 0.3,
+                       fingertree >= 0.1 && < 0.2
   Hs-source-dirs:      src
