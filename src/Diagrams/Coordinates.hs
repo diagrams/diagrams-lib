@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeFamilies  #-}
 {-# LANGUAGE TypeOperators #-}
 -----------------------------------------------------------------------------
 -- |
@@ -9,6 +9,11 @@
 --
 -- Nice syntax for constructing and pattern-matching on literal
 -- points and vectors.
+--
+-- NOTE: to avoid clashing with the '(&)' operator from the @lens@
+-- package, this module is not re-exported by "Diagrams.Prelude".  To
+-- make use of the contents of this module, you must explicitly import
+-- it.
 --
 -----------------------------------------------------------------------------
 
