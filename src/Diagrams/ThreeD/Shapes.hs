@@ -1,5 +1,7 @@
 {-# LANGUAGE TypeFamilies
            , FlexibleContexts
+           , FlexibleInstances
+           , InstanceSigs
            , MultiParamTypeClasses
            , ViewPatterns
   #-}
@@ -17,18 +19,24 @@
 module Diagrams.ThreeD.Shapes
        (
          Ellipsoid(..)
-       , sphere
+       , sphere,
+         NurbsSurface(..),
+         surfaceGrid
        ) where
 
 import Prelude hiding (minimum)
 import Data.Semigroup
+import qualified Data.Vector as V
+import Control.Arrow
 
 import Data.AffineSpace
 import Data.Monoid.PosInf (minimum)
 import Data.VectorSpace
+import Math.Spline.Knots
 
 import Diagrams.Core
 
+import Diagrams.ThreeD.NurbsSurface
 import Diagrams.ThreeD.Types
 import Diagrams.Solve
 
@@ -57,3 +65,16 @@ sphere = mkQD (Prim $ Ellipsoid mempty)
                 c = p' <.> p' - 1
                 p' = p .-. origin
         sphereQuery v = Any $ magnitudeSq (v .-. origin) <= 1
+
+type instance V NurbsSurface = R3
+
+instance Transformable NurbsSurface where
+  transform t (NurbsSurface uk vk cps) = NurbsSurface uk vk cps' where
+    cps' = (map . map) tr cps
+    tr (H w r) = H w (transform t r)
+
+instance IsPrim NurbsSurface
+
+instance Renderable NurbsSurface NullBackend where
+  render _ _ = mempty
+
