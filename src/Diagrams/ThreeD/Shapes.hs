@@ -20,19 +20,20 @@ module Diagrams.ThreeD.Shapes
        (
          Ellipsoid(..)
        , sphere,
+         cylinder,
          NurbsSurface(..),
-         surfaceGrid
        ) where
 
 import Prelude hiding (minimum)
 import Data.Semigroup
+import Data.Monoid.PosInf
 import qualified Data.Vector as V
 import Control.Arrow
 
 import Data.AffineSpace
 import Data.Monoid.PosInf (minimum)
 import Data.VectorSpace
-import Math.Spline.Knots
+import Math.Spline.Knots as K
 
 import Diagrams.Core
 
@@ -78,3 +79,27 @@ instance IsPrim NurbsSurface
 instance Renderable NurbsSurface NullBackend where
   render _ _ = mempty
 
+cylinder :: (Backend b R3, Renderable NurbsSurface b) => Diagram b R3
+cylinder = nurbsQD $ cyl
+
+-- for debugging purposes, seperate this from cylinder above
+cyl :: NurbsSurface
+cyl = NurbsSurface
+           (K.mkKnots [0,0,1,1])
+           (K.mkKnots [0,0,0,0.25,0.25,0.5,0.5,0.75,0.75,1,1,1])
+           [zipWith H wts circ, zipWith H wts $ map (^+^ zhat) circ] where
+             zhat = r3 (0,0,1)
+             wts = concat. repeat $ [1, sqrt 2 / 2]
+             circ = [r3 (1,0,0),   r3 (1,1,0),
+                     r3 (0,1,0),   r3 (-1,1,0),
+                     r3 (-1,0,0), r3 (-1,-1,0),
+                     r3 (0,-1,0), r3 (1,-1,0),
+                     r3 (1,0,0)]
+
+nurbsQD :: (Backend b R3, Renderable NurbsSurface b) =>
+           NurbsSurface -> Diagram b R3
+nurbsQD n = mkQD (Prim n) nurbsEnv nurbsTrace mempty nurbsQuery where
+  -- XXX TODO these are placeholders, entirely incorrect
+  nurbsEnv = mkEnvelope $ \v -> 1 / magnitudeSq v
+  nurbsTrace = mkTrace $ \_ _ -> Finite 1
+  nurbsQuery = Query $ \v -> Any $ magnitudeSq (v .-. origin) <= 1
