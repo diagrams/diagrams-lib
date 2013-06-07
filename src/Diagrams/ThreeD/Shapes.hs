@@ -37,7 +37,7 @@ import Math.Spline.Knots as K
 
 import Diagrams.Core
 
-import Diagrams.ThreeD.NurbsSurface
+import Math.Spline.NurbsSurface
 import Diagrams.ThreeD.Types
 import Diagrams.Solve
 
@@ -72,7 +72,7 @@ type instance V NurbsSurface = R3
 instance Transformable NurbsSurface where
   transform t (NurbsSurface uk vk cps) = NurbsSurface uk vk cps' where
     cps' = (map . map) tr cps
-    tr (H w r) = H w (transform t r)
+    tr (H w r) = H w (unr3 . transform t . r3 $ r)
 
 instance IsPrim NurbsSurface
 
@@ -88,13 +88,13 @@ cyl = NurbsSurface
            (K.mkKnots [0,0,1,1])
            (K.mkKnots [0,0,0,0.25,0.25,0.5,0.5,0.75,0.75,1,1,1])
            [zipWith H wts circ, zipWith H wts $ map (^+^ zhat) circ] where
-             zhat = r3 (0,0,1)
+             zhat = (0,0,1)
              wts = concat. repeat $ [1, sqrt 2 / 2]
-             circ = [r3 (1,0,0),   r3 (1,1,0),
-                     r3 (0,1,0),   r3 (-1,1,0),
-                     r3 (-1,0,0), r3 (-1,-1,0),
-                     r3 (0,-1,0), r3 (1,-1,0),
-                     r3 (1,0,0)]
+             circ = [(1,0,0),   (1,1,0),
+                     (0,1,0),   (-1,1,0),
+                     (-1,0,0), (-1,-1,0),
+                     (0,-1,0), (1,-1,0),
+                     (1,0,0)]
 
 nurbsQD :: (Backend b R3, Renderable NurbsSurface b) =>
            NurbsSurface -> Diagram b R3
