@@ -101,6 +101,6 @@ nurbsQD :: (Backend b R3, Renderable NurbsSurface b) =>
            NurbsSurface -> Diagram b R3
 nurbsQD n = mkQD (Prim n) nurbsEnv nurbsTrace mempty nurbsQuery where
   -- XXX TODO these are placeholders, entirely incorrect
-  nurbsEnv = mkEnvelope $ \v -> 1 / magnitudeSq v
-  nurbsTrace = mkTrace $ \_ _ -> Finite 1
-  nurbsQuery = Query $ \v -> Any $ magnitudeSq (v .-. origin) <= 1
+  nurbsEnv = undefined
+  nurbsTrace = undefined
+  nurbsQuery = undefined
