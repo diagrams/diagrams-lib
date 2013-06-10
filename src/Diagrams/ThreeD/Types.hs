@@ -24,7 +24,11 @@ module Diagrams.ThreeD.Types
          R3, r3, unr3
        , P3, p3, unp3
        , T3
-
+         
+         -- * Angles
+       , Angle(..)
+       , CircleFrac(..), Rad(..), Deg(..)
+       , fullCircle, convertAngle
        ) where
 
 import Diagrams.Coordinates
