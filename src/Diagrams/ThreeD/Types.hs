@@ -35,6 +35,7 @@ import Control.Newtype
 
 import Data.Basis
 import Data.VectorSpace
+import Data.Cross
 
 ------------------------------------------------------------
 -- 3D Euclidean space
@@ -95,3 +96,5 @@ type T3 = Transformation R3
 instance Transformable R3 where
   transform = apply
 
+instance HasCross3 R3 where
+  cross3 u v = r3 $ cross3 (unr3 u) (unr3 v)
