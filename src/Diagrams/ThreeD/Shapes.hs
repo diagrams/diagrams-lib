@@ -21,6 +21,7 @@ module Diagrams.ThreeD.Shapes
          Ellipsoid(..)
        , sphere,
          cylinder,
+         cyl,
          NurbsSurface(..),
        ) where
 
@@ -87,14 +88,14 @@ cyl :: NurbsSurface
 cyl = NurbsSurface
            (K.mkKnots [0,0,1,1])
            (K.mkKnots [0,0,0,0.25,0.25,0.5,0.5,0.75,0.75,1,1,1])
-           [zipWith H wts circ, zipWith H wts $ map (^+^ zhat) circ] where
-             zhat = (0,0,1)
+           [zipWith H wts circ, zipWith H wts $ map (^+^ xhat) circ] where
+             xhat = (1,0,0)
              wts = concat. repeat $ [1, sqrt 2 / 2]
-             circ = [(1,0,0),   (1,1,0),
-                     (0,1,0),   (-1,1,0),
-                     (-1,0,0), (-1,-1,0),
-                     (0,-1,0), (1,-1,0),
-                     (1,0,0)]
+             circ = [(0,1,0),   (0,1,1),
+                     (0,0,1),   (0,-1,1),
+                     (0,-1,0), (0,-1,-1),
+                     (0,0,-1), (0,1,-1),
+                     (0,1,0)]
 
 nurbsQD :: (Backend b R3, Renderable NurbsSurface b) =>
            NurbsSurface -> Diagram b R3
