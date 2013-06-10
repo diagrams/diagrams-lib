@@ -51,3 +51,10 @@ import           Control.Arrow           (first, second)
 --   'rotateBy', which is specialized to take a 'CircleFrac' argument.
 aboutZ :: (Tranformable t, V t ~ R3, Angle a) => a -> t -> t
 aboutZ = undefined
+
+-- | Get the matrix equivalent of the linear transform,
+--   (as a triple of columns) and the translation vector.  This
+--   is mostly useful for implementing backends.
+onBasis :: T3 -> ((R2, R2, R2), R2)
+onBasis t = ((x, y, z), v)
+  where ((x:y:z:[]), v) = T.onBasis t
