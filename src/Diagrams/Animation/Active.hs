@@ -1,5 +1,4 @@
-{-# LANGUAGE TypeFamilies
-  #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 -----------------------------------------------------------------------------
@@ -17,8 +16,8 @@
 --   * 'HasOrigin', 'Transformable', and 'HasStyle' instances for
 --     'Active' which all work pointwise.
 --
---   * A 'PathLike' instance for @'Active' p@ where @p@ is also
---     'PathLike', which simply lifts a pathlike thing to a constant
+--   * A 'TrailLike' instance for @'Active' p@ where @p@ is also
+--     'TrailLike', which simply lifts a pathlike thing to a constant
 --     active value.
 --
 --   * A 'Juxtaposable' instance for @'Active' a@ where @a@ is also
@@ -38,13 +37,14 @@
 
 module Diagrams.Animation.Active where
 
-import Diagrams.Core
-import Control.Applicative ((<$>), pure)
+import           Control.Applicative (pure, (<$>))
 
-import Diagrams.Align
-import Diagrams.Path
+import           Diagrams.Align
+import           Diagrams.Core
+import           Diagrams.Path
+import           Diagrams.TrailLike
 
-import Data.Active
+import           Data.Active
 
 type instance V (Active a) = V a
 
@@ -63,8 +63,8 @@ instance Transformable a => Transformable (Active a) where
 instance HasStyle a => HasStyle (Active a) where
   applyStyle = fmap . applyStyle
 
-instance PathLike p => PathLike (Active p) where
-  pathLike st cl segs = pure (pathLike st cl segs)
+instance TrailLike t => TrailLike (Active t) where
+  trailLike = pure . trailLike
 
 -- | An active value can be juxtaposed against another by doing the
 --   juxtaposition pointwise over time.  The era of @juxtapose v a1

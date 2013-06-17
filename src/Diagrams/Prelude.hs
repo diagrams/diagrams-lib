@@ -29,10 +29,19 @@ module Diagrams.Prelude
          -- | Combining multiple diagrams into one.
        , module Diagrams.Combinators
 
+         -- | Giving concrete locations to translation-invariant things.
+       , module Diagrams.Located
+
          -- | Linear and cubic bezier segments.
        , module Diagrams.Segment
 
-         -- | Trails and paths.
+         -- | Trails.
+       , module Diagrams.Trail
+
+         -- | Trail-like things.
+       , module Diagrams.TrailLike
+
+         -- | Paths.
        , module Diagrams.Path
 
          -- | Cubic splines.
@@ -76,25 +85,28 @@ module Diagrams.Prelude
        , Applicative(..), (*>), (<*), (<$>), (<$), liftA, liftA2, liftA3
        ) where
 
-import Diagrams.Core
+import           Diagrams.Core
 
-import Diagrams.Align
-import Diagrams.Animation
-import Diagrams.Attributes
-import Diagrams.BoundingBox
-import Diagrams.Combinators
-import Diagrams.Coordinates
-import Diagrams.CubicSpline
-import Diagrams.Path
-import Diagrams.Segment
-import Diagrams.Transform
-import Diagrams.TwoD
-import Diagrams.Util
+import           Diagrams.Align
+import           Diagrams.Animation
+import           Diagrams.Attributes
+import           Diagrams.BoundingBox
+import           Diagrams.Combinators
+import           Diagrams.Coordinates
+import           Diagrams.CubicSpline
+import           Diagrams.Located
+import           Diagrams.Path
+import           Diagrams.Segment
+import           Diagrams.Trail
+import           Diagrams.TrailLike
+import           Diagrams.Transform
+import           Diagrams.TwoD
+import           Diagrams.Util
 
-import Data.Colour hiding (atop, AffineSpace(..))
-import Data.Colour.Names
-import Data.Semigroup
-import Data.VectorSpace hiding (Sum(..))
-import Data.AffineSpace
-import Data.Active
-import Control.Applicative
+import           Control.Applicative
+import           Data.Active
+import           Data.AffineSpace
+import           Data.Colour          hiding (AffineSpace (..), atop)
+import           Data.Colour.Names
+import           Data.Semigroup
+import           Data.VectorSpace     hiding (Sum (..))

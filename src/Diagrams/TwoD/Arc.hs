@@ -1,6 +1,5 @@
-{-# LANGUAGE TypeFamilies
-           , ViewPatterns
-  #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE ViewPatterns #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Arc
@@ -22,18 +21,20 @@ module Diagrams.TwoD.Arc
     , wedge
     ) where
 
-import Diagrams.Core
+import           Diagrams.Coordinates
+import           Diagrams.Core
+import           Diagrams.Located        (at)
+import           Diagrams.Path
+import           Diagrams.Segment
+import           Diagrams.Trail
+import           Diagrams.TrailLike
+import           Diagrams.TwoD.Transform
+import           Diagrams.TwoD.Types
+import           Diagrams.TwoD.Vector    (e, unitX)
+import           Diagrams.Util           (tau, ( # ))
 
-import Diagrams.Coordinates
-import Diagrams.Path
-import Diagrams.Segment
-import Diagrams.TwoD.Transform
-import Diagrams.TwoD.Types
-import Diagrams.TwoD.Vector (unitX, e)
-import Diagrams.Util ((#), tau)
-
-import Data.Semigroup ((<>))
-import Data.VectorSpace((^-^), (*^), negateV)
+import           Data.Semigroup          ((<>))
+import           Data.VectorSpace        (negateV, (*^), (^-^))
 
 -- For details of this approximation see:
 --   http://www.tinaja.com/glib/bezcirc2.pdf
@@ -42,8 +43,8 @@ import Data.VectorSpace((^-^), (*^), negateV)
 --   the positive y direction and sweeps counterclockwise through @s@
 --   radians.  The approximation is only valid for angles in the first
 --   quadrant.
-bezierFromSweepQ1 :: Rad -> Segment R2
-bezierFromSweepQ1 s = fmap (^-^ v) . rotate (s/2) $ Cubic c2 c1 p0
+bezierFromSweepQ1 :: Rad -> Segment Closed R2
+bezierFromSweepQ1 s = fmap (^-^ v) . rotate (s/2) $ bezier3 c2 c1 p0
   where p0@(coords -> x :& y) = rotate (s/2) v
         c1                    = ((4-x)/3)  &  ((1-x)*(3-x)/(3*y))
         c2                    = reflectY c1
@@ -55,7 +56,7 @@ bezierFromSweepQ1 s = fmap (^-^ v) . rotate (s/2) $ Cubic c2 c1 p0
 --   negative y direction and sweep clockwise.  When @s@ is less than
 --   0.0001 the empty list results.  If the sweep is greater than tau
 --   then it is truncated to tau.
-bezierFromSweep :: Rad -> [Segment R2]
+bezierFromSweep :: Rad -> [Segment Closed R2]
 bezierFromSweep s
   | s > tau    = bezierFromSweep tau
   | s < 0      = fmap reflectY . bezierFromSweep $ (-s)
@@ -89,10 +90,11 @@ the approximation error.
 arcT :: Angle a => a -> a -> Trail R2
 arcT start end
     | e < s     = arcT s (e + fromIntegral d)
-    | otherwise = Trail bs (sweep >= tau)
+    | otherwise = (if sweep >= tau then glueTrail else id)
+                $ trailFromSegments bs
   where sweep = convertAngle $ end - start
         bs    = map (rotate start) . bezierFromSweep $ sweep
-        
+
         -- We want to compare the start and the end and in case
         -- there isn't some law about 'Angle' ordering, we use a
         -- known 'Angle' for that.
@@ -103,36 +105,34 @@ arcT start end
 -- | Given a start angle @s@ and an end angle @e@, @'arc' s e@ is the
 --   path of a radius one arc counterclockwise between the two angles.
 --   The origin of the arc is its center.
-arc :: (Angle a, PathLike p, V p ~ R2) => a -> a -> p
-arc start end = pathLike (rotate start $ p2 (1,0))
-                         False
-                         (trailSegments $ arcT start end)
+arc :: (Angle a, TrailLike t, V t ~ R2) => a -> a -> t
+arc start end = trailLike $ arcT start end `at` (rotate start $ p2 (1,0))
 
 -- | Like 'arc' but clockwise.
-arcCW :: (Angle a, PathLike p, V p ~ R2) => a -> a -> p
-arcCW start end = pathLike (rotate start $ p2 (1,0))
-                           False
-                           -- flipped arguments to get the path we want
-                           -- then reverse the trail to get the cw direction.
-                           (trailSegments . reverseTrail $ arcT end start)
+arcCW :: (Angle a, TrailLike t, V t ~ R2) => a -> a -> t
+arcCW start end = trailLike $
+                            -- flipped arguments to get the path we want
+                            -- then reverse the trail to get the cw direction.
+                            (reverseTrail $ arcT end start)
+                            `at`
+                            (rotate start $ p2 (1,0))
                    -- We could just have `arcCW = reversePath . flip arc`
-                   -- but that wouldn't be `PathLike`.
+                   -- but that wouldn't be `TrailLike`.
 
 -- | Given a radus @r@, a start angle @s@ and an end angle @e@,
---   @'arc'' r s e@ is the path of a radius @(abs r)@ arc between 
+--   @'arc'' r s e@ is the path of a radius @(abs r)@ arc between
 --   the two angles.  If a negative radius is given, the arc will
---   be clockwise, otherwise it will be counterclockwise. The origin 
+--   be clockwise, otherwise it will be counterclockwise. The origin
 --   of the arc is its center.
-arc' :: (Angle a, PathLike p, V p ~ R2) => Double -> a -> a -> p
-arc' r start end = pathLike (rotate start $ p2 (abs r,0))
-                   False
-                   (trailSegments . scale (abs r) $ ts)
+arc' :: (Angle a, TrailLike p, V p ~ R2) => Double -> a -> a -> p
+arc' r start end = trailLike $ scale (abs r) ts `at` (rotate start $ p2 (abs r,0))
   where ts | r < 0     = reverseTrail $ arcT end start
            | otherwise = arcT start end
 
 -- | Create a circular wedge of the given radius, beginning at the
 --   first angle and extending counterclockwise to the second.
-wedge :: (Angle a, PathLike p, V p ~ R2) => Double -> a -> a -> p
-wedge r a1 a2 = pathLikeFromTrail $ fromOffsets [r *^ e a1]
-                                 <> arc a1 a2 # scale r
-                                 <> fromOffsets [r *^ negateV (e a2)]
+wedge :: (Angle a, TrailLike p, V p ~ R2) => Double -> a -> a -> p
+wedge r a1 a2 = trailLike . (`at` origin) . wrapLine
+              $ fromOffsets [r *^ e a1]
+                <> arc a1 a2 # scale r
+                <> fromOffsets [r *^ negateV (e a2)]
