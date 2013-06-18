@@ -4,6 +4,7 @@
            , InstanceSigs
            , MultiParamTypeClasses
            , ViewPatterns
+           , GADTs
   #-}
 -----------------------------------------------------------------------------
 -- |
@@ -38,7 +39,7 @@ import Math.Spline.Knots as K
 
 import Diagrams.Core
 
-import Math.Spline.NurbsSurface
+import Math.NurbsSurface
 import Diagrams.ThreeD.Types
 import Diagrams.Solve
 
@@ -68,37 +69,36 @@ sphere = mkQD (Prim $ Ellipsoid mempty)
                 p' = p .-. origin
         sphereQuery v = Any $ magnitudeSq (v .-. origin) <= 1
 
-type instance V NurbsSurface = R3
+type instance V (NurbsSurface Double R3) = R3
 
-instance Transformable NurbsSurface where
+instance Transformable (NurbsSurface Double R3) where
   transform t (NurbsSurface uk vk cps) = NurbsSurface uk vk cps' where
-    cps' = (map . map) tr cps
-    tr (H w r) = H w (unr3 . transform t . r3 $ r)
+    cps' = (map.map) (second (transform t)) cps
 
-instance IsPrim NurbsSurface
+instance IsPrim (NurbsSurface Double R3)
 
-instance Renderable NurbsSurface NullBackend where
+instance Renderable (NurbsSurface Double R3) NullBackend where
   render _ _ = mempty
 
-cylinder :: (Backend b R3, Renderable NurbsSurface b) => Diagram b R3
+cylinder :: (Backend b R3, Renderable (NurbsSurface Double R3) b) => Diagram b R3
 cylinder = nurbsQD $ cyl
 
 -- for debugging purposes, seperate this from cylinder above
-cyl :: NurbsSurface
+cyl :: NurbsSurface Double R3
 cyl = NurbsSurface
            (K.mkKnots [0,0,1,1])
            (K.mkKnots [0,0,0,0.25,0.25,0.5,0.5,0.75,0.75,1,1,1])
-           [zipWith H wts circ, zipWith H wts $ map (^+^ xhat) circ] where
-             xhat = (1,0,0)
+           [zip wts circ, zip wts $ map (^+^ xhat) circ] where
+             xhat = r3 (1,0,0)
              wts = concat. repeat $ [1, sqrt 2 / 2]
-             circ = [(0,1,0),   (0,1,1),
-                     (0,0,1),   (0,-1,1),
-                     (0,-1,0), (0,-1,-1),
-                     (0,0,-1), (0,1,-1),
-                     (0,1,0)]
+             circ = map r3 [(0,1,0),   (0,1,1),
+                            (0,0,1),   (0,-1,1),
+                            (0,-1,0), (0,-1,-1),
+                            (0,0,-1), (0,1,-1),
+                            (0,1,0)]
 
-nurbsQD :: (Backend b R3, Renderable NurbsSurface b) =>
-           NurbsSurface -> Diagram b R3
+nurbsQD :: (Backend b R3, Renderable (NurbsSurface Double R3) b) =>
+           NurbsSurface Double R3 -> Diagram b R3
 nurbsQD n = mkQD (Prim n) nurbsEnv nurbsTrace mempty nurbsQuery where
   -- XXX TODO these are placeholders, entirely incorrect
   nurbsEnv = undefined
