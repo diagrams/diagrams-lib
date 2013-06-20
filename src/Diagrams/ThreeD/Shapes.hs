@@ -88,7 +88,7 @@ cyl :: NurbsSurface Double R3
 cyl = NurbsSurface
            (K.mkKnots [0,0,1,1])
            (K.mkKnots [0,0,0,0.25,0.25,0.5,0.5,0.75,0.75,1,1,1])
-           [zip wts circ, zip wts $ map (^+^ xhat) circ] where
+           [zipWith toH wts circ, zipWith toH wts $ map (^+^ xhat) circ] where
              xhat = r3 (1,0,0)
              wts = concat. repeat $ [1, sqrt 2 / 2]
              circ = map r3 [(0,1,0),   (0,1,1),
