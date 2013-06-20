@@ -1,7 +1,6 @@
 {-# LANGUAGE TypeFamilies
            , FlexibleContexts
            , FlexibleInstances
-           , InstanceSigs
            , MultiParamTypeClasses
            , ViewPatterns
            , GADTs
