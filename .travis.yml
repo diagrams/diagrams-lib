@@ -1,6 +1,8 @@
 language: haskell
 before_install:
   - cabal update
+  - git clone --quiet git://github.com/bergey/splines.git -b nurbs-surface
+  - cabal install splines/
   - git clone --quiet git://github.com/diagrams/diagrams-core.git diagrams/diagrams-core
   - cd diagrams
   - cabal install diagrams-core/
