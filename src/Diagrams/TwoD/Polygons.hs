@@ -1,9 +1,8 @@
-{-# LANGUAGE TypeFamilies
-           , ScopedTypeVariables
-           , DeriveFunctor
-           , ExistentialQuantification
-           , ViewPatterns
-  #-}
+{-# LANGUAGE DeriveFunctor             #-}
+{-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE TypeFamilies              #-}
+{-# LANGUAGE ViewPatterns              #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -22,15 +21,15 @@ module Diagrams.TwoD.Polygons(
           PolyType(..)
         , PolyOrientation(..)
         , PolygonOpts(..)
-        , polyVertices
 
         , polygon
+        , polyTrail
 
         -- ** Generating polygon vertices
 
-        , polyPolarVs
-        , polySidesVs, polySidesVs'
-        , polyRegularVs
+        , polyPolarTrail
+        , polySidesTrail
+        , polyRegularTrail
 
         , orient
 
@@ -45,28 +44,33 @@ module Diagrams.TwoD.Polygons(
 
     ) where
 
-import Data.Ord          (comparing)
-import Data.List         (maximumBy)
-import Data.Maybe        (catMaybes)
-import Data.Monoid       (mconcat)
+import           Control.Monad           (forM, liftM)
+import           Control.Monad.ST        (ST, runST)
+import           Data.Array.ST           (STUArray, newArray, readArray,
+                                          writeArray)
+import qualified Data.Foldable           as F
+import           Data.List               (maximumBy, minimumBy)
+import qualified Data.List.NonEmpty      as NEL
+import           Data.Maybe              (catMaybes)
+import           Data.Monoid             (mconcat, mempty)
+import           Data.Ord                (comparing)
 
-import Control.Monad     (forM, liftM)
+import           Data.AffineSpace        ((.+^), (.-.))
+import           Data.Default.Class
+import           Data.VectorSpace        (magnitude, normalized, project, (<.>),
+                                          (^*))
 
-import Control.Monad.ST  (runST, ST)
-import Data.Array.ST     (STUArray, newArray, readArray, writeArray)
-
-import Data.AffineSpace  ((.-.), (.+^))
-import Data.VectorSpace  (magnitude, normalized, project, (<.>), (^*))
-import Data.Default.Class
-
-import Diagrams.Core
-
-import Diagrams.TwoD.Types
-import Diagrams.TwoD.Transform
-import Diagrams.TwoD.Vector (unitX, unitY, unit_Y)
-import Diagrams.Path
-import Diagrams.Points      (centroid)
-import Diagrams.Util        ((#), tau)
+import           Diagrams.Core
+import           Diagrams.Located
+import           Diagrams.Path
+import           Diagrams.Points         (centroid)
+import           Diagrams.Segment
+import           Diagrams.Trail
+import           Diagrams.TrailLike
+import           Diagrams.TwoD.Transform
+import           Diagrams.TwoD.Types
+import           Diagrams.TwoD.Vector    (leftTurn, unitX, unitY, unit_Y)
+import           Diagrams.Util           (tau, ( # ))
 
 -- | Method used to determine the vertices of a polygon.
 data PolyType = forall a. Angle a => PolyPolar [a] [Double]
@@ -134,15 +138,15 @@ data PolyOrientation = NoOrient     -- ^ No special orientation; the first
 
 -- | Options for specifying a polygon.
 data PolygonOpts = PolygonOpts
-                   { polyType       :: PolyType
+                   { polyType   :: PolyType
                      -- ^ Specification for the polygon's vertices.
 
-                   , polyOrient     :: PolyOrientation
+                   , polyOrient :: PolyOrientation
                      -- ^ Should a rotation be applied to the
                      --   polygon in order to orient it in a
                      --   particular way?
 
-                   , polyCenter     :: P2
+                   , polyCenter :: P2
                      -- ^ Should a translation be applied to the
                      --   polygon in order to place the center at a
                      --   particular location?
@@ -153,73 +157,80 @@ data PolygonOpts = PolygonOpts
 instance Default PolygonOpts where
     def = PolygonOpts (PolyRegular 5 1) OrientH origin
 
--- | Generate the vertices of a polygon.  See 'PolygonOpts' for more
---   information.
-polyVertices :: PolygonOpts -> [P2]
-polyVertices po = moveTo (polyCenter po) ori
+-- | Generate a polygon.  See 'PolygonOpts' for more information.
+polyTrail :: PolygonOpts -> Located (Trail R2)
+polyTrail po = transform ori tr
     where
-        ps = case polyType po of
-            PolyPolar ans szs -> polyPolarVs ans szs
-            PolySides ans szs -> polySidesVs ans szs
-            PolyRegular n r   -> polyRegularVs n r
+        tr = case polyType po of
+            PolyPolar ans szs -> polyPolarTrail ans szs
+            PolySides ans szs -> polySidesTrail ans szs
+            PolyRegular n r   -> polyRegularTrail n r
         ori = case polyOrient po of
-            OrientH      -> orient unit_Y ps
-            OrientV      -> orient unitX  ps
-            OrientTo v   -> orient v      ps
-            NoOrient     -> ps
+            OrientH      -> orient unit_Y tr
+            OrientV      -> orient unitX  tr
+            OrientTo v   -> orient v      tr
+            NoOrient     -> mempty
 
-polygon :: (PathLike p, V p ~ R2) => PolygonOpts -> p
-polygon opts = case pts of
-                 []     -> pathLike origin True []
-                 (p1:_) -> pathLike p1 True (segmentsFromVertices pts)
-  where pts = polyVertices opts
+-- | Generate the polygon described by the given options.
+polygon :: (TrailLike t, V t ~ R2) => PolygonOpts -> t
+polygon = trailLike . polyTrail
 
--- | Generate the vertices of a polygon specified by polar data
+-- | Generate the located trail of a polygon specified by polar data
 --   (central angles and radii). See 'PolyPolar'.
-polyPolarVs :: Angle a => [a] -> [Double] -> [P2]
-polyPolarVs ans ls = zipWith (\a l -> rotate a . scale l $ p2 (1,0))
-                             (scanl (+) 0 ans)
-                             ls
-
--- | Generate the vertices of a polygon specified by side length and
---   angles, with the origin corresponding to the first vertex.  See
---   'PolySides'.
-polySidesVs' :: Angle a => [a] -> [Double] -> [P2]
-polySidesVs' ans ls = scanl (.+^) origin
-                      $ zipWith rotate ans' (map (unitY ^*) ls)
+polyPolarTrail :: Angle a => [a] -> [Double] -> Located (Trail R2)
+polyPolarTrail [] _ = emptyTrail `at` origin
+polyPolarTrail _ [] = emptyTrail `at` origin
+polyPolarTrail ans (r:rs) = tr `at` p1
   where
-    ans' = scanl (+) 0 ans
+    p1 = p2 (1,0) # scale r
+    tr = closeTrail . trailFromVertices $
+           zipWith
+             (\a l -> rotate a . scale l $ p2 (1,0))
+             (scanl (+) 0 ans)
+             (r:rs)
 
 -- | Generate the vertices of a polygon specified by side length and
---   angles, with the origin placed at the centroid.  See 'PolySides'.
-polySidesVs :: Angle a => [a] -> [Double] -> [P2]
-polySidesVs ans ls = p0 # moveOriginTo (centroid p0)
-  where p0 = polySidesVs' ans ls
+--   angles, and a starting point for the trail such that the origin
+--   is at the centroid of the vertices.  See 'PolySides'.
+polySidesTrail :: Angle a => [a] -> [Double] -> Located (Trail R2)
+polySidesTrail ans ls = tr `at` (centroid ps # scale (-1))
+  where
+    ans'    = scanl (+) 0 ans
+    offsets = zipWith rotate ans' (map (unitY ^*) ls)
+    ps      = scanl (.+^) origin offsets
+    tr      = closeTrail . trailFromOffsets $ offsets
 
 -- | Generate the vertices of a regular polygon.  See 'PolyRegular'.
-polyRegularVs :: Int -> Double -> [P2]
-polyRegularVs n r = polyPolarVs (take (n-1) . repeat $ (tau::Rad) / fromIntegral n)
-                                (repeat r)
+polyRegularTrail :: Int -> Double -> Located (Trail R2)
+polyRegularTrail n r = polyPolarTrail
+                         (take (n-1) . repeat $ (tau::Rad) / fromIntegral n)
+                         (repeat r)
 
--- | Orient a list of points, rotating them as little as possible.
---   The points are rotated so that the edge furthest in the direction
---   of the given vector is perpendicular to it.  (Note: this may do odd
---   things to non-convex lists of points.)
-orient :: R2 -> [P2] -> [P2]
-orient _ [] = []
-orient v xs = rotate a xs
-    where
-        (n1,x,n2) = maximumBy (comparing (distAlong v . sndOf3))
-                       (zip3 (tail xs ++ take 1 xs) xs (last xs : init xs))
-        distAlong w ((.-. origin) -> p) = signum (w <.> p) * magnitude (project w p)
-        x'        = maximumBy (comparing (distAlong v)) [n1, n2]
-        e         = x' .-. x
-        th        = Rad $ acos ((e <.> normalized v) / magnitude e)
-        a | rightTurn (x .+^ v) x x' = tau/4 - th
-          | otherwise                = th - tau/4
-        sndOf3 (_,b,_) = b
-        rightTurn (unp2 -> (x1,y1)) (unp2 -> (x2, y2)) (unp2 -> (x3,y3)) =
-          (x2 - x1)*(y3 - y1) - (y2 - y1)*(x3-x1) < 0
+-- | Generate a transformation to orient a trail.  @orient v t@
+--   generates the smallest rotation such that one of the segments
+--   adjacent to the vertex furthest in the direction of @v@ is
+--   perpendicular to @v@.
+orient :: R2 -> Located (Trail R2) -> T2
+orient v = orientPoints v . trailVertices
+
+orientPoints :: R2 -> [P2] -> T2
+orientPoints v xs = rotation a
+  where
+    (n1,x,n2) = maximumBy (comparing (distAlong v . sndOf3))
+                  (zip3 (tail (cycle xs)) xs (last xs : init xs))
+    distAlong w ((.-. origin) -> p) = signum (w <.> p) * magnitude (project w p)
+    sndOf3 (_,x,_) = x
+    a = minimumBy (comparing abs) . map (angleFromNormal . (.-. x)) $ [n1,n2]
+    v' = normalized v
+    angleFromNormal o
+      | leftTurn o' v' = phi
+      | otherwise      = negate phi
+      where
+        o' = normalized o
+        theta = acos (v' <.> o')
+        phi
+          | theta <= tau/4 = Rad $ tau/4 - theta
+          | otherwise      = Rad $ theta - tau/4
 
 ------------------------------------------------------------
 -- Function graphs
@@ -299,9 +310,9 @@ data StarOpts = StarFun (Int -> Int)
 --   to determine in which order the given vertices should be
 --   connected.  The intention is that the second argument of type
 --   @[P2]@ could be generated by a call to 'polygon', 'regPoly', or
---   the like, since a list of vertices is 'PathLike'.  But of course
+--   the like, since a list of vertices is 'TrailLike'.  But of course
 --   the list can be generated any way you like.  A @'Path' 'R2'@ is
---   returned (instead of any 'PathLike') because the resulting path
+--   returned (instead of any 'TrailLike') because the resulting path
 --   may have more than one component, for example if the vertices are
 --   to be connected in several disjoint cycles.
 star :: StarOpts -> [P2] -> Path R2
@@ -310,5 +321,10 @@ star sOpts vs = graphToPath $ mkGraph f vs
               StarFun g  -> g
               StarSkip k -> (+k)
         graphToPath = mconcat . map partToPath
-        partToPath (Cycle ps) = close $ fromVertices ps
+
+        partToPath (Cycle ps) = pathFromLocTrail
+                              . mapLoc closeTrail
+                              . fromVertices
+                              $ ps
+
         partToPath (Hair ps)  = fromVertices ps
