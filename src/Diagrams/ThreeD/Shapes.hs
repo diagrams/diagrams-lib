@@ -22,7 +22,8 @@ module Diagrams.ThreeD.Shapes
        , sphere,
          cylinder,
          cyl,
-         NurbsSurface(..),
+         NSurface,
+         NurbsSolid(..)
        ) where
 
 import Prelude hiding (minimum)
@@ -68,37 +69,57 @@ sphere = mkQD (Prim $ Ellipsoid mempty)
                 p' = p .-. origin
         sphereQuery v = Any $ magnitudeSq (v .-. origin) <= 1
 
-type instance V (NurbsSurface Double R3) = R3
+type NSurface = NurbsSurface Double R3
 
-instance Transformable (NurbsSurface Double R3) where
+type instance V NSurface = R3
+
+instance Transformable NSurface where
   transform t (NurbsSurface uk vk cps) = NurbsSurface uk vk cps' where
     cps' = (map.map) (second (transform t)) cps
 
-instance IsPrim (NurbsSurface Double R3)
+instance IsPrim NSurface
 
-instance Renderable (NurbsSurface Double R3) NullBackend where
+instance Renderable NSurface NullBackend where
   render _ _ = mempty
 
-cylinder :: (Backend b R3, Renderable (NurbsSurface Double R3) b) => Diagram b R3
-cylinder = nurbsQD $ cyl
+data NurbsSolid = NurbsSolid [NSurface]
+                deriving Show
+
+type instance V NurbsSolid = R3
+
+instance Transformable NurbsSolid where
+  transform t (NurbsSolid surfs) = NurbsSolid (map (transform t) surfs)
+
+instance IsPrim NurbsSolid
+
+instance Renderable NurbsSolid NullBackend where
+  render _ _ = mempty
+
+cylinder :: (Backend b R3, Renderable NurbsSolid b) => Diagram b R3
+cylinder = placeholderQD $ cyl
 
 -- for debugging purposes, seperate this from cylinder above
-cyl :: NurbsSurface Double R3
-cyl = NurbsSurface
-           (K.mkKnots [0,0,1,1])
-           (K.mkKnots [0,0,0,0.25,0.25,0.5,0.5,0.75,0.75,1,1,1])
-           [zipWith toH wts circ, zipWith toH wts $ map (^+^ xhat) circ] where
-             xhat = r3 (1,0,0)
-             wts = concat. repeat $ [1, sqrt 2 / 2]
-             circ = map r3 [(0,1,0),   (0,1,1),
-                            (0,0,1),   (0,-1,1),
-                            (0,-1,0), (0,-1,-1),
-                            (0,0,-1), (0,1,-1),
-                            (0,1,0)]
+cyl :: NurbsSolid
+cyl = NurbsSolid [cap0, wall, cap1] where
+  kLinear =K.mkKnots [0,0,1,1]
+  kCircle = K.mkKnots [0,0,0,0.25,0.25,0.5,0.5,0.75,0.75,1,1,1]
+  wall = NurbsSurface kLinear kCircle [circ0, circ1]
+  cap0 = NurbsSurface kLinear kCircle [circ0, zipH wts $ replicate 9 zeroV]
+  cap1 = NurbsSurface kLinear kCircle [circ0, zipH wts $ replicate 9 xhat]
+  xhat = r3 (1,0,0)
+  wts = concat. repeat $ [1, sqrt 2 / 2]
+  zipH = zipWith toH
+  circ = map r3 [(0,1,0),   (0,1,1),
+                 (0,0,1),   (0,-1,1),
+                 (0,-1,0), (0,-1,-1),
+                 (0,0,-1), (0,1,-1),
+                 (0,1,0)]
+  circ0 = zipH wts circ
+  circ1 = zipH wts $ map (^+^ xhat) circ
 
-nurbsQD :: (Backend b R3, Renderable (NurbsSurface Double R3) b) =>
-           NurbsSurface Double R3 -> Diagram b R3
-nurbsQD n = mkQD (Prim n) nurbsEnv nurbsTrace mempty nurbsQuery where
+placeholderQD :: (Backend b R3, Renderable prim b, V prim ~ R3, IsPrim prim) =>
+           prim -> Diagram b R3
+placeholderQD n = mkQD (Prim n) nurbsEnv nurbsTrace mempty nurbsQuery where
   -- XXX TODO these are placeholders, entirely incorrect
   nurbsEnv = undefined
   nurbsTrace = undefined
