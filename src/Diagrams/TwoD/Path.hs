@@ -23,7 +23,7 @@
 module Diagrams.TwoD.Path
        ( -- * Constructing path-based diagrams
 
-         stroke, stroke', strokeT, strokeT'
+         stroke, stroke', strokeT, strokeT', strokeLine, strokeLoop
 
          -- ** Stroke options
 
@@ -172,6 +172,16 @@ strokeT = stroke . pathFromTrail
 strokeT' :: (Renderable (Path R2) b, IsName a)
          => StrokeOpts a -> Trail R2 -> Diagram b R2
 strokeT' opts = stroke' opts . pathFromTrail
+
+-- | A composition of 'strokeT' and 'wrapLine' for conveniently
+--   converting a line directly into a diagram.
+strokeLine :: (Renderable (Path R2) b) => Trail' Line R2 -> Diagram b R2
+strokeLine = strokeT . wrapLine
+
+-- | A composition of 'strokeT' and 'wrapLoop' for conveniently
+--   converting a loop directly into a diagram.
+strokeLoop :: (Renderable (Path R2) b) => Trail' Loop R2 -> Diagram b R2
+strokeLoop = strokeT . wrapLoop
 
 ------------------------------------------------------------
 --  Inside/outside testing
