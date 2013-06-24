@@ -1,4 +1,6 @@
-{-# LANGUAGE TypeSynonymInstances, FlexibleContexts, TypeFamilies #-}
+{-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE TypeFamilies         #-}
+{-# LANGUAGE TypeSynonymInstances #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD
@@ -70,7 +72,7 @@ module Diagrams.TwoD
 
          -- * Paths
          -- ** Stroking
-       , stroke, stroke', strokeT, strokeT'
+       , stroke, stroke', strokeT, strokeT', strokeLine, strokeLoop
        , FillRule(..), fillRule
        , StrokeOpts(..)
 
@@ -92,7 +94,7 @@ module Diagrams.TwoD
        , wedge
 
          -- ** General polygons
-       , polygon, polyVertices
+       , polygon, polyTrail
        , PolygonOpts(..), PolyType(..), PolyOrientation(..)
 
          -- ** Star polygons
@@ -192,19 +194,19 @@ module Diagrams.TwoD
 
        ) where
 
-import Diagrams.TwoD.Types
-import Diagrams.TwoD.Path
-import Diagrams.TwoD.Ellipse
-import Diagrams.TwoD.Arc
-import Diagrams.TwoD.Polygons
-import Diagrams.TwoD.Shapes
-import Diagrams.TwoD.Transform
-import Diagrams.TwoD.Align
-import Diagrams.TwoD.Combinators
-import Diagrams.TwoD.Vector
-import Diagrams.TwoD.Size
-import Diagrams.TwoD.Model
-import Diagrams.TwoD.Text
-import Diagrams.TwoD.Image
+import           Diagrams.TwoD.Align
+import           Diagrams.TwoD.Arc
+import           Diagrams.TwoD.Combinators
+import           Diagrams.TwoD.Ellipse
+import           Diagrams.TwoD.Image
+import           Diagrams.TwoD.Model
+import           Diagrams.TwoD.Path
+import           Diagrams.TwoD.Polygons
+import           Diagrams.TwoD.Shapes
+import           Diagrams.TwoD.Size
+import           Diagrams.TwoD.Text
+import           Diagrams.TwoD.Transform
+import           Diagrams.TwoD.Types
+import           Diagrams.TwoD.Vector
 
-import Diagrams.Util (tau)
+import           Diagrams.Util             (tau)

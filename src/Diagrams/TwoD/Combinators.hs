@@ -51,6 +51,7 @@ import           Diagrams.Combinators
 import           Diagrams.Coordinates
 import           Diagrams.Path
 import           Diagrams.Segment
+import           Diagrams.TrailLike
 import           Diagrams.TwoD.Align
 import           Diagrams.TwoD.Path      ()
 import           Diagrams.TwoD.Segment
@@ -232,10 +233,10 @@ view p (coords -> w :& h) = withEnvelope (rect w h # alignBL # moveTo p :: D R2)
 
 -- | Construct a bounding rectangle for an enveloped object, that is,
 --   the smallest axis-aligned rectangle which encloses the object.
-boundingRect :: ( Enveloped p, Transformable p, PathLike p, V p ~ R2
+boundingRect :: ( Enveloped t, Transformable t, TrailLike t, Monoid t, V t ~ R2
                 , Enveloped a, V a ~ R2
                 )
-             => a -> p
+             => a -> t
 boundingRect = (`boxFit` rect 1 1) . boundingBox
 
 -- | \"Set the background color\" of a diagram.  That is, place a

@@ -54,6 +54,9 @@ import           Data.Typeable
 -- > r2 (3,4) :: R2
 -- > 3 & 4    :: R2
 --
+--     Note that "Diagrams.Coordinates" is not re-exported by
+--     "Diagrams.Prelude" and must be explicitly imported.
+--
 --   * To construct the vector from the origin to a point @p@, use
 --     @p 'Data.AffineSpace..-.' 'origin'@.
 --

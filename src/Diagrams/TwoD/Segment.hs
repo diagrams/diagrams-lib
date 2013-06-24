@@ -1,7 +1,6 @@
-{-# LANGUAGE FlexibleContexts
-           , FlexibleInstances
-           , UndecidableInstances
-  #-}
+{-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -17,25 +16,26 @@
 
 module Diagrams.TwoD.Segment where
 
-import Control.Applicative (liftA2)
+import           Control.Applicative     (liftA2)
 
-import Data.AffineSpace
-import Data.Monoid.PosInf hiding (minimum)
-import Data.VectorSpace
+import           Data.AffineSpace
+import           Data.Monoid.PosInf      hiding (minimum)
+import           Data.VectorSpace
 
-import Diagrams.Core
-import Diagrams.Core.Trace
+import           Diagrams.Core
+import           Diagrams.Core.Trace
 
-import Diagrams.Parametric
-import Diagrams.Segment
-import Diagrams.Solve
-import Diagrams.TwoD.Transform
-import Diagrams.TwoD.Types
-import Diagrams.TwoD.Vector
-import Diagrams.Util
+import           Diagrams.Located
+import           Diagrams.Parametric
+import           Diagrams.Segment
+import           Diagrams.Solve
+import           Diagrams.TwoD.Transform
+import           Diagrams.TwoD.Types
+import           Diagrams.TwoD.Vector
+import           Diagrams.Util
 
-instance Traced (Segment R2) where
-  getTrace = getTrace . mkFixedSeg origin
+instance Traced (Segment Closed R2) where
+  getTrace = getTrace . mkFixedSeg . (`at` origin)
 
 instance Traced (FixedSegment R2) where
 

@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE GADTs            #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Curvature
@@ -18,18 +19,18 @@ module Diagrams.TwoD.Curvature
     , squaredRadiusOfCurvature
     ) where
 
-import Data.AffineSpace
-import Data.VectorSpace
-import Data.Monoid.PosInf
+import           Data.AffineSpace
+import           Data.Monoid.PosInf
+import           Data.VectorSpace
 
-import Control.Arrow (first, second)
-import Control.Monad (join)
+import           Control.Arrow        (first, second)
+import           Control.Monad        (join)
 
-import Diagrams.Core
+import           Diagrams.Core
 
-import Diagrams.Segment
-import Diagrams.TwoD.Types
-import Diagrams.TwoD.Vector
+import           Diagrams.Segment
+import           Diagrams.TwoD.Types
+import           Diagrams.TwoD.Vector
 
 -- | Curvature measures how curved the segment is at a point.  One intuition
 -- for the concept is how much you would turn the wheel when driving a car
@@ -66,43 +67,43 @@ import Diagrams.TwoD.Vector
 --
 -- > import Diagrams.TwoD.Curvature
 -- > import Data.Monoid.PosInf
--- > 
+-- >
 -- > segmentA = Cubic (12 & 0) (8 & 10) (20 & 8)
--- > 
+-- >
 -- > curveA = lw 0.1 . stroke . fromSegments $ [segmentA]
--- > 
+-- >
 -- > diagramA = pad 1.1 . centerXY $ curveA
--- > 
+-- >
 -- > diagramPos = diagramWithRadius 0.2
--- > 
+-- >
 -- > diagramZero = diagramWithRadius 0.5
--- > 
+-- >
 -- > diagramNeg = diagramWithRadius 0.8
--- > 
--- > diagramWithRadius t = pad 1.1 . centerXY 
--- >          $ curveA 
+-- >
+-- > diagramWithRadius t = pad 1.1 . centerXY
+-- >          $ curveA
 -- >         <> showCurvature segmentA t
 -- >          # withEnvelope (curveA :: D R2)
 -- >          # lw 0.05 # lc red
--- > 
+-- >
 -- > showCurvature bez@(Cubic b c d) t
 -- >   | v == 0    = mempty
 -- >   | otherwise = go (radiusOfCurvature bez t)
--- >   where 
+-- >   where
 -- >     v@(x,y) = unr2 $ firstDerivative b c d t
 -- >     vp = (-y) & x
--- > 
+-- >
 -- >     firstDerivative b c d t = let tt = t*t in (3*(3*tt-4*t+1))*^b + (3*(2-3*t)*t)*^c + (3*tt)*^d
--- > 
+-- >
 -- >     go PosInfty   = mempty
 -- >     go (Finite r) = (circle (abs r) # translate vpr
 -- >                  <> stroke (origin ~~ (origin .+^ vpr)))
 -- >                   # moveTo (origin .+^ atParam bez t)
 -- >       where
 -- >         vpr = r2 (normalized vp ^* r)
--- >  
+-- >
 --
-curvature :: Segment R2       -- ^ Segment to measure on.
+curvature :: Segment Closed R2  -- ^ Segment to measure on.
           -> Double           -- ^ Parameter to measure at.
           -> PosInf Double    -- ^ Result is a @PosInf@ value where @PosInfty@ represents
                               -- infinite curvature or zero radius of curvature.
@@ -111,19 +112,19 @@ curvature s = toPosInf . second sqrt . curvaturePair (fmap unr2 s) -- TODO: Use 
 -- | With @squaredCurvature@ we can compute values in spaces that do not support
 -- 'sqrt' and it is just as useful for relative ordering of curvatures or looking
 -- for zeros.
-squaredCurvature :: Segment R2 -> Double -> PosInf Double
+squaredCurvature :: Segment Closed R2 -> Double -> PosInf Double
 squaredCurvature s = toPosInf . first (join (*)) . curvaturePair (fmap unr2 s) -- TODO: Use the generalized unr2
 
 
 -- | Reciprocal of @curvature@.
-radiusOfCurvature :: Segment R2       -- ^ Segment to measure on.
+radiusOfCurvature :: Segment Closed R2  -- ^ Segment to measure on.
                   -> Double           -- ^ Parameter to measure at.
                   -> PosInf Double    -- ^ Result is a @PosInf@ value where @PosInfty@ represents
                                       -- infinite radius of curvature or zero curvature.
 radiusOfCurvature s = toPosInf . (\(p,q) -> (q,p)) . second sqrt . curvaturePair (fmap unr2 s)
 
 -- | Reciprocal of @squaredCurvature@
-squaredRadiusOfCurvature :: Segment R2 -> Double -> PosInf Double
+squaredRadiusOfCurvature :: Segment Closed R2 -> Double -> PosInf Double
 squaredRadiusOfCurvature s = toPosInf . (\(p,q) -> (q,p)) . first (join (*)) . curvaturePair (fmap unr2 s)
 
 
@@ -139,9 +140,9 @@ toPosInf (p,q)
 -- us get there by either taking the square root of the numerator or squaring
 -- the denominator respectively.
 curvaturePair :: (Num t, Num (Scalar t), VectorSpace t)
-    => Segment (t, t) -> Scalar t -> (t, t)
+    => Segment Closed (t, t) -> Scalar t -> (t, t)
 curvaturePair (Linear _)    t = (0,1) -- Linear segments always have zero curvature (infinite radius).
-curvaturePair (Cubic b c d) t = ((x'*y'' - y'*x''), (x'*x' + y'*y')^3)
+curvaturePair (Cubic b c (OffsetClosed d)) t = ((x'*y'' - y'*x''), (x'*x' + y'*y')^3)
   where
     (x' ,y' ) = firstDerivative  b c d t -- TODO: Use the generalized unr2
     (x'',y'') = secondDerivative b c d t

@@ -1,7 +1,6 @@
-{-# LANGUAGE FlexibleContexts
-           , TypeFamilies
-           , ViewPatterns
-  #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TypeFamilies     #-}
+{-# LANGUAGE ViewPatterns     #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Vector
@@ -18,10 +17,15 @@ module Diagrams.TwoD.Vector
 
          -- * Converting between vectors and angles
        , direction, fromDirection,  e
+
+         -- * 2D vector utilities
+       , perp, leftTurn
        ) where
 
-import Diagrams.Coordinates
-import Diagrams.TwoD.Types
+import           Data.VectorSpace     ((<.>))
+import           Diagrams.Coordinates
+import           Diagrams.TwoD.Types
+import           Diagrams.Util        (( # ))
 
 -- | The unit vector in the positive X direction.
 unitX :: R2
@@ -53,3 +57,14 @@ fromDirection a = cos a' & sin a'
 -- | A convenient synonym for 'fromDirection'.
 e :: Angle a => a -> R2
 e = fromDirection
+
+-- | @perp v@ is perpendicular to and has the same magnitude as @v@.
+--   In particular @perp v == rotateBy (1/4) v@.
+perp :: R2 -> R2
+perp (coords -> x :& y) = (-y) & x
+
+-- | @leftTurn v1 v2@ tests whether the direction of @v2@ is a left
+--   turn from @v1@ (that is, if the direction of @v2@ can be obtained
+--   from that of @v1@ by adding an angle 0 <= theta <= tau/2).
+leftTurn :: R2 -> R2 -> Bool
+leftTurn v1 v2 = (v1 <.> perp v2) < 0

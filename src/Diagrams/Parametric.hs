@@ -16,7 +16,7 @@
 module Diagrams.Parametric
   (
   -- * Parametric functions
-    Codomain, Parametric(..), ArcLength(..)
+    Codomain, Parametric(..), HasArcLength(..)
 
   , DomainBounds(..), EndValues(..), Sectionable(..)
 
@@ -36,9 +36,10 @@ type family Codomain p :: *
 
 -- | Type class for parametric functions.
 class Parametric p where
--- | 'atParam' yields a parameterized view of an object as a
---   continuous function. It is designed to be used infix, like @path
---   ``atParam`` 0.5@.
+
+  -- | 'atParam' yields a parameterized view of an object as a
+  --   continuous function. It is designed to be used infix, like @path
+  --   ``atParam`` 0.5@.
   atParam :: p -> Scalar (V p) -> Codomain p
 
 -- | Type class for parametric functions with a bounded domain.  The
@@ -146,7 +147,7 @@ class DomainBounds p => Sectionable p where
   reverseDomain x = section x (domainUpper x) (domainLower x)
 
 -- | Type class for parametric things with a notion of arc length.
-class Parametric p => ArcLength p where
+class Parametric p => HasArcLength p where
   -- | @arcLength x eps@ approximates the arc length of @x@ up to the
   --   accuracy @eps@ (plus or minus).
   arcLength :: p -> Scalar (V p) -> Scalar (V p)
@@ -196,7 +197,7 @@ instance Fractional (Scalar v) => Default (AdjustOpts v) where
 -- | Adjust the length of a parametric path.  The second parameter is an
 --   option record which controls how the adjustment should be performed;
 --   see 'AdjustOpts'.
-adjust :: (DomainBounds a, Sectionable a, ArcLength a, Fractional (Scalar (V a)))
+adjust :: (DomainBounds a, Sectionable a, HasArcLength a, Fractional (Scalar (V a)))
        => a -> AdjustOpts (V a) -> a
 adjust s opts = section s
   (if adjSide opts == End   then domainLower s else getParam s)

@@ -1,7 +1,5 @@
-{-# LANGUAGE TypeFamilies
-           , FlexibleContexts
-           , ViewPatterns
-  #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TypeFamilies     #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -45,62 +43,62 @@ module Diagrams.TwoD.Shapes
        , roundedRect'
        ) where
 
-import Diagrams.Core
+import           Diagrams.Core
 
-import Diagrams.Coordinates
-import Diagrams.Path
-import Diagrams.Segment
-import Diagrams.TwoD.Arc
-import Diagrams.TwoD.Polygons
-import Diagrams.TwoD.Transform
-import Diagrams.TwoD.Types
+import           Diagrams.Coordinates
+import           Diagrams.Located        (at)
+import           Diagrams.Path
+import           Diagrams.Segment
+import           Diagrams.Trail
+import           Diagrams.TrailLike
+import           Diagrams.TwoD.Arc
+import           Diagrams.TwoD.Polygons
+import           Diagrams.TwoD.Transform
+import           Diagrams.TwoD.Types
 
-import Diagrams.Util
+import           Diagrams.Util
 
-import Data.Default.Class
-import Data.Semigroup
+import           Data.Default.Class
+import           Data.Semigroup
 
 -- | Create a centered horizontal (L-R) line of the given length.
-hrule :: (PathLike p, V p ~ R2) => Double -> p
-hrule d = pathLike (p2 (-d/2,0)) False [Linear (d & 0)]
+hrule :: (TrailLike t, V t ~ R2) => Double -> t
+hrule d = trailLike $ trailFromSegments [straight (d & 0)] `at` (p2 (-d/2,0))
 
 -- | Create a centered vertical (T-B) line of the given length.
-vrule :: (PathLike p, V p ~ R2) => Double -> p
-vrule d = pathLike (p2 (0,d/2)) False [Linear (0 & (-d))]
+vrule :: (TrailLike t, V t ~ R2) => Double -> t
+vrule d = trailLike $ trailFromSegments [straight (0 & (-d))] `at` (p2 (0,d/2))
 
 -- | A square with its center at the origin and sides of length 1,
 --   oriented parallel to the axes.
-unitSquare :: (PathLike p, V p ~ R2) => p
+unitSquare :: (TrailLike t, V t ~ R2) => t
 unitSquare = polygon with { polyType   = PolyRegular 4 (sqrt 2 / 2)
                           , polyOrient = OrientH }
 
 -- | A square with its center at the origin and sides of the given
 --   length, oriented parallel to the axes.
-square :: (PathLike p, Transformable p, V p ~ R2) => Double -> p
+square :: (TrailLike t, Transformable t, V t ~ R2) => Double -> t
 square d = rect d d
 
 -- | @rect w h@ is an axis-aligned rectangle of width @w@ and height
 --   @h@, centered at the origin.
-rect :: (PathLike p, Transformable p, V p ~ R2) => Double -> Double -> p
-rect w h = pathLike p True (trailSegments t)
-  where
-    r     = unitSquare # scaleX w # scaleY h
-    (p,t) = head . pathTrails $ r
+rect :: (TrailLike t, Transformable t, V t ~ R2) => Double -> Double -> t
+rect w h = trailLike . head . pathTrails $ unitSquare # scaleX w # scaleY h
 
     -- The above may seem a bit roundabout.  In fact, we used to have
     --
     --   rect w h = unitSquare # scaleX w # scaleY h
     --
-    -- since unitSquare can produce any PathLike.  The current code
+    -- since unitSquare can produce any TrailLike.  The current code
     -- instead uses (unitSquare # scaleX w # scaleY h) to specifically
-    -- produce a Path, which is then deconstructed and passed into
-    -- 'pathLike' to create any PathLike.
+    -- produce a Path, which is then deconstructed and passed back into
+    -- 'trailLike' to create any TrailLike.
     --
     -- The difference is that while scaling by zero works fine for
     -- Path it does not work very well for, say, Diagrams (leading to
     -- NaNs or worse).  This way, we force the scaling to happen on a
     -- Path, where we know it will behave properly, and then use the
-    -- resulting geometry to construct an arbitrary PathLike.
+    -- resulting geometry to construct an arbitrary TrailLike.
     --
     -- See https://github.com/diagrams/diagrams-lib/issues/43 .
 
@@ -114,7 +112,7 @@ rect w h = pathLike p True (trailSegments t)
 --   polygons of a given /radius/).
 --
 --   The polygon will be oriented with one edge parallel to the x-axis.
-regPoly :: (PathLike p, V p ~ R2) => Int -> Double -> p
+regPoly :: (TrailLike t, V t ~ R2) => Int -> Double -> t
 regPoly n l = polygon with { polyType =
                                PolySides
                                  (repeat (1/ fromIntegral n :: CircleFrac))
@@ -123,52 +121,52 @@ regPoly n l = polygon with { polyType =
                            }
 
 -- | A synonym for 'triangle', provided for backwards compatibility.
-eqTriangle :: (PathLike p, V p ~ R2) => Double -> p
+eqTriangle :: (TrailLike t, V t ~ R2) => Double -> t
 eqTriangle = triangle
 
 -- | An equilateral triangle, with sides of the given length and base
 --   parallel to the x-axis.
-triangle :: (PathLike p, V p ~ R2) => Double -> p
+triangle :: (TrailLike t, V t ~ R2) => Double -> t
 triangle = regPoly 3
 
 -- | A regular pentagon, with sides of the given length and base
 --   parallel to the x-axis.
-pentagon :: (PathLike p, V p ~ R2) => Double -> p
+pentagon :: (TrailLike t, V t ~ R2) => Double -> t
 pentagon = regPoly 5
 
 -- | A regular hexagon, with sides of the given length and base
 --   parallel to the x-axis.
-hexagon :: (PathLike p, V p ~ R2) => Double -> p
+hexagon :: (TrailLike t, V t ~ R2) => Double -> t
 hexagon = regPoly 6
 
 -- | A regular septagon, with sides of the given length and base
 --   parallel to the x-axis.
-septagon :: (PathLike p, V p ~ R2) => Double -> p
+septagon :: (TrailLike t, V t ~ R2) => Double -> t
 septagon = regPoly 7
 
 -- | A regular octagon, with sides of the given length and base
 --   parallel to the x-axis.
-octagon :: (PathLike p, V p ~ R2) => Double -> p
+octagon :: (TrailLike t, V t ~ R2) => Double -> t
 octagon = regPoly 8
 
 -- | A regular nonagon, with sides of the given length and base
 --   parallel to the x-axis.
-nonagon :: (PathLike p, V p ~ R2) => Double -> p
+nonagon :: (TrailLike t, V t ~ R2) => Double -> t
 nonagon = regPoly 9
 
 -- | A regular decagon, with sides of the given length and base
 --   parallel to the x-axis.
-decagon :: (PathLike p, V p ~ R2) => Double -> p
+decagon :: (TrailLike t, V t ~ R2) => Double -> t
 decagon = regPoly 10
 
 -- | A regular hendecagon, with sides of the given length and base
 --   parallel to the x-axis.
-hendecagon :: (PathLike p, V p ~ R2) => Double -> p
+hendecagon :: (TrailLike t, V t ~ R2) => Double -> t
 hendecagon = regPoly 11
 
 -- | A regular dodecagon, with sides of the given length and base
 --   parallel to the x-axis.
-dodecagon :: (PathLike p, V p ~ R2) => Double -> p
+dodecagon :: (TrailLike t, V t ~ R2) => Double -> t
 dodecagon = regPoly 12
 
 ------------------------------------------------------------
@@ -185,7 +183,7 @@ dodecagon = regPoly 12
 --   right edge and proceeds counterclockwise.  If you need to specify
 --   a different radius for each corner individually, use
 --   @roundedRect'@ instead.
-roundedRect :: (PathLike p, V p ~ R2) => Double -> Double -> Double -> p
+roundedRect :: (TrailLike t, V t ~ R2) => Double -> Double -> Double -> t
 roundedRect w h r = roundedRect' w h (with { radiusTL = r,
                                              radiusBR = r,
                                              radiusTR = r,
@@ -195,10 +193,12 @@ roundedRect w h r = roundedRect' w h (with { radiusTL = r,
 --   each corner indivually, using @RoundedRectOpts@. The default corner radius is 0.
 --   Each radius can also be negative, which results in the curves being reversed
 --   to be inward instead of outward.
-roundedRect' :: (PathLike p, V p ~ R2) => Double -> Double -> RoundedRectOpts -> p
+roundedRect' :: (TrailLike t, V t ~ R2) => Double -> Double -> RoundedRectOpts -> t
 roundedRect' w h opts
-   = pathLike (p2 (w/2, abs rBR - h/2)) True
-   . trailSegments
+   = trailLike
+   . (`at` (p2 (w/2, abs rBR - h/2)))
+   . wrapTrail
+   . glueLine
    $ seg (0, h - abs rTR - abs rBR)
    <> mkCorner 0 rTR
    <> seg (abs rTR + abs rTL - w, 0)
@@ -207,7 +207,7 @@ roundedRect' w h opts
    <> mkCorner 2 rBL
    <> seg (w - abs rBL - abs rBR, 0)
    <> mkCorner 3 rBR
-  where seg   = fromOffsets . (:[]) . r2
+  where seg   = lineFromOffsets . (:[]) . r2
         diag  = sqrt (w * w + h * h)
         -- to clamp corner radius, need to compare with other corners that share an
         -- edge. If the corners overlap then reduce the largest corner first, as far

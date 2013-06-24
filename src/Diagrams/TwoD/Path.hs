@@ -23,7 +23,7 @@
 module Diagrams.TwoD.Path
        ( -- * Constructing path-based diagrams
 
-         stroke, stroke', strokeT, strokeT'
+         stroke, stroke', strokeT, strokeT', strokeLine, strokeLoop
 
          -- ** Stroke options
 
@@ -49,13 +49,15 @@ import           Data.AffineSpace
 import           Data.Default.Class
 import           Data.VectorSpace
 
-import           Diagrams.Core
-
-import           Diagrams.Parametric
 import           Diagrams.Coordinates
+import           Diagrams.Core
+import           Diagrams.Located      (Located, unLoc)
+import           Diagrams.Parametric
 import           Diagrams.Path
 import           Diagrams.Segment
 import           Diagrams.Solve
+import           Diagrams.Trail
+import           Diagrams.TrailLike
 import           Diagrams.TwoD.Segment
 import           Diagrams.TwoD.Types
 import           Diagrams.Util         (tau)
@@ -69,15 +71,14 @@ import           Diagrams.Util         (tau)
 -- XXX can the efficiency of this be improved?  See the comment in
 -- Diagrams.Path on the Enveloped instance for Trail.
 instance Traced (Trail R2) where
-  getTrace t = case addClosingSegment t of
-    (Trail segs _) ->
-      foldr (\seg bds -> moveOriginBy (negateV . atEnd $ seg) bds <> getTrace seg)
-            mempty
-            segs
+  getTrace = withLine $
+      foldr
+        (\seg bds -> moveOriginBy (negateV . atEnd $ seg) bds <> getTrace seg)
+        mempty
+    . lineSegments
 
 instance Traced (Path R2) where
-  getTrace = F.foldMap trailTrace . pathTrails
-    where trailTrace (p, t) = moveOriginTo ((-1) *. p) (getTrace t)
+  getTrace = F.foldMap getTrace . pathTrails
 
 ------------------------------------------------------------
 --  Constructing path-based diagrams  ----------------------
@@ -97,8 +98,8 @@ stroke :: Renderable (Path R2) b
        => Path R2 -> Diagram b R2
 stroke = stroke' (def :: StrokeOpts ())
 
-instance Renderable (Path R2) b => PathLike (QDiagram b R2 Any) where
-  pathLike st cl segs = stroke $ pathLike st cl segs
+instance Renderable (Path R2) b => TrailLike (QDiagram b R2 Any) where
+  trailLike = stroke . trailLike
 
 -- | A variant of 'stroke' that takes an extra record of options to
 --   customize its behavior.  In particular:
@@ -173,6 +174,16 @@ strokeT' :: (Renderable (Path R2) b, IsName a)
          => StrokeOpts a -> Trail R2 -> Diagram b R2
 strokeT' opts = stroke' opts . pathFromTrail
 
+-- | A composition of 'strokeT' and 'wrapLine' for conveniently
+--   converting a line directly into a diagram.
+strokeLine :: (Renderable (Path R2) b) => Trail' Line R2 -> Diagram b R2
+strokeLine = strokeT . wrapLine
+
+-- | A composition of 'strokeT' and 'wrapLoop' for conveniently
+--   converting a loop directly into a diagram.
+strokeLoop :: (Renderable (Path R2) b) => Trail' Loop R2 -> Diagram b R2
+strokeLoop = strokeT . wrapLoop
+
 ------------------------------------------------------------
 --  Inside/outside testing
 ------------------------------------------------------------
@@ -234,13 +245,13 @@ crossings p = F.sum . map (trailCrossings p) . pathTrails
 
 -- | Compute the sum of signed crossings of a trail starting from the
 --   given point in the positive x direction.
-trailCrossings :: P2 -> (P2, Trail R2) -> Int
+trailCrossings :: P2 -> Located (Trail R2) -> Int
 
-  -- open trails have no inside or outside, so don't contribute crossings
-trailCrossings _ (_, t) | not (isClosed t) = 0
+  -- non-loop trails have no inside or outside, so don't contribute crossings
+trailCrossings _ t | not (isLoop (unLoc t)) = 0
 
-trailCrossings p@(unp2 -> (x,y)) (start, tr)
-  = sum . map test $ fixTrail start tr
+trailCrossings p@(unp2 -> (x,y)) tr
+  = sum . map test $ fixTrail tr
   where
     test (FLinear a@(unp2 -> (_,ay)) b@(unp2 -> (_,by)))
       | ay <= y && by > y && isLeft a b > 0 =  1

@@ -1,3 +1,4 @@
+{-# LANGUAGE GADTs #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Offset
@@ -21,6 +22,7 @@ import Diagrams.Core
 import Diagrams.Parametric
 import Diagrams.Path
 import Diagrams.Segment
+import Diagrams.Trail
 import Diagrams.TwoD.Curvature
 import Diagrams.TwoD.Transform
 import Diagrams.TwoD.Types
@@ -31,9 +33,9 @@ perp v = rotateBy (-1/4) v
 unitPerp :: R2 -> R2
 unitPerp = normalized . perp
 
-perpAtParam :: Segment R2 -> Double -> R2
-perpAtParam   (Linear a)    t = unitPerp a 
-perpAtParam s@(Cubic _ _ _) t = unitPerp a
+perpAtParam :: Segment Closed R2 -> Double -> R2
+perpAtParam   (Linear (OffsetClosed a))  t = unitPerp a 
+perpAtParam s@(Cubic _ _ _)              t = unitPerp a
   where
     (Cubic a _ _) = snd $ splitAtParam s t
 
@@ -70,14 +72,14 @@ offsetSegment :: Double     -- ^ Epsilon value that represents the maximum
               -> Double     -- ^ Offset from the original segment, positive is
                             --   on the right of the curve, negative is on the
                             --   left.
-              -> Segment R2 -- ^ Original segment
+              -> Segment Closed R2 -- ^ Original segment
               -> (Point R2, Trail R2) -- ^ Resulting offset point and trail.
-offsetSegment _       r s@(Linear a)    = (origin .+^ va, Trail [s] False)
+offsetSegment _       r s@(Linear (OffsetClosed a))    = (origin .+^ va, trailFromSegments [s])
   where va = r *^ unitPerp a
 
-offsetSegment epsilon r s@(Cubic a b c) = (origin .+^ va, t)
+offsetSegment epsilon r s@(Cubic a b (OffsetClosed c)) = (origin .+^ va, t)
   where
-    t = Trail (go (radiusOfCurvature s 0.5)) False
+    t = trailFromSegments (go (radiusOfCurvature s 0.5))
     -- Perpendiculars to handles.
     va = r *^ unitPerp a
     vc = r *^ unitPerp (c - b)
@@ -86,7 +88,7 @@ offsetSegment epsilon r s@(Cubic a b c) = (origin .+^ va, t)
     subdivided = concatMap (trailSegments . snd . offsetSegment epsilon r) ss
 
     -- Offset with handles scaled based on curvature.
-    offset factor = Cubic (a^*factor) ((b - c)^*factor + c + vc - va) (c + vc - va)
+    offset factor = bezier3 (a^*factor) ((b - c)^*factor + c + vc - va) (c + vc - va)
  
     -- We observe a corner.  Subdivide right away.
     go (Finite 0) = subdivided
