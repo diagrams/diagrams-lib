@@ -422,6 +422,10 @@ type SegMeasure v = SegCount
   -- unfortunately we can't cache Trace, since there is not a generic
   -- instance Traced (Segment Closed v), only Traced (Segment Closed R2).
 
+instance (InnerSpace v, OrderedField (Scalar v))
+    => Measured (SegMeasure v) (SegMeasure v) where
+  measure = id
+
 instance (OrderedField (Scalar v), InnerSpace v)
     => Measured (SegMeasure v) (Segment Closed v) where
   measure s = (SegCount . Sum $ 1)

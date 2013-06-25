@@ -88,20 +88,21 @@ module Diagrams.Trail
 
          -- ** Segment trees
 
-       , SegTree(..), trailMeasure
+       , SegTree(..), trailMeasure, numSegs, offset
 
        ) where
 
 import           Data.AffineSpace
-import           Data.FingerTree   (FingerTree, ViewR (..), (|>))
-import qualified Data.FingerTree   as FT
-import qualified Data.Foldable     as F
+import           Data.FingerTree     (FingerTree, ViewL (..), ViewR (..), (|>))
+import qualified Data.FingerTree     as FT
+import qualified Data.Foldable       as F
 import           Data.Monoid.MList
 import           Data.Semigroup
-import           Data.VectorSpace
+import           Data.VectorSpace    hiding (Sum (..))
 
-import           Diagrams.Core     hiding ((|>))
+import           Diagrams.Core       hiding ((|>))
 import           Diagrams.Located
+import           Diagrams.Parametric
 import           Diagrams.Segment
 
 -- $internals
@@ -133,6 +134,26 @@ instance (HasLinearMap v, InnerSpace v, OrderedField (Scalar v))
     => Transformable (SegTree v) where
   transform tr (SegTree t) = SegTree (FT.fmap' (transform tr) t)
 
+type instance Codomain (SegTree v) = v
+
+instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
+    => Parametric (SegTree v) where
+  atParam (SegTree t) p
+    | p < 0     = case FT.viewl t of
+                    EmptyL    -> zeroV
+                    seg :< _  -> seg `atParam` (p * tSegs)
+    | p >= 1    = case FT.viewr t of
+                    EmptyR    -> zeroV
+                    t' :> seg -> seg `atParam` (1 - (1 - p)*tSegs)
+                                 ^+^ offset t'
+    | otherwise = case FT.viewl after of
+                    EmptyL   -> zeroV
+                    seg :< _ -> (seg `atParam` (snd . properFraction $ p * tSegs))
+                                ^+^ offset before
+    where
+      (before, after) = FT.split ((p * tSegs <) . numSegs) t
+      tSegs           = numSegs t
+
 -- | Given a default result (to be used in the case of an empty
 --   trail), and a function to map a single measure to a result,
 --   extract the given measure for a trail and use it to compute a
@@ -143,6 +164,22 @@ trailMeasure :: ( InnerSpace v, OrderedField (Scalar v)
                 )
              => a -> (m -> a) -> t -> a
 trailMeasure d f = option d f . get . FT.measure
+
+-- | Compute the number of segments of anything measured by
+--   'SegMeasure' (/e.g./ @SegMeasure@ itself, @Segment@, @SegTree@,
+--   @Trail@s...)
+numSegs :: ( Floating (Scalar v), Num c, Ord (Scalar v), InnerSpace v,
+             FT.Measured (SegMeasure v) a
+           )
+        => a -> c
+numSegs = fromIntegral . trailMeasure 0 (getSum . getSegCount)
+
+-- | Compute the total offset of anything measured by 'SegMeasure'.
+offset :: ( Floating (Scalar v), Ord (Scalar v), InnerSpace v,
+            FT.Measured (SegMeasure v) t
+          )
+       => t -> v
+offset = trailMeasure zeroV (getTotalOffset . oeOffset)
 
 ------------------------------------------------------------
 --  Trails  ------------------------------------------------
@@ -228,6 +265,8 @@ deriving instance Ord  v => Ord  (Trail' l v)
 
 type instance V (Trail' l v) = v
 
+type instance Codomain (Trail' l v) = v
+
 instance (OrderedField (Scalar v), InnerSpace v) => Semigroup (Trail' Line v) where
   (Line t1) <> (Line t2) = Line (t1 `mappend` t2)
 
@@ -252,6 +291,17 @@ instance (InnerSpace v, OrderedField (Scalar v)) => Enveloped (Trail' l v) where
 instance (HasLinearMap v, InnerSpace v, OrderedField (Scalar v))
     => Renderable (Trail' o v) NullBackend where
   render _ _ = mempty
+
+instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
+    => Parametric (Trail' l v) where
+  atParam t p = withTrail'
+                  (\(Line segT) -> segT `atParam` p)
+                  (\l -> cutLoop l `atParam` p')
+                  t
+    where
+      pf = snd . properFraction $ p
+      p' | p >= 0    = pf
+         | otherwise = 1 + pf
 
 --------------------------------------------------
 -- The Trail type
@@ -280,12 +330,18 @@ instance Ord v => Ord (Trail v) where
 
 type instance V (Trail v) = v
 
+type instance Codomain (Trail v) = v
+
 instance (HasLinearMap v, InnerSpace v, OrderedField (Scalar v))
     => Transformable (Trail v) where
   transform t = onTrail (transform t) (transform t)
 
 instance (InnerSpace v, OrderedField (Scalar v)) => Enveloped (Trail v) where
   getEnvelope = withTrail getEnvelope getEnvelope
+
+instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
+    => Parametric (Trail v) where
+  atParam t p = withTrail (`atParam` p) (`atParam` p) t
 
 -- | A generic eliminator for 'Trail', taking functions specifying
 --   what to do in the case of a line or a loop.
