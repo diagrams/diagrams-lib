@@ -10,7 +10,7 @@
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
 -- Type classes for things which are parameterized in some way, /e.g./
--- segments, trails, and paths.
+-- segments and trails.
 --
 -----------------------------------------------------------------------------
 module Diagrams.Parametric

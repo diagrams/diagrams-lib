@@ -38,6 +38,9 @@ module Diagrams.Prelude
          -- | Trails.
        , module Diagrams.Trail
 
+         -- | Parametrization of segments and trails.
+       , module Diagrams.Parametric
+
          -- | Trail-like things.
        , module Diagrams.TrailLike
 
@@ -95,6 +98,7 @@ import           Diagrams.Combinators
 import           Diagrams.Coordinates
 import           Diagrams.CubicSpline
 import           Diagrams.Located
+import           Diagrams.Parametric
 import           Diagrams.Path
 import           Diagrams.Segment
 import           Diagrams.Trail
