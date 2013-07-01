@@ -79,5 +79,6 @@ Library
                        data-default-class < 0.1,
                        pretty >= 1.0.1.2 && < 1.2,
                        newtype >= 0.2 && < 0.3,
-                       fingertree >= 0.1 && < 0.2
+                       fingertree >= 0.1 && < 0.2,
+                       intervals >= 0.2.2 && < 0.3
   Hs-source-dirs:      src

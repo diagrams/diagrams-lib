@@ -54,7 +54,7 @@ module Diagrams.Segment
          -- $segmeas
 
        , SegCount(..)
-       , ArcLength(..)
+       , ArcLength(..), getArcLengthCached, getArcLengthFun
        , TotalOffset(..)
        , OffsetEnvelope(..)
        , SegMeasure
@@ -67,7 +67,9 @@ import           Data.Default.Class
 import           Data.FingerTree
 import           Data.Monoid.MList
 import           Data.Semigroup
-import           Data.VectorSpace    hiding (Sum)
+import           Data.VectorSpace    hiding (Sum (..))
+import           Numeric.Interval    (Interval (..))
+import qualified Numeric.Interval    as I
 
 import           Diagrams.Core
 import           Diagrams.Located
@@ -181,9 +183,9 @@ instance (VectorSpace v, Num (Scalar v)) => Parametric (Segment Closed v) where
                                               ^+^ (    t *t *t ) *^ x2
     where t' = 1-t
 
-instance  Num (Scalar v) => DomainBounds (Segment Closed v)
+instance Num (Scalar v) => DomainBounds (Segment Closed v)
 
-instance AdditiveGroup v => EndValues (Segment Closed v) where
+instance (VectorSpace v, Num (Scalar v)) => EndValues (Segment Closed v) where
   atStart                            = const zeroV
   atEnd (Linear (OffsetClosed v))    = v
   atEnd (Cubic _ _ (OffsetClosed v)) = v
@@ -262,36 +264,34 @@ reverseSegment :: AdditiveGroup v => Segment Closed v -> Segment Closed v
 reverseSegment (Linear (OffsetClosed v))       = straight (negateV v)
 reverseSegment (Cubic c1 c2 (OffsetClosed x2)) = bezier3 (c2 ^-^ x2) (c1 ^-^ x2) (negateV x2)
 
--- | 'arcLength' @s m@ approximates the arc length of the segment curve @s@ with
---   accuracy of at least plus or minus @m@.  For a 'Cubic' segment this is computed
---   by subdividing until the arc length of the path through the control points is
---   within @m@ of distance from start to end.
 instance (InnerSpace v, Floating (Scalar v), Ord (Scalar v), AdditiveGroup v)
       => HasArcLength (Segment Closed v) where
-  arcLength (Linear (OffsetClosed x1)) _ = magnitude x1
-  arcLength s@(Cubic c1 c2 (OffsetClosed x2)) m
-    | ub - lb < m = (ub + lb) / 2
-    | otherwise   = arcLength l m + arcLength r m
-   where (l,r) = splitAtParam s 0.5
+
+  arcLengthBounded _ (Linear (OffsetClosed x1)) = I.singleton $ magnitude x1
+  arcLengthBounded m s@(Cubic c1 c2 (OffsetClosed x2))
+    | ub - lb < m = I lb ub
+    | otherwise   = arcLengthBounded (m/2) l + arcLengthBounded (m/2) r
+   where (l,r) = s `splitAtParam` 0.5
          ub    = sum (map magnitude [c1, c2 ^-^ c1, x2 ^-^ c2])
          lb    = magnitude x2
 
-  arcLengthToParam s _ m | arcLength s m == 0 = 0.5
-  arcLengthToParam s@(Linear {}) len m = len / arcLength s m
-  arcLengthToParam s@(Cubic {})  len m
+  arcLengthToParam m s _ | arcLength m s == 0 = 0.5
+  arcLengthToParam m s@(Linear {}) len = len / arcLength m s
+  arcLengthToParam m s@(Cubic {})  len
     | len == 0             = 0
-    | len < 0              = - arcLengthToParam (fst (splitAtParam s (-1))) (-len) m
-    | abs (len - slen) < m = 1
-    | len > slen           = 2 * arcLengthToParam (fst (splitAtParam s 2)) len m
-    | len < ll             = (*0.5) $ arcLengthToParam l len m
-    | otherwise            = (+0.5) . (*0.5) $ arcLengthToParam r (len - ll) m
-    where (l,r) = splitAtParam s 0.5
-          ll    = arcLength l m
-          slen  = arcLength s m
+    | len < 0              = - arcLengthToParam m (fst (splitAtParam s (-1))) (-len)
+    | len `I.elem` slen    = 1
+    | len > I.sup slen     = 2 * arcLengthToParam m (fst (splitAtParam s 2)) len
+    | len < I.sup llen     = (*0.5) $ arcLengthToParam m l len
+    | otherwise            = (+0.5) . (*0.5)
+                           $ arcLengthToParam (m/2) r (len - I.midpoint llen)
+    where (l,r) = s `splitAtParam` 0.5
+          llen  = arcLengthBounded (m/2) l
+          slen  = arcLengthBounded m s
 
--- Note, the above seems to be quite slow since it duplicates a lot of
--- work.  We could trade off some time for space by building a tree of
--- parameter values (up to a certain depth...)
+  -- Note, the above seems to be quite slow since it duplicates a lot of
+  -- work.  We could trade off some time for space by building a tree of
+  -- parameter values (up to a certain depth...)
 
 ------------------------------------------------------------
 --  Fixed segments
@@ -381,11 +381,26 @@ instance VectorSpace v => Parametric (FixedSegment v) where
 newtype SegCount = SegCount { getSegCount :: Sum Int }
   deriving (Semigroup, Monoid)
 
--- | A type to represent the total arc length of a chain of segments.
-newtype ArcLength v = ArcLength { getArcLength :: Sum (Scalar v) }
+-- | A type to represent the total arc length of a chain of
+--   segments. The first component is a \"standard\" arc length,
+--   computed to within a tolerance of @10e-6@.  The second component is
+--   a generic arc length function taking the tolerance as an
+--   argument.
+newtype ArcLength v = ArcLength
+  { getArcLength :: (Sum (Interval (Scalar v)), Scalar v -> Sum (Interval (Scalar v))) }
 
-deriving instance (Num (Scalar v)) => Semigroup (ArcLength v)
-deriving instance (Num (Scalar v)) => Monoid    (ArcLength v)
+-- | Project out the cached arc length, stored together with error
+--   bounds.
+getArcLengthCached :: ArcLength v -> Interval (Scalar v)
+getArcLengthCached = getSum . fst . getArcLength
+
+-- ^ Project out the generic arc length function taking the tolerance as
+--   an argument.
+getArcLengthFun :: ArcLength v -> Scalar v -> Interval (Scalar v)
+getArcLengthFun = fmap getSum . snd . getArcLength
+
+deriving instance (Num (Scalar v), Ord (Scalar v)) => Semigroup (ArcLength v)
+deriving instance (Num (Scalar v), Ord (Scalar v)) => Monoid    (ArcLength v)
 
 -- | A type to represent the total cumulative offset of a chain of
 --   segments.
@@ -429,7 +444,16 @@ instance (InnerSpace v, OrderedField (Scalar v))
 instance (OrderedField (Scalar v), InnerSpace v)
     => Measured (SegMeasure v) (Segment Closed v) where
   measure s = (SegCount . Sum $ 1)
-           *: (ArcLength . Sum $ arcLength s 10e-6)  -- XXX what tolerance to use?
+
+            -- cache arc length with two orders of magnitude more
+            -- accuracy than standard, so we have a hope of coming out
+            -- with an accurate enough total arc length for
+            -- reasonable-length trails
+           *: (ArcLength $ ( Sum $ arcLengthBounded (stdTolerance/100) s
+                           , Sum . flip arcLengthBounded s
+                           )
+              )
+
            *: (OffsetEnvelope
                 (TotalOffset . segOffset $ s)
                 (getEnvelope s)

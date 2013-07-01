@@ -16,12 +16,15 @@
 module Diagrams.Parametric
   (
   -- * Parametric functions
-    Codomain, Parametric(..), HasArcLength(..)
+    stdTolerance
+  , Codomain, Parametric(..), HasArcLength(..)
 
   , DomainBounds(..), EndValues(..), Sectionable(..)
 
   -- * Adjusting
+  , adjust
   , AdjustOpts(..), AdjustMethod(..), AdjustSide(..)
+
   ) where
 
 import           Diagrams.Core
@@ -29,6 +32,7 @@ import           Diagrams.Util
 
 import           Data.Default.Class
 import           Data.VectorSpace
+import qualified Numeric.Interval   as I
 
 -- | Codomain of parametric classes.  This is usually either @(V p)@, for relative
 --   vector results, or @(Point (V p))@, for functions with absolute coordinates.
@@ -65,7 +69,7 @@ class DomainBounds p where
 
 -- | Type class for querying the values of a parametric object at the
 --   ends of its domain.
-class EndValues p where
+class (Parametric p, DomainBounds p) => EndValues p where
   -- | 'atStart' is the value at the start of the domain.  That is,
   --
   --   > atStart x = x `atParam` domainLower x
@@ -73,8 +77,6 @@ class EndValues p where
   --   This is the default implementation, but some representations will
   --   have a more efficient and/or precise implementation.
   atStart :: p -> Codomain p
-
-  default atStart :: (Parametric p, DomainBounds p) => p -> Codomain p
   atStart x = x `atParam` domainLower x
 
   -- | 'atEnd' is the value at the end of the domain. That is,
@@ -84,8 +86,6 @@ class EndValues p where
   --   This is the default implementation, but some representations will
   --   have a more efficient and/or precise implementation.
   atEnd :: p -> Codomain p
-
-  default atEnd :: (Parametric p, DomainBounds p) => p -> Codomain p
   atEnd x = x `atParam` domainUpper x
 
 -- | Return the lower and upper bounds of a parametric domain together
@@ -146,18 +146,46 @@ class DomainBounds p => Sectionable p where
   reverseDomain :: p -> p
   reverseDomain x = section x (domainUpper x) (domainLower x)
 
--- | Type class for parametric things with a notion of arc length.
-class Parametric p => HasArcLength p where
-  -- | @arcLength x eps@ approximates the arc length of @x@ up to the
-  --   accuracy @eps@ (plus or minus).
-  arcLength :: p -> Scalar (V p) -> Scalar (V p)
+-- | XXX comment me
+stdTolerance :: Fractional a => a
+stdTolerance = 1e-6
 
-  -- | @'arcLengthToParam' s l m@ converts the absolute arc length
+-- | Type class for parametric things with a notion of arc length.
+--   XXX finish me
+class Parametric p => HasArcLength p where
+
+  -- | @arcLengthBounded eps x@ approximates the arc length of @x@.
+  --   The true arc length is guaranteed to lie within the interval
+  --   returned, which will have a size of at most @eps@.
+  arcLengthBounded :: Scalar (V p) -> p -> I.Interval (Scalar (V p))
+
+  -- | @arcLength eps s@ approximates the arc length of @x@ up to the
+  --   accuracy @eps@ (plus or minus).
+  arcLength :: Scalar (V p) -> p -> Scalar (V p)
+  default arcLength :: Fractional (Scalar (V p)) => Scalar (V p ) -> p -> Scalar (V p)
+  arcLength eps = I.midpoint . arcLengthBounded eps
+
+  -- | XXX comment me
+  stdArcLength :: p -> Scalar (V p)
+  default stdArcLength :: Fractional (Scalar (V p)) => p -> Scalar (V p)
+  stdArcLength = arcLength stdTolerance
+
+  -- | @'arcLengthToParam' eps s l@ converts the absolute arc length
   --   @l@, measured from the start of the domain, to a parameter on
-  --   the object @s@, with accuracy of at least plus or minus @m@.
+  --   the object @s@.  The true arc length at the parameter returned
+  --   is guaranteed to be within @eps@ of the requested arc length.
+  --
   --   This should work for /any/ arc length, and may return any
   --   parameter value (not just parameters in the domain).
-  arcLengthToParam :: p -> Scalar (V p) -> Scalar (V p) -> Scalar (V p)
+  arcLengthToParam :: Scalar (V p) -> p -> Scalar (V p) -> Scalar (V p)
+
+  -- | A simple interface to convert arc length to a parameter,
+  --   guaranteed to be accurate within the standard tolerance of
+  --   @1e-6@.
+  stdArcLengthToParam :: p -> Scalar (V p) -> Scalar (V p)
+  default stdArcLengthToParam :: Fractional (Scalar (V p))
+                              => p -> Scalar (V p) -> Scalar (V p)
+  stdArcLengthToParam = arcLengthToParam stdTolerance
 
 --------------------------------------------------
 --  Adjusting length
@@ -192,11 +220,11 @@ instance Default AdjustSide where
   def = Both
 
 instance Fractional (Scalar v) => Default (AdjustOpts v) where
-  def = AO def def (1/10^(10 :: Integer)) Proxy
+  def = AO def def stdTolerance Proxy
 
--- | Adjust the length of a parametric path.  The second parameter is an
---   option record which controls how the adjustment should be performed;
---   see 'AdjustOpts'.
+-- | Adjust the length of a parametric object such as a segment or
+--   trail.  The second parameter is an option record which controls how
+--   the adjustment should be performed; see 'AdjustOpts'.
 adjust :: (DomainBounds a, Sectionable a, HasArcLength a, Fractional (Scalar (V a)))
        => a -> AdjustOpts (V a) -> a
 adjust s opts = section s
@@ -208,7 +236,7 @@ adjust s opts = section s
     ByAbsolute len -> param (-len * bothCoef)
     ToAbsolute len -> param (absDelta len * bothCoef)
    where
-    param l = arcLengthToParam seg l eps
-    absDelta len = arcLength s eps - len
+    param        = arcLengthToParam eps seg
+    absDelta len = arcLength eps s - len
   bothCoef = if adjSide opts == Both then 0.5 else 1
   eps = adjEps opts
