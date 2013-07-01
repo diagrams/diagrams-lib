@@ -92,6 +92,7 @@ module Diagrams.Trail
 
        ) where
 
+import           Control.Arrow       ((***))
 import           Data.AffineSpace
 import           Data.FingerTree     (FingerTree, ViewL (..), ViewR (..), (<|),
                                       (|>))
@@ -412,6 +413,23 @@ instance (InnerSpace v, OrderedField (Scalar v)) => Enveloped (Trail v) where
 instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
     => Parametric (Trail v) where
   atParam t p = withTrail (`atParam` p) (`atParam` p) t
+
+instance Num (Scalar v) => DomainBounds (Trail v)
+
+instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
+  => EndValues (Trail v)
+
+-- XXX explain what it does for loops
+instance (InnerSpace v, RealFrac (Scalar v), Floating (Scalar v))
+    => Sectionable (Trail v) where
+  splitAtParam t p = withLine ((wrapLine *** wrapLine) . (`splitAtParam` p)) t
+
+instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
+    => HasArcLength (Trail v) where
+  arcLengthBounded = withLine . arcLengthBounded
+
+--------------------------------------------------
+-- Constructors and eliminators for Trail
 
 -- | A generic eliminator for 'Trail', taking functions specifying
 --   what to do in the case of a line or a loop.
