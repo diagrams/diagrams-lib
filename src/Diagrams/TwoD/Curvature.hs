@@ -142,7 +142,7 @@ toPosInf (p,q)
 curvaturePair :: (Num t, Num (Scalar t), VectorSpace t)
     => Segment Closed (t, t) -> Scalar t -> (t, t)
 curvaturePair (Linear _)    t = (0,1) -- Linear segments always have zero curvature (infinite radius).
-curvaturePair (Cubic b c (OffsetClosed d)) t = ((x'*y'' - y'*x''), (x'*x' + y'*y')^3)
+curvaturePair (Cubic b c (OffsetClosed d)) t = ((x'*y'' - y'*x''), (x'*x' + y'*y')^(3 :: Integer))
   where
     (x' ,y' ) = firstDerivative  b c d t -- TODO: Use the generalized unr2
     (x'',y'') = secondDerivative b c d t
