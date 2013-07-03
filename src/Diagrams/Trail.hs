@@ -339,6 +339,7 @@ instance (HasLinearMap v, InnerSpace v, OrderedField (Scalar v))
 instance (InnerSpace v, OrderedField (Scalar v)) => Enveloped (Trail' l v) where
   getEnvelope = withTrail' ftEnv (ftEnv . cutLoop)
     where
+      ftEnv :: Trail' Line v -> Envelope v
       ftEnv (Line t) = trailMeasure mempty oeEnvelope $ t
 
 instance (HasLinearMap v, InnerSpace v, OrderedField (Scalar v))

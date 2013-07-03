@@ -14,10 +14,10 @@ module Diagrams.Solve
        , cubForm
        ) where
 
-import Data.List (maximumBy)
-import Data.Ord (comparing)
+import           Data.List     (maximumBy)
+import           Data.Ord      (comparing)
 
-import Diagrams.Util (tau)
+import           Diagrams.Util (tau)
 
 ------------------------------------------------------------
 -- Quadratic formula
@@ -31,7 +31,7 @@ quadForm a b c
     -- so arbitrarily return 0
   | a == 0 && b == 0 && c == 0 = [0]
 
-    -- c = 0
+    -- c /= 0
   | a == 0 && b == 0 = []
 
     -- linear
@@ -39,6 +39,9 @@ quadForm a b c
 
     -- no real solutions
   | d < 0     = []
+
+    -- ax^2 + c = 0
+  | b == 0    = [sqrt (-c/a), -sqrt (-c/a)]
 
     -- multiplicity 2 solution
   | d == 0    = [-b/(2*a)]
