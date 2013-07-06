@@ -70,12 +70,34 @@ instance Renderable Text NullBackend where
 data TextAlignment = BaselineText | BoxAlignedText Double Double
 
 mkText :: Renderable Text b => TextAlignment -> String -> Diagram b R2
-mkText a t = recommendFillColor black
+mkText a t = recommendFillColor black   -- See Note [recommendFillColor]
            $ mkQD (Prim (Text mempty a t))
                        mempty
                        mempty
                        mempty
                        mempty
+
+-- ~~~~ Note [recommendFillColor]
+
+-- The reason we "recommend" a fill color of black instead of setting
+-- it directly (or instead of simply not specifying a fill color at
+-- all) was originally to support the SVG backend, though it is
+-- actually in some sense the "right thing" to do, and other backends
+-- we add later may conceivably need it as well.  The cairo backend
+-- defaults happen to be to use a transparent fill for paths and a
+-- black fill for text.  The SVG standard, however, specifies a
+-- default fill of black for everything (both text and paths).  In
+-- order to correctly render paths with no fill set, the SVG backend
+-- must therefore explicitly set the fill to transparent -- but this
+-- meant that it was also drawing text with a transparent fill.  The
+-- solution is that we now explicitly inform all backends that the
+-- *default* ("recommended") fill color for text should be black; an
+-- absence of fill specification now consistently means to use a
+-- "transparent" fill no matter what the primitive.  The reason we
+-- need the special recommend/commit distinction is because if the
+-- user explicitly sets a fill color later it should override this
+-- recommendation; normally, the innermost occurrence of an attribute
+-- would override all outer occurrences.
 
 -- | Create a primitive text diagram from the given string, with center
 --   alignment, equivalent to @'alignedText' 0.5 0.5@.
