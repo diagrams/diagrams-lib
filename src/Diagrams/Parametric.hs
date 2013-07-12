@@ -17,9 +17,9 @@ module Diagrams.Parametric
   (
   -- * Parametric functions
     stdTolerance
-  , Codomain, Parametric(..), HasArcLength(..)
+  , Codomain, Parametric(..)
 
-  , DomainBounds(..), EndValues(..), Sectionable(..)
+  , DomainBounds(..), EndValues(..), Sectionable(..), HasArcLength(..)
 
   -- * Adjusting
   , adjust
