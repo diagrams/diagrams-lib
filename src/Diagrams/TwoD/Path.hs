@@ -52,6 +52,7 @@ import           Data.VectorSpace
 import           Diagrams.Coordinates
 import           Diagrams.Core
 import           Diagrams.Located      (Located, unLoc)
+import           Diagrams.Parametric
 import           Diagrams.Path
 import           Diagrams.Segment
 import           Diagrams.Solve
@@ -72,7 +73,7 @@ import           Diagrams.Util         (tau)
 instance Traced (Trail R2) where
   getTrace = withLine $
       foldr
-        (\seg bds -> moveOriginBy (negateV . segOffset $ seg) bds <> getTrace seg)
+        (\seg bds -> moveOriginBy (negateV . atEnd $ seg) bds <> getTrace seg)
         mempty
     . lineSegments
 
@@ -268,7 +269,7 @@ trailCrossings p@(unp2 -> (x,y)) tr
                          ( 3*x1y - 6*c1y + 3*c2y)
                          (-3*x1y + 3*c1y)
                          (x1y - y)
-            testT t = let (unp2 -> (px,_)) = c `fAtParam` t
+            testT t = let (unp2 -> (px,_)) = c `atParam` t
                       in  if px > x then signFromDerivAt t else 0
             signFromDerivAt t =
               let (dx,dy) = (3*t*t) *^ ((-1)*^x1 ^+^ 3*^c1 ^-^ 3*^c2 ^+^ x2)

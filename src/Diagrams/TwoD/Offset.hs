@@ -19,6 +19,7 @@ import Data.VectorSpace
 
 import Diagrams.Core
 
+import Diagrams.Parametric
 import Diagrams.Path
 import Diagrams.Segment
 import Diagrams.Trail

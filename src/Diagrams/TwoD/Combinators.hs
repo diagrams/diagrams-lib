@@ -152,13 +152,13 @@ strutR2 v = phantom seg
   where
     seg = FLinear (origin .+^ 0.5 *^ v) (origin .+^ (-0.5) *^ v)
 
--- | @strutX d@ is an empty diagram with width @d@, height 0, and a
+-- | @strutX w@ is an empty diagram with width @w@, height 0, and a
 --   centered local origin.  Note that @strutX (-w)@ behaves the same as
 --   @strutX w@.
 strutX :: (Backend b R2, Monoid' m) => Double -> QDiagram b R2 m
 strutX d = strut (d & 0)
 
--- | @strutY d@ is an empty diagram with height @d@, width 0, and a
+-- | @strutY h@ is an empty diagram with height @h@, width 0, and a
 --   centered local origin. Note that @strutY (-h)@ behaves the same as
 --   @strutY h@.
 strutY :: (Backend b R2, Monoid' m) => Double -> QDiagram b R2 m

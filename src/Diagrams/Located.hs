@@ -24,10 +24,12 @@ module Diagrams.Located
     )
     where
 
+import           Data.AffineSpace
 import           Data.VectorSpace
 
 import           Diagrams.Core
 import           Diagrams.Core.Points
+import           Diagrams.Parametric
   -- for GHC 7.4 type family bug
 
 -- | \"Located\" things, /i.e./ things with a concrete location:
@@ -48,7 +50,7 @@ import           Diagrams.Core.Points
 data Located a = Loc { loc :: Point (V a)   -- ^ Project out the
                                             --   location of a @Located@
                                             --   value.
-                     , obj :: TransInv a
+                     , obj :: a
                      }
 
 infix 5 `at`
@@ -56,18 +58,18 @@ infix 5 `at`
 -- | Construct a @Located a@ from a value of type @a@ and a location.
 --   @at@ is intended to be used infix, like @x \`at\` origin@.
 at :: a -> Point (V a) -> Located a
-at a p = Loc p (TransInv a)
+at a p = Loc p a
 
 -- | Project the value of type @a@ out of a @Located a@, discarding
 --   the location.
 unLoc :: Located a -> a
-unLoc (Loc _ (TransInv a)) = a
+unLoc (Loc _ a) = a
 
 -- | Deconstruct a @Located a@ into a location and a value of type
 --   @a@.  @viewLoc@ can be especially useful in conjunction with the
 --   @ViewPatterns@ extension.
 viewLoc :: Located a -> (Point (V a), a)
-viewLoc (Loc p (TransInv a)) = (p,a)
+viewLoc (Loc p a) = (p,a)
 
 -- | 'Located' is not a @Functor@, since changing the type could
 --   change the type of the associated vector space, in which case the
@@ -80,7 +82,7 @@ viewLoc (Loc p (TransInv a)) = (p,a)
 --   with associated vector space @v@; but that is not covered by the
 --   standard @Functor@ class.)
 mapLoc :: (V a ~ V b) => (a -> b) -> Located a -> Located b
-mapLoc f (Loc p (TransInv a)) = Loc p (TransInv (f a))
+mapLoc f (Loc p a) = Loc p (f a)
 
 deriving instance (Eq   (V a), Eq a  ) => Eq   (Located a)
 deriving instance (Ord  (V a), Ord a ) => Ord  (Located a)
@@ -116,3 +118,26 @@ instance Traced a => Traced (Located a) where
 
 instance Qualifiable a => Qualifiable (Located a) where
   n |> (Loc p a) = Loc p (n |> a)
+
+type instance Codomain (Located a) = Located (Codomain a)
+
+instance (V a ~ V (Codomain a), Parametric a) => Parametric (Located a) where
+  (Loc x a) `atParam` p = Loc x (a `atParam` p)
+
+instance DomainBounds a => DomainBounds (Located a) where
+  domainLower (Loc _ a) = domainLower a
+  domainUpper (Loc _ a) = domainUpper a
+
+instance (V a ~ V (Codomain a), EndValues a) => EndValues (Located a)
+
+instance ( Codomain a ~ V a, Fractional (Scalar (V a)), AdditiveGroup (V a)
+         , Sectionable a, Parametric a
+         )
+    => Sectionable (Located a) where
+  splitAtParam (Loc x a) p = (Loc x a1, Loc (x .+^ (a `atParam` p)) a2)
+    where (a1,a2) = splitAtParam a p
+
+instance (HasArcLength a, Fractional (Scalar (V a)), V a ~ V (Codomain a))
+    => HasArcLength (Located a) where
+  arcLengthBounded eps (Loc _ a)   = arcLengthBounded eps a
+  arcLengthToParam eps (Loc _ a) l = arcLengthToParam eps a l
