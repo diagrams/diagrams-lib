@@ -54,7 +54,7 @@ module Diagrams.Segment
          -- $segmeas
 
        , SegCount(..)
-       , ArcLength(..), getArcLengthCached, getArcLengthFun
+       , ArcLength(..), getArcLengthCached, getArcLengthFun, getArcLengthBounded
        , TotalOffset(..)
        , OffsetEnvelope(..)
        , SegMeasure
@@ -394,11 +394,21 @@ newtype ArcLength v = ArcLength
 getArcLengthCached :: ArcLength v -> Interval (Scalar v)
 getArcLengthCached = getSum . fst . getArcLength
 
--- ^ Project out the generic arc length function taking the tolerance as
+-- | Project out the generic arc length function taking the tolerance as
 --   an argument.
 getArcLengthFun :: ArcLength v -> Scalar v -> Interval (Scalar v)
 getArcLengthFun = fmap getSum . snd . getArcLength
 
+-- | Given a specified tolerance, project out the cached arc length if
+--   it is accurate enough; otherwise call the generic arc length
+--   function with the given tolerance.
+getArcLengthBounded :: (Num (Scalar v), Ord (Scalar v))
+                    => Scalar v -> ArcLength v -> Interval (Scalar v)
+getArcLengthBounded eps al
+  | I.width cached <= eps = cached
+  | otherwise             = getArcLengthFun al eps
+  where
+    cached = getArcLengthCached al
 deriving instance (Num (Scalar v), Ord (Scalar v)) => Semigroup (ArcLength v)
 deriving instance (Num (Scalar v), Ord (Scalar v)) => Monoid    (ArcLength v)
 

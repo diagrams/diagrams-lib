@@ -207,6 +207,28 @@ instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
               (getArcLengthFun :: ArcLength v -> Scalar v -> I.Interval (Scalar v))
               t
 
+  arcLengthToParam eps st@(SegTree t) l
+    | l < 0        = case FT.viewl t of
+                       EmptyL   -> 0
+                       seg :< _ -> arcLengthToParam eps seg l / tSegs
+    | l >= totalAL = case FT.viewr t of
+                       EmptyR    -> 0
+                       t' :> seg ->
+                         let p = arcLengthToParam (eps/2) seg
+                                   (l - arcLength (eps/2) (SegTree t'))
+                         in  (p - 1)/tSegs + 1
+    | otherwise    = case FT.viewl after of
+                       EmptyL    -> 0
+                       seg :< after' ->
+                         let p = arcLengthToParam (eps/2) seg
+                                   (l - arcLength (eps/2) (SegTree before))
+                         in  (numSegs before + p) / tSegs
+    where
+      totalAL         = arcLength eps st
+      tSegs           = numSegs t
+      before, after :: FingerTree (SegMeasure v) (Segment Closed v)
+      (before, after) = FT.split ((>= l) . trailMeasure 0 (I.midpoint . (getArcLengthBounded eps :: ArcLength v -> I.Interval (Scalar v)))) t
+
 -- | Given a default result (to be used in the case of an empty
 --   trail), and a function to map a single measure to a result,
 --   extract the given measure for a trail and use it to compute a
@@ -375,6 +397,12 @@ instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
       (\(Line t) -> arcLengthBounded eps t)
       (arcLengthBounded eps . cutLoop)
 
+  arcLengthToParam eps tr l =
+    withTrail'
+      (\(Line t) -> arcLengthToParam eps t l)
+      (\lp -> arcLengthToParam eps (cutLoop lp) l)
+      tr
+
 --------------------------------------------------
 -- The Trail type
 
@@ -428,6 +456,7 @@ instance (InnerSpace v, RealFrac (Scalar v), Floating (Scalar v))
 instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
     => HasArcLength (Trail v) where
   arcLengthBounded = withLine . arcLengthBounded
+  arcLengthToParam eps tr al = withLine (\ln -> arcLengthToParam eps ln al) tr
 
 --------------------------------------------------
 -- Constructors and eliminators for Trail
