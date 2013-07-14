@@ -146,12 +146,13 @@ class DomainBounds p => Sectionable p where
   reverseDomain :: p -> p
   reverseDomain x = section x (domainUpper x) (domainLower x)
 
--- | XXX comment me
+-- | The standard tolerance used by @std...@ functions (like
+--   'stdArcLength' and 'stdArcLengthToParam', currently set at
+--   @1e-6@.
 stdTolerance :: Fractional a => a
 stdTolerance = 1e-6
 
 -- | Type class for parametric things with a notion of arc length.
---   XXX finish me
 class Parametric p => HasArcLength p where
 
   -- | @arcLengthBounded eps x@ approximates the arc length of @x@.
@@ -165,7 +166,8 @@ class Parametric p => HasArcLength p where
   default arcLength :: Fractional (Scalar (V p)) => Scalar (V p ) -> p -> Scalar (V p)
   arcLength eps = I.midpoint . arcLengthBounded eps
 
-  -- | XXX comment me
+  -- | Approximate the arc length up to a standard accuracy of
+  --   'stdTolerance' (@1e-6@).
   stdArcLength :: p -> Scalar (V p)
   default stdArcLength :: Fractional (Scalar (V p)) => p -> Scalar (V p)
   stdArcLength = arcLength stdTolerance
@@ -180,8 +182,7 @@ class Parametric p => HasArcLength p where
   arcLengthToParam :: Scalar (V p) -> p -> Scalar (V p) -> Scalar (V p)
 
   -- | A simple interface to convert arc length to a parameter,
-  --   guaranteed to be accurate within the standard tolerance of
-  --   @1e-6@.
+  --   guaranteed to be accurate within 'stdTolerance', or @1e-6@.
   stdArcLengthToParam :: p -> Scalar (V p) -> Scalar (V p)
   default stdArcLengthToParam :: Fractional (Scalar (V p))
                               => p -> Scalar (V p) -> Scalar (V p)
