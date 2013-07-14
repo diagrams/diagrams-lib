@@ -278,15 +278,15 @@ instance (InnerSpace v, Floating (Scalar v), Ord (Scalar v), AdditiveGroup v)
   arcLengthToParam m s _ | arcLength m s == 0 = 0.5
   arcLengthToParam m s@(Linear {}) len = len / arcLength m s
   arcLengthToParam m s@(Cubic {})  len
-    | len == 0             = 0
+    | len `I.elem` (I (-m/2) (m/2)) = 0
     | len < 0              = - arcLengthToParam m (fst (splitAtParam s (-1))) (-len)
     | len `I.elem` slen    = 1
     | len > I.sup slen     = 2 * arcLengthToParam m (fst (splitAtParam s 2)) len
     | len < I.sup llen     = (*0.5) $ arcLengthToParam m l len
     | otherwise            = (+0.5) . (*0.5)
-                           $ arcLengthToParam (m/2) r (len - I.midpoint llen)
+                           $ arcLengthToParam (9*m/10) r (len - I.midpoint llen)
     where (l,r) = s `splitAtParam` 0.5
-          llen  = arcLengthBounded (m/2) l
+          llen  = arcLengthBounded (m/10) l
           slen  = arcLengthBounded m s
 
   -- Note, the above seems to be quite slow since it duplicates a lot of
