@@ -19,7 +19,7 @@ module Diagrams.TwoD.Segment where
 import           Control.Applicative     (liftA2)
 
 import           Data.AffineSpace
-import           Data.Monoid.PosInf      hiding (minimum)
+import           Data.Monoid.Inf         hiding (minimum)
 import           Data.VectorSpace
 
 import           Diagrams.Core
@@ -69,7 +69,7 @@ instance Traced (FixedSegment R2) where
       t1     = (perp v0 <.> p) / det
     in
       if det == 0 || t0 < 0 || t0 > 1
-        then PosInfty
+        then Infinity
         else Finite t1
 
 {- To do intersection of a line with a cubic Bezier, we first rotate
@@ -97,6 +97,6 @@ instance Traced (FixedSegment R2) where
       xs = map (fst . unp2 . fAtParam bez') ts
     in
       case xs of
-        [] -> PosInfty
+        [] -> Infinity
         _  -> Finite (minimum xs)
 

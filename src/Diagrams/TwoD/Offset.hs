@@ -14,7 +14,7 @@ module Diagrams.TwoD.Offset
     ) where
 
 import Data.AffineSpace
-import Data.Monoid.PosInf
+import Data.Monoid.Inf
 import Data.VectorSpace
 
 import Diagrams.Core
@@ -102,7 +102,7 @@ offsetSegment epsilon r s@(Cubic a b (OffsetClosed c)) = (origin .+^ va, t)
         -- r + sr = x * sr
         --
         o = offset $ case roc of
-              PosInfty  -> 1          -- Do the right thing.
+              Infinity  -> 1          -- Do the right thing.
               Finite sr -> 1 + r / sr 
 
         close = and [epsilon > (magnitude (p o + va - p s - pp s))

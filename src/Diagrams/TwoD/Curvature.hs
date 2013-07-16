@@ -20,7 +20,7 @@ module Diagrams.TwoD.Curvature
     ) where
 
 import           Data.AffineSpace
-import           Data.Monoid.PosInf
+import           Data.Monoid.Inf
 import           Data.VectorSpace
 
 import           Control.Arrow        (first, second)
@@ -66,7 +66,7 @@ import           Diagrams.TwoD.Vector
 -- <<diagrams/diagramNeg.svg#diagram=diagramNeg&height=200&width=400>>
 --
 -- > import Diagrams.TwoD.Curvature
--- > import Data.Monoid.PosInf
+-- > import Data.Monoid.Inf
 -- >
 -- > segmentA = Cubic (12 & 0) (8 & 10) (20 & 8)
 -- >
@@ -95,7 +95,7 @@ import           Diagrams.TwoD.Vector
 -- >
 -- >     firstDerivative b c d t = let tt = t*t in (3*(3*tt-4*t+1))*^b + (3*(2-3*t)*t)*^c + (3*tt)*^d
 -- >
--- >     go PosInfty   = mempty
+-- >     go Infinity   = mempty
 -- >     go (Finite r) = (circle (abs r) # translate vpr
 -- >                  <> stroke (origin ~~ (origin .+^ vpr)))
 -- >                   # moveTo (origin .+^ atParam bez t)
@@ -130,9 +130,9 @@ squaredRadiusOfCurvature s = toPosInf . (\(p,q) -> (q,p)) . first (join (*)) . c
 
 -- Package up problematic values with the appropriate infinity.
 toPosInf :: RealFloat a => (a,a) -> PosInf a
-toPosInf (_,0) = PosInfty
+toPosInf (_,0) = Infinity
 toPosInf (p,q)
-  | isInfinite r || isNaN r = PosInfty
+  | isInfinite r || isNaN r = Infinity
   | otherwise               = Finite r
   where r = p / q
 

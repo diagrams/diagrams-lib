@@ -24,7 +24,7 @@ import Prelude hiding (minimum)
 import Data.Semigroup
 
 import Data.AffineSpace
-import Data.Monoid.PosInf (minimum)
+import Data.Monoid.Inf (minimum)
 import Data.VectorSpace
 
 import Diagrams.Core
