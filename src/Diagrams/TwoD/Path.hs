@@ -24,6 +24,7 @@ module Diagrams.TwoD.Path
        ( -- * Constructing path-based diagrams
 
          stroke, stroke', strokeT, strokeT', strokeLine, strokeLoop
+       , strokeLocT, strokeLocLine, strokeLocLoop
 
          -- ** Stroke options
 
@@ -51,7 +52,7 @@ import           Data.VectorSpace
 
 import           Diagrams.Coordinates
 import           Diagrams.Core
-import           Diagrams.Located      (Located, unLoc)
+import           Diagrams.Located      (Located, mapLoc, unLoc)
 import           Diagrams.Path
 import           Diagrams.Segment
 import           Diagrams.Solve
@@ -182,6 +183,21 @@ strokeLine = strokeT . wrapLine
 --   converting a loop directly into a diagram.
 strokeLoop :: (Renderable (Path R2) b) => Trail' Loop R2 -> Diagram b R2
 strokeLoop = strokeT . wrapLoop
+
+-- | A convenience function for converting a @Located Trail@ directly
+--   into a diagram; @strokeLocT = stroke . trailLike@.
+strokeLocT :: (Renderable (Path R2) b) => Located (Trail R2) -> Diagram b R2
+strokeLocT = stroke . trailLike
+
+-- | A convenience function for converting a @Located@ line directly
+--   into a diagram; @strokeLocLine = stroke . trailLike . mapLoc wrapLine@.
+strokeLocLine :: (Renderable (Path R2) b) => Located (Trail' Line R2) -> Diagram b R2
+strokeLocLine = stroke . trailLike . mapLoc wrapLine
+
+-- | A convenience function for converting a @Located@ loop directly
+--   into a diagram; @strokeLocLoop = stroke . trailLike . mapLoc wrapLoop@.
+strokeLocLoop :: (Renderable (Path R2) b) => Located (Trail' Loop R2) -> Diagram b R2
+strokeLocLoop = stroke . trailLike . mapLoc wrapLoop
 
 ------------------------------------------------------------
 --  Inside/outside testing
