@@ -55,6 +55,9 @@ module Diagrams.Prelude
          --   good old-fashioned, axis-aligned bounding boxes.
        , module Diagrams.BoundingBox
 
+         -- | Utilities for working with points.
+       , module Diagrams.Points
+
          -- | A wide range of things (shapes, transformations,
          --   combinators) specific to creating two-dimensional
          --   diagrams.
@@ -96,6 +99,7 @@ import           Diagrams.Coordinates
 import           Diagrams.CubicSpline
 import           Diagrams.Located
 import           Diagrams.Path
+import           Diagrams.Points
 import           Diagrams.Segment
 import           Diagrams.Trail
 import           Diagrams.TrailLike
