@@ -448,7 +448,15 @@ instance Num (Scalar v) => DomainBounds (Trail v)
 instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
   => EndValues (Trail v)
 
--- XXX explain what it does for loops
+-- | Note that there is no @Sectionable@ instance for @Trail' Loop@,
+--   because it does not make sense (splitting a loop at a parameter
+--   results in a single line, not two loops).  However, it's
+--   convenient to have a @Sectionable@ instance for @Trail@; if the
+--   @Trail@ contains a loop the loop will first be cut and then
+--   @splitAtParam@ called on the resulting line.  This is
+--   semantically a bit silly, so please don't rely on it. (*E.g.* if
+--   this is really the behavior you want, consider first calling
+--   'cutLoop' yourself.)
 instance (InnerSpace v, RealFrac (Scalar v), Floating (Scalar v))
     => Sectionable (Trail v) where
   splitAtParam t p = withLine ((wrapLine *** wrapLine) . (`splitAtParam` p)) t
