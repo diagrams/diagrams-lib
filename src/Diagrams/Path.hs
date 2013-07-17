@@ -198,4 +198,3 @@ scalePath d p = (scale d `under` translation (origin .-. pathCentroid p)) p
 -- | Reverse all the component trails of a path.
 reversePath :: (InnerSpace v, OrderedField (Scalar v)) => Path v -> Path v
 reversePath = (over Path . map) reverseLocTrail
-

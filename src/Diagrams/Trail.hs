@@ -88,20 +88,24 @@ module Diagrams.Trail
 
          -- ** Segment trees
 
-       , SegTree(..), trailMeasure
+       , SegTree(..), trailMeasure, numSegs, offset
 
        ) where
 
+import           Control.Arrow       ((***))
 import           Data.AffineSpace
-import           Data.FingerTree   (FingerTree, ViewR (..), (|>))
-import qualified Data.FingerTree   as FT
-import qualified Data.Foldable     as F
+import           Data.FingerTree     (FingerTree, ViewL (..), ViewR (..), (<|),
+                                      (|>))
+import qualified Data.FingerTree     as FT
+import qualified Data.Foldable       as F
 import           Data.Monoid.MList
 import           Data.Semigroup
-import           Data.VectorSpace
+import           Data.VectorSpace    hiding (Sum (..))
+import qualified Numeric.Interval    as I
 
-import           Diagrams.Core     hiding ((|>))
+import           Diagrams.Core       hiding ((|>))
 import           Diagrams.Located
+import           Diagrams.Parametric
 import           Diagrams.Segment
 
 -- $internals
@@ -109,6 +113,18 @@ import           Diagrams.Segment
 -- Most users of diagrams should not need to use anything in this
 -- section directly, but they are exported on the principle that we
 -- can't forsee what uses people might have for them.
+
+------------------------------------------------------------
+--  FingerTree instances
+------------------------------------------------------------
+
+type instance V (FingerTree m a) = V a
+
+instance ( HasLinearMap (V a), InnerSpace (V a), OrderedField (Scalar (V a))
+         , FT.Measured m a, Transformable a
+         )
+    => Transformable (FingerTree m a) where
+  transform = FT.fmap' . transform
 
 ------------------------------------------------------------
 --  Segment trees  -----------------------------------------
@@ -124,14 +140,94 @@ newtype SegTree v = SegTree
                   { getSegTree :: FingerTree (SegMeasure v) (Segment Closed v) }
   deriving (Eq, Ord, Show)
 
-deriving instance (OrderedField (Scalar v), InnerSpace v) => Monoid (SegTree v)
-deriving instance (OrderedField (Scalar v), InnerSpace v) => FT.Measured (SegMeasure v) (SegTree v)
-
 type instance V (SegTree v) = v
 
-instance (HasLinearMap v, InnerSpace v, OrderedField (Scalar v))
-    => Transformable (SegTree v) where
-  transform tr (SegTree t) = SegTree (FT.fmap' (transform tr) t)
+deriving instance (OrderedField (Scalar v), InnerSpace v)
+  => Monoid (SegTree v)
+deriving instance (OrderedField (Scalar v), InnerSpace v)
+  => FT.Measured (SegMeasure v) (SegTree v)
+deriving instance (HasLinearMap v, InnerSpace v, OrderedField (Scalar v))
+  => Transformable (SegTree v)
+
+type instance Codomain (SegTree v) = v
+
+instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
+    => Parametric (SegTree v) where
+  atParam t p = offset . fst $ splitAtParam t p
+
+instance Num (Scalar v) => DomainBounds (SegTree v)
+
+instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v), Num (Scalar v))
+    => EndValues (SegTree v)
+
+instance (InnerSpace v, RealFrac (Scalar v), Floating (Scalar v))
+    => Sectionable (SegTree v) where
+  splitAtParam (SegTree t) p
+    | p < 0     = case FT.viewl t of
+                    EmptyL    -> emptySplit
+                    seg :< t' ->
+                      case seg `splitAtParam` (p * tSegs) of
+                        (seg1, seg2) -> ( SegTree $ FT.singleton seg1
+                                        , SegTree $ seg2 <| t'
+                                        )
+    | p >= 1    = case FT.viewr t of
+                    EmptyR    -> emptySplit
+                    t' :> seg ->
+                      case seg `splitAtParam` (1 - (1 - p)*tSegs) of
+                        (seg1, seg2) -> ( SegTree $ t' |> seg1
+                                        , SegTree $ FT.singleton seg2
+                                        )
+    | otherwise = case FT.viewl after of
+                    EmptyL    -> emptySplit
+                    seg :< after' ->
+                      case seg `splitAtParam` (snd . properFraction $ p * tSegs) of
+                        (seg1, seg2) -> ( SegTree $ before |> seg1
+                                        , SegTree $ seg2   <| after'
+                                        )
+    where
+      (before, after) = FT.split ((p * tSegs <) . numSegs) t
+      tSegs           = numSegs t
+      emptySplit      = (SegTree t, SegTree t)
+
+  -- XXX seems like it should be possible to collapse some of the
+  -- above cases into one?
+
+instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
+    => HasArcLength (SegTree v) where
+  arcLengthBounded eps t
+    -- Use the cached value if it is accurate enough; otherwise fall
+    -- back to recomputing a more accurate value
+    | I.width i <= eps = i
+    | otherwise        = fun (eps / numSegs t)
+    where
+      i   = trailMeasure (I.singleton 0)
+              (getArcLengthCached :: ArcLength v -> I.Interval (Scalar v))
+              t
+      fun = trailMeasure (const 0)
+              (getArcLengthFun :: ArcLength v -> Scalar v -> I.Interval (Scalar v))
+              t
+
+  arcLengthToParam eps st@(SegTree t) l
+    | l < 0        = case FT.viewl t of
+                       EmptyL   -> 0
+                       seg :< _ -> arcLengthToParam eps seg l / tSegs
+    | l >= totalAL = case FT.viewr t of
+                       EmptyR    -> 0
+                       t' :> seg ->
+                         let p = arcLengthToParam (eps/2) seg
+                                   (l - arcLength (eps/2) (SegTree t'))
+                         in  (p - 1)/tSegs + 1
+    | otherwise    = case FT.viewl after of
+                       EmptyL    -> 0
+                       seg :< after' ->
+                         let p = arcLengthToParam (eps/2) seg
+                                   (l - arcLength (eps/2) (SegTree before))
+                         in  (numSegs before + p) / tSegs
+    where
+      totalAL         = arcLength eps st
+      tSegs           = numSegs t
+      before, after :: FingerTree (SegMeasure v) (Segment Closed v)
+      (before, after) = FT.split ((>= l) . trailMeasure 0 (I.midpoint . (getArcLengthBounded eps :: ArcLength v -> I.Interval (Scalar v)))) t
 
 -- | Given a default result (to be used in the case of an empty
 --   trail), and a function to map a single measure to a result,
@@ -143,6 +239,22 @@ trailMeasure :: ( InnerSpace v, OrderedField (Scalar v)
                 )
              => a -> (m -> a) -> t -> a
 trailMeasure d f = option d f . get . FT.measure
+
+-- | Compute the number of segments of anything measured by
+--   'SegMeasure' (/e.g./ @SegMeasure@ itself, @Segment@, @SegTree@,
+--   @Trail@s...)
+numSegs :: ( Floating (Scalar v), Num c, Ord (Scalar v), InnerSpace v,
+             FT.Measured (SegMeasure v) a
+           )
+        => a -> c
+numSegs = fromIntegral . trailMeasure 0 (getSum . getSegCount)
+
+-- | Compute the total offset of anything measured by 'SegMeasure'.
+offset :: ( Floating (Scalar v), Ord (Scalar v), InnerSpace v,
+            FT.Measured (SegMeasure v) t
+          )
+       => t -> v
+offset = trailMeasure zeroV (getTotalOffset . oeOffset)
 
 ------------------------------------------------------------
 --  Trails  ------------------------------------------------
@@ -228,6 +340,8 @@ deriving instance Ord  v => Ord  (Trail' l v)
 
 type instance V (Trail' l v) = v
 
+type instance Codomain (Trail' l v) = v
+
 instance (OrderedField (Scalar v), InnerSpace v) => Semigroup (Trail' Line v) where
   (Line t1) <> (Line t2) = Line (t1 `mappend` t2)
 
@@ -253,6 +367,41 @@ instance (InnerSpace v, OrderedField (Scalar v)) => Enveloped (Trail' l v) where
 instance (HasLinearMap v, InnerSpace v, OrderedField (Scalar v))
     => Renderable (Trail' o v) NullBackend where
   render _ _ = mempty
+
+instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
+    => Parametric (Trail' l v) where
+  atParam t p = withTrail'
+                  (\(Line segT) -> segT `atParam` p)
+                  (\l -> cutLoop l `atParam` p')
+                  t
+    where
+      pf = snd . properFraction $ p
+      p' | p >= 0    = pf
+         | otherwise = 1 + pf
+
+instance Num (Scalar v) => DomainBounds (Trail' l v)
+
+instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
+  => EndValues (Trail' l v)
+
+instance (InnerSpace v, RealFrac (Scalar v), Floating (Scalar v))
+    => Sectionable (Trail' Line v) where
+  splitAtParam (Line t) p = (Line t1, Line t2)
+    where
+      (t1, t2) = splitAtParam t p
+
+instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
+    => HasArcLength (Trail' l v) where
+  arcLengthBounded eps =
+    withTrail'
+      (\(Line t) -> arcLengthBounded eps t)
+      (arcLengthBounded eps . cutLoop)
+
+  arcLengthToParam eps tr l =
+    withTrail'
+      (\(Line t) -> arcLengthToParam eps t l)
+      (\lp -> arcLengthToParam eps (cutLoop lp) l)
+      tr
 
 --------------------------------------------------
 -- The Trail type
@@ -281,12 +430,44 @@ instance Ord v => Ord (Trail v) where
 
 type instance V (Trail v) = v
 
+type instance Codomain (Trail v) = v
+
 instance (HasLinearMap v, InnerSpace v, OrderedField (Scalar v))
     => Transformable (Trail v) where
   transform t = onTrail (transform t) (transform t)
 
 instance (InnerSpace v, OrderedField (Scalar v)) => Enveloped (Trail v) where
   getEnvelope = withTrail getEnvelope getEnvelope
+
+instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
+    => Parametric (Trail v) where
+  atParam t p = withTrail (`atParam` p) (`atParam` p) t
+
+instance Num (Scalar v) => DomainBounds (Trail v)
+
+instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
+  => EndValues (Trail v)
+
+-- | Note that there is no @Sectionable@ instance for @Trail' Loop@,
+--   because it does not make sense (splitting a loop at a parameter
+--   results in a single line, not two loops).  However, it's
+--   convenient to have a @Sectionable@ instance for @Trail@; if the
+--   @Trail@ contains a loop the loop will first be cut and then
+--   @splitAtParam@ called on the resulting line.  This is
+--   semantically a bit silly, so please don't rely on it. (*E.g.* if
+--   this is really the behavior you want, consider first calling
+--   'cutLoop' yourself.)
+instance (InnerSpace v, RealFrac (Scalar v), Floating (Scalar v))
+    => Sectionable (Trail v) where
+  splitAtParam t p = withLine ((wrapLine *** wrapLine) . (`splitAtParam` p)) t
+
+instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
+    => HasArcLength (Trail v) where
+  arcLengthBounded = withLine . arcLengthBounded
+  arcLengthToParam eps tr al = withLine (\ln -> arcLengthToParam eps ln al) tr
+
+--------------------------------------------------
+-- Constructors and eliminators for Trail
 
 -- | A generic eliminator for 'Trail', taking functions specifying
 --   what to do in the case of a line or a loop.
