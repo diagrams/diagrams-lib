@@ -163,13 +163,15 @@ infixl 6 `beneath`
 --   from the local origin of the first object to the local origin of
 --   the second object, at a distance so that their envelopes are just
 --   tangent.  The local origin of the new, combined object is the
---   local origin of the first object.
+--   local origin of the first object (unless the first object is the
+--   identity element, in which case the second object is returned
+--   unchanged).
 --
 --   Note that @beside v@ is associative, so objects under @beside v@
---   form a semigroup for any given vector @v@.  However, they do
---   /not/ form a monoid, since there is no identity element. 'mempty'
---   is a right identity (@beside v d1 mempty === d1@) but not a left
---   identity (@beside v mempty d1 === d1 # align (negateV v)@).
+--   form a semigroup for any given vector @v@.  In fact, they also
+--   form a monoid: 'mempty' is clearly a right identity (@beside v d1
+--   mempty === d1@), and there should also be a special case to make
+--   it a left identity, as described above.
 --
 --   In older versions of diagrams, @beside@ put the local origin of
 --   the result at the point of tangency between the two inputs.  That

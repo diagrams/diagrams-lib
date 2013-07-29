@@ -65,9 +65,9 @@ import           Diagrams.Util           (( # ))
 infixl 6 ===
 infixl 6 |||
 
--- | Place two diagrams (or other objects) vertically
---   adjacent to one another, with the first diagram above the second.
---   Since Haskell ignores whitespace in expressions, one can thus write
+-- | Place two diagrams (or other objects) vertically adjacent to one
+--   another, with the first diagram above the second.  Since Haskell
+--   ignores whitespace in expressions, one can thus write
 --
 --   >    c
 --   >   ===
@@ -75,17 +75,17 @@ infixl 6 |||
 --
 --   to place @c@ above @d@.  The local origin of the resulting
 --   combined diagram is the same as the local origin of the first.
---   @(===)@ is associative and has 'mempty' as a right (but not left)
---   identity.  See the documentation of 'beside' for more information.
+--   @(===)@ is associative and has 'mempty' as an identity.  See the
+--   documentation of 'beside' for more information.
 (===) :: (Juxtaposable a, V a ~ R2, Semigroup a) => a -> a -> a
 (===) = beside (negateV unitY)
 
 -- | Place two diagrams (or other juxtaposable objects) horizontally
 --   adjacent to one another, with the first diagram to the left of
---   the second.  The local origin of the resulting
---   combined diagram is the same as the local origin of the first.
---   @(===)@ is associative and has 'mempty' as a right (but not left)
---   identity.  See the documentation of 'beside' for more information.
+--   the second.  The local origin of the resulting combined diagram
+--   is the same as the local origin of the first.  @(===)@ is
+--   associative and has 'mempty' as an identity.  See the
+--   documentation of 'beside' for more information.
 (|||) :: (Juxtaposable a, V a ~ R2, Semigroup a) => a -> a -> a
 (|||) = beside unitX
 
