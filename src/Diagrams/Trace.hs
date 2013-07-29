@@ -16,12 +16,14 @@ module Diagrams.Trace
       Trace, Traced
 
       -- * Diagram traces
-    , trace, setTrace
+    , trace, setTrace, withTrace
 
       -- * Querying traces
     , traceV, traceP, maxTraceV, maxTraceP
 
     ) where
 
-import           Diagrams.Core       (setTrace, trace)
+import           Diagrams.Core        (setTrace, trace)
 import           Diagrams.Core.Trace
+
+import           Diagrams.Combinators (withTrace)
