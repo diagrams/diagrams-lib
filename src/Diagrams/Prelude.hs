@@ -65,6 +65,10 @@ module Diagrams.Prelude
          -- | Envelopes, aka functional bounding regions.
        , module Diagrams.Envelope
 
+         -- | Traces, aka embedded raytracers, for finding points on
+         --   the boundary of a diagram.
+       , module Diagrams.Trace
+
          -- | Utilities for working with points.
        , module Diagrams.Points
 
@@ -114,6 +118,7 @@ import           Diagrams.Parametric
 import           Diagrams.Path
 import           Diagrams.Points
 import           Diagrams.Segment
+import           Diagrams.Trace
 import           Diagrams.Trail
 import           Diagrams.TrailLike
 import           Diagrams.Transform

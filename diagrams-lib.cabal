@@ -43,6 +43,7 @@ Library
                        Diagrams.BoundingBox,
                        Diagrams.Names,
                        Diagrams.Envelope,
+                       Diagrams.Trace,
                        Diagrams.TwoD,
                        Diagrams.TwoD.Types,
                        Diagrams.TwoD.Align,
