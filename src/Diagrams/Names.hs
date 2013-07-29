@@ -22,6 +22,10 @@ module Diagrams.Names
 
     , Subdiagram, mkSubdiagram, subPoint, getSub, rawSub, location
 
+      -- * Subdiagram maps
+
+    , SubMap, fromNames, rememberAs, lookupSub
+
       -- * Naming things
 
     , named, nameSub, namePoint, localize
