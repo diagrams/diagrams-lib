@@ -22,6 +22,7 @@ module Diagrams.Combinators
        , extrudeEnvelope, intrudeEnvelope
 
          -- * Binary operations
+       , atop
        , beneath
        , beside
 
