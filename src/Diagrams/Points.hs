@@ -1,5 +1,5 @@
-{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TypeFamilies     #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -17,14 +17,14 @@ module Diagrams.Points
 
        ) where
 
-import Diagrams.Coordinates
-import Diagrams.Core.Points
+import           Diagrams.Coordinates
+import           Diagrams.Core.Points
 
-import Control.Newtype
+import           Control.Newtype
 
-import Control.Arrow ((&&&))
+import           Control.Arrow        ((&&&))
 
-import Data.VectorSpace
+import           Data.VectorSpace
 
 -- | The centroid of a set of /n/ points is their sum divided by /n/.
 centroid :: (VectorSpace v, Fractional (Scalar v)) => [Point v] -> Point v
