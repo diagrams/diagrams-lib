@@ -1,18 +1,30 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Transform
--- Copyright   :  (c) 2011 diagrams-lib team (see LICENSE)
+-- Copyright   :  (c) 2011-13 diagrams-lib team (see LICENSE)
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
--- Some convenient functions related to transformations.
+-- Affine transformations, parameterized by any vector space.  For
+-- transformations on particular vector spaces, see /e.g./
+-- "Diagrams.TwoD.Transform".
 --
 -----------------------------------------------------------------------------
 
 module Diagrams.Transform
-       ( conjugate, under
+    ( -- * Transformations
+      Transformation, inv, transl, apply, papply
 
-       ) where
+      -- * Some specific transformations
+    , translation, translate, moveTo, place, scaling, scale
+
+      -- * The Transformable class
+    , Transformable(..)
+
+      -- * Miscellaneous transformation-related utilities
+    , conjugate, under
+
+    ) where
 
 import           Data.Semigroup
 import           Diagrams.Core
