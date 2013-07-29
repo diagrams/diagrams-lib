@@ -27,7 +27,7 @@ module Diagrams.TwoD.Types
 
          -- * Angles
        , Angle(..)
-       , CircleFrac(..), Rad(..), Deg(..)
+       , Turn(..), CircleFrac, Rad(..), Deg(..)
        , fullCircle, convertAngle
        ) where
 
@@ -166,9 +166,12 @@ instance Transformable R2 where
 -- Angles
 
 -- | Newtype wrapper used to represent angles as fractions of a
---   circle.  For example, 1\/3 = tau\/3 radians = 120 degrees.
-newtype CircleFrac = CircleFrac { getCircleFrac :: Double }
+--   circle.  For example, 1\/3 turn = tau\/3 radians = 120 degrees.
+newtype Turn = Turn { getTurn :: Double }
   deriving (Read, Show, Eq, Ord, Enum, Floating, Fractional, Num, Real, RealFloat, RealFrac)
+
+-- | Deprecated synonym for 'Turn', retained for backwards compatibility.
+type CircleFrac = Turn
 
 -- | Newtype wrapper for representing angles in radians.
 newtype Rad = Rad { getRad :: Double }
@@ -180,30 +183,34 @@ newtype Deg = Deg { getDeg :: Double }
 
 -- | Type class for types that measure angles.
 class Num a => Angle a where
-  -- | Convert to a fraction of a circle.
-  toCircleFrac   :: a -> CircleFrac
+  -- | Convert to a turn, /i.e./ a fraction of a circle.
+  toTurn   :: a -> Turn
 
-  -- | Convert from a fraction of a circle.
-  fromCircleFrac :: CircleFrac -> a
+  -- | Convert from a turn, /i.e./ a fraction of a circle.
+  fromTurn :: Turn -> a
 
-instance Angle CircleFrac where
-  toCircleFrac   = id
-  fromCircleFrac = id
+instance Angle Turn where
+  toTurn   = id
+  fromTurn = id
 
--- | tau radians = 1 full circle.
+-- | tau radians = 1 full turn.
 instance Angle Rad where
-  toCircleFrac   = CircleFrac . (/tau) . getRad
-  fromCircleFrac = Rad . (*tau) . getCircleFrac
+  toTurn   = Turn . (/tau) . getRad
+  fromTurn = Rad . (*tau) . getTurn
 
--- | 360 degrees = 1 full circle.
+-- | 360 degrees = 1 full turn.
 instance Angle Deg where
-  toCircleFrac   = CircleFrac . (/360) . getDeg
-  fromCircleFrac = Deg . (*360) . getCircleFrac
+  toTurn   = Turn . (/360) . getDeg
+  fromTurn = Deg . (*360) . getTurn
 
--- | An angle representing a full circle.
+-- | An angle representing one full turn.
+fullTurn :: Angle a => a
+fullTurn = fromTurn 1
+
+-- | Deprecated synonym for 'fullTurn', retained for backwards compatibility.
 fullCircle :: Angle a => a
-fullCircle = fromCircleFrac 1
+fullCircle = fullTurn
 
 -- | Convert between two angle representations.
 convertAngle :: (Angle a, Angle b) => a -> b
-convertAngle = fromCircleFrac . toCircleFrac
+convertAngle = fromTurn . toTurn

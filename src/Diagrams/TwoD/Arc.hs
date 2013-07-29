@@ -98,7 +98,7 @@ arcT start end
         -- We want to compare the start and the end and in case
         -- there isn't some law about 'Angle' ordering, we use a
         -- known 'Angle' for that.
-        s = convertAngle start :: CircleFrac
+        s = convertAngle start :: Turn
         e = convertAngle end
         d = ceiling (s - e) :: Integer
 

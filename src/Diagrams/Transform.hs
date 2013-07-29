@@ -14,8 +14,8 @@ module Diagrams.Transform
 
        ) where
 
-import Diagrams.Core
-import Data.Semigroup
+import           Data.Semigroup
+import           Diagrams.Core
 
 -- | Conjugate one transformation by another. @conjugate t1 t2@ is the
 --   transformation which performs first @t1@, then @t2@, then the
@@ -25,7 +25,7 @@ conjugate t1 t2  = inv t1 <> t2 <> t1
 
 -- | Carry out some transformation \"under\" another one: @f ``under``
 --   t@ first applies @t@, then @f@, then the inverse of @t@.  For
---   example, @'scaleX' 2 ``under`` 'rotationBy' (-1/8 :: CircleFrac)@
+--   example, @'scaleX' 2 ``under`` 'rotationBy' (-1/8 :: Turn)@
 --   is the transformation which scales by a factor of 2 along the
 --   diagonal line y = x.
 --
