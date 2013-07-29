@@ -15,14 +15,18 @@ module Diagrams.Transform
     ( -- * Transformations
       Transformation, inv, transl, apply, papply
 
-      -- * Some specific transformations
-    , translation, translate, moveTo, place, scaling, scale
-
       -- * The Transformable class
     , Transformable(..)
 
+      -- * Some specific transformations
+    , translation, translate, moveTo, place, scaling, scale
+
       -- * Miscellaneous transformation-related utilities
     , conjugate, under
+
+      -- * The HasOrigin class
+
+    , HasOrigin(..), moveOriginBy
 
     ) where
 
