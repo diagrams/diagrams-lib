@@ -58,6 +58,10 @@ module Diagrams.Prelude
          --   good old-fashioned, axis-aligned bounding boxes.
        , module Diagrams.BoundingBox
 
+         -- | Giving names to subdiagrams and later retrieving
+         --   subdiagrams by name.
+       , module Diagrams.Names
+
          -- | Utilities for working with points.
        , module Diagrams.Points
 
@@ -101,6 +105,7 @@ import           Diagrams.Combinators
 import           Diagrams.Coordinates
 import           Diagrams.CubicSpline
 import           Diagrams.Located
+import           Diagrams.Names
 import           Diagrams.Parametric
 import           Diagrams.Path
 import           Diagrams.Points
