@@ -44,6 +44,7 @@ Library
                        Diagrams.Names,
                        Diagrams.Envelope,
                        Diagrams.Trace,
+                       Diagrams.Query,
                        Diagrams.TwoD,
                        Diagrams.TwoD.Types,
                        Diagrams.TwoD.Align,

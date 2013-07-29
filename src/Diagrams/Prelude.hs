@@ -69,6 +69,11 @@ module Diagrams.Prelude
          --   the boundary of a diagram.
        , module Diagrams.Trace
 
+         -- | A query is a function that maps points in a vector space
+         --   to values in some monoid; they can be used to annotate
+         --   the points of a diagram with some values.
+       , module Diagrams.Query
+
          -- | Utilities for working with points.
        , module Diagrams.Points
 
@@ -117,6 +122,7 @@ import           Diagrams.Names
 import           Diagrams.Parametric
 import           Diagrams.Path
 import           Diagrams.Points
+import           Diagrams.Query
 import           Diagrams.Segment
 import           Diagrams.Trace
 import           Diagrams.Trail
