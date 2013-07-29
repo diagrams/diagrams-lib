@@ -428,6 +428,30 @@ instance Ord v => Ord (Trail v) where
       (\lp1 -> withTrail (const GT) (\lp2 -> compare lp1 lp2) t2)
       t1
 
+-- | Two @Trail@s are combined by first ensuring they are both lines
+--   (using 'cutTrail' on loops) and then concatenating them.  The
+--   result, in general, is a line.  However, there is a special case
+--   for the empty line, which acts as the identity (so combining the
+--   empty line with a loop results in a loop).
+instance (OrderedField (Scalar v), InnerSpace v) => Semigroup (Trail v) where
+  (Trail (Line (SegTree ft))) <> t2 | FT.null ft = t2
+  t1 <> (Trail (Line (SegTree ft))) | FT.null ft = t1
+  t1 <> t2 = flip withLine t1 $ \l1 ->
+             flip withLine t2 $ \l2 ->
+             wrapLine (l1 <> l2)
+
+-- | @Trail@s are combined as described in the 'Semigroup' instance;
+--   the empty line is the identity element, with special cases so
+--   that combining the empty line with a loop results in the
+--   unchanged loop (in all other cases loops will be cut).  Note that
+--   this does, in fact, satisfy the monoid laws, though it is a bit
+--   strange.  Mostly it is provided for convenience, so one can work
+--   directly with @Trail@s instead of working with @Trail' Line@s and
+--   then wrapping.
+instance (OrderedField (Scalar v), InnerSpace v) => Monoid (Trail v) where
+  mempty  = wrapLine emptyLine
+  mappend = (<>)
+
 type instance V (Trail v) = v
 
 type instance Codomain (Trail v) = v
