@@ -62,6 +62,9 @@ module Diagrams.Prelude
          --   subdiagrams by name.
        , module Diagrams.Names
 
+         -- | Envelopes, aka functional bounding regions.
+       , module Diagrams.Envelope
+
          -- | Utilities for working with points.
        , module Diagrams.Points
 
@@ -104,6 +107,7 @@ import           Diagrams.BoundingBox
 import           Diagrams.Combinators
 import           Diagrams.Coordinates
 import           Diagrams.CubicSpline
+import           Diagrams.Envelope
 import           Diagrams.Located
 import           Diagrams.Names
 import           Diagrams.Parametric

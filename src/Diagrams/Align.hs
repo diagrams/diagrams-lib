@@ -13,9 +13,7 @@
 -- origin with respect to its envelope.  This module defines the
 -- 'Alignable' class for things which can be aligned, as well as a
 -- default implementation in terms of 'HasOrigin' and 'Enveloped',
--- along with several utility methods for alignment.  It also
--- re-exports 'Envelope' from diagrams-core along with some related
--- utilities.
+-- along with several utility methods for alignment.
 --
 -----------------------------------------------------------------------------
 
@@ -29,12 +27,6 @@ module Diagrams.Align
 
        , align
        , center
-
-         -- * Envelopes
-
-       , Envelope, Enveloped
-       , envelopeVMay, envelopeV, envelopePMay, envelopeP
-       , diameter, radius
 
        ) where
 

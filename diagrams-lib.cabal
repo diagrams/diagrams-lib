@@ -42,6 +42,7 @@ Library
                        Diagrams.Transform,
                        Diagrams.BoundingBox,
                        Diagrams.Names,
+                       Diagrams.Envelope,
                        Diagrams.TwoD,
                        Diagrams.TwoD.Types,
                        Diagrams.TwoD.Align,
