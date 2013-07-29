@@ -11,12 +11,17 @@
 -----------------------------------------------------------------------------
 
 module Diagrams.Envelope
-    ( -- * Envelopes
-
+    ( -- * Types
       Envelope, Enveloped
+
+      -- * Diagram envelopes
+    , envelope, setEnvelope
+
+      -- * Querying envelopes
     , envelopeVMay, envelopeV, envelopePMay, envelopeP
     , diameter, radius
 
     ) where
 
+import           Diagrams.Core          (envelope, setEnvelope)
 import           Diagrams.Core.Envelope
