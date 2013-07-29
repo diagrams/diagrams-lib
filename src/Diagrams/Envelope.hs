@@ -15,7 +15,8 @@ module Diagrams.Envelope
       Envelope, Enveloped
 
       -- * Diagram envelopes
-    , envelope, setEnvelope
+    , envelope, setEnvelope, withEnvelope, phantom
+    , pad, extrudeEnvelope, intrudeEnvelope
 
       -- * Querying envelopes
     , envelopeVMay, envelopeV, envelopePMay, envelopeP
@@ -25,3 +26,5 @@ module Diagrams.Envelope
 
 import           Diagrams.Core          (envelope, setEnvelope)
 import           Diagrams.Core.Envelope
+
+import           Diagrams.Combinators
