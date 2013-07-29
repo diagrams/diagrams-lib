@@ -1,12 +1,11 @@
-{-# LANGUAGE TypeFamilies
-           , FlexibleContexts
-           , UndecidableInstances
-  #-}
+{-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE TypeFamilies         #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Align
--- Copyright   :  (c) 2011 diagrams-lib team (see LICENSE)
+-- Copyright   :  (c) 2011-2013 diagrams-lib team (see LICENSE)
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
@@ -31,13 +30,13 @@ module Diagrams.Align
 
        ) where
 
-import Diagrams.Core
+import           Diagrams.Core
 
-import Data.VectorSpace
-import Data.AffineSpace (alerp)
+import           Data.AffineSpace (alerp)
+import           Data.VectorSpace
 
-import qualified Data.Set as S
-import qualified Data.Map as M
+import qualified Data.Map         as M
+import qualified Data.Set         as S
 
 -- | Class of things which can be aligned.
 class Alignable a where
