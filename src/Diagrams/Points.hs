@@ -8,12 +8,17 @@
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
--- Some miscellaneous utilities for working with points.
+-- Points in space.  For more tools for working with points and
+-- vectors, see "Data.AffineSpace" and "Diagrams.Coordinates".
 --
 -----------------------------------------------------------------------------
 
 module Diagrams.Points
-       ( centroid
+       ( -- * Points
+         Point, origin, (*.)
+
+         -- * Point-related utilities
+       , centroid
 
        ) where
 
