@@ -65,10 +65,13 @@ import           Diagrams.TwoD.Vector
 --
 -- <<diagrams/diagramNeg.svg#diagram=diagramNeg&height=200&width=400>>
 --
+-- > {-# LANGUAGE GADTs #-}
+-- >
 -- > import Diagrams.TwoD.Curvature
 -- > import Data.Monoid.Inf
+-- > import Diagrams.Coordinates
 -- >
--- > segmentA = Cubic (12 & 0) (8 & 10) (20 & 8)
+-- > segmentA = Cubic (12 & 0) (8 & 10) (OffsetClosed (20 & 8))
 -- >
 -- > curveA = lw 0.1 . stroke . fromSegments $ [segmentA]
 -- >
@@ -86,7 +89,7 @@ import           Diagrams.TwoD.Vector
 -- >          # withEnvelope (curveA :: D R2)
 -- >          # lw 0.05 # lc red
 -- >
--- > showCurvature bez@(Cubic b c d) t
+-- > showCurvature bez@(Cubic b c (OffsetClosed d)) t
 -- >   | v == 0    = mempty
 -- >   | otherwise = go (radiusOfCurvature bez t)
 -- >   where
