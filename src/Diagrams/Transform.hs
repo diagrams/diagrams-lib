@@ -47,7 +47,9 @@ conjugate t1 t2  = inv t1 <> t2 <> t1
 --
 --   Note that
 --
---   > (transform t2) `under` t1 == transform (conjugate t1 t2)
+--   @
+--   (transform t2) `under` t1 == transform (conjugate t1 t2)
+--   @
 --
 --   for all transformations @t1@ and @t2@.
 under :: Transformable a => (a -> a) -> Transformation (V a) -> a -> a

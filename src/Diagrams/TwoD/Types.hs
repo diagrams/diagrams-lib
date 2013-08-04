@@ -51,8 +51,10 @@ import           Data.Typeable
 --
 --   * To construct a vector, use 'r2', or '&' (from "Diagrams.Coordinates"):
 --
--- > r2 (3,4) :: R2
--- > 3 & 4    :: R2
+-- @
+-- r2 (3,4) :: R2
+-- 3 & 4    :: R2
+-- @
 --
 --     Note that "Diagrams.Coordinates" is not re-exported by
 --     "Diagrams.Prelude" and must be explicitly imported.
@@ -67,8 +69,10 @@ import           Data.Typeable
 --     or 'coords' (from "Diagrams.Coordinates").  These are typically
 --     used in conjunction with the @ViewPatterns@ extension:
 --
--- > foo (unr2 -> (x,y)) = ...
--- > foo (coords -> x :& y) = ...
+-- @
+-- foo (unr2 -> (x,y)) = ...
+-- foo (coords -> x :& y) = ...
+-- @
 
 newtype R2 = R2 { unR2 :: (Double, Double) }
   deriving (AdditiveGroup, Eq, Ord, Typeable, Num, Fractional)
@@ -132,8 +136,10 @@ instance Coordinates R2 where
 --   * To construct a point, use 'p2', or '&' (see
 --     "Diagrams.Coordinates"):
 --
--- > p2 (3,4)  :: P2
--- > 3 & 4     :: P2
+-- @
+-- p2 (3,4)  :: P2
+-- 3 & 4     :: P2
+-- @
 --
 --   * To construct a point from a vector @v@, use @'origin' 'Data.AffineSpace..+^' v@.
 --
@@ -144,8 +150,10 @@ instance Coordinates R2 where
 --     or 'coords' (from "Diagrams.Coordinates").  It's common to use
 --     these in conjunction with the @ViewPatterns@ extension:
 --
--- > foo (unp2 -> (x,y)) = ...
--- > foo (coords -> x :& y) = ...
+-- @
+-- foo (unp2 -> (x,y)) = ...
+-- foo (coords -> x :& y) = ...
+-- @
 type P2 = Point R2
 
 -- | Construct a 2D point from a pair of coordinates.  See also '&'.

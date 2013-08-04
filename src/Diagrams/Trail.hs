@@ -273,8 +273,6 @@ data Loop
 --------------------------------------------------
 -- The Trail' type
 
--- XXX add some pictures?
-
 -- | Intuitively, a trail is a single, continuous path through space.
 --   However, a trail has no fixed starting point; it merely specifies
 --   /how/ to move through space, not /where/.  For example, \"take
@@ -521,7 +519,9 @@ withLine f = withTrail f (f . cutLoop)
 --   transformation applied, and then glued back into a loop with
 --   'glueLine'.  That is,
 --
---   > onLine f === onTrail f (glueLine . f . cutLoop)
+--   @
+--   onLine f === onTrail f (glueLine . f . cutLoop)
+--   @
 --
 --   Note that there is no corresponding @onLoop@ function, because
 --   there is no nice way in general to convert a line into a loop,
@@ -572,9 +572,12 @@ trailFromSegments = wrapTrail . lineFromSegments
 
 -- | Construct a line containing only linear segments from a list of
 --   vectors, where each vector represents the offset from one vertex
---   to the next.
+--   to the next.  See also 'fromOffsets'.
 --
---   XXX picture
+--   <<diagrams/lineFromOffsetsEx.svg#diagram=lineFromOffsetsEx&width=300>>
+--
+--   > import Diagrams.Coordinates
+--   > lineFromOffsetsEx = strokeLine $ lineFromOffsets [ 2 & 1, 2 & (-1), 2 & 0.5 ]
 lineFromOffsets :: (InnerSpace v, OrderedField (Scalar v))
                   => [v] -> Trail' Line v
 lineFromOffsets = lineFromSegments . map straight
@@ -599,7 +602,11 @@ trailFromOffsets = wrapTrail . lineFromOffsets
 --   construct, say, a @'Located' ('Trail'' 'Line' v)@ or a @'Located'
 --   ('Trail' v)@.
 --
---   XXX picture
+--   <<diagrams/lineFromVerticesEx.svg#diagram=lineFromVerticesEx&width=300>>
+--
+--   > import Diagrams.Coordinates
+--   > lineFromVerticesEx = pad 1.1 . centerXY . strokeLine
+--   >   $ lineFromVertices [origin, 0 & 1, 1 & 2, 5 & 1]
 lineFromVertices :: (InnerSpace v, OrderedField (Scalar v))
                    => [Point v] -> Trail' Line v
 lineFromVertices []  = emptyLine
@@ -624,11 +631,20 @@ trailFromVertices = wrapTrail . lineFromVertices
 --   know happens to end where it starts, and then call 'glueLine' to
 --   turn it into a loop.
 --
---   XXX include some pictures
+--   <<diagrams/glueLineEx.svg#diagram=glueLineEx&width=500>>
+--
+--   > import Diagrams.Coordinates
+--   > glueLineEx = pad 1.1 . hcat' with {sep = 1}
+--   >   $ [almostClosed # strokeLine, almostClosed # glueLine # strokeLoop]
+--   >
+--   > almostClosed :: Trail' Line R2
+--   > almostClosed = fromOffsets [2 & (-1), (-3) & (-0.5), (-2) & 1, 1 & 0.5]
 --
 --   @glueLine@ is left inverse to 'cutLoop', that is,
 --
---   > glueLine . cutLoop === id
+--   @
+--   glueLine . cutLoop === id
+--   @
 glueLine :: (InnerSpace v, OrderedField (Scalar v)) => Trail' Line v -> Trail' Loop v
 glueLine (Line (SegTree t)) =
   case FT.viewr t of
@@ -660,7 +676,10 @@ glueTrail = onTrail glueLine id
 -- closeLine . lineFromVertices $ ps
 -- @
 --
---   XXX include some pictures
+--   <<diagrams/closeLineEx.svg#diagram=closeLineEx&width=500>>
+--
+--   > closeLineEx = pad 1.1 . centerXY . hcat' with {sep = 1}
+--   >   $ [almostClosed # strokeLine, almostClosed # closeLine # strokeLoop]
 closeLine :: Trail' Line v -> Trail' Loop v
 closeLine (Line t) = Loop t (Linear OffsetOpen)
 
@@ -675,9 +694,9 @@ closeTrail = onTrail closeLine id
 --
 --   @cutLoop@ is right inverse to 'glueLine', that is,
 --
---   > glueLine . cutLoop === id
---
---   XXX pictures
+--   @
+--   glueLine . cutLoop === id
+--   @
 cutLoop :: forall v. (InnerSpace v, OrderedField (Scalar v))
          => Trail' Loop v -> Trail' Line v
 cutLoop (Loop (SegTree t) c) =
@@ -733,11 +752,17 @@ trailOffsets = withLine lineOffsets
 
 -- | Compute the offset from the start of a trail to the end.  Satisfies
 --
---   > trailOffset === sumV . trailOffsets
+--   @
+--   trailOffset === sumV . trailOffsets
+--   @
 --
 --   but is more efficient.
 --
---   XXX picture?
+--   <<diagrams/trailOffsetEx.svg#diagram=trailOffsetEx&width=300>>
+--
+--   > trailOffsetEx = (strokeLine almostClosed <> showOffset) # centerXY # pad 1.1
+--   >   where showOffset = fromOffsets [trailOffset (wrapLine almostClosed)]
+--   >                    # stroke # lc red # lw 0.05
 trailOffset :: (InnerSpace v, OrderedField (Scalar v)) => Trail v -> v
 trailOffset = withLine lineOffset
 
@@ -803,7 +828,9 @@ fixTrail t = zipWith ((mkFixedSeg .) . at)
 --   from [0,1] to vectors, then the reverse of t is given by t'(s) =
 --   t(1-s).  @reverseTrail@ is an involution, that is,
 --
---   > reverseTrail . reverseTrail === id
+--   @
+--   reverseTrail . reverseTrail === id
+--   @
 reverseTrail :: (InnerSpace v, OrderedField (Scalar v)) => Trail v -> Trail v
 reverseTrail = onTrail reverseLine reverseLoop
 
@@ -812,7 +839,9 @@ reverseTrail = onTrail reverseLine reverseLoop
 --   original and reversed trails comprise exactly the same set of
 --   points.  @reverseLocTrail@ is an involution, /i.e./
 --
---   > reverseLocTrail . reverseLocTrail === id
+--   @
+--   reverseLocTrail . reverseLocTrail === id
+--   @
 reverseLocTrail :: (InnerSpace v, OrderedField (Scalar v))
                 => Located (Trail v) -> Located (Trail v)
 reverseLocTrail (viewLoc -> (p, t)) = reverseTrail t `at` (p .+^ trailOffset t)

@@ -48,7 +48,9 @@ import           Diagrams.Trail
 --   Usually, type variables with 'TrailLike' constraints are used as
 --   the /output/ types of functions, like
 --
---   > foo :: (TrailLike t) => ... -> t
+--   @
+--   foo :: (TrailLike t) => ... -> t
+--   @
 --
 --   Functions with such a type can be used to construct trails,
 --   paths, diagrams, lists of points, and so on, depending on the

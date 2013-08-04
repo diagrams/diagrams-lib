@@ -35,8 +35,10 @@ infixl 7 :&
 --   'coords'.  A common pattern is to use 'coords' in conjunction
 --   with the @ViewPatterns@ extension, like so:
 --
--- > foo :: Vector3 -> ...
--- > foo (coords -> x :& y :& z) = ...
+-- @
+-- foo :: Vector3 -> ...
+-- foo (coords -> x :& y :& z) = ...
+-- @
 class Coordinates c where
 
   -- | The type of the final coordinate.
@@ -53,8 +55,10 @@ class Coordinates c where
   --   less dimension (which is perhaps itself recursively constructed
   --   using @(&)@) and a final coordinate.  For example,
   --
-  -- > 2 & 3 :: P2
-  -- > 3 & 5 & 6 :: R3
+  -- @
+  -- 2 & 3 :: P2
+  -- 3 & 5 & 6 :: R3
+  -- @
   --
   --   Note that @&@ is left-associative.
   (&)    :: PrevDim c -> FinalCoord c -> c

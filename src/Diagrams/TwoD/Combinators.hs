@@ -69,9 +69,11 @@ infixl 6 |||
 --   another, with the first diagram above the second.  Since Haskell
 --   ignores whitespace in expressions, one can thus write
 --
---   >    c
---   >   ===
---   >    d
+--   @
+--       c
+--      ===
+--       d
+--   @
 --
 --   to place @c@ above @d@.  The local origin of the resulting
 --   combined diagram is the same as the local origin of the first.
