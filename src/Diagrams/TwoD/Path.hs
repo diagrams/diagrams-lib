@@ -110,8 +110,14 @@ instance Renderable (Path R2) b => TrailLike (QDiagram b R2 Any) where
 --   'StrokeOpts' is an instance of 'Default', so @stroke' 'with' {
 --   ... }@ syntax may be used.
 stroke' :: (Renderable (Path R2) b, IsName a) => StrokeOpts a -> Path R2 -> Diagram b R2
-stroke' opts p
-  = mkQD (Prim p)
+stroke' opts path
+  | null (pathTrails p1) =           mkP p2
+  | null (pathTrails p2) = mkP p1
+  | otherwise            = mkP p1 <> mkP p2
+  where
+    (p1,p2) = partitionPath (isLine . unLoc) path
+    mkP p
+      = mkQD (Prim p)
          (getEnvelope p)
          (getTrace p)
          (fromNames . concat $
