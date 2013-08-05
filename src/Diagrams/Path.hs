@@ -52,6 +52,7 @@ module Diagrams.Path
          -- * Miscellaneous
 
        , explodePath
+       , partitionPath
 
        ) where
 
@@ -69,7 +70,7 @@ import           Control.Arrow        (first, second, (***))
 import           Control.Newtype      hiding (under)
 import           Data.AffineSpace
 import qualified Data.Foldable        as F
-import           Data.List            (mapAccumL)
+import           Data.List            (mapAccumL, partition)
 import           Data.Semigroup
 import           Data.VectorSpace
 
@@ -184,6 +185,12 @@ fixPath = map fixTrail . unpack
 --   'explodeTrail').
 explodePath :: (VectorSpace (V t), TrailLike t) => Path (V t) -> [[t]]
 explodePath = map explodeTrail . pathTrails
+
+-- | Partition a path into two paths based on a predicate on trails:
+--   the first containing all the trails for which the predicate returns
+--   @True@, and the second containing the remaining trails.
+partitionPath :: (Located (Trail v) -> Bool) -> Path v -> (Path v, Path v)
+partitionPath p = (pack *** pack) . partition p . unpack
 
 ------------------------------------------------------------
 --  Modifying paths  ---------------------------------------
