@@ -66,7 +66,7 @@ module Diagrams.Trail
 
        , withTrail', withTrail, withLine
        , isLineEmpty, isTrailEmpty
-       , isLoop
+       , isLine, isLoop
        , trailSegments, lineSegments, loopSegments
        , trailOffsets, trailOffset
        , lineOffsets, lineOffset, loopOffsets
@@ -726,6 +726,10 @@ isLineEmpty (Line (SegTree t)) = FT.null t
 -- | Test whether a trail is empty.  Note that loops are never empty.
 isTrailEmpty :: (InnerSpace v, OrderedField (Scalar v)) => Trail v -> Bool
 isTrailEmpty = withTrail isLineEmpty (const False)
+
+-- | Determine whether a trail is a line.
+isLine :: Trail v -> Bool
+isLine = not . isLoop
 
 -- | Determine whether a trail is a loop.
 isLoop :: Trail v -> Bool
