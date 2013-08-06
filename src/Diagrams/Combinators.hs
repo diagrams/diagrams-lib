@@ -167,6 +167,14 @@ infixl 6 `beneath`
 --   identity element, in which case the second object is returned
 --   unchanged).
 --
+--   <<diagrams/besideEx.svg#diagram=besideEx&height=200>>
+--
+--   > besideEx = beside (r2 (20,30))
+--   >                   (circle 1 # fc orange)
+--   >                   (circle 1.5 # fc purple)
+--   >            # showOrigin
+--   >            # centerXY # pad 1.1
+--
 --   Note that @beside v@ is associative, so objects under @beside v@
 --   form a semigroup for any given vector @v@.  In fact, they also
 --   form a monoid: 'mempty' is clearly a right identity (@beside v d1
@@ -186,8 +194,6 @@ infixl 6 `beneath`
 --   (negateV v) x2 x1@.
 beside :: (Juxtaposable a, Semigroup a) => V a -> a -> a -> a
 beside v d1 d2 = d1 <> juxtapose v d1 d2
-
--- XXX add picture to above documentation?
 
 ------------------------------------------------------------
 -- Combining multiple objects
