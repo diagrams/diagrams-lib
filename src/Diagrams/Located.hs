@@ -47,10 +47,14 @@ import           Diagrams.Parametric
 --   'HasOrigin', 'Transformable', 'Enveloped', 'Traced', and
 --   'TrailLike' instances are particularly useful; see the documented
 --   instances below for more information.
-data Located a = Loc { loc :: Point (V a)   -- ^ Project out the
-                                            --   location of a @Located@
-                                            --   value.
-                     , obj :: a
+data Located a = Loc { loc   :: Point (V a)   -- ^ Project out the
+                                              --   location of a @Located@
+                                              --   value.
+                     , unLoc :: a             -- ^ Project the value
+                                              --   of type @a@ out of
+                                              --   a @Located a@,
+                                              --   discarding the
+                                              --   location.
                      }
 
 infix 5 `at`
@@ -59,11 +63,6 @@ infix 5 `at`
 --   @at@ is intended to be used infix, like @x \`at\` origin@.
 at :: a -> Point (V a) -> Located a
 at a p = Loc p a
-
--- | Project the value of type @a@ out of a @Located a@, discarding
---   the location.
-unLoc :: Located a -> a
-unLoc (Loc _ a) = a
 
 -- | Deconstruct a @Located a@ into a location and a value of type
 --   @a@.  @viewLoc@ can be especially useful in conjunction with the
