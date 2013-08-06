@@ -44,7 +44,7 @@ module Diagrams.Segment
 
          -- * Constructing and modifying segments
 
-       , Segment(..), straight, bezier3, reverseSegment
+       , Segment(..), straight, bezier3, bézier3, reverseSegment
 
          -- * Fixed (absolutely located) segments
        , FixedSegment(..)
@@ -169,6 +169,10 @@ straight = Linear . OffsetClosed
 --   given by @c1@, @c2@, and @x@.
 bezier3 :: v -> v -> v -> Segment Closed v
 bezier3 c1 c2 x = Cubic c1 c2 (OffsetClosed x)
+
+-- | @bézier3@ is the same as @bezier3@, but with more snobbery.
+bézier3 :: v -> v -> v -> Segment Closed v
+bézier3 = bezier3
 
 type instance Codomain (Segment Closed v) = v
 
