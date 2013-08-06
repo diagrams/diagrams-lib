@@ -29,6 +29,7 @@ import           Data.VectorSpace
 
 import           Diagrams.Core
 import           Diagrams.Core.Points
+import           Diagrams.Core.Transform
 import           Diagrams.Parametric
   -- for GHC 7.4 type family bug
 
@@ -100,7 +101,8 @@ instance VectorSpace (V a) => HasOrigin (Located a) where
 --   /portion/ of @t@ being applied to the value of type @a@ (/i.e./
 --   it is not translated).
 instance Transformable a => Transformable (Located a) where
-  transform t (Loc p a) = Loc (transform t p) (transform t a)
+  transform t@(Transformation t1 t2 _) (Loc p a)
+    = Loc (transform t p) (transform (Transformation t1 t2 zeroV) a)
 
 -- | The envelope of a @Located a@ is the envelope of the @a@,
 --   translated to the location.
