@@ -68,6 +68,7 @@ module Diagrams.Trail
        , isLineEmpty, isTrailEmpty
        , isLine, isLoop
        , trailSegments, lineSegments, loopSegments
+       , onLineSegments
        , trailOffsets, trailOffset
        , lineOffsets, lineOffset, loopOffsets
        , trailVertices, lineVertices, loopVertices
@@ -739,6 +740,13 @@ isLoop = withTrail (const False) (const True)
 lineSegments :: Trail' Line v -> [Segment Closed v]
 lineSegments (Line (SegTree t)) = F.toList t
 
+-- | Modify a line by applying a function to its list of segments.
+onLineSegments
+  :: (InnerSpace v, OrderedField (Scalar v))
+  => ([Segment Closed v] -> [Segment Closed v])
+  -> Trail' Line v -> Trail' Line v
+onLineSegments f = lineFromSegments . f . lineSegments
+
 -- | Extract the segments comprising a loop: a list of closed
 --   segments, and one final open segment.
 loopSegments :: Trail' Loop v -> ([Segment Closed v], Segment Open v)
@@ -853,10 +861,7 @@ reverseLocTrail (viewLoc -> (p, t)) = reverseTrail t `at` (p .+^ trailOffset t)
 -- | Reverse a line.  See 'reverseTrail'.
 reverseLine :: (InnerSpace v, OrderedField (Scalar v))
             => Trail' Line v -> Trail' Line v
-reverseLine = lineFromSegments
-            . reverse
-            . map reverseSegment
-            . lineSegments
+reverseLine = onLineSegments (reverse . map reverseSegment)
 
 -- | Reverse a concretely located line.  See 'reverseLocTrail'.
 reverseLocLine :: (InnerSpace v, OrderedField (Scalar v))
