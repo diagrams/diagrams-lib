@@ -290,7 +290,8 @@ data ScaleInv t =
   }
   deriving (Show)
 
--- | Create a scale-invariant object pointing in the given direction.
+-- | Create a scale-invariant object pointing in the given direction,
+--   located at the origin.
 scaleInv :: t -> R2 -> ScaleInv t
 scaleInv t d = ScaleInv t d origin
 
@@ -330,14 +331,21 @@ instance (V t ~ R2, Transformable t) => IsPrim (ScaleInv t) where
 instance (Renderable t b, V t ~ R2) => Renderable (ScaleInv t) b where
   render b = render b . unScaleInv
 
--- | Create a diagram from a single scale-invariant primitive, which
---   will have an /empty/ envelope, trace, and query.  The reason is
---   that the envelope, trace, and query cannot be cached---applying a
---   transformation would cause the cached envelope, etc. to get "out
---   of sync" with the scale-invariant object.  The intention, at any
---   rate, is that scale-invariant things will be used only as
---   "decorations" (/e.g./ arrowheads) which should not affect the
---   envelope, trace, and query.
+-- | Create a diagram from a single scale-invariant primitive.  The
+--   vector argument specifies the direction in which the primitive is
+--   \"pointing\" (for the purpose of keeping it rotated correctly
+--   under non-uniform scaling).  The primitive is assumed to be
+--   \"located\" at the origin (for the purpose of translating it
+--   correctly under scaling).
+--
+--   Note that the resulting diagram will have an /empty/ envelope,
+--   trace, and query.  The reason is that the envelope, trace, and
+--   query cannot be cached---applying a transformation would cause
+--   the cached envelope, etc. to get \"out of sync\" with the
+--   scale-invariant object.  The intention, at any rate, is that
+--   scale-invariant things will be used only as \"decorations\" (/e.g./
+--   arrowheads) which should not affect the envelope, trace, and
+--   query.
 scaleInvPrim :: (Transformable t, Renderable t b, V t ~ R2, Monoid m)
              => t -> R2 -> QDiagram b R2 m
 scaleInvPrim t d = mkQD (Prim $ scaleInv t d) mempty mempty mempty mempty
