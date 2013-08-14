@@ -484,6 +484,8 @@ instance (InnerSpace v, RealFrac (Scalar v), Floating (Scalar v))
     => Sectionable (Trail v) where
   splitAtParam t p = withLine ((wrapLine *** wrapLine) . (`splitAtParam` p)) t
 
+  reverseDomain = reverseTrail
+
 instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
     => HasArcLength (Trail v) where
   arcLengthBounded = withLine . arcLengthBounded
