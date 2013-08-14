@@ -96,7 +96,8 @@ domainBounds x = (domainLower x, domainUpper x)
 -- | Type class for parametric objects which can be split into
 --   subobjects.
 --
---   Minimal definition: Either 'splitAtParam' or 'section'.
+--   Minimal definition: Either 'splitAtParam' or 'section',
+--   plus 'reverseDomain'.
 class DomainBounds p => Sectionable p where
   -- | 'splitAtParam' splits an object @p@ into two new objects
   --   @(l,r)@ at the parameter @t@, where @l@ corresponds to the
@@ -139,12 +140,8 @@ class DomainBounds p => Sectionable p where
   default section :: Fractional (Scalar (V p)) => p -> Scalar (V p) -> Scalar (V p) -> p
   section x t1 t2 = snd (splitAtParam (fst (splitAtParam x t2)) (t1/t2))
 
-  -- | Flip the parameterization on the domain.  This has the
-  --   following default definition:
-  --
-  -- > reverse x = section x (domainUpper x) (domainLower x)
+  -- | Flip the parameterization on the domain.
   reverseDomain :: p -> p
-  reverseDomain x = section x (domainUpper x) (domainLower x)
 
 -- | The standard tolerance used by @std...@ functions (like
 --   'stdArcLength' and 'stdArcLengthToParam', currently set at

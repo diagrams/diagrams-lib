@@ -138,6 +138,8 @@ instance ( Codomain a ~ V a, Fractional (Scalar (V a)), AdditiveGroup (V a)
   splitAtParam (Loc x a) p = (Loc x a1, Loc (x .+^ (a `atParam` p)) a2)
     where (a1,a2) = splitAtParam a p
 
+  reverseDomain (Loc p a) = Loc p (reverseDomain a)
+
 instance (HasArcLength a, Fractional (Scalar (V a)), V a ~ V (Codomain a))
     => HasArcLength (Located a) where
   arcLengthBounded eps (Loc _ a)   = arcLengthBounded eps a
