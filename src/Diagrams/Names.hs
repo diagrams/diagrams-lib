@@ -33,6 +33,7 @@ module Diagrams.Names
       -- * Querying by name
 
     , names
+    , lookupName
     , withName, withNameAll, withNames
 
     ) where
