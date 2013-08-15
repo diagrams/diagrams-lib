@@ -190,6 +190,9 @@ instance (InnerSpace v, RealFrac (Scalar v), Floating (Scalar v))
       tSegs           = numSegs t
       emptySplit      = (SegTree t, SegTree t)
 
+  reverseDomain (SegTree t) = SegTree $ FT.reverse t'
+    where t' = FT.fmap' reverseSegment t
+
   -- XXX seems like it should be possible to collapse some of the
   -- above cases into one?
 
@@ -388,6 +391,8 @@ instance (InnerSpace v, RealFrac (Scalar v), Floating (Scalar v))
   splitAtParam (Line t) p = (Line t1, Line t2)
     where
       (t1, t2) = splitAtParam t p
+
+  reverseDomain = reverseLine
 
 instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
     => HasArcLength (Trail' l v) where
