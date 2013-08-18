@@ -25,6 +25,7 @@ module Diagrams.TwoD.Shapes
        , square
        , pentagon
        , hexagon
+       , heptagon
        , septagon
        , octagon
        , nonagon
@@ -147,7 +148,7 @@ regPoly n l = polygon with { polyType =
 -- > triangleEx   = shapeEx triangle
 -- > pentagonEx   = shapeEx pentagon
 -- > hexagonEx    = shapeEx hexagon
--- > septagonEx   = shapeEx septagon
+-- > heptagonEx   = shapeEx heptagon
 -- > octagonEx    = shapeEx octagon
 -- > nonagonEx    = shapeEx nonagon
 -- > decagonEx    = shapeEx decagon
@@ -179,12 +180,18 @@ pentagon = regPoly 5
 hexagon :: (TrailLike t, V t ~ R2) => Double -> t
 hexagon = regPoly 6
 
--- | A regular septagon, with sides of the given length and base
+-- | A regular heptagon, with sides of the given length and base
 --   parallel to the x-axis.
 --
---   <<diagrams/septagonEx.svg#diagram=septagonEx&width=100>>
+--   <<diagrams/heptagonEx.svg#diagram=heptagonEx&width=100>>
+heptagon :: (TrailLike t, V t ~ R2) => Double -> t
+heptagon = regPoly 7
+
+-- | A synonym for 'heptagon'.  It is, however, completely inferior,
+--   being a base admixture of the Latin /septum/ (seven) and the
+--   Greek γωνία (angle).
 septagon :: (TrailLike t, V t ~ R2) => Double -> t
-septagon = regPoly 7
+septagon = heptagon
 
 -- | A regular octagon, with sides of the given length and base
 --   parallel to the x-axis.
