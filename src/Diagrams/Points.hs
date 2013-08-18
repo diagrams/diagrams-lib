@@ -18,7 +18,7 @@ module Diagrams.Points
          Point, origin, (*.)
 
          -- * Point-related utilities
-       , centroid
+       , distance, centroid
 
        ) where
 
@@ -34,6 +34,10 @@ import           Data.VectorSpace
 -- | The centroid of a set of /n/ points is their sum divided by /n/.
 centroid :: (VectorSpace v, Fractional (Scalar v)) => [Point v] -> Point v
 centroid = pack . uncurry (^/) . (sumV &&& (fromIntegral . length)) . map unpack
+
+-- | The distance between two points.
+distance :: (Floating (Scalar v), InnerSpace v) => Point v -> Point v -> Scalar v
+distance p1 p2 = magnitude (p1 ^-^ p2)
 
 instance Coordinates v => Coordinates (Point v) where
   type FinalCoord (Point v)    = FinalCoord v
