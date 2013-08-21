@@ -21,6 +21,7 @@ module Diagrams.TwoD.Curvature
 
 import           Data.AffineSpace
 import           Data.Monoid.Inf
+import           Data.NumInstances.Tuple ()
 import           Data.VectorSpace
 
 import           Control.Arrow        (first, second)

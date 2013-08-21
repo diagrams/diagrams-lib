@@ -82,13 +82,13 @@ offsetSegment epsilon r s@(Cubic a b (OffsetClosed c)) = (origin .+^ va, t)
     t = trailFromSegments (go (radiusOfCurvature s 0.5))
     -- Perpendiculars to handles.
     va = r *^ unitPerp a
-    vc = r *^ unitPerp (c - b)
+    vc = r *^ unitPerp (c ^-^ b)
     -- Split segments.
     ss = (\(a,b) -> [a,b]) $ splitAtParam s 0.5
     subdivided = concatMap (trailSegments . snd . offsetSegment epsilon r) ss
 
     -- Offset with handles scaled based on curvature.
-    offset factor = bezier3 (a^*factor) ((b - c)^*factor + c + vc - va) (c + vc - va)
+    offset factor = bezier3 (a^*factor) ((b ^-^ c)^*factor ^+^ c ^+^ vc ^-^ va) (c ^+^ vc ^-^ va)
  
     -- We observe a corner.  Subdivide right away.
     go (Finite 0) = subdivided
@@ -106,7 +106,7 @@ offsetSegment epsilon r s@(Cubic a b (OffsetClosed c)) = (origin .+^ va, t)
               Infinity  -> 1          -- Do the right thing.
               Finite sr -> 1 + r / sr 
 
-        close = and [epsilon > (magnitude (p o + va - p s - pp s))
+        close = and [epsilon > (magnitude (p o ^+^ va ^-^ p s ^-^ pp s))
                     | t <- [0.25, 0.5, 0.75]
                     , let p = (`atParam` t)
                     , let pp = (r *^) . (`perpAtParam` t)
