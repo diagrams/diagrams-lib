@@ -36,8 +36,8 @@ import           Diagrams.Core
 import           Diagrams.Util           (tau)
 
 import           Control.Newtype
-
 import           Data.Basis
+import           Data.NumInstances.Tuple ()
 import           Data.VectorSpace
 
 import           Data.Typeable
@@ -74,7 +74,7 @@ import           Data.Typeable
 -- @
 
 newtype R2 = R2 { unR2 :: (Double, Double) }
-  deriving (AdditiveGroup, Eq, Ord, Typeable)
+  deriving (AdditiveGroup, Eq, Ord, Typeable, Num, Fractional)
 
 instance Show R2 where
   showsPrec p (R2 (x,y)) = showParen (p >= 7) $
