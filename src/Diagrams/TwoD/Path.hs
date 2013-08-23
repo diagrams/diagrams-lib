@@ -160,7 +160,7 @@ data StrokeOpts a
 instance Default (StrokeOpts a) where
   def = StrokeOpts
         { vertexNames    = []
-        , queryFillRule = Winding
+        , queryFillRule = def
         }
 
 -- | A composition of 'stroke' and 'pathFromTrail' for conveniently
@@ -221,15 +221,21 @@ data FillRule = Winding  -- ^ Interior points are those with a nonzero
                          --   direction crosses the path an odd number
                          --   of times. See
                          --   <http://en.wikipedia.org/wiki/Even-odd_rule>.
-    deriving (Eq)
+    deriving (Eq, Show)
+
+instance Default FillRule where
+  def = Winding
 
 runFillRule :: FillRule -> P2 -> Path R2 -> Bool
 runFillRule Winding = isInsideWinding
 runFillRule EvenOdd = isInsideEvenOdd
 
 newtype FillRuleA = FillRuleA (Last FillRule)
-  deriving (Typeable, Semigroup)
+  deriving (Typeable, Semigroup, Show)
 instance AttributeClass FillRuleA
+
+instance Default FillRuleA where
+  def = FillRuleA $ Last $ def
 
 -- | Extract the fill rule from a 'FillRuleA' attribute.
 getFillRule :: FillRuleA -> FillRule
