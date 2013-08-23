@@ -114,20 +114,21 @@ offsetSegment epsilon r s@(Cubic a b (OffsetClosed c)) = (origin .+^ va, t)
 
 
 -- > import Diagrams.TwoD.Offset
+-- > import Diagrams.Coordinates 
 -- >
--- > showExample :: Segment R2 -> Diagram SVG R2
+-- > showExample :: Segment Closed R2 -> Diagram SVG R2
 -- > showExample s = pad 1.1 . centerXY $ d # lc blue # lw 0.1 <> d' # lw 0.1
 -- >   where
--- >       d  = stroke $ Path [(origin, Trail [s] False)]
--- >       d' = mconcat . zipWith lc colors . map stroke . uncurry explodeTrail
--- >          $ offsetSegment 0.1 (-1) s
+-- >       d  = stroke . fromSegments $ [s]
+-- >       d' = mconcat . zipWith lc colors . map stroke . explodeTrail
+-- >          . uncurry (flip at) $ offsetSegment 0.1 (-1) s
 -- >            
 -- >       colors = cycle [green, red]
 -- > 
 -- > cubicOffsetExample :: Diagram SVG R2
 -- > cubicOffsetExample = hcat . map showExample $
--- >         [ Cubic (10 &  0) (  5  & 18) (10 & 20)
--- >         , Cubic ( 0 & 20) ( 10  & 10) ( 5 & 10)
--- >         , Cubic (10 & 20) (  0  & 10) (10 &  0)
--- >         , Cubic (10 & 20) ((-5) & 10) (10 &  0)
+-- >         [ bezier3 (10 &  0) (  5  & 18) (10 & 20)
+-- >         , bezier3 ( 0 & 20) ( 10  & 10) ( 5 & 10)
+-- >         , bezier3 (10 & 20) (  0  & 10) (10 &  0)
+-- >         , bezier3 (10 & 20) ((-5) & 10) (10 &  0)
 -- >         ]
