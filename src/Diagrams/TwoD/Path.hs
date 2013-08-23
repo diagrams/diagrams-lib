@@ -231,7 +231,7 @@ runFillRule Winding = isInsideWinding
 runFillRule EvenOdd = isInsideEvenOdd
 
 newtype FillRuleA = FillRuleA (Last FillRule)
-  deriving (Typeable, Semigroup)
+  deriving (Typeable, Semigroup, Show)
 instance AttributeClass FillRuleA
 
 instance Default FillRuleA where
