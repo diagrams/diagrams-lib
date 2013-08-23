@@ -80,7 +80,7 @@ import           Diagrams.TwoD.Vector
 -- >
 -- > diagramPos = diagramWithRadius 0.2
 -- >
--- > diagramZero = diagramWithRadius 0.5
+-- > diagramZero = diagramWithRadius 0.45
 -- >
 -- > diagramNeg = diagramWithRadius 0.8
 -- >
