@@ -108,6 +108,7 @@ module Diagrams.TwoD
        , square
        , pentagon
        , hexagon
+       , heptagon
        , septagon
        , octagon
        , nonagon
