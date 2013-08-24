@@ -1,7 +1,6 @@
-{-# LANGUAGE FlexibleContexts
-           , FlexibleInstances
-           , UndecidableInstances
-  #-}
+{-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -17,24 +16,26 @@
 
 module Diagrams.TwoD.Segment where
 
-import Control.Applicative (liftA2)
+import           Control.Applicative     (liftA2)
 
-import Data.AffineSpace
-import Data.Monoid.PosInf hiding (minimum)
-import Data.VectorSpace
+import           Data.AffineSpace
+import           Data.Monoid.Inf         hiding (minimum)
+import           Data.VectorSpace
 
-import Diagrams.Core
-import Diagrams.Core.Trace
+import           Diagrams.Core
+import           Diagrams.Core.Trace
 
-import Diagrams.Segment
-import Diagrams.Solve
-import Diagrams.TwoD.Transform
-import Diagrams.TwoD.Types
-import Diagrams.TwoD.Vector
-import Diagrams.Util
+import           Diagrams.Located
+import           Diagrams.Parametric
+import           Diagrams.Segment
+import           Diagrams.Solve
+import           Diagrams.TwoD.Transform
+import           Diagrams.TwoD.Types
+import           Diagrams.TwoD.Vector
+import           Diagrams.Util
 
-instance Traced (Segment R2) where
-  getTrace = getTrace . mkFixedSeg origin
+instance Traced (Segment Closed R2) where
+  getTrace = getTrace . mkFixedSeg . (`at` origin)
 
 instance Traced (FixedSegment R2) where
 
@@ -69,7 +70,7 @@ instance Traced (FixedSegment R2) where
       t1     = (perp v0 <.> p) / det
     in
       if det == 0 || t0 < 0 || t0 > 1
-        then PosInfty
+        then Infinity
         else Finite t1
 
 {- To do intersection of a line with a cubic Bezier, we first rotate
@@ -94,9 +95,9 @@ instance Traced (FixedSegment R2) where
       c  = -3*y0 + 3*y1
       d  = y0
       ts = filter (liftA2 (&&) (>= 0) (<= 1)) (cubForm a b c d)
-      xs = map (fst . unp2 . fAtParam bez') ts
+      xs = map (fst . unp2 . atParam bez') ts
     in
       case xs of
-        [] -> PosInfty
+        [] -> Infinity
         _  -> Finite (minimum xs)
 

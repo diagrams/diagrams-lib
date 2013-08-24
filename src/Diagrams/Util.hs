@@ -26,8 +26,8 @@ module Diagrams.Util
 
        ) where
 
-import Data.Monoid
-import Data.Default.Class
+import           Data.Default.Class
+import           Data.Monoid
 
 -- | Several functions exported by the diagrams library take a number
 --   of arguments giving the user control to \"tweak\" various aspects
@@ -42,7 +42,9 @@ import Data.Default.Class
 --   a synonym for 'def', which provides nice-looking syntax for
 --   simulating optional, named arguments in Haskell.  For example,
 --
---   > polygon with {sides = 7, edgeSkip = 2}
+--   @
+--   polygon with {sides = 7, edgeSkip = 2}
+--   @
 --
 --   calls the 'polygon' function with a single argument (note that
 --   record update binds more tightly than function application!),
@@ -93,7 +95,9 @@ data Proxy a = Proxy
 --   in the case of an empty list, perform a /balanced/ fold over a
 --   list.  For example,
 --
---   > foldB (+) z [a,b,c,d,e,f] == ((a+b) + (c+d)) + (e+f)
+--   @
+--   foldB (+) z [a,b,c,d,e,f] == ((a+b) + (c+d)) + (e+f)
+--   @
 --
 foldB :: (a -> a -> a) -> a -> [a] -> a
 foldB _ z [] = z

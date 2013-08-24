@@ -20,10 +20,6 @@ module Diagrams.Prelude
 
          -- * Standard library
 
-         -- | Nice syntax for constructing and pattern-matching
-         --   literal points and vectors.
-       , module Diagrams.Coordinates
-
          -- | Attributes (color, line style, etc.) and styles.
        , module Diagrams.Attributes
 
@@ -33,10 +29,22 @@ module Diagrams.Prelude
          -- | Combining multiple diagrams into one.
        , module Diagrams.Combinators
 
+         -- | Giving concrete locations to translation-invariant things.
+       , module Diagrams.Located
+
          -- | Linear and cubic bezier segments.
        , module Diagrams.Segment
 
-         -- | Trails and paths.
+         -- | Trails.
+       , module Diagrams.Trail
+
+         -- | Parametrization of segments and trails.
+       , module Diagrams.Parametric
+
+         -- | Trail-like things.
+       , module Diagrams.TrailLike
+
+         -- | Paths.
        , module Diagrams.Path
 
          -- | Cubic splines.
@@ -49,6 +57,25 @@ module Diagrams.Prelude
          -- | Convenient definitions and utilities for working with
          --   good old-fashioned, axis-aligned bounding boxes.
        , module Diagrams.BoundingBox
+
+         -- | Giving names to subdiagrams and later retrieving
+         --   subdiagrams by name.
+       , module Diagrams.Names
+
+         -- | Envelopes, aka functional bounding regions.
+       , module Diagrams.Envelope
+
+         -- | Traces, aka embedded raytracers, for finding points on
+         --   the boundary of a diagram.
+       , module Diagrams.Trace
+
+         -- | A query is a function that maps points in a vector space
+         --   to values in some monoid; they can be used to annotate
+         --   the points of a diagram with some values.
+       , module Diagrams.Query
+
+         -- | Utilities for working with points.
+       , module Diagrams.Points
 
          -- | A wide range of things (shapes, transformations,
          --   combinators) specific to creating two-dimensional
@@ -89,8 +116,17 @@ import           Diagrams.BoundingBox
 import           Diagrams.Combinators
 import           Diagrams.Coordinates
 import           Diagrams.CubicSpline
+import           Diagrams.Envelope
+import           Diagrams.Located
+import           Diagrams.Names
+import           Diagrams.Parametric
 import           Diagrams.Path
+import           Diagrams.Points
+import           Diagrams.Query
 import           Diagrams.Segment
+import           Diagrams.Trace
+import           Diagrams.Trail
+import           Diagrams.TrailLike
 import           Diagrams.Transform
 import           Diagrams.TwoD
 import           Diagrams.Util

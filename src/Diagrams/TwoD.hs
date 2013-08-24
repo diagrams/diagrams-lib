@@ -70,12 +70,13 @@ module Diagrams.TwoD
          -- * Angles
        , tau
        , Angle(..)
-       , CircleFrac(..), Rad(..), Deg(..)
+       , Turn(..), CircleFrac, Rad(..), Deg(..)
        , fullCircle, convertAngle
 
          -- * Paths
          -- ** Stroking
-       , stroke, stroke', strokeT, strokeT'
+       , stroke, stroke', strokeT, strokeT', strokeLine, strokeLoop
+       , strokeLocT, strokeLocLine, strokeLocLoop
        , FillRule(..), fillRule
        , StrokeOpts(..)
 
@@ -99,7 +100,7 @@ module Diagrams.TwoD
        , wedge
 
          -- ** General polygons
-       , polygon, polyVertices
+       , polygon, polyTrail
        , PolygonOpts(..), PolyType(..), PolyOrientation(..)
 
          -- ** Star polygons
@@ -112,6 +113,7 @@ module Diagrams.TwoD
        , square
        , pentagon
        , hexagon
+       , heptagon
        , septagon
        , octagon
        , nonagon

@@ -1,11 +1,10 @@
-{-# LANGUAGE FlexibleInstances
-           , FlexibleContexts
-           , MultiParamTypeClasses
-           , ScopedTypeVariables
-           , TypeSynonymInstances
-           , TypeFamilies
-           , GeneralizedNewtypeDeriving
-  #-}
+{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE ScopedTypeVariables        #-}
+{-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE TypeSynonymInstances       #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Backend.Show
@@ -18,15 +17,16 @@
 -----------------------------------------------------------------------------
 module Diagrams.Backend.Show where
 
-import Diagrams.Prelude
-import Diagrams.Core.Transform (onBasis)
+import           Diagrams.Core.Transform (onBasis)
+import           Diagrams.Prelude
+import           Diagrams.Trail
 
-import Data.Basis
+import           Data.Basis
 
-import Text.PrettyPrint (Doc, empty, ($+$), parens, hsep)
-import qualified Text.PrettyPrint as PP
+import           Text.PrettyPrint        (Doc, empty, hsep, parens, ($+$))
+import qualified Text.PrettyPrint        as PP
 
-import Data.List (transpose)
+import           Data.List               (transpose)
 
 -- | Token for identifying this backend.
 data ShowBackend = ShowBackend
@@ -59,11 +59,11 @@ renderMat :: Show a => [[a]] -> Doc
 renderMat = PP.vcat . map renderRow . transpose
   where renderRow = parens . hsep . map (PP.text . show)
 
-instance (Show v, HasLinearMap v) => Renderable (Segment v) ShowBackend where
+instance (Show v, HasLinearMap v) => Renderable (Segment o v) ShowBackend where
   render _ s = SR $ PP.text (show s)
 
-instance (Show v, HasLinearMap v) => Renderable (Trail v) ShowBackend where
+instance (Show v, OrderedField (Scalar v), InnerSpace v, HasLinearMap v) => Renderable (Trail v) ShowBackend where
   render _ t = SR $ PP.text (show t)
 
-instance (Ord v, Show v, HasLinearMap v) => Renderable (Path v) ShowBackend where
+instance (Show v, OrderedField (Scalar v), InnerSpace v, HasLinearMap v) => Renderable (Path v) ShowBackend where
   render _ p = SR $ PP.text (show p)

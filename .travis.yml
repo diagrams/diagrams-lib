@@ -6,6 +6,7 @@ before_install:
   - cabal install diagrams-core/
   - cd ..
 notifications:
+  email: false
   irc:
     channels:
       - irc.freenode.org#diagrams

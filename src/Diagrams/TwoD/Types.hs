@@ -27,7 +27,7 @@ module Diagrams.TwoD.Types
 
          -- * Angles
        , Angle(..)
-       , CircleFrac(..), Rad(..), Deg(..)
+       , Turn(..), CircleFrac, Rad(..), Deg(..)
        , fullCircle, convertAngle
        ) where
 
@@ -36,7 +36,6 @@ import           Diagrams.Core
 import           Diagrams.Util           (tau)
 
 import           Control.Newtype
-
 import           Data.Basis
 import           Data.NumInstances.Tuple ()
 import           Data.VectorSpace
@@ -51,8 +50,13 @@ import           Data.Typeable
 --
 --   * To construct a vector, use 'r2', or '&' (from "Diagrams.Coordinates"):
 --
--- > r2 (3,4) :: R2
--- > 3 & 4    :: R2
+-- @
+-- r2 (3,4) :: R2
+-- 3 & 4    :: R2
+-- @
+--
+--     Note that "Diagrams.Coordinates" is not re-exported by
+--     "Diagrams.Prelude" and must be explicitly imported.
 --
 --   * To construct the vector from the origin to a point @p@, use
 --     @p 'Data.AffineSpace..-.' 'origin'@.
@@ -64,8 +68,10 @@ import           Data.Typeable
 --     or 'coords' (from "Diagrams.Coordinates").  These are typically
 --     used in conjunction with the @ViewPatterns@ extension:
 --
--- > foo (unr2 -> (x,y)) = ...
--- > foo (coords -> x :& y) = ...
+-- @
+-- foo (unr2 -> (x,y)) = ...
+-- foo (coords -> x :& y) = ...
+-- @
 
 newtype R2 = R2 { unR2 :: (Double, Double) }
   deriving (AdditiveGroup, Eq, Ord, Typeable, Num, Fractional)
@@ -129,8 +135,10 @@ instance Coordinates R2 where
 --   * To construct a point, use 'p2', or '&' (see
 --     "Diagrams.Coordinates"):
 --
--- > p2 (3,4)  :: P2
--- > 3 & 4     :: P2
+-- @
+-- p2 (3,4)  :: P2
+-- 3 & 4     :: P2
+-- @
 --
 --   * To construct a point from a vector @v@, use @'origin' 'Data.AffineSpace..+^' v@.
 --
@@ -141,8 +149,10 @@ instance Coordinates R2 where
 --     or 'coords' (from "Diagrams.Coordinates").  It's common to use
 --     these in conjunction with the @ViewPatterns@ extension:
 --
--- > foo (unp2 -> (x,y)) = ...
--- > foo (coords -> x :& y) = ...
+-- @
+-- foo (unp2 -> (x,y)) = ...
+-- foo (coords -> x :& y) = ...
+-- @
 type P2 = Point R2
 
 -- | Construct a 2D point from a pair of coordinates.  See also '&'.
@@ -163,9 +173,12 @@ instance Transformable R2 where
 -- Angles
 
 -- | Newtype wrapper used to represent angles as fractions of a
---   circle.  For example, 1\/3 = tau\/3 radians = 120 degrees.
-newtype CircleFrac = CircleFrac { getCircleFrac :: Double }
+--   circle.  For example, 1\/3 turn = tau\/3 radians = 120 degrees.
+newtype Turn = Turn { getTurn :: Double }
   deriving (Read, Show, Eq, Ord, Enum, Floating, Fractional, Num, Real, RealFloat, RealFrac)
+
+-- | Deprecated synonym for 'Turn', retained for backwards compatibility.
+type CircleFrac = Turn
 
 -- | Newtype wrapper for representing angles in radians.
 newtype Rad = Rad { getRad :: Double }
@@ -177,30 +190,34 @@ newtype Deg = Deg { getDeg :: Double }
 
 -- | Type class for types that measure angles.
 class Num a => Angle a where
-  -- | Convert to a fraction of a circle.
-  toCircleFrac   :: a -> CircleFrac
+  -- | Convert to a turn, /i.e./ a fraction of a circle.
+  toTurn   :: a -> Turn
 
-  -- | Convert from a fraction of a circle.
-  fromCircleFrac :: CircleFrac -> a
+  -- | Convert from a turn, /i.e./ a fraction of a circle.
+  fromTurn :: Turn -> a
 
-instance Angle CircleFrac where
-  toCircleFrac   = id
-  fromCircleFrac = id
+instance Angle Turn where
+  toTurn   = id
+  fromTurn = id
 
--- | tau radians = 1 full circle.
+-- | tau radians = 1 full turn.
 instance Angle Rad where
-  toCircleFrac   = CircleFrac . (/tau) . getRad
-  fromCircleFrac = Rad . (*tau) . getCircleFrac
+  toTurn   = Turn . (/tau) . getRad
+  fromTurn = Rad . (*tau) . getTurn
 
--- | 360 degrees = 1 full circle.
+-- | 360 degrees = 1 full turn.
 instance Angle Deg where
-  toCircleFrac   = CircleFrac . (/360) . getDeg
-  fromCircleFrac = Deg . (*360) . getCircleFrac
+  toTurn   = Turn . (/360) . getDeg
+  fromTurn = Deg . (*360) . getTurn
 
--- | An angle representing a full circle.
+-- | An angle representing one full turn.
+fullTurn :: Angle a => a
+fullTurn = fromTurn 1
+
+-- | Deprecated synonym for 'fullTurn', retained for backwards compatibility.
 fullCircle :: Angle a => a
-fullCircle = fromCircleFrac 1
+fullCircle = fullTurn
 
 -- | Convert between two angle representations.
 convertAngle :: (Angle a, Angle b) => a -> b
-convertAngle = fromCircleFrac . toCircleFrac
+convertAngle = fromTurn . toTurn

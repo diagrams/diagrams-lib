@@ -23,7 +23,8 @@
 module Diagrams.TwoD.Path
        ( -- * Constructing path-based diagrams
 
-         stroke, stroke', strokeT, strokeT'
+         stroke, stroke', strokeT, strokeT', strokeLine, strokeLoop
+       , strokeLocT, strokeLocLine, strokeLocLoop
 
          -- ** Stroke options
 
@@ -49,12 +50,15 @@ import           Data.AffineSpace
 import           Data.Default.Class
 import           Data.VectorSpace
 
-import           Diagrams.Core
-
 import           Diagrams.Coordinates
+import           Diagrams.Core
+import           Diagrams.Located      (Located, mapLoc, unLoc)
+import           Diagrams.Parametric
 import           Diagrams.Path
 import           Diagrams.Segment
 import           Diagrams.Solve
+import           Diagrams.Trail
+import           Diagrams.TrailLike
 import           Diagrams.TwoD.Segment
 import           Diagrams.TwoD.Types
 import           Diagrams.Util         (tau)
@@ -68,15 +72,14 @@ import           Diagrams.Util         (tau)
 -- XXX can the efficiency of this be improved?  See the comment in
 -- Diagrams.Path on the Enveloped instance for Trail.
 instance Traced (Trail R2) where
-  getTrace t = case addClosingSegment t of
-    (Trail segs _) ->
-      foldr (\seg bds -> moveOriginBy (negateV . segOffset $ seg) bds <> getTrace seg)
-            mempty
-            segs
+  getTrace = withLine $
+      foldr
+        (\seg bds -> moveOriginBy (negateV . atEnd $ seg) bds <> getTrace seg)
+        mempty
+    . lineSegments
 
 instance Traced (Path R2) where
-  getTrace = F.foldMap trailTrace . pathTrails
-    where trailTrace (p, t) = moveOriginTo ((-1) *. p) (getTrace t)
+  getTrace = F.foldMap getTrace . pathTrails
 
 ------------------------------------------------------------
 --  Constructing path-based diagrams  ----------------------
@@ -96,8 +99,8 @@ stroke :: Renderable (Path R2) b
        => Path R2 -> Diagram b R2
 stroke = stroke' (def :: StrokeOpts ())
 
-instance Renderable (Path R2) b => PathLike (QDiagram b R2 Any) where
-  pathLike st cl segs = stroke $ pathLike st cl segs
+instance Renderable (Path R2) b => TrailLike (QDiagram b R2 Any) where
+  trailLike = stroke . trailLike
 
 -- | A variant of 'stroke' that takes an extra record of options to
 --   customize its behavior.  In particular:
@@ -107,8 +110,14 @@ instance Renderable (Path R2) b => PathLike (QDiagram b R2 Any) where
 --   'StrokeOpts' is an instance of 'Default', so @stroke' 'with' {
 --   ... }@ syntax may be used.
 stroke' :: (Renderable (Path R2) b, IsName a) => StrokeOpts a -> Path R2 -> Diagram b R2
-stroke' opts p
-  = mkQD (Prim p)
+stroke' opts path
+  | null (pathTrails p1) =           mkP p2
+  | null (pathTrails p2) = mkP p1
+  | otherwise            = mkP p1 <> mkP p2
+  where
+    (p1,p2) = partitionPath (isLine . unLoc) path
+    mkP p
+      = mkQD (Prim p)
          (getEnvelope p)
          (getTrace p)
          (fromNames . concat $
@@ -151,7 +160,7 @@ data StrokeOpts a
 instance Default (StrokeOpts a) where
   def = StrokeOpts
         { vertexNames    = []
-        , queryFillRule = Winding
+        , queryFillRule = def
         }
 
 -- | A composition of 'stroke' and 'pathFromTrail' for conveniently
@@ -172,6 +181,31 @@ strokeT' :: (Renderable (Path R2) b, IsName a)
          => StrokeOpts a -> Trail R2 -> Diagram b R2
 strokeT' opts = stroke' opts . pathFromTrail
 
+-- | A composition of 'strokeT' and 'wrapLine' for conveniently
+--   converting a line directly into a diagram.
+strokeLine :: (Renderable (Path R2) b) => Trail' Line R2 -> Diagram b R2
+strokeLine = strokeT . wrapLine
+
+-- | A composition of 'strokeT' and 'wrapLoop' for conveniently
+--   converting a loop directly into a diagram.
+strokeLoop :: (Renderable (Path R2) b) => Trail' Loop R2 -> Diagram b R2
+strokeLoop = strokeT . wrapLoop
+
+-- | A convenience function for converting a @Located Trail@ directly
+--   into a diagram; @strokeLocT = stroke . trailLike@.
+strokeLocT :: (Renderable (Path R2) b) => Located (Trail R2) -> Diagram b R2
+strokeLocT = stroke . trailLike
+
+-- | A convenience function for converting a @Located@ line directly
+--   into a diagram; @strokeLocLine = stroke . trailLike . mapLoc wrapLine@.
+strokeLocLine :: (Renderable (Path R2) b) => Located (Trail' Line R2) -> Diagram b R2
+strokeLocLine = stroke . trailLike . mapLoc wrapLine
+
+-- | A convenience function for converting a @Located@ loop directly
+--   into a diagram; @strokeLocLoop = stroke . trailLike . mapLoc wrapLoop@.
+strokeLocLoop :: (Renderable (Path R2) b) => Located (Trail' Loop R2) -> Diagram b R2
+strokeLocLoop = stroke . trailLike . mapLoc wrapLoop
+
 ------------------------------------------------------------
 --  Inside/outside testing
 ------------------------------------------------------------
@@ -187,15 +221,21 @@ data FillRule = Winding  -- ^ Interior points are those with a nonzero
                          --   direction crosses the path an odd number
                          --   of times. See
                          --   <http://en.wikipedia.org/wiki/Even-odd_rule>.
-    deriving (Eq)
+    deriving (Eq, Show)
+
+instance Default FillRule where
+  def = Winding
 
 runFillRule :: FillRule -> P2 -> Path R2 -> Bool
 runFillRule Winding = isInsideWinding
 runFillRule EvenOdd = isInsideEvenOdd
 
 newtype FillRuleA = FillRuleA (Last FillRule)
-  deriving (Typeable, Semigroup)
+  deriving (Typeable, Semigroup, Show)
 instance AttributeClass FillRuleA
+
+instance Default FillRuleA where
+  def = FillRuleA $ Last $ def
 
 -- | Extract the fill rule from a 'FillRuleA' attribute.
 getFillRule :: FillRuleA -> FillRule
@@ -233,13 +273,13 @@ crossings p = F.sum . map (trailCrossings p) . pathTrails
 
 -- | Compute the sum of signed crossings of a trail starting from the
 --   given point in the positive x direction.
-trailCrossings :: P2 -> (P2, Trail R2) -> Int
+trailCrossings :: P2 -> Located (Trail R2) -> Int
 
-  -- open trails have no inside or outside, so don't contribute crossings
-trailCrossings _ (_, t) | not (isClosed t) = 0
+  -- non-loop trails have no inside or outside, so don't contribute crossings
+trailCrossings _ t | not (isLoop (unLoc t)) = 0
 
-trailCrossings p@(unp2 -> (x,y)) (start, tr)
-  = sum . map test $ fixTrail start tr
+trailCrossings p@(unp2 -> (x,y)) tr
+  = sum . map test $ fixTrail tr
   where
     test (FLinear a@(unp2 -> (_,ay)) b@(unp2 -> (_,by)))
       | ay <= y && by > y && isLeft a b > 0 =  1
@@ -257,7 +297,7 @@ trailCrossings p@(unp2 -> (x,y)) (start, tr)
                          ( 3*x1y - 6*c1y + 3*c2y)
                          (-3*x1y + 3*c1y)
                          (x1y - y)
-            testT t = let (unp2 -> (px,_)) = c `fAtParam` t
+            testT t = let (unp2 -> (px,_)) = c `atParam` t
                       in  if px > x then signFromDerivAt t else 0
             signFromDerivAt t =
               let (dx,dy) = (3*t*t) *^ ((-1)*^x1 ^+^ 3*^c1 ^-^ 3*^c2 ^+^ x2)

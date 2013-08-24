@@ -84,7 +84,7 @@ rotation ang = fromLinear r (linv r)
 --   correspond to counterclockwise rotation, negative to
 --   clockwise. The angle can be expressed using any type which is an
 --   instance of 'Angle'.  For example, @rotate (1\/4 ::
---   'CircleFrac')@, @rotate (tau\/4 :: 'Rad')@, and @rotate (90 ::
+--   'Turn')@, @rotate (tau\/4 :: 'Rad')@, and @rotate (90 ::
 --   'Deg')@ all represent the same transformation, namely, a
 --   counterclockwise rotation by a right angle.  To rotate about some
 --   point other than the local origin, see 'rotateAbout'.
@@ -92,14 +92,14 @@ rotation ang = fromLinear r (linv r)
 --   Note that writing @rotate (1\/4)@, with no type annotation, will
 --   yield an error since GHC cannot figure out which sort of angle
 --   you want to use.  In this common situation you can use
---   'rotateBy', which is specialized to take a 'CircleFrac' argument.
+--   'rotateBy', which is specialized to take a 'Turn' argument.
 rotate :: (Transformable t, V t ~ R2, Angle a) => a -> t -> t
 rotate = transform . rotation
 
 -- | A synonym for 'rotate', specialized to only work with
---   @CircleFrac@ arguments; it can be more convenient to write
---   @rotateBy (1\/4)@ than @'rotate' (1\/4 :: 'CircleFrac')@.
-rotateBy :: (Transformable t, V t ~ R2) => CircleFrac -> t -> t
+--   @Turn@ arguments; it can be more convenient to write
+--   @rotateBy (1\/4)@ than @'rotate' (1\/4 :: 'Turn')@.
+rotateBy :: (Transformable t, V t ~ R2) => Turn -> t -> t
 rotateBy = transform . rotation
 
 -- | @rotationAbout p@ is a rotation about the point @p@ (instead of
@@ -290,7 +290,8 @@ data ScaleInv t =
   }
   deriving (Show)
 
--- | Create a scale-invariant object pointing in the given direction.
+-- | Create a scale-invariant object pointing in the given direction,
+--   located at the origin.
 scaleInv :: t -> R2 -> ScaleInv t
 scaleInv t d = ScaleInv t d origin
 
@@ -330,14 +331,21 @@ instance (V t ~ R2, Transformable t) => IsPrim (ScaleInv t) where
 instance (Renderable t b, V t ~ R2) => Renderable (ScaleInv t) b where
   render b = render b . unScaleInv
 
--- | Create a diagram from a single scale-invariant primitive, which
---   will have an /empty/ envelope, trace, and query.  The reason is
---   that the envelope, trace, and query cannot be cached---applying a
---   transformation would cause the cached envelope, etc. to get "out
---   of sync" with the scale-invariant object.  The intention, at any
---   rate, is that scale-invariant things will be used only as
---   "decorations" (/e.g./ arrowheads) which should not affect the
---   envelope, trace, and query.
+-- | Create a diagram from a single scale-invariant primitive.  The
+--   vector argument specifies the direction in which the primitive is
+--   \"pointing\" (for the purpose of keeping it rotated correctly
+--   under non-uniform scaling).  The primitive is assumed to be
+--   \"located\" at the origin (for the purpose of translating it
+--   correctly under scaling).
+--
+--   Note that the resulting diagram will have an /empty/ envelope,
+--   trace, and query.  The reason is that the envelope, trace, and
+--   query cannot be cached---applying a transformation would cause
+--   the cached envelope, etc. to get \"out of sync\" with the
+--   scale-invariant object.  The intention, at any rate, is that
+--   scale-invariant things will be used only as \"decorations\" (/e.g./
+--   arrowheads) which should not affect the envelope, trace, and
+--   query.
 scaleInvPrim :: (Transformable t, Renderable t b, V t ~ R2, Monoid m)
              => t -> R2 -> QDiagram b R2 m
 scaleInvPrim t d = mkQD (Prim $ scaleInv t d) mempty mempty mempty mempty

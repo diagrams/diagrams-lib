@@ -1,3 +1,90 @@
+0.7 (9 August 2013)
+-------------------
+
+* **New features**
+
+    - New module `Diagrams.TwoD.Curvature`, for computing the
+      curvature of 2D segments at any given point.
+    - New module `Diagrams.Offset`, containing an `offsetSegment`
+      function that builds a trail a fixed distance from the original
+      segment.  This is a precursor to planned functions `offsetTrail`
+      and `offsetPath`.
+    - New function `Diagrams.TwoD.Transform.onBasis`, for extracting a
+      matrix representation of a 2D transformation
+    - New functions `extrudeEnvelope` and `intrudeEnvelope`, for
+      extending or shrinking an envelope only in a certain direction.
+    - Generalize the `Color` class to absolute colors.
+      This addresses concerns raised in issue #66 by letting the backend
+      choose which color space to render `Color` instances to. Functions are
+      provided for backwards compatibility with the old semantics.
+    - New function `scaleInvPrim` for creating a diagram from a single
+      scale-invariant primitive.
+    - New module `Diagrams.Parametric`, containing a collection of
+      classes abstracting over "parametric" things: `Parametric`,
+      `DomainBounds`, `EndValues`, `Sectionable`, and `HasArcLength`,
+      with instances for segments, trails, and related things.
+    - A big refactoring of segments and trails:
+        - Segments can now be either "closed" or "open".
+        - There are now two types of trails: "lines" (which travel
+          from point A to point B) or "loops" (closed curves which end
+          where they started). `Trail` is now a wrapper type which can
+          contain both loops and lines.
+        - There is a new `Located` wrapper type for adding locations to
+          translation-invariant things.  `Path`s now consist of a
+          collection of `Located Trail`s.
+        - The `PathLike` class is now renamed to `TrailLike`; the
+          `trailLike` function takes a `Located Trail` as input.
+    - New convenience functions `boundaryFrom` and `boundaryFromMay`,
+      for computing boundaries of subdiagrams.
+    - Re-export from `diagrams-lib` a lot of things defined in
+      `diagrams-core`, to make them easier for users to find.  Several
+      new modules have been created as a result: `Diagrams.Query`,
+      `Diagrams.Envelope`, `Diagrams.Trace`, and `Diagrams.Names`.
+    - Export the `centroid` function from `Diagrams.Prelude`.
+    - `triangle` is now a synonym for `eqTriangle`.
+
+* **New instances**
+
+    - `IsPrim` instances for `Path`, `Ellipsoid`, `Image`, `Text`, and
+      `ScaleInv`
+    - `Eq`, `Ord`, and `Show` instances for `SizeSpec2D`
+
+* **API changes**
+
+    - `CircleFrac` has been renamed `Turn` (though `CircleFrac` is
+      retained as a deprecated synonym).
+    - `Diagrams.Coordinates` is no longer exported from
+      `Diagrams.Prelude`.  This is for compatibility with `lens`, as `(&)`
+      is a rather important lens operator and clashes with
+      `Diagrams.Coordinates`.  Users who want the `Coordinates` stuff can import
+      `Diagrams.Coordinates` explicitly.
+
+* **Dependency/version changes**
+
+    - allow `base-4.7`
+    - upgrade to `monoid-extras-0.3`
+    - depend on `data-default-class` instead of `data-default`
+    - Tested with GHC 7.7.
+
+* **Bug fixes**
+
+    - Added a special case that was a not handled properly by the
+      quadratic solver, resulting in bogus envelopes in certain cases
+      (#88).
+    - Import only `Data.NumInstances.Tuple` instead of
+      `Data.NumInstances`. Previously, `Diagrams.Prelude` exported
+      `Eq`, `Show`, and `Num` instances for functions and tuples; now
+      it only exports tuple instances. Users wishing to use
+      `Diagrams.CubicSpline` with a vector space built over functions (!?)
+      can import `Data.NumInstances.Function` themselves. (#48)
+    - Do scaling on a `Path` *before* constructing a `TrailLike` in
+      `rect` (#43)
+
+0.6.0.3 (4 May 2013)
+--------------------
+
+* bump upper bound to allow `NumInstances-1.3`
+
 0.6.0.2 (28 March 2013)
 -----------------------
 
@@ -290,4 +377,3 @@
 ----------------
 
 * initial preview release
-
