@@ -135,35 +135,6 @@ module Diagrams.TwoD
 
        , ArrowOpts(..)
 
-         -- * Arrowheads
-       , ArrowHT
-       -- Heads --
-       , arrowheadTriangle
-       , arrowheadDart
-       , arrowheadSpike
-       , arrowheadThorn
-       , arrowheadMissile
-
-       , tri
-       , dart
-       , spike
-       , thorn
-       , missile
-       , noHead
-
-       -- Tails --
-       , arrowtailQuill
-       , arrowtailBlock
-
-       , tri'
-       , dart'
-       , spike'
-       , thorn'
-       , missile'
-       , noTail
-       , quill
-       , block
-
          -- * Text
        , text, topLeftText, alignedText, baselineText
        , font, fontSize, italic, oblique, bold
