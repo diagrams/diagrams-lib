@@ -19,6 +19,7 @@ import Data.VectorSpace
 
 import Diagrams.Core
 
+import Diagrams.Located
 import Diagrams.Parametric
 import Diagrams.Path
 import Diagrams.Segment
@@ -72,12 +73,12 @@ offsetSegment :: Double     -- ^ Epsilon value that represents the maximum
               -> Double     -- ^ Offset from the original segment, positive is
                             --   on the right of the curve, negative is on the
                             --   left.
-              -> Segment Closed R2 -- ^ Original segment
-              -> (Point R2, Trail R2) -- ^ Resulting offset point and trail.
-offsetSegment _       r s@(Linear (OffsetClosed a))    = (origin .+^ va, trailFromSegments [s])
+              -> Segment Closed R2  -- ^ Original segment
+              -> Located (Trail R2) -- ^ Resulting located (at the offset) trail.
+offsetSegment _       r s@(Linear (OffsetClosed a))    = trailFromSegments [s] `at` origin .+^ va
   where va = r *^ unitPerp a
 
-offsetSegment epsilon r s@(Cubic a b (OffsetClosed c)) = (origin .+^ va, t)
+offsetSegment epsilon r s@(Cubic a b (OffsetClosed c)) = t `at` origin .+^ va
   where
     t = trailFromSegments (go (radiusOfCurvature s 0.5))
     -- Perpendiculars to handles.
@@ -85,7 +86,7 @@ offsetSegment epsilon r s@(Cubic a b (OffsetClosed c)) = (origin .+^ va, t)
     vc = r *^ unitPerp (c ^-^ b)
     -- Split segments.
     ss = (\(a,b) -> [a,b]) $ splitAtParam s 0.5
-    subdivided = concatMap (trailSegments . snd . offsetSegment epsilon r) ss
+    subdivided = concatMap (trailSegments . unLoc . offsetSegment epsilon r) ss
 
     -- Offset with handles scaled based on curvature.
     offset factor = bezier3 (a^*factor) ((b ^-^ c)^*factor ^+^ c ^+^ vc ^-^ va) (c ^+^ vc ^-^ va)
@@ -121,7 +122,7 @@ offsetSegment epsilon r s@(Cubic a b (OffsetClosed c)) = (origin .+^ va, t)
 -- >   where
 -- >       d  = stroke . fromSegments $ [s]
 -- >       d' = mconcat . zipWith lc colors . map stroke . explodeTrail
--- >          . uncurry (flip at) $ offsetSegment 0.1 (-1) s
+-- >          $ offsetSegment 0.1 (-1) s
 -- >            
 -- >       colors = cycle [green, red]
 -- > 
