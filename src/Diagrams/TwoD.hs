@@ -93,10 +93,8 @@ module Diagrams.TwoD
        , ellipse
        , ellipseXY
        , arc
-       , arcCW
        , arc'
-       , arcBetween
-       , ArcParam(..)
+       , arcCW
        , wedge
 
          -- ** General polygons
@@ -130,13 +128,41 @@ module Diagrams.TwoD
        , RoundedRectOpts(..)
 
          -- ** Arrows
-
+       , straightArrow, straightArrow'
        , arrow, arrow'
-       , arrowPath, arrowPath'
        , connect, connect'
-       -- , connectPath, connectPath'
+       , connectTrail, connectTrail'
 
        , ArrowOpts(..)
+
+         -- * Arrowheads
+       , ArrowHT
+       -- Heads --
+       , arrowheadTriangle
+       , arrowheadDart
+       , arrowheadSpike
+       , arrowheadThorn
+       , arrowheadMissile
+
+       , tri
+       , dart
+       , spike
+       , thorn
+       , missile
+       , noHead
+
+       -- Tails --
+       , arrowtailQuill
+       , arrowtailBlock
+
+       , tri'
+       , dart'
+       , spike'
+       , thorn'
+       , missile'
+       , noTail
+       , quill
+       , block
 
          -- * Text
        , text, topLeftText, alignedText, baselineText

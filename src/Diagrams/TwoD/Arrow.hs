@@ -254,6 +254,14 @@ connect' opts n1 n2 =
     let [s,e] = map location [sub1, sub2]
     in  atop (straightArrow' opts s e)
 
+connectTrail
+  :: (Renderable (Path R2) b, IsName n1, IsName n2)
+  => Trail R2 -> n1 -> n2 -> (Diagram b R2 -> Diagram b R2)
+connectTrail = connectTrail' def tr n1 n2
+
+connectTrail'
+  :: (Renderable (Path R2) b, IsName n1, IsName n2)
+  => ArrowOpts -> Trail R2 -> n1 -> n2 -> (Diagram b R2 -> Diagram b R2)
 connectTrail' opts tr n1 n2 =
   withName n1 $ \sub1 ->
   withName n2 $ \sub2 ->
