@@ -23,6 +23,7 @@ module Diagrams.TwoD.Arrow
        , arrow'
        , connect
        , connect'
+       , connectTrail
        , connectTrail'
        , ArrowOpts(..)
        ) where
