@@ -73,6 +73,7 @@ import qualified Data.Foldable        as F
 import           Data.List            (mapAccumL, partition)
 import           Data.Semigroup
 import           Data.VectorSpace
+import           Data.Default.Class
 
 ------------------------------------------------------------
 --  Paths  -------------------------------------------------
@@ -130,7 +131,7 @@ instance (InnerSpace v, OrderedField (Scalar v)) => Juxtaposable (Path v) where
   juxtapose = juxtaposeDefault
 
 instance (InnerSpace v, OrderedField (Scalar v)) => Alignable (Path v) where
-  alignBy = alignByDefault (def :: AlignOpts ())
+  alignBy = alignByDefault def
   alignBy' opts = alignByDefault opts
 
 instance (HasLinearMap v, InnerSpace v, OrderedField (Scalar v))

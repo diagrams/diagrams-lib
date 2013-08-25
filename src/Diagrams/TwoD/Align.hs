@@ -44,6 +44,7 @@ module Diagrams.TwoD.Align
 
 import Diagrams.Core
 
+import Data.Default.Class
 import Diagrams.TwoD.Types
 import Diagrams.TwoD.Vector
 import Diagrams.Align
