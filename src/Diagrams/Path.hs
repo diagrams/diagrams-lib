@@ -130,7 +130,7 @@ instance (InnerSpace v, OrderedField (Scalar v)) => Juxtaposable (Path v) where
   juxtapose = juxtaposeDefault
 
 instance (InnerSpace v, OrderedField (Scalar v)) => Alignable (Path v) where
-  alignBy = alignByDefault def
+  alignBy = alignByDefault (def :: AlignOpts ())
   alignBy' opts = alignByDefault opts
 
 instance (HasLinearMap v, InnerSpace v, OrderedField (Scalar v))
