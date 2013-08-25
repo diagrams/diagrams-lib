@@ -131,6 +131,7 @@ instance (InnerSpace v, OrderedField (Scalar v)) => Juxtaposable (Path v) where
 
 instance (InnerSpace v, OrderedField (Scalar v)) => Alignable (Path v) where
   alignBy = alignByDefault def
+  alignBy' opts = alignByDefault opts
 
 instance (HasLinearMap v, InnerSpace v, OrderedField (Scalar v))
     => Renderable (Path v) NullBackend where
