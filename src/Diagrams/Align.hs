@@ -1,6 +1,8 @@
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE Rank2Types           #-}
+
 
 -----------------------------------------------------------------------------
 -- |
@@ -25,65 +27,101 @@ module Diagrams.Align
 
          -- * General alignment functions
 
+       , align'
        , align
+       , center'
        , center
+
+       , AlignOpts(..)
+       , traceOriginP
 
        ) where
 
 import           Diagrams.Core
 
-import           Data.AffineSpace (alerp)
+import           Data.Default.Class
+import           Data.AffineSpace   (alerp)
 import           Data.VectorSpace
+import           Data.Maybe         (fromMaybe)
 
-import qualified Data.Map         as M
-import qualified Data.Set         as S
+
+import qualified Data.Map           as M
+import qualified Data.Set           as S
+
+data AlignOpts = AlignOpts { boundry :: ( Enveloped a, Traced a, HasOrigin a)
+                                       => V a -> a -> Point (V a) }
+
+instance Default AlignOpts where
+  def = AlignOpts { boundry=envelopeP }
+
+traceOriginP :: (HasOrigin a, Traced a) => V a -> a -> Point (V a)
+traceOriginP v a = fromMaybe origin (traceP origin (negateV v) a)
 
 -- | Class of things which can be aligned.
 class Alignable a where
 
-  -- | @alignBy v d a@ moves the origin of @a@ along the vector
-  --   @v@. If @d = 1@, the origin is moved to the edge of the
-  --   envelope in the direction of @v@; if @d = -1@, it moves to the
-  --   edge of the envelope in the direction of the negation of @v@.
-  --   Other values of @d@ interpolate linearly (so for example, @d =
-  --   0@ centers the origin along the direction of @v@).
+  -- | @alignBy' v d a@ moves the origin of @a@ along the vector
+  --   @v@. If @d = 1@, the origin is moved to the edge of the boundry
+  --   (envelope or trace), depending on AlignOpts, in the direction of @v@;
+  --   if @d = -1@, it moves to the edge of the boundry in the
+  --   direction of the negation of @v@. Other values of @d@ interpolate
+  --   linearly (so for example, @d = 0@ centers the origin along the direction
+  --   of @v@).
+  alignBy' :: AlignOpts -> V a -> Scalar (V a) -> a -> a
+
   alignBy :: V a -> Scalar (V a) -> a -> a
 
--- | Default implementation of 'alignBy' for types with 'HasOrigin'
+-- | Default implementation of 'alignBy' for types with 'HasOrigin', 'Traced',
 --   and 'Enveloped' instances.
-alignByDefault :: (HasOrigin a, Enveloped a, Num (Scalar (V a)))
-               => V a -> Scalar (V a) -> a -> a
-alignByDefault v d a = moveOriginTo (alerp (envelopeP (negateV v) a)
-                                    (envelopeP v a)
-                                    ((d + 1) / 2))
-                             a
+alignByDefault :: (HasOrigin a, Enveloped a, Traced a, Num (Scalar (V a)))
+               => AlignOpts -> V a -> Scalar (V a) -> a -> a
+alignByDefault opts v d a = moveOriginTo (alerp (boundryP (negateV v) a)
+                                    (boundryP v a)
+                                    ((d + 1) / 2)) a
+  where boundryP = (boundry opts)
 
-instance (InnerSpace v, OrderedField (Scalar v)) => Alignable (Envelope v) where
-  alignBy = alignByDefault
+instance (Traced (Envelope v), InnerSpace v, OrderedField (Scalar v))
+       => Alignable (Envelope v) where
+  alignBy = alignByDefault def
+  alignBy' opts = alignByDefault opts
 
-instance (Enveloped b, HasOrigin b) => Alignable [b] where
-  alignBy = alignByDefault
+instance (Enveloped (Trace v), InnerSpace v, OrderedField (Scalar v))
+       => Alignable (Trace v) where
+  alignBy = alignByDefault def
+  alignBy' opts = alignByDefault opts
 
-instance (Enveloped b, HasOrigin b, Ord b) => Alignable (S.Set b) where
-  alignBy = alignByDefault
+instance (Enveloped b, Traced b, HasOrigin b) => Alignable [b] where
+  alignBy = alignByDefault def
+  alignBy' opts = alignByDefault opts
 
-instance (Enveloped b, HasOrigin b) => Alignable (M.Map k b) where
-  alignBy = alignByDefault
+instance (Enveloped b, Traced b, HasOrigin b, Ord b) => Alignable (S.Set b) where
+  alignBy = alignByDefault def
+  alignBy' opts = alignByDefault opts
+
+instance (Enveloped b, Traced b, HasOrigin b) => Alignable (M.Map k b) where
+  alignBy = alignByDefault def
+  alignBy' opts = alignByDefault opts
 
 instance ( HasLinearMap v, InnerSpace v, OrderedField (Scalar v)
          , Monoid' m
          ) => Alignable (QDiagram b v m) where
-  alignBy = alignByDefault
+  alignBy = alignByDefault def
+  alignBy' opts = alignByDefault opts
 
--- | @align v@ aligns an enveloped object along the edge in the
+-- | @align' v@ aligns an  object along the edge in the
 --   direction of @v@.  That is, it moves the local origin in the
---   direction of @v@ until it is on the edge of the envelope.  (Note
---   that if the local origin is outside the envelope to begin with,
+--   direction of @v@ until it is on the edge of the boundry.  (Note
+--   that if the local origin is outside the boundry to begin with,
 --   it may have to move \"backwards\".)
+align' :: (Alignable a, Num (Scalar (V a))) => AlignOpts -> V a -> a -> a
+align' opts v = alignBy' opts v 1
+
 align :: (Alignable a, Num (Scalar (V a))) => V a -> a -> a
 align v = alignBy v 1
 
--- | @center v@ centers an enveloped object along the direction of
---   @v@.
+-- | @center v@ centers an object along the direction of @v@.
+center' :: (Alignable a, Num (Scalar (V a))) => AlignOpts -> V a -> a -> a
+center' opts v = alignBy' opts v 0
+
 center :: (Alignable a, Num (Scalar (V a))) => V a -> a -> a
 center v = alignBy v 0
