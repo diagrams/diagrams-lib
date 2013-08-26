@@ -73,7 +73,7 @@ class Alignable a where
 -- | Default implementation of 'alignBy' for types with 'HasOrigin', 'Traced',
 --   and 'Enveloped' instances.
 alignByDefault :: (HasOrigin a, Enveloped a, Traced a, Num (Scalar (V a)))
-               => AlignOpts -> V a -> Scalar (V a) -> a -> a
+               => AlignOpts a -> V a -> Scalar (V a) -> a -> a
 alignByDefault opts v d a = moveOriginTo (alerp (boundryP (negateV v) a)
                                     (boundryP v a)
                                     ((d + 1) / 2)) a
@@ -112,14 +112,14 @@ instance ( HasLinearMap v, InnerSpace v, OrderedField (Scalar v)
 --   direction of @v@ until it is on the edge of the boundary.  (Note
 --   that if the local origin is outside the boundary to begin with,
 --   it may have to move \"backwards\".)
-align' :: (Alignable a, Num (Scalar (V a))) => AlignOpts -> V a -> a -> a
+align' :: (Alignable a, Num (Scalar (V a))) => AlignOpts a -> V a -> a -> a
 align' opts v = alignBy' opts v 1
 
 align :: (Alignable a, Num (Scalar (V a))) => V a -> a -> a
 align v = alignBy v 1
 
 -- | @center v@ centers an object along the direction of @v@.
-center' :: (Alignable a, Num (Scalar (V a))) => AlignOpts -> V a -> a -> a
+center' :: (Alignable a, Num (Scalar (V a))) => AlignOpts a -> V a -> a -> a
 center' opts v = alignBy' opts v 0
 
 center :: (Alignable a, Num (Scalar (V a))) => V a -> a -> a
