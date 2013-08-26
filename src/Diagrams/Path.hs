@@ -130,7 +130,7 @@ instance (InnerSpace v, OrderedField (Scalar v)) => Enveloped (Path v) where
 instance (InnerSpace v, OrderedField (Scalar v)) => Juxtaposable (Path v) where
   juxtapose = juxtaposeDefault
 
-instance (Traced (Path v), InnerSpace v, OrderedField (Scalar v))
+instance (InnerSpace v, OrderedField (Scalar v))
        => Alignable (Path v) where
   alignBy = alignByDefault def
   alignBy' opts = alignByDefault opts
