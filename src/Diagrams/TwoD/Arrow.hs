@@ -26,7 +26,7 @@ module Diagrams.TwoD.Arrow
        , connectTrail
        , connectTrail'
        , ArrowOpts(..)
-       , module Arrowheads
+       , module Diagrams.TwoD.Arrowheads
        ) where
 
 import           Data.Functor             ((<$>))
