@@ -66,7 +66,7 @@ class Alignable a where
   --   direction of the negation of @v@. Other values of @d@ interpolate
   --   linearly (so for example, @d = 0@ centers the origin along the direction
   --   of @v@).
-  alignBy' :: AlignOpts -> V a -> Scalar (V a) -> a -> a
+  alignBy' :: AlignOpts a -> V a -> Scalar (V a) -> a -> a
 
   alignBy :: V a -> Scalar (V a) -> a -> a
 
