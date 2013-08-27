@@ -61,6 +61,8 @@ import           Data.Colour
 import           Data.Colour.RGBSpace
 import           Data.Colour.SRGB (sRGBSpace)
 
+import           Data.Default.Class
+
 import           Data.Typeable
 
 import           Data.Monoid.Recommend
@@ -258,6 +260,9 @@ newtype LineCapA = LineCapA (Last LineCap)
   deriving (Typeable, Semigroup, Eq)
 instance AttributeClass LineCapA
 
+instance Default LineCap where
+    def = LineCapButt
+
 getLineCap :: LineCapA -> LineCap
 getLineCap (LineCapA (Last c)) = c
 
@@ -277,6 +282,9 @@ data LineJoin = LineJoinMiter    -- ^ Use a \"miter\" shape (whatever that is).
 newtype LineJoinA = LineJoinA (Last LineJoin)
   deriving (Typeable, Semigroup, Eq)
 instance AttributeClass LineJoinA
+
+instance Default LineJoin where
+  def = LineJoinMiter
 
 getLineJoin :: LineJoinA -> LineJoin
 getLineJoin (LineJoinA (Last j)) = j
