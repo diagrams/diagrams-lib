@@ -26,6 +26,7 @@ module Diagrams.TwoD.Arrow
        , connectTrail
        , connectTrail'
        , ArrowOpts(..)
+       , module Diagrams.TwoD.Arrowheads
        ) where
 
 import           Data.Functor             ((<$>))
@@ -240,7 +241,7 @@ straightArrow' :: Renderable (Path R2) b => ArrowOpts -> P2 -> P2 -> Diagram b R
 straightArrow' opts s e = arrow' opts tr s e
   where tr = trailFromSegments [straight (e .-. s)]
 
-
+-- | Connect two diagrams with a straight arrow.
 connect
   :: (Renderable (Path R2) b, IsName n1, IsName n2)
   => n1 -> n2 -> (Diagram b R2 -> Diagram b R2)
@@ -255,6 +256,7 @@ connect' opts n1 n2 =
     let [s,e] = map location [sub1, sub2]
     in  atop (straightArrow' opts s e)
 
+-- | Connect two diagrams with an arbitrary trail, trail scale is irrelevant
 connectTrail
   :: (Renderable (Path R2) b, IsName n1, IsName n2)
   => Trail R2 -> n1 -> n2 -> (Diagram b R2 -> Diagram b R2)
@@ -267,4 +269,18 @@ connectTrail' opts tr n1 n2 =
   withName n1 $ \sub1 ->
   withName n2 $ \sub2 ->
     let [s,e] = map location [sub1, sub2]
+    in  atop (arrow' opts tr s e)
+
+-- | Connect two diagrams with an aribrary trail at point on the perimeter of
+-- | the diagrams, choosen by angle.
+connectPerim'
+  :: (Renderable (Path R2) b, IsName n1, IsName n2, Angle a)
+  => ArrowOpts -> Trail R2 -> n1 -> n2 -> a -> a
+  -> (Diagram b R2 -> Diagram b R2)
+connectPerim' opts tr n1 n2 a1 a2 =
+  withName n1 $ \sub1 ->
+  withName n2 $ \sub2 ->
+    let [os, oe] = map location [sub1, sub2]
+        s = fromMaybe os (maxTraceP os (unitX # rotate a1) sub1)
+        e = fromMaybe oe (maxTraceP oe (unitX # rotate a2) sub2)
     in  atop (arrow' opts tr s e)
