@@ -46,7 +46,7 @@ import           Diagrams.Segment
 import           Diagrams.Path
 import           Diagrams.TwoD.Path       (strokeT)
 import           Diagrams.TwoD.Shapes     (triangle)
-import           Diagrams.TwoD.Transform  (rotateBy, scaleInvPrim, reflectX)
+import           Diagrams.TwoD.Transform  (rotateBy, rotate, scaleInvPrim, reflectX)
 import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector     (unitX, unit_X, direction)
 import           Diagrams.TwoD.Size       (width)
