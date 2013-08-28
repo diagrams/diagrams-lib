@@ -811,7 +811,7 @@ lineOffset (Line t) = trailMeasure zeroV (getTotalOffset . oeOffset) t
 --   Note that it does not make sense to ask for the vertices of a
 --   'Trail' by itself; if you want the vertices of a trail
 --   with the first vertex at, say, the origin, you can use
---   @trailVertices . (`at` origin)@.
+--   @trailVertices . (\`at\` origin)@.
 trailVertices :: (InnerSpace v, OrderedField (Scalar v))
               => Located (Trail v) -> [Point v]
 trailVertices (viewLoc -> (p,t))
