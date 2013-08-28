@@ -41,7 +41,7 @@ import           Data.Colour       hiding (atop)
 import           Data.Colour.Names        (black, blue, orange)
 import           Diagrams.Trail
 import           Diagrams.TrailLike
-import           Diagrams.Attributes      (fc, lw, opacity, lc)
+import           Diagrams.Attributes
 import           Diagrams.Segment
 import           Diagrams.Path
 import           Diagrams.TwoD.Path       (strokeT)
@@ -76,10 +76,6 @@ data ArrowOpts
     , headStyle    :: HasStyle c => c -> c
     , tailStyle    :: HasStyle c => c -> c
     , shaftStyle   :: HasStyle c => c -> c
-    --   + whether to put gaps @ end and how big
-    --   + shape of arrow path (e.g. arc), etc.
-    --   + method for choosing endpoints (by location or by trace)
-    --   + whether to draw the arrow over or under other stuff
     }
 
 instance Default ArrowOpts where
@@ -140,6 +136,14 @@ xWidth p = a + b
     a = fromMaybe 0 (magnitude <$> traceV origin unitX p)
     b = fromMaybe 0 (magnitude <$> traceV origin unit_X p)
 
+-- | Get the line color from the shaft to use as the fill color for the joint.
+colorJoint :: (Style v -> Style v) -> Style v
+colorJoint sStyle =
+    let c = fmap getLineColor . getAttr $ sStyle mempty in
+    case c of
+        Nothing -> mempty
+        Just c' -> fillColor c' $ mempty
+
 -- | Combine the head and it's joint into a single scale invariant diagram
 --   and move the origin to the attachment point. Return the diagram it width.
 mkHead :: Renderable (Path R2) b => ArrowOpts -> (Diagram b R2, Double)
@@ -151,6 +155,7 @@ mkHead opts = ( (j <> h) # moveOriginBy (jWidth *^ unit_X) # lw 0
     jWidth = xWidth j'
     h = scaleInvPrim h' unitX # (headStyle opts)
     j = scaleInvPrim j' unitX # (shaftStyle opts)
+                              # applyStyle (colorJoint (shaftStyle opts))
 
 -- | Just like mkHead only the attachment point is on the right.
 mkTail :: Renderable (Path R2) b => ArrowOpts -> (Diagram b R2, Double)
@@ -162,6 +167,7 @@ mkTail opts = ( (t <> j) # moveOriginBy (jWidth *^ unitX) # lw 0
     jWidth = xWidth j'
     t = scaleInvPrim t' unitX # (tailStyle opts)
     j = scaleInvPrim j' unitX # (shaftStyle opts)
+                              # applyStyle (colorJoint (shaftStyle opts))
 
 -- | Find the vector pointing in the direction of the segment at it's endpoint.
 endTangent :: Segment Closed R2 -> R2
