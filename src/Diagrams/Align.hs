@@ -38,10 +38,6 @@ import           Data.VectorSpace
 import qualified Data.Map         as M
 import qualified Data.Set         as S
 
-data Boundry = EnvelopeB | TraceB
-
-data AlignOpts = AlignOpts (V a -> Scalar (V a))
-
 -- | Class of things which can be aligned.
 class Alignable a where
 
