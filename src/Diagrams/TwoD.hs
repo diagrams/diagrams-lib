@@ -129,7 +129,7 @@ module Diagrams.TwoD
        , font, fontSize, italic, oblique, bold
 
          -- * Images
-       , image
+       , Image, image
 
          -- * Transformations
          -- ** Rotation
