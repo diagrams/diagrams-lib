@@ -28,7 +28,10 @@ module Diagrams.Align
          -- * General alignment functions
 
        , align
+       , snug
        , center
+       , snugBy
+       , snugCenter
 
        ) where
 
@@ -64,7 +67,7 @@ class Alignable a where
   alignBy = alignBy' defaultBoundary
 
 -- | Default implementation of 'alignBy' for types with 'HasOrigin'
---   and 'Enveloped' instances.
+--   and 'AdditiveGroup' instances.
 alignBy'Default :: ( HasOrigin a, AdditiveGroup (V a), Num (Scalar (V a))
                    , Fractional (Scalar (V a)))
                  => (V a -> a -> Point (V a)) -> V a -> Scalar (V a) -> a -> a
@@ -72,6 +75,8 @@ alignBy'Default boundary v d a = moveOriginTo (alerp (boundary (negateV v) a)
                                     (boundary v a)
                                     ((d + 1) / 2)) a
 
+-- | Some standard functions which can be used as the `boundary` argument to
+--  `alignBy'`.
 envelopeBoundary :: Enveloped a => V a -> a -> Point (V a)
 envelopeBoundary = envelopeP
 
@@ -83,7 +88,6 @@ combineBoundaries
   => (V a -> a -> Point (V a)) -> (V a -> f a -> Point (V a))
 combineBoundaries b v fa
     = b v $ F.maximumBy (comparing (magnitudeSq . (.-. origin) . b v)) fa
---combineBoundaries b v = F.maximumBy (comparing (magnitudeSq . (.-. origin) . b v))
 
 instance (InnerSpace v, OrderedField (Scalar v)) => Alignable (Envelope v) where
   defaultBoundary = envelopeBoundary
@@ -108,18 +112,34 @@ instance ( HasLinearMap v, InnerSpace v, OrderedField (Scalar v)
          ) => Alignable (QDiagram b v m) where
   defaultBoundary = envelopeBoundary
 
--- | @align v@ aligns an bounded object along the edge in the
+-- | @align v@ aligns an enveloped object along the edge in the
 --   direction of @v@.  That is, it moves the local origin in the
---   direction of @v@ until it is on the edge of the boundary.  (Note
---   that if the local origin is outside the boundary to begin with,
+--   direction of @v@ until it is on the edge of the envelope.  (Note
+--   that if the local origin is outside the envelope to begin with,
 --   it may have to move \"backwards\".)
 align :: ( Alignable a, HasOrigin a, Num (Scalar (V a))
          , Fractional (Scalar (V a))) => V a -> a -> a
 align v = alignBy v 1
 
--- | @center v@ centers an bounded object along the direction of
+-- | Version of @alignBy@ specialized to use @traceBoundary@
+snugBy :: (Alignable a, Traced a, HasOrigin a, Num (Scalar (V a)), Fractional (Scalar (V a)))
+       => V a -> Scalar (V a) -> a -> a
+snugBy = alignBy' traceBoundary
+
+-- | Like align but uses trace.
+snug :: (Fractional (Scalar (V a)), Alignable a, Traced a, HasOrigin a)
+      => V a -> a -> a
+snug v = snugBy  v 1
+
+-- | @center v@ centers an enveloped object along the direction of
 --   @v@.
 center :: ( Alignable a, HasOrigin a, Num (Scalar (V a))
           , Fractional (Scalar (V a))) => V a -> a -> a
 center v = alignBy v 0
+
+-- | Like @center@ using trace.
+snugCenter
+  :: (Fractional (Scalar (V a)), Alignable a, Traced a, HasOrigin a)
+   => V a -> a -> a
+snugCenter v = (alignBy' traceBoundary) v 0
 

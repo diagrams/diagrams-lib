@@ -25,6 +25,7 @@ module Diagrams.TwoD.Align
     ( -- * Absolute alignment
       alignL, alignR, alignT, alignB
     , alignTL, alignTR, alignBL, alignBR
+    , snugL, snugR, snugT, snugB
 
       -- * Relative alignment
     , alignX, alignY
@@ -48,17 +49,34 @@ import Data.VectorSpace
 alignL :: (Alignable a, HasOrigin a, V a ~ R2) => a -> a
 alignL = align (negateV unitX)
 
+snugL :: (Fractional (Scalar (V a)), Alignable a, Traced a,
+      HasOrigin a, V a ~ R2) => a -> a
+snugL = snug (negateV unitX)
+
 -- | Align along the right edge.
 alignR :: (Alignable a, HasOrigin a, V a ~ R2) => a -> a
 alignR = align unitX
+
+snugR :: (Fractional (Scalar (V a)), Alignable a, Traced a,
+      HasOrigin a, V a ~ R2) => a -> a
+snugR = snug unitX
+
 
 -- | Align along the top edge.
 alignT :: (Alignable a, HasOrigin a, V a ~ R2) => a -> a
 alignT = align unitY
 
+snugT:: (Fractional (Scalar (V a)), Alignable a, Traced a,
+      HasOrigin a, V a ~ R2) => a -> a
+snugT = snug unitY
+
 -- | Align along the bottom edge.
 alignB :: (Alignable a, HasOrigin a, V a ~ R2) => a -> a
 alignB = align (negateV unitY)
+
+snugB :: (Fractional (Scalar (V a)), Alignable a, Traced a,
+      HasOrigin a, V a ~ R2) => a -> a
+snugB = snug (negateV unitY)
 
 alignTL, alignTR, alignBL, alignBR :: (Alignable a, HasOrigin a, V a ~ R2) => a -> a
 alignTL = alignT . alignL
@@ -66,17 +84,31 @@ alignTR = alignT . alignR
 alignBL = alignB . alignL
 alignBR = alignB . alignR
 
--- | @alignX@ moves the local origin horizontally as follows:
+snugTL, snugTR, snugBL, snugBR
+  :: (Fractional (Scalar (V a)), Alignable a, Traced a, HasOrigin a, V a ~ R2)
+   => a -> a
+snugTL = snugT . snugL
+snugTR = snugT . snugR
+snugBL = snugB . snugL
+snugBR = snugB . snugR
+
+-- | @alignX@  and @snugX@ move the local origin horizontally as follows:
 --
---   * @alignX (-1)@ moves the local origin to the left edge of the envelope;
+--   * @alignX (-1)@ moves the local origin to the left edge of the boundary;
 --
 --   * @align 1@ moves the local origin to the right edge;
 --
 --   * any other argument interpolates linearly between these.  For
 --     example, @alignX 0@ centers, @alignX 2@ moves the origin one
 --     \"radius\" to the right of the right edge, and so on.
+--   * @snugX works the same way.
+
 alignX :: (Alignable a, HasOrigin a, V a ~ R2) => Double -> a -> a
 alignX = alignBy unitX
+
+snugX :: (Fractional (Scalar (V a)), Alignable a, Traced a,
+      HasOrigin a, V a ~ R2) => Double -> a -> a
+snugX = snugBy unitX
 
 -- | Like 'alignX', but moving the local origin vertically, with an
 --   argument of @1@ corresponding to the top edge and @(-1)@ corresponding
@@ -84,14 +116,30 @@ alignX = alignBy unitX
 alignY :: (Alignable a, HasOrigin a, V a ~ R2) => Double -> a -> a
 alignY = alignBy unitY
 
+snugY :: (Fractional (Scalar (V a)), Alignable a, Traced a,
+      HasOrigin a, V a ~ R2) => Double -> a -> a
+snugY = snugBy unitY
+
 -- | Center the local origin along the X-axis.
 centerX  :: (Alignable a, HasOrigin a, V a ~ R2) => a -> a
 centerX  = alignBy unitX 0
+
+snugCenterX :: (Fractional (Scalar (V a)), Alignable a, Traced a,
+      HasOrigin a, V a ~ R2) => a -> a
+snugCenterX = snugBy unitX 0
 
 -- | Center the local origin along the Y-axis.
 centerY  :: (Alignable a, HasOrigin a, V a ~ R2) => a -> a
 centerY  = alignBy unitY 0
 
+snugCenterY :: (Fractional (Scalar (V a)), Alignable a, Traced a,
+      HasOrigin a, V a ~ R2) => a -> a
+snugCenterY = snugBy unitY 0
+
 -- | Center along both the X- and Y-axes.
 centerXY :: (Alignable a, HasOrigin a, V a ~ R2) => a -> a
 centerXY = centerX . centerY
+
+snugCenterXY :: (Fractional (Scalar (V a)), Alignable a, Traced a,
+      HasOrigin a, V a ~ R2) => a -> a
+snugCenterXY = snugCenterX . snugCenterY
