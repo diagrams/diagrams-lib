@@ -132,7 +132,7 @@ arc' r start end = trailLike $ scale (abs r) ts `at` (rotate start $ p2 (abs r,0
 -- | Create a circular wedge of the given radius, beginning at the
 --   first angle and extending counterclockwise to the second.
 wedge :: (Angle a, TrailLike p, V p ~ R2) => Double -> a -> a -> p
-wedge r a1 a2 = trailLike . (`at` origin) . wrapLine
+wedge r a1 a2 = trailLike . (`at` origin) . glueTrail . wrapLine
               $ fromOffsets [r *^ e a1]
                 <> arc a1 a2 # scale r
                 <> fromOffsets [r *^ negateV (e a2)]
