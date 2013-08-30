@@ -21,69 +21,125 @@ module Diagrams.Align
        ( -- * Alignable class
 
          Alignable(..)
-       , alignByDefault
+       , alignBy'Default
+       , envelopeBoundary
+       , traceBoundary
 
          -- * General alignment functions
 
        , align
+       , snug
        , center
+       , snugBy
+       , snugCenter
 
        ) where
 
 import           Diagrams.Core
 
-import           Data.AffineSpace (alerp)
+import           Data.AffineSpace (alerp, (.-.))
 import           Data.VectorSpace
+import           Data.Maybe       (fromMaybe)
+import           Data.Ord         (comparing)
 
 import qualified Data.Map         as M
 import qualified Data.Set         as S
+import qualified Data.Foldable    as F
 
 -- | Class of things which can be aligned.
 class Alignable a where
 
   -- | @alignBy v d a@ moves the origin of @a@ along the vector
   --   @v@. If @d = 1@, the origin is moved to the edge of the
-  --   envelope in the direction of @v@; if @d = -1@, it moves to the
-  --   edge of the envelope in the direction of the negation of @v@.
+  --   boundary in the direction of @v@; if @d = -1@, it moves to the
+  --   edge of the boundary in the direction of the negation of @v@.
   --   Other values of @d@ interpolate linearly (so for example, @d =
   --   0@ centers the origin along the direction of @v@).
-  alignBy :: V a -> Scalar (V a) -> a -> a
+  alignBy' :: ( HasOrigin a, AdditiveGroup (V a), Num (Scalar (V a))
+              , Fractional (Scalar (V a)))
+            => (V a -> a -> Point (V a)) -> V a -> Scalar (V a) -> a -> a
+  alignBy' = alignBy'Default
+
+  defaultBoundary :: V a -> a -> Point (V a)
+
+  alignBy :: (HasOrigin a, Num (Scalar (V a)), Fractional (Scalar (V a)))
+           => V a -> Scalar (V a) -> a -> a
+  alignBy = alignBy' defaultBoundary
 
 -- | Default implementation of 'alignBy' for types with 'HasOrigin'
---   and 'Enveloped' instances.
-alignByDefault :: (HasOrigin a, Enveloped a, Num (Scalar (V a)))
-               => V a -> Scalar (V a) -> a -> a
-alignByDefault v d a = moveOriginTo (alerp (envelopeP (negateV v) a)
-                                    (envelopeP v a)
-                                    ((d + 1) / 2))
-                             a
+--   and 'AdditiveGroup' instances.
+alignBy'Default :: ( HasOrigin a, AdditiveGroup (V a), Num (Scalar (V a))
+                   , Fractional (Scalar (V a)))
+                 => (V a -> a -> Point (V a)) -> V a -> Scalar (V a) -> a -> a
+alignBy'Default boundary v d a = moveOriginTo (alerp (boundary (negateV v) a)
+                                    (boundary v a)
+                                    ((d + 1) / 2)) a
+
+-- | Some standard functions which can be used as the `boundary` argument to
+--  `alignBy'`.
+envelopeBoundary :: Enveloped a => V a -> a -> Point (V a)
+envelopeBoundary = envelopeP
+
+traceBoundary :: Traced a => V a -> a -> Point (V a)
+traceBoundary v a = fromMaybe origin (maxTraceP origin v a)
+
+combineBoundaries
+  :: (F.Foldable f, InnerSpace (V a), Ord (Scalar (V a)))
+  => (V a -> a -> Point (V a)) -> (V a -> f a -> Point (V a))
+combineBoundaries b v fa
+    = b v $ F.maximumBy (comparing (magnitudeSq . (.-. origin) . b v)) fa
 
 instance (InnerSpace v, OrderedField (Scalar v)) => Alignable (Envelope v) where
-  alignBy = alignByDefault
+  defaultBoundary = envelopeBoundary
 
-instance (Enveloped b, HasOrigin b) => Alignable [b] where
-  alignBy = alignByDefault
+instance (InnerSpace v, OrderedField (Scalar v)) => Alignable (Trace v) where
+  defaultBoundary = traceBoundary
 
-instance (Enveloped b, HasOrigin b, Ord b) => Alignable (S.Set b) where
-  alignBy = alignByDefault
+instance (InnerSpace (V b), Ord (Scalar (V b)), Alignable b)
+       => Alignable [b] where
+  defaultBoundary = combineBoundaries defaultBoundary
 
-instance (Enveloped b, HasOrigin b) => Alignable (M.Map k b) where
-  alignBy = alignByDefault
+instance (InnerSpace (V b), Ord (Scalar (V b)), Alignable b)
+       => Alignable (S.Set b) where
+  defaultBoundary = combineBoundaries defaultBoundary
+
+instance (InnerSpace (V b), Ord (Scalar (V b)), Alignable b)
+       => Alignable (M.Map k b) where
+  defaultBoundary = combineBoundaries defaultBoundary
 
 instance ( HasLinearMap v, InnerSpace v, OrderedField (Scalar v)
          , Monoid' m
          ) => Alignable (QDiagram b v m) where
-  alignBy = alignByDefault
+  defaultBoundary = envelopeBoundary
 
 -- | @align v@ aligns an enveloped object along the edge in the
 --   direction of @v@.  That is, it moves the local origin in the
 --   direction of @v@ until it is on the edge of the envelope.  (Note
 --   that if the local origin is outside the envelope to begin with,
 --   it may have to move \"backwards\".)
-align :: (Alignable a, Num (Scalar (V a))) => V a -> a -> a
+align :: ( Alignable a, HasOrigin a, Num (Scalar (V a))
+         , Fractional (Scalar (V a))) => V a -> a -> a
 align v = alignBy v 1
+
+-- | Version of @alignBy@ specialized to use @traceBoundary@
+snugBy :: (Alignable a, Traced a, HasOrigin a, Num (Scalar (V a)), Fractional (Scalar (V a)))
+       => V a -> Scalar (V a) -> a -> a
+snugBy = alignBy' traceBoundary
+
+-- | Like align but uses trace.
+snug :: (Fractional (Scalar (V a)), Alignable a, Traced a, HasOrigin a)
+      => V a -> a -> a
+snug v = snugBy  v 1
 
 -- | @center v@ centers an enveloped object along the direction of
 --   @v@.
-center :: (Alignable a, Num (Scalar (V a))) => V a -> a -> a
+center :: ( Alignable a, HasOrigin a, Num (Scalar (V a))
+          , Fractional (Scalar (V a))) => V a -> a -> a
 center v = alignBy v 0
+
+-- | Like @center@ using trace.
+snugCenter
+  :: (Fractional (Scalar (V a)), Alignable a, Traced a, HasOrigin a)
+   => V a -> a -> a
+snugCenter v = (alignBy' traceBoundary) v 0
+
