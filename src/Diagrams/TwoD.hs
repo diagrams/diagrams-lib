@@ -96,6 +96,7 @@ module Diagrams.TwoD
        , arc'
        , arcCW
        , wedge
+       , arcBetween
 
          -- ** General polygons
        , polygon, polyTrail

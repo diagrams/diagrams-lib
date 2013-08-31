@@ -19,22 +19,24 @@ module Diagrams.TwoD.Arc
     , bezierFromSweep
 
     , wedge
+    , arcBetween
     ) where
 
 import           Diagrams.Coordinates
 import           Diagrams.Core
 import           Diagrams.Located        (at)
-import           Diagrams.Path
 import           Diagrams.Segment
 import           Diagrams.Trail
 import           Diagrams.TrailLike
+import           Diagrams.TwoD.Align
 import           Diagrams.TwoD.Transform
 import           Diagrams.TwoD.Types
-import           Diagrams.TwoD.Vector    (e, unitX)
+import           Diagrams.TwoD.Vector    (direction, e, unitX)
 import           Diagrams.Util           (tau, ( # ))
 
+import           Data.AffineSpace        ((.+^), (.-.))
 import           Data.Semigroup          ((<>))
-import           Data.VectorSpace        (negateV, (*^), (^-^))
+import           Data.VectorSpace        (magnitude, negateV, (*^), (^-^))
 
 -- For details of this approximation see:
 --   http://www.tinaja.com/glib/bezcirc2.pdf
@@ -136,3 +138,36 @@ wedge r a1 a2 = trailLike . (`at` origin) . glueTrail . wrapLine
               $ fromOffsets [r *^ e a1]
                 <> arc a1 a2 # scale r
                 <> fromOffsets [r *^ negateV (e a2)]
+
+-- | @arcBetween p q height@ creates an arc beginning at @p@ and
+--   ending at @q@, with its midpoint at a distance of @abs height@
+--   away from the straight line from @p@ to @q@.  A positive value of
+--   @height@ results in an arc to the left of the line from @p@ to
+--   @q@; a negative value yields one to the right.
+--
+--   <<diagrams/arcBetweenEx.svg#diagram=arcBetweenEx&width=300>>
+--
+--   > arcBetweenEx = mconcat
+--   >   [ arcBetween origin (p2 (2,1)) ht | ht <- [-0.2, -0.1 .. 0.2] ]
+--   >   # centerXY # pad 1.1
+arcBetween :: (TrailLike t, V t ~ R2) => P2 -> P2 -> Double -> t
+arcBetween p q ht = trailLike (a # rotateBy (direction v) # moveTo p)
+  where
+    h = abs ht
+    isStraight = h < 0.00001
+    v = q .-. p
+    d = magnitude (q .-. p)
+    th  = acos ((d*d - 4*h*h)/(d*d + 4*h*h))
+    r = d/(2*sin th)
+    mid | ht >= 0    = tau/4
+        | otherwise = 3*tau/4
+    st  = mid - Rad th
+    end = mid + Rad th
+    a | isStraight
+      = fromOffsets [d *^ unitX]
+      | otherwise
+      = arc st end
+        # scale r
+        # translateY ((if ht > 0 then negate else id) (r-h))
+        # translateX (d/2)
+        # (if ht > 0 then reverseLocTrail else id)
