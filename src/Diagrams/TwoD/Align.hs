@@ -101,7 +101,8 @@ snugBR = snugB . snugR
 --   * any other argument interpolates linearly between these.  For
 --     example, @alignX 0@ centers, @alignX 2@ moves the origin one
 --     \"radius\" to the right of the right edge, and so on.
---   * @snugX works the same way.
+--
+--   * @snugX@ works the same way.
 
 alignX :: (Alignable a, HasOrigin a, V a ~ R2) => Double -> a -> a
 alignX = alignBy unitX
