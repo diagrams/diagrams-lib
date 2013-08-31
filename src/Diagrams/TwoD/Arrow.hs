@@ -1,10 +1,10 @@
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE GADTs                 #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE FlexibleContexts          #-}
+{-# LANGUAGE GADTs                     #-}
+{-# LANGUAGE MultiParamTypeClasses     #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE Rank2Types                #-}
+{-# LANGUAGE TypeFamilies              #-}
+{-# LANGUAGE UndecidableInstances      #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Arrow
@@ -29,30 +29,27 @@ module Diagrams.TwoD.Arrow
        , module Diagrams.TwoD.Arrowheads
        ) where
 
-import           Data.Functor             ((<$>))
+import           Data.AffineSpace
 import           Data.Default.Class
+import           Data.Functor             ((<$>))
+import           Data.Maybe               (fromMaybe)
 import           Data.Monoid              (mempty, (<>))
 import           Data.VectorSpace
-import           Data.AffineSpace
-import           Data.Maybe               (fromMaybe)
 import           Diagrams.Core
 
-import           Data.Colour       hiding (atop)
+import           Data.Colour              hiding (atop)
 import           Data.Colour.Names        (black, blue, orange)
-import           Diagrams.Trail
-import           Diagrams.TrailLike
 import           Diagrams.Attributes
-import           Diagrams.Segment
-import           Diagrams.Path
-import           Diagrams.TwoD.Path       (strokeT)
-import           Diagrams.TwoD.Shapes     (triangle)
-import           Diagrams.TwoD.Transform  (rotateBy, rotate, scaleInvPrim, reflectX)
-import           Diagrams.TwoD.Types
-import           Diagrams.TwoD.Vector     (unitX, unit_X, direction)
-import           Diagrams.TwoD.Size       (width)
-import           Diagrams.TwoD.Arrowheads
 import           Diagrams.Parametric
-import           Diagrams.Util            (with, (#))
+import           Diagrams.Path
+import           Diagrams.Segment
+import           Diagrams.Trail
+import           Diagrams.TwoD.Arrowheads
+import           Diagrams.TwoD.Path       (strokeT)
+import           Diagrams.TwoD.Transform  (rotate, rotateBy, scaleInvPrim)
+import           Diagrams.TwoD.Types
+import           Diagrams.TwoD.Vector     (direction, unitX, unit_X)
+import           Diagrams.Util            (( # ))
 
 data ArrowOpts
   = ArrowOpts
@@ -171,13 +168,13 @@ mkTail opts = ( (t <> j) # moveOriginBy (jWidth *^ unitX) # lw 0
 
 -- | Find the vector pointing in the direction of the segment at it's endpoint.
 endTangent :: Segment Closed R2 -> R2
-endTangent (Cubic c1 c2 (OffsetClosed x2)) = (normalized (x2 ^-^ c2))
+endTangent (Cubic _ c2 (OffsetClosed x2)) = (normalized (x2 ^-^ c2))
 endTangent (Linear (OffsetClosed x1)) = normalized x1
 
 -- | Find the vector pointing in the direction of the segment away from
 --   it's starting point.
 startTangent :: Segment Closed R2 -> R2
-startTangent (Cubic c1 c2 (OffsetClosed x2)) = (normalized c1)
+startTangent (Cubic c1 _ (OffsetClosed _)) = (normalized c1)
 startTangent (Linear (OffsetClosed x1)) = (normalized x1)
 
 -- | Make a trail with the same angles and offset as an arrow with tail width
