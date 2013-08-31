@@ -49,6 +49,7 @@ Library
                        Diagrams.TwoD.Types,
                        Diagrams.TwoD.Align,
                        Diagrams.TwoD.Arrow,
+                       Diagrams.TwoD.Arrowheads,
                        Diagrams.TwoD.Combinators,
                        Diagrams.TwoD.Transform,
                        Diagrams.TwoD.Ellipse,
