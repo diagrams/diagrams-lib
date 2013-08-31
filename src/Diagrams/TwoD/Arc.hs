@@ -126,6 +126,11 @@ arcCW start end = trailLike $
 --   the two angles.  If a negative radius is given, the arc will
 --   be clockwise, otherwise it will be counterclockwise. The origin
 --   of the arc is its center.
+--
+--   <<diagrams/arc'Ex.svg#diagram=arc'Ex&width=300>>
+--
+--   > arc'Ex = mconcat [ arc' r 0 (1/4 :: Turn) | r <- [0.5,-1,1.5] ]
+--   >        # centerXY # pad 1.1
 arc' :: (Angle a, TrailLike p, V p ~ R2) => Double -> a -> a -> p
 arc' r start end = trailLike $ scale (abs r) ts `at` (rotate start $ p2 (abs r,0))
   where ts | r < 0     = reverseTrail $ arcT end start
@@ -133,6 +138,16 @@ arc' r start end = trailLike $ scale (abs r) ts `at` (rotate start $ p2 (abs r,0
 
 -- | Create a circular wedge of the given radius, beginning at the
 --   first angle and extending counterclockwise to the second.
+--
+--   <<diagrams/wedgeEx.svg#diagram=wedgeEx&width=400>>
+--
+--   > wedgeEx = hcat' with {sep = 0.5}
+--   >   [ wedge 1 (0 :: Turn) (1/4)
+--   >   , wedge 1 (7/30 :: Turn) (11/30)
+--   >   , wedge 1 (1/8 :: Turn) (7/8)
+--   >   ]
+--   >   # fc blue
+--   >   # centerXY # pad 1.1
 wedge :: (Angle a, TrailLike p, V p ~ R2) => Double -> a -> a -> p
 wedge r a1 a2 = trailLike . (`at` origin) . glueTrail . wrapLine
               $ fromOffsets [r *^ e a1]
