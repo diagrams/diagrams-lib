@@ -58,8 +58,6 @@ import           Diagrams.TwoD.Size      (height, width)
 import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector    (direction)
 
-import           Control.Arrow           (first, second)
-import           Control.Newtype         (over)
 import           Data.AffineSpace
 import           Data.Semigroup
 
@@ -112,7 +110,7 @@ rotateAbout p angle = rotate angle `under` translation (origin .-. p)
 --   the x (horizontal) direction.
 scalingX :: Double -> T2
 scalingX c = fromLinear s s
-  where s = (over r2 . first) (*c) <-> (over r2 . first) (/c)
+  where s = (\(R2 x y) -> R2 (x*c) y) <-> (\(R2 x y) -> R2 (x/c) y)
 
 -- | Scale a diagram by the given factor in the x (horizontal)
 --   direction.  To scale uniformly, use 'scale'.
@@ -123,7 +121,7 @@ scaleX = transform . scalingX
 --   the y (vertical) direction.
 scalingY :: Double -> T2
 scalingY c = fromLinear s s
-  where s = (over r2 . second) (*c) <-> (over r2 . second) (/c)
+  where s = (\(R2 x y) -> R2 x (y*c)) <-> (\(R2 x y) -> R2 x (y/c))
 
 -- | Scale a diagram by the given factor in the y (vertical)
 --   direction.  To scale uniformly, use 'scale'.
@@ -217,11 +215,11 @@ reflectAbout p v = transform (reflectionAbout p v)
 -- | @shearingX d@ is the linear transformation which is the identity on
 --   y coordinates and sends @(0,1)@ to @(d,1)@.
 shearingX :: Double -> T2
-shearingX d = fromLinear (over r2 (sh d)  <-> over r2 (sh (-d)))
-                         (over r2 (sh' d) <-> over r2 (sh' (-d)))
-  where sh  k (x, y) = (x+k*y, y)
-        sh' k        = swap . sh k . swap
-        swap (x,y) = (y,x)
+shearingX d = fromLinear (sh d  <-> sh (-d))
+                         (sh' d <-> sh' (-d))
+  where sh  k (R2 x y) = R2 (x+k*y) y
+        sh' k          = swap . sh k . swap
+        swap (R2 x y)  = R2 y x
 
 -- | @shearX d@ performs a shear in the x-direction which sends
 --   @(0,1)@ to @(d,1)@.
@@ -231,11 +229,11 @@ shearX = transform . shearingX
 -- | @shearingY d@ is the linear transformation which is the identity on
 --   x coordinates and sends @(1,0)@ to @(1,d)@.
 shearingY :: Double -> T2
-shearingY d = fromLinear (over r2 (sh d)  <-> over r2 (sh (-d)))
-                         (over r2 (sh' d) <-> over r2 (sh' (-d)))
-  where sh  k (x,y) = (x, y+k*x)
-        sh' k       = swap . sh k . swap
-        swap (x,y) = (y,x)
+shearingY d = fromLinear (sh d  <-> sh (-d))
+                         (sh' d <-> sh' (-d))
+  where sh  k (R2 x y) = R2 x (y+k*x)
+        sh' k          = swap . sh k . swap
+        swap (R2 x y)  = R2 y x
 
 -- | @shearY d@ performs a shear in the y-direction which sends
 --   @(1,0)@ to @(1,d)@.
