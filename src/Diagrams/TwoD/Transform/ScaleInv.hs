@@ -83,6 +83,65 @@ instance (V t ~ R2, Transformable t) => Transformable (ScaleInv t) where
       l'  = transform tr l
       trans = translate (l' .-. l)
 
+{- Proof that the above satisfies the monoid action laws.
+
+   1. transform mempty (ScaleInv t v l)
+      = ScaleInv (trans . rot $ t) (rot v) l'
+        { l'    = transform mempty l = l }
+        { trans = translate (l' .-. l)
+                = translate (l .-. l)
+                = translate zeroV
+                = id
+        }
+        { rot   = rotateAbout l angle
+                = rotateAbout l (direction (transform mempty v) - direction v)
+                = rotateAbout l (direction v - direction v)
+                = rotateAbout l 0
+                = id
+        }
+      = ScaleInv t v l
+
+  2. transform t1 (transform t2 (ScaleInv t v l))
+     = let angle = direction (transform t2 v) - direction v
+           rot   = rotateAbout l angle
+           l'    = transform t2 l
+           trans = translate (l' .-. l)
+       in
+           transform t1 (ScaleInv (trans . rot $ t) (rot v) l')
+
+     = let angle  = direction (transform t2 v) - direction v
+           rot    = rotateAbout l angle
+           l'     = transform t2 l
+           trans  = translate (l' .-. l)
+           angle2 = direction (transform t1 (rot v)) - direction (rot v)
+           rot2   = rotateAbout l' angle2
+           l'2    = transform t1 l'
+           trans2 = translate (l'2 .-. l')
+       in
+           ScaleInv (trans2 . rot2 . trans . rot $ t) (rot2 . rot $ v) l'2
+
+       { l'2 = transform t1 l'
+             = transform t1 (transform t2 l)
+             = transform (t1 <> t2) l
+       }
+       { trans2 = translate (l'2 .-. l')
+                = translate (transform (t1 <> t2) l .-. transform t2 l)
+                = translate (transform t1 l .-. l)
+       }
+       { rot v  = rotateAbout l angle v
+                = rotate angle `under` translation (origin .-. l) $ v
+                = rotate angle v
+       }
+       { angle2 = direction (transform t1 (rot v)) - direction (rot v)
+                = direction (transform t1 (rotate angle v)) - direction (rotate angle v)
+                = direction (transform t1 (rotate angle v)) - direction v - angle
+       }
+       { rot2   = rotateAbout l' angle2
+                = ???
+       }
+
+-}
+
 -- This is how we handle freezing properly with ScaleInv wrappers.
 -- Normal transformations are applied ignoring scaling; "frozen"
 -- transformations (i.e. transformations applied after a freeze) are
