@@ -25,7 +25,6 @@ module Diagrams.TwoD.Vector
 import           Data.VectorSpace     ((<.>))
 import           Diagrams.Coordinates
 import           Diagrams.TwoD.Types
-import           Diagrams.Util        (( # ))
 
 -- | The unit vector in the positive X direction.
 unitX :: R2
