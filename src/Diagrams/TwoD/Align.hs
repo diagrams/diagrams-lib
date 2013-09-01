@@ -1,6 +1,5 @@
-{-# LANGUAGE FlexibleContexts
-           , TypeFamilies
-  #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TypeFamilies     #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Align
@@ -12,36 +11,39 @@
 -- "Diagrams.Align" for more general alignment combinators.
 --
 -- The basic idea is that alignment is achieved by moving diagrams'
--- local origins relative to their envelopes.  For example, to align
--- several diagrams along their tops, we first move their local
--- origins to the upper edge of their envelopes (using e.g. @map
--- 'alignTop'@), and then put them together with their local origins
--- along a horizontal line (using e.g. 'hcat' from
--- "Diagrams.TwoD.Combinators").
+-- local origins relative to their envelopes or traces (or some other
+-- sort of boundary).  For example, to align several diagrams along
+-- their tops, we first move their local origins to the upper edge of
+-- their boundary (using e.g. @map 'alignTop'@), and then put them
+-- together with their local origins along a horizontal line (using
+-- e.g. 'hcat' from "Diagrams.TwoD.Combinators").
 --
 -----------------------------------------------------------------------------
 
 module Diagrams.TwoD.Align
     ( -- * Absolute alignment
+      -- ** Align by envelope
       alignL, alignR, alignT, alignB
     , alignTL, alignTR, alignBL, alignBR
+
+      -- ** Align by trace
     , snugL, snugR, snugT, snugB
 
       -- * Relative alignment
-    , alignX, alignY
+    , alignX, snugX, alignY, snugY
 
       -- * Centering
     , centerX, centerY, centerXY
 
     ) where
 
-import Diagrams.Core
+import           Diagrams.Core
 
-import Diagrams.TwoD.Types
-import Diagrams.TwoD.Vector
-import Diagrams.Align
+import           Diagrams.Align
+import           Diagrams.TwoD.Types
+import           Diagrams.TwoD.Vector
 
-import Data.VectorSpace
+import           Data.VectorSpace
 
 -- | Align along the left edge, i.e. translate the diagram in a
 --   horizontal direction so that the local origin is on the left edge
@@ -92,7 +94,7 @@ snugTR = snugT . snugR
 snugBL = snugB . snugL
 snugBR = snugB . snugR
 
--- | @alignX@  and @snugX@ move the local origin horizontally as follows:
+-- | @alignX@ and @snugX@ move the local origin horizontally as follows:
 --
 --   * @alignX (-1)@ moves the local origin to the left edge of the boundary;
 --
@@ -107,6 +109,7 @@ snugBR = snugB . snugR
 alignX :: (Alignable a, HasOrigin a, V a ~ R2) => Double -> a -> a
 alignX = alignBy unitX
 
+-- | See the documentation for 'alignX'.
 snugX :: (Fractional (Scalar (V a)), Alignable a, Traced a,
       HasOrigin a, V a ~ R2) => Double -> a -> a
 snugX = snugBy unitX
