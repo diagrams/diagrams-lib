@@ -42,6 +42,9 @@
 --   * "Diagrams.TwoD.Shapes" defines other two-dimensional shapes,
 --     e.g. various polygons.
 --
+--   * "Diagrams.TwoD.Arrow" contains tools for drawing arrows between
+--     things.
+--
 --   * "Diagrams.TwoD.Text" defines primitive text diagrams.
 --
 --   * "Diagrams.TwoD.Image" allows importing external images into diagrams.
@@ -93,6 +96,7 @@ module Diagrams.TwoD
        , arc'
        , arcCW
        , wedge
+       , arcBetween
 
          -- ** General polygons
        , polygon, polyTrail
@@ -124,12 +128,20 @@ module Diagrams.TwoD
        , roundedRect, roundedRect'
        , RoundedRectOpts(..)
 
+         -- ** Arrows
+       , straightArrow, straightArrow'
+       , arrow, arrow'
+       , connect, connect'
+       , connectTrail, connectTrail'
+
+       , ArrowOpts(..)
+
          -- * Text
        , text, topLeftText, alignedText, baselineText
        , font, fontSize, italic, oblique, bold
 
          -- * Images
-       , image
+       , Image, image
 
          -- * Transformations
          -- ** Rotation
@@ -198,6 +210,7 @@ module Diagrams.TwoD
 
 import           Diagrams.TwoD.Align
 import           Diagrams.TwoD.Arc
+import           Diagrams.TwoD.Arrow
 import           Diagrams.TwoD.Combinators
 import           Diagrams.TwoD.Ellipse
 import           Diagrams.TwoD.Image
@@ -208,7 +221,8 @@ import           Diagrams.TwoD.Shapes
 import           Diagrams.TwoD.Size
 import           Diagrams.TwoD.Text
 import           Diagrams.TwoD.Transform
+import           Diagrams.TwoD.Transform.ScaleInv
 import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector
 
-import           Diagrams.Util             (tau)
+import           Diagrams.Util                    (tau)
