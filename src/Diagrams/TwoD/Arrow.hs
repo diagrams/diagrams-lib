@@ -31,25 +31,26 @@ module Diagrams.TwoD.Arrow
 
 import           Data.AffineSpace
 import           Data.Default.Class
-import           Data.Functor             ((<$>))
-import           Data.Maybe               (fromMaybe)
-import           Data.Monoid              (mempty, (<>))
+import           Data.Functor                     ((<$>))
+import           Data.Maybe                       (fromMaybe)
+import           Data.Monoid                      (mempty, (<>))
 import           Data.VectorSpace
 import           Diagrams.Core
 
-import           Data.Colour              hiding (atop)
-import           Data.Colour.Names        (black, blue, orange)
+import           Data.Colour                      hiding (atop)
+import           Data.Colour.Names                (black, blue, orange)
 import           Diagrams.Attributes
 import           Diagrams.Parametric
 import           Diagrams.Path
 import           Diagrams.Segment
 import           Diagrams.Trail
 import           Diagrams.TwoD.Arrowheads
-import           Diagrams.TwoD.Path       (strokeT)
-import           Diagrams.TwoD.Transform  (rotate, rotateBy, scaleInvPrim)
+import           Diagrams.TwoD.Path               (strokeT)
+import           Diagrams.TwoD.Transform          (rotate, rotateBy)
+import           Diagrams.TwoD.Transform.ScaleInv (scaleInvPrim)
 import           Diagrams.TwoD.Types
-import           Diagrams.TwoD.Vector     (direction, unitX, unit_X)
-import           Diagrams.Util            (( # ))
+import           Diagrams.TwoD.Vector             (direction, unitX, unit_X)
+import           Diagrams.Util                    (( # ))
 
 data ArrowOpts
   = ArrowOpts
@@ -64,15 +65,15 @@ data ArrowOpts
                              -- simplify a lot of things (no type
                              -- parameter required for ArrowOpts, no
                              -- ScopedTypeVariables, etc.
-    , arrowTail    :: ArrowHT
-    , headSize     :: Double
-    , tailSize     :: Double
-    , headGap      :: Double
-    , tailGap      :: Double
-    , shaftWidth   :: Double
-    , headStyle    :: HasStyle c => c -> c
-    , tailStyle    :: HasStyle c => c -> c
-    , shaftStyle   :: HasStyle c => c -> c
+    , arrowTail  :: ArrowHT
+    , headSize   :: Double
+    , tailSize   :: Double
+    , headGap    :: Double
+    , tailGap    :: Double
+    , shaftWidth :: Double
+    , headStyle  :: HasStyle c => c -> c
+    , tailStyle  :: HasStyle c => c -> c
+    , shaftStyle :: HasStyle c => c -> c
     }
 
 instance Default ArrowOpts where

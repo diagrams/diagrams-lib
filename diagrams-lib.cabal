@@ -52,6 +52,7 @@ Library
                        Diagrams.TwoD.Arrowheads,
                        Diagrams.TwoD.Combinators,
                        Diagrams.TwoD.Transform,
+                       Diagrams.TwoD.Transform.ScaleInv,
                        Diagrams.TwoD.Ellipse,
                        Diagrams.TwoD.Arc,
                        Diagrams.TwoD.Segment,
