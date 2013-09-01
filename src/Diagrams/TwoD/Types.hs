@@ -80,16 +80,16 @@ instance Show R2 where
   showsPrec p (R2 (x,y)) = showParen (p >= 7) $
     showCoord x . showString " & " . showCoord y
    where
-    showCoord x | x < 0     = showParen True (shows x)
+    showCoord c | c < 0     = showParen True (shows c)
                 | otherwise = shows x
 
 instance Read R2 where
   readsPrec d r = readParen (d > app_prec)
-                  (\r -> [ (R2 (x,y), r''')
-                         | (x,r')    <- readsPrec (amp_prec + 1) r
-                         , ("&",r'') <- lex r'
-                         , (y,r''')  <- readsPrec (amp_prec + 1) r''
-                         ])
+                  (\rr -> [ (R2 (x,y), r''')
+                          | (x,r')    <- readsPrec (amp_prec + 1) rr
+                          , ("&",r'') <- lex r'
+                          , (y,r''')  <- readsPrec (amp_prec + 1) r''
+                          ])
                   r
     where
       app_prec = 10
