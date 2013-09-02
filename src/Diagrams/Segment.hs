@@ -63,7 +63,6 @@ module Diagrams.Segment
 
 import           Control.Applicative (liftA2)
 import           Data.AffineSpace
-import           Data.Default.Class
 import           Data.FingerTree
 import           Data.Monoid.MList
 import           Data.Semigroup
@@ -75,7 +74,6 @@ import           Diagrams.Core
 import           Diagrams.Located
 import           Diagrams.Parametric
 import           Diagrams.Solve
-import           Diagrams.Util
 
 
 ------------------------------------------------------------

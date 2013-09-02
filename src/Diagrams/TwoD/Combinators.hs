@@ -54,7 +54,6 @@ import           Diagrams.Segment
 import           Diagrams.TrailLike
 import           Diagrams.TwoD.Align
 import           Diagrams.TwoD.Path      ()
-import           Diagrams.TwoD.Segment
 import           Diagrams.TwoD.Shapes
 import           Diagrams.TwoD.Transform (scaleX, scaleY)
 import           Diagrams.TwoD.Types
@@ -193,6 +192,7 @@ padY s d = withEnvelope (d # scaleY s) d
 --   the envelope is inset instead.
 --
 --   See the documentation for 'extrudeEnvelope' for more information.
+extrudeLeft :: Monoid' m => Double -> QDiagram b R2 m -> QDiagram b R2 m
 extrudeLeft s
   | s >= 0    = extrudeEnvelope $ unitX ^* negate s
   | otherwise = intrudeEnvelope $ unitX ^* negate s
@@ -202,6 +202,7 @@ extrudeLeft s
 --   the envelope is inset instead.
 --
 --   See the documentation for 'extrudeEnvelope' for more information.
+extrudeRight :: Monoid' m => Double -> QDiagram b R2 m -> QDiagram b R2 m
 extrudeRight s
   | s >= 0    = extrudeEnvelope $ unitX ^* s
   | otherwise = intrudeEnvelope $ unitX ^* s
@@ -211,6 +212,7 @@ extrudeRight s
 --   the envelope is inset instead.
 --
 --   See the documentation for 'extrudeEnvelope' for more information.
+extrudeBottom :: Monoid' m => Double -> QDiagram b R2 m -> QDiagram b R2 m
 extrudeBottom s
   | s >= 0    = extrudeEnvelope $ unitY ^* negate s
   | otherwise = intrudeEnvelope $ unitY ^* negate s
@@ -220,6 +222,7 @@ extrudeBottom s
 --   the envelope is inset instead.
 --
 --   See the documentation for 'extrudeEnvelope' for more information.
+extrudeTop :: Monoid' m => Double -> QDiagram b R2 m -> QDiagram b R2 m
 extrudeTop s
   | s >= 0    = extrudeEnvelope $ unitY ^* s
   | otherwise = intrudeEnvelope $ unitY ^* s

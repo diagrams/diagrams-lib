@@ -42,9 +42,8 @@ import           Data.VectorSpace
 import           Diagrams.Core
 import           Diagrams.Located
 import           Diagrams.Path
-import           Diagrams.Segment   (Segment (..), straight)
+import           Diagrams.Segment   (straight)
 import           Diagrams.Trail     (Trail, trailVertices)
-import           Diagrams.TrailLike (fromOffsets)
 import           Diagrams.Util
 
 ------------------------------------------------------------
@@ -53,6 +52,17 @@ import           Diagrams.Util
 
 -- | Use the envelope from some object as the envelope for a
 --   diagram, in place of the diagram's default envelope.
+--
+--   <<diagrams/withEnvelopeEx.svg#diagram=withEnvelopeEx&width=300>>
+--
+--   > sqNewEnv =
+--   >     circle 1 # fc green
+--   >     |||
+--   >     (    c # dashing [0.1,0.1] 0 # lc white
+--   >       <> square 2 # withEnvelope (c :: D R2) # fc blue
+--   >     )
+--   > c = circle 0.8
+--   > withEnvelopeEx = sqNewEnv # centerXY # pad 1.5
 withEnvelope :: (HasLinearMap (V a), Enveloped a, Monoid' m)
            => a -> QDiagram b (V a) m -> QDiagram b (V a) m
 withEnvelope = setEnvelope . getEnvelope
@@ -87,6 +97,10 @@ pad s d = withEnvelope (d # scale s) d
 --   with a nonempty trace see 'strutR2', 'strutX', and 'strutY' from
 --   "Diagrams.TwoD.Combinators".) Useful for manually creating
 --   separation between two diagrams.
+--
+--   <<diagrams/strutEx.svg#diagram=strutEx&width=300>>
+--
+--   > strutEx = (circle 1 ||| strut unitX ||| circle 1) # centerXY # pad 1.1
 strut :: ( Backend b v, InnerSpace v
          , OrderedField (Scalar v)
          , Monoid' m
@@ -203,12 +217,24 @@ beside v d1 d2 = d1 <> juxtapose v d1 d2
 --   @x@ in the corresponding direction.  Note that each object in
 --   @ys@ is positioned beside @x@ /without/ reference to the other
 --   objects in @ys@, so this is not the same as iterating 'beside'.
+--
+--   <<diagrams/appendsEx.svg#diagram=appendsEx&width=200>>
+--
+--   > appendsEx = appends c (zip (iterateN 6 (rotateBy (1/6)) unitX) (repeat c))
+--   >             # centerXY # pad 1.1
+--   >   where c = circle 1
 appends :: (Juxtaposable a, Monoid' a) => a -> [(V a,a)] -> a
 appends d1 apps = d1 <> mconcat (map (\(v,d) -> juxtapose v d1 d) apps)
 
 -- | Position things absolutely: combine a list of objects
 --   (e.g. diagrams or paths) by assigning them absolute positions in
 --   the vector space of the combined object.
+--
+--   <<diagrams/positionEx.svg#diagram=positionEx&height=300>>
+--
+--   > positionEx = position (zip (map mkPoint [-3, -2.8 .. 3]) (repeat dot))
+--   >   where dot       = circle 0.2 # fc black
+--   >         mkPoint x = p2 (x,x^2)
 position :: (HasOrigin a, Monoid' a) => [(Point (V a), a)] -> a
 position = mconcat . map (uncurry moveTo)
 

@@ -29,7 +29,7 @@ module Diagrams.Attributes (
     Color(..), SomeColor(..)
 
   -- ** Line color
-  , LineColor, getLineColor, lineColor, lc, lcA
+  , LineColor, getLineColor, lineColor, lineColorA, lc, lcA
 
   -- ** Fill color
   , FillColor, getFillColor, recommendFillColor, fillColor, fc, fcA
@@ -42,7 +42,7 @@ module Diagrams.Attributes (
 
   -- * Lines
   -- ** Width
-  , LineWidth, getLineWidth, lineWidth, lw
+  , LineWidth, getLineWidth, lineWidth, lineWidthA, lw
 
   -- ** Cap style
   , LineCap(..), LineCapA, getLineCap, lineCap
@@ -50,12 +50,17 @@ module Diagrams.Attributes (
   -- ** Join style
   , LineJoin(..), LineJoinA, getLineJoin, lineJoin
 
+  -- ** Miter limit
+  , LineMiterLimit(..), getLineMiterLimit, lineMiterLimit, lineMiterLimitA
+
   -- ** Dashing
   , Dashing(..), DashingA, getDashing, dashing
 
   ) where
 
 import           Diagrams.Core
+
+import           Data.Default.Class
 
 import           Data.Colour
 import           Data.Colour.RGBSpace
@@ -101,6 +106,9 @@ newtype LineColor = LineColor (Last SomeColor)
   deriving (Typeable, Semigroup)
 instance AttributeClass LineColor
 
+instance Default LineColor where
+    def = LineColor (Last (SomeColor black))
+
 getLineColor :: LineColor -> SomeColor
 getLineColor (LineColor (Last c)) = c
 
@@ -111,6 +119,10 @@ getLineColor (LineColor (Last c)) = c
 --   concrete types.
 lineColor :: (Color c, HasStyle a) => c -> a -> a
 lineColor = applyAttr . LineColor . Last . SomeColor
+
+-- | Apply a 'lineColor' attribute.
+lineColorA :: HasStyle a => LineColor -> a -> a
+lineColorA = applyAttr
 
 -- | A synonym for 'lineColor', specialized to @'Colour' Double@
 --   (i.e. opaque colors).
@@ -237,12 +249,19 @@ newtype LineWidth = LineWidth (Last Double)
   deriving (Typeable, Semigroup)
 instance AttributeClass LineWidth
 
+instance Default LineWidth where
+    def = LineWidth (Last 0.01)
+
 getLineWidth :: LineWidth -> Double
 getLineWidth (LineWidth (Last w)) = w
 
 -- | Set the line (stroke) width.
 lineWidth :: HasStyle a => Double -> a -> a
 lineWidth = applyAttr . LineWidth . Last
+
+-- | Apply a 'LineWidth' attribute.
+lineWidthA ::  HasStyle a => LineWidth -> a -> a
+lineWidthA = applyAttr
 
 -- | A convenient synonym for 'lineWidth'.
 lw :: HasStyle a => Double -> a -> a
@@ -284,7 +303,7 @@ newtype LineJoinA = LineJoinA (Last LineJoin)
 instance AttributeClass LineJoinA
 
 instance Default LineJoin where
-  def = LineJoinMiter
+    def = LineJoinMiter
 
 getLineJoin :: LineJoinA -> LineJoin
 getLineJoin (LineJoinA (Last j)) = j
@@ -292,6 +311,27 @@ getLineJoin (LineJoinA (Last j)) = j
 -- | Set the segment join style.
 lineJoin :: HasStyle a => LineJoin -> a -> a
 lineJoin = applyAttr . LineJoinA . Last
+
+
+-- | Miter limit attribute affecting the 'LineJoinMiter' joins.
+--   For some backends this value may have additional effects.
+newtype LineMiterLimit = LineMiterLimit (Last Double)
+  deriving (Typeable, Semigroup)
+instance AttributeClass LineMiterLimit
+
+instance Default LineMiterLimit where
+    def = LineMiterLimit (Last 10)
+
+getLineMiterLimit :: LineMiterLimit -> Double
+getLineMiterLimit (LineMiterLimit (Last l)) = l
+
+-- | Set the miter limit for joins with 'LineJoinMiter'.
+lineMiterLimit :: HasStyle a => Double -> a -> a
+lineMiterLimit = applyAttr . LineMiterLimit . Last
+
+-- | Apply a 'LineMiterLimit' attribute.
+lineMiterLimitA :: HasStyle a => LineMiterLimit -> a -> a
+lineMiterLimitA = applyAttr
 
 -- | Create lines that are dashing... er, dashed.
 data Dashing = Dashing [Double] Double

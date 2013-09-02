@@ -23,7 +23,8 @@
 module Diagrams.TwoD.Path
        ( -- * Constructing path-based diagrams
 
-         stroke, stroke', strokeT, strokeT', strokeLine, strokeLoop
+         stroke, stroke', strokeTrail, strokeT, strokeTrail', strokeT'
+       , strokeLine, strokeLoop
        , strokeLocT, strokeLocLine, strokeLocLoop
 
          -- ** Stroke options
@@ -59,7 +60,7 @@ import           Diagrams.Segment
 import           Diagrams.Solve
 import           Diagrams.Trail
 import           Diagrams.TrailLike
-import           Diagrams.TwoD.Segment
+import           Diagrams.TwoD.Segment ()
 import           Diagrams.TwoD.Types
 import           Diagrams.Util         (tau)
 
@@ -111,11 +112,11 @@ instance Renderable (Path R2) b => TrailLike (QDiagram b R2 Any) where
 --   ... }@ syntax may be used.
 stroke' :: (Renderable (Path R2) b, IsName a) => StrokeOpts a -> Path R2 -> Diagram b R2
 stroke' opts path
-  | null (pathTrails p1) =           mkP p2
-  | null (pathTrails p2) = mkP p1
-  | otherwise            = mkP p1 <> mkP p2
+  | null (pathTrails pLines) =           mkP pLoops
+  | null (pathTrails pLoops) = mkP pLines
+  | otherwise            = mkP pLines <> mkP pLoops
   where
-    (p1,p2) = partitionPath (isLine . unLoc) path
+    (pLines,pLoops) = partitionPath (isLine . unLoc) path
     mkP p
       = mkQD (Prim p)
          (getEnvelope p)
@@ -167,19 +168,27 @@ instance Default (StrokeOpts a) where
 --   converting a trail directly into a diagram.
 --
 --   Note that a bug in GHC 7.0.1 causes a context stack overflow when
---   inferring the type of 'stroke' and hence of @strokeT@ as well.
+--   inferring the type of 'stroke' and hence of @strokeTrail@ as well.
 --   The solution is to give a type signature to expressions involving
---   @strokeT@, or (recommended) upgrade GHC (the bug is fixed in 7.0.2
+--   @strokeTrail@, or (recommended) upgrade GHC (the bug is fixed in 7.0.2
 --   onwards).
-strokeT :: (Renderable (Path R2) b)
-        => Trail R2 -> Diagram b R2
-strokeT = stroke . pathFromTrail
+strokeTrail :: (Renderable (Path R2) b) => Trail R2 -> Diagram b R2
+strokeTrail = stroke . pathFromTrail
+
+-- | Deprecated synonym for 'strokeTrail'.
+strokeT :: (Renderable (Path R2) b) => Trail R2 -> Diagram b R2
+strokeT = strokeTrail
 
 -- | A composition of 'stroke'' and 'pathFromTrail' for conveniently
 --   converting a trail directly into a diagram.
+strokeTrail' :: (Renderable (Path R2) b, IsName a)
+             => StrokeOpts a -> Trail R2 -> Diagram b R2
+strokeTrail' opts = stroke' opts . pathFromTrail
+
+-- | Deprecated synonym for 'strokeTrail''.
 strokeT' :: (Renderable (Path R2) b, IsName a)
          => StrokeOpts a -> Trail R2 -> Diagram b R2
-strokeT' opts = stroke' opts . pathFromTrail
+strokeT' = strokeTrail'
 
 -- | A composition of 'strokeT' and 'wrapLine' for conveniently
 --   converting a line directly into a diagram.

@@ -17,14 +17,13 @@
 -----------------------------------------------------------------------------
 
 module Diagrams.TwoD.Arrow
-       ( straightArrow
-       , straightArrow'
-       , arrow
+       ( arrow
        , arrow'
        , connect
        , connect'
-       , connectTrail
-       , connectTrail'
+       , connectPerim
+       , connectPerim'
+       , straightShaft
        , ArrowOpts(..)
        , module Diagrams.TwoD.Arrowheads
        ) where
@@ -66,6 +65,7 @@ data ArrowOpts
                              -- parameter required for ArrowOpts, no
                              -- ScopedTypeVariables, etc.
     , arrowTail  :: ArrowHT
+    , arrowShaft :: Trail R2
     , headSize   :: Double
     , tailSize   :: Double
     , headGap    :: Double
@@ -76,17 +76,21 @@ data ArrowOpts
     , shaftStyle :: HasStyle c => c -> c
     }
 
+straightShaft :: Trail R2
+straightShaft = trailFromOffsets [unitX]
+
 instance Default ArrowOpts where
   def = ArrowOpts
         { arrowHead    = dart
         , arrowTail    = noTail
+        , arrowShaft   = trailFromOffsets [unitX]
         , headSize     = 0.3
         , tailSize     = 0.3
         , headGap      = 0 -- amount of space to leave after arrowhead
         , tailGap      = 0 -- amount of space ot leave before arrowtail
         , shaftWidth   = 0.03
-        , headStyle    = fc blue . opacity 0.7   -- XXX change to black, 1
-        , tailStyle    = fc orange . opacity 0.7 -- XXX change to black, 1
+        , headStyle    = fc black . opacity 1
+        , tailStyle    = fc black . opacity 1
         , shaftStyle   = fc black . opacity 1
         }
 
@@ -111,6 +115,10 @@ fInverse f epsilon iter low high target
 stdIterations :: Int
 stdIterations = 64
 
+-- XXX hParam and tParam are not used in the current implementation, but may
+-- XXX be useful, if we add a fuction that shortens the arrow shaft by the
+-- XXX head width, instead of scaling it as is currently done.
+
 -- | Return the parameter p of the point on tr such that the distance from
 --   tr `atParam` p to the end of tr is equal to w.
 hParam :: Trail R2 -> Double -> Double
@@ -128,6 +136,8 @@ tParam tr w = fInverse (\x -> magnitude $ tOffset x)
 
 -- | Calculate the length of the portion of the horizontal line that passes
 --   through the origin and is inside of p.
+-- XXX It may be possible to do away with this function by utilizing the new
+-- XXX snug functions in TwoD.Align.
 xWidth :: (Traced t, V t ~ R2) => t -> Double
 xWidth p = a + b
   where
@@ -211,16 +221,17 @@ stdScale = 100
 --   and rotating the arrow. The size of trail tr is arbitrary since it will be
 --   scaled so that the arrow offset is e .-. s, however is should be not be
 --   off by more than a factor of 100!
-arrow :: Renderable (Path R2) b =>Trail R2 -> P2 -> P2 -> Diagram b R2
-arrow tr s e = arrow' def tr s e
+arrow :: Renderable (Path R2) b => P2 -> P2 -> Diagram b R2
+arrow s e = arrow' def s e
 
 arrow'
   :: Renderable (Path R2) b =>
-     ArrowOpts -> Trail R2 -> P2 -> P2 -> Diagram b R2
-arrow' opts tr s e = a # rotateBy (a0 - a1) # moveTo s
+     ArrowOpts -> P2 -> P2 -> Diagram b R2
+arrow' opts s e = a # rotateBy (a0 - a1) # moveTo s
   where
     (h, hw') = mkHead opts
     (t, tw') = mkTail opts
+    tr = arrowShaft opts
     tw = tw' + tailGap opts
     hw = hw' + headGap opts
     tAngle = direction . startTangent $ (head $ trailSegments tr) :: Turn
@@ -237,14 +248,6 @@ arrow' opts tr s e = a # rotateBy (a0 - a1) # moveTo s
     a1 = direction (trailOffset $ spine tr tw hw sd)
     a = moveOriginBy ((tw *^ (unit_X # rotateBy tAngle))) $ hd <> tl <> shaft
 
--- | Make an arrow from s to e with a straight line shaft.
-straightArrow :: Renderable (Path R2) b => P2 -> P2 -> Diagram b R2
-straightArrow = straightArrow' def
-
-straightArrow' :: Renderable (Path R2) b => ArrowOpts -> P2 -> P2 -> Diagram b R2
-straightArrow' opts s e = arrow' opts tr s e
-  where tr = trailFromSegments [straight (e .-. s)]
-
 -- | Connect two diagrams with a straight arrow.
 connect
   :: (Renderable (Path R2) b, IsName n1, IsName n2)
@@ -258,33 +261,24 @@ connect' opts n1 n2 =
   withName n1 $ \sub1 ->
   withName n2 $ \sub2 ->
     let [s,e] = map location [sub1, sub2]
-    in  atop (straightArrow' opts s e)
-
--- | Connect two diagrams with an arbitrary trail, trail scale is irrelevant
-connectTrail
-  :: (Renderable (Path R2) b, IsName n1, IsName n2)
-  => Trail R2 -> n1 -> n2 -> (Diagram b R2 -> Diagram b R2)
-connectTrail tr n1 n2 = connectTrail' def tr n1 n2
-
-connectTrail'
-  :: (Renderable (Path R2) b, IsName n1, IsName n2)
-  => ArrowOpts -> Trail R2 -> n1 -> n2 -> (Diagram b R2 -> Diagram b R2)
-connectTrail' opts tr n1 n2 =
-  withName n1 $ \sub1 ->
-  withName n2 $ \sub2 ->
-    let [s,e] = map location [sub1, sub2]
-    in  atop (arrow' opts tr s e)
+    in  atop (arrow' opts s e)
 
 -- | Connect two diagrams with an aribrary trail at point on the perimeter of
 -- | the diagrams, choosen by angle.
+connectPerim
+  :: (Renderable (Path R2) b, IsName n1, IsName n2, Angle a)
+  => n1 -> n2 -> a -> a
+  -> (Diagram b R2 -> Diagram b R2)
+connectPerim = connectPerim' def
+
 connectPerim'
   :: (Renderable (Path R2) b, IsName n1, IsName n2, Angle a)
-  => ArrowOpts -> Trail R2 -> n1 -> n2 -> a -> a
+  => ArrowOpts -> n1 -> n2 -> a -> a
   -> (Diagram b R2 -> Diagram b R2)
-connectPerim' opts tr n1 n2 a1 a2 =
+connectPerim' opts n1 n2 a1 a2 =
   withName n1 $ \sub1 ->
   withName n2 $ \sub2 ->
     let [os, oe] = map location [sub1, sub2]
         s = fromMaybe os (maxTraceP os (unitX # rotate a1) sub1)
         e = fromMaybe oe (maxTraceP oe (unitX # rotate a2) sub2)
-    in  atop (arrow' opts tr s e)
+    in  atop (arrow' opts s e)

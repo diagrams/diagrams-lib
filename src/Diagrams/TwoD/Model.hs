@@ -20,11 +20,9 @@ module Diagrams.TwoD.Model
        ) where
 
 import           Diagrams.Core
-import           Diagrams.Core.Names
-
-import           Diagrams.Path
 
 import           Diagrams.Attributes
+import           Diagrams.Path
 import           Diagrams.TwoD.Ellipse
 import           Diagrams.TwoD.Path
 import           Diagrams.TwoD.Size    (size2D)

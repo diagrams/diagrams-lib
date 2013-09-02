@@ -75,7 +75,8 @@ module Diagrams.TwoD
 
          -- * Paths
          -- ** Stroking
-       , stroke, stroke', strokeT, strokeT', strokeLine, strokeLoop
+       , stroke, stroke', strokeTrail, strokeT, strokeTrail', strokeT'
+       , strokeLine, strokeLoop
        , strokeLocT, strokeLocLine, strokeLocLoop
        , FillRule(..), fillRule
        , StrokeOpts(..)
@@ -129,10 +130,11 @@ module Diagrams.TwoD
        , RoundedRectOpts(..)
 
          -- ** Arrows
-       , straightArrow, straightArrow'
        , arrow, arrow'
        , connect, connect'
-       , connectTrail, connectTrail'
+       , connectPerim, connectPerim'
+       , straightShaft
+       , module Diagrams.TwoD.Arrowheads
 
        , ArrowOpts(..)
 
@@ -188,6 +190,11 @@ module Diagrams.TwoD
        , alignX, alignY
        , centerX, centerY, centerXY
 
+         -- * Snugging
+       , snugL, snugR, snugT, snugB, snugTL, snugTR, snugBL, snugBR
+       , snugX, snugY
+       , snugCenterX, snugCenterY, snugCenterXY
+
          -- * Size
          -- ** Computing size
        , width, height, size2D, sizeSpec2D
@@ -211,6 +218,7 @@ module Diagrams.TwoD
 import           Diagrams.TwoD.Align
 import           Diagrams.TwoD.Arc
 import           Diagrams.TwoD.Arrow
+import           Diagrams.TwoD.Arrowheads
 import           Diagrams.TwoD.Combinators
 import           Diagrams.TwoD.Ellipse
 import           Diagrams.TwoD.Image
@@ -221,8 +229,7 @@ import           Diagrams.TwoD.Shapes
 import           Diagrams.TwoD.Size
 import           Diagrams.TwoD.Text
 import           Diagrams.TwoD.Transform
-import           Diagrams.TwoD.Transform.ScaleInv
 import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector
 
-import           Diagrams.Util                    (tau)
+import           Diagrams.Util             (tau)

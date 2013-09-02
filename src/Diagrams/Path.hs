@@ -58,7 +58,7 @@ module Diagrams.Path
 
 import           Diagrams.Align
 import           Diagrams.Core
-import           Diagrams.Core.Points
+import           Diagrams.Core.Points ()
 import           Diagrams.Located
 import           Diagrams.Points
 import           Diagrams.Segment
@@ -66,11 +66,11 @@ import           Diagrams.Trail
 import           Diagrams.TrailLike
 import           Diagrams.Transform
 
-import           Control.Arrow        (first, second, (***))
+import           Control.Arrow        ((***))
 import           Control.Newtype      hiding (under)
 import           Data.AffineSpace
 import qualified Data.Foldable        as F
-import           Data.List            (mapAccumL, partition)
+import           Data.List            (partition)
 import           Data.Semigroup
 import           Data.VectorSpace
 

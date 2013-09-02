@@ -19,7 +19,6 @@ module Diagrams.Backend.Show where
 
 import           Diagrams.Core.Transform (onBasis)
 import           Diagrams.Prelude
-import           Diagrams.Trail
 
 import           Data.Basis
 
