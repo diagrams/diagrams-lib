@@ -28,12 +28,14 @@ module Diagrams.TwoD.Align
 
       -- ** Align by trace
     , snugL, snugR, snugT, snugB
+    , snugTL, snugTR, snugBL, snugBR
 
       -- * Relative alignment
     , alignX, snugX, alignY, snugY
 
       -- * Centering
     , centerX, centerY, centerXY
+    , snugCenterX, snugCenterY, snugCenterXY
 
     ) where
 

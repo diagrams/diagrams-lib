@@ -130,10 +130,11 @@ module Diagrams.TwoD
        , RoundedRectOpts(..)
 
          -- ** Arrows
-       , straightArrow, straightArrow'
        , arrow, arrow'
        , connect, connect'
-       , connectTrail, connectTrail'
+       , connectPerim, connectPerim'
+       , straightShaft
+       , module Diagrams.TwoD.Arrowheads
 
        , ArrowOpts(..)
 
@@ -189,6 +190,11 @@ module Diagrams.TwoD
        , alignX, alignY
        , centerX, centerY, centerXY
 
+         -- * Snugging
+       , snugL, snugR, snugT, snugB, snugTL, snugTR, snugBL, snugBR
+       , snugX, snugY
+       , snugCenterX, snugCenterY, snugCenterXY
+
          -- * Size
          -- ** Computing size
        , width, height, size2D, sizeSpec2D
@@ -212,6 +218,7 @@ module Diagrams.TwoD
 import           Diagrams.TwoD.Align
 import           Diagrams.TwoD.Arc
 import           Diagrams.TwoD.Arrow
+import           Diagrams.TwoD.Arrowheads
 import           Diagrams.TwoD.Combinators
 import           Diagrams.TwoD.Ellipse
 import           Diagrams.TwoD.Image
