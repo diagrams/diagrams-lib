@@ -24,7 +24,7 @@ module Diagrams.TwoD.Text (
   -- ** Font family
   , Font(..), getFont, font
   -- ** Font size
-  , FontSize(..), getFontSize, fontSize
+  , FontSize(..), getFontSize, fontSize, fontSizeA
   -- ** Font slant
   , FontSlant(..), FontSlantA, getFontSlant, fontSlant, italic, oblique
   -- ** Font weight
@@ -41,7 +41,9 @@ import Data.Semigroup
 
 import Data.Colour
 
-import Data.Typeable
+import           Data.Default.Class
+
+import           Data.Typeable
 
 ------------------------------------------------------------
 -- Text diagrams
@@ -167,6 +169,9 @@ newtype FontSize = FontSize (Last Double)
   deriving (Typeable, Semigroup, Eq)
 instance AttributeClass FontSize
 
+instance Default FontSize where
+    def = FontSize (Last 1)
+
 -- | Extract the size from a @FontSize@ attribute.
 getFontSize :: FontSize -> Double
 getFontSize (FontSize (Last s)) = s
@@ -176,6 +181,10 @@ getFontSize (FontSize (Last s)) = s
 --   is @1@.
 fontSize :: HasStyle a => Double -> a -> a
 fontSize = applyAttr . FontSize . Last
+
+-- | Apply a 'FontSize' attribute.
+fontSizeA :: HasStyle a => FontSize -> a -> a
+fontSizeA = applyAttr
 
 --------------------------------------------------
 -- Font slant
