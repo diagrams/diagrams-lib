@@ -50,12 +50,17 @@ module Diagrams.Attributes (
   -- ** Join style
   , LineJoin(..), LineJoinA, getLineJoin, lineJoin
 
+  -- ** Miter limit
+  , LineMiterLimit(..), getLineMiterLimit, lineMiterLimit
+
   -- ** Dashing
   , Dashing(..), DashingA, getDashing, dashing
 
   ) where
 
 import           Diagrams.Core
+
+import           Data.Default.Class
 
 import           Data.Colour
 import           Data.Colour.RGBSpace
@@ -258,6 +263,9 @@ newtype LineCapA = LineCapA (Last LineCap)
   deriving (Typeable, Semigroup, Eq)
 instance AttributeClass LineCapA
 
+instance Default LineCap where
+    def = LineCapButt
+
 getLineCap :: LineCapA -> LineCap
 getLineCap (LineCapA (Last c)) = c
 
@@ -278,6 +286,9 @@ newtype LineJoinA = LineJoinA (Last LineJoin)
   deriving (Typeable, Semigroup, Eq)
 instance AttributeClass LineJoinA
 
+instance Default LineJoin where
+    def = LineJoinMiter
+
 getLineJoin :: LineJoinA -> LineJoin
 getLineJoin (LineJoinA (Last j)) = j
 
@@ -292,10 +303,13 @@ newtype LineMiterLimit = LineMiterLimit (Last Double)
   deriving (Typeable, Semigroup)
 instance AttributeClass LineMiterLimit
 
+instance Default LineMiterLimit where
+    def = LineMiterLimit (Last 10)
+
 getLineMiterLimit :: LineMiterLimit -> Double
 getLineMiterLimit (LineMiterLimit (Last l)) = l
 
--- | Set the line (stroke) width.
+-- | Set the miter limit for joins with 'LineJoinMiter'.
 lineMiterLimit :: HasStyle a => Double -> a -> a
 lineMiterLimit = applyAttr . LineMiterLimit . Last
 
