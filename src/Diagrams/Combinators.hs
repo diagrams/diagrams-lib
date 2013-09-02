@@ -42,9 +42,8 @@ import           Data.VectorSpace
 import           Diagrams.Core
 import           Diagrams.Located
 import           Diagrams.Path
-import           Diagrams.Segment   (Segment (..), straight)
+import           Diagrams.Segment   (straight)
 import           Diagrams.Trail     (Trail, trailVertices)
-import           Diagrams.TrailLike (fromOffsets)
 import           Diagrams.Util
 
 ------------------------------------------------------------

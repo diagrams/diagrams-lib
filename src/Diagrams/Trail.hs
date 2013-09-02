@@ -225,7 +225,7 @@ instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
                          in  (p - 1)/tSegs + 1
     | otherwise    = case FT.viewl after of
                        EmptyL    -> 0
-                       seg :< after' ->
+                       seg :< _  ->
                          let p = arcLengthToParam (eps/2) seg
                                    (l - arcLength (eps/2) (SegTree before))
                          in  (numSegs before + p) / tSegs
@@ -335,8 +335,8 @@ data Trail' l v where
 -- | A generic eliminator for 'Trail'', taking functions specifying
 --   what to do in the case of a line or a loop.
 withTrail' :: (Trail' Line v -> r) -> (Trail' Loop v -> r) -> Trail' l v -> r
-withTrail' line loop t@(Line{}) = line t
-withTrail' line loop t@(Loop{}) = loop t
+withTrail' line _    t@(Line{}) = line t
+withTrail' _    loop t@(Loop{}) = loop t
 
 deriving instance Show v => Show (Trail' l v)
 deriving instance Eq   v => Eq   (Trail' l v)

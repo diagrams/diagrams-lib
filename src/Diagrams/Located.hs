@@ -27,7 +27,7 @@ import           Data.AffineSpace
 import           Data.VectorSpace
 
 import           Diagrams.Core
-import           Diagrams.Core.Points
+import           Diagrams.Core.Points    ()
 import           Diagrams.Core.Transform
 import           Diagrams.Parametric
   -- for GHC 7.4 type family bug
