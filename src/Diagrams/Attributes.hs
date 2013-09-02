@@ -285,6 +285,21 @@ getLineJoin (LineJoinA (Last j)) = j
 lineJoin :: HasStyle a => LineJoin -> a -> a
 lineJoin = applyAttr . LineJoinA . Last
 
+
+-- | Miter limit attribute affecting the 'LineJoinMiter' joins.
+--   For some backends this value may have additional effects.
+newtype LineMiterLimit = LineMiterLimit (Last Double)
+  deriving (Typeable, Semigroup)
+instance AttributeClass LineMiterLimit
+
+getLineMiterLimit :: LineMiterLimit -> Double
+getLineMiterLimit (LineMiterLimit (Last l)) = l
+
+-- | Set the line (stroke) width.
+lineMiterLimit :: HasStyle a => Double -> a -> a
+lineMiterLimit = applyAttr . LineMiterLimit . Last
+
+
 -- | Create lines that are dashing... er, dashed.
 data Dashing = Dashing [Double] Double
   deriving (Typeable, Eq)
