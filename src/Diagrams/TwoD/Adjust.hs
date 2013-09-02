@@ -24,7 +24,7 @@ module Diagrams.TwoD.Adjust
 
 import Diagrams.Core
 
-import Diagrams.Attributes  (lw, lc)
+import Diagrams.Attributes  (lw, lc, lineCap, lineJoin, lineMiterLimit)
 import Diagrams.Util        ((#))
 
 import Diagrams.TwoD.Types  (R2, p2)
@@ -35,6 +35,8 @@ import Diagrams.TwoD.Text   (fontSize)
 
 import Data.AffineSpace     ((.-.))
 import Data.Semigroup
+
+import Data.Default.Class
 
 import Data.Colour.Names    (black)
 
@@ -47,7 +49,8 @@ import Data.Colour.Names    (black)
 --
 --       * Font size 1
 setDefault2DAttributes :: Semigroup m => QDiagram b R2 m -> QDiagram b R2 m
-setDefault2DAttributes d = d # lw 0.01 # lc black # fontSize 1
+setDefault2DAttributes d = d # lw 0.01 # lc black # fontSize 1 
+                             # lineCap def # lineJoin def # lineMiterLimit 10.0
 
 -- | Adjust the size and position of a 2D diagram to fit within the
 --   requested size. The first two arguments specify a method for
