@@ -210,7 +210,7 @@ instance Default OffsetOpts where
 --   <<diagrams/offsetTrailLeftExample.svg#diagram=offsetTrailLeftExample&width=200>>
 --
 offsetTrail' :: OffsetOpts -> Double -> Located (Trail R2) -> Located (Trail R2)
-offsetTrail' OffsetOpts{..} r t = joinSegments j offsetMiterLimit r ends . offset r $ t
+offsetTrail' OffsetOpts{..} r t = joinSegments j False offsetMiterLimit r ends . offset r $ t
     where
       offset r = map (bindLoc (offsetSegment offsetEpsilon r)) . locatedTrailSegments
       ends = tail . trailVertices $ t
@@ -278,6 +278,10 @@ data ExpandOpts = ExpandOpts
 instance Default ExpandOpts where
     def = ExpandOpts def 10 def stdTolerance
 
+withTrailL f g l = withTrail (f . (`at` p)) (g . (`at` p)) (unLoc l)
+  where
+    p = loc l
+
 -- | Expand a 'Trail' with the given options and radius 'r' around a given 'Trail'.
 --   Expanding can be thought of as generating the loop that, when filled, represents
 --   stroking the trail with a radius 'r' brush.
@@ -287,24 +291,37 @@ instance Default ExpandOpts where
 --
 --   <<diagrams/expandTrailExample.svg#diagram=expandTrailExample&width=600>>
 --
-expandTrail' :: ExpandOpts -> Double -> Located (Trail R2) -> Located (Trail R2)
-expandTrail' ExpandOpts{..} r t = caps cap r s e (f r) (f $ -r)
+expandTrail' :: ExpandOpts -> Double -> Located (Trail R2) -> Path R2
+expandTrail' o r t = withTrailL (pathFromLocTrail . expandLine o r) (expandLoop o r) t
+
+expandLine :: ExpandOpts -> Double -> Located (Trail' Line R2) -> Located (Trail R2)
+expandLine ExpandOpts{..} r (mapLoc wrapLine -> t) = caps cap r s e (f r) (f $ -r)
     where
       offset r = map (bindLoc (offsetSegment expandEpsilon r)) . locatedTrailSegments
-      f r = joinSegments (fromLineJoin expandJoin) expandMiterLimit r ends . offset r $ t
+      f r = joinSegments (fromLineJoin expandJoin) False expandMiterLimit r ends . offset r $ t
+      ends = tail . trailVertices $ t
+      s = atStartL t
+      e = atEndL t
+      cap = fromLineCap expandCap
+
+expandLoop :: ExpandOpts -> Double -> Located (Trail' Loop R2) -> Path R2
+expandLoop ExpandOpts{..} r (mapLoc wrapLoop -> t) = (f r) <> (f $ -r)
+    where
+      offset r = map (bindLoc (offsetSegment expandEpsilon r)) . locatedTrailSegments
+      f r = trailLike . joinSegments (fromLineJoin expandJoin) True expandMiterLimit r ends . offset r $ t
       ends = tail . trailVertices $ t
       s = atStartL t
       e = atEndL t
       cap = fromLineCap expandCap
 
 -- | Expand a 'Trail' with the given radius and default options.  See 'expandTrail''.
-expandTrail :: Double -> Located (Trail R2) -> Located (Trail R2)
+expandTrail :: Double -> Located (Trail R2) -> Path R2
 expandTrail = expandTrail' def
 
 -- | Expand a 'Path' using 'expandTrail'' on each trail in the path.
 expandPath' :: ExpandOpts -> Double -> Path R2 -> Path R2
 expandPath' opts r = mconcat 
-                   . map (bindLoc (trailLike . expandTrail' opts r) . (`at` origin)) 
+                   . map (bindLoc (expandTrail' opts r) . (`at` origin)) 
                    . pathTrails
 
 -- | Expand a 'Path' with the given radius and default options.  See 'expandPath''.
@@ -390,11 +407,22 @@ arcVCW u v = arcCW (direction u) (direction v :: CircleFrac)
 --   offset trail.  For instance, a fixed radius arc will not fit between arbitrary
 --   trails without trimming or extending.
 joinSegments :: (Double -> Double -> P2 -> Located (Trail R2) -> Located (Trail R2) -> Trail R2)
-             -> Double -> Double -> [Point R2] -> [Located (Trail R2)] -> Located (Trail R2)
-joinSegments _ _ _ _ [] = mempty `at` origin
-joinSegments j ml r es ts@(t:_) = mapLoc (<> t') $ t
+             -> Bool 
+             -> Double
+             -> Double
+             -> [Point R2]
+             -> [Located (Trail R2)]
+             -> Located (Trail R2)
+joinSegments _ _ _ _ _ [] = mempty `at` origin
+joinSegments _ _ _ _ [] _ = mempty `at` origin
+joinSegments j b ml r es@(e:_) ts@(t:_) = mapLoc (<> t') $ t
   where
-    t' = mconcat [j ml r e a b <> unLoc b | (e,(a,b)) <- zip es . (zip <*> tail) $ ts]
+    t' | b         = mconcat ss
+       | otherwise = mconcat (tail ss)
+    ss = [j ml r e a b <> unLoc b | (e,(a,b)) <- zip es' . (zip <*> tail) $ ts']
+    (es',ts') | b         = (es ++ [e], ts ++ [t])
+              | otherwise = (es, ts)
+
 
 -- | Take a join style and give the join function to be used by joinSegments.
 fromLineJoin 
