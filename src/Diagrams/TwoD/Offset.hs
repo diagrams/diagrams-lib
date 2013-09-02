@@ -209,12 +209,19 @@ instance Default OffsetOpts where
 --
 --   <<diagrams/offsetTrailLeftExample.svg#diagram=offsetTrailLeftExample&width=200>>
 --
-offsetTrail' :: OffsetOpts -> Double -> Located (Trail R2) -> Located (Trail R2)
-offsetTrail' OffsetOpts{..} r t = joinSegments j False offsetMiterLimit r ends . offset r $ t
+offsetTrail' :: OffsetOpts
+             -> Double  -- ^ Radius of offset.  A negative value gives an offset on
+                        --   the left for a line and on the inside for a counter-clockwise
+                        --   loop.
+             -> Located (Trail R2)
+             -> Located (Trail R2)
+offsetTrail' OffsetOpts{..} r t = joinSegments j isLoop offsetMiterLimit r ends . offset r $ t
     where
       offset r = map (bindLoc (offsetSegment offsetEpsilon r)) . locatedTrailSegments
       ends = tail . trailVertices $ t
       j = fromLineJoin offsetJoin
+
+      isLoop = withTrail (const False) (const True) (unLoc t)
 
 -- | Offset a 'Trail' with the default options and a given radius.  See 'offsetTrail''.
 offsetTrail :: Double -> Located (Trail R2) -> Located (Trail R2)
@@ -291,8 +298,17 @@ withTrailL f g l = withTrail (f . (`at` p)) (g . (`at` p)) (unLoc l)
 --
 --   <<diagrams/expandTrailExample.svg#diagram=expandTrailExample&width=600>>
 --
-expandTrail' :: ExpandOpts -> Double -> Located (Trail R2) -> Path R2
-expandTrail' o r t = withTrailL (pathFromLocTrail . expandLine o r) (expandLoop o r) t
+expandTrail' :: ExpandOpts
+             -> Double  -- ^ Radius of offset.  Only non-negative values allowed.
+                        --   For a line this gives a loop of the offset.  For a 
+                        --   loop this gives two loops, the outer counter-clockwise
+                        --   and the inner clockwise.
+             -> Located (Trail R2)
+             -> Path R2
+expandTrail' o r t
+  | r < 0     = error "expandTrail' with negative radius"
+                -- TODO: consider just reversing the path instead of this error.
+  | otherwise = withTrailL (pathFromLocTrail . expandLine o r) (expandLoop o r) t
 
 expandLine :: ExpandOpts -> Double -> Located (Trail' Line R2) -> Located (Trail R2)
 expandLine ExpandOpts{..} r (mapLoc wrapLine -> t) = caps cap r s e (f r) (f $ -r)
@@ -415,10 +431,10 @@ joinSegments :: (Double -> Double -> P2 -> Located (Trail R2) -> Located (Trail 
              -> Located (Trail R2)
 joinSegments _ _ _ _ _ [] = mempty `at` origin
 joinSegments _ _ _ _ [] _ = mempty `at` origin
-joinSegments j b ml r es@(e:_) ts@(t:_) = mapLoc (<> t') $ t
+joinSegments j b ml r es@(e:_) ts@(t:_) = t'
   where
-    t' | b         = mconcat ss
-       | otherwise = mconcat (tail ss)
+    t' | b         = mapLoc (<> mconcat ss) t
+       | otherwise = mapLoc (glueTrail . (<> mconcat (tail ss))) t
     ss = [j ml r e a b <> unLoc b | (e,(a,b)) <- zip es' . (zip <*> tail) $ ts']
     (es',ts') | b         = (es ++ [e], ts ++ [t])
               | otherwise = (es, ts)
