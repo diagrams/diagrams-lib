@@ -15,11 +15,10 @@
 -----------------------------------------------------------------------------
 module Diagrams.Parametric
   (
-  -- * Parametric functions
     stdTolerance
   , Codomain, Parametric(..)
 
-  , DomainBounds(..), EndValues(..), Sectionable(..), HasArcLength(..)
+  , DomainBounds(..), domainBounds, EndValues(..), Sectionable(..), HasArcLength(..)
 
   ) where
 
