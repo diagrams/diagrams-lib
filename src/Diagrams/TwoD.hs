@@ -229,8 +229,7 @@ import           Diagrams.TwoD.Shapes
 import           Diagrams.TwoD.Size
 import           Diagrams.TwoD.Text
 import           Diagrams.TwoD.Transform
-import           Diagrams.TwoD.Transform.ScaleInv
 import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector
 
-import           Diagrams.Util                    (tau)
+import           Diagrams.Util             (tau)

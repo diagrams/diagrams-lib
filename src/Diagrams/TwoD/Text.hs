@@ -1,9 +1,8 @@
-{-# LANGUAGE DeriveDataTypeable
-           , GeneralizedNewtypeDeriving
-           , FlexibleContexts
-           , TypeFamilies
-           , MultiParamTypeClasses
-  #-}
+{-# LANGUAGE DeriveDataTypeable         #-}
+{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE TypeFamilies               #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Text
@@ -31,17 +30,17 @@ module Diagrams.TwoD.Text (
   , FontWeight(..), FontWeightA, getFontWeight, fontWeight, bold
   ) where
 
-import Diagrams.Attributes
-import Diagrams.Core
-import Diagrams.TwoD.Types
+import           Diagrams.Attributes
+import           Diagrams.Core
+import           Diagrams.TwoD.Types
 
-import Data.AffineSpace ((.-.))
+import           Data.AffineSpace    ((.-.))
 
-import Data.Semigroup
+import           Data.Semigroup
 
-import Data.Colour
+import           Data.Colour
 
-import Data.Typeable
+import           Data.Typeable
 
 ------------------------------------------------------------
 -- Text diagrams
@@ -70,7 +69,9 @@ instance Renderable Text NullBackend where
 data TextAlignment = BaselineText | BoxAlignedText Double Double
 
 mkText :: Renderable Text b => TextAlignment -> String -> Diagram b R2
-mkText a t = recommendFillColor black   -- See Note [recommendFillColor]
+mkText a t = recommendFillColor (black :: Colour Double)
+             -- See Note [recommendFillColor]
+
            $ mkQD (Prim (Text mempty a t))
                        mempty
                        mempty

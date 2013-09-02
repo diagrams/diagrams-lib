@@ -117,7 +117,6 @@ import           Diagrams.Animation
 import           Diagrams.Attributes
 import           Diagrams.BoundingBox
 import           Diagrams.Combinators
-import           Diagrams.Coordinates
 import           Diagrams.CubicSpline
 import           Diagrams.Envelope
 import           Diagrams.Located

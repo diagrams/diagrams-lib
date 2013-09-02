@@ -28,13 +28,12 @@ import           Diagrams.Located        (at)
 import           Diagrams.Segment
 import           Diagrams.Trail
 import           Diagrams.TrailLike
-import           Diagrams.TwoD.Align
 import           Diagrams.TwoD.Transform
 import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector    (direction, e, unitX)
 import           Diagrams.Util           (tau, ( # ))
 
-import           Data.AffineSpace        ((.+^), (.-.))
+import           Data.AffineSpace        ((.-.))
 import           Data.Semigroup          ((<>))
 import           Data.VectorSpace        (magnitude, negateV, (*^), (^-^))
 
@@ -91,18 +90,18 @@ the approximation error.
 --   'Trail' of a radius one arc counterclockwise between the two angles.
 arcT :: Angle a => a -> a -> Trail R2
 arcT start end
-    | e < s     = arcT s (e + fromIntegral d)
-    | otherwise = (if sweep >= tau then glueTrail else id)
-                $ trailFromSegments bs
+    | end' < start' = arcT start' (end' + fromIntegral d)
+    | otherwise     = (if sweep >= tau then glueTrail else id)
+                    $ trailFromSegments bs
   where sweep = convertAngle $ end - start
         bs    = map (rotate start) . bezierFromSweep $ sweep
 
         -- We want to compare the start and the end and in case
         -- there isn't some law about 'Angle' ordering, we use a
         -- known 'Angle' for that.
-        s = convertAngle start :: Turn
-        e = convertAngle end
-        d = ceiling (s - e) :: Integer
+        start' = convertAngle start :: Turn
+        end'   = convertAngle end
+        d      = ceiling (start' - end') :: Integer
 
 -- | Given a start angle @s@ and an end angle @e@, @'arc' s e@ is the
 --   path of a radius one arc counterclockwise between the two angles.
