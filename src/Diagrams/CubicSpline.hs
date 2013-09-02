@@ -41,7 +41,7 @@ import           Data.VectorSpace
 --   vertices, with the first vertex as the starting point.  The first
 --   argument specifies whether the path should be closed.
 --
---   <<diagrams/cubicSplineEx.svg#diagram=cubicSplineEx&width=600>>
+--   <<diagrams/src_Diagrams_CubicSpline_cubicSplineEx.svg#diagram=cubicSplineEx&width=600>>
 --
 --   > pts = map p2 [(0,0), (2,3), (5,-2), (-4,1), (0,3)]
 --   > dot = circle 0.2 # fc blue # lw 0

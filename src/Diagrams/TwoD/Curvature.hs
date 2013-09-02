@@ -52,19 +52,19 @@ import           Diagrams.TwoD.Vector
 --
 -- Lets consider the following curve:
 --
--- <<diagrams/diagramA.svg#diagram=diagramA&height=200&width=400>>
+-- <<diagrams/src_Diagrams_TwoD_Curvature_diagramA.svg#diagram=diagramA&height=200&width=400>>
 --
 -- The curve starts with positive curvature,
 --
--- <<diagrams/diagramPos.svg#diagram=diagramPos&height=200&width=400>>
+-- <<diagrams/src_Diagrams_TwoD_Curvature_diagramPos.svg#diagram=diagramPos&height=200&width=400>>
 --
 -- approaches zero curvature
 --
--- <<diagrams/diagramZero.svg#diagram=diagramZero&height=200&width=400>>
+-- <<diagrams/src_Diagrams_TwoD_Curvature_diagramZero.svg#diagram=diagramZero&height=200&width=400>>
 --
 -- then has negative curvature
 --
--- <<diagrams/diagramNeg.svg#diagram=diagramNeg&height=200&width=400>>
+-- <<diagrams/src_Diagrams_TwoD_Curvature_diagramNeg.svg#diagram=diagramNeg&height=200&width=400>>
 --
 -- > {-# LANGUAGE GADTs #-}
 -- >
