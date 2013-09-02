@@ -23,9 +23,7 @@ module Diagrams.Parametric
   ) where
 
 import           Diagrams.Core
-import           Diagrams.Util
 
-import           Data.Default.Class
 import           Data.VectorSpace
 import qualified Numeric.Interval   as I
 
