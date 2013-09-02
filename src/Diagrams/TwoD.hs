@@ -131,6 +131,8 @@ module Diagrams.TwoD
 
          -- ** Arrows
        , arrow, arrow'
+       , arrowAt, arrowAt'
+       , arrowBetween, arrowBetween'
        , connect, connect'
        , connectPerim, connectPerim'
        , straightShaft

@@ -19,6 +19,10 @@
 module Diagrams.TwoD.Arrow
        ( arrow
        , arrow'
+       , arrowAt
+       , arrowAt'
+       , arrowBetween
+       , arrowBetween'
        , connect
        , connect'
        , connectPerim
@@ -37,7 +41,6 @@ import           Data.VectorSpace
 import           Diagrams.Core
 
 import           Data.Colour                      hiding (atop)
-import           Data.Colour.Names                (black, blue, orange)
 import           Diagrams.Attributes
 import           Diagrams.Parametric
 import           Diagrams.Path
@@ -217,17 +220,15 @@ shaftScale tr tw hw t =
 stdScale :: Double
 stdScale = 100
 
--- | Make an arrow pointing from s to e using the trail tr by scaling the trail
---   and rotating the arrow. The size of trail tr is arbitrary since it will be
---   scaled so that the arrow offset is e .-. s, however is should be not be
---   off by more than a factor of 100!
-arrow :: Renderable (Path R2) b => P2 -> P2 -> Diagram b R2
-arrow s e = arrow' def s e
+-- | Return an arrow of length len using arrowShaft by scaling the shaft
+--   so that the entire arrow is length len. The size of arrowShaft is arbitrary
+--   since it will be scaled however it should be not be off by more than a
+--   factor of stdScale.
+arrow :: Renderable (Path R2) b => Double -> Diagram b R2
+arrow len = arrow' def len
 
-arrow'
-  :: Renderable (Path R2) b =>
-     ArrowOpts -> P2 -> P2 -> Diagram b R2
-arrow' opts s e = a # rotateBy (a0 - a1) # moveTo s
+arrow' :: Renderable (Path R2) b => ArrowOpts -> Double -> Diagram b R2
+arrow' opts len = ar # rotateBy (- dir)
   where
     (h, hw') = mkHead opts
     (t, tw') = mkTail opts
@@ -236,17 +237,44 @@ arrow' opts s e = a # rotateBy (a0 - a1) # moveTo s
     hw = hw' + headGap opts
     tAngle = direction . startTangent $ (head $ trailSegments tr) :: Turn
     hAngle = direction . endTangent $ (last $ trailSegments tr) :: Turn
-    u = e .-. s
-    sd = shaftScale tr tw hw (magnitude u)
+    sd = shaftScale tr tw hw len
     tr' = tr # scale sd
     shaft = strokeT tr'
         # lw (shaftWidth opts)
         # (shaftStyle opts)
     hd = h # rotateBy hAngle # moveTo (origin .+^ tr' `atParam` (domainUpper tr'))
     tl = t # rotateBy tAngle
-    a0 = direction u
-    a1 = direction (trailOffset $ spine tr tw hw sd)
-    a = moveOriginBy ((tw *^ (unit_X # rotateBy tAngle))) $ hd <> tl <> shaft
+    dir = direction (trailOffset $ spine tr tw hw sd)
+    ar = moveOriginBy ((tw *^ (unit_X # rotateBy tAngle))) $ hd <> tl <> shaft
+
+-- | Make an arrow pointing from s to e using arrowShaft by scaling the shaft
+--   and rotating the arrow. The size of arrowShaft is arbitrary since it will
+--   be scaled so that the arrow offset is e .-. s, however is should be not be
+--   off by more than a factor of stdScale.
+arrowBetween :: Renderable (Path R2) b => P2 -> P2 -> Diagram b R2
+arrowBetween s e = arrowBetween' def s e
+
+arrowBetween'
+  :: Renderable (Path R2) b =>
+     ArrowOpts -> P2 -> P2 -> Diagram b R2
+arrowBetween' opts s e = arrow' opts len # rotateBy dir # moveTo s
+  where
+    v = e .-. s
+    len = magnitude v
+    dir = direction v
+
+-- | Create an arrow starting at s with length and direction determined by
+--   the vectore v.
+arrowAt :: Renderable (Path R2) b => P2 -> R2 -> Diagram b R2
+arrowAt s v = arrowAt' def s v
+
+arrowAt'
+  :: Renderable (Path R2) b =>
+     ArrowOpts -> P2 -> R2 -> Diagram b R2
+arrowAt' opts s v = arrow' opts len # rotateBy dir # moveTo s
+  where
+    len = magnitude v
+    dir = direction v
 
 -- | Connect two diagrams with a straight arrow.
 connect
@@ -254,6 +282,7 @@ connect
   => n1 -> n2 -> (Diagram b R2 -> Diagram b R2)
 connect = connect' def
 
+-- | Connect two diagrams with an arbitrary arrow.
 connect'
   :: (Renderable (Path R2) b, IsName n1, IsName n2)
   => ArrowOpts -> n1 -> n2 -> (Diagram b R2 -> Diagram b R2)
@@ -261,10 +290,10 @@ connect' opts n1 n2 =
   withName n1 $ \sub1 ->
   withName n2 $ \sub2 ->
     let [s,e] = map location [sub1, sub2]
-    in  atop (arrow' opts s e)
+    in  atop (arrowBetween' opts s e)
 
--- | Connect two diagrams with an aribrary trail at point on the perimeter of
--- | the diagrams, choosen by angle.
+-- | Connect two diagrams at point on the perimeter of he diagrams, choosen
+--   by angle.
 connectPerim
   :: (Renderable (Path R2) b, IsName n1, IsName n2, Angle a)
   => n1 -> n2 -> a -> a
@@ -281,4 +310,4 @@ connectPerim' opts n1 n2 a1 a2 =
     let [os, oe] = map location [sub1, sub2]
         s = fromMaybe os (maxTraceP os (unitX # rotate a1) sub1)
         e = fromMaybe oe (maxTraceP oe (unitX # rotate a2) sub2)
-    in  atop (arrow' opts s e)
+    in  atop (arrowBetween' opts s e)
