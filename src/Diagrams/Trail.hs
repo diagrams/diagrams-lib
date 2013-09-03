@@ -584,7 +584,7 @@ trailFromSegments = wrapTrail . lineFromSegments
 --   vectors, where each vector represents the offset from one vertex
 --   to the next.  See also 'fromOffsets'.
 --
---   <<diagrams/lineFromOffsetsEx.svg#diagram=lineFromOffsetsEx&width=300>>
+--   <<diagrams/src_Diagrams_Trail_lineFromOffsetsEx.svg#diagram=lineFromOffsetsEx&width=300>>
 --
 --   > import Diagrams.Coordinates
 --   > lineFromOffsetsEx = strokeLine $ lineFromOffsets [ 2 & 1, 2 & (-1), 2 & 0.5 ]
@@ -612,7 +612,7 @@ trailFromOffsets = wrapTrail . lineFromOffsets
 --   construct, say, a @'Located' ('Trail'' 'Line' v)@ or a @'Located'
 --   ('Trail' v)@.
 --
---   <<diagrams/lineFromVerticesEx.svg#diagram=lineFromVerticesEx&width=300>>
+--   <<diagrams/src_Diagrams_Trail_lineFromVerticesEx.svg#diagram=lineFromVerticesEx&width=300>>
 --
 --   > import Diagrams.Coordinates
 --   > lineFromVerticesEx = pad 1.1 . centerXY . strokeLine
@@ -641,7 +641,7 @@ trailFromVertices = wrapTrail . lineFromVertices
 --   know happens to end where it starts, and then call 'glueLine' to
 --   turn it into a loop.
 --
---   <<diagrams/glueLineEx.svg#diagram=glueLineEx&width=500>>
+--   <<diagrams/src_Diagrams_Trail_glueLineEx.svg#diagram=glueLineEx&width=500>>
 --
 --   > import Diagrams.Coordinates
 --   > glueLineEx = pad 1.1 . hcat' with {sep = 1}
@@ -686,7 +686,7 @@ glueTrail = onTrail glueLine id
 -- closeLine . lineFromVertices $ ps
 -- @
 --
---   <<diagrams/closeLineEx.svg#diagram=closeLineEx&width=500>>
+--   <<diagrams/src_Diagrams_Trail_closeLineEx.svg#diagram=closeLineEx&width=500>>
 --
 --   > closeLineEx = pad 1.1 . centerXY . hcat' with {sep = 1}
 --   >   $ [almostClosed # strokeLine, almostClosed # closeLine # strokeLoop]
@@ -779,7 +779,7 @@ trailOffsets = withLine lineOffsets
 --
 --   but is more efficient.
 --
---   <<diagrams/trailOffsetEx.svg#diagram=trailOffsetEx&width=300>>
+--   <<diagrams/src_Diagrams_Trail_trailOffsetEx.svg#diagram=trailOffsetEx&width=300>>
 --
 --   > trailOffsetEx = (strokeLine almostClosed <> showOffset) # centerXY # pad 1.1
 --   >   where showOffset = fromOffsets [trailOffset (wrapLine almostClosed)]

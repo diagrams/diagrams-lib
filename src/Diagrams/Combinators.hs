@@ -53,7 +53,7 @@ import           Diagrams.Util
 -- | Use the envelope from some object as the envelope for a
 --   diagram, in place of the diagram's default envelope.
 --
---   <<diagrams/withEnvelopeEx.svg#diagram=withEnvelopeEx&width=300>>
+--   <<diagrams/src_Diagrams_Combinators_withEnvelopeEx.svg#diagram=withEnvelopeEx&width=300>>
 --
 --   > sqNewEnv =
 --   >     circle 1 # fc green
@@ -98,7 +98,7 @@ pad s d = withEnvelope (d # scale s) d
 --   "Diagrams.TwoD.Combinators".) Useful for manually creating
 --   separation between two diagrams.
 --
---   <<diagrams/strutEx.svg#diagram=strutEx&width=300>>
+--   <<diagrams/src_Diagrams_Combinators_strutEx.svg#diagram=strutEx&width=300>>
 --
 --   > strutEx = (circle 1 ||| strut unitX ||| circle 1) # centerXY # pad 1.1
 strut :: ( Backend b v, InnerSpace v
@@ -181,7 +181,7 @@ infixl 6 `beneath`
 --   identity element, in which case the second object is returned
 --   unchanged).
 --
---   <<diagrams/besideEx.svg#diagram=besideEx&height=200>>
+--   <<diagrams/src_Diagrams_Combinators_besideEx.svg#diagram=besideEx&height=200>>
 --
 --   > besideEx = beside (r2 (20,30))
 --   >                   (circle 1 # fc orange)
@@ -218,7 +218,7 @@ beside v d1 d2 = d1 <> juxtapose v d1 d2
 --   @ys@ is positioned beside @x@ /without/ reference to the other
 --   objects in @ys@, so this is not the same as iterating 'beside'.
 --
---   <<diagrams/appendsEx.svg#diagram=appendsEx&width=200>>
+--   <<diagrams/src_Diagrams_Combinators_appendsEx.svg#diagram=appendsEx&width=200>>
 --
 --   > appendsEx = appends c (zip (iterateN 6 (rotateBy (1/6)) unitX) (repeat c))
 --   >             # centerXY # pad 1.1
@@ -230,7 +230,7 @@ appends d1 apps = d1 <> mconcat (map (\(v,d) -> juxtapose v d1 d) apps)
 --   (e.g. diagrams or paths) by assigning them absolute positions in
 --   the vector space of the combined object.
 --
---   <<diagrams/positionEx.svg#diagram=positionEx&height=300>>
+--   <<diagrams/src_Diagrams_Combinators_positionEx.svg#diagram=positionEx&height=300>>
 --
 --   > positionEx = position (zip (map mkPoint [-3, -2.8 .. 3]) (repeat dot))
 --   >   where dot       = circle 0.2 # fc black

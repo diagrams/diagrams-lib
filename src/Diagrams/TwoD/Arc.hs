@@ -126,7 +126,7 @@ arcCW start end = trailLike $
 --   be clockwise, otherwise it will be counterclockwise. The origin
 --   of the arc is its center.
 --
---   <<diagrams/arc'Ex.svg#diagram=arc'Ex&width=300>>
+--   <<diagrams/src_Diagrams_TwoD_Arc_arc'Ex.svg#diagram=arc'Ex&width=300>>
 --
 --   > arc'Ex = mconcat [ arc' r 0 (1/4 :: Turn) | r <- [0.5,-1,1.5] ]
 --   >        # centerXY # pad 1.1
@@ -138,7 +138,7 @@ arc' r start end = trailLike $ scale (abs r) ts `at` (rotate start $ p2 (abs r,0
 -- | Create a circular wedge of the given radius, beginning at the
 --   first angle and extending counterclockwise to the second.
 --
---   <<diagrams/wedgeEx.svg#diagram=wedgeEx&width=400>>
+--   <<diagrams/src_Diagrams_TwoD_Arc_wedgeEx.svg#diagram=wedgeEx&width=400>>
 --
 --   > wedgeEx = hcat' with {sep = 0.5}
 --   >   [ wedge 1 (0 :: Turn) (1/4)
@@ -159,7 +159,7 @@ wedge r a1 a2 = trailLike . (`at` origin) . glueTrail . wrapLine
 --   @height@ results in an arc to the left of the line from @p@ to
 --   @q@; a negative value yields one to the right.
 --
---   <<diagrams/arcBetweenEx.svg#diagram=arcBetweenEx&width=300>>
+--   <<diagrams/src_Diagrams_TwoD_Arc_arcBetweenEx.svg#diagram=arcBetweenEx&width=300>>
 --
 --   > arcBetweenEx = mconcat
 --   >   [ arcBetween origin (p2 (2,1)) ht | ht <- [-0.2, -0.1 .. 0.2] ]

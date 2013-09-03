@@ -82,7 +82,7 @@ perpAtParam s@(Cubic _ _ _)              t = -unitPerp a
 --   In the following example the blue lines are the original segments and
 --   the alternating green and red lines are the resulting offset trail segments.
 --
---   <<diagrams/cubicOffsetExample.svg#diagram=cubicOffsetExample&width=600>>
+--   <<diagrams/src_Diagrams_TwoD_Offset_cubicOffsetExample.svg#diagram=cubicOffsetExample&width=600>>
 --
 --   Note that when the original curve has a cusp, the offset curve forms a
 --   radius around the cusp, and when there is a loop in the original curve,
