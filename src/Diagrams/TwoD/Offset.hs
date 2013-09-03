@@ -203,16 +203,16 @@ instance Default OffsetOpts where
 --   The styles applied to an outside corner can be seen here (with the original
 --   trail in blue and the result of 'offsetTrail'' in green):
 --
---   <<diagrams/offsetTrailExample.svg#diagram=offsetTrailExample&width=600>>
+--   <<diagrams/src_Diagrams_TwoD_Offset_offsetTrailExample.svg#diagram=offsetTrailExample&width=600>>
 --
 --   When a negative radius is given, the offset trail will be on the left:
 --
---   <<diagrams/offsetTrailLeftExample.svg#diagram=offsetTrailLeftExample&width=200>>
+--   <<diagrams/src_Diagrams_TwoD_Offset_offsetTrailLeftExample.svg#diagram=offsetTrailLeftExample&width=200>>
 --
 --   When offseting a counter-clockwise loop a positive radius gives an outer loop
 --   while a negative radius gives an inner loop (both counter-clockwise).
 --
---   <<diagrams/offsetTrailOuterExample.svg#diagram=offsetTrailOuterExample&width=300>>
+--   <<diagrams/src_Diagrams_TwoD_Offset_offsetTrailOuterExample.svg#diagram=offsetTrailOuterExample&width=300>>
 --
 offsetTrail' :: OffsetOpts
              -> Double  -- ^ Radius of offset.  A negative value gives an offset on
@@ -310,11 +310,11 @@ withTrailL f g l = withTrail (f . (`at` p)) (g . (`at` p)) (unLoc l)
 --   The cap styles applied to an outside corner can be seen here (with the original
 --   trail in white and the result of 'expandTrail'' filled in green):
 --
---   <<diagrams/expandTrailExample.svg#diagram=expandTrailExample&width=600>>
+--   <<diagrams/src_Diagrams_TwoD_Offset_expandTrailExample.svg#diagram=expandTrailExample&width=600>>
 --
 --   Loops result in a path with an inner and outer loop:
 --
---   <<diagrams/expandLoopExample.svg#diagram=expandLoopExample&width=300>>
+--   <<diagrams/src_Diagrams_TwoD_Offset_expandLoopExample.svg#diagram=expandLoopExample&width=300>>
 --
 expandTrail' :: ExpandOpts
              -> Double  -- ^ Radius of offset.  Only non-negative values allowed.
