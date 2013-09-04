@@ -25,7 +25,7 @@ module Diagrams.TwoD.Path
 
          stroke, stroke', strokeTrail, strokeT, strokeTrail', strokeT'
        , strokeLine, strokeLoop
-       , strokeLocT, strokeLocLine, strokeLocLoop
+       , strokeLocTrail, strokeLocT, strokeLocLine, strokeLocLoop
 
          -- ** Stroke options
 
@@ -201,9 +201,13 @@ strokeLoop :: (Renderable (Path R2) b) => Trail' Loop R2 -> Diagram b R2
 strokeLoop = strokeT . wrapLoop
 
 -- | A convenience function for converting a @Located Trail@ directly
---   into a diagram; @strokeLocT = stroke . trailLike@.
+--   into a diagram; @strokeLocTrail = stroke . trailLike@.
+strokeLocTrail :: (Renderable (Path R2) b) => Located (Trail R2) -> Diagram b R2
+strokeLocTrail = stroke . trailLike
+
+-- | Deprecated synonym for 'strokeLocTrail'.
 strokeLocT :: (Renderable (Path R2) b) => Located (Trail R2) -> Diagram b R2
-strokeLocT = stroke . trailLike
+strokeLocT = strokeLocTrail
 
 -- | A convenience function for converting a @Located@ line directly
 --   into a diagram; @strokeLocLine = stroke . trailLike . mapLoc wrapLine@.
