@@ -70,7 +70,7 @@ module Diagrams.TwoD
          -- * Angles
        , tau
        , Angle(..)
-       , Turn(..), CircleFrac, Rad(..), Deg(..)
+       , Turn(..), asTurn, CircleFrac, Rad(..), asRad, Deg(..), asDeg
        , fullCircle, convertAngle
 
          -- * Paths
