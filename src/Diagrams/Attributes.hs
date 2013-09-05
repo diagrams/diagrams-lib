@@ -66,6 +66,8 @@ import           Data.Colour
 import           Data.Colour.RGBSpace
 import           Data.Colour.SRGB (sRGBSpace)
 
+import           Data.Default.Class
+
 import           Data.Typeable
 
 import           Data.Monoid.Recommend
