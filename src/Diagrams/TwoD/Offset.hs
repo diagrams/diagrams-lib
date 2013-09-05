@@ -168,12 +168,6 @@ bindLoc f = join' . mapLoc f
   where
     join' (viewLoc -> (p,a)) = translate (p .-. origin) a
 
--- Helpers to get the start point and end point of something Located with ends.
-atStartL,atEndL :: (AdditiveGroup v, EndValues a, V v ~ v, Codomain a ~ Located v) 
-                => a -> Point v
-atStartL (viewLoc . atStart -> (p,a)) = p .+^ a
-atEndL   (viewLoc . atEnd   -> (p,a)) = p .+^ a
-
 -- While we build offsets and expansions we will use the [Located (Segment Closed R2)]
 -- and [Located (Trail R2)] intermediate representations.
 locatedTrailSegments :: (InnerSpace v, OrderedField (Scalar v))
@@ -334,8 +328,8 @@ expandLine ExpandOpts{..} r (mapLoc wrapLine -> t) = caps cap r s e (f r) (f $ -
       offset r = map (bindLoc (offsetSegment expandEpsilon r)) . locatedTrailSegments
       f r = joinSegments (fromLineJoin expandJoin) False expandMiterLimit r ends . offset r $ t
       ends = tail . trailVertices $ t
-      s = atStartL t
-      e = atEndL t
+      s = atStart t
+      e = atEnd t
       cap = fromLineCap expandCap
 
 expandLoop :: ExpandOpts -> Double -> Located (Trail' Loop R2) -> Path R2
@@ -344,9 +338,6 @@ expandLoop ExpandOpts{..} r (mapLoc wrapLoop -> t) = (trailLike $ f r) <> (trail
       offset r = map (bindLoc (offsetSegment expandEpsilon r)) . locatedTrailSegments
       f r = joinSegments (fromLineJoin expandJoin) True expandMiterLimit r ends . offset r $ t
       ends = (\(a:as) -> as ++ [a]) . trailVertices $ t
-      s = atStartL t
-      e = atEndL t
-      cap = fromLineCap expandCap
 
 -- | Expand a 'Trail' with the given radius and default options.  See 'expandTrail''.
 expandTrail :: Double -> Located (Trail R2) -> Path R2
@@ -402,11 +393,11 @@ expandPath = expandPath' def
 caps :: (Double -> P2 -> P2 -> P2 -> Trail R2)
      -> Double -> P2 -> P2 -> Located (Trail R2) -> Located (Trail R2) -> Located (Trail R2)
 caps cap r s e fs bs = mapLoc glueTrail $ mconcat
-    [ cap r s (atStartL bs) (atStartL fs)
+    [ cap r s (atStart bs) (atStart fs)
     , unLoc fs
-    , cap r e (atEndL fs) (atEndL bs)
+    , cap r e (atEnd fs) (atEnd bs)
     , reverseDomain (unLoc bs)
-    ] `at` atStartL bs
+    ] `at` atStart bs
 
 -- | Take a LineCap style and give a function for building the cap from 
 fromLineCap :: LineCap -> Double -> P2 -> P2 -> P2 -> Trail R2
@@ -476,20 +467,20 @@ fromLineJoin j = case j of
 -- | Join with segments going back to the original corner.
 joinSegmentCut :: Double -> Double -> P2 -> Located (Trail R2) -> Located (Trail R2) -> Trail R2
 joinSegmentCut _ r e a b = fromSegments
-    [ straight (e .-. atEndL a)
-    , straight (atStartL b .-. e)
+    [ straight (e .-. atEnd a)
+    , straight (atStart b .-. e)
     ]
 
 -- | Join by directly connecting the end points.  On an inside corner this
 --   creates negative space for even-odd fill.  Here is where we would want to
 --   use an arc or something else in the future.
 joinSegmentClip :: Double -> Double -> P2 -> Located (Trail R2) -> Located (Trail R2) -> Trail R2
-joinSegmentClip _ _ _ a b = fromSegments [straight $ atStartL b .-. atEndL a]
+joinSegmentClip _ _ _ a b = fromSegments [straight $ atStart b .-. atEnd a]
 
 -- | Join with a radius arc.  On an inside corner this will loop around the interior
 --   of the offset trail.  With a winding fill this will not be visible.
 joinSegmentArc :: Double -> Double -> P2 -> Located (Trail R2) -> Located (Trail R2) -> Trail R2
-joinSegmentArc _ r e a b = capArc r e (atEndL a) (atStartL b)
+joinSegmentArc _ r e a b = capArc r e (atEnd a) (atStart b)
 
 -- | Join to the intersection of the incoming trails projected tangent to their ends.
 --   If the intersection is beyond the miter limit times the radius, stop at the limit.
@@ -509,6 +500,6 @@ joinSegmentIntersect miterLimit r e a b = case traceP pa va t of
     t = strokeLocT (fromSegments [straight (miter vb)] `at` pb) :: Diagram NullBackend R2
     va = -unitPerp (pa .-. e)
     vb = -unitPerp (pb .-. e)
-    pa = atEndL a
-    pb = atStartL b
+    pa = atEnd a
+    pb = atStart b
     miter v = (miterLimit * r) *^ v
