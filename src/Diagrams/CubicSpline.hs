@@ -34,7 +34,7 @@ import           Diagrams.TrailLike            (TrailLike (..))
 -- for e.g. the Fractional (Double, Double) instance
 import           Data.NumInstances.Tuple       ()
 
-import           Control.Newtype
+import           Data.AffineSpace.Point
 import           Data.VectorSpace
 
 -- | Construct a spline path-like thing of cubic segments from a list of
@@ -53,7 +53,7 @@ import           Data.VectorSpace
 --   For more information, see <http://mathworld.wolfram.com/CubicSpline.html>.
 cubicSpline :: (TrailLike t, Fractional (V t)) => Bool -> [Point (V t)] -> t
 cubicSpline c [] = trailLike . closeIf c $ emptyLine `at` origin
-cubicSpline c ps = flattenBeziers . map f . solveCubicSplineCoefficients c . map unpack $ ps
+cubicSpline c ps = flattenBeziers . map f . solveCubicSplineCoefficients c . map unPoint $ ps
   where
     f [a,b,c,d] = [a, (3*a+b)/3, (3*a+2*b+c)/3, a+b+c+d]
     flattenBeziers bs@((b:_):_)
