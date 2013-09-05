@@ -70,14 +70,14 @@ module Diagrams.TwoD
          -- * Angles
        , tau
        , Angle(..)
-       , Turn(..), CircleFrac, Rad(..), Deg(..)
+       , Turn(..), asTurn, CircleFrac, Rad(..), asRad, Deg(..), asDeg
        , fullCircle, convertAngle
 
          -- * Paths
          -- ** Stroking
        , stroke, stroke', strokeTrail, strokeT, strokeTrail', strokeT'
        , strokeLine, strokeLoop
-       , strokeLocT, strokeLocLine, strokeLocLoop
+       , strokeLocTrail, strokeLocT, strokeLocLine, strokeLocLoop
        , FillRule(..), fillRule
        , StrokeOpts(..)
 

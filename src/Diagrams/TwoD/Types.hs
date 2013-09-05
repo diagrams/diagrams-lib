@@ -26,7 +26,7 @@ module Diagrams.TwoD.Types
 
          -- * Angles
        , Angle(..)
-       , Turn(..), CircleFrac, Rad(..), Deg(..)
+       , Turn(..), asTurn, CircleFrac, Rad(..), asRad, Deg(..), asDeg
        , fullCircle, convertAngle
        ) where
 
@@ -198,6 +198,14 @@ instance Transformable R2 where
 newtype Turn = Turn { getTurn :: Double }
   deriving (Read, Show, Eq, Ord, Enum, Fractional, Num, Real, RealFrac)
 
+-- | The identity function with a restricted type, for conveniently
+-- declaring that some value should have type 'Turn'.  For example,
+-- @rotation . asTurn . fromRational@ constructs a rotation from a
+-- rational value considered as a @Turn@.  Without @asTurn@, the angle
+-- type would be ambiguous.
+asTurn :: Turn -> Turn
+asTurn = id
+
 -- | Deprecated synonym for 'Turn', retained for backwards compatibility.
 type CircleFrac = Turn
 
@@ -205,9 +213,25 @@ type CircleFrac = Turn
 newtype Rad = Rad { getRad :: Double }
   deriving (Read, Show, Eq, Ord, Enum, Floating, Fractional, Num, Real, RealFloat, RealFrac)
 
+-- | The identity function with a restricted type, for conveniently
+-- declaring that some value should have type 'Rad'.  For example,
+-- @rotation . asRad . fromRational@ constructs a rotation from a
+-- rational value considered as a value in radians.  Without @asRad@,
+-- the angle type would be ambiguous.
+asRad :: Rad -> Rad
+asRad = id
+
 -- | Newtype wrapper for representing angles in degrees.
 newtype Deg = Deg { getDeg :: Double }
   deriving (Read, Show, Eq, Ord, Enum, Fractional, Num, Real, RealFrac)
+
+-- | The identity function with a restricted type, for conveniently
+-- declaring that some value should have type 'Deg'.  For example,
+-- @rotation . asDeg . fromIntegral@ constructs a rotation from an
+-- integral value considered as a value in degrees.  Without @asDeg@,
+-- the angle type would be ambiguous.
+asDeg :: Deg -> Deg
+asDeg = id
 
 -- | Type class for types that measure angles.
 class Num a => Angle a where
