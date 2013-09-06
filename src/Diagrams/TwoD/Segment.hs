@@ -23,7 +23,6 @@ import           Data.Monoid.Inf         hiding (minimum)
 import           Data.VectorSpace
 
 import           Diagrams.Core
-import           Diagrams.Core.Trace
 
 import           Diagrams.Located
 import           Diagrams.Parametric
@@ -64,7 +63,6 @@ instance Traced (FixedSegment R2) where
     let
       v0     = p0' .-. p0
       det    = perp v1 <.> v0
-      perp v = rotateBy (-1/4) v
       p      = p1 .-. p0
       t0     = (perp v1 <.> p) / det
       t1     = (perp v0 <.> p) / det

@@ -41,7 +41,6 @@ import           Control.Applicative (pure, (<$>))
 
 import           Diagrams.Align
 import           Diagrams.Core
-import           Diagrams.Path
 import           Diagrams.TrailLike
 
 import           Data.Active

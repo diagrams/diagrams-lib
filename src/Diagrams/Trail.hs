@@ -225,7 +225,7 @@ instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
                          in  (p - 1)/tSegs + 1
     | otherwise    = case FT.viewl after of
                        EmptyL    -> 0
-                       seg :< after' ->
+                       seg :< _  ->
                          let p = arcLengthToParam (eps/2) seg
                                    (l - arcLength (eps/2) (SegTree before))
                          in  (numSegs before + p) / tSegs
@@ -335,8 +335,8 @@ data Trail' l v where
 -- | A generic eliminator for 'Trail'', taking functions specifying
 --   what to do in the case of a line or a loop.
 withTrail' :: (Trail' Line v -> r) -> (Trail' Loop v -> r) -> Trail' l v -> r
-withTrail' line loop t@(Line{}) = line t
-withTrail' line loop t@(Loop{}) = loop t
+withTrail' line _    t@(Line{}) = line t
+withTrail' _    loop t@(Loop{}) = loop t
 
 deriving instance Show v => Show (Trail' l v)
 deriving instance Eq   v => Eq   (Trail' l v)
@@ -584,7 +584,7 @@ trailFromSegments = wrapTrail . lineFromSegments
 --   vectors, where each vector represents the offset from one vertex
 --   to the next.  See also 'fromOffsets'.
 --
---   <<diagrams/lineFromOffsetsEx.svg#diagram=lineFromOffsetsEx&width=300>>
+--   <<diagrams/src_Diagrams_Trail_lineFromOffsetsEx.svg#diagram=lineFromOffsetsEx&width=300>>
 --
 --   > import Diagrams.Coordinates
 --   > lineFromOffsetsEx = strokeLine $ lineFromOffsets [ 2 & 1, 2 & (-1), 2 & 0.5 ]
@@ -612,7 +612,7 @@ trailFromOffsets = wrapTrail . lineFromOffsets
 --   construct, say, a @'Located' ('Trail'' 'Line' v)@ or a @'Located'
 --   ('Trail' v)@.
 --
---   <<diagrams/lineFromVerticesEx.svg#diagram=lineFromVerticesEx&width=300>>
+--   <<diagrams/src_Diagrams_Trail_lineFromVerticesEx.svg#diagram=lineFromVerticesEx&width=300>>
 --
 --   > import Diagrams.Coordinates
 --   > lineFromVerticesEx = pad 1.1 . centerXY . strokeLine
@@ -641,7 +641,7 @@ trailFromVertices = wrapTrail . lineFromVertices
 --   know happens to end where it starts, and then call 'glueLine' to
 --   turn it into a loop.
 --
---   <<diagrams/glueLineEx.svg#diagram=glueLineEx&width=500>>
+--   <<diagrams/src_Diagrams_Trail_glueLineEx.svg#diagram=glueLineEx&width=500>>
 --
 --   > import Diagrams.Coordinates
 --   > glueLineEx = pad 1.1 . hcat' with {sep = 1}
@@ -686,7 +686,7 @@ glueTrail = onTrail glueLine id
 -- closeLine . lineFromVertices $ ps
 -- @
 --
---   <<diagrams/closeLineEx.svg#diagram=closeLineEx&width=500>>
+--   <<diagrams/src_Diagrams_Trail_closeLineEx.svg#diagram=closeLineEx&width=500>>
 --
 --   > closeLineEx = pad 1.1 . centerXY . hcat' with {sep = 1}
 --   >   $ [almostClosed # strokeLine, almostClosed # closeLine # strokeLoop]
@@ -779,7 +779,7 @@ trailOffsets = withLine lineOffsets
 --
 --   but is more efficient.
 --
---   <<diagrams/trailOffsetEx.svg#diagram=trailOffsetEx&width=300>>
+--   <<diagrams/src_Diagrams_Trail_trailOffsetEx.svg#diagram=trailOffsetEx&width=300>>
 --
 --   > trailOffsetEx = (strokeLine almostClosed <> showOffset) # centerXY # pad 1.1
 --   >   where showOffset = fromOffsets [trailOffset (wrapLine almostClosed)]

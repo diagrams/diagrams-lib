@@ -70,14 +70,14 @@ module Diagrams.TwoD
          -- * Angles
        , tau
        , Angle(..)
-       , Turn(..), CircleFrac, Rad(..), Deg(..)
+       , Turn(..), asTurn, CircleFrac, Rad(..), asRad, Deg(..), asDeg
        , fullCircle, convertAngle
 
          -- * Paths
          -- ** Stroking
        , stroke, stroke', strokeTrail, strokeT, strokeTrail', strokeT'
        , strokeLine, strokeLoop
-       , strokeLocT, strokeLocLine, strokeLocLoop
+       , strokeLocTrail, strokeLocT, strokeLocLine, strokeLocLoop
        , FillRule(..), fillRule
        , StrokeOpts(..)
 
@@ -231,8 +231,7 @@ import           Diagrams.TwoD.Shapes
 import           Diagrams.TwoD.Size
 import           Diagrams.TwoD.Text
 import           Diagrams.TwoD.Transform
-import           Diagrams.TwoD.Transform.ScaleInv
 import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector
 
-import           Diagrams.Util                    (tau)
+import           Diagrams.Util             (tau)

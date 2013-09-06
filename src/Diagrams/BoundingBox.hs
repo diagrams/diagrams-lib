@@ -1,13 +1,12 @@
-{-# LANGUAGE DeriveDataTypeable
-           , DeriveFunctor
-           , FlexibleContexts
-           , GeneralizedNewtypeDeriving
-           , NoMonomorphismRestriction
-           , ScopedTypeVariables
-           , StandaloneDeriving
-           , TypeFamilies
-           , UndecidableInstances
-  #-}
+{-# LANGUAGE DeriveDataTypeable         #-}
+{-# LANGUAGE DeriveFunctor              #-}
+{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE NoMonomorphismRestriction  #-}
+{-# LANGUAGE ScopedTypeVariables        #-}
+{-# LANGUAGE StandaloneDeriving         #-}
+{-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE UndecidableInstances       #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.BoundingBox
@@ -42,28 +41,29 @@ module Diagrams.BoundingBox
        , union, intersection
        ) where
 
-import Control.Applicative ((<$>))
-import Control.Monad (join, liftM2)
-import Data.Map (Map, fromList, toList, fromDistinctAscList, toAscList)
-import qualified Data.Foldable as F
+import           Control.Applicative     ((<$>))
+import qualified Data.Foldable           as F
+import           Data.Map                (Map, fromDistinctAscList, fromList,
+                                          toAscList, toList)
 
-import Data.Maybe (fromMaybe)
+import           Data.Maybe              (fromMaybe)
 
-import Data.VectorSpace
+import           Data.VectorSpace
 -- (VectorSpace, Scalar, AdditiveGroup, zeroV, negateV, (^+^), (^-^))
-import Data.Basis (HasBasis, Basis, decompose, recompose, basisValue)
-import Data.Monoid (Monoid(..))
-import Data.Semigroup (Semigroup(..), Option(..))
+import           Data.Basis              (Basis, HasBasis, basisValue,
+                                          decompose, recompose)
+import           Data.Monoid             (Monoid (..))
+import           Data.Semigroup          (Option (..), Semigroup (..))
 
-import Data.Data (Data)
-import Data.Typeable (Typeable)
+import           Data.Data               (Data)
+import           Data.Typeable           (Typeable)
 
-import Diagrams.Core.Points (Point(..))
-import Diagrams.Core.HasOrigin (HasOrigin(..))
-import Diagrams.Core.Envelope (Enveloped(..), appEnvelope)
-import Diagrams.Core.V (V)
-import Diagrams.Core.Transform
-  (Transformation(..), Transformable(..), HasLinearMap, (<->))
+import           Diagrams.Core.Envelope  (Enveloped (..), appEnvelope)
+import           Diagrams.Core.HasOrigin (HasOrigin (..))
+import           Diagrams.Core.Points    (Point (..))
+import           Diagrams.Core.Transform (HasLinearMap, Transformable (..),
+                                          Transformation (..), (<->))
+import           Diagrams.Core.V         (V)
 
 -- Unexported utility newtype
 
@@ -128,7 +128,7 @@ instance Read v => Read (BoundingBox v) where
 -}
 
 -- | An empty bounding box.  This is the same thing as @mempty@, but it doesn't
---   require the same type constraints that the @Monoid@ 
+--   require the same type constraints that the @Monoid@
 emptyBox :: BoundingBox v
 emptyBox = BoundingBox $ Option Nothing
 
@@ -182,7 +182,7 @@ getAllCorners :: (HasBasis v, AdditiveGroup (Scalar v), Ord (Basis v))
 getAllCorners (BoundingBox (Option Nothing)) = []
 getAllCorners (BoundingBox (Option (Just (NonEmptyBoundingBox (l, u)))))
   = map (P . recompose)
-  -- Enumerate all combinations of selections of lower / higher values. 
+  -- Enumerate all combinations of selections of lower / higher values.
   . mapM (\(b, (l', u')) -> [(b, l'), (b, u')])
   -- List of [(basis, (lower, upper))]
   . toList
@@ -194,7 +194,7 @@ boxExtents :: (AdditiveGroup v) => BoundingBox v -> v
 boxExtents = maybe zeroV (\(P l, P h) -> h ^-^ l) . getCorners
 
 -- | Create a transformation mapping points from one bounding box to the other.
-boxTransform :: (AdditiveGroup v, HasLinearMap v, 
+boxTransform :: (AdditiveGroup v, HasLinearMap v,
                  Fractional (Scalar v), AdditiveGroup (Scalar v), Ord (Basis v))
              => BoundingBox v -> BoundingBox v -> Maybe (Transformation v)
 boxTransform u v = do

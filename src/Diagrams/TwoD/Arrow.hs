@@ -56,23 +56,13 @@ import           Diagrams.Util                    (( # ))
 
 data ArrowOpts
   = ArrowOpts
-    { arrowHead  :: ArrowHT  -- XXX investigate whether we can make
-                             -- these Diagrams. Because of ScaleInv,
-                             -- would have to have a Renderable
-                             -- instance for Diagrams themselves.
-                             -- This might be possible but there is
-                             -- some trickiness involved.
-
-                             -- However, just having paths does
-                             -- simplify a lot of things (no type
-                             -- parameter required for ArrowOpts, no
-                             -- ScopedTypeVariables, etc.
+    { arrowHead  :: ArrowHT
     , arrowTail  :: ArrowHT
     , arrowShaft :: Trail R2
     , headSize   :: Double
     , tailSize   :: Double
-    , headGap    :: Double
-    , tailGap    :: Double
+    , headGap    :: Double -- amount of space to leave after arrowhead
+    , tailGap    :: Double -- amount of space ot leave before arrowtail
     , shaftWidth :: Double
     , headStyle  :: HasStyle c => c -> c
     , tailStyle  :: HasStyle c => c -> c
@@ -89,8 +79,8 @@ instance Default ArrowOpts where
         , arrowShaft   = trailFromOffsets [unitX]
         , headSize     = 0.3
         , tailSize     = 0.3
-        , headGap      = 0 -- amount of space to leave after arrowhead
-        , tailGap      = 0 -- amount of space ot leave before arrowtail
+        , headGap      = 0
+        , tailGap      = 0
         , shaftWidth   = 0.03
         , headStyle    = fc black . opacity 1
         , tailStyle    = fc black . opacity 1
@@ -119,8 +109,8 @@ stdIterations :: Int
 stdIterations = 64
 
 -- XXX hParam and tParam are not used in the current implementation, but may
--- XXX be useful, if we add a fuction that shortens the arrow shaft by the
--- XXX head width, instead of scaling it as is currently done.
+-- XXX be useful, if we add a function that shortens the arrow shaft by the
+-- XXX head width, instead of scaling it, as is currently done.
 
 -- | Return the parameter p of the point on tr such that the distance from
 --   tr `atParam` p to the end of tr is equal to w.
@@ -156,7 +146,8 @@ colorJoint sStyle =
         Just c' -> fillColor c' $ mempty
 
 -- | Combine the head and it's joint into a single scale invariant diagram
---   and move the origin to the attachment point. Return the diagram it width.
+--   and move the origin to the attachment point. Return the diagram
+--   and it's width.
 mkHead :: Renderable (Path R2) b => ArrowOpts -> (Diagram b R2, Double)
 mkHead opts = ( (j <> h) # moveOriginBy (jWidth *^ unit_X) # lw 0
               , hWidth + jWidth)
@@ -223,7 +214,7 @@ stdScale = 100
 -- | Return an arrow of length len using arrowShaft by scaling the shaft
 --   so that the entire arrow is length len. The size of arrowShaft is arbitrary
 --   since it will be scaled however it should be not be off by more than a
---   factor of stdScale.
+--   factor of stdScale. The arrow offset is the direction unitX.
 arrow :: Renderable (Path R2) b => Double -> Diagram b R2
 arrow len = arrow' def len
 
@@ -239,9 +230,7 @@ arrow' opts len = ar # rotateBy (- dir)
     hAngle = direction . endTangent $ (last $ trailSegments tr) :: Turn
     sd = shaftScale tr tw hw len
     tr' = tr # scale sd
-    shaft = strokeT tr'
-        # lw (shaftWidth opts)
-        # (shaftStyle opts)
+    shaft = strokeT tr' # lw (shaftWidth opts) # (shaftStyle opts)
     hd = h # rotateBy hAngle # moveTo (origin .+^ tr' `atParam` (domainUpper tr'))
     tl = t # rotateBy tAngle
     dir = direction (trailOffset $ spine tr tw hw sd)
@@ -249,7 +238,7 @@ arrow' opts len = ar # rotateBy (- dir)
 
 -- | Make an arrow pointing from s to e using arrowShaft by scaling the shaft
 --   and rotating the arrow. The size of arrowShaft is arbitrary since it will
---   be scaled so that the arrow offset is e .-. s, however is should be not be
+--   be scaled so that the arrow offset is e .-. s, however it should be not be
 --   off by more than a factor of stdScale.
 arrowBetween :: Renderable (Path R2) b => P2 -> P2 -> Diagram b R2
 arrowBetween s e = arrowBetween' def s e

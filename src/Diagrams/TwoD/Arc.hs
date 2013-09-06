@@ -28,13 +28,12 @@ import           Diagrams.Located        (at)
 import           Diagrams.Segment
 import           Diagrams.Trail
 import           Diagrams.TrailLike
-import           Diagrams.TwoD.Align
 import           Diagrams.TwoD.Transform
 import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector    (direction, e, unitX)
 import           Diagrams.Util           (tau, ( # ))
 
-import           Data.AffineSpace        ((.+^), (.-.))
+import           Data.AffineSpace        ((.-.))
 import           Data.Semigroup          ((<>))
 import           Data.VectorSpace        (magnitude, negateV, (*^), (^-^))
 
@@ -91,18 +90,18 @@ the approximation error.
 --   'Trail' of a radius one arc counterclockwise between the two angles.
 arcT :: Angle a => a -> a -> Trail R2
 arcT start end
-    | e < s     = arcT s (e + fromIntegral d)
-    | otherwise = (if sweep >= tau then glueTrail else id)
-                $ trailFromSegments bs
+    | end' < start' = arcT start' (end' + fromIntegral d)
+    | otherwise     = (if sweep >= tau then glueTrail else id)
+                    $ trailFromSegments bs
   where sweep = convertAngle $ end - start
         bs    = map (rotate start) . bezierFromSweep $ sweep
 
         -- We want to compare the start and the end and in case
         -- there isn't some law about 'Angle' ordering, we use a
         -- known 'Angle' for that.
-        s = convertAngle start :: Turn
-        e = convertAngle end
-        d = ceiling (s - e) :: Integer
+        start' = convertAngle start :: Turn
+        end'   = convertAngle end
+        d      = ceiling (start' - end') :: Integer
 
 -- | Given a start angle @s@ and an end angle @e@, @'arc' s e@ is the
 --   path of a radius one arc counterclockwise between the two angles.
@@ -127,7 +126,7 @@ arcCW start end = trailLike $
 --   be clockwise, otherwise it will be counterclockwise. The origin
 --   of the arc is its center.
 --
---   <<diagrams/arc'Ex.svg#diagram=arc'Ex&width=300>>
+--   <<diagrams/src_Diagrams_TwoD_Arc_arc'Ex.svg#diagram=arc'Ex&width=300>>
 --
 --   > arc'Ex = mconcat [ arc' r 0 (1/4 :: Turn) | r <- [0.5,-1,1.5] ]
 --   >        # centerXY # pad 1.1
@@ -139,7 +138,7 @@ arc' r start end = trailLike $ scale (abs r) ts `at` (rotate start $ p2 (abs r,0
 -- | Create a circular wedge of the given radius, beginning at the
 --   first angle and extending counterclockwise to the second.
 --
---   <<diagrams/wedgeEx.svg#diagram=wedgeEx&width=400>>
+--   <<diagrams/src_Diagrams_TwoD_Arc_wedgeEx.svg#diagram=wedgeEx&width=400>>
 --
 --   > wedgeEx = hcat' with {sep = 0.5}
 --   >   [ wedge 1 (0 :: Turn) (1/4)
@@ -160,7 +159,7 @@ wedge r a1 a2 = trailLike . (`at` origin) . glueTrail . wrapLine
 --   @height@ results in an arc to the left of the line from @p@ to
 --   @q@; a negative value yields one to the right.
 --
---   <<diagrams/arcBetweenEx.svg#diagram=arcBetweenEx&width=300>>
+--   <<diagrams/src_Diagrams_TwoD_Arc_arcBetweenEx.svg#diagram=arcBetweenEx&width=300>>
 --
 --   > arcBetweenEx = mconcat
 --   >   [ arcBetween origin (p2 (2,1)) ht | ht <- [-0.2, -0.1 .. 0.2] ]

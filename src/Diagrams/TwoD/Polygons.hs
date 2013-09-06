@@ -48,9 +48,7 @@ import           Control.Monad           (forM, liftM)
 import           Control.Monad.ST        (ST, runST)
 import           Data.Array.ST           (STUArray, newArray, readArray,
                                           writeArray)
-import qualified Data.Foldable           as F
 import           Data.List               (maximumBy, minimumBy)
-import qualified Data.List.NonEmpty      as NEL
 import           Data.Maybe              (catMaybes)
 import           Data.Monoid             (mconcat, mempty)
 import           Data.Ord                (comparing)
@@ -64,7 +62,6 @@ import           Diagrams.Core
 import           Diagrams.Located
 import           Diagrams.Path
 import           Diagrams.Points         (centroid)
-import           Diagrams.Segment
 import           Diagrams.Trail
 import           Diagrams.TrailLike
 import           Diagrams.TwoD.Transform
@@ -219,7 +216,7 @@ orientPoints v xs = rotation a
     (n1,x,n2) = maximumBy (comparing (distAlong v . sndOf3))
                   (zip3 (tail (cycle xs)) xs (last xs : init xs))
     distAlong w ((.-. origin) -> p) = signum (w <.> p) * magnitude (project w p)
-    sndOf3 (_,x,_) = x
+    sndOf3 (_,b,_) = b
     a = minimumBy (comparing abs) . map (angleFromNormal . (.-. x)) $ [n1,n2]
     v' = normalized v
     angleFromNormal o

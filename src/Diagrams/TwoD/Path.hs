@@ -25,7 +25,7 @@ module Diagrams.TwoD.Path
 
          stroke, stroke', strokeTrail, strokeT, strokeTrail', strokeT'
        , strokeLine, strokeLoop
-       , strokeLocT, strokeLocLine, strokeLocLoop
+       , strokeLocTrail, strokeLocT, strokeLocLine, strokeLocLoop
 
          -- ** Stroke options
 
@@ -60,7 +60,7 @@ import           Diagrams.Segment
 import           Diagrams.Solve
 import           Diagrams.Trail
 import           Diagrams.TrailLike
-import           Diagrams.TwoD.Segment
+import           Diagrams.TwoD.Segment ()
 import           Diagrams.TwoD.Types
 import           Diagrams.Util         (tau)
 
@@ -112,11 +112,11 @@ instance Renderable (Path R2) b => TrailLike (QDiagram b R2 Any) where
 --   ... }@ syntax may be used.
 stroke' :: (Renderable (Path R2) b, IsName a) => StrokeOpts a -> Path R2 -> Diagram b R2
 stroke' opts path
-  | null (pathTrails p1) =           mkP p2
-  | null (pathTrails p2) = mkP p1
-  | otherwise            = mkP p1 <> mkP p2
+  | null (pathTrails pLines) =           mkP pLoops
+  | null (pathTrails pLoops) = mkP pLines
+  | otherwise            = mkP pLines <> mkP pLoops
   where
-    (p1,p2) = partitionPath (isLine . unLoc) path
+    (pLines,pLoops) = partitionPath (isLine . unLoc) path
     mkP p
       = mkQD (Prim p)
          (getEnvelope p)
@@ -201,9 +201,13 @@ strokeLoop :: (Renderable (Path R2) b) => Trail' Loop R2 -> Diagram b R2
 strokeLoop = strokeT . wrapLoop
 
 -- | A convenience function for converting a @Located Trail@ directly
---   into a diagram; @strokeLocT = stroke . trailLike@.
+--   into a diagram; @strokeLocTrail = stroke . trailLike@.
+strokeLocTrail :: (Renderable (Path R2) b) => Located (Trail R2) -> Diagram b R2
+strokeLocTrail = stroke . trailLike
+
+-- | Deprecated synonym for 'strokeLocTrail'.
 strokeLocT :: (Renderable (Path R2) b) => Located (Trail R2) -> Diagram b R2
-strokeLocT = stroke . trailLike
+strokeLocT = strokeLocTrail
 
 -- | A convenience function for converting a @Located@ line directly
 --   into a diagram; @strokeLocLine = stroke . trailLike . mapLoc wrapLine@.

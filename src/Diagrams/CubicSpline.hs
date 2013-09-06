@@ -26,9 +26,7 @@ module Diagrams.CubicSpline
 import           Diagrams.Core
 import           Diagrams.Core.Points
 import           Diagrams.CubicSpline.Internal
-import           Diagrams.Located              (at)
-import           Diagrams.Located
-import           Diagrams.Path
+import           Diagrams.Located              (Located, at, mapLoc)
 import           Diagrams.Segment
 import           Diagrams.Trail
 import           Diagrams.TrailLike            (TrailLike (..))
@@ -37,14 +35,13 @@ import           Diagrams.TrailLike            (TrailLike (..))
 import           Data.NumInstances.Tuple       ()
 
 import           Control.Newtype
-import           Data.Semigroup
 import           Data.VectorSpace
 
 -- | Construct a spline path-like thing of cubic segments from a list of
 --   vertices, with the first vertex as the starting point.  The first
 --   argument specifies whether the path should be closed.
 --
---   <<diagrams/cubicSplineEx.svg#diagram=cubicSplineEx&width=600>>
+--   <<diagrams/src_Diagrams_CubicSpline_cubicSplineEx.svg#diagram=cubicSplineEx&width=600>>
 --
 --   > pts = map p2 [(0,0), (2,3), (5,-2), (-4,1), (0,3)]
 --   > dot = circle 0.2 # fc blue # lw 0

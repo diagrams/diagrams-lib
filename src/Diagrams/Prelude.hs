@@ -41,6 +41,9 @@ module Diagrams.Prelude
          -- | Parametrization of segments and trails.
        , module Diagrams.Parametric
 
+         -- | Adjusting the length of parameterized objects.
+       , module Diagrams.Parametric.Adjust
+
          -- | Trail-like things.
        , module Diagrams.TrailLike
 
@@ -114,12 +117,12 @@ import           Diagrams.Animation
 import           Diagrams.Attributes
 import           Diagrams.BoundingBox
 import           Diagrams.Combinators
-import           Diagrams.Coordinates
 import           Diagrams.CubicSpline
 import           Diagrams.Envelope
 import           Diagrams.Located
 import           Diagrams.Names
 import           Diagrams.Parametric
+import           Diagrams.Parametric.Adjust
 import           Diagrams.Path
 import           Diagrams.Points
 import           Diagrams.Query
@@ -134,7 +137,7 @@ import           Diagrams.Util
 import           Control.Applicative
 import           Data.Active
 import           Data.AffineSpace
-import           Data.Colour          hiding (AffineSpace (..), atop)
+import           Data.Colour                hiding (AffineSpace (..), atop)
 import           Data.Colour.Names
 import           Data.Semigroup
-import           Data.VectorSpace     hiding (Sum (..))
+import           Data.VectorSpace           hiding (Sum (..))

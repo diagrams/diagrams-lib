@@ -25,7 +25,6 @@ module Diagrams.TwoD.Ellipse
 import           Diagrams.Core
 
 import           Diagrams.Located        (at)
-import           Diagrams.Path
 import           Diagrams.TrailLike
 import           Diagrams.TwoD.Arc
 import           Diagrams.TwoD.Transform
