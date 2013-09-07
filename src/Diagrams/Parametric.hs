@@ -39,7 +39,7 @@ class Parametric p where
  -- | 'atParam'' yields a parameterized view of an object as a
   --   continuous function. The second argument is a function which typically
   --   has codomain [domainLower, domainUpper]. It is useful for things
-  --   like reversing the domain, or re-parameterizing by arc length or
+  --   like re-parameterizing by arc length or
   --   by the distance from the start to the end of p.
   atParam' :: p -> DomainMap p -> Scalar (V p) -> Codomain p
 

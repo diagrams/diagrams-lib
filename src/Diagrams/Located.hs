@@ -123,7 +123,7 @@ type instance Codomain (Located a) = Point (Codomain a)
 
 instance (Codomain a ~ V a, AdditiveGroup (V a), Parametric a)
     => Parametric (Located a) where
-  (Loc x a) `atParam` p = x .+^ (a `atParam` p)
+  atParam' (Loc x a) f p = x .+^ (atParam' a f p)
 
 instance DomainBounds a => DomainBounds (Located a) where
   domainLower (Loc _ a) = domainLower a
@@ -136,8 +136,8 @@ instance ( Codomain a ~ V a, Fractional (Scalar (V a)), AdditiveGroup (V a)
          , Sectionable a, Parametric a
          )
     => Sectionable (Located a) where
-  splitAtParam (Loc x a) p = (Loc x a1, Loc (x .+^ (a `atParam` p)) a2)
-    where (a1,a2) = splitAtParam a p
+  splitAtParam' (Loc x a) f p = (Loc x a1, Loc (x .+^ (atParam' a f p)) a2)
+    where (a1,a2) = splitAtParam' a f p
 
   reverseDomain (Loc x a) = Loc (x .+^ y) (reverseDomain a)
     where y = a `atParam` (domainUpper a)
