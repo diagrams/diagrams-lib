@@ -156,7 +156,7 @@ type instance Codomain (SegTree v) = v
 
 instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
     => Parametric (SegTree v) where
-  atParam t p = offset . fst $ splitAtParam t p
+  atParam' t f p = offset . fst $ splitAtParam' t f p
 
 instance Num (Scalar v) => DomainBounds (SegTree v)
 
@@ -165,25 +165,25 @@ instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v), Num (Scala
 
 instance (InnerSpace v, RealFrac (Scalar v), Floating (Scalar v))
     => Sectionable (SegTree v) where
-  splitAtParam (SegTree t) p
+  splitAtParam' (SegTree t) f p
     | p < 0     = case FT.viewl t of
                     EmptyL    -> emptySplit
                     seg :< t' ->
-                      case seg `splitAtParam` (p * tSegs) of
+                      case  splitAtParam' seg f (f (p * tSegs)) of
                         (seg1, seg2) -> ( SegTree $ FT.singleton seg1
                                         , SegTree $ seg2 <| t'
                                         )
     | p >= 1    = case FT.viewr t of
                     EmptyR    -> emptySplit
                     t' :> seg ->
-                      case seg `splitAtParam` (1 - (1 - p)*tSegs) of
+                      case  splitAtParam' seg f (f (1 - (1 - p)*tSegs)) of
                         (seg1, seg2) -> ( SegTree $ t' |> seg1
                                         , SegTree $ FT.singleton seg2
                                         )
     | otherwise = case FT.viewl after of
                     EmptyL    -> emptySplit
                     seg :< after' ->
-                      case seg `splitAtParam` (snd . properFraction $ p * tSegs) of
+                      case splitAtParam' seg f (f (snd . properFraction $ p * tSegs)) of
                         (seg1, seg2) -> ( SegTree $ before |> seg1
                                         , SegTree $ seg2   <| after'
                                         )
@@ -374,9 +374,9 @@ instance (HasLinearMap v, InnerSpace v, OrderedField (Scalar v))
 
 instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
     => Parametric (Trail' l v) where
-  atParam t p = withTrail'
-                  (\(Line segT) -> segT `atParam` p)
-                  (\l -> cutLoop l `atParam` p')
+  atParam' t f p = withTrail'
+                  (\(Line segT) -> atParam' segT f p)
+                  (\l -> atParam' (cutLoop l) f p')
                   t
     where
       pf = snd . properFraction $ p
@@ -390,9 +390,9 @@ instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
 
 instance (InnerSpace v, RealFrac (Scalar v), Floating (Scalar v))
     => Sectionable (Trail' Line v) where
-  splitAtParam (Line t) p = (Line t1, Line t2)
+  splitAtParam' (Line t) f p = (Line t1, Line t2)
     where
-      (t1, t2) = splitAtParam t p
+      (t1, t2) = splitAtParam' t f p
 
   reverseDomain = reverseLine
 
@@ -471,7 +471,7 @@ instance (InnerSpace v, OrderedField (Scalar v)) => Enveloped (Trail v) where
 
 instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
     => Parametric (Trail v) where
-  atParam t p = withTrail (`atParam` p) (`atParam` p) t
+  atParam' t f p = withTrail (\s -> atParam' s f p) (\s -> atParam' s f p) t
 
 instance Num (Scalar v) => DomainBounds (Trail v)
 
@@ -489,7 +489,7 @@ instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
 --   'cutLoop' yourself.)
 instance (InnerSpace v, RealFrac (Scalar v), Floating (Scalar v))
     => Sectionable (Trail v) where
-  splitAtParam t p = withLine ((wrapLine *** wrapLine) . (`splitAtParam` p)) t
+  splitAtParam' t f p = withLine ((wrapLine *** wrapLine) . (\s -> splitAtParam' s f p)) t
 
   reverseDomain = reverseTrail
 

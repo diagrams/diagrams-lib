@@ -179,11 +179,13 @@ type instance Codomain (Segment Closed v) = v
 --   the segment for each value of the parameter between @0@ and @1@.
 --   It is designed to be used infix, like @seg ``atParam`` 0.5@.
 instance (VectorSpace v, Num (Scalar v)) => Parametric (Segment Closed v) where
-  atParam (Linear (OffsetClosed x)) t       = t *^ x
-  atParam (Cubic c1 c2 (OffsetClosed x2)) t =     (3 * t'*t'*t ) *^ c1
+  atParam' (Linear (OffsetClosed x)) f t       = (f t) *^ x
+  atParam' (Cubic c1 c2 (OffsetClosed x2)) f s =     (3 * t'*t'*t ) *^ c1
                                               ^+^ (3 * t'*t *t ) *^ c2
                                               ^+^ (    t *t *t ) *^ x2
-    where t' = 1-t
+    where
+      t = f s
+      t' = 1 - t
 
 instance Num (Scalar v) => DomainBounds (Segment Closed v)
 
@@ -245,12 +247,13 @@ instance (InnerSpace v, OrderedField (Scalar v)) => Enveloped (Segment Closed v)
 ------------------------------------------------------------
 
 instance (VectorSpace v, Fractional (Scalar v)) => Sectionable (Segment Closed v) where
-  splitAtParam (Linear (OffsetClosed x1)) t = (left, right)
+  splitAtParam' (Linear (OffsetClosed x1)) f t = (left, right)
     where left  = straight p
           right = straight (x1 ^-^ p)
-          p = lerp zeroV x1 t
-  splitAtParam (Cubic c1 c2 (OffsetClosed x2)) t = (left, right)
-    where left  = bezier3 a b e
+          p = lerp zeroV x1 (f t)
+  splitAtParam' (Cubic c1 c2 (OffsetClosed x2)) f s = (left, right)
+    where t = f s
+          left  = bezier3 a b e
           right = bezier3 (c ^-^ e) (d ^-^ e) (x2 ^-^ e)
           p = lerp c1    c2 t
           a = lerp zeroV c1 t
@@ -360,9 +363,10 @@ fromFixedSeg (FCubic x1 c1 c2 x2) = bezier3 (c1 .-. x1) (c2 .-. x1) (x2 .-. x1) 
 type instance Codomain (FixedSegment v) = Point v
 
 instance VectorSpace v => Parametric (FixedSegment v) where
-  atParam (FLinear p1 p2) t = alerp p1 p2 t
-  atParam (FCubic x1 c1 c2 x2) t = p3
-    where p11 = alerp x1 c1 t
+  atParam' (FLinear p1 p2) f t = alerp p1 p2 (f t)
+  atParam' (FCubic x1 c1 c2 x2) f s = p3
+    where t   = f s
+          p11 = alerp x1 c1 t
           p12 = alerp c1 c2 t
           p13 = alerp c2 x2 t
 

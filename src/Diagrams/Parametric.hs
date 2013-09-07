@@ -16,7 +16,7 @@
 module Diagrams.Parametric
   (
     stdTolerance
-  , Codomain, Parametric(..)
+  , Codomain, DomainMap, Parametric(..)
 
   , DomainBounds(..), domainBounds, EndValues(..), Sectionable(..), HasArcLength(..)
 
@@ -31,13 +31,23 @@ import qualified Numeric.Interval   as I
 --   vector results, or @(Point (V p))@, for functions with absolute coordinates.
 type family Codomain p :: *
 
+type DomainMap p = Scalar (V p) -> Scalar (V p)
+
 -- | Type class for parametric functions.
 class Parametric p where
+
+ -- | 'atParam'' yields a parameterized view of an object as a
+  --   continuous function. The second argument is a function which typically
+  --   has codomain [domainLower, domainUpper]. It is useful for things
+  --   like reversing the domain, or re-parameterizing by arc length or
+  --   by the distance from the start to the end of p.
+  atParam' :: p -> DomainMap p -> Scalar (V p) -> Codomain p
 
   -- | 'atParam' yields a parameterized view of an object as a
   --   continuous function. It is designed to be used infix, like @path
   --   ``atParam`` 0.5@.
   atParam :: p -> Scalar (V p) -> Codomain p
+  atParam x t = atParam' x id t
 
 -- | Type class for parametric functions with a bounded domain.  The
 --   default bounds are @[0,1]@.
@@ -72,6 +82,8 @@ class (Parametric p, DomainBounds p) => EndValues p where
   atStart :: p -> Codomain p
   atStart x = x `atParam` domainLower x
 
+  atStart' ::  p -> DomainMap p -> Codomain p
+  atStart' x f = atParam' x f (domainLower x)
   -- | 'atEnd' is the value at the end of the domain. That is,
   --
   --   > atEnd x = x `atParam` domainUpper x
@@ -80,6 +92,10 @@ class (Parametric p, DomainBounds p) => EndValues p where
   --   have a more efficient and/or precise implementation.
   atEnd :: p -> Codomain p
   atEnd x = x `atParam` domainUpper x
+
+  atEnd' ::  p -> DomainMap p -> Codomain p
+  atEnd' x f = atParam' x f (domainUpper x)
+
 
 -- | Return the lower and upper bounds of a parametric domain together
 --   as a pair.
@@ -114,9 +130,15 @@ class DomainBounds p => Sectionable p where
   --   the parameter 2, and the second result path travels /backwards/
   --   from the end of the first to the end of the original path.
   splitAtParam :: p -> Scalar (V p) -> (p, p)
-  splitAtParam x t
-    = ( section x (domainLower x) t
-      , section x t (domainUpper x))
+  splitAtParam x t = splitAtParam' x id t
+
+  splitAtParam' :: p -> DomainMap p -> Scalar (V p) -> (p, p)
+  splitAtParam' x f t
+    = ( section x l (f t)
+      , section x (f t) u)
+    where
+      l = f (domainLower x)
+      u = f (domainUpper x)
 
   -- | Extract a particular section of the domain, linearly
   --   reparameterized to the same domain as the original.  Should
@@ -131,9 +153,24 @@ class DomainBounds p => Sectionable p where
   --   original, and the reparameterization should be linear.
   section :: p -> Scalar (V p) -> Scalar (V p) -> p
   default section :: Fractional (Scalar (V p)) => p -> Scalar (V p) -> Scalar (V p) -> p
-  section x t1 t2 = snd (splitAtParam (fst (splitAtParam x t2)) (t1/t2))
+  section x t1 t2 = section' x id t1 t2
+  --section x t1 t2 = snd (splitAtParam (fst (splitAtParam x t2)) (t1/t2))
 
+  section' :: p -> DomainMap p ->  Scalar (V p) -> Scalar (V p) -> p
+  default section' :: Fractional (Scalar (V p))
+                   => p -> DomainMap p -> Scalar (V p) -> Scalar (V p) -> p
+  section' x f t1 t2 = snd (splitAtParam' (fst (splitAtParam' x f t2)) f (t1/t2))
+
+  -- XXX This doesn't really flip the parameterization of the domain, it actually
+  --     reveses p, I propose creating a function:
+  --     reverseParam :: DomainBounds p => Scalar (V p) -> Scalar (V p)
+  --     reverseParam t p = domainUpper p - t. and using this function where
+  --     the "old" reverseParam is needed
   -- | Flip the parameterization on the domain.
+  --reverseParam :: DomainMap p
+  --default reverseParam :: Num (Scalar (V p)) => DomainMap p
+  --reverseParam x t = domainUpper x - t
+
   reverseDomain :: p -> p
 
 -- | The standard tolerance used by @std...@ functions (like
