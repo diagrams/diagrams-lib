@@ -16,7 +16,7 @@ module Diagrams.TwoD.Vector
          unitX, unitY, unit_X, unit_Y
 
          -- * Converting between vectors and angles
-       , direction, fromDirection,  e
+       , direction, angleBetween, fromDirection, e
 
          -- * 2D vector utilities
        , perp, leftTurn
@@ -47,6 +47,15 @@ unit_Y = 0 & (-1)
 --   vector is arbitrarily assigned the direction 0.
 direction :: Angle a => R2 -> a
 direction (coords -> x :& y) = convertAngle . Rad $ atan2 y x
+
+-- | Compute the clockwise angle from the first vector to the second.
+angleBetween :: (Angle a, Num a, Ord a) => R2 -> R2 -> a
+angleBetween v1 v2
+  | d2 > d1   = d2 - d1
+  | otherwise = fullTurn + d2 - d1
+  where
+    d1 = direction v1
+    d2 = direction v2
 
 -- | Convert an angle into a unit vector pointing in that direction.
 fromDirection :: Angle a => a -> R2
