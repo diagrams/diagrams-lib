@@ -27,7 +27,7 @@ module Diagrams.TwoD.Types
          -- * Angles
        , Angle(..)
        , Turn(..), asTurn, CircleFrac, Rad(..), asRad, Deg(..), asDeg
-       , fullCircle, convertAngle
+       , fullTurn, fullCircle, convertAngle
        ) where
 
 import           Diagrams.Coordinates
