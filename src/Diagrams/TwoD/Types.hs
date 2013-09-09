@@ -102,7 +102,7 @@ instance Show R2 where
     showCoord x . showString " & " . showCoord y
    where
     showCoord c | c < 0     = showParen True (shows c)
-                | otherwise = shows x
+                | otherwise = shows c
 
 instance Read R2 where
   readsPrec d r = readParen (d > app_prec)
