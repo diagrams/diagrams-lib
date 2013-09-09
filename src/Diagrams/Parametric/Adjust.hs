@@ -57,12 +57,15 @@ instance Default AdjustSide where
 instance Fractional (Scalar v) => Default (AdjustOpts v) where
   def = AO def def stdTolerance Proxy
 
+paramDistance x t = undefined
+
 -- | Adjust the length of a parametric object such as a segment or
 --   trail.  The second parameter is an option record which controls how
 --   the adjustment should be performed; see 'AdjustOpts'.
 
--- This origingal attempt crashes GHC, Ticket 8227. Commenting out the line
--- marked XXX allows it to compile.
+-- This origingal attempt crashes GHC, Ticket 8227. Deleting the line
+-- marked XXX allows it to compile. Hence the more redundant code used
+-- below.
 
 -- adjust' :: (DomainBounds a, Sectionable a, HasArcLength a, Fractional (Scalar (V a)))
 --        => a -> DomainMap a -> Scalar (V a) -> AdjustOpts (V a) -> a
