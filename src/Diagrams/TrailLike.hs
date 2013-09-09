@@ -110,7 +110,14 @@ instance TrailLike t => TrailLike (Located t) where
 -- | Construct a trail-like thing from a list of segments, with the
 --   origin as the location.
 --
---   XXX example/picture
+--   <<diagrams/src_Diagrams_TrailLike_fromSegmentsEx.svg#diagram=fromSegmentsEx&height=200>>
+--
+--   > fromSegmentsEx = fromSegments
+--   >   [ straight (r2 (1,1))
+--   >   , bézier3  (r2 (1,1)) unitX unit_Y
+--   >   , straight unit_X
+--   >   ]
+--   >   # centerXY # pad 1.1
 fromSegments :: TrailLike t => [Segment Closed (V t)] -> t
 fromSegments = fromLocSegments . (`at` origin)
 
@@ -121,7 +128,15 @@ fromLocSegments = trailLike . mapLoc trailFromSegments
 -- | Construct a trail-like thing of linear segments from a list
 --   of offsets, with the origin as the location.
 --
---   XXX example/picture
+--   <<diagrams/src_Diagrams_TrailLike_fromOffsetsEx.svg#diagram=fromOffsetsEx&width=300>>
+--
+--   > fromOffsetsEx = fromOffsets
+--   >   [ unitX
+--   >   , unitX # rotateBy (1/6)
+--   >   , unitX # rotateBy (-1/6)
+--   >   , unitX
+--   >   ]
+--   >   # centerXY # pad 1.1
 fromOffsets :: TrailLike t => [V t] -> t
 fromOffsets = trailLike . (`at` origin) . trailFromOffsets
 
@@ -135,7 +150,21 @@ fromLocOffsets = trailLike . mapLoc trailFromOffsets
 --   vertices are given, the empty trail is used with the origin as
 --   the location.
 --
---   XXX example/picture
+--   <<diagrams/src_Diagrams_TrailLike_fromVerticesEx.svg#diagram=fromVerticesEx&width=300>>
+--
+--   > import Data.List (transpose)
+--   >
+--   > fromVerticesEx =
+--   >   ( [ pentagon 1
+--   >     , pentagon 1.3 # rotateBy (1/15)
+--   >     , pentagon 1.5 # rotateBy (2/15)
+--   >     ]
+--   >     # transpose
+--   >     # concat
+--   >   )
+--   >   # fromVertices
+--   >   # closeTrail # strokeTrail
+--   >   # centerXY # pad 1.1
 fromVertices :: TrailLike t => [Point (V t)] -> t
 fromVertices []       = trailLike (emptyTrail `at` origin)
 fromVertices ps@(p:_) = trailLike (trailFromSegments (segmentsFromVertices ps) `at` p)
@@ -145,12 +174,26 @@ segmentsFromVertices []         = []
 segmentsFromVertices vvs@(_:vs) = map straight (zipWith (flip (.-.)) vvs vs)
 
 -- | Create a linear trail between two given points.
+--
+--   <<diagrams/src_Diagrams_TrailLike_twiddleEx.svg#diagram=twiddleEx&width=300>>
+--
+--   > twiddleEx
+--   >   = mconcat ((~~) <$> hexagon 1 <*> hexagon 1)
+--   >   # centerXY # pad 1.1
 (~~) :: TrailLike t => Point (V t) -> Point (V t) -> t
 p1 ~~ p2 = fromVertices [p1, p2]
 
 -- | Given a concretely located trail, \"explode\" it by turning each
 --   segment into its own separate trail.  Useful for (say) applying a
 --   different style to each segment.
+--
+--   <<diagrams/src_Diagrams_TrailLike_explodeTrailEx.svg#diagram=explodeTrailEx&width=300>>
+--
+--   > explodeTrailEx
+--   >   = pentagon 1
+--   >   # explodeTrail  -- generate a list of diagrams
+--   >   # zipWith lc [orange, green, yellow, red, blue]
+--   >   # mconcat # centerXY # pad 1.1
 explodeTrail :: (VectorSpace (V t), TrailLike t) => Located (Trail (V t)) -> [t]
 explodeTrail = map (mkTrail . fromFixedSeg) . fixTrail
   where
