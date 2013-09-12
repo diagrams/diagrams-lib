@@ -21,6 +21,7 @@ module Diagrams.ThreeD.Vector
        ) where
 
 import Data.VectorSpace
+import Data.Cross
 
 import Diagrams.Coordinates
 import Diagrams.ThreeD.Types
@@ -69,3 +70,8 @@ fromSpherical r θ' φ' = r3 (x,y,z) where
   x = r * cos θ * cos φ
   y = r * sin θ * cos φ
   z = r * sin φ
+
+-- | compute the positive angle between the two vectors in their common plane
+angleBetween  :: (Angle a, Num a, Ord a) => R3 -> R3 -> a
+angleBetween v1 v2 = convertAngle . Rad $
+                     atan2 (magnitude $ cross3 v1 v2) (v1 <.> v2)
