@@ -26,6 +26,7 @@ import           Control.Newtype         (over)
 import           Diagrams.Coordinates
 import           Diagrams.Transform
 import           Diagrams.ThreeD.Types
+import           Diagrams.ThreeD.Vector
 
 import           Data.Semigroup
 
@@ -79,17 +80,17 @@ aboutY ang = fromLinear r (linv r) where
 
 -- | rotationAbout p d a is a rotation about a line parallel to d
 --   passing through p.
-rotatationAbout :: Angle a => P3 -> R3 -> a -> T3
+rotatationAbout :: (Angle a, Direction d) => P3 -> d -> a -> T3
 rotatationAbout
   p -- ^ origin of rotation
-  d -- ^ direction of rotation
+  d -- ^ direction of rotation axis
   a -- ^ angle of rotation
   = mconcat [translation (negateV t),
              fromLinear r (linv r),
              translation t] where
     r = rot theta <-> rot (-theta)
     Rad theta = convertAngle a
-    w = normalized d
+    w = fromDirection d
     rot :: Double -> R3 -> R3
     rot th v = v ^* cos th ^+^
                cross3 w v ^* sin th ^+^

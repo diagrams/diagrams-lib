@@ -17,7 +17,7 @@ module Diagrams.ThreeD.Vector
          unitX, unitY, unitZ, unit_X, unit_Y, unit_Z,
 
          -- * Converting between vectors and angles
-         spherical, fromSpherical
+         direction, fromDirection
        ) where
 
 import Data.VectorSpace
@@ -50,26 +50,26 @@ unit_Y = 0 & (-1) & 0
 unit_Z :: R3
 unit_Z = 0 & 0 & (-1)
 
--- should this be explained in terms of τ instead?
--- | spherical p is the triple
---   (r ∈ [0,∞), θ ∈ (-π,π], φ ∈ (-π/2, π/2))
-spherical :: Angle a => R3 -> (Double, a, a)
-spherical v
-  | r == 0 =(0, zero, zero)
-  | otherwise = (r, θ, φ) where
+
+-- | direction v is the direction of which v points.
+direction :: Direction d => R3 -> d
+direction v
+  | r == 0 = fromPolar $ Polar zero zero
+  | otherwise = fromPolar $ Polar θ φ where
   r = magnitude v
   (x,y,z) = unr3 v
-  φ = convertAngle . Rad . asin $ z / r
-  θ = convertAngle . Rad . atan2 y $ x
-  zero = convertAngle . Rad $ 0
+  φ = Rad . asin $ z / r
+  θ = Rad . atan2 y $ x
+  zero = Rad $ 0
 
-fromSpherical :: Angle a => Double -> a -> a -> R3
-fromSpherical r θ' φ' = r3 (x,y,z) where
-  θ = getRad $ convertAngle θ'
-  φ = getRad $ convertAngle φ'
-  x = r * cos θ * cos φ
-  y = r * sin θ * cos φ
-  z = r * sin φ
+-- | fromDirection d is the unit vector in the direction d
+fromDirection :: Direction d => d -> R3
+fromDirection (toPolar -> (Polar θ' φ')) = r3 (x,y,z) where
+  θ = getRad $ θ'
+  φ = getRad $ φ'
+  x = cos θ * cos φ
+  y = sin θ * cos φ
+  z = sin φ
 
 -- | compute the positive angle between the two vectors in their common plane
 angleBetween  :: (Angle a, Num a, Ord a) => R3 -> R3 -> a

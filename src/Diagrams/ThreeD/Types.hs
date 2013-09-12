@@ -25,11 +25,15 @@ module Diagrams.ThreeD.Types
        , P3, p3, unp3
        , T3
          
-         -- * Angles
+         -- * reexport Angles
        , Angle(..)
        , CircleFrac(..), Rad(..), Deg(..)
 
        , fullCircle, convertAngle, angleRatio
+
+         -- * directions in 3D
+       , Direction(..)
+       , Polar(..)
        ) where
 
 import Diagrams.Coordinates
@@ -103,3 +107,28 @@ instance Transformable R3 where
 
 instance HasCross3 R3 where
   cross3 u v = r3 $ cross3 (unr3 u) (unr3 v)
+
+--------------------------------------------------------------------------------
+-- Direction
+
+-- | Direction is a type class representing directions in R3.  The interface is
+-- based on that of the Angle class in 2D.
+
+class AdditiveGroup d => Direction d where
+    -- | Convert to polar angles
+    toPolar :: Angle a => d -> Polar a
+
+    -- | Convert from polar angles
+    fromPolar :: Angle a => Polar a -> d
+
+instance Angle a => AdditiveGroup (Polar a) where
+    zeroV = Polar 0 0
+    (Polar θ φ) ^+^ (Polar θ' φ') = Polar (θ+θ') (φ+φ')
+    negateV (Polar θ φ) = Polar (-θ) (-φ)
+
+instance Angle a => Direction (Polar a) where
+    toPolar (Polar θ φ) = Polar (convertAngle θ) (convertAngle φ)
+    fromPolar (Polar θ φ) = Polar (convertAngle θ) (convertAngle φ)
+
+-- | A direction expressed as a pair of polar coordinates
+data Angle a => Polar a = Polar a a
