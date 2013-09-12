@@ -48,7 +48,7 @@ unit_Y = 0 & (-1)
 direction :: Angle a => R2 -> a
 direction (coords -> x :& y) = convertAngle . Rad $ atan2 y x
 
--- | Compute the clockwise angle from the first vector to the second.
+-- | Compute the counterclockwise angle from the first vector to the second.
 angleBetween :: (Angle a, Num a, Ord a) => R2 -> R2 -> a
 angleBetween v1 v2
   | d2 > d1   = d2 - d1
