@@ -40,16 +40,15 @@ import           Control.Arrow           (first, second)
 --   A positive angle brings positive x-values towards the positive-y axis.
 --
 --   The angle can be expressed using any type which is an
---   instance of 'Angle'.  For example, @rotate (1\/4 ::
---   'CircleFrac')@, @rotate (tau\/4 :: 'Rad')@, and @rotate (90 ::
+--   instance of 'Angle'.  For example, @aboutZ (1\/4 ::
+--   'Turn')@, @aboutZ (tau\/4 :: 'Rad')@, and @rotate (90 ::
 --   'Deg')@ all represent the same transformation, namely, a
---   counterclockwise rotation by a right angle.  To rotate about some
---   point other than the local origin, see 'rotateAbout'.
+--   counterclockwise rotation by a right angle.  For more general rotations,
+--   see 'rotationAbout'.
 --
---   Note that writing @rotate (1\/4)@, with no type annotation, will
+--   Note that writing @aboutZ (1\/4)@, with no type annotation, will
 --   yield an error since GHC cannot figure out which sort of angle
---   you want to use.  In this common situation you can use
---   'rotateBy', which is specialized to take a 'CircleFrac' argument.
+--   you want to use.
 aboutZ :: Angle a => a -> T3
 aboutZ ang = fromLinear r (linv r) where
   r = rot theta <-> rot (-theta)
@@ -58,7 +57,8 @@ aboutZ ang = fromLinear r (linv r) where
                                    (sin th * x + cos th * y) &
                                    z
 
--- | Like aboutZ, but rotates about the X axis.
+-- | Like aboutZ, but rotates about the X axis, bringing positive y-values
+-- towards the positive z-axis.
 aboutX :: Angle a => a -> T3
 aboutX ang = fromLinear r (linv r) where
   r = rot theta <-> rot (-theta)
@@ -67,7 +67,8 @@ aboutX ang = fromLinear r (linv r) where
                                    (cos th * y - sin th * z) &
                                    (sin th * y + cos th * z)
 
--- | Like aboutZ, but rotates about the Y axis.
+-- | Like aboutZ, but rotates about the Y axis, bringing postive
+-- x-values towards the negative z-axis.
 aboutY :: Angle a => a -> T3
 aboutY ang = fromLinear r (linv r) where
   r = rot theta <-> rot (-theta)
