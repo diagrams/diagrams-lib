@@ -27,13 +27,13 @@ module Diagrams.ThreeD.Types
          
          -- * reexport Angles
        , Angle(..)
-       , CircleFrac(..), Rad(..), Deg(..)
+       , Turn(..), Rad(..), Deg(..)
 
        , fullCircle, convertAngle, angleRatio
 
          -- * directions in 3D
        , Direction(..)
-       , Polar(..)
+       , Spherical(..)
        ) where
 
 import Diagrams.Coordinates
@@ -116,19 +116,22 @@ instance HasCross3 R3 where
 
 class AdditiveGroup d => Direction d where
     -- | Convert to polar angles
-    toPolar :: Angle a => d -> Polar a
+    toSpherical :: Angle a => d -> Spherical a
 
     -- | Convert from polar angles
-    fromPolar :: Angle a => Polar a -> d
+    fromSpherical :: Angle a => Spherical a -> d
 
-instance Angle a => AdditiveGroup (Polar a) where
-    zeroV = Polar 0 0
-    (Polar θ φ) ^+^ (Polar θ' φ') = Polar (θ+θ') (φ+φ')
-    negateV (Polar θ φ) = Polar (-θ) (-φ)
+instance Angle a => AdditiveGroup (Spherical a) where
+    zeroV = Spherical 0 0
+    (Spherical θ φ) ^+^ (Spherical θ' φ') = Spherical (θ+θ') (φ+φ')
+    negateV (Spherical θ φ) = Spherical (-θ) (-φ)
 
-instance Angle a => Direction (Polar a) where
-    toPolar (Polar θ φ) = Polar (convertAngle θ) (convertAngle φ)
-    fromPolar (Polar θ φ) = Polar (convertAngle θ) (convertAngle φ)
+instance Angle a => Direction (Spherical a) where
+    toSpherical (Spherical θ φ) = Spherical (convertAngle θ) (convertAngle φ)
+    fromSpherical (Spherical θ φ) = Spherical (convertAngle θ) (convertAngle φ)
 
--- | A direction expressed as a pair of polar coordinates
-data Angle a => Polar a = Polar a a
+-- | A direction expressed as a pair of spherical coordinates.
+-- `Spherical 0 0` is the direction of `unitX`.  The first coordinate
+-- represents rotation about the Z axis, the second rotation towards the Z axis.
+data Angle a => Spherical a = Spherical a a
+                            deriving (Show)
