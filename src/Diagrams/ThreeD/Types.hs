@@ -28,7 +28,8 @@ module Diagrams.ThreeD.Types
          -- * Angles
        , Angle(..)
        , CircleFrac(..), Rad(..), Deg(..)
-       , fullCircle, convertAngle
+
+       , fullCircle, convertAngle, angleRatio
        ) where
 
 import Diagrams.Coordinates
