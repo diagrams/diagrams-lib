@@ -42,7 +42,7 @@ import           Control.Arrow           (first, second)
 --
 --   The angle can be expressed using any type which is an
 --   instance of 'Angle'.  For example, @aboutZ (1\/4 ::
---   'Turn')@, @aboutZ (tau\/4 :: 'Rad')@, and @rotate (90 ::
+--   'Turn')@, @aboutZ (tau\/4 :: 'Rad')@, and @aboutZ (90 ::
 --   'Deg')@ all represent the same transformation, namely, a
 --   counterclockwise rotation by a right angle.  For more general rotations,
 --   see 'rotationAbout'.
