@@ -27,7 +27,7 @@ module Diagrams.TwoD.Types
          -- * Angles
        , Angle(..)
        , Turn(..), asTurn, CircleFrac, Rad(..), asRad, Deg(..), asDeg
-       , fullTurn, fullCircle, convertAngle
+       , fullTurn, fullCircle, convertAngle, angleRatio
        ) where
 
 import           Diagrams.Coordinates
@@ -266,3 +266,7 @@ fullCircle = fullTurn
 -- | Convert between two angle representations.
 convertAngle :: (Angle a, Angle b) => a -> b
 convertAngle = fromTurn . toTurn
+
+-- | Calculate ratio between two angles
+angleRatio :: Angle a => a -> a -> Double
+angleRatio a b = getTurn (toTurn a) / getTurn (toTurn b)

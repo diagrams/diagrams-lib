@@ -24,7 +24,16 @@ module Diagrams.ThreeD.Types
          R3, r3, unr3
        , P3, p3, unp3
        , T3
+         
+         -- * reexport Angles
+       , Angle(..)
+       , Turn(..), Rad(..), Deg(..)
 
+       , fullCircle, convertAngle, angleRatio
+
+         -- * directions in 3D
+       , Direction(..)
+       , Spherical(..)
        ) where
 
 import Diagrams.Coordinates
@@ -35,6 +44,7 @@ import Control.Newtype
 
 import Data.Basis
 import Data.VectorSpace
+import Data.Cross
 
 ------------------------------------------------------------
 -- 3D Euclidean space
@@ -95,3 +105,33 @@ type T3 = Transformation R3
 instance Transformable R3 where
   transform = apply
 
+instance HasCross3 R3 where
+  cross3 u v = r3 $ cross3 (unr3 u) (unr3 v)
+
+--------------------------------------------------------------------------------
+-- Direction
+
+-- | Direction is a type class representing directions in R3.  The interface is
+-- based on that of the Angle class in 2D.
+
+class AdditiveGroup d => Direction d where
+    -- | Convert to polar angles
+    toSpherical :: Angle a => d -> Spherical a
+
+    -- | Convert from polar angles
+    fromSpherical :: Angle a => Spherical a -> d
+
+instance Angle a => AdditiveGroup (Spherical a) where
+    zeroV = Spherical 0 0
+    (Spherical θ φ) ^+^ (Spherical θ' φ') = Spherical (θ+θ') (φ+φ')
+    negateV (Spherical θ φ) = Spherical (-θ) (-φ)
+
+instance Angle a => Direction (Spherical a) where
+    toSpherical (Spherical θ φ) = Spherical (convertAngle θ) (convertAngle φ)
+    fromSpherical (Spherical θ φ) = Spherical (convertAngle θ) (convertAngle φ)
+
+-- | A direction expressed as a pair of spherical coordinates.
+-- `Spherical 0 0` is the direction of `unitX`.  The first coordinate
+-- represents rotation about the Z axis, the second rotation towards the Z axis.
+data Angle a => Spherical a = Spherical a a
+                            deriving (Show)
