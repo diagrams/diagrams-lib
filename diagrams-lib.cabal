@@ -70,6 +70,8 @@ Library
                        Diagrams.TwoD.Adjust,
                        Diagrams.ThreeD.Types,
                        Diagrams.ThreeD.Shapes,
+                       Diagrams.ThreeD.Vector,
+                       Diagrams.ThreeD.Transform,
                        Diagrams.Animation,
                        Diagrams.Animation.Active,
                        Diagrams.Util,
