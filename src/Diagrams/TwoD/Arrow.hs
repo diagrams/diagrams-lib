@@ -82,10 +82,51 @@ instance Default ArrowOpts where
         , headGap      = 0
         , tailGap      = 0
         , shaftWidth   = 0.03
-        , headStyle    = fc black . opacity 1
-        , tailStyle    = fc black . opacity 1
-        , shaftStyle   = fc black . opacity 1
+
+        -- See note [Default arrow style attributes]
+        , headStyle    = fc black
+        , tailStyle    = fc black
+        , shaftStyle   = lc black
         }
+
+{- ~~~~ Note [Default arrow style attributes]
+
+We want to set as few default attributes as possible.  The reason is
+that any attributes which get set by default cannot be overridden
+later.  For example, if we set 'opacity 1' in shaftStyle, then it
+means arrow shafts are always fully opaque (unless you set the opacity
+in shaftStyle).  That is, e.g.
+
+  arrowBetween p q # opacity 0.5
+
+will produce exactly the same output as arrowBetween p q, because the
+opacity is already set in the arrowBetween call and cannot be
+overridden later.
+
+So why set the fill color and line color to black?
+
+  1. The default shaftStyle *must* be set to lc black, because we get
+     the joint fill color from the line color set in shaftStyle.  There is
+     no way to tell when the user has applied a line color externally to
+     the arrow function and magically have the joint fill color update to
+     match.  The downside is that the *only* way to change the color of an
+     arrow shaft is to modify shaftStyle.  Well, tough luck.
+
+  2. Setting the head and tailStyle to 'id' does not work, because
+     then they have the diagrams-default fill, i.e. transparent.
+
+  3. We could set the head and tailStyle using 'recommendFillColor'
+     instead of 'fc'.  That way they would be filled black by default
+     but could be overridden externally by the user, e.g.
+
+       arrowBetween p q # fc orange
+
+     would change the arrowhead to orange.  However, this just seems
+     inconsistent with the fact that # lc orange has no effect (see #1
+     above).  So instead we simply set the default head/tail fill with
+     'fc' and force the user to override it in the ArrowOpts, just as
+     with line color for the shaft.
+-}
 
 -- | Invert a monotonic not decreasing function.
 --   Search for x between low and high for the input to the
