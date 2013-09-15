@@ -29,7 +29,7 @@ module Diagrams.ThreeD.Types
        , Angle(..)
        , Turn(..), Rad(..), Deg(..)
 
-       , fullCircle, convertAngle, angleRatio
+       , fullTurn, convertAngle, angleRatio
 
          -- * directions in 3D
        , Direction(..)
