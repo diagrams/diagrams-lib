@@ -380,12 +380,17 @@ instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
     => Parametric (Trail' l v) where
   atParam t p = withTrail'
                   (\(Line segT) -> segT `atParam` p)
-                  (\l -> cutLoop l `atParam` p')
+                  (\l -> cutLoop l `atParam` mod1 p)
                   t
-    where
-      pf = snd . properFraction $ p
-      p' | p >= 0    = pf
-         | otherwise = 1 + pf
+
+-- | Compute the remainder mod 1.  Convenient for constructing loop
+--   parameterizations that wrap around.
+mod1 :: RealFrac a => a -> a
+mod1 p = p'
+ where
+   pf = snd . properFraction $ p
+   p' | p >= 0    = pf
+      | otherwise = 1 + pf
 
 instance Num (Scalar v) => DomainBounds (Trail' l v)
 
@@ -444,6 +449,8 @@ getSegment = GetSegment
 type instance V (GetSegment t) = V t
 type instance Codomain (GetSegment t) = Maybe (V t, Segment Closed (V t))
 
+-- | Parameters less than 0 yield the first segment; parameters
+--   greater than 1 yield the last.
 instance (InnerSpace v, OrderedField (Scalar v))
     => Parametric (GetSegment (Trail' Line v)) where
   atParam (GetSegment (Line (SegTree ft))) p
@@ -463,6 +470,20 @@ instance (InnerSpace v, OrderedField (Scalar v))
             EmptyL   -> Nothing
             seg :< _ -> Just (offset before, seg)
 
+-- | The parameterization for loops wraps around, /i.e./ parameters
+--   are first reduced \"mod 1\".
+instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
+    => Parametric (GetSegment (Trail' Loop v)) where
+  atParam (GetSegment l) p = atParam (GetSegment (cutLoop l)) (mod1 p)
+
+instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
+    => Parametric (GetSegment (Trail v)) where
+  atParam (GetSegment t) p
+    = withTrail
+      ((`atParam` p) . GetSegment)
+      ((`atParam` p) . GetSegment)
+      t
+
 instance DomainBounds t => DomainBounds (GetSegment t) where
   domainLower (GetSegment t) = domainLower t
   domainUpper (GetSegment t) = domainUpper t
@@ -477,6 +498,24 @@ instance (InnerSpace v, OrderedField (Scalar v))
     = case FT.viewr ft of
         EmptyR     -> Nothing
         ft' :> seg -> Just (offset ft', seg)
+
+instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
+    => EndValues (GetSegment (Trail' Loop v)) where
+  atStart (GetSegment l) = atStart (GetSegment (cutLoop l))
+  atEnd   (GetSegment l) = atEnd   (GetSegment (cutLoop l))
+
+instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
+    => EndValues (GetSegment (Trail v)) where
+  atStart (GetSegment t)
+    = withTrail
+      (\l -> atStart (GetSegment l))
+      (\l -> atStart (GetSegment l))
+      t
+  atEnd (GetSegment t)
+    = withTrail
+      (\l -> atEnd (GetSegment l))
+      (\l -> atEnd (GetSegment l))
+      t
 
 --------------------------------------------------
 -- The Trail type
