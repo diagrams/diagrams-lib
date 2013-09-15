@@ -80,11 +80,13 @@ aboutY ang = fromLinear r (linv r) where
 
 -- | rotationAbout p d a is a rotation about a line parallel to d
 --   passing through p.
-rotatationAbout :: (Angle a, Direction d) => P3 -> d -> a -> T3
 rotatationAbout
-  p -- ^ origin of rotation
-  d -- ^ direction of rotation axis
-  a -- ^ angle of rotation
+  :: (Angle a, Direction d)
+  => P3     -- ^ origin of rotation
+  -> d      -- ^ direction of rotation axis
+  -> a      -- ^ angle of rotation
+  -> T3
+rotatationAbout p d a
   = mconcat [translation (negateV t),
              fromLinear r (linv r),
              translation t] where
