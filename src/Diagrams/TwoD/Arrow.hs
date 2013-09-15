@@ -56,7 +56,7 @@ import           Diagrams.TwoD.Path               (strokeT)
 import           Diagrams.TwoD.Transform          (rotate, rotateBy)
 import           Diagrams.TwoD.Transform.ScaleInv (scaleInvPrim)
 import           Diagrams.TwoD.Types
-import           Diagrams.TwoD.Vector             (direction, unitX, unit_X)
+import           Diagrams.TwoD.Vector             (direction, unitX, unit_X, fromDirection)
 import           Diagrams.Util                    (( # ))
 
 data ArrowOpts
@@ -136,46 +136,6 @@ So why set the fill color and line color to black?
      with line color for the shaft.
 -}
 
--- | Invert a monotonic not decreasing function.
---   Search for x between low and high for the input to the
---   function f such that: |f(x) - target| < epsilon. If the search
---   has not converged after iter iterations then return the current guess.
---   If target is less than f(low) return low, if target is greater than
---   f(high) then return high.
-fInverse :: (Double -> Double)
-           -> Double -> Int -> Double -> Double -> Double -> Double
-fInverse f epsilon iter low high target
-  | iter < 1 = mid
-  | f low > target = low
-  | f high < target = high
-  | f mid > target + epsilon = fInverse f epsilon (iter - 1) low mid target
-  | f mid < target - epsilon = fInverse f epsilon (iter - 1) mid high target
-  | otherwise = mid
-  where mid = (low + high) / 2
-
--- | Default number of iterations to try in hParam and tParam before giving up.
-stdIterations :: Int
-stdIterations = 64
-
--- XXX hParam and tParam are not used in the current implementation, but may
--- XXX be useful, if we add a function that shortens the arrow shaft by the
--- XXX head width, instead of scaling it, as is currently done.
-
--- | Return the parameter p of the point on tr such that the distance from
---   tr `atParam` p to the end of tr is equal to w.
-hParam :: Trail R2 -> Double -> Double
-hParam tr w = (domainUpper tr) - fInverse (\x -> magnitude $ hOffset x)
-              stdTolerance stdIterations (domainLower tr) (domainUpper tr) w
-  where
-    hOffset x = (reverseDomain tr) `atParam` x
-
--- | Same as above but for the start of tr.
-tParam :: Trail R2 -> Double -> Double
-tParam tr w = fInverse (\x -> magnitude $ tOffset x)
-              stdTolerance stdIterations (domainLower tr) (domainUpper tr) w
-  where
-    tOffset x = tr `atParam` x
-
 -- | Calculate the length of the portion of the horizontal line that passes
 --   through the origin and is inside of p.
 -- XXX It may be possible to do away with this function by utilizing the new
@@ -246,19 +206,14 @@ spine tr tw hw size = tS <> shaft <> hS
     tS = if tw > 0 then tSpine else mempty
 
 -- | Calculate the amount required to scale a shaft trail so that an arrow with
---   head width hw and tail width tw has offset t. We use spine intead of the
---   arrow itself, since spine is a trail with the same offset and a trail
---   offset is readily available.
+--   head width hw and tail width tw has offset t.
 shaftScale :: Trail R2 -> Double -> Double -> Double -> Double
-shaftScale tr tw hw t =
-    fInverse f stdTolerance stdIterations (1 / stdScale) stdScale t
+shaftScale tr tw hw t = magnitude (end .-. start) / magnitude (trailOffset tr)
   where
-    f = magnitude . trailOffset . (spine tr tw hw)
-
--- | Maximum scaling adjustment that can be applied to a trail to make the arrow
---   reach from its starting point to its end point.
-stdScale :: Double
-stdScale = 100
+    tAngle = direction . startTangent $ (head $ trailSegments tr) :: Turn
+    hAngle = direction . endTangent $ (last $ trailSegments tr) :: Turn
+    start  = origin .+^ (hw *^ fromDirection hAngle)
+    end    = origin .+^ (t *^ unitX) .-^ (tw *^ fromDirection tAngle)
 
 -- | @arrow len@ creates an arrow of length @len@ with default parameters.
 arrow :: Renderable (Path R2) b => Double -> Diagram b R2
@@ -266,9 +221,7 @@ arrow len = arrow' def len
 
 -- | @arrow' opts len@ creates an arrow of length @len@ using the
 --   given options.  In particular, it scales the given 'arrowShaft'
---   so that the entire arrow has length @len@. The size of
---   @arrowShaft@ is arbitrary since it will be scaled; however it
---   should be not be off by more than a factor of 'stdScale'.
+--   so that the entire arrow has length @len@.
 arrow' :: Renderable (Path R2) b => ArrowOpts -> Double -> Diagram b R2
 arrow' opts len = ar # rotateBy (- dir)
   where
@@ -295,9 +248,7 @@ arrowBetween s e = arrowBetween' def s e
 -- | @arrowBetween' opts s e@ creates an arrow pointing from @s@ to
 --   @e@ using the given options.  In particular, it scales and
 --   rotates @arrowShaft@ to go between @s@ and @e@, taking head,
---   tail, and gaps into account.  The size of @arrowShaft@ is
---   arbitrary; however, it should be not be off by more than a factor
---   of 'stdScale'.
+--   tail, and gaps into account.
 arrowBetween'
   :: Renderable (Path R2) b =>
      ArrowOpts -> P2 -> P2 -> Diagram b R2
