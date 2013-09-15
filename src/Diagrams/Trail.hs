@@ -91,6 +91,10 @@ module Diagrams.Trail
 
        , SegTree(..), trailMeasure, numSegs, offset
 
+         -- ** Extracting segments
+
+       , GetSegment(..), getSegment
+
        ) where
 
 import           Control.Arrow       ((***))
@@ -408,6 +412,71 @@ instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
       (\(Line t) -> arcLengthToParam eps t l)
       (\lp -> arcLengthToParam eps (cutLoop lp) l)
       tr
+
+--------------------------------------------------
+-- Extracting segments
+
+-- | A newtype wrapper around trails which exists solely for its
+--   'Parametric', 'DomainBounds' and 'EndValues' instances.  The idea
+--   is that if @tr@ is a trail, you can write, /e.g./
+--
+--   > getSegment tr `atParam` 0.6
+--
+--   or
+--
+--   > atStart (getSegment tr)
+--
+--   to get the segment at parameter 0.6 or the first segment in the
+--   trail, respectively.
+--
+--   The codomain for 'GetSegment', /i.e./ the result you get from
+--   calling 'atParam', 'atStart', or 'atEnd', is @Maybe (v, Segment
+--   Closed v)@.  @Nothing@ results if the trail is empty; otherwise,
+--   you get a segment as well as the offset from the start of the
+--   trail to the beginning of the segment.
+newtype GetSegment t = GetSegment t
+
+-- | Create a 'GetSegment' wrapper around a trail, after which you can
+--   call 'atParam', 'atStart', or 'atEnd' to extract a segment.
+getSegment :: t -> GetSegment t
+getSegment = GetSegment
+
+type instance V (GetSegment t) = V t
+type instance Codomain (GetSegment t) = Maybe (V t, Segment Closed (V t))
+
+instance (InnerSpace v, OrderedField (Scalar v))
+    => Parametric (GetSegment (Trail' Line v)) where
+  atParam (GetSegment (Line (SegTree ft))) p
+    | p <= 0
+    = case FT.viewl ft of
+        EmptyL    -> Nothing
+        seg :< _  -> Just (zeroV, seg)
+
+    | p >= 1
+    = case FT.viewr ft of
+        EmptyR     -> Nothing
+        ft' :> seg -> Just (offset ft', seg)
+
+    | otherwise
+    = let (before, after) = FT.split ((p * numSegs ft <) . numSegs) $ ft
+      in  case FT.viewl after of
+            EmptyL   -> Nothing
+            seg :< _ -> Just (offset before, seg)
+
+instance DomainBounds t => DomainBounds (GetSegment t) where
+  domainLower (GetSegment t) = domainLower t
+  domainUpper (GetSegment t) = domainUpper t
+
+instance (InnerSpace v, OrderedField (Scalar v))
+    => EndValues (GetSegment (Trail' Line v)) where
+  atStart (GetSegment (Line (SegTree ft)))
+    = case FT.viewl ft of
+        EmptyL   -> Nothing
+        seg :< _ -> Just (zeroV, seg)
+  atEnd (GetSegment (Line (SegTree ft)))
+    = case FT.viewr ft of
+        EmptyR     -> Nothing
+        ft' :> seg -> Just (offset ft', seg)
 
 --------------------------------------------------
 -- The Trail type
