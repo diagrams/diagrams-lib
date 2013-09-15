@@ -450,7 +450,9 @@ type instance V (GetSegment t) = V t
 type instance Codomain (GetSegment t) = Maybe (V t, Segment Closed (V t))
 
 -- | Parameters less than 0 yield the first segment; parameters
---   greater than 1 yield the last.
+--   greater than 1 yield the last.  A parameter exactly at the
+--   junction of two segments yields the second segment (/i.e./ the
+--   one with higher parameter values).
 instance (InnerSpace v, OrderedField (Scalar v))
     => Parametric (GetSegment (Trail' Line v)) where
   atParam (GetSegment (Line (SegTree ft))) p
