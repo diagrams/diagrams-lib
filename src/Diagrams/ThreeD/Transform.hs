@@ -24,15 +24,15 @@ import qualified Diagrams.Core.Transform as T
 import           Control.Newtype         (over)
 
 import           Diagrams.Coordinates
-import           Diagrams.Transform
 import           Diagrams.ThreeD.Types
 import           Diagrams.ThreeD.Vector
+import           Diagrams.Transform
 
 import           Data.Semigroup
 
 import           Data.AffineSpace
-import           Data.VectorSpace
 import           Data.Cross
+import           Data.VectorSpace
 
 import           Control.Arrow           (first, second)
 
@@ -58,7 +58,7 @@ aboutZ ang = fromLinear r (linv r) where
                                    (sin th * x + cos th * y) &
                                    z
 
--- | Like aboutZ, but rotates about the X axis, bringing positive y-values
+-- | Like 'aboutZ', but rotates about the X axis, bringing positive y-values
 -- towards the positive z-axis.
 aboutX :: Angle a => a -> T3
 aboutX ang = fromLinear r (linv r) where
@@ -68,7 +68,7 @@ aboutX ang = fromLinear r (linv r) where
                                    (cos th * y - sin th * z) &
                                    (sin th * y + cos th * z)
 
--- | Like aboutZ, but rotates about the Y axis, bringing postive
+-- | Like 'aboutZ', but rotates about the Y axis, bringing postive
 -- x-values towards the negative z-axis.
 aboutY :: Angle a => a -> T3
 aboutY ang = fromLinear r (linv r) where
@@ -78,8 +78,8 @@ aboutY ang = fromLinear r (linv r) where
                                     y &
                                     (-sin th * x + cos th * z)
 
--- | rotationAbout p d a is a rotation about a line parallel to d
---   passing through p.
+-- | @rotationAbout p d a@ is a rotation about a line parallel to @d@
+--   passing through @p@.
 rotatationAbout
   :: (Angle a, Direction d)
   => P3     -- ^ origin of rotation
@@ -99,9 +99,9 @@ rotatationAbout p d a
                w ^* ((w <.> v) * (1 - cos th))
     t = p .-. origin
 
--- | Get the matrix equivalent of the linear transform,
---   (as a triple of columns) and the translation vector.  This
---   is mostly useful for implementing backends.
+-- | Get the matrix equivalent of an affine transform, as a triple of
+--   columns paired with the translation vector.  This is mostly
+--   useful for implementing backends.
 onBasis :: T3 -> ((R3, R3, R3), R3)
 onBasis t = ((x, y, z), v)
   where ((x:y:z:[]), v) = T.onBasis t

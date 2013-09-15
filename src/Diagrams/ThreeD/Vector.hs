@@ -51,7 +51,8 @@ unit_Z :: R3
 unit_Z = 0 & 0 & (-1)
 
 
--- | direction v is the direction of which v points.
+-- | @direction v@ is the direction in which @v@ points.  Returns an
+--   unspecified value when given the zero vector as input.
 direction :: Direction d => R3 -> d
 direction v
   | r == 0 = fromSpherical $ Spherical zero zero
@@ -62,7 +63,7 @@ direction v
   θ = Rad . atan2 y $ x
   zero = Rad $ 0
 
--- | fromDirection d is the unit vector in the direction d
+-- | @fromDirection d@ is the unit vector in the direction @d@.
 fromDirection :: Direction d => d -> R3
 fromDirection (toSpherical -> (Spherical θ' φ')) = r3 (x,y,z) where
   θ = getRad $ θ'

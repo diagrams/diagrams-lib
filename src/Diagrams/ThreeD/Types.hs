@@ -24,14 +24,16 @@ module Diagrams.ThreeD.Types
          R3, r3, unr3
        , P3, p3, unp3
        , T3
-         
-         -- * reexport Angles
+
+         -- * Two-dimensional angles
+         -- | These are defined in "Diagrams.TwoD.Types" but
+         --   reëxported here for convenience.
        , Angle(..)
        , Turn(..), Rad(..), Deg(..)
 
        , fullTurn, convertAngle, angleRatio
 
-         -- * directions in 3D
+         -- * Directions in 3D
        , Direction(..)
        , Spherical(..)
        ) where

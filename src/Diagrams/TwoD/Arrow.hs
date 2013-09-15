@@ -12,7 +12,9 @@
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
--- Drawing arrows in two dimensions.
+-- Drawing arrows in two dimensions.  For a tutorial on drawing arrows
+-- using this module, see the diagrams website:
+-- <http://projects.haskell.org/diagrams/doc/arrow.html>.
 --
 -----------------------------------------------------------------------------
 
@@ -29,6 +31,9 @@ module Diagrams.TwoD.Arrow
        , connectPerim'
        , straightShaft
        , ArrowOpts(..)
+
+         -- | See "Diagrams.TwoD.Arrowheads" for a list of standard
+         --   arrowheads and help creating your own.
        , module Diagrams.TwoD.Arrowheads
        ) where
 
@@ -56,17 +61,20 @@ import           Diagrams.Util                    (( # ))
 
 data ArrowOpts
   = ArrowOpts
-    { arrowHead  :: ArrowHT
-    , arrowTail  :: ArrowHT
-    , arrowShaft :: Trail R2
-    , headSize   :: Double
-    , tailSize   :: Double
-    , headGap    :: Double -- amount of space to leave after arrowhead
-    , tailGap    :: Double -- amount of space ot leave before arrowtail
-    , shaftWidth :: Double
-    , headStyle  :: HasStyle c => c -> c
-    , tailStyle  :: HasStyle c => c -> c
-    , shaftStyle :: HasStyle c => c -> c
+    { arrowHead  :: ArrowHT   -- ^ A shape to place at the head of the arrow.
+    , arrowTail  :: ArrowHT   -- ^ A shape to place at the tail of the arrow.
+    , arrowShaft :: Trail R2  -- ^ The trail to use for the arrow shaft.
+    , headSize   :: Double    -- ^ Radius of a circumcircle around the head.
+    , tailSize   :: Double    -- ^ Radius of a circumcircle around the tail.
+    , headGap    :: Double    -- ^ Distance to leave between
+                              --   the head and the target point.
+    , tailGap    :: Double    -- ^ Distance to leave between the
+                              --   starting point and the tail.
+    , shaftWidth :: Double    -- ^ Width of the shaft, measured in the
+                              --   diagram's final vector space.
+    , headStyle  :: HasStyle c => c -> c  -- ^ Style to apply to the head.
+    , tailStyle  :: HasStyle c => c -> c  -- ^ Style to apply to the tail.
+    , shaftStyle :: HasStyle c => c -> c  -- ^ Style to apply to the shaft.
     }
 
 straightShaft :: Trail R2
@@ -186,9 +194,9 @@ colorJoint sStyle =
         Nothing -> mempty
         Just c' -> fillColor c' $ mempty
 
--- | Combine the head and it's joint into a single scale invariant diagram
+-- | Combine the head and its joint into a single scale invariant diagram
 --   and move the origin to the attachment point. Return the diagram
---   and it's width.
+--   and its width.
 mkHead :: Renderable (Path R2) b => ArrowOpts -> (Diagram b R2, Double)
 mkHead opts = ( (j <> h) # moveOriginBy (jWidth *^ unit_X) # lw 0
               , hWidth + jWidth)
@@ -212,13 +220,13 @@ mkTail opts = ( (t <> j) # moveOriginBy (jWidth *^ unitX) # lw 0
     j = scaleInvPrim j' unitX # (shaftStyle opts)
                               # applyStyle (colorJoint (shaftStyle opts))
 
--- | Find the vector pointing in the direction of the segment at it's endpoint.
+-- | Find the vector pointing in the direction of the segment at its endpoint.
 endTangent :: Segment Closed R2 -> R2
 endTangent (Cubic _ c2 (OffsetClosed x2)) = (normalized (x2 ^-^ c2))
 endTangent (Linear (OffsetClosed x1)) = normalized x1
 
 -- | Find the vector pointing in the direction of the segment away from
---   it's starting point.
+--   its starting point.
 startTangent :: Segment Closed R2 -> R2
 startTangent (Cubic c1 _ (OffsetClosed _)) = (normalized c1)
 startTangent (Linear (OffsetClosed x1)) = (normalized x1)
@@ -248,17 +256,19 @@ shaftScale tr tw hw t =
     f = magnitude . trailOffset . (spine tr tw hw)
 
 -- | Maximum scaling adjustment that can be applied to a trail to make the arrow
---   reach from it's starting point to it' end point.
+--   reach from its starting point to its end point.
 stdScale :: Double
 stdScale = 100
 
--- | Return an arrow of length len using arrowShaft by scaling the shaft
---   so that the entire arrow is length len. The size of arrowShaft is arbitrary
---   since it will be scaled however it should be not be off by more than a
---   factor of stdScale. The arrow offset is the direction unitX.
+-- | @arrow len@ creates an arrow of length @len@ with default parameters.
 arrow :: Renderable (Path R2) b => Double -> Diagram b R2
 arrow len = arrow' def len
 
+-- | @arrow' opts len@ creates an arrow of length @len@ using the
+--   given options.  In particular, it scales the given 'arrowShaft'
+--   so that the entire arrow has length @len@. The size of
+--   @arrowShaft@ is arbitrary since it will be scaled; however it
+--   should be not be off by more than a factor of 'stdScale'.
 arrow' :: Renderable (Path R2) b => ArrowOpts -> Double -> Diagram b R2
 arrow' opts len = ar # rotateBy (- dir)
   where
@@ -277,13 +287,17 @@ arrow' opts len = ar # rotateBy (- dir)
     dir = direction (trailOffset $ spine tr tw hw sd)
     ar = moveOriginBy ((tw *^ (unit_X # rotateBy tAngle))) $ hd <> tl <> shaft
 
--- | Make an arrow pointing from s to e using arrowShaft by scaling the shaft
---   and rotating the arrow. The size of arrowShaft is arbitrary since it will
---   be scaled so that the arrow offset is e .-. s, however it should be not be
---   off by more than a factor of stdScale.
+-- | @arrowBetween s e@ creates an arrow pointing from @s@ to @e@
+--   with default parameters.
 arrowBetween :: Renderable (Path R2) b => P2 -> P2 -> Diagram b R2
 arrowBetween s e = arrowBetween' def s e
 
+-- | @arrowBetween' opts s e@ creates an arrow pointing from @s@ to
+--   @e@ using the given options.  In particular, it scales and
+--   rotates @arrowShaft@ to go between @s@ and @e@, taking head,
+--   tail, and gaps into account.  The size of @arrowShaft@ is
+--   arbitrary; however, it should be not be off by more than a factor
+--   of 'stdScale'.
 arrowBetween'
   :: Renderable (Path R2) b =>
      ArrowOpts -> P2 -> P2 -> Diagram b R2
