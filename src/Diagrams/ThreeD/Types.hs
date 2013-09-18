@@ -36,7 +36,10 @@ module Diagrams.ThreeD.Types
          -- * Directions in 3D
        , Direction(..)
        , Spherical(..)
+       , asSpherical
        ) where
+
+import Control.Applicative
 
 import Diagrams.Coordinates
 import Diagrams.TwoD.Types
@@ -123,17 +126,32 @@ class AdditiveGroup d => Direction d where
     -- | Convert from polar angles
     fromSpherical :: Angle a => Spherical a -> d
 
-instance Angle a => AdditiveGroup (Spherical a) where
-    zeroV = Spherical 0 0
-    (Spherical θ φ) ^+^ (Spherical θ' φ') = Spherical (θ+θ') (φ+φ')
-    negateV (Spherical θ φ) = Spherical (-θ) (-φ)
-
-instance Angle a => Direction (Spherical a) where
-    toSpherical (Spherical θ φ) = Spherical (convertAngle θ) (convertAngle φ)
-    fromSpherical (Spherical θ φ) = Spherical (convertAngle θ) (convertAngle φ)
-
 -- | A direction expressed as a pair of spherical coordinates.
 -- `Spherical 0 0` is the direction of `unitX`.  The first coordinate
 -- represents rotation about the Z axis, the second rotation towards the Z axis.
-data Angle a => Spherical a = Spherical a a
-                            deriving (Show)
+data Spherical a = Spherical a a
+                   deriving (Show, Read, Eq)
+
+instance Applicative Spherical where
+    pure a = Spherical a a
+    Spherical a b <*> Spherical c d = Spherical (a c) (b d)
+
+instance Functor Spherical where
+    fmap f s = pure f <*> s
+
+instance (AdditiveGroup a) => AdditiveGroup (Spherical a) where
+    zeroV = Spherical zeroV zeroV
+    (^+^) = liftA2 (^+^)
+    negateV = fmap negateV
+
+instance (AdditiveGroup a, Angle a) => Direction (Spherical a) where
+    toSpherical = fmap convertAngle
+    fromSpherical = fmap convertAngle
+
+-- | The identity function with a restricted type, for conveniently
+-- restricting unwanted polymorphism.  For example, @fromDirection
+-- . asSpherical . camForward@ gives a unit vector pointing in the
+-- direction of the camera view.  Without @asSpherical@, the
+-- intermediate type would be ambiguous.
+asSpherical :: Spherical Turn -> Spherical Turn
+asSpherical = id
