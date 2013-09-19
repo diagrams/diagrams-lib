@@ -119,7 +119,7 @@ instance HasCross3 R3 where
 -- | Direction is a type class representing directions in R3.  The interface is
 -- based on that of the Angle class in 2D.
 
-class AdditiveGroup d => Direction d where
+class Direction d where
     -- | Convert to polar angles
     toSpherical :: Angle a => d -> Spherical a
 
@@ -139,12 +139,7 @@ instance Applicative Spherical where
 instance Functor Spherical where
     fmap f s = pure f <*> s
 
-instance (AdditiveGroup a) => AdditiveGroup (Spherical a) where
-    zeroV = Spherical zeroV zeroV
-    (^+^) = liftA2 (^+^)
-    negateV = fmap negateV
-
-instance (AdditiveGroup a, Angle a) => Direction (Spherical a) where
+instance (Angle a) => Direction (Spherical a) where
     toSpherical = fmap convertAngle
     fromSpherical = fmap convertAngle
 
