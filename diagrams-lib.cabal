@@ -72,6 +72,8 @@ Library
                        Diagrams.ThreeD.Shapes,
                        Diagrams.ThreeD.Vector,
                        Diagrams.ThreeD.Transform,
+                       Diagrams.ThreeD.Camera,
+                       Diagrams.ThreeD.Light,
                        Diagrams.Animation,
                        Diagrams.Animation.Active,
                        Diagrams.Util,
