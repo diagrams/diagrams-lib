@@ -196,7 +196,7 @@ instance Transformable R2 where
 -- | Newtype wrapper used to represent angles as fractions of a
 --   circle.  For example, 1\/3 turn = tau\/3 radians = 120 degrees.
 newtype Turn = Turn { getTurn :: Double }
-  deriving (Read, Show, Eq, Ord, Enum, Fractional, Num, Real, RealFrac)
+  deriving (Read, Show, Eq, Ord, Enum, Fractional, Num, Real, RealFrac, AdditiveGroup)
 
 -- | The identity function with a restricted type, for conveniently
 -- declaring that some value should have type 'Turn'.  For example,
@@ -211,7 +211,7 @@ type CircleFrac = Turn
 
 -- | Newtype wrapper for representing angles in radians.
 newtype Rad = Rad { getRad :: Double }
-  deriving (Read, Show, Eq, Ord, Enum, Floating, Fractional, Num, Real, RealFloat, RealFrac)
+  deriving (Read, Show, Eq, Ord, Enum, Floating, Fractional, Num, Real, RealFloat, RealFrac, AdditiveGroup)
 
 -- | The identity function with a restricted type, for conveniently
 -- declaring that some value should have type 'Rad'.  For example,
@@ -223,7 +223,7 @@ asRad = id
 
 -- | Newtype wrapper for representing angles in degrees.
 newtype Deg = Deg { getDeg :: Double }
-  deriving (Read, Show, Eq, Ord, Enum, Fractional, Num, Real, RealFrac)
+  deriving (Read, Show, Eq, Ord, Enum, Fractional, Num, Real, RealFrac, AdditiveGroup)
 
 -- | The identity function with a restricted type, for conveniently
 -- declaring that some value should have type 'Deg'.  For example,
