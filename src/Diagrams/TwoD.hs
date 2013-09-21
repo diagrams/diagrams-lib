@@ -135,6 +135,7 @@ module Diagrams.TwoD
        , arrowBetween, arrowBetween'
        , connect, connect'
        , connectPerim, connectPerim'
+       , connectOutside, connectOutside'
        , straightShaft
        , module Diagrams.TwoD.Arrowheads
 
