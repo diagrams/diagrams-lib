@@ -71,7 +71,9 @@ perpAtParam s@(Cubic _ _ _)              t = -unitPerp a
 --   length.
 --
 --   Cubic segments require a search for a subdivision of cubic segments that
---   gives an approximation of the offset within the given epsilon tolerance.
+--   gives an approximation of the offset within the given epsilon factor
+--   (the given epsilon factor is applied to the radius giving a concrete epsilon
+--   value).
 --   We must do this because the offset of a cubic is not a cubic itself (the
 --   degree of the curve increases).  Cubics do, however, approach constant
 --   curvature as we subdivide.  In light of this we scale the handles of
@@ -88,11 +90,13 @@ perpAtParam s@(Cubic _ _ _)              t = -unitPerp a
 --   radius around the cusp, and when there is a loop in the original curve,
 --   there can be two cusps in the offset curve.
 --
-offsetSegment :: Double     -- ^ Epsilon value that represents the maximum 
+offsetSegment :: Double     -- ^ Epsilon factor that when multiplied to the
+                            --   absolute value of the radius gives a
+                            --   value that represents the maximum 
                             --   allowed deviation from the true offset.  In
                             --   the current implementation each result segment
                             --   should be bounded by arcs that are plus or
-                            --   minus epsilon from the radius of curvature of
+                            --   minus epsilon factor from the radius of curvature of
                             --   the offset.
               -> Double     -- ^ Offset from the original segment, positive is
                             --   on the right of the curve, negative is on the
@@ -131,7 +135,7 @@ offsetSegment epsilon r s@(Cubic a b (OffsetClosed c)) = t `at` origin .+^ va
               Infinity  -> 1          -- Do the right thing.
               Finite sr -> 1 + r / sr 
 
-        close = and [epsilon > (magnitude (p o ^+^ va ^-^ p s ^-^ pp s))
+        close = and [epsilon * abs r > (magnitude (p o ^+^ va ^-^ p s ^-^ pp s))
                     | t <- [0.25, 0.5, 0.75]
                     , let p = (`atParam` t)
                     , let pp = (r *^) . (`perpAtParam` t)
@@ -186,9 +190,9 @@ data OffsetOpts = OffsetOpts
     } deriving (Eq, Show)
 
 -- | The default offset options use the default 'LineJoin' ('LineJoinMiter'), a
---   miter limit of 10, and epsilon of 'stdTolerance'.
+--   miter limit of 10, and epsilon factor of 0.01.
 instance Default OffsetOpts where
-    def = OffsetOpts def 10 stdTolerance
+    def = OffsetOpts def 10 0.01
 
 -- | Offset a 'Trail' with options and by a given radius.  This generates a new
 --   trail that is always radius 'r' away from the given 'Trail' (depending on
@@ -288,10 +292,10 @@ data ExpandOpts = ExpandOpts
     } deriving (Eq, Show)
 
 -- | The default 'ExpandOpts' is the default 'LineJoin' ('LineJoinMiter'),
---   miter limit of 10, default 'LineCap' ('LineCapButt'), and epsilon 
---   value of 'stdTolerance'.
+--   miter limit of 10, default 'LineCap' ('LineCapButt'), and epsilon factor
+--   of 0.01.
 instance Default ExpandOpts where
-    def = ExpandOpts def 10 def stdTolerance
+    def = ExpandOpts def 10 def 0.01
 
 withTrailL f g l = withTrail (f . (`at` p)) (g . (`at` p)) (unLoc l)
   where
@@ -486,20 +490,21 @@ joinSegmentArc _ r e a b = capArc r e (atEnd a) (atStart b)
 --   If the intersection is beyond the miter limit times the radius, stop at the limit.
 joinSegmentIntersect 
     :: Double -> Double -> P2 -> Located (Trail R2) -> Located (Trail R2) -> Trail R2
-joinSegmentIntersect miterLimit r e a b = case traceP pa va t of
-                                 -- TODO: Verify that this should stay at the limit and not
-                                 -- drop back to the clip join.  I think some renderers do
-                                 -- clip join when exactly at 
-                                 Nothing -> unLoc $ fromVertices 
-                                                     [ pa, pa .+^ (miter va)
-                                                     , pb .+^ (miter vb), pb
-                                                     ]
-                                 Just p  -> unLoc $ fromVertices [ pa, p, pb ]
+joinSegmentIntersect miterLimit r e a b =
+    case traceP pa va t of
+      -- clip join when we excede the miter limit.  We could instead
+      -- Join at exactly the miter limit, but standard behavior seems
+      -- to be clipping.
+      Nothing -> joinSegmentClip miterLimit r e a b
+      Just p  
+        -- If trace gave us garbage...
+        | p `distance` pb > abs (miterLimit * r) -> joinSegmentClip miterLimit r e a b
+        | otherwise                              -> unLoc $ fromVertices [ pa, p, pb ]
   where
     -- TODO: is there really no instance for Traced (Located (Trail R2)) ?
     t = strokeLocT (fromSegments [straight (miter vb)] `at` pb) :: Diagram NullBackend R2
-    va = -unitPerp (pa .-. e)
+    va = unitPerp (pa .-. e)
     vb = -unitPerp (pb .-. e)
     pa = atEnd a
     pb = atStart b
-    miter v = (miterLimit * r) *^ v
+    miter v = (abs (miterLimit * r)) *^ v
