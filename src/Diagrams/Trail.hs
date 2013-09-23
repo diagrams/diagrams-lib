@@ -91,9 +91,14 @@ module Diagrams.Trail
 
        , SegTree(..), trailMeasure, numSegs, offset
 
+         -- ** Extracting segments
+
+       , GetSegment(..), getSegment
+
        ) where
 
 import           Control.Arrow       ((***))
+import           Control.Lens        (AnIso', iso)
 import           Data.AffineSpace
 import           Data.FingerTree     (FingerTree, ViewL (..), ViewR (..), (<|),
                                       (|>))
@@ -376,12 +381,17 @@ instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
     => Parametric (Trail' l v) where
   atParam t p = withTrail'
                   (\(Line segT) -> segT `atParam` p)
-                  (\l -> cutLoop l `atParam` p')
+                  (\l -> cutLoop l `atParam` mod1 p)
                   t
-    where
-      pf = snd . properFraction $ p
-      p' | p >= 0    = pf
-         | otherwise = 1 + pf
+
+-- | Compute the remainder mod 1.  Convenient for constructing loop
+--   parameterizations that wrap around.
+mod1 :: RealFrac a => a -> a
+mod1 p = p'
+ where
+   pf = snd . properFraction $ p
+   p' | p >= 0    = pf
+      | otherwise = 1 + pf
 
 instance Num (Scalar v) => DomainBounds (Trail' l v)
 
@@ -408,6 +418,133 @@ instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
       (\(Line t) -> arcLengthToParam eps t l)
       (\lp -> arcLengthToParam eps (cutLoop lp) l)
       tr
+
+--------------------------------------------------
+-- Extracting segments
+
+-- | A newtype wrapper around trails which exists solely for its
+--   'Parametric', 'DomainBounds' and 'EndValues' instances.  The idea
+--   is that if @tr@ is a trail, you can write, /e.g./
+--
+--   > getSegment tr `atParam` 0.6
+--
+--   or
+--
+--   > atStart (getSegment tr)
+--
+--   to get the segment at parameter 0.6 or the first segment in the
+--   trail, respectively.
+--
+--   The codomain for 'GetSegment', /i.e./ the result you get from
+--   calling 'atParam', 'atStart', or 'atEnd', is @Maybe (v, Segment
+--   Closed v, AnIso' (Scalar v) (Scalar v))@.  @Nothing@ results if
+--   the trail is empty; otherwise, you get:
+--
+--   * the offset from the start of the trail to the beginning of the
+--     segment,
+--
+--   * the segment itself, and
+--
+--   * a reparameterization isomorphism: in the forward direction, it
+--     translates from parameters on the whole trail to a parameters
+--     on the segment.  Note that for technical reasons you have to
+--     call 'cloneIso' on the @AnIso'@ value to get a real isomorphism
+--     you can use.
+newtype GetSegment t = GetSegment t
+
+-- | Create a 'GetSegment' wrapper around a trail, after which you can
+--   call 'atParam', 'atStart', or 'atEnd' to extract a segment.
+getSegment :: t -> GetSegment t
+getSegment = GetSegment
+
+type instance V (GetSegment t) = V t
+type instance Codomain (GetSegment t)
+  = Maybe
+    ( V t                                   -- offset from trail start to segment start
+    , Segment Closed (V t)                  -- the segment
+    , AnIso' (Scalar (V t)) (Scalar (V t))  -- reparameterization, trail <-> segment
+    )
+
+-- | Parameters less than 0 yield the first segment; parameters
+--   greater than 1 yield the last.  A parameter exactly at the
+--   junction of two segments yields the second segment (/i.e./ the
+--   one with higher parameter values).
+instance (InnerSpace v, OrderedField (Scalar v))
+    => Parametric (GetSegment (Trail' Line v)) where
+  atParam (GetSegment (Line (SegTree ft))) p
+    | p <= 0
+    = case FT.viewl ft of
+        EmptyL    -> Nothing
+        seg :< _  -> Just (zeroV, seg, reparam 0)
+
+    | p >= 1
+    = case FT.viewr ft of
+        EmptyR     -> Nothing
+        ft' :> seg -> Just (offset ft', seg, reparam (n-1))
+
+    | otherwise
+    = let (before, after) = FT.split ((p*n <) . numSegs) $ ft
+      in  case FT.viewl after of
+            EmptyL   -> Nothing
+            seg :< _ -> Just (offset before, seg, reparam (numSegs before))
+    where
+      n = numSegs ft
+      reparam k = iso (subtract k . (*n))
+                      ((/n) . (+ k))
+
+-- | The parameterization for loops wraps around, /i.e./ parameters
+--   are first reduced \"mod 1\".
+instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
+    => Parametric (GetSegment (Trail' Loop v)) where
+  atParam (GetSegment l) p = atParam (GetSegment (cutLoop l)) (mod1 p)
+
+instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
+    => Parametric (GetSegment (Trail v)) where
+  atParam (GetSegment t) p
+    = withTrail
+      ((`atParam` p) . GetSegment)
+      ((`atParam` p) . GetSegment)
+      t
+
+instance DomainBounds t => DomainBounds (GetSegment t) where
+  domainLower (GetSegment t) = domainLower t
+  domainUpper (GetSegment t) = domainUpper t
+
+instance (InnerSpace v, OrderedField (Scalar v))
+    => EndValues (GetSegment (Trail' Line v)) where
+  atStart (GetSegment (Line (SegTree ft)))
+    = case FT.viewl ft of
+        EmptyL   -> Nothing
+        seg :< _ ->
+          let n = numSegs ft
+          in  Just (zeroV, seg, iso (*n) (/n))
+
+  atEnd (GetSegment (Line (SegTree ft)))
+    = case FT.viewr ft of
+        EmptyR     -> Nothing
+        ft' :> seg ->
+          let n = numSegs ft
+          in  Just (offset ft', seg, iso (subtract (n-1) . (*n))
+                                         ((/n) . (+ (n-1)))
+                   )
+
+instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
+    => EndValues (GetSegment (Trail' Loop v)) where
+  atStart (GetSegment l) = atStart (GetSegment (cutLoop l))
+  atEnd   (GetSegment l) = atEnd   (GetSegment (cutLoop l))
+
+instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
+    => EndValues (GetSegment (Trail v)) where
+  atStart (GetSegment t)
+    = withTrail
+      (\l -> atStart (GetSegment l))
+      (\l -> atStart (GetSegment l))
+      t
+  atEnd (GetSegment t)
+    = withTrail
+      (\l -> atEnd (GetSegment l))
+      (\l -> atEnd (GetSegment l))
+      t
 
 --------------------------------------------------
 -- The Trail type
