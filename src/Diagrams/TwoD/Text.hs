@@ -32,9 +32,10 @@ module Diagrams.TwoD.Text (
 
 import           Diagrams.Attributes
 import           Diagrams.Core
+import           Diagrams.Core.Envelope (pointEnvelope)
 import           Diagrams.TwoD.Types
 
-import           Data.AffineSpace    ((.-.))
+import           Data.AffineSpace       ((.-.))
 
 import           Data.Semigroup
 
@@ -75,7 +76,7 @@ mkText a t = recommendFillColor (black :: Colour Double)
              -- See Note [recommendFillColor]
 
            $ mkQD (Prim (Text mempty a t))
-                       mempty
+                       (pointEnvelope origin)
                        mempty
                        mempty
                        mempty

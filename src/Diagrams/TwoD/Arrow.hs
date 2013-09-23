@@ -29,6 +29,8 @@ module Diagrams.TwoD.Arrow
        , connect'
        , connectPerim
        , connectPerim'
+       , connectOutside
+       , connectOutside'
        , straightShaft
        , ArrowOpts(..)
 
@@ -40,7 +42,7 @@ module Diagrams.TwoD.Arrow
 import           Data.AffineSpace
 import           Data.Default.Class
 import           Data.Functor                     ((<$>))
-import           Data.Maybe                       (fromMaybe)
+import           Data.Maybe                       (fromMaybe, fromJust)
 import           Data.Monoid                      (mempty, (<>))
 import           Data.VectorSpace
 import           Diagrams.Core
@@ -70,8 +72,6 @@ data ArrowOpts
                               --   the head and the target point.
     , tailGap    :: Double    -- ^ Distance to leave between the
                               --   starting point and the tail.
-    , shaftWidth :: Double    -- ^ Width of the shaft, measured in the
-                              --   diagram's final vector space.
     , headStyle  :: HasStyle c => c -> c  -- ^ Style to apply to the head.
     , tailStyle  :: HasStyle c => c -> c  -- ^ Style to apply to the tail.
     , shaftStyle :: HasStyle c => c -> c  -- ^ Style to apply to the shaft.
@@ -79,6 +79,9 @@ data ArrowOpts
 
 straightShaft :: Trail R2
 straightShaft = trailFromOffsets [unitX]
+
+defShaftWidth :: Double
+defShaftWidth = 0.03
 
 instance Default ArrowOpts where
   def = ArrowOpts
@@ -89,16 +92,16 @@ instance Default ArrowOpts where
         , tailSize     = 0.3
         , headGap      = 0
         , tailGap      = 0
-        , shaftWidth   = 0.03
 
         -- See note [Default arrow style attributes]
         , headStyle    = fc black
         , tailStyle    = fc black
-        , shaftStyle   = lc black
+        , shaftStyle   = lw defShaftWidth
         }
 
 {- ~~~~ Note [Default arrow style attributes]
-
+XXX We need to update this note since now an empty lc attribute in
+XXX the shaftStyle will default to black in the colorJoint function.
 We want to set as few default attributes as possible.  The reason is
 that any attributes which get set by default cannot be overridden
 later.  For example, if we set 'opacity 1' in shaftStyle, then it
@@ -151,8 +154,15 @@ colorJoint :: (Style v -> Style v) -> Style v
 colorJoint sStyle =
     let c = fmap getLineColor . getAttr $ sStyle mempty in
     case c of
-        Nothing -> mempty
+        Nothing -> fillColor black $ mempty -- default color for joints
         Just c' -> fillColor c' $ mempty
+
+widthJoint :: (Style v -> Style v) -> Double
+widthJoint sStyle =
+    let w = fmap getLineWidth . getAttr $ sStyle mempty in
+    case w of
+        Nothing -> defShaftWidth -- this case should never happen.
+        Just w' -> w'
 
 -- | Combine the head and its joint into a single scale invariant diagram
 --   and move the origin to the attachment point. Return the diagram
@@ -161,24 +171,22 @@ mkHead :: Renderable (Path R2) b => ArrowOpts -> (Diagram b R2, Double)
 mkHead opts = ( (j <> h) # moveOriginBy (jWidth *^ unit_X) # lw 0
               , hWidth + jWidth)
   where
-    (h', j') = (arrowHead opts) (headSize opts) (shaftWidth opts)
+    (h', j') = (arrowHead opts) (headSize opts) (widthJoint $ shaftStyle opts)
     hWidth = xWidth h'
     jWidth = xWidth j'
     h = scaleInvPrim h' unitX # (headStyle opts)
-    j = scaleInvPrim j' unitX # (shaftStyle opts)
-                              # applyStyle (colorJoint (shaftStyle opts))
+    j = scaleInvPrim j' unitX # applyStyle (colorJoint (shaftStyle opts))
 
 -- | Just like mkHead only the attachment point is on the right.
 mkTail :: Renderable (Path R2) b => ArrowOpts -> (Diagram b R2, Double)
 mkTail opts = ( (t <> j) # moveOriginBy (jWidth *^ unitX) # lw 0
               , tWidth + jWidth)
   where
-    (t', j') = (arrowTail opts) (tailSize opts) (shaftWidth opts)
+    (t', j') = (arrowTail opts) (tailSize opts) (widthJoint $ shaftStyle opts)
     tWidth = xWidth t'
     jWidth = xWidth j'
     t = scaleInvPrim t' unitX # (tailStyle opts)
-    j = scaleInvPrim j' unitX # (shaftStyle opts)
-                              # applyStyle (colorJoint (shaftStyle opts))
+    j = scaleInvPrim j' unitX # applyStyle (colorJoint (shaftStyle opts))
 
 -- | Find the vector pointing in the direction of the segment at its endpoint.
 endTangent :: Segment Closed R2 -> R2
@@ -234,7 +242,7 @@ arrow' opts len = ar # rotateBy (- dir)
     hAngle = direction . endTangent $ (last $ trailSegments tr) :: Turn
     sd = shaftScale tr tw hw len
     tr' = tr # scale sd
-    shaft = strokeT tr' # lw (shaftWidth opts) # (shaftStyle opts)
+    shaft = strokeT tr' # (shaftStyle opts)
     hd = h # rotateBy hAngle # moveTo (origin .+^ tr' `atParam` (domainUpper tr'))
     tl = t # rotateBy tAngle
     dir = direction (trailOffset $ spine tr tw hw sd)
@@ -287,11 +295,11 @@ connect' opts n1 n2 =
     let [s,e] = map location [sub1, sub2]
     in  atop (arrowBetween' opts s e)
 
--- | Connect two diagrams at point on the perimeter of he diagrams, choosen
+-- | Connect two diagrams at point on the perimeter of the diagrams, choosen
 --   by angle.
 connectPerim
   :: (Renderable (Path R2) b, IsName n1, IsName n2, Angle a)
-  => n1 -> n2 -> a -> a
+ => n1 -> n2 -> a -> a
   -> (Diagram b R2 -> Diagram b R2)
 connectPerim = connectPerim' def
 
@@ -306,3 +314,24 @@ connectPerim' opts n1 n2 a1 a2 =
         s = fromMaybe os (maxTraceP os (unitX # rotate a1) sub1)
         e = fromMaybe oe (maxTraceP oe (unitX # rotate a2) sub2)
     in  atop (arrowBetween' opts s e)
+
+-- | Draw an arrow from diagram named "n1" to diagram named "n2".  The
+--   arrow lies on the line between the centres of the diagrams, but is
+--   drawn so that it stops at the boundaries of the diagrams, using traces
+--   to find the intersection points.
+connectOutside
+  :: (Renderable (Path R2) b, IsName n1, IsName n2)
+  => n1 -> n2 -> (Diagram b R2 -> Diagram b R2)
+connectOutside = connectOutside' def
+
+connectOutside'
+  :: (Renderable (Path R2) b, IsName n1, IsName n2)
+  => ArrowOpts -> n1 -> n2 -> (Diagram b R2 -> Diagram b R2)
+connectOutside' opts n1 n2 =
+  withName n1 $ \b1 ->
+  withName n2 $ \b2 ->
+    let v = location b2 .-. location b1
+        midpoint = location b1 .+^ (v/2)
+        s = fromJust $ traceP midpoint (-v) b1
+        e = fromJust $ traceP midpoint v b2
+    in atop (arrowBetween' opts s e)
