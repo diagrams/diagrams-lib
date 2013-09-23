@@ -98,6 +98,7 @@ module Diagrams.Trail
        ) where
 
 import           Control.Arrow       ((***))
+import           Control.Lens        (AnIso', iso)
 import           Data.AffineSpace
 import           Data.FingerTree     (FingerTree, ViewL (..), ViewR (..), (<|),
                                       (|>))
@@ -436,9 +437,19 @@ instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
 --
 --   The codomain for 'GetSegment', /i.e./ the result you get from
 --   calling 'atParam', 'atStart', or 'atEnd', is @Maybe (v, Segment
---   Closed v)@.  @Nothing@ results if the trail is empty; otherwise,
---   you get a segment as well as the offset from the start of the
---   trail to the beginning of the segment.
+--   Closed v, AnIso' (Scalar v) (Scalar v))@.  @Nothing@ results if
+--   the trail is empty; otherwise, you get:
+--
+--   * the offset from the start of the trail to the beginning of the
+--     segment,
+--
+--   * the segment itself, and
+--
+--   * a reparameterization isomorphism: in the forward direction, it
+--     translates from parameters on the whole trail to a parameters
+--     on the segment.  Note that for technical reasons you have to
+--     call 'cloneIso' on the @AnIso'@ value to get a real isomorphism
+--     you can use.
 newtype GetSegment t = GetSegment t
 
 -- | Create a 'GetSegment' wrapper around a trail, after which you can
@@ -447,7 +458,12 @@ getSegment :: t -> GetSegment t
 getSegment = GetSegment
 
 type instance V (GetSegment t) = V t
-type instance Codomain (GetSegment t) = Maybe (V t, Segment Closed (V t))
+type instance Codomain (GetSegment t)
+  = Maybe
+    ( V t                                   -- offset from trail start to segment start
+    , Segment Closed (V t)                  -- the segment
+    , AnIso' (Scalar (V t)) (Scalar (V t))  -- reparameterization, trail <-> segment
+    )
 
 -- | Parameters less than 0 yield the first segment; parameters
 --   greater than 1 yield the last.  A parameter exactly at the
@@ -459,18 +475,22 @@ instance (InnerSpace v, OrderedField (Scalar v))
     | p <= 0
     = case FT.viewl ft of
         EmptyL    -> Nothing
-        seg :< _  -> Just (zeroV, seg)
+        seg :< _  -> Just (zeroV, seg, reparam 0)
 
     | p >= 1
     = case FT.viewr ft of
         EmptyR     -> Nothing
-        ft' :> seg -> Just (offset ft', seg)
+        ft' :> seg -> Just (offset ft', seg, reparam (n-1))
 
     | otherwise
-    = let (before, after) = FT.split ((p * numSegs ft <) . numSegs) $ ft
+    = let (before, after) = FT.split ((p*n <) . numSegs) $ ft
       in  case FT.viewl after of
             EmptyL   -> Nothing
-            seg :< _ -> Just (offset before, seg)
+            seg :< _ -> Just (offset before, seg, reparam (numSegs before))
+    where
+      n = numSegs ft
+      reparam k = iso (subtract k . (*n))
+                      ((/n) . (+ k))
 
 -- | The parameterization for loops wraps around, /i.e./ parameters
 --   are first reduced \"mod 1\".
@@ -495,11 +515,18 @@ instance (InnerSpace v, OrderedField (Scalar v))
   atStart (GetSegment (Line (SegTree ft)))
     = case FT.viewl ft of
         EmptyL   -> Nothing
-        seg :< _ -> Just (zeroV, seg)
+        seg :< _ ->
+          let n = numSegs ft
+          in  Just (zeroV, seg, iso (*n) (/n))
+
   atEnd (GetSegment (Line (SegTree ft)))
     = case FT.viewr ft of
         EmptyR     -> Nothing
-        ft' :> seg -> Just (offset ft', seg)
+        ft' :> seg ->
+          let n = numSegs ft
+          in  Just (offset ft', seg, iso (subtract (n-1) . (*n))
+                                         ((/n) . (+ (n-1)))
+                   )
 
 instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
     => EndValues (GetSegment (Trail' Loop v)) where
