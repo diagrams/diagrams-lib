@@ -1,6 +1,6 @@
 {-# LANGUAGE FlexibleContexts          #-}
-{-# LANGUAGE TypeFamilies              #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE TypeFamilies              #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Arrowheads
@@ -8,33 +8,32 @@
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
--- Standard arrowheads and tails. Normalized to fit inside a circle of
--- diameter 1 when line width is set to 0. Designed to be filled.
--- XXX Most of these heads could be used unfilled if a small enough
--- XXX stroke width is used.
+-- Standard arrowheads and tails. Each arrowhead or tail is designed
+-- to be drawn filled, with a line width of 0, and is normalized to
+-- fit inside a circle of diameter 1.
 --
 -----------------------------------------------------------------------------
 
 module Diagrams.TwoD.Arrowheads
-       ( ArrowHT
-       -- Heads --
-       , arrowheadTriangle
-       , arrowheadDart
-       , arrowheadSpike
-       , arrowheadThorn
-       , arrowheadMissile
-
-       , tri
+       (
+       -- * Arrowheads
+       -- ** Standard arrowheads
+         tri
        , dart
        , spike
        , thorn
        , missile
        , noHead
 
-       -- Tails --
-       , arrowtailQuill
-       , arrowtailBlock
+       -- ** Configurable arrowheads
+       , arrowheadTriangle
+       , arrowheadDart
+       , arrowheadSpike
+       , arrowheadThorn
+       , arrowheadMissile
 
+       -- * Arrow tails
+       -- ** Standard arrow tails
        , tri'
        , dart'
        , spike'
@@ -43,38 +42,46 @@ module Diagrams.TwoD.Arrowheads
        , noTail
        , quill
        , block
+
+       -- ** Configurable arrow tails
+
+       , arrowtailQuill
+       , arrowtailBlock
+
+       -- * Internals
+       , ArrowHT
        ) where
 
-import           Data.Maybe               (fromMaybe)
-import           Data.Functor             ((<$>))
-import           Data.Monoid              (mempty, (<>))
-import           Data.VectorSpace
 import           Data.AffineSpace
-import           Diagrams.Core            hiding (radius)
+import           Data.Functor            ((<$>))
+import           Data.Maybe              (fromMaybe)
+import           Data.Monoid             (mempty, (<>))
+import           Data.VectorSpace
 
-import           Diagrams.Trail
+import           Diagrams.Core
+import           Diagrams.CubicSpline    (cubicSpline)
 import           Diagrams.Path
-import           Diagrams.TwoD.Path       ()
 import           Diagrams.Segment
-import           Diagrams.TwoD.Shapes
-import           Diagrams.TwoD.Polygons
-import           Diagrams.TwoD.Arc        (arc')
-import           Diagrams.TwoD.Transform
+import           Diagrams.Trail
 import           Diagrams.TwoD.Align
+import           Diagrams.TwoD.Arc       (arc')
+import           Diagrams.TwoD.Path      ()
+import           Diagrams.TwoD.Polygons
+import           Diagrams.TwoD.Shapes
+import           Diagrams.TwoD.Transform
 import           Diagrams.TwoD.Types
-import           Diagrams.TwoD.Vector     (unit_X, unitX, e)
-import           Diagrams.Util            (with, ( # ))
-import           Diagrams.CubicSpline     (cubicSpline)
+import           Diagrams.TwoD.Vector    (e, unitX, unit_X)
+import           Diagrams.Util           (with, ( # ))
 
 -----------------------------------------------------------------------------
 
 type ArrowHT = Double -> Double -> (Path R2, Path R2)
 
-radius :: Double
-radius = 0.5
+htRadius :: Double
+htRadius = 0.5
 
 scaleR :: (Transformable t, Scalar (V t) ~ Double) => t -> t
-scaleR = scale radius
+scaleR = scale htRadius
 
 unit_X2 :: R2
 unit_X2 = scaleR unit_X
@@ -82,7 +89,7 @@ unit_X2 = scaleR unit_X
 closedPath :: (Floating (Scalar v), Ord (Scalar v), InnerSpace v) => Trail v -> Path v
 closedPath = pathFromTrail . closeTrail
 
--- | Heads ------------------------------------------------------------------
+-- Heads ------------------------------------------------------------------
 
 -- | Isoceles triangle style.
 arrowheadTriangle :: Angle a => a -> ArrowHT
@@ -91,7 +98,7 @@ arrowheadTriangle theta = aHead
     aHead size _ = (p, mempty)
       where
         p = polygon with {polyType = PolyPolar [theta, (-2 * theta)]
-            (repeat (radius * size)) ,polyOrient = NoOrient}  # alignL
+            (repeat (htRadius * size)) ,polyOrient = NoOrient}  # alignL
 
 -- | Isoceles triangle with linear concave base. Inkscape type 1 - dart like.
 arrowheadDart :: Angle a => a -> ArrowHT
@@ -100,7 +107,7 @@ arrowheadDart theta = aHead
     aHead size shaftWidth = (dartP # moveOriginTo (dartVertices !! 2), joint)
       where
         a = toTurn theta
-        r = radius * size
+        r = htRadius * size
         dartP = polygon with {polyType = PolyPolar [a, 1/2 - a, 1/2 - a]
                [r, r, 0.1 * size, r] ,polyOrient = NoOrient}
         dartVertices =  (concat . pathVertices) $ dartP
@@ -123,11 +130,11 @@ arrowheadSpike theta = aHead
         a' = reflectY a
         l1 = trailFromSegments [straight (unit_X2 ^+^ a)]
         l2 = trailFromSegments [reverseSegment . straight $ (unit_X2 ^+^ a')]
-        c  = reflectX $ arc' radius theta (-theta)
+        c  = reflectX $ arc' htRadius theta (-theta)
         barb = (closedPath $ (l1 <> c <> l2)) # scale size
         m = xWidth barb --c `atParam` 0.5
-        b =  Rad $ asin ((shaftWidth / 2) / (radius  * size))
-        c' = arc' radius (-b ) b # scale size
+        b =  Rad $ asin ((shaftWidth / 2) / (htRadius  * size))
+        c' = arc' htRadius (-b ) b # scale size
         joint = (closedPath $ (c')) # centerY # alignR
         xWidth p = pa + pb
           where
@@ -184,7 +191,7 @@ smoothArrowhead f = aHead
 arrowheadMissile :: Angle a => a -> ArrowHT
 arrowheadMissile theta = smoothArrowhead $ arrowheadDart theta
 
--- | Standard heads ---------------------------------------------------------
+-- Standard heads ---------------------------------------------------------
 noHead :: ArrowHT
 noHead _ _ = (mempty, mempty)
 
@@ -203,7 +210,7 @@ dart = arrowheadDart (2/5 :: Turn)
 missile :: ArrowHT
 missile = arrowheadMissile (2/5 :: Turn)
 
--- | Tails ------------------------------------------------------------------
+-- Tails ------------------------------------------------------------------
 
 -- | Utility function to convert any arrowhead to an arrowtail, i.e.
 --   attached at the start of the trail.
@@ -217,7 +224,7 @@ headToTail hd = tl
         j = reflectX j'
 
 arrowtailBlock :: Angle a => a -> ArrowHT
-arrowtailBlock theta =aTail
+arrowtailBlock theta = aTail
   where
    aTail size _ = (t, mempty)
       where
@@ -239,10 +246,10 @@ arrowtailQuill theta =aTail
         theta' = toTurn theta
         v0 = p2 (0.5, 0)
         v2 = p2 (unr2 $ e theta' # scaleR)
-        v1 = v2 # translateX (5/4 * radius)
+        v1 = v2 # translateX (5/4 * htRadius)
         v3 = p2 (-0.1, 0)
         v4 = v2 # reflectY
-        v5 = v4 # translateX (5/4 * radius)
+        v5 = v4 # translateX (5/4 * htRadius)
         s = 1 - shaftWidth / magnitude (v1 .-. v5)
         n1 = v0 # translateY (0.5 * shaftWidth)
         n2 = v1 .-^ ((v1 .-. v0) # scale s)
@@ -251,7 +258,8 @@ arrowtailQuill theta =aTail
         j = ( closedPath $ trailFromVertices
                 [ v0, n1, n2, v0, n3, n4, v0 ])
 
--- | Standard tails ---------------------------------------------------------
+-- Standard tails ---------------------------------------------------------
+
 noTail :: ArrowHT
 noTail _ _ = (mempty, mempty)
 
