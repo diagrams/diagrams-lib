@@ -89,7 +89,7 @@ unit_X2 = scaleR unit_X
 closedPath :: (Floating (Scalar v), Ord (Scalar v), InnerSpace v) => Trail v -> Path v
 closedPath = pathFromTrail . closeTrail
 
--- | Heads ------------------------------------------------------------------
+-- Heads ------------------------------------------------------------------
 
 -- | Isoceles triangle style.
 arrowheadTriangle :: Angle a => a -> ArrowHT
@@ -191,7 +191,7 @@ smoothArrowhead f = aHead
 arrowheadMissile :: Angle a => a -> ArrowHT
 arrowheadMissile theta = smoothArrowhead $ arrowheadDart theta
 
--- | Standard heads ---------------------------------------------------------
+-- Standard heads ---------------------------------------------------------
 noHead :: ArrowHT
 noHead _ _ = (mempty, mempty)
 
@@ -210,7 +210,7 @@ dart = arrowheadDart (2/5 :: Turn)
 missile :: ArrowHT
 missile = arrowheadMissile (2/5 :: Turn)
 
--- | Tails ------------------------------------------------------------------
+-- Tails ------------------------------------------------------------------
 
 -- | Utility function to convert any arrowhead to an arrowtail, i.e.
 --   attached at the start of the trail.
@@ -258,7 +258,8 @@ arrowtailQuill theta =aTail
         j = ( closedPath $ trailFromVertices
                 [ v0, n1, n2, v0, n3, n4, v0 ])
 
--- | Standard tails ---------------------------------------------------------
+-- Standard tails ---------------------------------------------------------
+
 noTail :: ArrowHT
 noTail _ _ = (mempty, mempty)
 
