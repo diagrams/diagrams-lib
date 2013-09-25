@@ -46,6 +46,7 @@ import Diagrams.Located
 import Diagrams.Parametric
 import Diagrams.Path
 import Diagrams.Segment
+import Diagrams.Trail
 import Diagrams.TrailLike
 import Diagrams.TwoD.Arc
 import Diagrams.TwoD.Curvature
