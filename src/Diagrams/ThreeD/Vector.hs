@@ -17,7 +17,7 @@ module Diagrams.ThreeD.Vector
          unitX, unitY, unitZ, unit_X, unit_Y, unit_Z,
 
          -- * Converting between vectors and angles
-         direction, fromDirection
+         direction, fromDirection, angleBetween
        ) where
 
 import Data.VectorSpace
