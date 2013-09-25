@@ -46,13 +46,13 @@ import Diagrams.Located
 import Diagrams.Parametric
 import Diagrams.Path
 import Diagrams.Segment
-import Diagrams.Trail
+import Diagrams.Trail           hiding (offset, isLoop)
 import Diagrams.TrailLike
 import Diagrams.TwoD.Arc
 import Diagrams.TwoD.Curvature
 import Diagrams.TwoD.Path
 import Diagrams.TwoD.Types
-import Diagrams.TwoD.Vector
+import Diagrams.TwoD.Vector     (perp, direction)
 
 unitPerp :: R2 -> R2
 unitPerp = normalized . perp
@@ -135,9 +135,9 @@ offsetSegment epsilon r s@(Cubic a b (OffsetClosed c)) = t `at` origin .+^ va
               Finite sr -> 1 + r / sr 
 
         close = and [epsilon * abs r > (magnitude (p o ^+^ va ^-^ p s ^-^ pp s))
-                    | t <- [0.25, 0.5, 0.75]
-                    , let p = (`atParam` t)
-                    , let pp = (r *^) . (`perpAtParam` t)
+                    | t' <- [0.25, 0.5, 0.75]
+                    , let p = (`atParam` t')
+                    , let pp = (r *^) . (`perpAtParam` t')
                     ]
 
 
@@ -217,9 +217,9 @@ offsetTrail' :: OffsetOpts
                         --   loop.
              -> Located (Trail R2)
              -> Located (Trail R2)
-offsetTrail' OffsetOpts{..} r t = joinSegments j isLoop offsetMiterLimit r ends . offset r $ t
+offsetTrail' OffsetOpts{..} r t = joinSegments j isLoop offsetMiterLimit r ends . offset $ t
     where
-      offset r = map (bindLoc (offsetSegment offsetEpsilon r)) . locatedTrailSegments
+      offset = map (bindLoc (offsetSegment offsetEpsilon r)) . locatedTrailSegments
       ends | isLoop    = (\(a:as) -> as ++ [a]) . trailVertices $ t
            | otherwise = tail . trailVertices $ t
       j = fromLineJoin offsetJoin
@@ -296,6 +296,7 @@ data ExpandOpts = ExpandOpts
 instance Default ExpandOpts where
     def = ExpandOpts def 10 def 0.01
 
+withTrailL :: (Located (Trail' Line v) -> r) -> (Located (Trail' Loop v) -> r) -> Located (Trail v) -> r
 withTrailL f g l = withTrail (f . (`at` p)) (g . (`at` p)) (unLoc l)
   where
     p = loc l
@@ -328,8 +329,8 @@ expandTrail' o r t
 expandLine :: ExpandOpts -> Double -> Located (Trail' Line R2) -> Located (Trail R2)
 expandLine ExpandOpts{..} r (mapLoc wrapLine -> t) = caps cap r s e (f r) (f $ -r)
     where
-      offset r = map (bindLoc (offsetSegment expandEpsilon r)) . locatedTrailSegments
-      f r = joinSegments (fromLineJoin expandJoin) False expandMiterLimit r ends . offset r $ t
+      offset r' = map (bindLoc (offsetSegment expandEpsilon r')) . locatedTrailSegments
+      f r' = joinSegments (fromLineJoin expandJoin) False expandMiterLimit r' ends . offset r' $ t
       ends = tail . trailVertices $ t
       s = atStart t
       e = atEnd t
@@ -338,8 +339,8 @@ expandLine ExpandOpts{..} r (mapLoc wrapLine -> t) = caps cap r s e (f r) (f $ -
 expandLoop :: ExpandOpts -> Double -> Located (Trail' Loop R2) -> Path R2
 expandLoop ExpandOpts{..} r (mapLoc wrapLoop -> t) = (trailLike $ f r) <> (trailLike . reverseDomain . f $ -r)
     where
-      offset r = map (bindLoc (offsetSegment expandEpsilon r)) . locatedTrailSegments
-      f r = joinSegments (fromLineJoin expandJoin) True expandMiterLimit r ends . offset r $ t
+      offset r' = map (bindLoc (offsetSegment expandEpsilon r')) . locatedTrailSegments
+      f r' = joinSegments (fromLineJoin expandJoin) True expandMiterLimit r' ends . offset r' $ t
       ends = (\(a:as) -> as ++ [a]) . trailVertices $ t
 
 -- | Expand a 'Trail' with the given radius and default options.  See 'expandTrail''.
@@ -411,11 +412,11 @@ fromLineCap c = case c of
 
 -- | Builds a cap that directly connects the ends.
 capCut :: Double -> P2 -> P2 -> P2 -> Trail R2
-capCut r c a b = fromSegments [straight (b .-. a)]
+capCut _r _c a b = fromSegments [straight (b .-. a)]
 
 -- | Builds a cap with a square centered on the end.
 capSquare :: Double -> P2 -> P2 -> P2 -> Trail R2
-capSquare r c a b = unLoc $ fromVertices [ a, a .+^ v, b .+^ v, b ]
+capSquare _r c a b = unLoc $ fromVertices [ a, a .+^ v, b .+^ v, b ]
   where
     v = perp (a .-. c)
 
@@ -428,9 +429,11 @@ capArc r c a b = trailLike . moveTo c $ fs
        | otherwise = scale r    $ arcV   (a .-. c) (b .-. c)
 
 -- Arc helpers
-arcV u v = arc (direction u) (direction v :: CircleFrac)
+arcV :: (TrailLike t, V t ~ R2) => R2 -> R2 -> t
+arcV u v = arc (direction u) (direction v :: Turn)
 
-arcVCW u v = arcCW (direction u) (direction v :: CircleFrac)
+arcVCW :: (TrailLike t, V t ~ R2) => R2 -> R2 -> t
+arcVCW u v = arcCW (direction u) (direction v :: Turn)
 
 
 -- | Join together a list of located trails with the given join style.  The
@@ -454,7 +457,7 @@ joinSegments j isLoop ml r es ts@(t:_) = t'
   where
     t' | isLoop    = mapLoc (glueTrail . (<> mconcat (take (length ts) $ ss es (ts ++ [t])))) t
        | otherwise = mapLoc (<> mconcat (ss es ts)) t
-    ss es ts = [j ml r e a b <> unLoc b | (e,(a,b)) <- zip es . (zip <*> tail) $ ts]
+    ss es' ts' = [j ml r e a b <> unLoc b | (e,(a,b)) <- zip es' . (zip <*> tail) $ ts']
 
 -- | Take a join style and give the join function to be used by joinSegments.
 fromLineJoin 
@@ -466,13 +469,14 @@ fromLineJoin j = case j of
 
 -- TODO: The joinSegmentCut option is not in our standard line joins.  I don't know
 -- how useful it is graphically, I mostly had it as it was useful for debugging
-
+{-
 -- | Join with segments going back to the original corner.
 joinSegmentCut :: Double -> Double -> P2 -> Located (Trail R2) -> Located (Trail R2) -> Trail R2
-joinSegmentCut _ r e a b = fromSegments
+joinSegmentCut _ _ e a b = fromSegments
     [ straight (e .-. atEnd a)
     , straight (atStart b .-. e)
     ]
+-}
 
 -- | Join by directly connecting the end points.  On an inside corner this
 --   creates negative space for even-odd fill.  Here is where we would want to

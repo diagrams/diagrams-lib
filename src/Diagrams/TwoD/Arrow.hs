@@ -154,7 +154,8 @@ colorJoint :: (Style v -> Style v) -> Style v
 colorJoint sStyle =
     let c = fmap getLineColor . getAttr $ sStyle mempty in
     case c of
-        Nothing -> fillColor black $ mempty -- default color for joints
+        Nothing -> fillColor (black :: Colour Double)   -- default color for joints
+                   $ mempty
         Just c' -> fillColor c' $ mempty
 
 widthJoint :: (Style v -> Style v) -> Double
