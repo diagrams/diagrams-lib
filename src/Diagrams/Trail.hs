@@ -11,6 +11,10 @@
 {-# LANGUAGE TypeOperators              #-}
 {-# LANGUAGE UndecidableInstances       #-}
 {-# LANGUAGE ViewPatterns               #-}
+
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+-- We have an orphan Transformable FingerTree instance here.
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Trail
@@ -188,7 +192,7 @@ instance (InnerSpace v, RealFrac (Scalar v), Floating (Scalar v))
     | otherwise = case FT.viewl after of
                     EmptyL    -> emptySplit
                     seg :< after' ->
-                      case seg `splitAtParam` (snd . properFraction $ p * tSegs) of
+                      case seg `splitAtParam` (snd . propFrac $ p * tSegs) of
                         (seg1, seg2) -> ( SegTree $ before |> seg1
                                         , SegTree $ seg2   <| after'
                                         )
@@ -389,9 +393,13 @@ instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
 mod1 :: RealFrac a => a -> a
 mod1 p = p'
  where
-   pf = snd . properFraction $ p
+   pf = snd . propFrac $ p
    p' | p >= 0    = pf
       | otherwise = 1 + pf
+
+-- Get rid of defaulting warnings
+propFrac :: RealFrac a => a -> (Int, a)
+propFrac = properFraction
 
 instance Num (Scalar v) => DomainBounds (Trail' l v)
 
@@ -426,11 +434,15 @@ instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
 --   'Parametric', 'DomainBounds' and 'EndValues' instances.  The idea
 --   is that if @tr@ is a trail, you can write, /e.g./
 --
---   > getSegment tr `atParam` 0.6
+--   @
+--   getSegment tr `atParam` 0.6
+--   @
 --
 --   or
 --
---   > atStart (getSegment tr)
+--   @
+--   atStart (getSegment tr)
+--   @
 --
 --   to get the segment at parameter 0.6 or the first segment in the
 --   trail, respectively.

@@ -185,4 +185,6 @@ normalAtEnd
   => t -> R2
 normalAtEnd = normize . tangentAtEnd
 
+-- | Construct a normal vector from a tangent.
+normize :: R2 -> R2
 normize = negateV . perp . normalized

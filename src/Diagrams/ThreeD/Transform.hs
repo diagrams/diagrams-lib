@@ -21,20 +21,15 @@ module Diagrams.ThreeD.Transform where
 import           Diagrams.Core
 import qualified Diagrams.Core.Transform as T
 
-import           Control.Newtype         (over)
-
 import           Diagrams.Coordinates
 import           Diagrams.ThreeD.Types
 import           Diagrams.ThreeD.Vector
-import           Diagrams.Transform
 
 import           Data.Semigroup
 
 import           Data.AffineSpace
 import           Data.Cross
 import           Data.VectorSpace
-
-import           Control.Arrow           (first, second)
 
 -- | Create a transformation which rotates by the given angle about
 --   a line parallel the Z axis passing through the local origin.

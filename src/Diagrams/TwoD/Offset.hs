@@ -46,12 +46,10 @@ import Diagrams.Located
 import Diagrams.Parametric
 import Diagrams.Path
 import Diagrams.Segment
-import Diagrams.Trail
 import Diagrams.TrailLike
 import Diagrams.TwoD.Arc
 import Diagrams.TwoD.Curvature
 import Diagrams.TwoD.Path
-import Diagrams.TwoD.Transform
 import Diagrams.TwoD.Types
 import Diagrams.TwoD.Vector
 
@@ -59,7 +57,7 @@ unitPerp :: R2 -> R2
 unitPerp = normalized . perp
 
 perpAtParam :: Segment Closed R2 -> Double -> R2
-perpAtParam   (Linear (OffsetClosed a))  t = -unitPerp a 
+perpAtParam   (Linear (OffsetClosed a))  _ = -unitPerp a 
 perpAtParam s@(Cubic _ _ _)              t = -unitPerp a
   where
     (Cubic a _ _) = snd $ splitAtParam s t
@@ -113,7 +111,7 @@ offsetSegment epsilon r s@(Cubic a b (OffsetClosed c)) = t `at` origin .+^ va
     va = -r *^ unitPerp a
     vc = -r *^ unitPerp (c ^-^ b)
     -- Split segments.
-    ss = (\(a,b) -> [a,b]) $ splitAtParam s 0.5
+    ss = (\(x,y) -> [x,y]) $ splitAtParam s 0.5
     subdivided = concatMap (trailSegments . unLoc . offsetSegment epsilon r) ss
 
     -- Offset with handles scaled based on curvature.
