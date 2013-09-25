@@ -5,6 +5,8 @@ before_install:
   - cd diagrams
   - cabal install diagrams-core/
   - cd ..
+script:
+  - cabal configure --enable-tests && cabal build && cabal test && cabal haddock
 notifications:
   email: false
   irc:

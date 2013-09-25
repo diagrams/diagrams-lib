@@ -45,16 +45,20 @@ class CameraLens l where
     -- | The natural aspect ratio of the projection.
     aspect :: l -> Double
 
-data PerspectiveLens = PerspectiveLens -- ^ A perspective projection
-                          Deg -- ^ Horizontal field of view.
-                          Deg -- ^ Vertical field of view.
+-- | A perspective projection
+data PerspectiveLens = PerspectiveLens
+                     { horizontalFieldOfView :: Deg -- ^ Horizontal field of view.
+                     , verticalFieldOfView   :: Deg -- ^ Vertical field of view.
+                     }
 
 instance CameraLens PerspectiveLens where
     aspect (PerspectiveLens h v) = angleRatio h v
 
-data OrthoLens = OrthoLens -- ^ An orthographic projection
-                 Double -- ^ Width
-                 Double -- ^ Height
+-- | An orthographic projection
+data OrthoLens = OrthoLens
+               { orthoWidth  :: Double -- ^ Width
+               , orthoHeight :: Double -- ^ Height
+               }
 
 instance CameraLens OrthoLens where
     aspect (OrthoLens h v) = h / v
