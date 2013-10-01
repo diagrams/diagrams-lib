@@ -26,6 +26,9 @@ module Diagrams.TwoD.Arrowheads
        , noHead
 
        -- ** Configurable arrowheads
+       -- | Creates arrowheads of the same shape as the standard heads but
+       --   where the angle parameter is used to specify the angle to the top
+       --   left point of the arrowhead.
        , arrowheadTriangle
        , arrowheadDart
        , arrowheadSpike
@@ -90,8 +93,17 @@ closedPath :: (Floating (Scalar v), Ord (Scalar v), InnerSpace v) => Trail v -> 
 closedPath = pathFromTrail . closeTrail
 
 -- Heads ------------------------------------------------------------------
+--   > drawHead h = arrowAt' with {arrowHead=h, shaftStyle=lw 0}
+--   >         origin (r2 (0.001, 0))
+--   >      <> square 0.5 # alignL # lw 0
 
--- | Isoceles triangle style.
+-- | Isoceles triangle style. The above example specifies an angle of `2/5 Turn`.
+
+-- | <<diagrams/src_Diagrams_TwoD_Arrowheads_tri25Ex.svg#diagram=tri25Ex&width=120>>
+
+--   > tri25Ex = arrowAt' with {arrowHead=arrowheadTriangle (2/5 :: Turn), shaftStyle=lw 0}
+--   >         origin (r2 (0.001, 0))
+--   >      <> square 0.6 # alignL # lw 0
 arrowheadTriangle :: Angle a => a -> ArrowHT
 arrowheadTriangle theta = aHead
   where
@@ -195,22 +207,41 @@ arrowheadMissile theta = smoothArrowhead $ arrowheadDart theta
 noHead :: ArrowHT
 noHead _ _ = (mempty, mempty)
 
+-- | <<diagrams/src_Diagrams_TwoD_Arrowheads_triEx.svg#diagram=triEx&width=100>>
+
+--   > triEx = drawHead tri
 tri :: ArrowHT
 tri = arrowheadTriangle (1/3 :: Turn)
 
+-- | <<diagrams/src_Diagrams_TwoD_Arrowheads_spikeEx.svg#diagram=spikeEx&width=100>>
+
+--   > spikeEx = drawHead spike
 spike :: ArrowHT
 spike = arrowheadSpike (3/8 :: Turn)
 
+-- | <<diagrams/src_Diagrams_TwoD_Arrowheads_thornEx.svg#diagram=thornEx&width=100>>
+
+--   > thornEx = drawHead thorn
 thorn :: ArrowHT
 thorn = arrowheadThorn (3/8 :: Turn) 1
 
+-- | <<diagrams/src_Diagrams_TwoD_Arrowheads_dartEx.svg#diagram=dartEx&width=100>>
+
+--   > dartEx = drawHead dart
 dart :: ArrowHT
 dart = arrowheadDart (2/5 :: Turn)
 
+-- | <<diagrams/src_Diagrams_TwoD_Arrowheads_missileEx.svg#diagram=missileEx&width=100>>
+
+--   > missileEx = drawHead missile
 missile :: ArrowHT
 missile = arrowheadMissile (2/5 :: Turn)
 
 -- Tails ------------------------------------------------------------------
+
+--   > drawTail t = arrowAt' with {arrowTail=t, shaftStyle=lw 0, arrowHead=noHead}
+--   >         origin (r2 (0.001, 0))
+--   >      <> square 0.5 # alignL # lw 0
 
 -- | Utility function to convert any arrowhead to an arrowtail, i.e.
 --   attached at the start of the trail.
@@ -235,7 +266,7 @@ arrowtailBlock theta = aTail
         b = a' ^-^ (reflectX a')
         x = magnitude b
 
--- | Theta is the angle where the top left corner intersects the circle.
+-- | The angle is where the top left corner intersects the circle.
 arrowtailQuill :: Angle a => a -> ArrowHT
 arrowtailQuill theta =aTail
   where
@@ -263,23 +294,44 @@ arrowtailQuill theta =aTail
 noTail :: ArrowHT
 noTail _ _ = (mempty, mempty)
 
+-- | <<diagrams/src_Diagrams_TwoD_Arrowheads_tri'Ex.svg#diagram=tri'Ex&width=100>>
+
+--   > tri'Ex = drawTail tri'
 tri' :: ArrowHT
 tri' = headToTail tri
 
+-- | <<diagrams/src_Diagrams_TwoD_Arrowheads_spike'Ex.svg#diagram=spike'Ex&width=100>>
+
+--   > spike'Ex = drawTail spike'
 spike' :: ArrowHT
 spike' = headToTail spike
 
+-- | <<diagrams/src_Diagrams_TwoD_Arrowheads_thorn'Ex.svg#diagram=thorn'Ex&width=100>>
+
+--   > thorn'Ex = drawTail thorn'
 thorn' :: ArrowHT
 thorn' = headToTail thorn
 
+-- | <<diagrams/src_Diagrams_TwoD_Arrowheads_dart'Ex.svg#diagram=dart'Ex&width=100>>
+
+--   > dart'Ex = drawTail dart'
 dart' :: ArrowHT
 dart' = headToTail dart
 
+-- | <<diagrams/src_Diagrams_TwoD_Arrowheads_missile'Ex.svg#diagram=missile'Ex&width=100>>
+
+--   > missile'Ex = drawTail missile'
 missile' :: ArrowHT
 missile' = headToTail missile
 
+-- | <<diagrams/src_Diagrams_TwoD_Arrowheads_quillEx.svg#diagram=quillEx&width=100>>
+
+--   > quillEx = drawTail quill
 quill :: ArrowHT
 quill = arrowtailQuill (2/5 :: Turn)
 
+-- | <<diagrams/src_Diagrams_TwoD_Arrowheads_blockEx.svg#diagram=blockEx&width=100>>
+
+--   > blockEx = drawTail block
 block :: ArrowHT
 block = arrowtailBlock (2/5 :: Turn)
