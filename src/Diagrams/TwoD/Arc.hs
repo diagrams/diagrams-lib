@@ -201,8 +201,8 @@ arcBetween p q ht = trailLike (a # rotateBy (direction v) # moveTo p)
 --   >   # fc blue
 --   >   # centerXY # pad 1.1
 annularWedge :: (Angle a, TrailLike p, V p ~ R2) => Double -> Double -> a -> a -> p
-annularWedge r1 r2 a1 a2 = trailLike . (`at` origin) . glueTrail . wrapLine
-              $ fromOffsets [(r1-r2) *^ e a1]
-                <> arc a1 a2 # scale r1
-                <> fromOffsets [(r1-r2) *^ negateV (e a2)]
-                <> arcCW a2 a1 # scale r2
+annularWedge r1' r2' a1 a2 = trailLike . (`at` origin) . glueTrail . wrapLine
+              $ fromOffsets [(r1'-r2') *^ e a1]
+                <> arc a1 a2 # scale r1'
+                <> fromOffsets [(r1'-r2') *^ negateV (e a2)]
+                <> arcCW a2 a1 # scale r2'
