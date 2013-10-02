@@ -46,7 +46,7 @@ module Diagrams.TwoD.Arrow
 --   >
 --   > -- Comparing connect, connectPerim, and arrowAt.
 --   >
---   > oct = octagon 1 # lc darkgray # lw 0.10 # showOrigin
+--   > oct  = octagon 1 # lc darkgray # lw 0.10 # showOrigin
 --   > dias = oct # named "first" ||| strut 3 ||| oct # named "second"
 --   >
 --   > -- Connect two diagrams and two points on their trails.
