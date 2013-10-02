@@ -18,8 +18,48 @@
 --
 -----------------------------------------------------------------------------
 
+
 module Diagrams.TwoD.Arrow
-       ( arrow
+       ( -- * Examples:
+         -- ** Example 1
+-- | <<diagrams/src_Diagrams_TwoD_Arrow_example1.svg#diagram=example1&width=500>>
+--
+--   > import Diagrams.Coordinates ((&))
+--   >
+--   > -- Connecting two diagrams at their origins.
+--   >
+--   > sq = square 2 # showOrigin # lc darkgray # lw 0.07
+--   > ds = (sq # named "left") ||| strutX 3 ||| (sq # named "right")
+--   >
+--   > shaft  = cubicSpline False [(0 & 0), (1 & 0), (1 & 0.2), (2 & 0.2)]
+--   >
+--   > example1 = ds # connect' with { arrowHead=dart, headSize=0.6
+--   >                               , tailSize=0.5, arrowTail=quill
+--   >                               , shaftStyle=lw 0.02, arrowShaft=shaft}
+--   >                               "left" "right" # pad 1.1
+
+         -- ** Example 2
+
+-- | <<diagrams/src_Diagrams_TwoD_Arrow_example2.svg#diagram=example2&width=500>>
+--
+--   > import Diagrams.Coordinates ((&))
+--   >
+--   > -- Comparing connect, connectPerim, and arrowAt.
+--   >
+--   > oct = octagon 1 # lc darkgray # lw 0.10 # showOrigin
+--   > dias = oct # named "first" ||| strut 3 ||| oct # named "second"
+--   >
+--   > -- Connect two diagrams and two points on their trails.
+--   > ex12 = dias # connect "first" "second"
+--   >             # connectPerim "first" "second" (15/16 :: Turn) (9/16 :: Turn)
+--   >
+--   > -- Place an arrow at (0,0) the size and direction of (0,1).
+--   > ex3 = arrowAt origin unit_Y
+--   >
+--   > example2 = (ex12 <> ex3) # centerXY # pad 1.1
+
+         -- * Documentation
+         arrow
        , arrow'
        , arrowAt
        , arrowAt'
