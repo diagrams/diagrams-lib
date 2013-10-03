@@ -60,11 +60,11 @@ module Diagrams.Attributes (
 
 import           Diagrams.Core
 
-import           Data.Default.Class
-
 import           Data.Colour
 import           Data.Colour.RGBSpace
 import           Data.Colour.SRGB (sRGBSpace)
+
+import           Data.Default.Class
 
 import           Data.Typeable
 
@@ -105,7 +105,7 @@ newtype LineColor = LineColor (Last SomeColor)
 instance AttributeClass LineColor
 
 instance Default LineColor where
-    def = LineColor (Last (SomeColor black))
+    def = LineColor (Last (SomeColor (black :: Colour Double)))
 
 getLineColor :: LineColor -> SomeColor
 getLineColor (LineColor (Last c)) = c

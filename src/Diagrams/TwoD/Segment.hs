@@ -2,6 +2,11 @@
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE UndecidableInstances #-}
 
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+-- Orphan Traced instances for Segment Closed R2 and FixedSegment R2.
+-- They can't go in Traced; but they shouldn't really go in
+-- Diagrams.Segment either because we only have Traced instances for
+-- the special case of R2.
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Segment

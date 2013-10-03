@@ -1,3 +1,29 @@
+0.7.1.1 (27 September 2013)
+---------------------------
+
+* allow semigroups-0.11
+
+0.7.1 (11 September 2013)
+-------------------------
+
+* **New features**
+
+    - New standard miter limit attribute
+    - New functions `lineColorA`, `lineWidthA`, `lineMiterLimitA`,
+      `fontSizeA` for directly applying attribute values
+    - `setDefault2DAttributes` now sets default line cap (butt), line
+      join (miter), and miter limit (10) attributes
+
+* **New instances**
+
+    - `Data.Default` instances for
+        - `LineCap`
+	- `LineJoin`
+	- `LineMiterLimit`
+	- `LineWidth`
+	- `LineColor`
+	- `FontSize`
+
 0.7 (9 August 2013)
 -------------------
 

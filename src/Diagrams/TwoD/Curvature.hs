@@ -19,7 +19,6 @@ module Diagrams.TwoD.Curvature
     , squaredRadiusOfCurvature
     ) where
 
-import           Data.AffineSpace
 import           Data.Monoid.Inf
 import           Data.NumInstances.Tuple ()
 import           Data.VectorSpace
@@ -27,11 +26,9 @@ import           Data.VectorSpace
 import           Control.Arrow        (first, second)
 import           Control.Monad        (join)
 
-import           Diagrams.Core
-
 import           Diagrams.Segment
+import           Diagrams.Tangent
 import           Diagrams.TwoD.Types
-import           Diagrams.TwoD.Vector
 
 -- | Curvature measures how curved the segment is at a point.  One intuition
 -- for the concept is how much you would turn the wheel when driving a car
@@ -145,17 +142,12 @@ toPosInf (p,q)
 -- the denominator respectively.
 curvaturePair :: (Num t, Num (Scalar t), VectorSpace t)
     => Segment Closed (t, t) -> Scalar t -> (t, t)
-curvaturePair (Linear _)    t = (0,1) -- Linear segments always have zero curvature (infinite radius).
-curvaturePair (Cubic b c (OffsetClosed d)) t = ((x'*y'' - y'*x''), (x'*x' + y'*y')^(3 :: Integer))
+curvaturePair (Linear _) _ = (0,1) -- Linear segments always have zero curvature (infinite radius).
+curvaturePair seg@(Cubic b c (OffsetClosed d)) t = ((x'*y'' - y'*x''), (x'*x' + y'*y')^(3 :: Integer))
   where
-    (x' ,y' ) = firstDerivative  b c d t -- TODO: Use the generalized unr2
-    (x'',y'') = secondDerivative b c d t
-
-    firstDerivative b c d t = (3*(3*tt-4*t+1))*^b + (3*(2-3*t)*t)*^c + (3*tt)*^d
-      where
-        tt = t * t
-
-    secondDerivative b c d t = (6*(3*t-2))*^b + (6-18*t)*^c + (6*t)*^d
+    (x' ,y' ) = seg `tangentAtParam` t
+    (x'',y'') = secondDerivative
+    secondDerivative = (6*(3*t-2))*^b + (6-18*t)*^c + (6*t)*^d
 
 -- TODO: We should be able to generalize this to higher dimensions.  See
 -- <http://en.wikipedia.org/wiki/Curvature>

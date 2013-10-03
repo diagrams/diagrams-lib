@@ -347,10 +347,10 @@ instance (InnerSpace v, OrderedField (Scalar v)) => Enveloped (FixedSegment v) w
 
 -- | Create a 'FixedSegment' from a located 'Segment'.
 mkFixedSeg :: AdditiveGroup v => Located (Segment Closed v) -> FixedSegment v
-mkFixedSeg (viewLoc -> (p, Linear (OffsetClosed v)))
-  = FLinear p (p .+^ v)
-mkFixedSeg (viewLoc -> (p, Cubic c1 c2 (OffsetClosed x2)))
-  = FCubic  p (p .+^ c1) (p .+^ c2) (p .+^ x2)
+mkFixedSeg ls =
+  case viewLoc ls of
+    (p, Linear (OffsetClosed v))       -> FLinear p (p .+^ v)
+    (p, Cubic c1 c2 (OffsetClosed x2)) -> FCubic  p (p .+^ c1) (p .+^ c2) (p .+^ x2)
 
 -- | Convert a 'FixedSegment' back into a located 'Segment'.
 fromFixedSeg :: AdditiveGroup v => FixedSegment v -> Located (Segment Closed v)

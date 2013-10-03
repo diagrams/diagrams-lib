@@ -52,12 +52,12 @@ import           Data.VectorSpace
 --
 --   For more information, see <http://mathworld.wolfram.com/CubicSpline.html>.
 cubicSpline :: (TrailLike t, Fractional (V t)) => Bool -> [Point (V t)] -> t
-cubicSpline c [] = trailLike . closeIf c $ emptyLine `at` origin
-cubicSpline c ps = flattenBeziers . map f . solveCubicSplineCoefficients c . map unPoint $ ps
+cubicSpline closed [] = trailLike . closeIf closed $ emptyLine `at` origin
+cubicSpline closed ps = flattenBeziers . map f . solveCubicSplineCoefficients closed . map unPoint $ ps
   where
     f [a,b,c,d] = [a, (3*a+b)/3, (3*a+2*b+c)/3, a+b+c+d]
     flattenBeziers bs@((b:_):_)
-      = trailLike . closeIf c $ lineFromSegments (map bez bs) `at` P b
+      = trailLike . closeIf closed $ lineFromSegments (map bez bs) `at` P b
     bez [a,b,c,d] = bezier3 (b - a) (c - a) (d - a)
 
 closeIf :: (InnerSpace v, OrderedField (Scalar v))

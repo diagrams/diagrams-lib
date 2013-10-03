@@ -119,16 +119,18 @@ instance Traced a => Traced (Located a) where
 instance Qualifiable a => Qualifiable (Located a) where
   n |> (Loc p a) = Loc p (n |> a)
 
-type instance Codomain (Located a) = Located (Codomain a)
+type instance Codomain (Located a) = Point (Codomain a)
 
-instance (V a ~ V (Codomain a), Parametric a) => Parametric (Located a) where
-  (Loc x a) `atParam` p = Loc x (a `atParam` p)
+instance (Codomain a ~ V a, AdditiveGroup (V a), Parametric a)
+    => Parametric (Located a) where
+  (Loc x a) `atParam` p = x .+^ (a `atParam` p)
 
 instance DomainBounds a => DomainBounds (Located a) where
   domainLower (Loc _ a) = domainLower a
   domainUpper (Loc _ a) = domainUpper a
 
-instance (V a ~ V (Codomain a), EndValues a) => EndValues (Located a)
+instance (Codomain a ~ V a, AdditiveGroup (V a), EndValues a)
+    => EndValues (Located a)
 
 instance ( Codomain a ~ V a, Fractional (Scalar (V a)), AdditiveGroup (V a)
          , Sectionable a, Parametric a
@@ -140,7 +142,9 @@ instance ( Codomain a ~ V a, Fractional (Scalar (V a)), AdditiveGroup (V a)
   reverseDomain (Loc x a) = Loc (x .+^ y) (reverseDomain a)
     where y = a `atParam` (domainUpper a)
 
-instance (HasArcLength a, Fractional (Scalar (V a)), V a ~ V (Codomain a))
+instance ( Codomain a ~ V a, AdditiveGroup (V a), Fractional (Scalar (V a))
+         , HasArcLength a
+         )
     => HasArcLength (Located a) where
   arcLengthBounded eps (Loc _ a)   = arcLengthBounded eps a
   arcLengthToParam eps (Loc _ a) l = arcLengthToParam eps a l

@@ -1,5 +1,5 @@
 Name:                diagrams-lib
-Version:             0.7
+Version:             0.7.2
 Synopsis:            Embedded domain-specific language for declarative graphics
 Description:         Diagrams is a flexible, extensible EDSL for creating
                      graphics of many types.  Graphics can be created
@@ -40,6 +40,7 @@ Library
                        Diagrams.CubicSpline,
                        Diagrams.CubicSpline.Internal,
                        Diagrams.Solve,
+                       Diagrams.Tangent,
                        Diagrams.Transform,
                        Diagrams.BoundingBox,
                        Diagrams.Names,
@@ -70,6 +71,10 @@ Library
                        Diagrams.TwoD.Adjust,
                        Diagrams.ThreeD.Types,
                        Diagrams.ThreeD.Shapes,
+                       Diagrams.ThreeD.Vector,
+                       Diagrams.ThreeD.Transform,
+                       Diagrams.ThreeD.Camera,
+                       Diagrams.ThreeD.Light,
                        Diagrams.Animation,
                        Diagrams.Animation.Active,
                        Diagrams.Util,
@@ -77,7 +82,7 @@ Library
   Build-depends:       base >= 4.2 && < 4.8,
                        containers >= 0.3 && < 0.6,
                        array >= 0.3 && < 0.5,
-                       semigroups >= 0.3.4 && < 0.10,
+                       semigroups >= 0.3.4 && < 0.12,
                        monoid-extras >= 0.3 && < 0.4,
                        diagrams-core >= 0.7 && < 0.8,
                        active >= 0.1 && < 0.2,

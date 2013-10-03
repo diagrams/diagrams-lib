@@ -25,7 +25,21 @@ module Diagrams.ThreeD.Types
        , P3, p3, unp3
        , T3
 
+         -- * Two-dimensional angles
+         -- | These are defined in "Diagrams.TwoD.Types" but
+         --   reëxported here for convenience.
+       , Angle(..)
+       , Turn(..), Rad(..), Deg(..)
+
+       , fullTurn, convertAngle, angleRatio
+
+         -- * Directions in 3D
+       , Direction(..)
+       , Spherical(..)
+       , asSpherical
        ) where
+
+import Control.Applicative
 
 import Diagrams.Coordinates
 import Diagrams.TwoD.Types
@@ -35,6 +49,7 @@ import Control.Newtype
 
 import Data.Basis
 import Data.VectorSpace
+import Data.Cross
 
 ------------------------------------------------------------
 -- 3D Euclidean space
@@ -95,3 +110,43 @@ type T3 = Transformation R3
 instance Transformable R3 where
   transform = apply
 
+instance HasCross3 R3 where
+  cross3 u v = r3 $ cross3 (unr3 u) (unr3 v)
+
+--------------------------------------------------------------------------------
+-- Direction
+
+-- | Direction is a type class representing directions in R3.  The interface is
+-- based on that of the Angle class in 2D.
+
+class Direction d where
+    -- | Convert to polar angles
+    toSpherical :: Angle a => d -> Spherical a
+
+    -- | Convert from polar angles
+    fromSpherical :: Angle a => Spherical a -> d
+
+-- | A direction expressed as a pair of spherical coordinates.
+-- `Spherical 0 0` is the direction of `unitX`.  The first coordinate
+-- represents rotation about the Z axis, the second rotation towards the Z axis.
+data Spherical a = Spherical a a
+                   deriving (Show, Read, Eq)
+
+instance Applicative Spherical where
+    pure a = Spherical a a
+    Spherical a b <*> Spherical c d = Spherical (a c) (b d)
+
+instance Functor Spherical where
+    fmap f s = pure f <*> s
+
+instance (Angle a) => Direction (Spherical a) where
+    toSpherical = fmap convertAngle
+    fromSpherical = fmap convertAngle
+
+-- | The identity function with a restricted type, for conveniently
+-- restricting unwanted polymorphism.  For example, @fromDirection
+-- . asSpherical . camForward@ gives a unit vector pointing in the
+-- direction of the camera view.  Without @asSpherical@, the
+-- intermediate type would be ambiguous.
+asSpherical :: Spherical Turn -> Spherical Turn
+asSpherical = id

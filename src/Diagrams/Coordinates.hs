@@ -21,6 +21,8 @@ module Diagrams.Coordinates
     ( (:&)(..), Coordinates(..) )
     where
 
+import           Diagrams.Core.Points
+
 -- | A pair of values, with a convenient infix (left-associative)
 --   data constructor.
 data a :& b = a :& b
@@ -94,3 +96,11 @@ instance Coordinates (a,b,c,d) where
 
   (w,x,y) & z                  = (w,x,y,z)
   coords (w,x,y,z)             = coords (w,x,y) :& z
+
+instance Coordinates v => Coordinates (Point v) where
+  type FinalCoord (Point v)    = FinalCoord v
+  type PrevDim (Point v)       = PrevDim v
+  type Decomposition (Point v) = Decomposition v
+
+  x & y        = P (x & y)
+  coords (P v) = coords v

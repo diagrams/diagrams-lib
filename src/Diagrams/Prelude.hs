@@ -44,6 +44,10 @@ module Diagrams.Prelude
          -- | Adjusting the length of parameterized objects.
        , module Diagrams.Parametric.Adjust
 
+         -- | Computing tangent and normal vectors of segments and
+         --   trails.
+       , module Diagrams.Tangent
+
          -- | Trail-like things.
        , module Diagrams.TrailLike
 
@@ -127,6 +131,7 @@ import           Diagrams.Path
 import           Diagrams.Points
 import           Diagrams.Query
 import           Diagrams.Segment
+import           Diagrams.Tangent
 import           Diagrams.Trace
 import           Diagrams.Trail
 import           Diagrams.TrailLike
