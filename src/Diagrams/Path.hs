@@ -5,7 +5,6 @@
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
 {-# LANGUAGE StandaloneDeriving         #-}
-{-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE UndecidableInstances       #-}
 {-# LANGUAGE ViewPatterns               #-}
@@ -68,8 +67,7 @@ import           Diagrams.TrailLike
 import           Diagrams.Transform
 
 import           Control.Arrow        ((***))
-import           Control.Lens         (from, makeLenses, mapped, over, view,
-                                       (%~))
+import           Control.Lens         (Iso, from, iso, mapped, over, view, (%~))
 import           Data.AffineSpace
 import qualified Data.Foldable        as F
 import           Data.List            (partition)
@@ -87,7 +85,8 @@ import           Data.VectorSpace
 newtype Path v = Path { _pathTrails :: [Located (Trail v)] }
   deriving (Semigroup, Monoid)
 
-makeLenses ''Path
+pathTrails :: Iso (Path v) (Path v') [Located (Trail v)] [Located (Trail v')]
+pathTrails = iso _pathTrails Path
 
 deriving instance Show v => Show (Path v)
 deriving instance Eq   v => Eq   (Path v)
