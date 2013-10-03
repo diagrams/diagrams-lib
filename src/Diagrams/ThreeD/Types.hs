@@ -1,10 +1,10 @@
-{-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE TypeSynonymInstances #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE ViewPatterns #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE TypeOperators              #-}
+{-# LANGUAGE TypeSynonymInstances       #-}
+{-# LANGUAGE ViewPatterns               #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
@@ -39,17 +39,17 @@ module Diagrams.ThreeD.Types
        , asSpherical
        ) where
 
-import Control.Applicative
+import           Control.Applicative
+import           Control.Lens           (Iso', iso, over)
 
-import Diagrams.Coordinates
-import Diagrams.TwoD.Types
-import Diagrams.Core
+import           Diagrams.Coordinates
+import           Diagrams.Core
+import           Diagrams.TwoD.Types
 
-import Control.Newtype
-
-import Data.Basis
-import Data.VectorSpace
-import Data.Cross
+import           Data.AffineSpace.Point
+import           Data.Basis
+import           Data.Cross
+import           Data.VectorSpace
 
 ------------------------------------------------------------
 -- 3D Euclidean space
@@ -58,23 +58,22 @@ import Data.Cross
 newtype R3 = R3 { unR3 :: (Double, Double, Double) }
   deriving (AdditiveGroup, Eq, Ord, Show, Read)
 
-instance Newtype R3 (Double, Double, Double) where
-  pack   = R3
-  unpack = unR3
+r3Iso :: Iso' R3 (Double, Double, Double)
+r3Iso = iso unR3 R3
 
 -- | Construct a 3D vector from a triple of components.
 r3 :: (Double, Double, Double) -> R3
-r3 = pack
+r3 = R3
 
 -- | Convert a 3D vector back into a triple of components.
 unr3 :: R3 -> (Double, Double, Double)
-unr3 = unpack
+unr3 = unR3
 
 type instance V R3 = R3
 
 instance VectorSpace R3 where
   type Scalar R3 = Double
-  (*^) = over R3 . (*^)
+  (*^) = over r3Iso . (*^)
 
 instance HasBasis R3 where
   type Basis R3 = Either () (Either () ()) -- = Basis (Double, Double, Double)
@@ -98,11 +97,11 @@ type P3 = Point R3
 
 -- | Construct a 3D point from a triple of coordinates.
 p3 :: (Double, Double, Double) -> P3
-p3 = pack . pack
+p3 = P . R3
 
 -- | Convert a 2D point back into a triple of coordinates.
 unp3 :: P3 -> (Double, Double, Double)
-unp3 = unpack . unpack
+unp3 = unR3 . unPoint
 
 -- | Transformations in R^3.
 type T3 = Transformation R3

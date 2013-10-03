@@ -43,6 +43,7 @@ module Diagrams.TwoD.Path
        ) where
 
 import           Control.Applicative   (liftA2)
+import           Control.Lens          (view, (^.))
 import qualified Data.Foldable         as F
 import           Data.Semigroup
 import           Data.Typeable
@@ -80,7 +81,7 @@ instance Traced (Trail R2) where
     . lineSegments
 
 instance Traced (Path R2) where
-  getTrace = F.foldMap getTrace . pathTrails
+  getTrace = F.foldMap getTrace . view pathTrails
 
 ------------------------------------------------------------
 --  Constructing path-based diagrams  ----------------------
@@ -112,9 +113,9 @@ instance Renderable (Path R2) b => TrailLike (QDiagram b R2 Any) where
 --   ... }@ syntax may be used.
 stroke' :: (Renderable (Path R2) b, IsName a) => StrokeOpts a -> Path R2 -> Diagram b R2
 stroke' opts path
-  | null (pathTrails pLines) =           mkP pLoops
-  | null (pathTrails pLoops) = mkP pLines
-  | otherwise            = mkP pLines <> mkP pLoops
+  | null (pLines ^. pathTrails) =           mkP pLoops
+  | null (pLoops ^. pathTrails) = mkP pLines
+  | otherwise                   = mkP pLines <> mkP pLoops
   where
     (pLines,pLoops) = partitionPath (isLine . unLoc) path
     mkP p
@@ -282,7 +283,7 @@ isInsideEvenOdd p = odd . crossings p
 -- | Compute the sum of /signed/ crossings of a path as we travel in the
 --   positive x direction from a given point.
 crossings :: P2 -> Path R2 -> Int
-crossings p = F.sum . map (trailCrossings p) . pathTrails
+crossings p = F.sum . map (trailCrossings p) . view pathTrails
 
 -- | Compute the sum of signed crossings of a trail starting from the
 --   given point in the positive x direction.
