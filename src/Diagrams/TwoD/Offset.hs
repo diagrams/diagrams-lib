@@ -232,9 +232,9 @@ offsetTrail = offsetTrail' def
 
 -- | Offset a 'Path' by applying 'offsetTrail'' to each trail in the path.
 offsetPath' :: OffsetOpts -> Double -> Path R2 -> Path R2
-offsetPath' opts r = mconcat 
-                   . map (bindLoc (trailLike . offsetTrail' opts r) . (`at` origin)) 
-                   . pathTrails 
+offsetPath' opts r = mconcat
+                   . map (bindLoc (trailLike . offsetTrail' opts r) . (`at` origin))
+                   . view pathTrails
 
 -- | Offset a 'Path' with the default options and given radius.  See 'offsetPath''.
 offsetPath :: Double -> Path R2 -> Path R2
@@ -349,9 +349,9 @@ expandTrail = expandTrail' def
 
 -- | Expand a 'Path' using 'expandTrail'' on each trail in the path.
 expandPath' :: ExpandOpts -> Double -> Path R2 -> Path R2
-expandPath' opts r = mconcat 
-                   . map (bindLoc (expandTrail' opts r) . (`at` origin)) 
-                   . pathTrails
+expandPath' opts r = mconcat
+                   . map (bindLoc (expandTrail' opts r) . (`at` origin))
+                   . view pathTrails
 
 -- | Expand a 'Path' with the given radius and default options.  See 'expandPath''.
 expandPath :: Double -> Path R2 -> Path R2
