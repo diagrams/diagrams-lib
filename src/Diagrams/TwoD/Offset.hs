@@ -31,6 +31,7 @@ module Diagrams.TwoD.Offset
     ) where
 
 import Control.Applicative
+import Control.Lens (view)
 
 import Data.AffineSpace
 import Data.Monoid
