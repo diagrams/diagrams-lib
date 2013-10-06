@@ -75,6 +75,7 @@ Library
                        Diagrams.ThreeD.Transform,
                        Diagrams.ThreeD.Camera,
                        Diagrams.ThreeD.Light,
+                       Diagrams.ThreeD
                        Diagrams.Animation,
                        Diagrams.Animation.Active,
                        Diagrams.Util,
