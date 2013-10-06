@@ -21,7 +21,7 @@
 
 module Diagrams.ThreeD.Types
        ( -- * 3D Euclidean space
-         R3, r3, unr3
+         R3(..), r3, unr3
        , P3, p3, unp3
        , T3
 
@@ -29,8 +29,7 @@ module Diagrams.ThreeD.Types
          -- | These are defined in "Diagrams.TwoD.Types" but
          --   reëxported here for convenience.
        , Angle(..)
-       , Turn(..), Rad(..), Deg(..)
-
+       , Turn(..), asTurn, CircleFrac, Rad(..), asRad, Deg(..), asDeg
        , fullTurn, convertAngle, angleRatio
 
          -- * Directions in 3D
