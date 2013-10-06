@@ -18,7 +18,11 @@
 -----------------------------------------------------------------------------
 
 module Diagrams.Coordinates
-    ( (:&)(..), Coordinates(..) )
+    ( (:&)(..), Coordinates(..)
+
+    -- * Lenses for particular axes
+    , HasX(..), HasY(..), HasZ(..)
+    )
     where
 
 import           Diagrams.Core.Points
@@ -104,3 +108,12 @@ instance Coordinates v => Coordinates (Point v) where
 
   x & y        = P (x & y)
   coords (P v) = coords v
+
+class HasX t where
+    _x :: Functor f => (Double -> f Double) -> t -> f t
+
+class HasY t where
+    _y :: Functor f => (Double -> f Double) -> t -> f t
+
+class HasZ t where
+    _z :: Functor f => (Double -> f Double) -> t -> f t
