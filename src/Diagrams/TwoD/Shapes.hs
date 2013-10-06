@@ -59,6 +59,7 @@ import           Diagrams.TwoD.Types
 
 import           Diagrams.Util
 
+import           Control.Lens            (view)
 import           Data.Default.Class
 import           Data.Semigroup
 
@@ -105,7 +106,7 @@ square d = rect d d
 --
 --   <<diagrams/src_Diagrams_TwoD_Shapes_rectEx.svg#diagram=rectEx&width=150>>
 rect :: (TrailLike t, Transformable t, V t ~ R2) => Double -> Double -> t
-rect w h = trailLike . head . pathTrails $ unitSquare # scaleX w # scaleY h
+rect w h = trailLike . head . view pathTrails $ unitSquare # scaleX w # scaleY h
 
 -- > rectEx = rect 1 0.7 # pad 1.1
 
