@@ -32,6 +32,7 @@ module Diagrams.Combinators
        , position, decorateTrail, decorateLocatedTrail, decoratePath
        , cat, cat'
        , CatOpts(CatOpts), catMethod, sep
+       , catOptsvProxy__  -- may not want to export?
        , CatMethod(..)
 
        ) where

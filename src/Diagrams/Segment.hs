@@ -6,6 +6,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE StandaloneDeriving         #-}
+{-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE TypeOperators              #-}
 {-# LANGUAGE UndecidableInstances       #-}
@@ -53,14 +54,16 @@ module Diagrams.Segment
          -- * Segment measures
          -- $segmeas
 
-       , SegCount(..)
-       , ArcLength(..), getArcLengthCached, getArcLengthFun, getArcLengthBounded
+       , SegCount(SegCount), getSegCount
+       , ArcLength(ArcLength)
+       , getArcLength, getArcLengthCached, getArcLengthFun, getArcLengthBounded
        , TotalOffset(..)
        , OffsetEnvelope(..)
        , SegMeasure
 
        ) where
 
+import           Control.Lens (makeLenses)
 import           Control.Applicative (liftA2)
 import           Data.AffineSpace
 import           Data.FingerTree
@@ -380,8 +383,10 @@ instance VectorSpace v => Parametric (FixedSegment v) where
 -- automatically track various monoidal \"measures\" on segments.
 
 -- | A type to track the count of segments in a 'Trail'.
-newtype SegCount = SegCount { getSegCount :: Sum Int }
+newtype SegCount = SegCount { _getSegCount :: Sum Int }
   deriving (Semigroup, Monoid)
+
+makeLenses ''SegCount
 
 -- | A type to represent the total arc length of a chain of
 --   segments. The first component is a \"standard\" arc length,
@@ -389,7 +394,10 @@ newtype SegCount = SegCount { getSegCount :: Sum Int }
 --   a generic arc length function taking the tolerance as an
 --   argument.
 newtype ArcLength v = ArcLength
-  { getArcLength :: (Sum (Interval (Scalar v)), Scalar v -> Sum (Interval (Scalar v))) }
+  { _getArcLength :: (Sum (Interval (Scalar v)), Scalar v -> Sum (Interval (Scalar v))) }
+
+
+makeLenses ''ArcLength
 
 -- | Project out the cached arc length, stored together with error
 --   bounds.
