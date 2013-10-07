@@ -78,7 +78,7 @@ instance Transformable (Camera l) where
       Camera (transform t p)
              (transform t f)
              (transform t u)
-n             l
+             l
 
 instance IsPrim (Camera l)
 
