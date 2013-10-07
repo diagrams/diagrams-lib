@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
 -----------------------------------------------------------------------------
@@ -29,9 +30,13 @@ module Diagrams.Combinators
          -- * n-ary operations
        , appends
        , position, decorateTrail, decorateLocatedTrail, decoratePath
-       , cat, cat', CatOpts(..), CatMethod(..)
+       , cat, cat'
+       , CatOpts(CatOpts)
+       , CatMethod(..)
 
        ) where
+
+import           Control.Lens (makeLenses)
 
 import           Data.AdditiveGroup
 import           Data.AffineSpace   ((.+^))
@@ -283,11 +288,11 @@ data CatMethod = Cat     -- ^ Normal catenation: simply put diagrams
                          --   of separation, diagrams may overlap.
 
 -- | Options for 'cat''.
-data CatOpts v = CatOpts { catMethod       :: CatMethod
+data CatOpts v = CatOpts { _catMethod       :: CatMethod
                              -- ^ Which 'CatMethod' should be used:
                              --   normal catenation (default), or
                              --   distribution?
-                         , sep             :: Scalar v
+                         , _sep             :: Scalar v
                              -- ^ How much separation should be used
                              --   between successive diagrams
                              --   (default: 0)?  When @catMethod =
@@ -295,10 +300,12 @@ data CatOpts v = CatOpts { catMethod       :: CatMethod
                              --   /envelopes/; when @catMethod =
                              --   Distrib@, this is the distance
                              --   between /origins/.
-                         , catOptsvProxy__ :: Proxy v
+                         , _catOptsvProxy__ :: Proxy v
                              -- ^ This field exists solely to aid type inference;
                              --   please ignore it.
                          }
+
+makeLenses ''CatOpts
 
 -- The reason the proxy field is necessary is that without it,
 -- altering the sep field could theoretically change the type of a
@@ -310,9 +317,9 @@ data CatOpts v = CatOpts { catMethod       :: CatMethod
 -- = 10}@ to be the same as the type of the whole expression.
 
 instance Num (Scalar v) => Default (CatOpts v) where
-  def = CatOpts { catMethod       = Cat
-                , sep             = 0
-                , catOptsvProxy__ = Proxy
+  def = CatOpts { _catMethod       = Cat
+                , _sep             = 0
+                , _catOptsvProxy__ = Proxy
                 }
 
 -- | @cat v@ positions a list of objects so that their local origins
@@ -350,9 +357,9 @@ cat' :: ( Juxtaposable a, Monoid' a, HasOrigin a
         , InnerSpace (V a), OrderedField (Scalar (V a))
         )
      => V a -> CatOpts (V a) -> [a] -> a
-cat' v (CatOpts { catMethod = Cat, sep = s }) = foldB comb mempty
+cat' v (CatOpts { _catMethod = Cat, _sep = s }) = foldB comb mempty
   where comb d1 d2 = d1 <> (juxtapose v d1 d2 # moveOriginBy vs)
         vs = s *^ normalized (negateV v)
 
-cat' v (CatOpts { catMethod = Distrib, sep = s }) =
+cat' v (CatOpts { _catMethod = Distrib, _sep = s }) =
   position . zip (iterate (.+^ (s *^ normalized v)) origin)
