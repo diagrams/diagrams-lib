@@ -7,6 +7,7 @@
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
 {-# LANGUAGE StandaloneDeriving         #-}
+{-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE TypeOperators              #-}
 {-# LANGUAGE UndecidableInstances       #-}
@@ -93,7 +94,7 @@ module Diagrams.Trail
 
          -- ** Segment trees
 
-       , SegTree(..), trailMeasure, numSegs, offset
+       , SegTree(SegTree), getSegTree, trailMeasure, numSegs, offset
 
          -- ** Extracting segments
 
@@ -102,7 +103,7 @@ module Diagrams.Trail
        ) where
 
 import           Control.Arrow       ((***))
-import           Control.Lens        (AnIso', iso, view)
+import           Control.Lens        (makeLenses, AnIso', iso, view)
 import           Data.AffineSpace
 import           Data.FingerTree     (FingerTree, ViewL (..), ViewR (..), (<|),
                                       (|>))
@@ -147,8 +148,10 @@ instance ( HasLinearMap (V a), InnerSpace (V a), OrderedField (Scalar (V a))
 --   (/e.g./, split off the smallest number of segments from the
 --   beginning which have a combined arc length of at least 5).
 newtype SegTree v = SegTree
-                  { getSegTree :: FingerTree (SegMeasure v) (Segment Closed v) }
+                  { _getSegTree :: FingerTree (SegMeasure v) (Segment Closed v) }
   deriving (Eq, Ord, Show)
+
+makeLenses ''SegTree
 
 type instance V (SegTree v) = v
 
@@ -159,7 +162,7 @@ deriving instance (OrderedField (Scalar v), InnerSpace v)
 
 instance (HasLinearMap v, InnerSpace v, OrderedField (Scalar v))
   => Transformable (SegTree v) where
-  transform t = SegTree . transform t . getSegTree
+  transform t = SegTree . transform t . (view getSegTree)
 
 type instance Codomain (SegTree v) = v
 
