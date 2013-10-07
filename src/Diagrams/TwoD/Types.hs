@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE TypeOperators              #-}
 {-# LANGUAGE TypeSynonymInstances       #-}
@@ -26,9 +27,13 @@ module Diagrams.TwoD.Types
 
          -- * Angles
        , Angle(..)
-       , Turn(..), asTurn, CircleFrac, Rad(..), asRad, Deg(..), asDeg
+       , Turn(Turn), getTurn, asTurn, CircleFrac
+       , Rad(Rad), getRad, asRad
+       , Deg(Deg), getDeg, asDeg
        , fullTurn, fullCircle, convertAngle, angleRatio
        ) where
+
+import           Control.Lens            (makeLenses, view)
 
 import           Diagrams.Coordinates
 import           Diagrams.Core
@@ -195,8 +200,10 @@ instance Transformable R2 where
 
 -- | Newtype wrapper used to represent angles as fractions of a
 --   circle.  For example, 1\/3 turn = tau\/3 radians = 120 degrees.
-newtype Turn = Turn { getTurn :: Double }
+newtype Turn = Turn { _getTurn :: Double }
   deriving (Read, Show, Eq, Ord, Enum, Fractional, Num, Real, RealFrac, AdditiveGroup)
+
+makeLenses ''Turn
 
 -- | The identity function with a restricted type, for conveniently
 -- declaring that some value should have type 'Turn'.  For example,
@@ -210,8 +217,10 @@ asTurn = id
 type CircleFrac = Turn
 
 -- | Newtype wrapper for representing angles in radians.
-newtype Rad = Rad { getRad :: Double }
+newtype Rad = Rad { _getRad :: Double }
   deriving (Read, Show, Eq, Ord, Enum, Floating, Fractional, Num, Real, RealFloat, RealFrac, AdditiveGroup)
+
+makeLenses ''Rad
 
 -- | The identity function with a restricted type, for conveniently
 -- declaring that some value should have type 'Rad'.  For example,
@@ -222,8 +231,10 @@ asRad :: Rad -> Rad
 asRad = id
 
 -- | Newtype wrapper for representing angles in degrees.
-newtype Deg = Deg { getDeg :: Double }
+newtype Deg = Deg { _getDeg :: Double }
   deriving (Read, Show, Eq, Ord, Enum, Fractional, Num, Real, RealFrac, AdditiveGroup)
+
+makeLenses ''Deg
 
 -- | The identity function with a restricted type, for conveniently
 -- declaring that some value should have type 'Deg'.  For example,
@@ -247,13 +258,13 @@ instance Angle Turn where
 
 -- | tau radians = 1 full turn.
 instance Angle Rad where
-  toTurn   = Turn . (/tau) . getRad
-  fromTurn = Rad . (*tau) . getTurn
+  toTurn   = Turn . (/tau) . view getRad
+  fromTurn = Rad . (*tau) . view getTurn
 
 -- | 360 degrees = 1 full turn.
 instance Angle Deg where
-  toTurn   = Turn . (/360) . getDeg
-  fromTurn = Deg . (*360) . getTurn
+  toTurn   = Turn . (/360) . view getDeg
+  fromTurn = Deg . (*360) . view getTurn
 
 -- | An angle representing one full turn.
 fullTurn :: Angle a => a
@@ -269,4 +280,4 @@ convertAngle = fromTurn . toTurn
 
 -- | Calculate ratio between two angles
 angleRatio :: Angle a => a -> a -> Double
-angleRatio a b = getTurn (toTurn a) / getTurn (toTurn b)
+angleRatio a b = view getTurn (toTurn a) / view getTurn (toTurn b)

@@ -30,7 +30,9 @@ module Diagrams.ThreeD.Types
          -- | These are defined in "Diagrams.TwoD.Types" but
          --   reëxported here for convenience.
        , Angle(..)
-       , Turn(..), Rad(..), Deg(..)
+       , Turn(..)
+       , Rad(Rad), getRad, asRad
+       , Deg(..)
 
        , fullTurn, convertAngle, angleRatio
 

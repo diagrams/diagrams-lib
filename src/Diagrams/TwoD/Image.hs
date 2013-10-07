@@ -1,7 +1,7 @@
-{-# LANGUAGE TypeFamilies         #-}
-{-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE TemplateHaskell       #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Image
