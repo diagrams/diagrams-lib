@@ -63,7 +63,7 @@ module Diagrams.Segment
 
        ) where
 
-import           Control.Lens (makeLenses)
+import           Control.Lens (makeLenses, view)
 import           Control.Applicative (liftA2)
 import           Data.AffineSpace
 import           Data.FingerTree
@@ -402,12 +402,13 @@ makeLenses ''ArcLength
 -- | Project out the cached arc length, stored together with error
 --   bounds.
 getArcLengthCached :: ArcLength v -> Interval (Scalar v)
-getArcLengthCached = getSum . fst . getArcLength
+getArcLengthCached = getSum . fst . (view getArcLength)
+--getArcLengthCached = getSum . fst . getArcLength
 
 -- | Project out the generic arc length function taking the tolerance as
 --   an argument.
 getArcLengthFun :: ArcLength v -> Scalar v -> Interval (Scalar v)
-getArcLengthFun = fmap getSum . snd . getArcLength
+getArcLengthFun = fmap getSum . snd . (view getArcLength)
 
 -- | Given a specified tolerance, project out the cached arc length if
 --   it is accurate enough; otherwise call the generic arc length
