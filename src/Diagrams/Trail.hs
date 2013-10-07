@@ -273,7 +273,7 @@ offset :: ( Floating (Scalar v), Ord (Scalar v), InnerSpace v,
             FT.Measured (SegMeasure v) t
           )
        => t -> v
-offset = trailMeasure zeroV (getTotalOffset . oeOffset)
+offset = trailMeasure zeroV ((view getTotalOffset) . (view oeOffset))
 
 ------------------------------------------------------------
 --  Trails  ------------------------------------------------
@@ -379,7 +379,7 @@ instance (InnerSpace v, OrderedField (Scalar v)) => Enveloped (Trail' l v) where
   getEnvelope = withTrail' ftEnv (ftEnv . cutLoop)
     where
       ftEnv :: Trail' Line v -> Envelope v
-      ftEnv (Line t) = trailMeasure mempty oeEnvelope $ t
+      ftEnv (Line t) = trailMeasure mempty (view oeEnvelope) $ t
 
 instance (HasLinearMap v, InnerSpace v, OrderedField (Scalar v))
     => Renderable (Trail' o v) NullBackend where
@@ -869,7 +869,7 @@ cutLoop (Loop (SegTree t) c) =
     (_   , Cubic c1 c2 OffsetOpen) -> Line (SegTree (t |> Cubic c1 c2 off))
   where
     offV :: v
-    offV = negateV . trailMeasure zeroV (getTotalOffset . oeOffset) $ t
+    offV = negateV . trailMeasure zeroV ((view getTotalOffset) . (view oeOffset)) $ t
     off = OffsetClosed offV
 
 -- | @cutTrail@ is a variant of 'cutLoop' for 'Trail'; it is the is
@@ -952,7 +952,7 @@ loopOffsets = lineOffsets . cutLoop
 --   there is no corresponding @loopOffset@ function because by
 --   definition it would be constantly zero.)
 lineOffset :: (InnerSpace v, OrderedField (Scalar v)) => Trail' Line v -> v
-lineOffset (Line t) = trailMeasure zeroV (getTotalOffset . oeOffset) t
+lineOffset (Line t) = trailMeasure zeroV ((view getTotalOffset) . (view oeOffset)) t
 
 -- | Extract the vertices of a concretely located trail.  Note that
 --   for loops, the starting vertex will /not/ be repeated at the end.

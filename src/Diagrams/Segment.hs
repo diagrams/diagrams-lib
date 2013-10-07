@@ -57,13 +57,13 @@ module Diagrams.Segment
        , SegCount(SegCount), getSegCount
        , ArcLength(ArcLength)
        , getArcLength, getArcLengthCached, getArcLengthFun, getArcLengthBounded
-       , TotalOffset(..)
-       , OffsetEnvelope(..)
+       , TotalOffset(TotalOffset), getTotalOffset
+       , OffsetEnvelope(OffsetEnvelope), oeOffset, oeEnvelope
        , SegMeasure
 
        ) where
 
-import           Control.Lens (makeLenses, view)
+import           Control.Lens (makeLenses, view, Iso', iso)
 import           Control.Applicative (liftA2)
 import           Data.AffineSpace
 import           Data.FingerTree
@@ -386,7 +386,8 @@ instance VectorSpace v => Parametric (FixedSegment v) where
 newtype SegCount = SegCount { _getSegCount :: Sum Int }
   deriving (Semigroup, Monoid)
 
-makeLenses ''SegCount
+getSegCount :: Iso' SegCount (Sum Int)
+getSegCount = iso _getSegCount SegCount
 
 -- | A type to represent the total arc length of a chain of
 --   segments. The first component is a \"standard\" arc length,
@@ -396,8 +397,9 @@ makeLenses ''SegCount
 newtype ArcLength v = ArcLength
   { _getArcLength :: (Sum (Interval (Scalar v)), Scalar v -> Sum (Interval (Scalar v))) }
 
-
-makeLenses ''ArcLength
+getArcLength :: Iso' (ArcLength v)
+                     (Sum (Interval (Scalar v)), Scalar v -> Sum (Interval (Scalar v)))
+getArcLength = iso _getArcLength ArcLength
 
 -- | Project out the cached arc length, stored together with error
 --   bounds.
@@ -425,7 +427,10 @@ deriving instance (Num (Scalar v), Ord (Scalar v)) => Monoid    (ArcLength v)
 
 -- | A type to represent the total cumulative offset of a chain of
 --   segments.
-newtype TotalOffset v = TotalOffset { getTotalOffset :: v }
+newtype TotalOffset v = TotalOffset { _getTotalOffset :: v }
+
+getTotalOffset :: Iso' (TotalOffset v) v
+getTotalOffset = iso _getTotalOffset TotalOffset
 
 instance AdditiveGroup v => Semigroup (TotalOffset v) where
   TotalOffset v1 <> TotalOffset v2 = TotalOffset (v1 ^+^ v2)
@@ -439,15 +444,17 @@ instance AdditiveGroup v => Monoid (TotalOffset v) where
 --   combining the envelopes of two consecutive chains needs to take
 --   the offset of the the offset of the first into account.
 data OffsetEnvelope v = OffsetEnvelope
-  { oeOffset   :: TotalOffset v
-  , oeEnvelope :: Envelope v
+  { _oeOffset   :: TotalOffset v
+  , _oeEnvelope :: Envelope v
   }
+
+makeLenses ''OffsetEnvelope
 
 instance (InnerSpace v, OrderedField (Scalar v)) => Semigroup (OffsetEnvelope v) where
   (OffsetEnvelope o1 e1) <> (OffsetEnvelope o2 e2)
     = OffsetEnvelope
         (o1 <> o2)
-        (e1 <> moveOriginBy (negateV . getTotalOffset $ o1) e2)
+        (e1 <> moveOriginBy (negateV . (view getTotalOffset) $ o1) e2)
 
 -- | @SegMeasure@ collects up all the measurements over a chain of
 --   segments.
