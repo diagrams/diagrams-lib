@@ -24,6 +24,7 @@ module Diagrams.ThreeD.Types
          R3, r3, unr3
        , P3, p3, unp3
        , T3
+       , r3Iso, p3Iso
 
          -- * Two-dimensional angles
          -- | These are defined in "Diagrams.TwoD.Types" but
@@ -102,6 +103,9 @@ p3 = P . R3
 -- | Convert a 2D point back into a triple of coordinates.
 unp3 :: P3 -> (Double, Double, Double)
 unp3 = unR3 . unPoint
+
+p3Iso :: Iso' P3 (Double, Double, Double)
+p3Iso = iso unp3 p3
 
 -- | Transformations in R^3.
 type T3 = Transformation R3
