@@ -1,7 +1,7 @@
-{-# LANGUAGE TypeFamilies
-           , FlexibleContexts
-           , MultiParamTypeClasses
-  #-}
+{-# LANGUAGE TypeFamilies         #-}
+{-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TemplateHaskell      #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Image
@@ -15,9 +15,11 @@
 
 module Diagrams.TwoD.Image
     (
-      Image(..)
+      Image(Image), imgFile, imgSize, imgTransf
     , image
     ) where
+
+import Control.Lens (makeLenses)
 
 import Diagrams.Core
 
@@ -33,10 +35,12 @@ import Data.Semigroup
 
 -- | An external image primitive, representing an image the backend
 --   should import from another file when rendering.
-data Image = Image { imgFile   :: FilePath
-                   , imgSize   :: SizeSpec2D
-                   , imgTransf :: T2
+data Image = Image { _imgFile   :: FilePath
+                   , _imgSize   :: SizeSpec2D
+                   , _imgTransf :: T2
                    }
+
+makeLenses ''Image
 
 type instance V Image = R2
 
