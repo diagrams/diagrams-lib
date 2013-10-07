@@ -31,7 +31,7 @@ module Diagrams.Combinators
        , appends
        , position, decorateTrail, decorateLocatedTrail, decoratePath
        , cat, cat'
-       , CatOpts(CatOpts)
+       , CatOpts(CatOpts), catMethod, sep
        , CatMethod(..)
 
        ) where
