@@ -63,7 +63,7 @@ module Diagrams.Segment
 
        ) where
 
-import           Control.Lens (makeLenses, view, Iso', iso)
+import           Control.Lens (makeLenses, view)
 import           Control.Applicative (liftA2)
 import           Data.AffineSpace
 import           Data.FingerTree
@@ -386,8 +386,7 @@ instance VectorSpace v => Parametric (FixedSegment v) where
 newtype SegCount = SegCount { _getSegCount :: Sum Int }
   deriving (Semigroup, Monoid)
 
-getSegCount :: Iso' SegCount (Sum Int)
-getSegCount = iso _getSegCount SegCount
+makeLenses ''SegCount
 
 -- | A type to represent the total arc length of a chain of
 --   segments. The first component is a \"standard\" arc length,
@@ -397,20 +396,18 @@ getSegCount = iso _getSegCount SegCount
 newtype ArcLength v = ArcLength
   { _getArcLength :: (Sum (Interval (Scalar v)), Scalar v -> Sum (Interval (Scalar v))) }
 
-getArcLength :: Iso' (ArcLength v)
-                     (Sum (Interval (Scalar v)), Scalar v -> Sum (Interval (Scalar v)))
-getArcLength = iso _getArcLength ArcLength
+makeLenses ''ArcLength
 
 -- | Project out the cached arc length, stored together with error
 --   bounds.
 getArcLengthCached :: ArcLength v -> Interval (Scalar v)
-getArcLengthCached = getSum . fst . (view getArcLength)
+getArcLengthCached = getSum . fst . view getArcLength
 --getArcLengthCached = getSum . fst . getArcLength
 
 -- | Project out the generic arc length function taking the tolerance as
 --   an argument.
 getArcLengthFun :: ArcLength v -> Scalar v -> Interval (Scalar v)
-getArcLengthFun = fmap getSum . snd . (view getArcLength)
+getArcLengthFun = fmap getSum . snd . view getArcLength
 
 -- | Given a specified tolerance, project out the cached arc length if
 --   it is accurate enough; otherwise call the generic arc length
@@ -429,8 +426,7 @@ deriving instance (Num (Scalar v), Ord (Scalar v)) => Monoid    (ArcLength v)
 --   segments.
 newtype TotalOffset v = TotalOffset { _getTotalOffset :: v }
 
-getTotalOffset :: Iso' (TotalOffset v) v
-getTotalOffset = iso _getTotalOffset TotalOffset
+makeLenses ''TotalOffset
 
 instance AdditiveGroup v => Semigroup (TotalOffset v) where
   TotalOffset v1 <> TotalOffset v2 = TotalOffset (v1 ^+^ v2)
@@ -454,7 +450,7 @@ instance (InnerSpace v, OrderedField (Scalar v)) => Semigroup (OffsetEnvelope v)
   (OffsetEnvelope o1 e1) <> (OffsetEnvelope o2 e2)
     = OffsetEnvelope
         (o1 <> o2)
-        (e1 <> moveOriginBy (negateV . (view getTotalOffset) $ o1) e2)
+        (e1 <> moveOriginBy (negateV . view getTotalOffset $ o1) e2)
 
 -- | @SegMeasure@ collects up all the measurements over a chain of
 --   segments.
