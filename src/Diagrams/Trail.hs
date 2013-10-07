@@ -7,7 +7,6 @@
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
 {-# LANGUAGE StandaloneDeriving         #-}
-{-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE TypeOperators              #-}
 {-# LANGUAGE UndecidableInstances       #-}
@@ -103,7 +102,7 @@ module Diagrams.Trail
        ) where
 
 import           Control.Arrow       ((***))
-import           Control.Lens        (makeLenses, AnIso', iso, view)
+import           Control.Lens        (AnIso', Iso', iso, view)
 import           Data.AffineSpace
 import           Data.FingerTree     (FingerTree, ViewL (..), ViewR (..), (<|),
                                       (|>))
@@ -151,7 +150,9 @@ newtype SegTree v = SegTree
                   { _getSegTree :: FingerTree (SegMeasure v) (Segment Closed v) }
   deriving (Eq, Ord, Show)
 
-makeLenses ''SegTree
+getSegTree :: Iso' (SegTree v) (FingerTree (SegMeasure v) (Segment Closed v))
+getSegTree = iso _getSegTree SegTree
+
 
 type instance V (SegTree v) = v
 
