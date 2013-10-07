@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TemplateHaskell       #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Model
@@ -15,12 +16,13 @@ module Diagrams.TwoD.Model
        ( -- * Showing the local origin
          showOrigin
        , showOrigin'
-       , OriginOpts(..)
+       , OriginOpts(OriginOpts), oColor, oScale, oMinSize
        , showLabels
        ) where
 
-import           Diagrams.Core
+import           Control.Lens          (makeLenses, (^.))
 
+import           Diagrams.Core
 import           Diagrams.Attributes
 import           Diagrams.Path
 import           Diagrams.TwoD.Ellipse
@@ -45,6 +47,16 @@ import           Data.Colour.Names
 -- Marking the origin
 ------------------------------------------------------------
 
+data OriginOpts = OriginOpts { _oColor   :: Colour Double
+                             , _oScale   :: Double
+                             , _oMinSize :: Double
+                             }
+
+makeLenses ''OriginOpts
+
+instance Default OriginOpts where
+  def = OriginOpts red (1/50) 0.001
+
 -- | Mark the origin of a diagram by placing a red dot 1/50th its size.
 showOrigin :: (Renderable (Path R2) b, Backend b R2, Monoid' m)
            => QDiagram b R2 m -> QDiagram b R2 m
@@ -56,20 +68,11 @@ showOrigin' :: (Renderable (Path R2) b, Backend b R2, Monoid' m)
            => OriginOpts -> QDiagram b R2 m -> QDiagram b R2 m
 showOrigin' oo d = o <> d
   where o     = stroke (circle sz)
-                # fc (oColor oo)
+                # fc (oo^.oColor)
                 # lw 0
                 # fmap (const mempty)
-        (w,h) = size2D d ^* oScale oo
-        sz = maximum [w, h, oMinSize oo]
-
-data OriginOpts = OriginOpts { oColor   :: Colour Double
-                             , oScale   :: Double
-                             , oMinSize :: Double
-                             }
-
-instance Default OriginOpts where
-  def = OriginOpts red (1/50) 0.001
-
+        (w,h) = size2D d ^* oo^.oScale
+        sz = maximum [w, h, oo^.oMinSize]
 
 ------------------------------------------------------------
 -- Labeling named points
