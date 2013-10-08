@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TemplateHaskell  #-}
 {-# LANGUAGE TypeFamilies     #-}
 
 -----------------------------------------------------------------------------
@@ -60,7 +61,7 @@ import           Diagrams.TwoD.Types
 import           Diagrams.Util
 
 import           qualified Control.Lens as L ((&))
-import           Control.Lens            (view, (.~))
+import           Control.Lens            (makeLenses, view, (.~), (^.))
 import           Data.Default.Class
 import           Data.Semigroup
 
@@ -233,6 +234,16 @@ dodecagon = regPoly 12
 ------------------------------------------------------------
 --  Other shapes  ------------------------------------------
 ------------------------------------------------------------
+data RoundedRectOpts = RoundedRectOpts { _radiusTL :: Double
+                                       , _radiusTR :: Double
+                                       , _radiusBL :: Double
+                                       , _radiusBR :: Double
+                                       }
+
+makeLenses ''RoundedRectOpts
+
+instance Default RoundedRectOpts where
+  def = RoundedRectOpts 0 0 0 0
 
 -- | @roundedRect w h r@ generates a closed trail, or closed path
 --   centered at the origin, of an axis-aligned rectangle with width
@@ -256,10 +267,10 @@ dodecagon = regPoly 12
 --   >   ]
 
 roundedRect :: (TrailLike t, V t ~ R2) => Double -> Double -> Double -> t
-roundedRect w h r = roundedRect' w h (with { radiusTL = r,
-                                             radiusBR = r,
-                                             radiusTR = r,
-                                             radiusBL = r})
+roundedRect w h r = roundedRect' w h (def L.& radiusTL .~ r
+                                        L.& radiusBR .~ r
+                                        L.& radiusTR .~ r
+                                        L.& radiusBL .~ r)
 
 -- | @roundedRect'@ works like @roundedRect@ but allows you to set the radius of
 --   each corner indivually, using @RoundedRectOpts@. The default corner radius is 0.
@@ -288,7 +299,7 @@ roundedRect' w h opts
         rBL                 = clampCnr radiusBR radiusTL radiusTR radiusBL
         rTR                 = clampCnr radiusTL radiusBR radiusBL radiusTR
         rBR                 = clampCnr radiusBL radiusTR radiusTL radiusBR
-        clampCnr rx ry ro r = let (rx',ry',ro',r') = (rx opts, ry opts, ro opts, r opts)
+        clampCnr rx ry ro r = let (rx',ry',ro',r') = (opts^.rx, opts^.ry, opts^.ro, opts^.r)
                                 in clampDiag ro' . clampAdj h ry' . clampAdj w rx' $ r'
         -- prevent curves of adjacent corners from overlapping
         clampAdj len adj r  = if abs r > len/2
@@ -303,11 +314,3 @@ roundedRect' w h opts
                      | r < 0     = doArc 3 2
                      | otherwise = doArc 0 1
                      where doArc d d' = arc' r ((k+d)/4) ((k+d')/4:: Turn)
-
-data RoundedRectOpts = RoundedRectOpts { radiusTL :: Double
-                                       , radiusTR :: Double
-                                       , radiusBL :: Double
-                                       , radiusBR :: Double
-                                       }
-instance Default RoundedRectOpts where
-  def = RoundedRectOpts 0 0 0 0
