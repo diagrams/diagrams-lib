@@ -2,7 +2,9 @@
 {-# LANGUAGE GADTs                     #-}
 {-# LANGUAGE MultiParamTypeClasses     #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE Rank2Types                #-}
+{-# LANGUAGE RankNTypes                #-}
+{-# LANGUAGE ImpredicativeTypes        #-}
+{-# LANGUAGE TemplateHaskell           #-}
 {-# LANGUAGE TypeFamilies              #-}
 {-# LANGUAGE UndecidableInstances      #-}
 -----------------------------------------------------------------------------
@@ -72,13 +74,26 @@ module Diagrams.TwoD.Arrow
        , connectOutside
        , connectOutside'
        , straightShaft
-       , ArrowOpts(..)
+       , ArrowOpts(ArrowOpts)
+
+
+       , arrowHead
+       , arrowTail
+       , arrowShaft
+       , headSize
+       , tailSize
+       , headGap
+       , tailGap
+       , headStyle
+       , tailStyle
+       , shaftStyle
 
          -- | See "Diagrams.TwoD.Arrowheads" for a list of standard
          --   arrowheads and help creating your own.
        , module Diagrams.TwoD.Arrowheads
        ) where
 
+import           Control.Lens                     (makeLensesFor, lens)
 import           Data.AffineSpace
 import           Data.Default.Class
 import           Data.Functor                     ((<$>))
@@ -103,18 +118,18 @@ import           Diagrams.Util                    (( # ))
 
 data ArrowOpts
   = ArrowOpts
-    { arrowHead  :: ArrowHT   -- ^ A shape to place at the head of the arrow.
-    , arrowTail  :: ArrowHT   -- ^ A shape to place at the tail of the arrow.
-    , arrowShaft :: Trail R2  -- ^ The trail to use for the arrow shaft.
-    , headSize   :: Double    -- ^ Radius of a circumcircle around the head.
-    , tailSize   :: Double    -- ^ Radius of a circumcircle around the tail.
-    , headGap    :: Double    -- ^ Distance to leave between
+    { _arrowHead  :: ArrowHT   -- ^ A shape to place at the head of the arrow.
+    , _arrowTail  :: ArrowHT   -- ^ A shape to place at the tail of the arrow.
+    , _arrowShaft :: Trail R2  -- ^ The trail to use for the arrow shaft.
+    , _headSize   :: Double    -- ^ Radius of a circumcircle around the head.
+    , _tailSize   :: Double    -- ^ Radius of a circumcircle around the tail.
+    , _headGap    :: Double    -- ^ Distance to leave between
                               --   the head and the target point.
-    , tailGap    :: Double    -- ^ Distance to leave between the
+    , _tailGap    :: Double    -- ^ Distance to leave between the
                               --   starting point and the tail.
-    , headStyle  :: HasStyle c => c -> c  -- ^ Style to apply to the head.
-    , tailStyle  :: HasStyle c => c -> c  -- ^ Style to apply to the tail.
-    , shaftStyle :: HasStyle c => c -> c  -- ^ Style to apply to the shaft.
+    , _headStyle  :: HasStyle c => c -> c  -- ^ Style to apply to the head.
+    , _tailStyle  :: HasStyle c => c -> c  -- ^ Style to apply to the tail.
+    , _shaftStyle :: HasStyle c => c -> c  -- ^ Style to apply to the shaft.
     }
 
 straightShaft :: Trail R2
@@ -125,19 +140,65 @@ defShaftWidth = 0.03
 
 instance Default ArrowOpts where
   def = ArrowOpts
-        { arrowHead    = dart
-        , arrowTail    = noTail
-        , arrowShaft   = trailFromOffsets [unitX]
-        , headSize     = 0.3
-        , tailSize     = 0.3
-        , headGap      = 0
-        , tailGap      = 0
+        { _arrowHead    = dart
+        , _arrowTail    = noTail
+        , _arrowShaft   = trailFromOffsets [unitX]
+        , _headSize     = 0.3
+        , _tailSize     = 0.3
+        , _headGap      = 0
+        , _tailGap      = 0
 
         -- See note [Default arrow style attributes]
-        , headStyle    = fc black
-        , tailStyle    = fc black
-        , shaftStyle   = lw defShaftWidth
+        , _headStyle    = fc black
+        , _tailStyle    = fc black
+        , _shaftStyle   = lw defShaftWidth
         }
+
+makeLensesFor [ ("_arrowHead", "arrowHead")
+              , ("_arrowTail", "arrowTail")
+              , ("_arrowShaft", "arrowShaft")
+              , ("_headSize", "headSize")
+              , ("_tailSize", "tailSize")
+              , ("_headGap", "headGap")
+              , ("_tailGap", "tailGap") ] ''ArrowOpts
+
+getHeadStyle :: ArrowOpts -> (forall c. HasStyle c => c -> c)
+getHeadStyle = _headStyle
+
+setHeadStyle :: ArrowOpts -> (forall c. HasStyle c => c -> c) -> ArrowOpts
+setHeadStyle ao hs = ao {_headStyle = hs}
+
+getTailStyle :: ArrowOpts -> (forall c. HasStyle c => c -> c)
+getTailStyle = _tailStyle
+
+setTailStyle :: ArrowOpts -> (forall c. HasStyle c => c -> c) -> ArrowOpts
+setTailStyle ao ts = ao {_tailStyle = ts}
+
+getShaftStyle :: ArrowOpts -> (forall c. HasStyle c => c -> c)
+getShaftStyle (ArrowOpts {_shaftStyle = ss}) = ss
+
+setShaftStyle :: ArrowOpts -> (forall c. HasStyle c => c -> c) -> ArrowOpts
+setShaftStyle ao ss = ao {_shaftStyle = ss}
+
+headStyle
+  :: (Functor f, HasStyle c) =>
+     ((c -> c) -> f (forall c1. HasStyle c1 => c1 -> c1))
+     -> ArrowOpts -> f ArrowOpts
+headStyle = lens getHeadStyle setHeadStyle
+
+tailStyle
+  :: (Functor f, HasStyle c) =>
+     ((c -> c) -> f (forall c1. HasStyle c1 => c1 -> c1))
+     -> ArrowOpts -> f ArrowOpts
+tailStyle = lens getTailStyle setTailStyle
+
+shaftStyle
+  :: (Functor f, HasStyle c) =>
+     ((c -> c) -> f (forall c1. HasStyle c1 => c1 -> c1))
+     -> ArrowOpts -> f ArrowOpts
+shaftStyle = lens getShaftStyle setShaftStyle
+
+--getTailStyle (ArrowOpts {_tailStyle = ts}) = ts
 
 {- ~~~~ Note [Default arrow style attributes]
 XXX We need to update this note since now an empty lc attribute in
@@ -212,22 +273,22 @@ mkHead :: Renderable (Path R2) b => ArrowOpts -> (Diagram b R2, Double)
 mkHead opts = ( (j <> h) # moveOriginBy (jWidth *^ unit_X) # lw 0
               , hWidth + jWidth)
   where
-    (h', j') = (arrowHead opts) (headSize opts) (widthJoint $ shaftStyle opts)
+    (h', j') = (_arrowHead opts) (_headSize opts) (widthJoint $ _shaftStyle opts)
     hWidth = xWidth h'
     jWidth = xWidth j'
-    h = scaleInvPrim h' unitX # (headStyle opts)
-    j = scaleInvPrim j' unitX # applyStyle (colorJoint (shaftStyle opts))
+    h = scaleInvPrim h' unitX # (_headStyle opts)
+    j = scaleInvPrim j' unitX # applyStyle (colorJoint (_shaftStyle opts))
 
 -- | Just like mkHead only the attachment point is on the right.
 mkTail :: Renderable (Path R2) b => ArrowOpts -> (Diagram b R2, Double)
 mkTail opts = ( (t <> j) # moveOriginBy (jWidth *^ unitX) # lw 0
               , tWidth + jWidth)
   where
-    (t', j') = (arrowTail opts) (tailSize opts) (widthJoint $ shaftStyle opts)
+    (t', j') = (_arrowTail opts) (_tailSize opts) (widthJoint $ _shaftStyle opts)
     tWidth = xWidth t'
     jWidth = xWidth j'
-    t = scaleInvPrim t' unitX # (tailStyle opts)
-    j = scaleInvPrim j' unitX # applyStyle (colorJoint (shaftStyle opts))
+    t = scaleInvPrim t' unitX # (_tailStyle opts)
+    j = scaleInvPrim j' unitX # applyStyle (colorJoint (_shaftStyle opts))
 
 -- | Find the vector pointing in the direction of the segment at its endpoint.
 endTangent :: Segment Closed R2 -> R2
@@ -276,14 +337,14 @@ arrow' opts len = ar # rotateBy (- dir)
   where
     (h, hw') = mkHead opts
     (t, tw') = mkTail opts
-    tr = arrowShaft opts
-    tw = tw' + tailGap opts
-    hw = hw' + headGap opts
+    tr = _arrowShaft opts
+    tw = tw' + _tailGap opts
+    hw = hw' + _headGap opts
     tAngle = direction . startTangent $ (head $ trailSegments tr) :: Turn
     hAngle = direction . endTangent $ (last $ trailSegments tr) :: Turn
     sd = shaftScale tr tw hw len
     tr' = tr # scale sd
-    shaft = strokeT tr' # (shaftStyle opts)
+    shaft = strokeT tr' # (_shaftStyle opts)
     hd = h # rotateBy hAngle # moveTo (origin .+^ tr' `atParam` (domainUpper tr'))
     tl = t # rotateBy tAngle
     dir = direction (trailOffset $ spine tr tw hw sd)
