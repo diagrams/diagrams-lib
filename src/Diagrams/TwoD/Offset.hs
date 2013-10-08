@@ -3,7 +3,6 @@
 {-# LANGUAGE TypeFamilies     #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ViewPatterns     #-}
-{-# LANGUAGE RecordWildCards  #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Offset
@@ -32,7 +31,7 @@ module Diagrams.TwoD.Offset
     ) where
 
 import Control.Applicative
-import Control.Lens (makeLenses, view)
+import Control.Lens (makeLenses, view, (^.))
 
 import Data.AffineSpace
 import Data.Monoid
@@ -242,12 +241,12 @@ offsetTrail' :: OffsetOpts
                         --   loop.
              -> Located (Trail R2)
              -> Located (Trail R2)
-offsetTrail' OffsetOpts{..} r t = joinSegments j isLoop _offsetMiterLimit r ends . offset $ t
+offsetTrail' opts r t = joinSegments j isLoop (opts^.offsetMiterLimit) r ends . offset $ t
     where
-      offset = map (bindLoc (offsetSegment _offsetEpsilon r)) . locatedTrailSegments
+      offset = map (bindLoc (offsetSegment (opts^.offsetEpsilon) r)) . locatedTrailSegments
       ends | isLoop    = (\(a:as) -> as ++ [a]) . trailVertices $ t
            | otherwise = tail . trailVertices $ t
-      j = fromLineJoin _offsetJoin
+      j = fromLineJoin (opts^.offsetJoin)
 
       isLoop = withTrail (const False) (const True) (unLoc t)
 
@@ -334,20 +333,20 @@ expandTrail' o r t
   | otherwise = withTrailL (pathFromLocTrail . expandLine o r) (expandLoop o r) t
 
 expandLine :: ExpandOpts -> Double -> Located (Trail' Line R2) -> Located (Trail R2)
-expandLine ExpandOpts{..} r (mapLoc wrapLine -> t) = caps cap r s e (f r) (f $ -r)
+expandLine opts r (mapLoc wrapLine -> t) = caps cap r s e (f r) (f $ -r)
     where
-      offset r' = map (bindLoc (offsetSegment _expandEpsilon r')) . locatedTrailSegments
-      f r' = joinSegments (fromLineJoin _expandJoin) False _expandMiterLimit r' ends . offset r' $ t
+      offset r' = map (bindLoc (offsetSegment (opts^.expandEpsilon) r')) . locatedTrailSegments
+      f r' = joinSegments (fromLineJoin (opts^.expandJoin)) False (opts^.expandMiterLimit) r' ends . offset r' $ t
       ends = tail . trailVertices $ t
       s = atStart t
       e = atEnd t
-      cap = fromLineCap _expandCap
+      cap = fromLineCap (opts^.expandCap)
 
 expandLoop :: ExpandOpts -> Double -> Located (Trail' Loop R2) -> Path R2
-expandLoop ExpandOpts{..} r (mapLoc wrapLoop -> t) = (trailLike $ f r) <> (trailLike . reverseDomain . f $ -r)
+expandLoop opts r (mapLoc wrapLoop -> t) = (trailLike $ f r) <> (trailLike . reverseDomain . f $ -r)
     where
-      offset r' = map (bindLoc (offsetSegment _expandEpsilon r')) . locatedTrailSegments
-      f r' = joinSegments (fromLineJoin _expandJoin) True _expandMiterLimit r' ends . offset r' $ t
+      offset r' = map (bindLoc (offsetSegment (opts^.expandEpsilon) r')) . locatedTrailSegments
+      f r' = joinSegments (fromLineJoin (opts^.expandJoin)) True (opts^.expandMiterLimit) r' ends . offset r' $ t
       ends = (\(a:as) -> as ++ [a]) . trailVertices $ t
 
 -- | Expand a 'Trail' with the given radius and default options.  See 'expandTrail''.
