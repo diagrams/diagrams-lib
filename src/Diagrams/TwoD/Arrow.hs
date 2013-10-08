@@ -76,7 +76,6 @@ module Diagrams.TwoD.Arrow
        , straightShaft
        , ArrowOpts(ArrowOpts)
 
-
        , arrowHead
        , arrowTail
        , arrowShaft

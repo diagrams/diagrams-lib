@@ -41,7 +41,7 @@ module Diagrams.TwoD.Shapes
          -- * Other shapes
 
        , roundedRect
-       , RoundedRectOpts(..)
+       , RoundedRectOpts(RoundedRectOpts), radiusTL, radiusTR, radiusBL, radiusBR
        , roundedRect'
        ) where
 
