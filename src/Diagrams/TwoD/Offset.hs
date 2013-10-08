@@ -1,8 +1,9 @@
-{-# LANGUAGE GADTs #-}
-{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE GADTs            #-}
+{-# LANGUAGE TemplateHaskell  #-}
+{-# LANGUAGE TypeFamilies     #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE ViewPatterns #-}
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ViewPatterns     #-}
+{-# LANGUAGE RecordWildCards  #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Offset
@@ -11,18 +12,18 @@
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
 -- Compute offsets to segments in two dimensions.
--- 
+--
 -----------------------------------------------------------------------------
-module Diagrams.TwoD.Offset 
+module Diagrams.TwoD.Offset
     ( offsetSegment
 
-    , OffsetOpts(..)
+    , OffsetOpts(OffsetOpts), offsetJoin, offsetMiterLimit, offsetEpsilon
     , offsetTrail
     , offsetTrail'
     , offsetPath
     , offsetPath'
 
-    , ExpandOpts(..)
+    , ExpandOpts(ExpandOpts), expandJoin, expandMiterLimit, expandCap, expandEpsilon
     , expandTrail
     , expandTrail'
     , expandPath
@@ -31,7 +32,7 @@ module Diagrams.TwoD.Offset
     ) where
 
 import Control.Applicative
-import Control.Lens (view)
+import Control.Lens (makeLenses, view)
 
 import Data.AffineSpace
 import Data.Monoid
@@ -59,7 +60,7 @@ unitPerp :: R2 -> R2
 unitPerp = normalized . perp
 
 perpAtParam :: Segment Closed R2 -> Double -> R2
-perpAtParam   (Linear (OffsetClosed a))  _ = -unitPerp a 
+perpAtParam   (Linear (OffsetClosed a))  _ = -unitPerp a
 perpAtParam s@(Cubic _ _ _)              t = -unitPerp a
   where
     (Cubic a _ _) = snd $ splitAtParam s t
@@ -92,7 +93,7 @@ perpAtParam s@(Cubic _ _ _)              t = -unitPerp a
 --
 offsetSegment :: Double     -- ^ Epsilon factor that when multiplied to the
                             --   absolute value of the radius gives a
-                            --   value that represents the maximum 
+                            --   value that represents the maximum
                             --   allowed deviation from the true offset.  In
                             --   the current implementation each result segment
                             --   should be bounded by arcs that are plus or
@@ -118,7 +119,7 @@ offsetSegment epsilon r s@(Cubic a b (OffsetClosed c)) = t `at` origin .+^ va
 
     -- Offset with handles scaled based on curvature.
     offset factor = bezier3 (a^*factor) ((b ^-^ c)^*factor ^+^ c ^+^ vc ^-^ va) (c ^+^ vc ^-^ va)
- 
+
     -- We observe a corner.  Subdivide right away.
     go (Finite 0) = subdivided
     -- We have some curvature
@@ -133,7 +134,7 @@ offsetSegment epsilon r s@(Cubic a b (OffsetClosed c)) = t `at` origin .+^ va
         --
         o = offset $ case roc of
               Infinity  -> 1          -- Do the right thing.
-              Finite sr -> 1 + r / sr 
+              Finite sr -> 1 + r / sr
 
         close = and [epsilon * abs r > (magnitude (p o ^+^ va ^-^ p s ^-^ pp s))
                     | t' <- [0.25, 0.5, 0.75]
@@ -143,7 +144,7 @@ offsetSegment epsilon r s@(Cubic a b (OffsetClosed c)) = t `at` origin .+^ va
 
 
 -- > import Diagrams.TwoD.Offset
--- > import Diagrams.Coordinates 
+-- > import Diagrams.Coordinates
 -- >
 -- > showExample :: Segment Closed R2 -> Diagram SVG R2
 -- > showExample s = pad 1.1 . centerXY $ d # lc blue # lw 0.1 <> d' # lw 0.1
@@ -151,9 +152,9 @@ offsetSegment epsilon r s@(Cubic a b (OffsetClosed c)) = t `at` origin .+^ va
 -- >       d  = stroke . fromSegments $ [s]
 -- >       d' = mconcat . zipWith lc colors . map stroke . explodeTrail
 -- >          $ offsetSegment 0.1 (-1) s
--- >            
+-- >
 -- >       colors = cycle [green, red]
--- > 
+-- >
 -- > cubicOffsetExample :: Diagram SVG R2
 -- > cubicOffsetExample = hcat . map showExample $
 -- >         [ bezier3 (10 &  0) (  5  & 18) (10 & 20)
@@ -181,13 +182,15 @@ locatedTrailSegments t = zipWith at (trailSegments (unLoc t)) (trailVertices t)
 -- | Options for specifying line join and segment epsilon for an offset
 --   involving multiple segments.
 data OffsetOpts = OffsetOpts
-    { offsetJoin :: LineJoin
+    { _offsetJoin :: LineJoin
       -- ^ Specifies the style of join for between adjacent offset segments.
-    , offsetMiterLimit :: Double
+    , _offsetMiterLimit :: Double
       -- ^ Specifies the miter limit for the join.
-    , offsetEpsilon :: Double
+    , _offsetEpsilon :: Double
       -- ^ Epsilon perimeter for 'offsetSegment'.
     } deriving (Eq, Show)
+
+makeLenses ''OffsetOpts
 
 -- | The default offset options use the default 'LineJoin' ('LineJoinMiter'), a
 --   miter limit of 10, and epsilon factor of 0.01.
@@ -218,12 +221,12 @@ offsetTrail' :: OffsetOpts
                         --   loop.
              -> Located (Trail R2)
              -> Located (Trail R2)
-offsetTrail' OffsetOpts{..} r t = joinSegments j isLoop offsetMiterLimit r ends . offset $ t
+offsetTrail' OffsetOpts{..} r t = joinSegments j isLoop _offsetMiterLimit r ends . offset $ t
     where
-      offset = map (bindLoc (offsetSegment offsetEpsilon r)) . locatedTrailSegments
+      offset = map (bindLoc (offsetSegment _offsetEpsilon r)) . locatedTrailSegments
       ends | isLoop    = (\(a:as) -> as ++ [a]) . trailVertices $ t
            | otherwise = tail . trailVertices $ t
-      j = fromLineJoin offsetJoin
+      j = fromLineJoin _offsetJoin
 
       isLoop = withTrail (const False) (const True) (unLoc t)
 
@@ -245,7 +248,7 @@ offsetPath = offsetPath' def
 -- "right" make sense.
 --
 -- > import Diagrams.TwoD.Offset
--- > import Diagrams.Coordinates 
+-- > import Diagrams.Coordinates
 -- > import Data.Default.Class
 -- >
 -- > corner :: Located (Trail R2)
@@ -253,7 +256,7 @@ offsetPath = offsetPath' def
 -- >
 -- > offsetTrailExample :: Diagram SVG R2
 -- > offsetTrailExample = pad 1.1 . centerXY . lw 0.2 . hcat' def { sep = 1 }
--- >                    . map (uncurry showStyle) 
+-- >                    . map (uncurry showStyle)
 -- >                    $ [ (LineJoinMiter, "LineJoinMiter")
 -- >                      , (LineJoinRound, "LineJoinRound")
 -- >                      , (LineJoinBevel, "LineJoinBevel")
@@ -266,7 +269,7 @@ offsetPath = offsetPath' def
 -- > offsetTrailLeftExample :: Diagram SVG R2
 -- > offsetTrailLeftExample = pad 1.1 . centerXY . lw 0.2
 -- >                        $ (trailLike c # lc blue)
--- >                        <> (lc green . trailLike 
+-- >                        <> (lc green . trailLike
 -- >                         . offsetTrail' def { offsetJoin = LineJoinRound } (-2) $ c)
 -- >   where
 -- >     c = reflectY corner
@@ -279,112 +282,47 @@ offsetPath = offsetPath' def
 -- >   where
 -- >     c = hexagon 5
 
--- | Options for specifying how a 'Trail' should be expanded.
-data ExpandOpts = ExpandOpts
-    { expandJoin :: LineJoin
-      -- ^ Specifies the style of join for between adjacent offset segments.
-    , expandMiterLimit :: Double
-      -- ^ Specifies the miter limit for the join.
-    , expandCap  :: LineCap
-      -- ^ Specifies how the ends are handled.
-    , expandEpsilon :: Double
-      -- ^ Epsilon perimeter for 'offsetSegment'.
-    } deriving (Eq, Show)
-
--- | The default 'ExpandOpts' is the default 'LineJoin' ('LineJoinMiter'),
---   miter limit of 10, default 'LineCap' ('LineCapButt'), and epsilon factor
---   of 0.01.
-instance Default ExpandOpts where
-    def = ExpandOpts def 10 def 0.01
-
-withTrailL :: (Located (Trail' Line v) -> r) -> (Located (Trail' Loop v) -> r) -> Located (Trail v) -> r
-withTrailL f g l = withTrail (f . (`at` p)) (g . (`at` p)) (unLoc l)
-  where
-    p = loc l
-
--- | Expand a 'Trail' with the given options and radius 'r' around a given 'Trail'.
---   Expanding can be thought of as generating the loop that, when filled, represents
---   stroking the trail with a radius 'r' brush.
+-- | Join together a list of located trails with the given join style.  The
+--   style is given as a function to compute the join given the local information
+--   of the original vertex, the previous trail, and the next trail.  The result
+--   is a single located trail.  A join radius is also given to aid in arc joins.
 --
---   The cap styles applied to an outside corner can be seen here (with the original
---   trail in white and the result of 'expandTrail'' filled in green):
---
---   <<diagrams/src_Diagrams_TwoD_Offset_expandTrailExample.svg#diagram=expandTrailExample&width=600>>
---
---   Loops result in a path with an inner and outer loop:
---
---   <<diagrams/src_Diagrams_TwoD_Offset_expandLoopExample.svg#diagram=expandLoopExample&width=300>>
---
-expandTrail' :: ExpandOpts
-             -> Double  -- ^ Radius of offset.  Only non-negative values allowed.
-                        --   For a line this gives a loop of the offset.  For a 
-                        --   loop this gives two loops, the outer counter-clockwise
-                        --   and the inner clockwise.
+--   Note: this is not a general purpose join and assumes that we are joining an
+--   offset trail.  For instance, a fixed radius arc will not fit between arbitrary
+--   trails without trimming or extending.
+joinSegments :: (Double -> Double -> P2 -> Located (Trail R2) -> Located (Trail R2) -> Trail R2)
+             -> Bool
+             -> Double
+             -> Double
+             -> [Point R2]
+             -> [Located (Trail R2)]
              -> Located (Trail R2)
-             -> Path R2
-expandTrail' o r t
-  | r < 0     = error "expandTrail' with negative radius"
-                -- TODO: consider just reversing the path instead of this error.
-  | otherwise = withTrailL (pathFromLocTrail . expandLine o r) (expandLoop o r) t
+joinSegments _ _ _ _ _ [] = mempty `at` origin
+joinSegments _ _ _ _ [] _ = mempty `at` origin
+joinSegments j isLoop ml r es ts@(t:_) = t'
+  where
+    t' | isLoop    = mapLoc (glueTrail . (<> mconcat (take (length ts) $ ss es (ts ++ [t])))) t
+       | otherwise = mapLoc (<> mconcat (ss es ts)) t
+    ss es' ts' = [j ml r e a b <> unLoc b | (e,(a,b)) <- zip es' . (zip <*> tail) $ ts']
 
-expandLine :: ExpandOpts -> Double -> Located (Trail' Line R2) -> Located (Trail R2)
-expandLine ExpandOpts{..} r (mapLoc wrapLine -> t) = caps cap r s e (f r) (f $ -r)
-    where
-      offset r' = map (bindLoc (offsetSegment expandEpsilon r')) . locatedTrailSegments
-      f r' = joinSegments (fromLineJoin expandJoin) False expandMiterLimit r' ends . offset r' $ t
-      ends = tail . trailVertices $ t
-      s = atStart t
-      e = atEnd t
-      cap = fromLineCap expandCap
+-- | Take a join style and give the join function to be used by joinSegments.
+fromLineJoin
+  :: LineJoin -> Double -> Double -> P2 -> Located (Trail R2) -> Located (Trail R2) -> Trail R2
+fromLineJoin j = case j of
+    LineJoinMiter -> joinSegmentIntersect
+    LineJoinRound -> joinSegmentArc
+    LineJoinBevel -> joinSegmentClip
 
-expandLoop :: ExpandOpts -> Double -> Located (Trail' Loop R2) -> Path R2
-expandLoop ExpandOpts{..} r (mapLoc wrapLoop -> t) = (trailLike $ f r) <> (trailLike . reverseDomain . f $ -r)
-    where
-      offset r' = map (bindLoc (offsetSegment expandEpsilon r')) . locatedTrailSegments
-      f r' = joinSegments (fromLineJoin expandJoin) True expandMiterLimit r' ends . offset r' $ t
-      ends = (\(a:as) -> as ++ [a]) . trailVertices $ t
-
--- | Expand a 'Trail' with the given radius and default options.  See 'expandTrail''.
-expandTrail :: Double -> Located (Trail R2) -> Path R2
-expandTrail = expandTrail' def
-
--- | Expand a 'Path' using 'expandTrail'' on each trail in the path.
-expandPath' :: ExpandOpts -> Double -> Path R2 -> Path R2
-expandPath' opts r = mconcat
-                   . map (bindLoc (expandTrail' opts r) . (`at` origin))
-                   . view pathTrails
-
--- | Expand a 'Path' with the given radius and default options.  See 'expandPath''.
-expandPath :: Double -> Path R2 -> Path R2
-expandPath = expandPath' def
-
--- > import Diagrams.TwoD.Offset
--- > import Diagrams.Coordinates
--- > import Data.Default.Class
--- >
--- > expandTrailExample :: Diagram SVG R2
--- > expandTrailExample = pad 1.1 . centerXY . hcat' def { sep = 1 }
--- >                    . map (uncurry showStyle) 
--- >                    $ [ (LineCapButt,   "LineCapButt")
--- >                      , (LineCapRound,  "LineCapRound")
--- >                      , (LineCapSquare, "LineCapSquare")
--- >                      ]
--- >  where
--- >    showStyle c s = centerXY (trailLike corner # lc white # lw 0.2
--- >                               <> stroke (expandTrail'
--- >                                              def { expandJoin = LineJoinRound
--- >                                                  , expandCap = c 
--- >                                                  } 2 corner) 
--- >                                      # lw 0 # fc green)
--- >               === (strutY 3 <> text s # font "Helvetica" # bold)
--- >
--- > expandLoopExample :: Diagram SVG R2
--- > expandLoopExample = pad 1.1 . centerXY $ ((strokeLocT t # lw 0.2 # lc white) 
--- >                                        <> (stroke t' # lw 0 # fc green))
--- >   where
--- >     t  = mapLoc glueTrail $ fromVertices [ 0 & 0, 5 & 0, 10 & 5, 10 & 10, 0 & 0 ]
--- >     t' = expandTrail' def { expandJoin = LineJoinRound } 1 t
-
+-- TODO: The joinSegmentCut option is not in our standard line joins.  I don't know
+-- how useful it is graphically, I mostly had it as it was useful for debugging
+{-
+-- | Join with segments going back to the original corner.
+joinSegmentCut :: Double -> Double -> P2 -> Located (Trail R2) -> Located (Trail R2) -> Trail R2
+joinSegmentCut _ _ e a b = fromSegments
+    [ straight (e .-. atEnd a)
+    , straight (atStart b .-. e)
+    ]
+-}
 
 -- | When we expand a line (the original line runs through the center of offset
 --   lines at  r  and  -r) there is some choice in what the ends will look like.
@@ -404,7 +342,7 @@ caps cap r s e fs bs = mapLoc glueTrail $ mconcat
     , reverseDomain (unLoc bs)
     ] `at` atStart bs
 
--- | Take a LineCap style and give a function for building the cap from 
+-- | Take a LineCap style and give a function for building the cap from
 fromLineCap :: LineCap -> Double -> P2 -> P2 -> P2 -> Trail R2
 fromLineCap c = case c of
     LineCapButt   -> capCut
@@ -436,49 +374,6 @@ arcV u v = arc (direction u) (direction v :: Turn)
 arcVCW :: (TrailLike t, V t ~ R2) => R2 -> R2 -> t
 arcVCW u v = arcCW (direction u) (direction v :: Turn)
 
-
--- | Join together a list of located trails with the given join style.  The
---   style is given as a function to compute the join given the local information
---   of the original vertex, the previous trail, and the next trail.  The result
---   is a single located trail.  A join radius is also given to aid in arc joins.
---
---   Note: this is not a general purpose join and assumes that we are joining an
---   offset trail.  For instance, a fixed radius arc will not fit between arbitrary
---   trails without trimming or extending.
-joinSegments :: (Double -> Double -> P2 -> Located (Trail R2) -> Located (Trail R2) -> Trail R2)
-             -> Bool 
-             -> Double
-             -> Double
-             -> [Point R2]
-             -> [Located (Trail R2)]
-             -> Located (Trail R2)
-joinSegments _ _ _ _ _ [] = mempty `at` origin
-joinSegments _ _ _ _ [] _ = mempty `at` origin
-joinSegments j isLoop ml r es ts@(t:_) = t'
-  where
-    t' | isLoop    = mapLoc (glueTrail . (<> mconcat (take (length ts) $ ss es (ts ++ [t])))) t
-       | otherwise = mapLoc (<> mconcat (ss es ts)) t
-    ss es' ts' = [j ml r e a b <> unLoc b | (e,(a,b)) <- zip es' . (zip <*> tail) $ ts']
-
--- | Take a join style and give the join function to be used by joinSegments.
-fromLineJoin 
-  :: LineJoin -> Double -> Double -> P2 -> Located (Trail R2) -> Located (Trail R2) -> Trail R2
-fromLineJoin j = case j of
-    LineJoinMiter -> joinSegmentIntersect
-    LineJoinRound -> joinSegmentArc
-    LineJoinBevel -> joinSegmentClip
-
--- TODO: The joinSegmentCut option is not in our standard line joins.  I don't know
--- how useful it is graphically, I mostly had it as it was useful for debugging
-{-
--- | Join with segments going back to the original corner.
-joinSegmentCut :: Double -> Double -> P2 -> Located (Trail R2) -> Located (Trail R2) -> Trail R2
-joinSegmentCut _ _ e a b = fromSegments
-    [ straight (e .-. atEnd a)
-    , straight (atStart b .-. e)
-    ]
--}
-
 -- | Join by directly connecting the end points.  On an inside corner this
 --   creates negative space for even-odd fill.  Here is where we would want to
 --   use an arc or something else in the future.
@@ -492,7 +387,7 @@ joinSegmentArc _ r e a b = capArc r e (atEnd a) (atStart b)
 
 -- | Join to the intersection of the incoming trails projected tangent to their ends.
 --   If the intersection is beyond the miter limit times the radius, stop at the limit.
-joinSegmentIntersect 
+joinSegmentIntersect
     :: Double -> Double -> P2 -> Located (Trail R2) -> Located (Trail R2) -> Trail R2
 joinSegmentIntersect miterLimit r e a b =
     case traceP pa va t of
@@ -500,7 +395,7 @@ joinSegmentIntersect miterLimit r e a b =
       -- Join at exactly the miter limit, but standard behavior seems
       -- to be clipping.
       Nothing -> joinSegmentClip miterLimit r e a b
-      Just p  
+      Just p
         -- If trace gave us garbage...
         | p `distance` pb > abs (miterLimit * r) -> joinSegmentClip miterLimit r e a b
         | otherwise                              -> unLoc $ fromVertices [ pa, p, pb ]
@@ -512,3 +407,112 @@ joinSegmentIntersect miterLimit r e a b =
     pa = atEnd a
     pb = atStart b
     miter v = (abs (miterLimit * r)) *^ v
+
+
+-- | Options for specifying how a 'Trail' should be expanded.
+data ExpandOpts = ExpandOpts
+    { _expandJoin :: LineJoin
+      -- ^ Specifies the style of join for between adjacent offset segments.
+    , _expandMiterLimit :: Double
+      -- ^ Specifies the miter limit for the join.
+    , _expandCap  :: LineCap
+      -- ^ Specifies how the ends are handled.
+    , _expandEpsilon :: Double
+      -- ^ Epsilon perimeter for 'offsetSegment'.
+    } deriving (Eq, Show)
+
+makeLenses ''ExpandOpts
+
+-- | The default 'ExpandOpts' is the default 'LineJoin' ('LineJoinMiter'),
+--   miter limit of 10, default 'LineCap' ('LineCapButt'), and epsilon factor
+--   of 0.01.
+instance Default ExpandOpts where
+    def = ExpandOpts def 10 def 0.01
+
+withTrailL :: (Located (Trail' Line v) -> r) -> (Located (Trail' Loop v) -> r) -> Located (Trail v) -> r
+withTrailL f g l = withTrail (f . (`at` p)) (g . (`at` p)) (unLoc l)
+  where
+    p = loc l
+
+-- | Expand a 'Trail' with the given options and radius 'r' around a given 'Trail'.
+--   Expanding can be thought of as generating the loop that, when filled, represents
+--   stroking the trail with a radius 'r' brush.
+--
+--   The cap styles applied to an outside corner can be seen here (with the original
+--   trail in white and the result of 'expandTrail'' filled in green):
+--
+--   <<diagrams/src_Diagrams_TwoD_Offset_expandTrailExample.svg#diagram=expandTrailExample&width=600>>
+--
+--   Loops result in a path with an inner and outer loop:
+--
+--   <<diagrams/src_Diagrams_TwoD_Offset_expandLoopExample.svg#diagram=expandLoopExample&width=300>>
+--
+expandTrail' :: ExpandOpts
+             -> Double  -- ^ Radius of offset.  Only non-negative values allowed.
+                        --   For a line this gives a loop of the offset.  For a
+                        --   loop this gives two loops, the outer counter-clockwise
+                        --   and the inner clockwise.
+             -> Located (Trail R2)
+             -> Path R2
+expandTrail' o r t
+  | r < 0     = error "expandTrail' with negative radius"
+                -- TODO: consider just reversing the path instead of this error.
+  | otherwise = withTrailL (pathFromLocTrail . expandLine o r) (expandLoop o r) t
+
+expandLine :: ExpandOpts -> Double -> Located (Trail' Line R2) -> Located (Trail R2)
+expandLine ExpandOpts{..} r (mapLoc wrapLine -> t) = caps cap r s e (f r) (f $ -r)
+    where
+      offset r' = map (bindLoc (offsetSegment _expandEpsilon r')) . locatedTrailSegments
+      f r' = joinSegments (fromLineJoin _expandJoin) False _expandMiterLimit r' ends . offset r' $ t
+      ends = tail . trailVertices $ t
+      s = atStart t
+      e = atEnd t
+      cap = fromLineCap _expandCap
+
+expandLoop :: ExpandOpts -> Double -> Located (Trail' Loop R2) -> Path R2
+expandLoop ExpandOpts{..} r (mapLoc wrapLoop -> t) = (trailLike $ f r) <> (trailLike . reverseDomain . f $ -r)
+    where
+      offset r' = map (bindLoc (offsetSegment _expandEpsilon r')) . locatedTrailSegments
+      f r' = joinSegments (fromLineJoin _expandJoin) True _expandMiterLimit r' ends . offset r' $ t
+      ends = (\(a:as) -> as ++ [a]) . trailVertices $ t
+
+-- | Expand a 'Trail' with the given radius and default options.  See 'expandTrail''.
+expandTrail :: Double -> Located (Trail R2) -> Path R2
+expandTrail = expandTrail' def
+
+-- | Expand a 'Path' using 'expandTrail'' on each trail in the path.
+expandPath' :: ExpandOpts -> Double -> Path R2 -> Path R2
+expandPath' opts r = mconcat
+                   . map (bindLoc (expandTrail' opts r) . (`at` origin))
+                   . view pathTrails
+
+-- | Expand a 'Path' with the given radius and default options.  See 'expandPath''.
+expandPath :: Double -> Path R2 -> Path R2
+expandPath = expandPath' def
+
+-- > import Diagrams.TwoD.Offset
+-- > import Diagrams.Coordinates
+-- > import Data.Default.Class
+-- >
+-- > expandTrailExample :: Diagram SVG R2
+-- > expandTrailExample = pad 1.1 . centerXY . hcat' def { sep = 1 }
+-- >                    . map (uncurry showStyle)
+-- >                    $ [ (LineCapButt,   "LineCapButt")
+-- >                      , (LineCapRound,  "LineCapRound")
+-- >                      , (LineCapSquare, "LineCapSquare")
+-- >                      ]
+-- >  where
+-- >    showStyle c s = centerXY (trailLike corner # lc white # lw 0.2
+-- >                               <> stroke (expandTrail'
+-- >                                              def { expandJoin = LineJoinRound
+-- >                                                  , expandCap = c
+-- >                                                  } 2 corner)
+-- >                                      # lw 0 # fc green)
+-- >               === (strutY 3 <> text s # font "Helvetica" # bold)
+-- >
+-- > expandLoopExample :: Diagram SVG R2
+-- > expandLoopExample = pad 1.1 . centerXY $ ((strokeLocT t # lw 0.2 # lc white)
+-- >                                        <> (stroke t' # lw 0 # fc green))
+-- >   where
+-- >     t  = mapLoc glueTrail $ fromVertices [ 0 & 0, 5 & 0, 10 & 5, 10 & 10, 0 & 0 ]
+-- >     t' = expandTrail' def { expandJoin = LineJoinRound } 1 t
