@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveFunctor             #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE TemplateHaskell           #-}
 {-# LANGUAGE TypeFamilies              #-}
 {-# LANGUAGE ViewPatterns              #-}
 
@@ -20,7 +21,7 @@ module Diagrams.TwoD.Polygons(
         -- * Polygons
           PolyType(..)
         , PolyOrientation(..)
-        , PolygonOpts(..)
+        , PolygonOpts(PolygonOpts), polyType, polyOrient, polyCenter
 
         , polygon
         , polyTrail
@@ -44,6 +45,7 @@ module Diagrams.TwoD.Polygons(
 
     ) where
 
+import           Control.Lens            (makeLenses, (^.))
 import           Control.Monad           (forM, liftM)
 import           Control.Monad.ST        (ST, runST)
 import           Data.Array.ST           (STUArray, newArray, readArray,
@@ -135,19 +137,22 @@ data PolyOrientation = NoOrient     -- ^ No special orientation; the first
 
 -- | Options for specifying a polygon.
 data PolygonOpts = PolygonOpts
-                   { polyType   :: PolyType
+                   { _polyType   :: PolyType
                      -- ^ Specification for the polygon's vertices.
 
-                   , polyOrient :: PolyOrientation
+                   , _polyOrient :: PolyOrientation
                      -- ^ Should a rotation be applied to the
                      --   polygon in order to orient it in a
                      --   particular way?
 
-                   , polyCenter :: P2
+                   , _polyCenter :: P2
                      -- ^ Should a translation be applied to the
                      --   polygon in order to place the center at a
                      --   particular location?
                    }
+
+
+makeLenses ''PolygonOpts
 
 -- | The default polygon is a regular pentagon of radius 1, centered
 --   at the origin, aligned to the x-axis.
@@ -158,11 +163,11 @@ instance Default PolygonOpts where
 polyTrail :: PolygonOpts -> Located (Trail R2)
 polyTrail po = transform ori tr
     where
-        tr = case polyType po of
+        tr = case po^.polyType of
             PolyPolar ans szs -> polyPolarTrail ans szs
             PolySides ans szs -> polySidesTrail ans szs
             PolyRegular n r   -> polyRegularTrail n r
-        ori = case polyOrient po of
+        ori = case po^.polyOrient of
             OrientH      -> orient unit_Y tr
             OrientV      -> orient unitX  tr
             OrientTo v   -> orient v      tr

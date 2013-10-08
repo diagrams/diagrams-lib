@@ -59,7 +59,8 @@ import           Diagrams.TwoD.Types
 
 import           Diagrams.Util
 
-import           Control.Lens            (view)
+import           qualified Control.Lens as L ((&))
+import           Control.Lens            (view, (.~))
 import           Data.Default.Class
 import           Data.Semigroup
 
@@ -86,8 +87,8 @@ vrule d = trailLike $ trailFromSegments [straight (0 & (-d))] `at` (p2 (0,d/2))
 --
 --   <<diagrams/src_Diagrams_TwoD_Shapes_unitSquareEx.svg#diagram=unitSquareEx&width=100>>
 unitSquare :: (TrailLike t, V t ~ R2) => t
-unitSquare = polygon with { polyType   = PolyRegular 4 (sqrt 2 / 2)
-                          , polyOrient = OrientH }
+unitSquare = polygon (def L.& polyType   .~ PolyRegular 4 (sqrt 2 / 2)
+                          L.& polyOrient .~ OrientH)
 
 -- > unitSquareEx = unitSquare # pad 1.1 # showOrigin
 
@@ -138,12 +139,12 @@ rect w h = trailLike . head . view pathTrails $ unitSquare # scaleX w # scaleY h
 --
 --   The polygon will be oriented with one edge parallel to the x-axis.
 regPoly :: (TrailLike t, V t ~ R2) => Int -> Double -> t
-regPoly n l = polygon with { polyType =
+regPoly n l = polygon (def L.& polyType .~
                                PolySides
                                  (repeat (1/ fromIntegral n :: Turn))
                                  (replicate (n-1) l)
-                           , polyOrient = OrientH
-                           }
+                           L.& polyOrient .~ OrientH
+                           )
 
 -- > shapeEx sh   = sh 1 # pad 1.1
 -- > triangleEx   = shapeEx triangle
