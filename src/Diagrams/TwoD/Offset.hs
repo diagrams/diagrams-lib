@@ -91,6 +91,45 @@ perpAtParam s@(Cubic _ _ _)              t = -unitPerp a
 --   radius around the cusp, and when there is a loop in the original curve,
 --   there can be two cusps in the offset curve.
 --
+
+-- | Options for specifying line join and segment epsilon for an offset
+--   involving multiple segments.
+data OffsetOpts = OffsetOpts
+    { _offsetJoin :: LineJoin
+      -- ^ Specifies the style of join for between adjacent offset segments.
+    , _offsetMiterLimit :: Double
+      -- ^ Specifies the miter limit for the join.
+    , _offsetEpsilon :: Double
+      -- ^ Epsilon perimeter for 'offsetSegment'.
+    } deriving (Eq, Show)
+
+makeLenses ''OffsetOpts
+
+-- | The default offset options use the default 'LineJoin' ('LineJoinMiter'), a
+--   miter limit of 10, and epsilon factor of 0.01.
+instance Default OffsetOpts where
+    def = OffsetOpts def 10 0.01
+
+-- | Options for specifying how a 'Trail' should be expanded.
+data ExpandOpts = ExpandOpts
+    { _expandJoin :: LineJoin
+      -- ^ Specifies the style of join for between adjacent offset segments.
+    , _expandMiterLimit :: Double
+      -- ^ Specifies the miter limit for the join.
+    , _expandCap  :: LineCap
+      -- ^ Specifies how the ends are handled.
+    , _expandEpsilon :: Double
+      -- ^ Epsilon perimeter for 'offsetSegment'.
+    } deriving (Eq, Show)
+
+makeLenses ''ExpandOpts
+
+-- | The default 'ExpandOpts' is the default 'LineJoin' ('LineJoinMiter'),
+--   miter limit of 10, default 'LineCap' ('LineCapButt'), and epsilon factor
+--   of 0.01.
+instance Default ExpandOpts where
+    def = ExpandOpts def 10 def 0.01
+
 offsetSegment :: Double     -- ^ Epsilon factor that when multiplied to the
                             --   absolute value of the radius gives a
                             --   value that represents the maximum
@@ -179,24 +218,6 @@ locatedTrailSegments :: (InnerSpace v, OrderedField (Scalar v))
                      => Located (Trail v) -> [Located (Segment Closed v)]
 locatedTrailSegments t = zipWith at (trailSegments (unLoc t)) (trailVertices t)
 
--- | Options for specifying line join and segment epsilon for an offset
---   involving multiple segments.
-data OffsetOpts = OffsetOpts
-    { _offsetJoin :: LineJoin
-      -- ^ Specifies the style of join for between adjacent offset segments.
-    , _offsetMiterLimit :: Double
-      -- ^ Specifies the miter limit for the join.
-    , _offsetEpsilon :: Double
-      -- ^ Epsilon perimeter for 'offsetSegment'.
-    } deriving (Eq, Show)
-
-makeLenses ''OffsetOpts
-
--- | The default offset options use the default 'LineJoin' ('LineJoinMiter'), a
---   miter limit of 10, and epsilon factor of 0.01.
-instance Default OffsetOpts where
-    def = OffsetOpts def 10 0.01
-
 -- | Offset a 'Trail' with options and by a given radius.  This generates a new
 --   trail that is always radius 'r' away from the given 'Trail' (depending on
 --   the line join option) on the right.
@@ -281,153 +302,6 @@ offsetPath = offsetPath' def
 -- >                          . offsetTrail' def { offsetJoin = LineJoinRound } 2 $ c)
 -- >   where
 -- >     c = hexagon 5
-
--- | Join together a list of located trails with the given join style.  The
---   style is given as a function to compute the join given the local information
---   of the original vertex, the previous trail, and the next trail.  The result
---   is a single located trail.  A join radius is also given to aid in arc joins.
---
---   Note: this is not a general purpose join and assumes that we are joining an
---   offset trail.  For instance, a fixed radius arc will not fit between arbitrary
---   trails without trimming or extending.
-joinSegments :: (Double -> Double -> P2 -> Located (Trail R2) -> Located (Trail R2) -> Trail R2)
-             -> Bool
-             -> Double
-             -> Double
-             -> [Point R2]
-             -> [Located (Trail R2)]
-             -> Located (Trail R2)
-joinSegments _ _ _ _ _ [] = mempty `at` origin
-joinSegments _ _ _ _ [] _ = mempty `at` origin
-joinSegments j isLoop ml r es ts@(t:_) = t'
-  where
-    t' | isLoop    = mapLoc (glueTrail . (<> mconcat (take (length ts) $ ss es (ts ++ [t])))) t
-       | otherwise = mapLoc (<> mconcat (ss es ts)) t
-    ss es' ts' = [j ml r e a b <> unLoc b | (e,(a,b)) <- zip es' . (zip <*> tail) $ ts']
-
--- | Take a join style and give the join function to be used by joinSegments.
-fromLineJoin
-  :: LineJoin -> Double -> Double -> P2 -> Located (Trail R2) -> Located (Trail R2) -> Trail R2
-fromLineJoin j = case j of
-    LineJoinMiter -> joinSegmentIntersect
-    LineJoinRound -> joinSegmentArc
-    LineJoinBevel -> joinSegmentClip
-
--- TODO: The joinSegmentCut option is not in our standard line joins.  I don't know
--- how useful it is graphically, I mostly had it as it was useful for debugging
-{-
--- | Join with segments going back to the original corner.
-joinSegmentCut :: Double -> Double -> P2 -> Located (Trail R2) -> Located (Trail R2) -> Trail R2
-joinSegmentCut _ _ e a b = fromSegments
-    [ straight (e .-. atEnd a)
-    , straight (atStart b .-. e)
-    ]
--}
-
--- | When we expand a line (the original line runs through the center of offset
---   lines at  r  and  -r) there is some choice in what the ends will look like.
---   If we are using a circle brush we should see a half circle at each end.
---   Similar caps could be made for square brushes or simply stopping exactly at
---   the end with a straight line (a perpendicular line brush).
---
---   caps  takes the radius and the start and end points of the original line and
---   the offset trails going out and coming back.  The result is a new list of
---   trails with the caps included.
-caps :: (Double -> P2 -> P2 -> P2 -> Trail R2)
-     -> Double -> P2 -> P2 -> Located (Trail R2) -> Located (Trail R2) -> Located (Trail R2)
-caps cap r s e fs bs = mapLoc glueTrail $ mconcat
-    [ cap r s (atStart bs) (atStart fs)
-    , unLoc fs
-    , cap r e (atEnd fs) (atEnd bs)
-    , reverseDomain (unLoc bs)
-    ] `at` atStart bs
-
--- | Take a LineCap style and give a function for building the cap from
-fromLineCap :: LineCap -> Double -> P2 -> P2 -> P2 -> Trail R2
-fromLineCap c = case c of
-    LineCapButt   -> capCut
-    LineCapRound  -> capArc
-    LineCapSquare -> capSquare
-
--- | Builds a cap that directly connects the ends.
-capCut :: Double -> P2 -> P2 -> P2 -> Trail R2
-capCut _r _c a b = fromSegments [straight (b .-. a)]
-
--- | Builds a cap with a square centered on the end.
-capSquare :: Double -> P2 -> P2 -> P2 -> Trail R2
-capSquare _r c a b = unLoc $ fromVertices [ a, a .+^ v, b .+^ v, b ]
-  where
-    v = perp (a .-. c)
-
--- | Builds an arc to fit with a given radius, center, start, and end points.
---   A Negative r means a counter-clockwise arc
-capArc :: Double -> P2 -> P2 -> P2 -> Trail R2
-capArc r c a b = trailLike . moveTo c $ fs
-  where
-    fs | r < 0     = scale (-r) $ arcVCW (a .-. c) (b .-. c)
-       | otherwise = scale r    $ arcV   (a .-. c) (b .-. c)
-
--- Arc helpers
-arcV :: (TrailLike t, V t ~ R2) => R2 -> R2 -> t
-arcV u v = arc (direction u) (direction v :: Turn)
-
-arcVCW :: (TrailLike t, V t ~ R2) => R2 -> R2 -> t
-arcVCW u v = arcCW (direction u) (direction v :: Turn)
-
--- | Join by directly connecting the end points.  On an inside corner this
---   creates negative space for even-odd fill.  Here is where we would want to
---   use an arc or something else in the future.
-joinSegmentClip :: Double -> Double -> P2 -> Located (Trail R2) -> Located (Trail R2) -> Trail R2
-joinSegmentClip _ _ _ a b = fromSegments [straight $ atStart b .-. atEnd a]
-
--- | Join with a radius arc.  On an inside corner this will loop around the interior
---   of the offset trail.  With a winding fill this will not be visible.
-joinSegmentArc :: Double -> Double -> P2 -> Located (Trail R2) -> Located (Trail R2) -> Trail R2
-joinSegmentArc _ r e a b = capArc r e (atEnd a) (atStart b)
-
--- | Join to the intersection of the incoming trails projected tangent to their ends.
---   If the intersection is beyond the miter limit times the radius, stop at the limit.
-joinSegmentIntersect
-    :: Double -> Double -> P2 -> Located (Trail R2) -> Located (Trail R2) -> Trail R2
-joinSegmentIntersect miterLimit r e a b =
-    case traceP pa va t of
-      -- clip join when we excede the miter limit.  We could instead
-      -- Join at exactly the miter limit, but standard behavior seems
-      -- to be clipping.
-      Nothing -> joinSegmentClip miterLimit r e a b
-      Just p
-        -- If trace gave us garbage...
-        | p `distance` pb > abs (miterLimit * r) -> joinSegmentClip miterLimit r e a b
-        | otherwise                              -> unLoc $ fromVertices [ pa, p, pb ]
-  where
-    -- TODO: is there really no instance for Traced (Located (Trail R2)) ?
-    t = strokeLocT (fromSegments [straight (miter vb)] `at` pb) :: Diagram NullBackend R2
-    va = unitPerp (pa .-. e)
-    vb = -unitPerp (pb .-. e)
-    pa = atEnd a
-    pb = atStart b
-    miter v = (abs (miterLimit * r)) *^ v
-
-
--- | Options for specifying how a 'Trail' should be expanded.
-data ExpandOpts = ExpandOpts
-    { _expandJoin :: LineJoin
-      -- ^ Specifies the style of join for between adjacent offset segments.
-    , _expandMiterLimit :: Double
-      -- ^ Specifies the miter limit for the join.
-    , _expandCap  :: LineCap
-      -- ^ Specifies how the ends are handled.
-    , _expandEpsilon :: Double
-      -- ^ Epsilon perimeter for 'offsetSegment'.
-    } deriving (Eq, Show)
-
-makeLenses ''ExpandOpts
-
--- | The default 'ExpandOpts' is the default 'LineJoin' ('LineJoinMiter'),
---   miter limit of 10, default 'LineCap' ('LineCapButt'), and epsilon factor
---   of 0.01.
-instance Default ExpandOpts where
-    def = ExpandOpts def 10 def 0.01
 
 withTrailL :: (Located (Trail' Line v) -> r) -> (Located (Trail' Loop v) -> r) -> Located (Trail v) -> r
 withTrailL f g l = withTrail (f . (`at` p)) (g . (`at` p)) (unLoc l)
@@ -516,3 +390,131 @@ expandPath = expandPath' def
 -- >   where
 -- >     t  = mapLoc glueTrail $ fromVertices [ 0 & 0, 5 & 0, 10 & 5, 10 & 10, 0 & 0 ]
 -- >     t' = expandTrail' def { expandJoin = LineJoinRound } 1 t
+
+
+-- | When we expand a line (the original line runs through the center of offset
+--   lines at  r  and  -r) there is some choice in what the ends will look like.
+--   If we are using a circle brush we should see a half circle at each end.
+--   Similar caps could be made for square brushes or simply stopping exactly at
+--   the end with a straight line (a perpendicular line brush).
+--
+--   caps  takes the radius and the start and end points of the original line and
+--   the offset trails going out and coming back.  The result is a new list of
+--   trails with the caps included.
+caps :: (Double -> P2 -> P2 -> P2 -> Trail R2)
+     -> Double -> P2 -> P2 -> Located (Trail R2) -> Located (Trail R2) -> Located (Trail R2)
+caps cap r s e fs bs = mapLoc glueTrail $ mconcat
+    [ cap r s (atStart bs) (atStart fs)
+    , unLoc fs
+    , cap r e (atEnd fs) (atEnd bs)
+    , reverseDomain (unLoc bs)
+    ] `at` atStart bs
+
+-- | Take a LineCap style and give a function for building the cap from
+fromLineCap :: LineCap -> Double -> P2 -> P2 -> P2 -> Trail R2
+fromLineCap c = case c of
+    LineCapButt   -> capCut
+    LineCapRound  -> capArc
+    LineCapSquare -> capSquare
+
+-- | Builds a cap that directly connects the ends.
+capCut :: Double -> P2 -> P2 -> P2 -> Trail R2
+capCut _r _c a b = fromSegments [straight (b .-. a)]
+
+-- | Builds a cap with a square centered on the end.
+capSquare :: Double -> P2 -> P2 -> P2 -> Trail R2
+capSquare _r c a b = unLoc $ fromVertices [ a, a .+^ v, b .+^ v, b ]
+  where
+    v = perp (a .-. c)
+
+-- | Builds an arc to fit with a given radius, center, start, and end points.
+--   A Negative r means a counter-clockwise arc
+capArc :: Double -> P2 -> P2 -> P2 -> Trail R2
+capArc r c a b = trailLike . moveTo c $ fs
+  where
+    fs | r < 0     = scale (-r) $ arcVCW (a .-. c) (b .-. c)
+       | otherwise = scale r    $ arcV   (a .-. c) (b .-. c)
+
+-- Arc helpers
+arcV :: (TrailLike t, V t ~ R2) => R2 -> R2 -> t
+arcV u v = arc (direction u) (direction v :: Turn)
+
+arcVCW :: (TrailLike t, V t ~ R2) => R2 -> R2 -> t
+arcVCW u v = arcCW (direction u) (direction v :: Turn)
+
+
+-- | Join together a list of located trails with the given join style.  The
+--   style is given as a function to compute the join given the local information
+--   of the original vertex, the previous trail, and the next trail.  The result
+--   is a single located trail.  A join radius is also given to aid in arc joins.
+--
+--   Note: this is not a general purpose join and assumes that we are joining an
+--   offset trail.  For instance, a fixed radius arc will not fit between arbitrary
+--   trails without trimming or extending.
+joinSegments :: (Double -> Double -> P2 -> Located (Trail R2) -> Located (Trail R2) -> Trail R2)
+             -> Bool
+             -> Double
+             -> Double
+             -> [Point R2]
+             -> [Located (Trail R2)]
+             -> Located (Trail R2)
+joinSegments _ _ _ _ _ [] = mempty `at` origin
+joinSegments _ _ _ _ [] _ = mempty `at` origin
+joinSegments j isLoop ml r es ts@(t:_) = t'
+  where
+    t' | isLoop    = mapLoc (glueTrail . (<> mconcat (take (length ts) $ ss es (ts ++ [t])))) t
+       | otherwise = mapLoc (<> mconcat (ss es ts)) t
+    ss es' ts' = [j ml r e a b <> unLoc b | (e,(a,b)) <- zip es' . (zip <*> tail) $ ts']
+
+-- | Take a join style and give the join function to be used by joinSegments.
+fromLineJoin
+  :: LineJoin -> Double -> Double -> P2 -> Located (Trail R2) -> Located (Trail R2) -> Trail R2
+fromLineJoin j = case j of
+    LineJoinMiter -> joinSegmentIntersect
+    LineJoinRound -> joinSegmentArc
+    LineJoinBevel -> joinSegmentClip
+
+-- TODO: The joinSegmentCut option is not in our standard line joins.  I don't know
+-- how useful it is graphically, I mostly had it as it was useful for debugging
+{-
+-- | Join with segments going back to the original corner.
+joinSegmentCut :: Double -> Double -> P2 -> Located (Trail R2) -> Located (Trail R2) -> Trail R2
+joinSegmentCut _ _ e a b = fromSegments
+    [ straight (e .-. atEnd a)
+    , straight (atStart b .-. e)
+    ]
+-}
+
+-- | Join by directly connecting the end points.  On an inside corner this
+--   creates negative space for even-odd fill.  Here is where we would want to
+--   use an arc or something else in the future.
+joinSegmentClip :: Double -> Double -> P2 -> Located (Trail R2) -> Located (Trail R2) -> Trail R2
+joinSegmentClip _ _ _ a b = fromSegments [straight $ atStart b .-. atEnd a]
+
+-- | Join with a radius arc.  On an inside corner this will loop around the interior
+--   of the offset trail.  With a winding fill this will not be visible.
+joinSegmentArc :: Double -> Double -> P2 -> Located (Trail R2) -> Located (Trail R2) -> Trail R2
+joinSegmentArc _ r e a b = capArc r e (atEnd a) (atStart b)
+
+-- | Join to the intersection of the incoming trails projected tangent to their ends.
+--   If the intersection is beyond the miter limit times the radius, stop at the limit.
+joinSegmentIntersect
+    :: Double -> Double -> P2 -> Located (Trail R2) -> Located (Trail R2) -> Trail R2
+joinSegmentIntersect miterLimit r e a b =
+    case traceP pa va t of
+      -- clip join when we excede the miter limit.  We could instead
+      -- Join at exactly the miter limit, but standard behavior seems
+      -- to be clipping.
+      Nothing -> joinSegmentClip miterLimit r e a b
+      Just p
+        -- If trace gave us garbage...
+        | p `distance` pb > abs (miterLimit * r) -> joinSegmentClip miterLimit r e a b
+        | otherwise                              -> unLoc $ fromVertices [ pa, p, pb ]
+  where
+    -- TODO: is there really no instance for Traced (Located (Trail R2)) ?
+    t = strokeLocT (fromSegments [straight (miter vb)] `at` pb) :: Diagram NullBackend R2
+    va = unitPerp (pa .-. e)
+    vb = -unitPerp (pb .-. e)
+    pa = atEnd a
+    pb = atStart b
+    miter v = (abs (miterLimit * r)) *^ v
