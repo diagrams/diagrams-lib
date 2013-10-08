@@ -1,12 +1,6 @@
 {-# LANGUAGE FlexibleContexts          #-}
 {-# LANGUAGE GADTs                     #-}
-{-# LANGUAGE MultiParamTypeClasses     #-}
-{-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ImpredicativeTypes        #-}
 {-# LANGUAGE TemplateHaskell           #-}
-{-# LANGUAGE TypeFamilies              #-}
-{-# LANGUAGE UndecidableInstances      #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Arrow
@@ -92,7 +86,7 @@ module Diagrams.TwoD.Arrow
        , module Diagrams.TwoD.Arrowheads
        ) where
 
-import           Control.Lens                     (makeLensesFor, lens)
+import           Control.Lens                     (makeLenses)
 import           Data.AffineSpace
 import           Data.Default.Class
 import           Data.Functor                     ((<$>))
@@ -126,9 +120,9 @@ data ArrowOpts
                               --   the head and the target point.
     , _tailGap    :: Double    -- ^ Distance to leave between the
                               --   starting point and the tail.
-    , _headStyle  :: HasStyle c => c -> c  -- ^ Style to apply to the head.
-    , _tailStyle  :: HasStyle c => c -> c  -- ^ Style to apply to the tail.
-    , _shaftStyle :: HasStyle c => c -> c  -- ^ Style to apply to the shaft.
+    , _headStyle  :: Style R2  -- ^ Style to apply to the head.
+    , _tailStyle  :: Style R2  -- ^ Style to apply to the tail.
+    , _shaftStyle :: Style R2  -- ^ Style to apply to the shaft.
     }
 
 straightShaft :: Trail R2
@@ -148,56 +142,12 @@ instance Default ArrowOpts where
         , _tailGap      = 0
 
         -- See note [Default arrow style attributes]
-        , _headStyle    = fc black
-        , _tailStyle    = fc black
-        , _shaftStyle   = lw defShaftWidth
+        , _headStyle    = mempty # fc black
+        , _tailStyle    = mempty # fc black
+        , _shaftStyle   = mempty # lw defShaftWidth
         }
 
-makeLensesFor [ ("_arrowHead", "arrowHead")
-              , ("_arrowTail", "arrowTail")
-              , ("_arrowShaft", "arrowShaft")
-              , ("_headSize", "headSize")
-              , ("_tailSize", "tailSize")
-              , ("_headGap", "headGap")
-              , ("_tailGap", "tailGap") ] ''ArrowOpts
-
-getHeadStyle :: ArrowOpts -> (forall c. HasStyle c => c -> c)
-getHeadStyle = _headStyle
-
-setHeadStyle :: ArrowOpts -> (forall c. HasStyle c => c -> c) -> ArrowOpts
-setHeadStyle ao hs = ao {_headStyle = hs}
-
-getTailStyle :: ArrowOpts -> (forall c. HasStyle c => c -> c)
-getTailStyle = _tailStyle
-
-setTailStyle :: ArrowOpts -> (forall c. HasStyle c => c -> c) -> ArrowOpts
-setTailStyle ao ts = ao {_tailStyle = ts}
-
-getShaftStyle :: ArrowOpts -> (forall c. HasStyle c => c -> c)
-getShaftStyle (ArrowOpts {_shaftStyle = ss}) = ss
-
-setShaftStyle :: ArrowOpts -> (forall c. HasStyle c => c -> c) -> ArrowOpts
-setShaftStyle ao ss = ao {_shaftStyle = ss}
-
-headStyle
-  :: (Functor f, HasStyle c) =>
-     ((c -> c) -> f (forall c1. HasStyle c1 => c1 -> c1))
-     -> ArrowOpts -> f ArrowOpts
-headStyle = lens getHeadStyle setHeadStyle
-
-tailStyle
-  :: (Functor f, HasStyle c) =>
-     ((c -> c) -> f (forall c1. HasStyle c1 => c1 -> c1))
-     -> ArrowOpts -> f ArrowOpts
-tailStyle = lens getTailStyle setTailStyle
-
-shaftStyle
-  :: (Functor f, HasStyle c) =>
-     ((c -> c) -> f (forall c1. HasStyle c1 => c1 -> c1))
-     -> ArrowOpts -> f ArrowOpts
-shaftStyle = lens getShaftStyle setShaftStyle
-
---getTailStyle (ArrowOpts {_tailStyle = ts}) = ts
+makeLenses ''ArrowOpts
 
 {- ~~~~ Note [Default arrow style attributes]
 XXX We need to update this note since now an empty lc attribute in
@@ -250,17 +200,17 @@ xWidth p = a + b
     b = fromMaybe 0 (magnitude <$> traceV origin unit_X p)
 
 -- | Get the line color from the shaft to use as the fill color for the joint.
-colorJoint :: (Style v -> Style v) -> Style v
+colorJoint :: Style v -> Style v
 colorJoint sStyle =
-    let c = fmap getLineColor . getAttr $ sStyle mempty in
+    let c = fmap getLineColor . getAttr $ sStyle in
     case c of
         Nothing -> fillColor (black :: Colour Double)   -- default color for joints
                    $ mempty
         Just c' -> fillColor c' $ mempty
 
-widthJoint :: (Style v -> Style v) -> Double
+widthJoint :: Style v -> Double
 widthJoint sStyle =
-    let w = fmap getLineWidth . getAttr $ sStyle mempty in
+    let w = fmap getLineWidth . getAttr $ sStyle in
     case w of
         Nothing -> defShaftWidth -- this case should never happen.
         Just w' -> w'
@@ -275,7 +225,7 @@ mkHead opts = ( (j <> h) # moveOriginBy (jWidth *^ unit_X) # lw 0
     (h', j') = (_arrowHead opts) (_headSize opts) (widthJoint $ _shaftStyle opts)
     hWidth = xWidth h'
     jWidth = xWidth j'
-    h = scaleInvPrim h' unitX # (_headStyle opts)
+    h = scaleInvPrim h' unitX # applyStyle (_headStyle opts)
     j = scaleInvPrim j' unitX # applyStyle (colorJoint (_shaftStyle opts))
 
 -- | Just like mkHead only the attachment point is on the right.
@@ -286,7 +236,7 @@ mkTail opts = ( (t <> j) # moveOriginBy (jWidth *^ unitX) # lw 0
     (t', j') = (_arrowTail opts) (_tailSize opts) (widthJoint $ _shaftStyle opts)
     tWidth = xWidth t'
     jWidth = xWidth j'
-    t = scaleInvPrim t' unitX # (_tailStyle opts)
+    t = scaleInvPrim t' unitX # applyStyle (_tailStyle opts)
     j = scaleInvPrim j' unitX # applyStyle (colorJoint (_shaftStyle opts))
 
 -- | Find the vector pointing in the direction of the segment at its endpoint.
@@ -343,8 +293,8 @@ arrow' opts len = ar # rotateBy (- dir)
     hAngle = direction . endTangent $ (last $ trailSegments tr) :: Turn
     sd = shaftScale tr tw hw len
     tr' = tr # scale sd
-    shaft = strokeT tr' # (_shaftStyle opts)
-    hd = h # rotateBy hAngle # moveTo (origin .+^ tr' `atParam` (domainUpper tr'))
+    shaft = strokeT tr' # applyStyle (_shaftStyle opts)
+    hd = h # rotateBy hAngle # moveTo (origin .+^ tr' `atParam` domainUpper tr')
     tl = t # rotateBy tAngle
     dir = direction (trailOffset $ spine tr tw hw sd)
     ar = moveOriginBy ((tw *^ (unit_X # rotateBy tAngle))) $ hd <> tl <> shaft
