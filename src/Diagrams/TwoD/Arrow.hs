@@ -86,7 +86,7 @@ module Diagrams.TwoD.Arrow
        , module Diagrams.TwoD.Arrowheads
        ) where
 
-import           Control.Lens                     (makeLenses)
+import           Control.Lens                     (makeLenses, (^.))
 import           Data.AffineSpace
 import           Data.Default.Class
 import           Data.Functor                     ((<$>))
@@ -222,22 +222,22 @@ mkHead :: Renderable (Path R2) b => ArrowOpts -> (Diagram b R2, Double)
 mkHead opts = ( (j <> h) # moveOriginBy (jWidth *^ unit_X) # lw 0
               , hWidth + jWidth)
   where
-    (h', j') = (_arrowHead opts) (_headSize opts) (widthJoint $ _shaftStyle opts)
+    (h', j') = (opts^.arrowHead) (opts^.headSize) (widthJoint $  opts^.shaftStyle)
     hWidth = xWidth h'
     jWidth = xWidth j'
-    h = scaleInvPrim h' unitX # applyStyle (_headStyle opts)
-    j = scaleInvPrim j' unitX # applyStyle (colorJoint (_shaftStyle opts))
+    h = scaleInvPrim h' unitX # applyStyle (opts^.headStyle)
+    j = scaleInvPrim j' unitX # applyStyle (colorJoint (opts^.shaftStyle))
 
 -- | Just like mkHead only the attachment point is on the right.
 mkTail :: Renderable (Path R2) b => ArrowOpts -> (Diagram b R2, Double)
 mkTail opts = ( (t <> j) # moveOriginBy (jWidth *^ unitX) # lw 0
               , tWidth + jWidth)
   where
-    (t', j') = (_arrowTail opts) (_tailSize opts) (widthJoint $ _shaftStyle opts)
+    (t', j') = (opts^.arrowTail) (opts^.tailSize) (widthJoint $ opts^.shaftStyle)
     tWidth = xWidth t'
     jWidth = xWidth j'
-    t = scaleInvPrim t' unitX # applyStyle (_tailStyle opts)
-    j = scaleInvPrim j' unitX # applyStyle (colorJoint (_shaftStyle opts))
+    t = scaleInvPrim t' unitX # applyStyle (opts^.tailStyle)
+    j = scaleInvPrim j' unitX # applyStyle (colorJoint (opts^.shaftStyle))
 
 -- | Find the vector pointing in the direction of the segment at its endpoint.
 endTangent :: Segment Closed R2 -> R2
@@ -286,14 +286,14 @@ arrow' opts len = ar # rotateBy (- dir)
   where
     (h, hw') = mkHead opts
     (t, tw') = mkTail opts
-    tr = _arrowShaft opts
-    tw = tw' + _tailGap opts
+    tr = opts^.arrowShaft
+    tw = tw' + opts^.tailGap
     hw = hw' + _headGap opts
     tAngle = direction . startTangent $ (head $ trailSegments tr) :: Turn
     hAngle = direction . endTangent $ (last $ trailSegments tr) :: Turn
     sd = shaftScale tr tw hw len
     tr' = tr # scale sd
-    shaft = strokeT tr' # applyStyle (_shaftStyle opts)
+    shaft = strokeT tr' # applyStyle (opts^.shaftStyle)
     hd = h # rotateBy hAngle # moveTo (origin .+^ tr' `atParam` domainUpper tr')
     tl = t # rotateBy tAngle
     dir = direction (trailOffset $ spine tr tw hw sd)
