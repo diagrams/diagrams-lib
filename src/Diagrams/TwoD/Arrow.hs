@@ -125,6 +125,8 @@ data ArrowOpts
     , _shaftStyle :: Style R2  -- ^ Style to apply to the shaft.
     }
 
+
+-- | Straight line arrow shaft.
 straightShaft :: Trail R2
 straightShaft = trailFromOffsets [unitX]
 
@@ -142,57 +144,33 @@ instance Default ArrowOpts where
         , _tailGap      = 0
 
         -- See note [Default arrow style attributes]
-        , _headStyle    = mempty # fc black
-        , _tailStyle    = mempty # fc black
-        , _shaftStyle   = mempty # lw defShaftWidth
+        , _headStyle    = mempty
+        , _tailStyle    = mempty
+        , _shaftStyle   = mempty
         }
 
 makeLenses ''ArrowOpts
 
-{- ~~~~ Note [Default arrow style attributes]
-XXX We need to update this note since now an empty lc attribute in
-XXX the shaftStyle will default to black in the colorJoint function.
-We want to set as few default attributes as possible.  The reason is
-that any attributes which get set by default cannot be overridden
-later.  For example, if we set 'opacity 1' in shaftStyle, then it
-means arrow shafts are always fully opaque (unless you set the opacity
-in shaftStyle).  That is, e.g.
+-- | Append the default shaft style to the left of the default shaftStyle
+--   The semigroup stucture of the lw attribute will insure it is only applied
+--   if it has not been overidded in opts.
+shaftSty :: ArrowOpts -> Style R2
+shaftSty opts = lw defShaftWidth (opts^.shaftStyle)
 
-  arrowBetween p q # opacity 0.5
+-- | Append the default head style to the left of the default headStyle
+--   The semigroup stucture of the fc attribute will insure it is only applied
+--   if it has not been overidded in opts.
+headSty :: ArrowOpts -> Style R2
+headSty opts = fc black (opts^.headStyle)
 
-will produce exactly the same output as arrowBetween p q, because the
-opacity is already set in the arrowBetween call and cannot be
-overridden later.
-
-So why set the fill color and line color to black?
-
-  1. The default shaftStyle *must* be set to lc black, because we get
-     the joint fill color from the line color set in shaftStyle.  There is
-     no way to tell when the user has applied a line color externally to
-     the arrow function and magically have the joint fill color update to
-     match.  The downside is that the *only* way to change the color of an
-     arrow shaft is to modify shaftStyle.  Well, tough luck.
-
-  2. Setting the head and tailStyle to 'id' does not work, because
-     then they have the diagrams-default fill, i.e. transparent.
-
-  3. We could set the head and tailStyle using 'recommendFillColor'
-     instead of 'fc'.  That way they would be filled black by default
-     but could be overridden externally by the user, e.g.
-
-       arrowBetween p q # fc orange
-
-     would change the arrowhead to orange.  However, this just seems
-     inconsistent with the fact that # lc orange has no effect (see #1
-     above).  So instead we simply set the default head/tail fill with
-     'fc' and force the user to override it in the ArrowOpts, just as
-     with line color for the shaft.
--}
+-- | Append the default tail style to the left of the default tailStyle
+--   The semigroup stucture of the fc attribute will insure it is only applied
+--   if it has not been overidded in opts.
+tailSty :: ArrowOpts -> Style R2
+tailSty opts = fc black (opts^.tailStyle)
 
 -- | Calculate the length of the portion of the horizontal line that passes
 --   through the origin and is inside of p.
--- XXX It may be possible to do away with this function by utilizing the new
--- XXX snug functions in TwoD.Align.
 xWidth :: (Traced t, V t ~ R2) => t -> Double
 xWidth p = a + b
   where
@@ -208,8 +186,9 @@ colorJoint sStyle =
                    $ mempty
         Just c' -> fillColor c' $ mempty
 
-widthJoint :: Style v -> Double
-widthJoint sStyle =
+-- | Get line width from a style.
+widthOfJoint :: Style v -> Double
+widthOfJoint sStyle =
     let w = fmap getLineWidth . getAttr $ sStyle in
     case w of
         Nothing -> defShaftWidth -- this case should never happen.
@@ -222,10 +201,10 @@ mkHead :: Renderable (Path R2) b => ArrowOpts -> (Diagram b R2, Double)
 mkHead opts = ( (j <> h) # moveOriginBy (jWidth *^ unit_X) # lw 0
               , hWidth + jWidth)
   where
-    (h', j') = (opts^.arrowHead) (opts^.headSize) (widthJoint $  opts^.shaftStyle)
+    (h', j') = (opts^.arrowHead) (opts^.headSize) (widthOfJoint $ shaftSty opts)
     hWidth = xWidth h'
     jWidth = xWidth j'
-    h = scaleInvPrim h' unitX # applyStyle (opts^.headStyle)
+    h = scaleInvPrim h' unitX # applyStyle (headSty opts)
     j = scaleInvPrim j' unitX # applyStyle (colorJoint (opts^.shaftStyle))
 
 -- | Just like mkHead only the attachment point is on the right.
@@ -233,10 +212,10 @@ mkTail :: Renderable (Path R2) b => ArrowOpts -> (Diagram b R2, Double)
 mkTail opts = ( (t <> j) # moveOriginBy (jWidth *^ unitX) # lw 0
               , tWidth + jWidth)
   where
-    (t', j') = (opts^.arrowTail) (opts^.tailSize) (widthJoint $ opts^.shaftStyle)
+    (t', j') = (opts^.arrowTail) (opts^.tailSize) (widthOfJoint $ shaftSty opts)
     tWidth = xWidth t'
     jWidth = xWidth j'
-    t = scaleInvPrim t' unitX # applyStyle (opts^.tailStyle)
+    t = scaleInvPrim t' unitX # applyStyle (tailSty opts)
     j = scaleInvPrim j' unitX # applyStyle (colorJoint (opts^.shaftStyle))
 
 -- | Find the vector pointing in the direction of the segment at its endpoint.
@@ -266,8 +245,8 @@ spine tr tw hw size = tS <> shaft <> hS
 
 -- | Calculate the amount required to scale a shaft trail so that an arrow with
 --   head width hw and tail width tw has offset t.
-shaftScale :: Trail R2 -> Double -> Double -> Double -> Double
-shaftScale tr tw hw t = magnitude (end .-. start) / magnitude (trailOffset tr)
+scaleFactor :: Trail R2 -> Double -> Double -> Double -> Double
+scaleFactor tr tw hw t = magnitude (end .-. start) / magnitude (trailOffset tr)
   where
     tAngle = direction . startTangent $ (head $ trailSegments tr) :: Turn
     hAngle = direction . endTangent $ (last $ trailSegments tr) :: Turn
@@ -282,22 +261,40 @@ arrow len = arrow' def len
 --   given options.  In particular, it scales the given 'arrowShaft'
 --   so that the entire arrow has length @len@.
 arrow' :: Renderable (Path R2) b => ArrowOpts -> Double -> Diagram b R2
-arrow' opts len = ar # rotateBy (- dir)
+arrow' opts len = dArrow # rotateBy (- dir)
   where
-    (h, hw') = mkHead opts
-    (t, tw') = mkTail opts
-    tr = opts^.arrowShaft
-    tw = tw' + opts^.tailGap
-    hw = hw' + _headGap opts
-    tAngle = direction . startTangent $ (head $ trailSegments tr) :: Turn
-    hAngle = direction . endTangent $ (last $ trailSegments tr) :: Turn
-    sd = shaftScale tr tw hw len
-    tr' = tr # scale sd
-    shaft = strokeT tr' # applyStyle (opts^.shaftStyle)
-    hd = h # rotateBy hAngle # moveTo (origin .+^ tr' `atParam` domainUpper tr')
-    tl = t # rotateBy tAngle
-    dir = direction (trailOffset $ spine tr tw hw sd)
-    ar = moveOriginBy ((tw *^ (unit_X # rotateBy tAngle))) $ hd <> tl <> shaft
+    -- Make the head and tail and save their widths.
+    (h, hWidth') = mkHead opts
+    (t, tWidth') = mkTail opts
+
+    shaftTrail = opts^.arrowShaft
+
+    -- Adjust the head width and tail width to take into accoung gaps
+    tWidth = tWidth' + opts^.tailGap
+    hWidth = hWidth' + opts^.headGap
+
+    -- Calculate the angles that the head and tail should point.
+    tAngle = direction . startTangent $ (head $ trailSegments shaftTrail) :: Turn
+    hAngle = direction . endTangent $ (last $ trailSegments shaftTrail) :: Turn
+
+    -- Calculte the scaling factor to apply to the shaft shaftTrail so that the entire
+    -- arrow will be of length len. Then apply it to the shaft and make the
+    -- shaft into a Diagram with using it's style.
+    sf = scaleFactor shaftTrail tWidth hWidth len
+    shaftTrail' = shaftTrail # scale sf
+    shaft = strokeT shaftTrail' # applyStyle (shaftSty opts)
+
+    -- Adjust the head and tail to point in the directions of the shaft ends.
+    h' = h # rotateBy hAngle
+           # moveTo (origin .+^ shaftTrail' `atParam` domainUpper shaftTrail')
+    t' = t # rotateBy tAngle
+
+    -- Find out what direction the arrow is pointing so we can set it back
+    -- to point in the direction unitX when we are done.
+    dir = direction (trailOffset $ spine shaftTrail tWidth hWidth sf)
+
+    -- Build the arrow and set it's origin at the start.
+    dArrow = moveOriginBy ((tWidth *^ (unit_X # rotateBy tAngle))) $ h' <> t' <> shaft
 
 -- | @arrowBetween s e@ creates an arrow pointing from @s@ to @e@
 --   with default parameters.
