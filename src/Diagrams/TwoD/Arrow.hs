@@ -101,12 +101,13 @@ import           Diagrams.Parametric
 import           Diagrams.Path
 import           Diagrams.Segment
 import           Diagrams.Trail
+import           Diagrams.Tangent                 (tangentAtStart, tangentAtEnd)
 import           Diagrams.TwoD.Arrowheads
 import           Diagrams.TwoD.Path               (strokeT)
 import           Diagrams.TwoD.Transform          (rotate, rotateBy)
 import           Diagrams.TwoD.Transform.ScaleInv (scaleInvPrim)
 import           Diagrams.TwoD.Types
-import           Diagrams.TwoD.Vector             (direction, unitX, unit_X, fromDirection)
+import           Diagrams.TwoD.Vector             (direction, unitX, unit_X)
 import           Diagrams.Util                    (( # ))
 
 data ArrowOpts
@@ -218,25 +219,14 @@ mkTail opts = ( (t <> j) # moveOriginBy (jWidth *^ unitX) # lw 0
     t = scaleInvPrim t' unitX # applyStyle (tailSty opts)
     j = scaleInvPrim j' unitX # applyStyle (colorJoint (opts^.shaftStyle))
 
--- | Find the vector pointing in the direction of the segment at its endpoint.
-endTangent :: Segment Closed R2 -> R2
-endTangent (Cubic _ c2 (OffsetClosed x2)) = (normalized (x2 ^-^ c2))
-endTangent (Linear (OffsetClosed x1)) = normalized x1
-
--- | Find the vector pointing in the direction of the segment away from
---   its starting point.
-startTangent :: Segment Closed R2 -> R2
-startTangent (Cubic c1 _ (OffsetClosed _)) = (normalized c1)
-startTangent (Linear (OffsetClosed x1)) = (normalized x1)
-
 -- | Make a trail with the same angles and offset as an arrow with tail width
 --   tw, head width hw and shaft of tr, such that the magnituted of the shaft
 --   offset is size. Used for calculating the offset of an arrow.
 spine :: Trail R2 -> Double -> Double -> Double -> Trail R2
 spine tr tw hw size = tS <> shaft <> hS
   where
-    tAngle = direction . startTangent $ (head $ trailSegments tr) :: Turn
-    hAngle = direction . endTangent $ (last $ trailSegments tr) :: Turn
+    tAngle = direction . tangentAtStart $ tr :: Turn
+    hAngle = direction . tangentAtEnd $ tr :: Turn
     shaft = tr # scale size
     hSpine = trailFromOffsets [unitX] # scale hw # rotateBy hAngle
     tSpine = trailFromOffsets [unitX] # scale tw # rotateBy tAngle
@@ -246,12 +236,13 @@ spine tr tw hw size = tS <> shaft <> hS
 -- | Calculate the amount required to scale a shaft trail so that an arrow with
 --   head width hw and tail width tw has offset t.
 scaleFactor :: Trail R2 -> Double -> Double -> Double -> Double
-scaleFactor tr tw hw t = magnitude (end .-. start) / magnitude (trailOffset tr)
+scaleFactor tr tw hw t = (t - startOffset - endOffset) / magnitude (trailOffset tr)
   where
-    tAngle = direction . startTangent $ (head $ trailSegments tr) :: Turn
-    hAngle = direction . endTangent $ (last $ trailSegments tr) :: Turn
-    start  = origin .+^ (hw *^ fromDirection hAngle)
-    end    = origin .+^ (t *^ unitX) .-^ (tw *^ fromDirection tAngle)
+    tSpine = normalized . tangentAtStart $ tr
+    hSpine = normalized . tangentAtEnd $ tr
+    startOffset  = hw *^ hSpine <.> normalized (trailOffset tr)
+    endOffset    = tw *^ tSpine <.> normalized (trailOffset tr)
+
 
 -- | @arrow len@ creates an arrow of length @len@ with default parameters.
 arrow :: Renderable (Path R2) b => Double -> Diagram b R2
@@ -274,8 +265,8 @@ arrow' opts len = dArrow # rotateBy (- dir)
     hWidth = hWidth' + opts^.headGap
 
     -- Calculate the angles that the head and tail should point.
-    tAngle = direction . startTangent $ (head $ trailSegments shaftTrail) :: Turn
-    hAngle = direction . endTangent $ (last $ trailSegments shaftTrail) :: Turn
+    tAngle = direction . tangentAtStart $ shaftTrail :: Turn
+    hAngle = direction . tangentAtEnd $ shaftTrail :: Turn
 
     -- Calculte the scaling factor to apply to the shaft shaftTrail so that the entire
     -- arrow will be of length len. Then apply it to the shaft and make the
