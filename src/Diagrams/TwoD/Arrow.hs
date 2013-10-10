@@ -257,12 +257,12 @@ spine tr tw hw size = tS <> shaft <> hS
 -- | Calculate the amount required to scale a shaft trail so that an arrow with
 --   head width hw and tail width tw has offset t.
 shaftScale :: Trail R2 -> Double -> Double -> Double -> Double
-shaftScale tr tw hw t = magnitude (end .-. start) / magnitude (trailOffset tr)
+shaftScale tr tw hw t = (t - startOffset - endOffset) / magnitude (trailOffset tr)
   where
-    tAngle = direction . startTangent $ (head $ trailSegments tr) :: Turn
-    hAngle = direction . endTangent $ (last $ trailSegments tr) :: Turn
-    start  = origin .+^ (hw *^ fromDirection hAngle)
-    end    = origin .+^ (t *^ unitX) .-^ (tw *^ fromDirection tAngle)
+    tSpine = normalized . startTangent $ (head $ trailSegments tr)
+    hSpine = normalized . endTangent $ (last $ trailSegments tr)
+    startOffset  = hw *^ hSpine <.> normalized (trailOffset tr)
+    endOffset    = tw *^ tSpine <.> normalized (trailOffset tr)
 
 -- | @arrow len@ creates an arrow of length @len@ with default parameters.
 arrow :: Renderable (Path R2) b => Double -> Diagram b R2
