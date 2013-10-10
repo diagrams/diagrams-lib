@@ -99,9 +99,8 @@ import           Data.Colour                      hiding (atop)
 import           Diagrams.Attributes
 import           Diagrams.Parametric
 import           Diagrams.Path
-import           Diagrams.Segment
-import           Diagrams.Trail
 import           Diagrams.Tangent                 (tangentAtStart, tangentAtEnd)
+import           Diagrams.Trail
 import           Diagrams.TwoD.Arrowheads
 import           Diagrams.TwoD.Path               (strokeT)
 import           Diagrams.TwoD.Transform          (rotate, rotateBy)
@@ -223,13 +222,10 @@ mkTail opts = ( (t <> j) # moveOriginBy (jWidth *^ unitX) # lw 0
 --   tw, head width hw and shaft of tr, such that the magnituted of the shaft
 --   offset is size. Used for calculating the offset of an arrow.
 spine :: Trail R2 -> Double -> Double -> Double -> Trail R2
-spine tr tw hw size = tS <> shaft <> hS
+spine tr tw hw size = tS <> tr # scale size <> hS
   where
-    tAngle = direction . tangentAtStart $ tr :: Turn
-    hAngle = direction . tangentAtEnd $ tr :: Turn
-    shaft = tr # scale size
-    hSpine = trailFromOffsets [unitX] # scale hw # rotateBy hAngle
-    tSpine = trailFromOffsets [unitX] # scale tw # rotateBy tAngle
+    tSpine = trailFromOffsets [(normalized . tangentAtStart) $ tr] # scale tw
+    hSpine = trailFromOffsets [(normalized . tangentAtEnd) $ tr] # scale hw
     hS = if hw > 0 then hSpine else mempty
     tS = if tw > 0 then tSpine else mempty
 
@@ -242,7 +238,6 @@ scaleFactor tr tw hw t = (t - startOffset - endOffset) / magnitude (trailOffset 
     hSpine = normalized . tangentAtEnd $ tr
     startOffset  = hw *^ hSpine <.> normalized (trailOffset tr)
     endOffset    = tw *^ tSpine <.> normalized (trailOffset tr)
-
 
 -- | @arrow len@ creates an arrow of length @len@ with default parameters.
 arrow :: Renderable (Path R2) b => Double -> Diagram b R2
