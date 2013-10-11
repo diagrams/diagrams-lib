@@ -261,13 +261,6 @@ scaleFactor tr tw hw t
     hv = hw *^ (tangentAtEnd   tr # normalized)
     v  = trailOffset tr
 
--- | Default number of iterations to try in hParam and tParam before giving up.
-stdIterations :: Int
-stdIterations = 64
-
-stdScale :: Double
-stdScale = 100
-
 -- | @arrow len@ creates an arrow of length @len@ with default parameters.
 arrow :: Renderable (Path R2) b => Double -> Diagram b R2
 arrow len = arrow' def len
