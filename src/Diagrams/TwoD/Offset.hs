@@ -16,13 +16,13 @@
 module Diagrams.TwoD.Offset
     ( offsetSegment
 
-    , OffsetOpts(OffsetOpts), offsetJoin, offsetMiterLimit, offsetEpsilon
+    , OffsetOpts(..), offsetJoin, offsetMiterLimit, offsetEpsilon
     , offsetTrail
     , offsetTrail'
     , offsetPath
     , offsetPath'
 
-    , ExpandOpts(ExpandOpts), expandJoin, expandMiterLimit, expandCap, expandEpsilon
+    , ExpandOpts(..), expandJoin, expandMiterLimit, expandCap, expandEpsilon
     , expandTrail
     , expandTrail'
     , expandPath

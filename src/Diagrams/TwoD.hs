@@ -70,9 +70,9 @@ module Diagrams.TwoD
          -- * Angles
        , tau
        , Angle(..)
-       , Turn(Turn), getTurn, asTurn, CircleFrac
-       , Rad(Rad), getRad, asRad
-       , Deg(Deg), getDeg, asDeg
+       , Turn(..), getTurn, asTurn, CircleFrac
+       , Rad(..), getRad, asRad
+       , Deg(..), getDeg, asDeg
        , fullTurn, fullCircle, convertAngle
 
          -- * Paths
@@ -81,7 +81,7 @@ module Diagrams.TwoD
        , strokeLine, strokeLoop
        , strokeLocTrail, strokeLocT, strokeLocLine, strokeLocLoop
        , FillRule(..), fillRule
-       , StrokeOpts(StrokeOpts), vertexNames, queryFillRule
+       , StrokeOpts(..), vertexNames, queryFillRule
 
          -- ** Clipping
        , clipBy
@@ -104,7 +104,7 @@ module Diagrams.TwoD
 
          -- ** General polygons
        , polygon, polyTrail
-       , PolygonOpts(PolygonOpts), polyType, polyOrient, polyCenter
+       , PolygonOpts(..), polyType, polyOrient, polyCenter
        , PolyType(..), PolyOrientation(..)
 
          -- ** Star polygons
@@ -131,7 +131,7 @@ module Diagrams.TwoD
 
          -- ** Other shapes
        , roundedRect, roundedRect'
-       , RoundedRectOpts(RoundedRectOpts), radiusTL, radiusTR, radiusBL, radiusBR
+       , RoundedRectOpts(..), radiusTL, radiusTR, radiusBL, radiusBR
 
          -- ** Arrows
        , arrow, arrow'
@@ -143,7 +143,7 @@ module Diagrams.TwoD
        , straightShaft
        , module Diagrams.TwoD.Arrowheads
 
-       , ArrowOpts(ArrowOpts)
+       , ArrowOpts(..)
 
        , arrowHead
        , arrowTail
@@ -228,7 +228,7 @@ module Diagrams.TwoD
          -- * Visual aids for understanding the internal model
        , showOrigin
        , showOrigin'
-       , OriginOpts(OriginOpts), oColor, oScale, oMinSize
+       , OriginOpts(..), oColor, oScale, oMinSize
        , showLabels
 
        ) where

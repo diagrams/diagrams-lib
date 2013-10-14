@@ -27,9 +27,10 @@ module Diagrams.TwoD.Types
 
          -- * Angles
        , Angle(..)
-       , Turn(Turn), getTurn, asTurn, CircleFrac
-       , Rad(Rad), getRad, asRad
-       , Deg(Deg), getDeg, asDeg
+
+       , Turn(..), getTurn, asTurn, CircleFrac
+       , Rad(..), getRad, asRad
+       , Deg(..), getDeg, asDeg
        , fullTurn, fullCircle, convertAngle, angleRatio
        ) where
 

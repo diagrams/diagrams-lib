@@ -54,11 +54,11 @@ module Diagrams.Segment
          -- * Segment measures
          -- $segmeas
 
-       , SegCount(SegCount), getSegCount
-       , ArcLength(ArcLength)
+       , SegCount(..), getSegCount
+       , ArcLength(..)
        , getArcLength, getArcLengthCached, getArcLengthFun, getArcLengthBounded
-       , TotalOffset(TotalOffset), getTotalOffset
-       , OffsetEnvelope(OffsetEnvelope), oeOffset, oeEnvelope
+       , TotalOffset(..), getTotalOffset
+       , OffsetEnvelope(..), oeOffset, oeEnvelope
        , SegMeasure
 
        ) where

@@ -15,7 +15,7 @@
 
 module Diagrams.TwoD.Image
     (
-      Image(Image), imgFile, imgSize, imgTransf
+      Image(..), imgFile, imgSize, imgTransf
     , image
     ) where
 

@@ -94,7 +94,7 @@ module Diagrams.Trail
 
          -- ** Segment trees
 
-       , SegTree(SegTree), getSegTree, trailMeasure, numSegs, offset
+       , SegTree(..), getSegTree, trailMeasure, numSegs, offset
 
          -- ** Extracting segments
 

@@ -13,7 +13,7 @@
 -----------------------------------------------------------------------------
 module Diagrams.Parametric.Adjust
     ( adjust
-    , AdjustOpts(AO)
+    , AdjustOpts(..)
     , adjMethod, adjSide, adjEps, adjOptsvProxy__
     , AdjustMethod(..), AdjustSide(..)
 

@@ -28,7 +28,7 @@ module Diagrams.Path
 
          -- * Paths
 
-         Path(Path), pathTrails
+         Path(..), pathTrails
 
          -- * Constructing paths
          -- $construct
