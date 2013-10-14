@@ -25,6 +25,7 @@ import           Diagrams.Coordinates
 import           Diagrams.ThreeD.Types
 import           Diagrams.ThreeD.Vector
 
+import           Control.Lens                   ((*~), (//~))
 import           Data.Semigroup
 
 import           Data.AffineSpace
@@ -93,6 +94,42 @@ rotatationAbout p d a
                cross3 w v ^* sin th ^+^
                w ^* ((w <.> v) * (1 - cos th))
     t = p .-. origin
+
+
+-- Scaling -------------------------------------------------
+
+-- | Construct a transformation which scales by the given factor in
+--   the x direction.
+scalingX :: Double -> T3
+scalingX c = fromLinear s s
+  where s = (_x *~ c) <-> (_x //~ c)
+
+-- | Scale a diagram by the given factor in the x (horizontal)
+--   direction.  To scale uniformly, use 'scale'.
+scaleX :: (Transformable t, V t ~ R3) => Double -> t -> t
+scaleX = transform . scalingX
+
+-- | Construct a transformation which scales by the given factor in
+--   the y direction.
+scalingY :: Double -> T3
+scalingY c = fromLinear s s
+  where s = (_y *~ c) <-> (_y //~ c)
+
+-- | Scale a diagram by the given factor in the y (vertical)
+--   direction.  To scale uniformly, use 'scale'.
+scaleY :: (Transformable t, V t ~ R3) => Double -> t -> t
+scaleY = transform . scalingY
+
+-- | Construct a transformation which scales by the given factor in
+--   the z direction.
+scalingZ :: Double -> T3
+scalingZ c = fromLinear s s
+  where s = (_z *~ c) <-> (_z //~ c)
+
+-- | Scale a diagram by the given factor in the z direction.  To scale
+-- uniformly, use 'scale'.
+scaleZ :: (Transformable t, V t ~ R3) => Double -> t -> t
+scaleZ = transform . scalingZ
 
 -- | Get the matrix equivalent of an affine transform, as a triple of
 --   columns paired with the translation vector.  This is mostly
