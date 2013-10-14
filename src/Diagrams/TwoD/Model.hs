@@ -16,7 +16,7 @@ module Diagrams.TwoD.Model
        ( -- * Showing the local origin
          showOrigin
        , showOrigin'
-       , OriginOpts(OriginOpts), oColor, oScale, oMinSize
+       , OriginOpts(..), oColor, oScale, oMinSize
        , showLabels
        ) where
 

@@ -14,7 +14,7 @@
 -----------------------------------------------------------------------------
 
 module Diagrams.TwoD.Transform.ScaleInv
-    ( ScaleInv(ScaleInv)
+    ( ScaleInv(..)
     , unScaleInv, scaleInvDir, scaleInvLoc
     , scaleInv, scaleInvPrim )
     where

@@ -33,7 +33,7 @@ module Diagrams.TwoD.Path
 
        , FillRule(..)
        , FillRuleA(..), getFillRule, fillRule
-       , StrokeOpts(StrokeOpts), vertexNames, queryFillRule
+       , StrokeOpts(..), vertexNames, queryFillRule
 
          -- ** Inside/outside testing
 
@@ -41,7 +41,7 @@ module Diagrams.TwoD.Path
 
          -- * Clipping
 
-       , Clip(Clip), getClip, clipBy
+       , Clip(..), getClip, clipBy
        ) where
 
 import           Control.Applicative   (liftA2)

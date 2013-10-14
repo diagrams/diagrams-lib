@@ -21,7 +21,7 @@ module Diagrams.TwoD.Polygons(
         -- * Polygons
           PolyType(..)
         , PolyOrientation(..)
-        , PolygonOpts(PolygonOpts), polyType, polyOrient, polyCenter
+        , PolygonOpts(..), polyType, polyOrient, polyCenter
 
         , polygon
         , polyTrail

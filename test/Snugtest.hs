@@ -20,16 +20,16 @@ import Diagrams.Align
 import Diagrams.TwoD.Align
 
 concave :: Diagram SVG R2
-concave = polygon with {polyType = PolyPolar [a, b, b, b]
-               [0.25,1,1,1,1] ,polyOrient = NoOrient}
+concave = polygon (with & polyType .~ PolyPolar [a, b, b, b]
+               [0.25,1,1,1,1] & polyOrient .~ NoOrient)
                # fc blue # lw 0
   where
     a = 1/8 :: Turn
     b = 1/4 :: Turn
 
 convex :: Diagram SVG R2
-convex = polygon with { polyType = PolyPolar [a,b] [0.25, 1, 1]
-                      , polyOrient = NoOrient}
+convex = polygon (with & polyType .~ PolyPolar [a,b] [0.25, 1, 1]
+                       & polyOrient .~ NoOrient)
                       # fc orange # lw 0
   where
     a = 1/8 :: Turn

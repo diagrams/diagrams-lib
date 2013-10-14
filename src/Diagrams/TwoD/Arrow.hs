@@ -66,7 +66,7 @@ module Diagrams.TwoD.Arrow
        , connectOutside
        , connectOutside'
        , straightShaft
-       , ArrowOpts(ArrowOpts)
+       , ArrowOpts(..)
 
        , arrowHead
        , arrowTail
