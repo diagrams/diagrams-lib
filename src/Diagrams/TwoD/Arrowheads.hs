@@ -105,6 +105,8 @@ closedPath = pathFromTrail . closeTrail
 
 -- | <<diagrams/src_Diagrams_TwoD_Arrowheads_tri25Ex.svg#diagram=tri25Ex&width=120>>
 
+--   > import Control.Lens ((&), (.~), (%~))
+--   >
 --   > tri25Ex = arrowAt' (with & arrowHead .~ arrowheadTriangle (2/5 :: Turn) & shaftStyle %~ lw 0)
 --   >           origin (r2 (0.001, 0))
 --   >        <> square 0.6 # alignL # lw 0
@@ -242,7 +244,8 @@ missile :: ArrowHT
 missile = arrowheadMissile (2/5 :: Turn)
 
 -- Tails ------------------------------------------------------------------
-
+--   > import Control.Lens ((&), (.~), (%~))
+--   >
 --   > drawTail t = arrowAt' (with  & arrowTail .~ t & shaftStyle %~ lw 0 & arrowHead .~ noHead)
 --   >         origin (r2 (0.001, 0))
 --   >      <> square 0.5 # alignL # lw 0

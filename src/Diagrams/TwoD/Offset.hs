@@ -284,14 +284,14 @@ offsetPath = offsetPath' def
 -- "right" make sense.
 --
 -- > import Diagrams.TwoD.Offset
--- > import Diagrams.Coordinates
 -- > import Data.Default.Class
+-- > import Control.Lens ((&), (.~), (%~))
 -- >
 -- > corner :: Located (Trail R2)
--- > corner = fromVertices [ 0 & 0, 10 & 0, 5 & 6 ] `at` origin
+-- > corner = fromVertices (map p2 [(0, 0), (10, 0), (5, 6)]) `at` origin
 -- >
 -- > offsetTrailExample :: Diagram SVG R2
--- > offsetTrailExample = pad 1.1 . centerXY . lw 0.2 . hcat' def { sep = 1 }
+-- > offsetTrailExample = pad 1.1 . centerXY . lw 0.2 . hcat' (def & sep .~ 1 )
 -- >                    . map (uncurry showStyle)
 -- >                    $ [ (LineJoinMiter, "LineJoinMiter")
 -- >                      , (LineJoinRound, "LineJoinRound")
@@ -299,14 +299,14 @@ offsetPath = offsetPath' def
 -- >                      ]
 -- >  where
 -- >    showStyle j s = centerXY (trailLike corner # lc blue
--- >               <> trailLike (offsetTrail' def { offsetJoin = j } 2 corner) # lc green)
+-- >               <> trailLike (offsetTrail' (def & offsetJoin .~ j) 2 corner) # lc green)
 -- >            === (strutY 3 <> text s # font "Helvetica" # bold)
 -- >
 -- > offsetTrailLeftExample :: Diagram SVG R2
 -- > offsetTrailLeftExample = pad 1.1 . centerXY . lw 0.2
 -- >                        $ (trailLike c # lc blue)
 -- >                        <> (lc green . trailLike
--- >                         . offsetTrail' def { offsetJoin = LineJoinRound } (-2) $ c)
+-- >                         . offsetTrail' (def & offsetJoin .~ LineJoinRound) (-2) $ c)
 -- >   where
 -- >     c = reflectY corner
 -- >
@@ -314,7 +314,7 @@ offsetPath = offsetPath' def
 -- > offsetTrailOuterExample = pad 1.1 . centerXY . lw 0.2
 -- >                         $ (trailLike c # lc blue)
 -- >                         <> (lc green . trailLike
--- >                          . offsetTrail' def { offsetJoin = LineJoinRound } 2 $ c)
+-- >                          . offsetTrail' (def & offsetJoin .~ LineJoinRound) 2 $ c)
 -- >   where
 -- >     c = hexagon 5
 
@@ -380,11 +380,11 @@ expandPath :: Double -> Path R2 -> Path R2
 expandPath = expandPath' def
 
 -- > import Diagrams.TwoD.Offset
--- > import Diagrams.Coordinates
 -- > import Data.Default.Class
+-- > import Control.Lens ((&), (.~), (%~))
 -- >
 -- > expandTrailExample :: Diagram SVG R2
--- > expandTrailExample = pad 1.1 . centerXY . hcat' def { sep = 1 }
+-- > expandTrailExample = pad 1.1 . centerXY . hcat' (def & sep .~ 1)
 -- >                    . map (uncurry showStyle)
 -- >                    $ [ (LineCapButt,   "LineCapButt")
 -- >                      , (LineCapRound,  "LineCapRound")
@@ -393,9 +393,9 @@ expandPath = expandPath' def
 -- >  where
 -- >    showStyle c s = centerXY (trailLike corner # lc white # lw 0.2
 -- >                               <> stroke (expandTrail'
--- >                                              def { expandJoin = LineJoinRound
--- >                                                  , expandCap = c
--- >                                                  } 2 corner)
+-- >                                              (def & expandJoin .~ LineJoinRound
+-- >                                                   & expandCap .~ c
+-- >                                                   ) 2 corner)
 -- >                                      # lw 0 # fc green)
 -- >               === (strutY 3 <> text s # font "Helvetica" # bold)
 -- >
@@ -403,8 +403,8 @@ expandPath = expandPath' def
 -- > expandLoopExample = pad 1.1 . centerXY $ ((strokeLocT t # lw 0.2 # lc white)
 -- >                                        <> (stroke t' # lw 0 # fc green))
 -- >   where
--- >     t  = mapLoc glueTrail $ fromVertices [ 0 & 0, 5 & 0, 10 & 5, 10 & 10, 0 & 0 ]
--- >     t' = expandTrail' def { expandJoin = LineJoinRound } 1 t
+-- >     t  = mapLoc glueTrail $ fromVertices (map p2 [(0, 0), (5, 0), (10, 5), (10, 10), (0, 0)])
+-- >     t' = expandTrail' (def & expandJoin .~ LineJoinRound) 1 t
 
 
 -- | When we expand a line (the original line runs through the center of offset

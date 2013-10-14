@@ -796,6 +796,8 @@ trailFromVertices = wrapTrail . lineFromVertices
 --
 --   <<diagrams/src_Diagrams_Trail_glueLineEx.svg#diagram=glueLineEx&width=500>>
 --
+--   > import Control.Lens ((&), (.~))
+--   >
 --   > glueLineEx = pad 1.1 . hcat' (with & sep .~ 1)
 --   >   $ [almostClosed # strokeLine, almostClosed # glueLine # strokeLoop]
 --   >
