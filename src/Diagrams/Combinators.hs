@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE Rank2Types            #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
@@ -37,7 +38,7 @@ module Diagrams.Combinators
 
        ) where
 
-import           Control.Lens (makeLenses, (&), (%~))
+import           Control.Lens       hiding ((#), (<.>), moveTo, at, beside)
 
 import           Data.AdditiveGroup
 import           Data.AffineSpace   ((.+^))
@@ -290,23 +291,24 @@ data CatMethod = Cat     -- ^ Normal catenation: simply put diagrams
 
 -- | Options for 'cat''.
 data CatOpts v = CatOpts { _catMethod       :: CatMethod
-                             -- ^ Which 'CatMethod' should be used:
-                             --   normal catenation (default), or
-                             --   distribution?
                          , _sep             :: Scalar v
-                             -- ^ How much separation should be used
-                             --   between successive diagrams
-                             --   (default: 0)?  When @catMethod =
-                             --   Cat@, this is the distance between
-                             --   /envelopes/; when @catMethod =
-                             --   Distrib@, this is the distance
-                             --   between /origins/.
                          , _catOptsvProxy__ :: Proxy v
-                             -- ^ This field exists solely to aid type inference;
-                             --   please ignore it.
                          }
 
-makeLenses ''CatOpts
+makeLensesWith (lensRules & generateSignatures .~ False) ''CatOpts
+
+-- | Which 'CatMethod' should be used:
+--   normal catenation (default), or distribution?
+catMethod :: forall v. Lens' (CatOpts v) CatMethod
+
+-- | How much separation should be used between successive diagrams
+--   (default: 0)?  When @catMethod = Cat@, this is the distance between
+--   /envelopes/; when @catMethod = Distrib@, this is the distance
+--   between /origins/.
+sep :: forall v. Lens' (CatOpts v) (Scalar v)
+
+-- | This field exists solely to aid type inference; please ignore it.
+catOptsvProxy__ :: forall v. Lens' (CatOpts v) (Proxy v)
 
 -- The reason the proxy field is necessary is that without it,
 -- altering the sep field could theoretically change the type of a

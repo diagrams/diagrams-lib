@@ -103,7 +103,7 @@ module Diagrams.Trail
        ) where
 
 import           Control.Arrow       ((***))
-import           Control.Lens        (AnIso', iso, makeLenses, view)
+import           Control.Lens        (AnIso', iso, makeLenses, view, (.~))
 import           Data.AffineSpace
 import           Data.FingerTree     (FingerTree, ViewL (..), ViewR (..), (<|),
                                       (|>))
@@ -796,12 +796,11 @@ trailFromVertices = wrapTrail . lineFromVertices
 --
 --   <<diagrams/src_Diagrams_Trail_glueLineEx.svg#diagram=glueLineEx&width=500>>
 --
---   > import Diagrams.Coordinates
---   > glueLineEx = pad 1.1 . hcat' with {sep = 1}
+--   > glueLineEx = pad 1.1 . hcat' (with & sep .~ 1)
 --   >   $ [almostClosed # strokeLine, almostClosed # glueLine # strokeLoop]
 --   >
 --   > almostClosed :: Trail' Line R2
---   > almostClosed = fromOffsets [2 & (-1), (-3) & (-0.5), (-2) & 1, 1 & 0.5]
+--   > almostClosed = fromOffsets $ map r2 [(2, -1), (-3, -0.5), (-2, 1), (1, 0.5)]
 --
 --   @glueLine@ is left inverse to 'cutLoop', that is,
 --
@@ -841,7 +840,7 @@ glueTrail = onTrail glueLine id
 --
 --   <<diagrams/src_Diagrams_Trail_closeLineEx.svg#diagram=closeLineEx&width=500>>
 --
---   > closeLineEx = pad 1.1 . centerXY . hcat' with {sep = 1}
+--   > closeLineEx = pad 1.1 . centerXY . hcat' (with & sep .~ 1)
 --   >   $ [almostClosed # strokeLine, almostClosed # closeLine # strokeLoop]
 closeLine :: Trail' Line v -> Trail' Loop v
 closeLine (Line t) = Loop t (Linear OffsetOpen)

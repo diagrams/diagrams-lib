@@ -31,7 +31,7 @@ module Diagrams.TwoD.Offset
     ) where
 
 import Control.Applicative
-import Control.Lens (makeLenses, view, (^.))
+import Control.Lens            hiding (at, moveTo)
 
 import Data.AffineSpace
 import Data.Monoid
@@ -95,14 +95,20 @@ perpAtParam s@(Cubic _ _ _)              t = -unitPerp a
 --   involving multiple segments.
 data OffsetOpts = OffsetOpts
     { _offsetJoin :: LineJoin
-      -- ^ Specifies the style of join for between adjacent offset segments.
     , _offsetMiterLimit :: Double
-      -- ^ Specifies the miter limit for the join.
     , _offsetEpsilon :: Double
-      -- ^ Epsilon perimeter for 'offsetSegment'.
     } deriving (Eq, Show)
 
-makeLenses ''OffsetOpts
+makeLensesWith (lensRules & generateSignatures .~ False) ''OffsetOpts
+
+-- | Specifies the style of join for between adjacent offset segments.
+offsetJoin :: Lens' OffsetOpts LineJoin
+
+-- | Specifies the miter limit for the join.
+offsetMiterLimit :: Lens' OffsetOpts Double
+
+-- | Epsilon perimeter for 'offsetSegment'.
+offsetEpsilon :: Lens' OffsetOpts Double
 
 -- | The default offset options use the default 'LineJoin' ('LineJoinMiter'), a
 --   miter limit of 10, and epsilon factor of 0.01.
@@ -112,16 +118,26 @@ instance Default OffsetOpts where
 -- | Options for specifying how a 'Trail' should be expanded.
 data ExpandOpts = ExpandOpts
     { _expandJoin :: LineJoin
-      -- ^ Specifies the style of join for between adjacent offset segments.
     , _expandMiterLimit :: Double
-      -- ^ Specifies the miter limit for the join.
     , _expandCap  :: LineCap
-      -- ^ Specifies how the ends are handled.
     , _expandEpsilon :: Double
-      -- ^ Epsilon perimeter for 'offsetSegment'.
     } deriving (Eq, Show)
 
-makeLenses ''ExpandOpts
+makeLensesWith (lensRules & generateSignatures .~ False) ''ExpandOpts
+
+-- | Specifies the style of join for between adjacent offset segments.
+expandJoin :: Lens' ExpandOpts LineJoin
+
+-- | Specifies the miter limit for the join.
+expandMiterLimit :: Lens' ExpandOpts Double
+
+-- | Specifies how the ends are handled.
+expandCap :: Lens' ExpandOpts LineCap
+
+-- | Epsilon perimeter for 'offsetSegment'.
+expandEpsilon :: Lens' ExpandOpts Double
+
+
 
 -- | The default 'ExpandOpts' is the default 'LineJoin' ('LineJoinMiter'),
 --   miter limit of 10, default 'LineCap' ('LineCapButt'), and epsilon factor

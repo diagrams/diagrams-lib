@@ -45,7 +45,7 @@ module Diagrams.TwoD.Polygons(
 
     ) where
 
-import           Control.Lens            (makeLenses, (^.))
+import           Control.Lens            hiding (transform, at, (<.>), (&), (#))
 import           Control.Monad           (forM, liftM)
 import           Control.Monad.ST        (ST, runST)
 import           Data.Array.ST           (STUArray, newArray, readArray,
@@ -138,21 +138,22 @@ data PolyOrientation = NoOrient     -- ^ No special orientation; the first
 -- | Options for specifying a polygon.
 data PolygonOpts = PolygonOpts
                    { _polyType   :: PolyType
-                     -- ^ Specification for the polygon's vertices.
-
                    , _polyOrient :: PolyOrientation
-                     -- ^ Should a rotation be applied to the
-                     --   polygon in order to orient it in a
-                     --   particular way?
-
                    , _polyCenter :: P2
-                     -- ^ Should a translation be applied to the
-                     --   polygon in order to place the center at a
-                     --   particular location?
                    }
 
+makeLensesWith (generateSignatures .~ False $ lensRules) ''PolygonOpts
 
-makeLenses ''PolygonOpts
+-- | Specification for the polygon's vertices.
+polyType :: Lens' PolygonOpts PolyType
+
+-- | Should a rotation be applied to the polygon in order to orient it in a
+--   particular way?
+polyOrient :: Lens' PolygonOpts PolyOrientation
+
+-- | Should a translation be applied to the polygon in order to place the center
+--   at a particular location?
+polyCenter :: Lens' PolygonOpts P2
 
 -- | The default polygon is a regular pentagon of radius 1, centered
 --   at the origin, aligned to the x-axis.

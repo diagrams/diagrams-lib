@@ -20,26 +20,24 @@ module Diagrams.TwoD.Arrow
          -- ** Example 1
 -- | <<diagrams/src_Diagrams_TwoD_Arrow_example1.svg#diagram=example1&width=500>>
 --
---   > import Diagrams.Coordinates ((&))
+--   > import Control.Lens ((&), (.~))
 --   >
 --   > -- Connecting two diagrams at their origins.
 --   >
 --   > sq = square 2 # showOrigin # lc darkgray # lw 0.07
 --   > ds = (sq # named "left") ||| strutX 3 ||| (sq # named "right")
 --   >
---   > shaft  = cubicSpline False [(0 & 0), (1 & 0), (1 & 0.2), (2 & 0.2)]
+--   > shaft  = cubicSpline False ( map r2 [(0, 0), (1, 0), (1, 0.2), (2, 0.2)])
 --   >
---   > example1 = ds # connect' with { arrowHead=dart, headSize=0.6
---   >                               , tailSize=0.5, arrowTail=quill
---   >                               , shaftStyle=lw 0.02, arrowShaft=shaft}
---   >                               "left" "right" # pad 1.1
+--   > example1 = ds # connect' (with & arrowHead .~ dart & headSize .~ 0.6
+--   >                                & tailSize .~ 0.5 & arrowTail .~ quill
+--   >                                & shaftStyle %~ lw 0.02 & arrowShaft .~ shaft)
+--   >                                "left" "right" # pad 1.1
 
          -- ** Example 2
 
 -- | <<diagrams/src_Diagrams_TwoD_Arrow_example2.svg#diagram=example2&width=500>>
 --
---   > import Diagrams.Coordinates ((&))
---   >
 --   > -- Comparing connect, connectPerim, and arrowAt.
 --   >
 --   > oct  = octagon 1 # lc darkgray # lw 0.10 # showOrigin
@@ -86,7 +84,7 @@ module Diagrams.TwoD.Arrow
        , module Diagrams.TwoD.Arrowheads
        ) where
 
-import           Control.Lens                     (makeLenses, (^.))
+import           Control.Lens                     hiding ((#), moveTo, (<.>))
 import           Data.AffineSpace
 import           Data.Default.Class
 import           Data.Functor                     ((<$>))
@@ -112,20 +110,17 @@ import           Diagrams.Util                    (( # ))
 
 data ArrowOpts
   = ArrowOpts
-    { _arrowHead  :: ArrowHT   -- ^ A shape to place at the head of the arrow.
-    , _arrowTail  :: ArrowHT   -- ^ A shape to place at the tail of the arrow.
-    , _arrowShaft :: Trail R2  -- ^ The trail to use for the arrow shaft.
-    , _headSize   :: Double    -- ^ Radius of a circumcircle around the head.
-    , _tailSize   :: Double    -- ^ Radius of a circumcircle around the tail.
-    , _headGap    :: Double    -- ^ Distance to leave between
-                              --   the head and the target point.
-    , _tailGap    :: Double    -- ^ Distance to leave between the
-                              --   starting point and the tail.
-    , _headStyle  :: Style R2  -- ^ Style to apply to the head.
-    , _tailStyle  :: Style R2  -- ^ Style to apply to the tail.
-    , _shaftStyle :: Style R2  -- ^ Style to apply to the shaft.
+    { _arrowHead  :: ArrowHT
+    , _arrowTail  :: ArrowHT
+    , _arrowShaft :: Trail R2
+    , _headSize   :: Double
+    , _tailSize   :: Double
+    , _headGap    :: Double
+    , _tailGap    :: Double
+    , _headStyle  :: Style R2
+    , _tailStyle  :: Style R2
+    , _shaftStyle :: Style R2
     }
-
 
 -- | Straight line arrow shaft.
 straightShaft :: Trail R2
@@ -150,7 +145,37 @@ instance Default ArrowOpts where
         , _shaftStyle   = mempty
         }
 
-makeLenses ''ArrowOpts
+makeLensesWith (lensRules & generateSignatures .~ False) ''ArrowOpts
+
+-- | A shape to place at the head of the arrow.
+arrowHead :: Lens' ArrowOpts ArrowHT
+
+-- | A shape to place at the tail of the arrow.
+arrowTail :: Lens' ArrowOpts ArrowHT
+
+-- | The trail to use for the arrow shaft.
+arrowShaft :: Lens' ArrowOpts (Trail R2)
+
+-- | Radius of a circumcircle around the head.
+headSize :: Lens' ArrowOpts Double
+
+-- | Radius of a circumcircle around the tail.
+tailSize :: Lens' ArrowOpts Double
+
+-- | Distance to leave between the head and the target point.
+headGap :: Lens' ArrowOpts Double
+-- | Distance to leave between the starting point and the tail.
+tailGap :: Lens' ArrowOpts Double
+
+-- | Style to apply to the head.
+headStyle :: Lens' ArrowOpts (Style R2)
+
+-- | Style to apply to the tail.
+tailStyle :: Lens' ArrowOpts (Style R2)
+
+-- | Style to apply to the shaft.
+shaftStyle :: Lens' ArrowOpts (Style R2)
+
 
 -- | Append the default shaft style to the left of the default shaftStyle
 --   The semigroup stucture of the lw attribute will insure it is only applied

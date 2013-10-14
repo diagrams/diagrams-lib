@@ -69,7 +69,7 @@ import           Data.Semigroup
 --
 --   <<diagrams/src_Diagrams_TwoD_Shapes_hruleEx.svg#diagram=hruleEx&width=300>>
 --
---   > hruleEx = vcat' with {sep = 0.2} (map hrule [1..5])
+--   > hruleEx = vcat' (with L.& sep .~ 0.2) (map hrule [1..5])
 --   >         # centerXY # pad 1.1
 hrule :: (TrailLike t, V t ~ R2) => Double -> t
 hrule d = trailLike $ trailFromSegments [straight (d & 0)] `at` (p2 (-d/2,0))
@@ -78,7 +78,7 @@ hrule d = trailLike $ trailFromSegments [straight (d & 0)] `at` (p2 (-d/2,0))
 --
 --   <<diagrams/src_Diagrams_TwoD_Shapes_vruleEx.svg#diagram=vruleEx&height=100>>
 --
---   > vruleEx = hcat' with {sep = 0.2} (map vrule [1, 1.2 .. 2])
+--   > vruleEx = hcat' (with L.& sep .~ 0.2) (map vrule [1, 1.2 .. 2])
 --   >         # centerXY # pad 1.1
 vrule :: (TrailLike t, V t ~ R2) => Double -> t
 vrule d = trailLike $ trailFromSegments [straight (0 & (-d))] `at` (p2 (0,d/2))
@@ -100,7 +100,7 @@ unitSquare = polygon (def L.& polyType   .~ PolyRegular 4 (sqrt 2 / 2)
 square :: (TrailLike t, Transformable t, V t ~ R2) => Double -> t
 square d = rect d d
 
--- > squareEx = hcat' with {sep = 0.5} [square 1, square 2, square 3]
+-- > squareEx = hcat' (with L.& sep .~ 0.5) [square 1, square 2, square 3]
 -- >          # centerXY # pad 1.1 # lw 0.03
 
 -- | @rect w h@ is an axis-aligned rectangle of width @w@ and height
@@ -258,12 +258,12 @@ instance Default RoundedRectOpts where
 --
 --   <<diagrams/src_Diagrams_TwoD_Shapes_roundedRectEx.svg#diagram=roundedRectEx&width=400>>
 --
---   > roundedRectEx = pad 1.1 . centerXY $ hcat' with { sep = 0.2 }
+--   > roundedRectEx = pad 1.1 . centerXY $ hcat' (with L.& sep .~ 0.2)
 --   >   [ roundedRect  0.5 0.4 0.1
 --   >   , roundedRect  0.5 0.4 (-0.1)
---   >   , roundedRect' 0.7 0.4 with { radiusTL = 0.2
---   >                               , radiusTR = -0.2
---   >                               , radiusBR = 0.1 }
+--   >   , roundedRect' 0.7 0.4 with { _radiusTL = 0.2
+--   >                               , _radiusTR = -0.2
+--   >                               , _radiusBR = 0.1 }
 --   >   ]
 
 roundedRect :: (TrailLike t, V t ~ R2) => Double -> Double -> Double -> t

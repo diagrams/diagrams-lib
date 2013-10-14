@@ -3,6 +3,7 @@
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE Rank2Types                 #-}
 {-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE ViewPatterns               #-}
@@ -44,7 +45,7 @@ module Diagrams.TwoD.Path
        ) where
 
 import           Control.Applicative   (liftA2)
-import           Control.Lens          (makeLenses, view, (^.))
+import           Control.Lens          hiding ((&), transform)
 import qualified Data.Foldable         as F
 import           Data.Semigroup
 import           Data.Typeable
@@ -109,34 +110,32 @@ instance Default FillRule where
 --   records can be created using @'with' { ... }@ notation.
 data StrokeOpts a
   = StrokeOpts
-    { _vertexNames   :: [[a]]  -- ^ Atomic names that should be assigned
-                            --   to the vertices of the path so that
-                            --   they can be referenced later.  If
-                            --   there are not enough names, the extra
-                            --   vertices are not assigned names; if
-                            --   there are too many, the extra names
-                            --   are ignored.  Note that this is a
-                            --   /list of lists/ of names, since paths
-                            --   can consist of multiple trails.  The
-                            --   first list of names are assigned to
-                            --   the vertices of the first trail, the
-                            --   second list to the second trail, and
-                            --   so on.
-                            --
-                            --   The default value is the empty list.
+    { _vertexNames   :: [[a]]
 
     , _queryFillRule :: FillRule
-                            -- ^ The fill rule used for determining
-                            --   which points are inside the path.
-                            --   The default is 'Winding'.  NOTE: for
-                            --   now, this only affects the resulting
-                            --   diagram's 'Query', /not/ how it will
-                            --   be drawn!  To set the fill rule
-                            --   determining how it is to be drawn,
-                            --   use the 'fillRule' function.
+
     }
 
-makeLenses ''StrokeOpts
+makeLensesWith (generateSignatures .~ False $ lensRules) ''StrokeOpts
+
+-- | Atomic names that should be assigned to the vertices of the path so that
+--   they can be referenced later.  If there are not enough names, the extra
+--   vertices are not assigned names; if there are too many, the extra names
+--   are ignored.  Note that this is a /list of lists/ of names, since paths
+--   can consist of multiple trails.  The first list of names are assigned to
+--   the vertices of the first trail, the second list to the second trail, and
+--   so on.
+--
+--   The default value is the empty list.
+
+vertexNames :: forall a a'. Lens (StrokeOpts a) (StrokeOpts a') [[a]] [[a']]
+
+-- | The fill rule used for determining which points are inside the path.
+--   The default is 'Winding'.  NOTE: for now, this only affects the resulting
+--   diagram's 'Query', /not/ how it will be drawn!  To set the fill rule
+--   determining how it is to be drawn, use the 'fillRule' function.
+queryFillRule :: forall a. Lens' (StrokeOpts a) FillRule
+
 
 instance Default (StrokeOpts a) where
   def = StrokeOpts
