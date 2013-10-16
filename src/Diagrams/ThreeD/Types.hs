@@ -21,8 +21,8 @@
 
 module Diagrams.ThreeD.Types
        ( -- * 3D Euclidean space
-         R3, r3, unr3
-       , P3, p3, unp3
+         R3, r3, unr3, mkR3
+       , P3, p3, unp3, mkP3
        , T3
        , r3Iso, p3Iso
 
@@ -45,9 +45,9 @@ module Diagrams.ThreeD.Types
 import           Control.Applicative
 import           Control.Lens           (Iso', iso, over)
 
-import           Diagrams.Coordinates
 import           Diagrams.Core
 import           Diagrams.TwoD.Types
+import           Diagrams.Coordinates
 
 import           Data.AffineSpace.Point
 import           Data.Basis
@@ -67,6 +67,10 @@ r3Iso = iso unR3 R3
 -- | Construct a 3D vector from a triple of components.
 r3 :: (Double, Double, Double) -> R3
 r3 = R3
+
+-- | Curried version of `r3`.
+mkR3 :: Double -> Double -> Double -> R3
+mkR3 x y z = r3 (x, y, z)
 
 -- | Convert a 3D vector back into a triple of components.
 unr3 :: R3 -> (Double, Double, Double)
@@ -92,7 +96,7 @@ instance Coordinates R3 where
   type PrevDim R3          = R2
   type Decomposition R3    = Double :& Double :& Double
 
-  (coords -> x :& y) & z   = r3 (x,y,z)
+  (coords -> x :& y) @@ z   = r3 (x,y,z)
   coords (unR3 -> (x,y,z)) = x :& y :& z
 
 -- | Points in R^3.
@@ -108,6 +112,10 @@ unp3 = unR3 . unPoint
 
 p3Iso :: Iso' P3 (Double, Double, Double)
 p3Iso = iso unp3 p3
+
+-- | Curried version of `r3`.
+mkP3 :: Double -> Double -> Double -> P3
+mkP3 x y z = p3 (x, y, z)
 
 -- | Transformations in R^3.
 type T3 = Transformation R3
