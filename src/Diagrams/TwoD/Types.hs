@@ -20,8 +20,8 @@
 
 module Diagrams.TwoD.Types
        ( -- * 2D Euclidean space
-         R2(..), r2, unr2
-       , P2, p2, unp2
+         R2(..), r2, unr2, r2Iso
+       , P2, p2, unp2, p2Iso
        , T2
 
          -- * Angles
@@ -40,7 +40,7 @@ import           Data.NumInstances.Tuple ()
 import           Data.VectorSpace
 
 import           Data.Typeable
-
+import           Control.Lens           (Iso', iso, _1, _2)
 ------------------------------------------------------------
 -- 2D Euclidean space
 
@@ -151,6 +151,15 @@ instance Coordinates R2 where
   x & y           = R2 x y
   coords (R2 x y) = x :& y
 
+r2Iso :: Iso' R2 (Double, Double)
+r2Iso = iso unr2 r2
+
+instance HasX R2 where
+    _x = r2Iso . _1
+
+instance HasY R2 where
+    _y = r2Iso . _2
+
 -- | Points in R^2.  This type is intentionally abstract.
 --
 --   * To construct a point, use 'p2', or '&' (see
@@ -190,6 +199,14 @@ type T2 = Transformation R2
 instance Transformable R2 where
   transform = apply
 
+p2Iso :: Iso' P2 (Double, Double)
+p2Iso = iso unp2 p2
+
+instance HasX P2 where
+    _x = p2Iso . _1
+
+instance HasY P2 where
+    _y = p2Iso . _2
 ------------------------------------------------------------
 -- Angles
 
