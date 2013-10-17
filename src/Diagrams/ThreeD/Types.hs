@@ -21,16 +21,16 @@
 
 module Diagrams.ThreeD.Types
        ( -- * 3D Euclidean space
-         R3, r3, unr3
+         R3(..), r3, unr3
        , P3, p3, unp3
        , T3
+       , r3Iso
 
          -- * Two-dimensional angles
          -- | These are defined in "Diagrams.TwoD.Types" but
          --   reëxported here for convenience.
        , Angle(..)
-       , Turn(..), Rad(..), Deg(..)
-
+       , Turn(..), asTurn, CircleFrac, Rad(..), asRad, Deg(..), asDeg
        , fullTurn, convertAngle, angleRatio
 
          -- * Directions in 3D
@@ -40,7 +40,7 @@ module Diagrams.ThreeD.Types
        ) where
 
 import           Control.Applicative
-import           Control.Lens           (Iso', iso, over)
+import           Control.Lens           (Iso', iso, over, _1, _2, _3)
 
 import           Diagrams.Coordinates
 import           Diagrams.Core
@@ -99,9 +99,12 @@ type P3 = Point R3
 p3 :: (Double, Double, Double) -> P3
 p3 = P . R3
 
--- | Convert a 2D point back into a triple of coordinates.
+-- | Convert a 3D point back into a triple of coordinates.
 unp3 :: P3 -> (Double, Double, Double)
 unp3 = unR3 . unPoint
+
+p3Iso :: Iso' P3 (Double, Double, Double)
+p3Iso = iso unp3 p3
 
 -- | Transformations in R^3.
 type T3 = Transformation R3
@@ -149,3 +152,21 @@ instance (Angle a) => Direction (Spherical a) where
 -- intermediate type would be ambiguous.
 asSpherical :: Spherical Turn -> Spherical Turn
 asSpherical = id
+
+instance HasX R3 where
+    _x = r3Iso . _1
+
+instance HasX P3 where
+    _x = p3Iso . _1
+
+instance HasY R3 where
+    _y = r3Iso . _2
+
+instance HasY P3 where
+    _y = p3Iso . _2
+
+instance HasZ R3 where
+    _z = r3Iso . _3
+
+instance HasZ P3 where
+    _z = p3Iso . _3

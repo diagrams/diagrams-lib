@@ -17,7 +17,7 @@ module Diagrams.ThreeD.Vector
          unitX, unitY, unitZ, unit_X, unit_Y, unit_Z,
 
          -- * Converting between vectors and angles
-         direction, fromDirection, angleBetween
+         direction, fromDirection, angleBetween, angleBetweenDirs
        ) where
 
 import Data.VectorSpace
@@ -76,3 +76,7 @@ fromDirection (toSpherical -> (Spherical θ' φ')) = r3 (x,y,z) where
 angleBetween  :: (Angle a, Num a, Ord a) => R3 -> R3 -> a
 angleBetween v1 v2 = convertAngle . Rad $
                      atan2 (magnitude $ cross3 v1 v2) (v1 <.> v2)
+
+-- | compute the positive angle between the two vectors in their common plane
+angleBetweenDirs  :: (Direction d, Angle a, Num a, Ord a) => d -> d -> a
+angleBetweenDirs d1 d2 = angleBetween (fromDirection d1) (fromDirection d2)

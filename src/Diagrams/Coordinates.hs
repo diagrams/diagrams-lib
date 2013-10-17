@@ -18,8 +18,14 @@
 -----------------------------------------------------------------------------
 
 module Diagrams.Coordinates
-    ( (:&)(..), Coordinates(..) )
+    ( (:&)(..), Coordinates(..)
+
+    -- * Lenses for particular axes
+    , HasX(..), HasY(..), HasZ(..)
+    )
     where
+
+import           Control.Lens          (Lens')
 
 import           Diagrams.Core.Points
 
@@ -104,3 +110,15 @@ instance Coordinates v => Coordinates (Point v) where
 
   x & y        = P (x & y)
   coords (P v) = coords v
+
+-- | The class of types with at least one coordinate, called _x.
+class HasX t where
+    _x :: Lens' t Double
+
+-- | The class of types with at least two coordinates, the second called _y.
+class HasY t where
+    _y :: Lens' t Double
+
+-- | The class of types with at least three coordinates, the third called _z.
+class HasZ t where
+    _z :: Lens' t Double
