@@ -25,6 +25,8 @@ module Diagrams.Coordinates
     )
     where
 
+import           Control.Lens          (Lens')
+
 import           Diagrams.Core.Points
 
 -- | A pair of values, with a convenient infix (left-associative)
@@ -109,11 +111,14 @@ instance Coordinates v => Coordinates (Point v) where
   x & y        = P (x & y)
   coords (P v) = coords v
 
+-- | The class of types with at least one coordinate, called _x.
 class HasX t where
-    _x :: Functor f => (Double -> f Double) -> t -> f t
+    _x :: Lens' t Double
 
+-- | The class of types with at least two coordinates, the second called _y.
 class HasY t where
-    _y :: Functor f => (Double -> f Double) -> t -> f t
+    _y :: Lens' t Double
 
+-- | The class of types with at least two coordinates, the third called _z.
 class HasZ t where
-    _z :: Functor f => (Double -> f Double) -> t -> f t
+    _z :: Lens' t Double
