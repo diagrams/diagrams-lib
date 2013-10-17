@@ -119,6 +119,6 @@ class HasX t where
 class HasY t where
     _y :: Lens' t Double
 
--- | The class of types with at least two coordinates, the third called _z.
+-- | The class of types with at least three coordinates, the third called _z.
 class HasZ t where
     _z :: Lens' t Double

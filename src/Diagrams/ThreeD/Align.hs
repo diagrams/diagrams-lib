@@ -15,8 +15,8 @@
 -- sort of boundary).  For example, to align several diagrams along
 -- their tops, we first move their local origins to the upper edge of
 -- their boundary (using e.g. @map 'alignZMax'@), and then put them
--- together with their local origins along a horizontal line (using
--- e.g. 'hcat' from "Diagrams.ThreeD.Combinators").
+-- together with their local origins along a line (using e.g. 'cat'
+-- from "Diagrams.Combinators").
 --
 -----------------------------------------------------------------------------
 
