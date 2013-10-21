@@ -18,7 +18,7 @@
 module Diagrams.ThreeD.Camera
        ( Camera  -- do not export constructor
         -- These are safe to construct manually
-       , PerspectiveLens(PerspectiveLens), OrthoLens(OrthoLens)
+       , PerspectiveLens(..), OrthoLens(..)
        , horizontalFieldOfView, verticalFieldOfView
        , orthoWidth, orthoHeight
        , camLoc, camForward, camUp, camRight, camLens
