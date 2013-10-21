@@ -57,10 +57,10 @@ class Coordinates c where
   -- 3 ^& 5 ^& 6 :: R3
   -- @
   --
-  --   Note that @\@\^& is left-associative.
+  --   Note that @^&@ is left-associative.
   (^&)    :: PrevDim c -> FinalCoord c -> c
 
-  -- | Prefix synonym for @\@\^&. pr stands for pair of @PrevDim@, @FinalCoord@
+  -- | Prefix synonym for @^&@. pr stands for pair of @PrevDim@, @FinalCoord@
   pr      :: PrevDim c -> FinalCoord c -> c
   pr = (^&)
 

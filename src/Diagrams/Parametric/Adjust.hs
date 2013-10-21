@@ -8,13 +8,12 @@
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
--- XXX
 --
 -----------------------------------------------------------------------------
 module Diagrams.Parametric.Adjust
     ( adjust
     , AdjustOpts(..)
-    , adjMethod, adjSide, adjEps, adjOptsvProxy__
+    , adjMethod, adjSide, adjEps
     , AdjustMethod(..), AdjustSide(..)
 
     ) where
@@ -47,7 +46,6 @@ data AdjustSide = Start  -- ^ Adjust only the beginning
 data AdjustOpts v = AO { _adjMethod       :: AdjustMethod v
                        , _adjSide         :: AdjustSide
                        , _adjEps          :: Scalar v
-                       , _adjOptsvProxy__ :: Proxy v
                        }
 
 makeLenses ''AdjustOpts
@@ -59,7 +57,7 @@ instance Default AdjustSide where
   def = Both
 
 instance Fractional (Scalar v) => Default (AdjustOpts v) where
-  def = AO def def stdTolerance Proxy
+  def = AO def def stdTolerance
 
 -- | Adjust the length of a parametric object such as a segment or
 --   trail.  The second parameter is an option record which controls how

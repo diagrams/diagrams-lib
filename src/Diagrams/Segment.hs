@@ -54,10 +54,10 @@ module Diagrams.Segment
          -- * Segment measures
          -- $segmeas
 
-       , SegCount(..), getSegCount
+       , SegCount(..), segCount
        , ArcLength(..)
        , getArcLength, getArcLengthCached, getArcLengthFun, getArcLengthBounded
-       , TotalOffset(..), getTotalOffset
+       , TotalOffset(..), totalOffset
        , OffsetEnvelope(..), oeOffset, oeEnvelope
        , SegMeasure
 
@@ -383,7 +383,7 @@ instance VectorSpace v => Parametric (FixedSegment v) where
 -- automatically track various monoidal \"measures\" on segments.
 
 -- | A type to track the count of segments in a 'Trail'.
-newtype SegCount = SegCount { _getSegCount :: Sum Int }
+newtype SegCount = SegCount { _segCount :: Sum Int }
   deriving (Semigroup, Monoid)
 
 makeLenses ''SegCount
@@ -424,7 +424,7 @@ deriving instance (Num (Scalar v), Ord (Scalar v)) => Monoid    (ArcLength v)
 
 -- | A type to represent the total cumulative offset of a chain of
 --   segments.
-newtype TotalOffset v = TotalOffset { _getTotalOffset :: v }
+newtype TotalOffset v = TotalOffset { _totalOffset :: v }
 
 makeLenses ''TotalOffset
 
@@ -450,7 +450,7 @@ instance (InnerSpace v, OrderedField (Scalar v)) => Semigroup (OffsetEnvelope v)
   (OffsetEnvelope o1 e1) <> (OffsetEnvelope o2 e2)
     = OffsetEnvelope
         (o1 <> o2)
-        (e1 <> moveOriginBy (negateV . view getTotalOffset $ o1) e2)
+        (e1 <> moveOriginBy (negateV . view totalOffset $ o1) e2)
 
 -- | @SegMeasure@ collects up all the measurements over a chain of
 --   segments.

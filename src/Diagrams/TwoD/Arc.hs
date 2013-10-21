@@ -193,8 +193,6 @@ arcBetween p q ht = trailLike (a # rotateBy (direction v) # moveTo p)
 --
 --   <<diagrams/src_Diagrams_TwoD_Arc_annularWedgeEx.svg#diagram=annularWedgeEx&width=400>>
 --
---   > import Control.Lens ((.~), (&))
---   >
 --   > annularWedgeEx = hcat' (with & sep .~ 0.50)
 --   >   [ annularWedge 1 0.5 (0 :: Turn) (1/4)
 --   >   , annularWedge 1 0.3 (7/30 :: Turn) (11/30)
