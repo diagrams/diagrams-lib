@@ -25,7 +25,6 @@ import           Data.VectorSpace
 
 import           Diagrams.Core.V
 import           Diagrams.Parametric
-import           Diagrams.Util
 
 -- | What method should be used for adjusting a segment, trail, or
 --   path?
