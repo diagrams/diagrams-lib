@@ -48,7 +48,7 @@ import           Diagrams.Coordinates
 bezierFromSweepQ1 :: Rad -> Segment Closed R2
 bezierFromSweepQ1 s = fmap (^-^ v) . rotate (s/2) $ bezier3 c2 c1 p0
   where p0@(coords -> x :& y) = rotate (s/2) v
-        c1                    = ((4-x)/3)  @@  ((1-x)*(3-x)/(3*y))
+        c1                    = ((4-x)/3)  ^&  ((1-x)*(3-x)/(3*y))
         c2                    = reflectY c1
         v                     = unitX
 

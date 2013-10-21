@@ -30,27 +30,27 @@ import Diagrams.Coordinates
 
 -- | The unit vector in the positive X direction.
 unitX :: R3
-unitX = 1 @@ 0 @@ 0
+unitX = 1 ^& 0 ^& 0
 
 -- | The unit vector in the positive Y direction.
 unitY :: R3
-unitY = 0 @@ 1 @@ 0
+unitY = 0 ^& 1 ^& 0
 
 -- | The unit vector in the positive Z direction.
 unitZ :: R3
-unitZ = 0 @@ 0 @@ 1
+unitZ = 0 ^& 0 ^& 1
 
 -- | The unit vector in the negative X direction.
 unit_X :: R3
-unit_X = (-1) @@ 0 @@ 0
+unit_X = (-1) ^& 0 ^& 0
 
 -- | The unit vector in the negative Y direction.
 unit_Y :: R3
-unit_Y = 0 @@ (-1) @@ 0
+unit_Y = 0 ^& (-1) ^& 0
 
 -- | The unit vector in the negative Z direction.
 unit_Z :: R3
-unit_Z = 0 @@ 0 @@ (-1)
+unit_Z = 0 ^& 0 ^& (-1)
 
 
 -- | @direction v@ is the direction in which @v@ points.  Returns an

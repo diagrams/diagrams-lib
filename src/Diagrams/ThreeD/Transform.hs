@@ -49,8 +49,8 @@ aboutZ :: Angle a => a -> T3
 aboutZ ang = fromLinear r (linv r) where
   r = rot theta <-> rot (-theta)
   Rad theta = convertAngle ang
-  rot th (coords -> x :& y :& z) = (cos th * x - sin th * y) @@
-                                   (sin th * x + cos th * y) @@
+  rot th (coords -> x :& y :& z) = (cos th * x - sin th * y) ^&
+                                   (sin th * x + cos th * y) ^&
                                    z
 
 -- | Like 'aboutZ', but rotates about the X axis, bringing positive y-values
@@ -59,8 +59,8 @@ aboutX :: Angle a => a -> T3
 aboutX ang = fromLinear r (linv r) where
   r = rot theta <-> rot (-theta)
   Rad theta = convertAngle ang
-  rot th (coords -> x :& y :& z) = (x) @@
-                                   (cos th * y - sin th * z) @@
+  rot th (coords -> x :& y :& z) = (x) ^&
+                                   (cos th * y - sin th * z) ^&
                                    (sin th * y + cos th * z)
 
 -- | Like 'aboutZ', but rotates about the Y axis, bringing postive
@@ -69,8 +69,8 @@ aboutY :: Angle a => a -> T3
 aboutY ang = fromLinear r (linv r) where
   r = rot theta <-> rot (-theta)
   Rad theta = convertAngle ang
-  rot th (coords -> x :& y :& z) = (cos th * x + sin th * z) @@
-                                    y @@
+  rot th (coords -> x :& y :& z) = (cos th * x + sin th * z) ^&
+                                    y ^&
                                     (-sin th * x + cos th * z)
 
 -- | @rotationAbout p d a@ is a rotation about a line parallel to @d@

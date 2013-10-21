@@ -53,11 +53,11 @@ import           Data.Typeable
 -- | The two-dimensional Euclidean vector space R^2.  This type is
 --   intentionally abstract.
 --
---   * To construct a vector, use 'r2', or '@@' (from "Diagrams.Coordinates"):
+--   * To construct a vector, use 'r2', or '^&' (from "Diagrams.Coordinates"):
 --
 -- @
 -- r2 (3,4) :: R2
--- 3 \@\@ 4    :: R2
+-- 3 ^& 4    :: R2
 -- @
 --
 --     Note that "Diagrams.Coordinates" is not re-exported by
@@ -105,7 +105,7 @@ instance Fractional R2 where
 
 instance Show R2 where
   showsPrec p (R2 x y) = showParen (p >= 7) $
-    showCoord x . showString " @@ " . showCoord y
+    showCoord x . showString " ^& " . showCoord y
    where
     showCoord c | c < 0     = showParen True (shows c)
                 | otherwise = shows c
@@ -114,7 +114,7 @@ instance Read R2 where
   readsPrec d r = readParen (d > app_prec)
                   (\rr -> [ (R2 x y, r''')
                           | (x,r')    <- readsPrec (amp_prec + 1) rr
-                          , ("@@",r'') <- lex r'
+                          , ("^&",r'') <- lex r'
                           , (y,r''')  <- readsPrec (amp_prec + 1) r''
                           ])
                   r
@@ -158,17 +158,17 @@ instance Coordinates R2 where
   type PrevDim R2        = Double
   type Decomposition R2  = Double :& Double
 
-  x @@ y           = R2 x y
+  x ^& y           = R2 x y
   coords (R2 x y) = x :& y
 
 -- | Points in R^2.  This type is intentionally abstract.
 --
---   * To construct a point, use 'p2', or '@@' (see
+--   * To construct a point, use 'p2', or '^&' (see
 --     "Diagrams.Coordinates"):
 --
 -- @
 -- p2 (3,4)  :: P2
--- 3 \@\@ 4    :: P2
+-- 3 ^& 4    :: P2
 -- @
 --
 --   * To construct a point from a vector @v@, use @'origin' 'Data.AffineSpace..+^' v@.
@@ -186,7 +186,7 @@ instance Coordinates R2 where
 -- @
 type P2 = Point R2
 
--- | Construct a 2D point from a pair of coordinates.  See also '@@'.
+-- | Construct a 2D point from a pair of coordinates.  See also '^&'.
 p2 :: (Double, Double) -> P2
 p2 = P . r2
 

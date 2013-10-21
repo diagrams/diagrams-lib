@@ -96,7 +96,7 @@ instance Coordinates R3 where
   type PrevDim R3          = R2
   type Decomposition R3    = Double :& Double :& Double
 
-  (coords -> x :& y) @@ z   = r3 (x,y,z)
+  (coords -> x :& y) ^& z   = r3 (x,y,z)
   coords (unR3 -> (x,y,z)) = x :& y :& z
 
 -- | Points in R^3.

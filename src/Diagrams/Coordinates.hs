@@ -27,8 +27,8 @@ infixl 7 :&
 
 
 -- | Types which are instances of the @Coordinates@ class can be
---   constructed using '@@' (for example, a three-dimensional vector
---   could be constructed by @1 \@\@ 6 \@\@ 3@), and deconstructed using
+--   constructed using '^&' (for example, a three-dimensional vector
+--   could be constructed by @1 ^& 6 ^& 3@), and deconstructed using
 --   'coords'.  A common pattern is to use 'coords' in conjunction
 --   with the @ViewPatterns@ extension, like so:
 --
@@ -50,25 +50,25 @@ class Coordinates c where
 
   -- | Construct a value of type @c@ by providing something of one
   --   less dimension (which is perhaps itself recursively constructed
-  --   using @(\@\@)@) and a final coordinate.  For example,
+  --   using @(^&)@) and a final coordinate.  For example,
   --
   -- @
-  -- 2 @@ 3 :: P2
-  -- 3 @@ 5 @@ 6 :: R3
+  -- 2 ^& 3 :: P2
+  -- 3 ^& 5 ^& 6 :: R3
   -- @
   --
-  --   Note that @\@\@@ is left-associative.
-  (@@)    :: PrevDim c -> FinalCoord c -> c
+  --   Note that @\@\^& is left-associative.
+  (^&)    :: PrevDim c -> FinalCoord c -> c
 
-  -- | Prefix synonym for @\@\@@. pr stands for pair of @PrevDim@, @FinalCoord@
+  -- | Prefix synonym for @\@\^&. pr stands for pair of @PrevDim@, @FinalCoord@
   pr      :: PrevDim c -> FinalCoord c -> c
-  pr = (@@)
+  pr = (^&)
 
   -- | Decompose a value of type @c@ into its constituent coordinates,
   --   stored in a nested @(:&)@ structure.
   coords :: c -> Decomposition c
 
-infixl 7 @@
+infixl 7 ^&
 
 -- Some standard instances for plain old tuples
 
@@ -77,7 +77,7 @@ instance Coordinates (a,b) where
   type PrevDim (a,b)       = a
   type Decomposition (a,b) = a :& b
 
-  x @@ y                    = (x,y)
+  x ^& y                    = (x,y)
   coords (x,y)             = x :& y
 
 instance Coordinates (a,b,c) where
@@ -85,7 +85,7 @@ instance Coordinates (a,b,c) where
   type PrevDim (a,b,c)       = (a,b)
   type Decomposition (a,b,c) = Decomposition (a,b) :& c
 
-  (x,y) @@ z                  = (x,y,z)
+  (x,y) ^& z                  = (x,y,z)
   coords (x,y,z)             = coords (x,y) :& z
 
 instance Coordinates (a,b,c,d) where
@@ -93,7 +93,7 @@ instance Coordinates (a,b,c,d) where
   type PrevDim (a,b,c,d)       = (a,b,c)
   type Decomposition (a,b,c,d) = Decomposition (a,b,c) :& d
 
-  (w,x,y)  @@ z                  = (w,x,y,z)
+  (w,x,y)  ^& z                  = (w,x,y,z)
   coords (w,x,y,z)             = coords (w,x,y) :& z
 
 instance Coordinates v => Coordinates (Point v) where
@@ -101,5 +101,5 @@ instance Coordinates v => Coordinates (Point v) where
   type PrevDim (Point v)       = PrevDim v
   type Decomposition (Point v) = Decomposition v
 
-  x @@ y        = P (x @@ y)
+  x ^& y        = P (x ^& y)
   coords (P v) = coords v

@@ -71,7 +71,7 @@ rotation ang = fromLinear r (linv r)
   where
     r            = rot theta <-> rot (-theta)
     Rad theta    = convertAngle ang
-    rot th (coords -> x :& y) = (cos th * x - sin th * y) @@ (sin th * x + cos th * y)
+    rot th (coords -> x :& y) = (cos th * x - sin th * y) ^& (sin th * x + cos th * y)
 
 -- | Rotate about the local origin by the given angle. Positive angles
 --   correspond to counterclockwise rotation, negative to
@@ -160,7 +160,7 @@ scaleUToY h d = scale (h / height d) d
 -- | Construct a transformation which translates by the given distance
 --   in the x (horizontal) direction.
 translationX :: Double -> T2
-translationX x = translation (x @@ 0)
+translationX x = translation (x ^& 0)
 
 -- | Translate a diagram by the given distance in the x (horizontal)
 --   direction.
@@ -170,7 +170,7 @@ translateX = transform . translationX
 -- | Construct a transformation which translates by the given distance
 --   in the y (vertical) direction.
 translationY :: Double -> T2
-translationY y = translation (0 @@ y)
+translationY y = translation (0 ^& y)
 
 -- | Translate a diagram by the given distance in the y (vertical)
 --   direction.
