@@ -33,12 +33,12 @@ module Diagrams.Combinators
        , position, decorateTrail, decorateLocatedTrail, decoratePath
        , cat, cat'
        , CatOpts(..), catMethod, sep
-       , catOptsvProxy__  -- may not want to export?
        , CatMethod(..)
 
        ) where
 
-import           Control.Lens       hiding ((#), (<.>), moveTo, at, beside)
+import           Control.Lens       ( (&), (%~), (.~), Lens', makeLensesWith
+                                    , lensRules, generateSignatures)
 
 import           Data.AdditiveGroup
 import           Data.AffineSpace   ((.+^))
