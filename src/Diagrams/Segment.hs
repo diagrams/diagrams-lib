@@ -54,16 +54,16 @@ module Diagrams.Segment
          -- * Segment measures
          -- $segmeas
 
-       , SegCount(..) --, segCount
+       , SegCount(..)
        , ArcLength(..)
        , getArcLength, getArcLengthCached, getArcLengthFun, getArcLengthBounded
-       , TotalOffset(..), totalOffset
+       , TotalOffset(..)
        , OffsetEnvelope(..), oeOffset, oeEnvelope
        , SegMeasure
 
        ) where
 
-import           Control.Lens (makeLenses, view, makeWrapped)
+import           Control.Lens (makeLenses, view, makeWrapped, op)
 import           Control.Applicative (liftA2)
 import           Data.AffineSpace
 import           Data.FingerTree
@@ -396,6 +396,7 @@ makeWrapped ''SegCount
 --   computed to within a tolerance of @10e-6@.  The second component is
 --   a generic arc length function taking the tolerance as an
 --   argument.
+
 newtype ArcLength v = ArcLength
   { _getArcLength :: (Sum (Interval (Scalar v)), Scalar v -> Sum (Interval (Scalar v))) }
 
@@ -427,9 +428,9 @@ deriving instance (Num (Scalar v), Ord (Scalar v)) => Monoid    (ArcLength v)
 
 -- | A type to represent the total cumulative offset of a chain of
 --   segments.
-newtype TotalOffset v = TotalOffset { _totalOffset :: v }
+newtype TotalOffset v = TotalOffset v
 
-makeLenses ''TotalOffset
+makeWrapped ''TotalOffset
 
 instance AdditiveGroup v => Semigroup (TotalOffset v) where
   TotalOffset v1 <> TotalOffset v2 = TotalOffset (v1 ^+^ v2)
@@ -453,7 +454,7 @@ instance (InnerSpace v, OrderedField (Scalar v)) => Semigroup (OffsetEnvelope v)
   (OffsetEnvelope o1 e1) <> (OffsetEnvelope o2 e2)
     = OffsetEnvelope
         (o1 <> o2)
-        (e1 <> moveOriginBy (negateV . view totalOffset $ o1) e2)
+        (e1 <> moveOriginBy (negateV . op TotalOffset $ o1) e2)
 
 -- | @SegMeasure@ collects up all the measurements over a chain of
 --   segments.

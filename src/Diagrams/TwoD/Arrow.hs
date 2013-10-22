@@ -168,7 +168,7 @@ tailGap :: Lens' ArrowOpts Double
 -- | Style to apply to the head. @headStyle@ is modified by using the lens
 --   combinator @%~@ to change the current style. For example, to change
 --   an opaque black arrowhead to translucent orange:
---   @(with & fc orange .  opacity 0.75)@.
+--   @(with & headStyle %~ fc orange .  opacity 0.75)@.
 headStyle :: Lens' ArrowOpts (Style R2)
 
 -- | Style to apply to the tail. See `headStyle`.

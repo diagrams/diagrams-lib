@@ -94,7 +94,7 @@ module Diagrams.Trail
 
          -- ** Segment trees
 
-       , SegTree(..), segTree, trailMeasure, numSegs, offset
+       , SegTree(..), trailMeasure, numSegs, offset
 
          -- ** Extracting segments
 
@@ -103,7 +103,7 @@ module Diagrams.Trail
        ) where
 
 import           Control.Arrow       ((***))
-import           Control.Lens        (AnIso', iso, makeLenses, view, op)
+import           Control.Lens        (AnIso', iso, view, op, makeWrapped)
 import           Data.AffineSpace
 import           Data.FingerTree     (FingerTree, ViewL (..), ViewR (..), (<|),
                                       (|>))
@@ -147,12 +147,11 @@ instance ( HasLinearMap (V a), InnerSpace (V a), OrderedField (Scalar (V a))
 --   also easily slice and dice them according to the measures
 --   (/e.g./, split off the smallest number of segments from the
 --   beginning which have a combined arc length of at least 5).
-newtype SegTree v = SegTree
-                  { _segTree :: FingerTree (SegMeasure v) (Segment Closed v) }
+
+newtype SegTree v = SegTree (FingerTree (SegMeasure v) (Segment Closed v))
   deriving (Eq, Ord, Show)
 
-makeLenses ''SegTree
-
+makeWrapped ''SegTree
 
 type instance V (SegTree v) = v
 
@@ -163,7 +162,7 @@ deriving instance (OrderedField (Scalar v), InnerSpace v)
 
 instance (HasLinearMap v, InnerSpace v, OrderedField (Scalar v))
   => Transformable (SegTree v) where
-  transform t = SegTree . transform t . view segTree
+  transform t = SegTree . transform t . op SegTree
 
 type instance Codomain (SegTree v) = v
 
@@ -273,7 +272,7 @@ offset :: ( Floating (Scalar v), Ord (Scalar v), InnerSpace v,
             FT.Measured (SegMeasure v) t
           )
        => t -> v
-offset = trailMeasure zeroV (view (oeOffset . totalOffset))
+offset = trailMeasure zeroV (op TotalOffset . view oeOffset)
 
 ------------------------------------------------------------
 --  Trails  ------------------------------------------------
@@ -868,7 +867,7 @@ cutLoop (Loop (SegTree t) c) =
     (_   , Cubic c1 c2 OffsetOpen) -> Line (SegTree (t |> Cubic c1 c2 off))
   where
     offV :: v
-    offV = negateV . trailMeasure zeroV (view (oeOffset . totalOffset)) $ t
+    offV = negateV . trailMeasure zeroV (op TotalOffset .view oeOffset) $ t
     off = OffsetClosed offV
 
 -- | @cutTrail@ is a variant of 'cutLoop' for 'Trail'; it is the is
@@ -951,7 +950,7 @@ loopOffsets = lineOffsets . cutLoop
 --   there is no corresponding @loopOffset@ function because by
 --   definition it would be constantly zero.)
 lineOffset :: (InnerSpace v, OrderedField (Scalar v)) => Trail' Line v -> v
-lineOffset (Line t) = trailMeasure zeroV (view (oeOffset . totalOffset)) t
+lineOffset (Line t) = trailMeasure zeroV (op TotalOffset . view oeOffset) t
 
 -- | Extract the vertices of a concretely located trail.  Note that
 --   for loops, the starting vertex will /not/ be repeated at the end.
