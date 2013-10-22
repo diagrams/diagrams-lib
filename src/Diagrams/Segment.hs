@@ -230,7 +230,7 @@ segOffset (Cubic _ _ (OffsetClosed v)) = v
 instance (InnerSpace v, OrderedField (Scalar v)) => Enveloped (Segment Closed v) where
 
   getEnvelope (s@(Linear {})) = mkEnvelope $ \v ->
-    maximum . map (\t -> ((s `atParam` t) <.> v) / magnitudeSq v) $ [0,1]
+    maximum (map (\t -> ((s `atParam` t) <.> v)) [0,1]) / magnitudeSq v
 
   getEnvelope (s@(Cubic c1 c2 (OffsetClosed x2))) = mkEnvelope $ \v ->
     maximum .
