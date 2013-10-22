@@ -15,7 +15,7 @@
 
 module Diagrams.TwoD.Transform.ScaleInv
     ( ScaleInv(..)
-    , unScaleInv, scaleInvDir, scaleInvLoc
+    , scaleInvObj, scaleInvDir, scaleInvLoc
     , scaleInv, scaleInvPrim )
     where
 
@@ -61,7 +61,7 @@ import           Diagrams.TwoD.Vector
 
 data ScaleInv t =
   ScaleInv
-  { _unScaleInv  :: t
+  { _scaleInvObj  :: t
   , _scaleInvDir :: R2
   , _scaleInvLoc :: P2
   }
@@ -167,7 +167,7 @@ instance (V t ~ R2, Transformable t) => IsPrim (ScaleInv t) where
       t''                       = transform t1 t'
 
 instance (Renderable t b, V t ~ R2) => Renderable (ScaleInv t) b where
-  render b = render b . view unScaleInv
+  render b = render b . view scaleInvObj
 
 -- | Create a diagram from a single scale-invariant primitive.  The
 --   vector argument specifies the direction in which the primitive is

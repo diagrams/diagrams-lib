@@ -20,8 +20,6 @@ module Diagrams.TwoD.Arrow
          -- ** Example 1
 -- | <<diagrams/src_Diagrams_TwoD_Arrow_example1.svg#diagram=example1&width=500>>
 --
---   > import Control.Lens ((&), (.~))
---   >
 --   > -- Connecting two diagrams at their origins.
 --   >
 --   > sq = square 2 # showOrigin # lc darkgray # lw 0.07
@@ -167,31 +165,30 @@ headGap :: Lens' ArrowOpts Double
 -- | Distance to leave between the starting point and the tail.
 tailGap :: Lens' ArrowOpts Double
 
--- | Style to apply to the head.
+-- | Style to apply to the head. @headStyle@ is modified by using the lens
+--   combinator @%~@ to change the current style. For example, to change
+--   an opaque black arrowhead to translucent orange:
+--   @(with & fc orange .  opacity 0.75)@.
 headStyle :: Lens' ArrowOpts (Style R2)
 
--- | Style to apply to the tail.
+-- | Style to apply to the tail. See `headStyle`.
 tailStyle :: Lens' ArrowOpts (Style R2)
 
--- | Style to apply to the shaft.
+-- | Style to apply to the shaft. See `headStyle`.
 shaftStyle :: Lens' ArrowOpts (Style R2)
 
-
--- | Append the default shaft style to the left of the default shaftStyle
---   The semigroup stucture of the lw attribute will insure it is only applied
---   if it has not been overidded in opts.
+-- Set the default shaft style of an `ArrowOpts` record by applying the
+-- default style after all other styles have been applied.
+-- The semigroup stucture of the lw attribute will insure that the default
+-- is only used if it has not been set in @opts@.
 shaftSty :: ArrowOpts -> Style R2
 shaftSty opts = lw defShaftWidth (opts^.shaftStyle)
 
--- | Append the default head style to the left of the default headStyle
---   The semigroup stucture of the fc attribute will insure it is only applied
---   if it has not been overidded in opts.
+-- Set the default head style. See `shaftSty`.
 headSty :: ArrowOpts -> Style R2
 headSty opts = fc black (opts^.headStyle)
 
--- | Append the default tail style to the left of the default tailStyle
---   The semigroup stucture of the fc attribute will insure it is only applied
---   if it has not been overidded in opts.
+-- Set the default tail style. See `shaftSty`.
 tailSty :: ArrowOpts -> Style R2
 tailSty opts = fc black (opts^.tailStyle)
 

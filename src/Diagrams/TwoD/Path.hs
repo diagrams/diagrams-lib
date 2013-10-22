@@ -41,7 +41,7 @@ module Diagrams.TwoD.Path
 
          -- * Clipping
 
-       , Clip(..), getClip, clipBy
+       , Clip(..), clip, clipBy
        ) where
 
 import           Control.Applicative   (liftA2)
@@ -338,7 +338,7 @@ trailCrossings p@(unp2 -> (x,y)) tr
 --   concatenation, so applying multiple clipping paths is sensible.
 --   The clipping region is the intersection of all the applied
 --   clipping paths.
-newtype Clip = Clip { _getClip :: [Path R2] }
+newtype Clip = Clip { _clip :: [Path R2] }
   deriving (Typeable, Semigroup)
 
 makeLenses ''Clip
