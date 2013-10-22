@@ -109,7 +109,8 @@ animEnvelope' r a = withEnvelope (simulate r a) <$> a
 --
 --   Uses 30 samples per time unit by default; to adjust this number
 --   see 'animRect''.
-animRect :: (TrailLike t, Enveloped t, Transformable t, Monoid t, V t ~ R2)
+animRect :: (TrailLike t, Enveloped t, Transformable t, Monoid t, V t ~ R2
+            , Monoid' m)
          => QAnimation b R2 m -> t
 animRect = animRect' 30
 
@@ -117,7 +118,8 @@ animRect = animRect' 30
 --   parameter is the number of samples per time unit to use.  Lower
 --   rates will be faster but less accurate; higher rates are more
 --   accurate but slower.
-animRect' :: (TrailLike t, Enveloped t, Transformable t, Monoid t, V t ~ R2)
+animRect' :: (TrailLike t, Enveloped t, Transformable t, Monoid t, V t ~ R2
+             , Monoid' m)
           => Rational -> QAnimation b R2 m -> t
 animRect' r anim
     | null results = rect 1 1

@@ -78,7 +78,7 @@ showOrigin' oo d = o <> d
 -- Labeling named points
 ------------------------------------------------------------
 
-showLabels :: (Renderable Text b, Backend b R2)
+showLabels :: (Renderable Text b, Backend b R2, Semigroup m)
            => QDiagram b R2 m -> QDiagram b R2 Any
 showLabels d =
              ( mconcat
@@ -90,4 +90,4 @@ showLabels d =
              ) <>
              fmap (const (Any False)) d
   where
-    SubMap m = subMap d
+    SubMap m = d^.subMap
