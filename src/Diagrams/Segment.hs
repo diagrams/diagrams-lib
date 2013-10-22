@@ -54,7 +54,7 @@ module Diagrams.Segment
          -- * Segment measures
          -- $segmeas
 
-       , SegCount(..), segCount
+       , SegCount(..) --, segCount
        , ArcLength(..)
        , getArcLength, getArcLengthCached, getArcLengthFun, getArcLengthBounded
        , TotalOffset(..), totalOffset
@@ -63,7 +63,7 @@ module Diagrams.Segment
 
        ) where
 
-import           Control.Lens (makeLenses, view)
+import           Control.Lens (makeLenses, view, makeWrapped)
 import           Control.Applicative (liftA2)
 import           Data.AffineSpace
 import           Data.FingerTree
@@ -383,10 +383,13 @@ instance VectorSpace v => Parametric (FixedSegment v) where
 -- automatically track various monoidal \"measures\" on segments.
 
 -- | A type to track the count of segments in a 'Trail'.
-newtype SegCount = SegCount { _segCount :: Sum Int }
+newtype SegCount = SegCount (Sum Int)
   deriving (Semigroup, Monoid)
 
-makeLenses ''SegCount
+--newtype SegCount = SegCount { segCount :: Sum Int }
+--  deriving (Semigroup, Monoid)
+
+makeWrapped ''SegCount
 
 -- | A type to represent the total arc length of a chain of
 --   segments. The first component is a \"standard\" arc length,

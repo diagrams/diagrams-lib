@@ -103,7 +103,7 @@ module Diagrams.Trail
        ) where
 
 import           Control.Arrow       ((***))
-import           Control.Lens        (AnIso', iso, makeLenses, view)
+import           Control.Lens        (AnIso', iso, makeLenses, view, op)
 import           Data.AffineSpace
 import           Data.FingerTree     (FingerTree, ViewL (..), ViewR (..), (<|),
                                       (|>))
@@ -266,7 +266,7 @@ numSegs :: ( Floating (Scalar v), Num c, Ord (Scalar v), InnerSpace v,
              FT.Measured (SegMeasure v) a
            )
         => a -> c
-numSegs = fromIntegral . trailMeasure 0 (getSum . view segCount)
+numSegs = fromIntegral . trailMeasure 0 (getSum . op SegCount)
 
 -- | Compute the total offset of anything measured by 'SegMeasure'.
 offset :: ( Floating (Scalar v), Ord (Scalar v), InnerSpace v,
