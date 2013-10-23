@@ -63,8 +63,7 @@ module Diagrams.Segment
 
        ) where
 
-import           Control.Lens ( makeLenses, makeWrapped, Wrapped, wrapped
-                              , iso, op)
+import           Control.Lens (makeLenses, Wrapped(..), iso, op)
 import           Control.Applicative (liftA2)
 import           Data.AffineSpace
 import           Data.FingerTree
@@ -387,10 +386,8 @@ instance VectorSpace v => Parametric (FixedSegment v) where
 newtype SegCount = SegCount (Sum Int)
   deriving (Semigroup, Monoid)
 
---newtype SegCount = SegCount { segCount :: Sum Int }
---  deriving (Semigroup, Monoid)
-
-makeWrapped ''SegCount
+instance Wrapped (Sum Int) (Sum Int) SegCount SegCount
+  where wrapped = iso SegCount $ \(SegCount x) -> x
 
 -- | A type to represent the total arc length of a chain of
 --   segments. The first component is a \"standard\" arc length,
@@ -436,7 +433,8 @@ deriving instance (Num (Scalar v), Ord (Scalar v)) => Monoid    (ArcLength v)
 --   segments.
 newtype TotalOffset v = TotalOffset v
 
-makeWrapped ''TotalOffset
+instance Wrapped v v (TotalOffset v) (TotalOffset v)
+  where wrapped = iso TotalOffset $ \(TotalOffset x) -> x
 
 instance AdditiveGroup v => Semigroup (TotalOffset v) where
   TotalOffset v1 <> TotalOffset v2 = TotalOffset (v1 ^+^ v2)

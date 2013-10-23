@@ -103,7 +103,7 @@ module Diagrams.Trail
        ) where
 
 import           Control.Arrow       ((***))
-import           Control.Lens        (AnIso', iso, view, op, makeWrapped)
+import           Control.Lens        (AnIso', iso, view, op, Wrapped(..))
 import           Data.AffineSpace
 import           Data.FingerTree     (FingerTree, ViewL (..), ViewR (..), (<|),
                                       (|>))
@@ -151,7 +151,11 @@ instance ( HasLinearMap (V a), InnerSpace (V a), OrderedField (Scalar (V a))
 newtype SegTree v = SegTree (FingerTree (SegMeasure v) (Segment Closed v))
   deriving (Eq, Ord, Show)
 
-makeWrapped ''SegTree
+instance Wrapped (FingerTree (SegMeasure v) (Segment Closed v))
+                 (FingerTree (SegMeasure v) (Segment Closed v))
+                 (SegTree v)
+                 (SegTree v)
+  where wrapped = iso SegTree $ \(SegTree x) -> x
 
 type instance V (SegTree v) = v
 
