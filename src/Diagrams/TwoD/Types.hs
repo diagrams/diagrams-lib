@@ -38,6 +38,7 @@ import           Data.AffineSpace.Point
 import           Data.Basis
 import           Data.NumInstances.Tuple ()
 import           Data.VectorSpace
+import           Data.MemoTrie (HasTrie (..))
 
 import           Data.Typeable
 import           Control.Lens           (Iso', iso, _1, _2)
@@ -130,15 +131,24 @@ instance VectorSpace R2 where
   type Scalar R2 = Double
   s *^ R2 x y = R2 (s*x) (s*y)
 
+data R2Basis = XB | YB deriving (Eq, Ord, Enum)
+
+instance HasTrie R2Basis where
+    data R2Basis :->: x = R2Trie x x
+    trie f = R2Trie (f XB) (f YB)
+    untrie (R2Trie x _y) XB = x
+    untrie (R2Trie _x y) YB = y
+    enumerate (R2Trie x y)  = [(XB,x),(YB,y)]
+
 instance HasBasis R2 where
-  type Basis R2 = Either () () -- = Basis (Double, Double)
-  basisValue (Left () )          = R2 1 0
-  basisValue (Right ())          = R2 0 1
+  type Basis R2 = R2Basis
+  basisValue XB          = R2 1 0
+  basisValue YB          = R2 0 1
 
-  decompose (R2 x y)             = [(Left (), x), (Right (), y)]
+  decompose (R2 x y)             = [(XB, x), (YB, y)]
 
-  decompose' (R2 x _) (Left ())  = x
-  decompose' (R2 _ y) (Right ()) = y
+  decompose' (R2 x _) (XB)  = x
+  decompose' (R2 _ y) (YB) = y
 
 instance InnerSpace R2 where
   (R2 x1 y1) <.> (R2 x2 y2) = x1*x2 + y1*y2

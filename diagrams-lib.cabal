@@ -89,6 +89,7 @@ Library
                        active >= 0.1 && < 0.2,
                        vector-space >= 0.7.7 && < 0.9,
                        vector-space-points >= 0.1.2 && < 0.2,
+                       MemoTrie >= 0.6 && < 0.7,
                        NumInstances >= 1.2 && < 1.4,
                        colour >= 2.3.2 && < 2.4,
                        data-default-class < 0.1,

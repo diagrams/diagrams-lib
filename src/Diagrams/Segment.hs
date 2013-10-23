@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns               #-}
 {-# LANGUAGE DeriveFunctor              #-}
 {-# LANGUAGE EmptyDataDecls             #-}
 {-# LANGUAGE FlexibleContexts           #-}
@@ -100,7 +101,7 @@ data Closed
 --   a fixed offset from its start.
 data Offset c v where
   OffsetOpen   :: Offset Open v
-  OffsetClosed :: v -> Offset Closed v
+  OffsetClosed :: !v -> Offset Closed v
 
 deriving instance Show v => Show (Offset c v)
 deriving instance Eq   v => Eq   (Offset c v)
@@ -127,10 +128,10 @@ instance HasLinearMap v => Transformable (Offset c v) where
 --   however, affected by other transformations such as rotations and
 --   scales.
 data Segment c v
-    = Linear (Offset c v)
+    = Linear !(Offset c v)
       -- ^ A linear segment with given offset.
 
-    | Cubic v v (Offset c v)
+    | Cubic !v !v !(Offset c v)
       -- ^ A cubic Bézier segment specified by
       --   three offsets from the starting
       --   point to the first control point,
@@ -229,7 +230,7 @@ segOffset (Cubic _ _ (OffsetClosed v)) = v
 instance (InnerSpace v, OrderedField (Scalar v)) => Enveloped (Segment Closed v) where
 
   getEnvelope (s@(Linear {})) = mkEnvelope $ \v ->
-    maximum . map (\t -> ((s `atParam` t) <.> v) / magnitudeSq v) $ [0,1]
+    maximum (map (\t -> ((s `atParam` t) <.> v)) [0,1]) / magnitudeSq v
 
   getEnvelope (s@(Cubic c1 c2 (OffsetClosed x2))) = mkEnvelope $ \v ->
     maximum .
@@ -430,15 +431,18 @@ instance AdditiveGroup v => Monoid (TotalOffset v) where
 --   combining the envelopes of two consecutive chains needs to take
 --   the offset of the the offset of the first into account.
 data OffsetEnvelope v = OffsetEnvelope
-  { oeOffset   :: TotalOffset v
+  { oeOffset   :: !(TotalOffset v)
   , oeEnvelope :: Envelope v
   }
 
 instance (InnerSpace v, OrderedField (Scalar v)) => Semigroup (OffsetEnvelope v) where
   (OffsetEnvelope o1 e1) <> (OffsetEnvelope o2 e2)
-    = OffsetEnvelope
-        (o1 <> o2)
-        (e1 <> moveOriginBy (negateV . getTotalOffset $ o1) e2)
+    = let !negOff = negateV . getTotalOffset $ o1
+          e2Off = moveOriginBy negOff e2
+          !() = maybe () (\f -> f `seq` ()) $ appEnvelope e2Off
+      in OffsetEnvelope
+          (o1 <> o2)
+          (e1 <> e2Off)
 
 -- | @SegMeasure@ collects up all the measurements over a chain of
 --   segments.
