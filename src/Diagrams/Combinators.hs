@@ -38,8 +38,8 @@ module Diagrams.Combinators
        ) where
 
 import           Control.Lens       ( (&), (%~), (.~), Lens', makeLensesWith
-                                    , lensRules, generateSignatures, unwrapped)
 
+                                    , lensRules, generateSignatures, unwrapping)
 import           Data.AdditiveGroup
 import           Data.AffineSpace   ((.+^))
 import           Data.Default.Class
@@ -156,7 +156,7 @@ deformEnvelope
   :: ( Ord (Scalar v), Num (Scalar v), AdditiveGroup (Scalar v)
      , Floating (Scalar v), HasLinearMap v, InnerSpace v, Monoid' m )
   => (Scalar v) -> v -> QDiagram b v m -> QDiagram b v m
-deformEnvelope s v d = setEnvelope (getEnvelope d & unwrapped %~ deform) d
+deformEnvelope s v d = setEnvelope (getEnvelope d & unwrapping Envelope %~ deform) d
   where
     deform = Option . fmap deform' . getOption
     deform' env v'
