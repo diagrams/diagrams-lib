@@ -112,6 +112,13 @@ instance ( HasLinearMap v, InnerSpace v, OrderedField (Scalar v)
          ) => Alignable (QDiagram b v m) where
   defaultBoundary = envelopeBoundary
 
+-- instance (InnerSpace (V b), Ord (Scalar (V b)), Alignable b)
+--        => Alignable (a -> b) where
+--   defaultBoundary = combineBoundaries . defaultBoundary
+
+instance (HasOrigin a, Alignable a) => Alignable (b -> a) where
+  alignBy v d f b = alignBy v d (f b)
+
 -- | @align v@ aligns an enveloped object along the edge in the
 --   direction of @v@.  That is, it moves the local origin in the
 --   direction of @v@ until it is on the edge of the envelope.  (Note
