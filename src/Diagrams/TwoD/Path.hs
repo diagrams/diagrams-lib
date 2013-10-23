@@ -41,11 +41,13 @@ module Diagrams.TwoD.Path
 
          -- * Clipping
 
-       , Clip(..), clip, clipBy
+       , Clip(..), clipBy
        ) where
 
 import           Control.Applicative   (liftA2)
-import           Control.Lens          hiding ((&), transform)
+import           Control.Lens          ( makeWrapped, makeLensesWith, (.~), (^.)
+                                       , generateSignatures, lensRules, op
+                                       , Lens, Lens', unwrapped)
 import qualified Data.Foldable         as F
 import           Data.Semigroup
 import           Data.Typeable
@@ -83,7 +85,7 @@ instance Traced (Trail R2) where
     . lineSegments
 
 instance Traced (Path R2) where
-  getTrace = F.foldMap getTrace . view pathTrails
+  getTrace = F.foldMap getTrace . op Path
 
 ------------------------------------------------------------
 --  Constructing path-based diagrams  ----------------------
@@ -169,8 +171,8 @@ instance Renderable (Path R2) b => TrailLike (QDiagram b R2 Any) where
 --   ... }@ syntax may be used.
 stroke' :: (Renderable (Path R2) b, IsName a) => StrokeOpts a -> Path R2 -> Diagram b R2
 stroke' opts path
-  | null (pLines ^. pathTrails) =           mkP pLoops
-  | null (pLoops ^. pathTrails) = mkP pLines
+  | null (pLines ^. unwrapped) =           mkP pLoops
+  | null (pLoops ^. unwrapped) = mkP pLines
   | otherwise                   = mkP pLines <> mkP pLoops
   where
     (pLines,pLoops) = partitionPath (isLine . unLoc) path
@@ -288,7 +290,7 @@ isInsideEvenOdd p = odd . crossings p
 -- | Compute the sum of /signed/ crossings of a path as we travel in the
 --   positive x direction from a given point.
 crossings :: P2 -> Path R2 -> Int
-crossings p = F.sum . map (trailCrossings p) . view pathTrails
+crossings p = F.sum . map (trailCrossings p) . op Path
 
 -- | Compute the sum of signed crossings of a trail starting from the
 --   given point in the positive x direction.
@@ -338,10 +340,10 @@ trailCrossings p@(unp2 -> (x,y)) tr
 --   concatenation, so applying multiple clipping paths is sensible.
 --   The clipping region is the intersection of all the applied
 --   clipping paths.
-newtype Clip = Clip { _clip :: [Path R2] }
+newtype Clip = Clip [Path R2]
   deriving (Typeable, Semigroup)
 
-makeLenses ''Clip
+makeWrapped ''Clip
 
 instance AttributeClass Clip
 

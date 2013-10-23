@@ -30,9 +30,9 @@ module Diagrams.ThreeD.Types
          -- | These are defined in "Diagrams.TwoD.Types" but
          --   reëxported here for convenience.
        , Angle(..)
-       , Turn(Turn), getTurn, asTurn
-       , Rad(Rad), getRad, asRad
-       , Deg(Deg), getDeg, asDeg
+       , Turn(Turn), asTurn
+       , Rad(Rad), asRad
+       , Deg(Deg), asDeg
 
        , fullTurn, convertAngle, angleRatio
 
@@ -43,7 +43,7 @@ module Diagrams.ThreeD.Types
        ) where
 
 import           Control.Applicative
-import           Control.Lens           (Iso', iso, over)
+import           Control.Lens           (Iso', iso, over, Wrapped, wrapped)
 
 import           Diagrams.Core
 import           Diagrams.TwoD.Types
@@ -75,6 +75,11 @@ mkR3 x y z = r3 (x, y, z)
 -- | Convert a 3D vector back into a triple of components.
 unr3 :: R3 -> (Double, Double, Double)
 unr3 = unR3
+
+-- | Lens wrapped isomorphisms for R3.
+instance Wrapped (Double, Double, Double) (Double, Double, Double) R3 R3 where
+  wrapped = iso r3 unr3
+  {-# INLINE wrapped #-}
 
 type instance V R3 = R3
 

@@ -59,7 +59,7 @@ import           Diagrams.TwoD.Types
 
 import           Diagrams.Util
 
-import           Control.Lens            (makeLenses, view, (.~), (^.), (&))
+import           Control.Lens            (makeLenses, op, (.~), (^.), (&))
 import           Data.Default.Class
 import           Data.Semigroup
 
@@ -67,8 +67,6 @@ import           Data.Semigroup
 --
 --   <<diagrams/src_Diagrams_TwoD_Shapes_hruleEx.svg#diagram=hruleEx&width=300>>
 --
---   > import Control.Lens ((&), (.~))
---   >
 --   > hruleEx = vcat' (with & sep .~ 0.2) (map hrule [1..5])
 --   >         # centerXY # pad 1.1
 hrule :: (TrailLike t, V t ~ R2) => Double -> t
@@ -78,8 +76,6 @@ hrule d = trailLike $ trailFromSegments [straight $ r2 (d, 0)] `at` (p2 (-d/2,0)
 --
 --   <<diagrams/src_Diagrams_TwoD_Shapes_vruleEx.svg#diagram=vruleEx&height=100>>
 --
---   > import Control.Lens ((&), (.~))
---   >
 --   > vruleEx = hcat' (with & sep .~ 0.2) (map vrule [1, 1.2 .. 2])
 --   >         # centerXY # pad 1.1
 vrule :: (TrailLike t, V t ~ R2) => Double -> t
@@ -102,8 +98,6 @@ unitSquare = polygon (def & polyType   .~ PolyRegular 4 (sqrt 2 / 2)
 square :: (TrailLike t, Transformable t, V t ~ R2) => Double -> t
 square d = rect d d
 
--- > import Control.Lens ((&), (.~))
--- >
 -- > squareEx = hcat' (with & sep .~ 0.5) [square 1, square 2, square 3]
 -- >          # centerXY # pad 1.1 # lw 0.03
 
@@ -112,7 +106,7 @@ square d = rect d d
 --
 --   <<diagrams/src_Diagrams_TwoD_Shapes_rectEx.svg#diagram=rectEx&width=150>>
 rect :: (TrailLike t, Transformable t, V t ~ R2) => Double -> Double -> t
-rect w h = trailLike . head . view pathTrails $ unitSquare # scaleX w # scaleY h
+rect w h = trailLike . head . op Path $ unitSquare # scaleX w # scaleY h
 
 -- > rectEx = rect 1 0.7 # pad 1.1
 
@@ -262,8 +256,6 @@ instance Default RoundedRectOpts where
 --
 --   <<diagrams/src_Diagrams_TwoD_Shapes_roundedRectEx.svg#diagram=roundedRectEx&width=400>>
 --
---   > import Control.Lens ((&), (.~))
---   >
 --   > roundedRectEx = pad 1.1 . centerXY $ hcat' (with & sep .~ 0.2)
 --   >   [ roundedRect  0.5 0.4 0.1
 --   >   , roundedRect  0.5 0.4 (-0.1)

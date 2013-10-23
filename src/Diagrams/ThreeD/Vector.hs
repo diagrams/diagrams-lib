@@ -20,7 +20,7 @@ module Diagrams.ThreeD.Vector
          direction, fromDirection, angleBetween
        ) where
 
-import Control.Lens (view)
+import Control.Lens (op)
 import Data.VectorSpace
 import Data.Cross
 
@@ -68,8 +68,8 @@ direction v
 -- | @fromDirection d@ is the unit vector in the direction @d@.
 fromDirection :: Direction d => d -> R3
 fromDirection (toSpherical -> (Spherical θ' φ')) = r3 (x,y,z) where
-  θ = view getRad $ θ'
-  φ = view getRad $ φ'
+  θ = op Rad $ θ'
+  φ = op Rad $ φ'
   x = cos θ * cos φ
   y = sin θ * cos φ
   z = sin φ

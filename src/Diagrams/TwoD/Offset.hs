@@ -198,7 +198,6 @@ offsetSegment epsilon r s@(Cubic a b (OffsetClosed c)) = t `at` origin .+^ va
 
 
 -- > import Diagrams.TwoD.Offset
--- > import Diagrams.Coordinates
 -- >
 -- > showExample :: Segment Closed R2 -> Diagram SVG R2
 -- > showExample s = pad 1.1 . centerXY $ d # lc blue # lw 0.1 <> d' # lw 0.1
@@ -211,10 +210,10 @@ offsetSegment epsilon r s@(Cubic a b (OffsetClosed c)) = t `at` origin .+^ va
 -- >
 -- > cubicOffsetExample :: Diagram SVG R2
 -- > cubicOffsetExample = hcat . map showExample $
--- >         [ bezier3 (10 &  0) (  5  & 18) (10 & 20)
--- >         , bezier3 ( 0 & 20) ( 10  & 10) ( 5 & 10)
--- >         , bezier3 (10 & 20) (  0  & 10) (10 &  0)
--- >         , bezier3 (10 & 20) ((-5) & 10) (10 &  0)
+-- >         [ bezier3 (10 ^&  0) (  5  ^& 18) (10 ^& 20)
+-- >         , bezier3 ( 0 ^& 20) ( 10  ^& 10) ( 5 ^& 10)
+-- >         , bezier3 (10 ^& 20) (  0  ^& 10) (10 ^&  0)
+-- >         , bezier3 (10 ^& 20) ((-5) ^& 10) (10 ^&  0)
 -- >         ]
 
 -- Similar to (=<<).  This is when we want to map a function across something
@@ -274,7 +273,7 @@ offsetTrail = offsetTrail' def
 offsetPath' :: OffsetOpts -> Double -> Path R2 -> Path R2
 offsetPath' opts r = mconcat
                    . map (bindLoc (trailLike . offsetTrail' opts r) . (`at` origin))
-                   . view pathTrails
+                   . op Path
 
 -- | Offset a 'Path' with the default options and given radius.  See 'offsetPath''.
 offsetPath :: Double -> Path R2 -> Path R2
@@ -285,7 +284,6 @@ offsetPath = offsetPath' def
 --
 -- > import Diagrams.TwoD.Offset
 -- > import Data.Default.Class
--- > import Control.Lens ((&), (.~), (%~))
 -- >
 -- > corner :: Located (Trail R2)
 -- > corner = fromVertices (map p2 [(0, 0), (10, 0), (5, 6)]) `at` origin
@@ -373,7 +371,7 @@ expandTrail = expandTrail' def
 expandPath' :: ExpandOpts -> Double -> Path R2 -> Path R2
 expandPath' opts r = mconcat
                    . map (bindLoc (expandTrail' opts r) . (`at` origin))
-                   . view pathTrails
+                   . op Path
 
 -- | Expand a 'Path' with the given radius and default options.  See 'expandPath''.
 expandPath :: Double -> Path R2 -> Path R2
@@ -381,7 +379,6 @@ expandPath = expandPath' def
 
 -- > import Diagrams.TwoD.Offset
 -- > import Data.Default.Class
--- > import Control.Lens ((&), (.~), (%~))
 -- >
 -- > expandTrailExample :: Diagram SVG R2
 -- > expandTrailExample = pad 1.1 . centerXY . hcat' (def & sep .~ 1)
