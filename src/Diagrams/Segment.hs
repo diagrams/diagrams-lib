@@ -56,14 +56,15 @@ module Diagrams.Segment
 
        , SegCount(..)
        , ArcLength(..)
-       , getArcLength, getArcLengthCached, getArcLengthFun, getArcLengthBounded
+       , getArcLengthCached, getArcLengthFun, getArcLengthBounded
        , TotalOffset(..)
        , OffsetEnvelope(..), oeOffset, oeEnvelope
        , SegMeasure
 
        ) where
 
-import           Control.Lens (makeLenses, view, makeWrapped, op)
+import           Control.Lens ( makeLenses, makeWrapped, Wrapped, wrapped
+                              , iso, op)
 import           Control.Applicative (liftA2)
 import           Data.AffineSpace
 import           Data.FingerTree
@@ -397,21 +398,26 @@ makeWrapped ''SegCount
 --   a generic arc length function taking the tolerance as an
 --   argument.
 
-newtype ArcLength v = ArcLength
-  { _getArcLength :: (Sum (Interval (Scalar v)), Scalar v -> Sum (Interval (Scalar v))) }
+newtype ArcLength v
+  = ArcLength (Sum (Interval (Scalar v)), Scalar v -> Sum (Interval (Scalar v)))
 
-makeLenses ''ArcLength
+instance (Scalar v ~ u, Scalar v' ~ u', u ~ u') => Wrapped
+    (Sum (Interval u), u  -> Sum (Interval u ))
+    (Sum (Interval u'), u' -> Sum (Interval u'))
+    (ArcLength v)
+    (ArcLength v')
+  where wrapped = iso ArcLength $ \(ArcLength x) -> x
 
 -- | Project out the cached arc length, stored together with error
 --   bounds.
 getArcLengthCached :: ArcLength v -> Interval (Scalar v)
-getArcLengthCached = getSum . fst . view getArcLength
+getArcLengthCached = getSum . fst . op ArcLength
 --getArcLengthCached = getSum . fst . getArcLength
 
 -- | Project out the generic arc length function taking the tolerance as
 --   an argument.
 getArcLengthFun :: ArcLength v -> Scalar v -> Interval (Scalar v)
-getArcLengthFun = fmap getSum . snd . view getArcLength
+getArcLengthFun = fmap getSum . snd . op ArcLength
 
 -- | Given a specified tolerance, project out the cached arc length if
 --   it is accurate enough; otherwise call the generic arc length
