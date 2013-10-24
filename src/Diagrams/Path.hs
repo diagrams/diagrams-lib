@@ -29,7 +29,7 @@ module Diagrams.Path
 
          -- * Paths
 
-         Path(..)
+         Path(..), pathTrails
 
          -- * Constructing paths
          -- $construct
@@ -89,6 +89,10 @@ newtype Path v = Path [Located (Trail v)]
 
 instance Wrapped [Located (Trail v)] [Located (Trail v')] (Path v) (Path v')
   where wrapped = iso Path $ \(Path x) -> x
+
+-- | Extract the located trails making up a 'Path'.
+pathTrails :: Path v -> [Located (Trail v)]
+pathTrails = op Path
 
 deriving instance Show v => Show (Path v)
 deriving instance Eq   v => Eq   (Path v)
