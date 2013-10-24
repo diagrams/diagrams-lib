@@ -112,12 +112,14 @@ instance ( HasLinearMap v, InnerSpace v, OrderedField (Scalar v)
          ) => Alignable (QDiagram b v m) where
   defaultBoundary = envelopeBoundary
 
--- instance (InnerSpace (V b), Ord (Scalar (V b)), Alignable b)
---        => Alignable (a -> b) where
---   defaultBoundary = combineBoundaries . defaultBoundary
-
+-- | Although the alignBy method for the (b -> a) instance is
+--   sensible, there is no good implementation for
+--   defaultBoundary. Instead, we provide a total method, but one that
+--   is not sensible. This should not present a serious problem as long
+--   as your use of Alignable happens through alignBy.
 instance (HasOrigin a, Alignable a) => Alignable (b -> a) where
   alignBy v d f b = alignBy v d (f b)
+  defaultBoundary _ _ = origin
 
 -- | @align v@ aligns an enveloped object along the edge in the
 --   direction of @v@.  That is, it moves the local origin in the
