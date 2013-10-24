@@ -7,6 +7,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE StandaloneDeriving         #-}
+{-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE TypeOperators              #-}
 {-# LANGUAGE UndecidableInstances       #-}
@@ -55,13 +56,15 @@ module Diagrams.Segment
          -- $segmeas
 
        , SegCount(..)
-       , ArcLength(..), getArcLengthCached, getArcLengthFun, getArcLengthBounded
+       , ArcLength(..)
+       , getArcLengthCached, getArcLengthFun, getArcLengthBounded
        , TotalOffset(..)
-       , OffsetEnvelope(..)
+       , OffsetEnvelope(..), oeOffset, oeEnvelope
        , SegMeasure
 
        ) where
 
+import           Control.Lens (makeLenses, Wrapped(..), iso, op)
 import           Control.Applicative (liftA2)
 import           Data.AffineSpace
 import           Data.FingerTree
@@ -381,26 +384,37 @@ instance VectorSpace v => Parametric (FixedSegment v) where
 -- automatically track various monoidal \"measures\" on segments.
 
 -- | A type to track the count of segments in a 'Trail'.
-newtype SegCount = SegCount { getSegCount :: Sum Int }
+newtype SegCount = SegCount (Sum Int)
   deriving (Semigroup, Monoid)
+
+instance Wrapped (Sum Int) (Sum Int) SegCount SegCount
+  where wrapped = iso SegCount $ \(SegCount x) -> x
 
 -- | A type to represent the total arc length of a chain of
 --   segments. The first component is a \"standard\" arc length,
 --   computed to within a tolerance of @10e-6@.  The second component is
 --   a generic arc length function taking the tolerance as an
 --   argument.
-newtype ArcLength v = ArcLength
-  { getArcLength :: (Sum (Interval (Scalar v)), Scalar v -> Sum (Interval (Scalar v))) }
+
+newtype ArcLength v
+  = ArcLength (Sum (Interval (Scalar v)), Scalar v -> Sum (Interval (Scalar v)))
+
+instance (Scalar v ~ u, Scalar v' ~ u', u ~ u') => Wrapped
+    (Sum (Interval u), u  -> Sum (Interval u ))
+    (Sum (Interval u'), u' -> Sum (Interval u'))
+    (ArcLength v)
+    (ArcLength v')
+  where wrapped = iso ArcLength $ \(ArcLength x) -> x
 
 -- | Project out the cached arc length, stored together with error
 --   bounds.
 getArcLengthCached :: ArcLength v -> Interval (Scalar v)
-getArcLengthCached = getSum . fst . getArcLength
+getArcLengthCached = getSum . fst . op ArcLength
 
 -- | Project out the generic arc length function taking the tolerance as
 --   an argument.
 getArcLengthFun :: ArcLength v -> Scalar v -> Interval (Scalar v)
-getArcLengthFun = fmap getSum . snd . getArcLength
+getArcLengthFun = fmap getSum . snd . op ArcLength
 
 -- | Given a specified tolerance, project out the cached arc length if
 --   it is accurate enough; otherwise call the generic arc length
@@ -417,7 +431,10 @@ deriving instance (Num (Scalar v), Ord (Scalar v)) => Monoid    (ArcLength v)
 
 -- | A type to represent the total cumulative offset of a chain of
 --   segments.
-newtype TotalOffset v = TotalOffset { getTotalOffset :: v }
+newtype TotalOffset v = TotalOffset v
+
+instance Wrapped v v (TotalOffset v) (TotalOffset v)
+  where wrapped = iso TotalOffset $ \(TotalOffset x) -> x
 
 instance AdditiveGroup v => Semigroup (TotalOffset v) where
   TotalOffset v1 <> TotalOffset v2 = TotalOffset (v1 ^+^ v2)
@@ -431,13 +448,15 @@ instance AdditiveGroup v => Monoid (TotalOffset v) where
 --   combining the envelopes of two consecutive chains needs to take
 --   the offset of the the offset of the first into account.
 data OffsetEnvelope v = OffsetEnvelope
-  { oeOffset   :: !(TotalOffset v)
-  , oeEnvelope :: Envelope v
+  { _oeOffset   :: !(TotalOffset v)
+  , _oeEnvelope :: Envelope v
   }
+
+makeLenses ''OffsetEnvelope
 
 instance (InnerSpace v, OrderedField (Scalar v)) => Semigroup (OffsetEnvelope v) where
   (OffsetEnvelope o1 e1) <> (OffsetEnvelope o2 e2)
-    = let !negOff = negateV . getTotalOffset $ o1
+    = let !negOff = negateV . op TotalOffset $ o1
           e2Off = moveOriginBy negOff e2
           !() = maybe () (\f -> f `seq` ()) $ appEnvelope e2Off
       in OffsetEnvelope

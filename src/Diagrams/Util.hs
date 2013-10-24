@@ -21,7 +21,6 @@ module Diagrams.Util
        , tau
 
          -- * Internal utilities
-       , Proxy(..)
        , foldB
 
        ) where
@@ -86,10 +85,6 @@ iterateN n f = take n . iterate f
 --   digits or so), try <http://youtu.be/3174T-3-59Q>.
 tau :: Floating a => a
 tau = 2*pi
-
--- | A value of @Proxy a@ carries no information; it's used only to
---   fix the type @a@.
-data Proxy a = Proxy
 
 -- | Given an associative binary operation and a default value to use
 --   in the case of an empty list, perform a /balanced/ fold over a

@@ -55,6 +55,8 @@ module Diagrams.TwoD.Arrowheads
        , ArrowHT
        ) where
 
+import           Control.Lens            ((&), (.~))
+import           Data.Default.Class
 import           Data.AffineSpace
 import           Data.Functor            ((<$>))
 import           Data.Maybe              (fromMaybe)
@@ -74,7 +76,7 @@ import           Diagrams.TwoD.Shapes
 import           Diagrams.TwoD.Transform
 import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector    (e, unitX, unit_X)
-import           Diagrams.Util           (with, ( # ))
+import           Diagrams.Util           (( # ))
 
 -----------------------------------------------------------------------------
 
@@ -93,7 +95,7 @@ closedPath :: (Floating (Scalar v), Ord (Scalar v), InnerSpace v) => Trail v -> 
 closedPath = pathFromTrail . closeTrail
 
 -- Heads ------------------------------------------------------------------
---   > drawHead h = arrowAt' with {arrowHead=h, shaftStyle=lw 0}
+--   > drawHead h = arrowAt' (with & arrowHead .~ h & shaftStyle %~ lw 0)
 --   >         origin (r2 (0.001, 0))
 --   >      <> square 0.5 # alignL # lw 0
 
@@ -101,16 +103,16 @@ closedPath = pathFromTrail . closeTrail
 
 -- | <<diagrams/src_Diagrams_TwoD_Arrowheads_tri25Ex.svg#diagram=tri25Ex&width=120>>
 
---   > tri25Ex = arrowAt' with {arrowHead=arrowheadTriangle (2/5 :: Turn), shaftStyle=lw 0}
---   >         origin (r2 (0.001, 0))
---   >      <> square 0.6 # alignL # lw 0
+--   > tri25Ex = arrowAt' (with & arrowHead .~ arrowheadTriangle (2/5 :: Turn) & shaftStyle %~ lw 0)
+--   >           origin (r2 (0.001, 0))
+--   >        <> square 0.6 # alignL # lw 0
 arrowheadTriangle :: Angle a => a -> ArrowHT
 arrowheadTriangle theta = aHead
   where
     aHead size _ = (p, mempty)
       where
-        p = polygon with {polyType = PolyPolar [theta, (-2 * theta)]
-            (repeat (htRadius * size)) ,polyOrient = NoOrient}  # alignL
+        p = polygon (def & polyType .~ PolyPolar [theta, (-2 * theta)]
+            (repeat (htRadius * size)) & polyOrient .~ NoOrient)  # alignL
 
 -- | Isoceles triangle with linear concave base. Inkscape type 1 - dart like.
 arrowheadDart :: Angle a => a -> ArrowHT
@@ -120,8 +122,8 @@ arrowheadDart theta = aHead
       where
         a = toTurn theta
         r = htRadius * size
-        dartP = polygon with {polyType = PolyPolar [a, 1/2 - a, 1/2 - a]
-               [r, r, 0.1 * size, r] ,polyOrient = NoOrient}
+        dartP = polygon (def & polyType .~ PolyPolar [a, 1/2 - a, 1/2 - a]
+               [r, r, 0.1 * size, r]  & polyOrient .~ NoOrient)
         dartVertices =  (concat . pathVertices) $ dartP
         m = magnitude (dartVertices !! 1 .-. dartVertices !! 3)
         s = 1 - shaftWidth / m
@@ -238,8 +240,7 @@ missile :: ArrowHT
 missile = arrowheadMissile (2/5 :: Turn)
 
 -- Tails ------------------------------------------------------------------
-
---   > drawTail t = arrowAt' with {arrowTail=t, shaftStyle=lw 0, arrowHead=noHead}
+--   > drawTail t = arrowAt' (with  & arrowTail .~ t & shaftStyle %~ lw 0 & arrowHead .~ noHead)
 --   >         origin (r2 (0.001, 0))
 --   >      <> square 0.5 # alignL # lw 0
 

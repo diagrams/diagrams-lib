@@ -21,16 +21,20 @@
 
 module Diagrams.ThreeD.Types
        ( -- * 3D Euclidean space
-         R3(..), r3, unr3
-       , P3, p3, unp3
+         R3, r3, unr3, mkR3
+       , P3, p3, unp3, mkP3
        , T3
-       , r3Iso
+       , r3Iso, p3Iso
 
          -- * Two-dimensional angles
          -- | These are defined in "Diagrams.TwoD.Types" but
          --   reëxported here for convenience.
        , Angle(..)
-       , Turn(..), asTurn, CircleFrac, Rad(..), asRad, Deg(..), asDeg
+       , Turn(Turn), asTurn
+       , CircleFrac
+       , Rad(Rad), asRad
+       , Deg(Deg), asDeg
+
        , fullTurn, convertAngle, angleRatio
 
          -- * Directions in 3D
@@ -40,11 +44,11 @@ module Diagrams.ThreeD.Types
        ) where
 
 import           Control.Applicative
-import           Control.Lens           (Iso', iso, over, _1, _2, _3)
+import           Control.Lens           (Iso', iso, over, Wrapped, wrapped, _1, _2, _3)
 
-import           Diagrams.Coordinates
 import           Diagrams.Core
 import           Diagrams.TwoD.Types
+import           Diagrams.Coordinates
 
 import           Data.AffineSpace.Point
 import           Data.Basis
@@ -65,9 +69,18 @@ r3Iso = iso unR3 R3
 r3 :: (Double, Double, Double) -> R3
 r3 = R3
 
+-- | Curried version of `r3`.
+mkR3 :: Double -> Double -> Double -> R3
+mkR3 x y z = r3 (x, y, z)
+
 -- | Convert a 3D vector back into a triple of components.
 unr3 :: R3 -> (Double, Double, Double)
 unr3 = unR3
+
+-- | Lens wrapped isomorphisms for R3.
+instance Wrapped (Double, Double, Double) (Double, Double, Double) R3 R3 where
+  wrapped = iso r3 unr3
+  {-# INLINE wrapped #-}
 
 type instance V R3 = R3
 
@@ -89,7 +102,7 @@ instance Coordinates R3 where
   type PrevDim R3          = R2
   type Decomposition R3    = Double :& Double :& Double
 
-  (coords -> x :& y) & z   = r3 (x,y,z)
+  (coords -> x :& y) ^& z   = r3 (x,y,z)
   coords (unR3 -> (x,y,z)) = x :& y :& z
 
 -- | Points in R^3.
@@ -105,6 +118,10 @@ unp3 = unR3 . unPoint
 
 p3Iso :: Iso' P3 (Double, Double, Double)
 p3Iso = iso unp3 p3
+
+-- | Curried version of `r3`.
+mkP3 :: Double -> Double -> Double -> P3
+mkP3 x y z = p3 (x, y, z)
 
 -- | Transformations in R^3.
 type T3 = Transformation R3

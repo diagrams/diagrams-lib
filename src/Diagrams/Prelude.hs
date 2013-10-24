@@ -84,6 +84,9 @@ module Diagrams.Prelude
          -- | Utilities for working with points.
        , module Diagrams.Points
 
+         -- | Convenience infix operators for working with coordinates.
+        , module Diagrams.Coordinates
+
          -- | A wide range of things (shapes, transformations,
          --   combinators) specific to creating two-dimensional
          --   diagrams.
@@ -111,6 +114,9 @@ module Diagrams.Prelude
          -- | For working with 'Active' (i.e. animated) things.
        , module Data.Active
 
+         -- | Essential Lens Combinators
+       , (&), (.~), (%~)
+
        , Applicative(..), (*>), (<*), (<$>), (<$), liftA, liftA2, liftA3
        ) where
 
@@ -121,6 +127,7 @@ import           Diagrams.Animation
 import           Diagrams.Attributes
 import           Diagrams.BoundingBox
 import           Diagrams.Combinators
+import           Diagrams.Coordinates
 import           Diagrams.CubicSpline
 import           Diagrams.Envelope
 import           Diagrams.Located
@@ -142,7 +149,8 @@ import           Diagrams.Util
 import           Control.Applicative
 import           Data.Active
 import           Data.AffineSpace
-import           Data.Colour                hiding (AffineSpace (..), atop)
-import           Data.Colour.Names
+import           Data.Colour                hiding (AffineSpace (..), atop, over)
+import           Data.Colour.Names          hiding (tan)
 import           Data.Semigroup
 import           Data.VectorSpace           hiding (Sum (..))
+import           Control.Lens               ((&), (.~), (%~))

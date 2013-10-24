@@ -2,6 +2,7 @@
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE GADTs                      #-}
+{-# LANGUAGE TemplateHaskell            #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -16,7 +17,10 @@
 
 module Diagrams.ThreeD.Camera
        ( Camera  -- do not export constructor
-       , PerspectiveLens(..), OrthoLens(..) -- These are safe to construct manually
+        -- These are safe to construct manually
+       , PerspectiveLens(..), OrthoLens(..)
+       , horizontalFieldOfView, verticalFieldOfView
+       , orthoWidth, orthoHeight
        , camLoc, camForward, camUp, camRight, camLens
        , facing_ZCamera, mm50Camera
        , mm50, mm50Wide, mm50Narrow
@@ -24,8 +28,8 @@ module Diagrams.ThreeD.Camera
        )
        where
 
+import Control.Lens            (makeLenses)
 import Data.Monoid
-
 import Data.Cross
 
 import Diagrams.Core
@@ -47,18 +51,22 @@ class CameraLens l where
 
 -- | A perspective projection
 data PerspectiveLens = PerspectiveLens
-                     { horizontalFieldOfView :: Deg -- ^ Horizontal field of view.
-                     , verticalFieldOfView   :: Deg -- ^ Vertical field of view.
+                     { _horizontalFieldOfView :: Deg -- ^ Horizontal field of view.
+                     , _verticalFieldOfView   :: Deg -- ^ Vertical field of view.
                      }
+
+makeLenses ''PerspectiveLens
 
 instance CameraLens PerspectiveLens where
     aspect (PerspectiveLens h v) = angleRatio h v
 
 -- | An orthographic projection
 data OrthoLens = OrthoLens
-               { orthoWidth  :: Double -- ^ Width
-               , orthoHeight :: Double -- ^ Height
+               { _orthoWidth  :: Double -- ^ Width
+               , _orthoHeight :: Double -- ^ Height
                }
+
+makeLenses ''OrthoLens
 
 instance CameraLens OrthoLens where
     aspect (OrthoLens h v) = h / v

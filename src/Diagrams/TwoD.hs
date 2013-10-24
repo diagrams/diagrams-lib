@@ -61,8 +61,8 @@
 -----------------------------------------------------------------------------
 module Diagrams.TwoD
        ( -- * R^2
-         R2, r2, unr2
-       , P2, p2, unp2
+         R2, r2, unr2, mkR2
+       , P2, p2, unp2, mkP2
        , T2
        , unitX, unitY, unit_X, unit_Y
        , direction, angleBetween, fromDirection, e
@@ -70,7 +70,9 @@ module Diagrams.TwoD
          -- * Angles
        , tau
        , Angle(..)
-       , Turn(..), asTurn, CircleFrac, Rad(..), asRad, Deg(..), asDeg
+       , Turn(..), asTurn, CircleFrac
+       , Rad(..), asRad
+       , Deg(..), asDeg
        , fullTurn, fullCircle, convertAngle
 
          -- * Paths
@@ -79,7 +81,7 @@ module Diagrams.TwoD
        , strokeLine, strokeLoop
        , strokeLocTrail, strokeLocT, strokeLocLine, strokeLocLoop
        , FillRule(..), fillRule
-       , StrokeOpts(..)
+       , StrokeOpts(..), vertexNames, queryFillRule
 
          -- ** Clipping
        , clipBy
@@ -102,7 +104,8 @@ module Diagrams.TwoD
 
          -- ** General polygons
        , polygon, polyTrail
-       , PolygonOpts(..), PolyType(..), PolyOrientation(..)
+       , PolygonOpts(..), polyType, polyOrient, polyCenter
+       , PolyType(..), PolyOrientation(..)
 
          -- ** Star polygons
        , StarOpts(..), star
@@ -128,7 +131,7 @@ module Diagrams.TwoD
 
          -- ** Other shapes
        , roundedRect, roundedRect'
-       , RoundedRectOpts(..)
+       , RoundedRectOpts(..), radiusTL, radiusTR, radiusBL, radiusBR
 
          -- ** Arrows
        , arrow, arrow'
@@ -141,6 +144,17 @@ module Diagrams.TwoD
        , module Diagrams.TwoD.Arrowheads
 
        , ArrowOpts(..)
+
+       , arrowHead
+       , arrowTail
+       , arrowShaft
+       , headSize
+       , tailSize
+       , headGap
+       , tailGap
+       , headStyle
+       , tailStyle
+       , shaftStyle
 
          -- * Text
        , text, topLeftText, alignedText, baselineText
@@ -214,7 +228,7 @@ module Diagrams.TwoD
          -- * Visual aids for understanding the internal model
        , showOrigin
        , showOrigin'
-       , OriginOpts(..)
+       , OriginOpts(..), oColor, oScale, oMinSize
        , showLabels
 
        ) where
