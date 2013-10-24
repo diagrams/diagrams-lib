@@ -292,6 +292,7 @@ data CatMethod = Cat     -- ^ Normal catenation: simply put diagrams
 -- | Options for 'cat''.
 data CatOpts v = CatOpts { _catMethod       :: CatMethod
                          , _sep             :: Scalar v
+                         , _catOptsvProxy__ :: Proxy v
                          }
 
 makeLensesWith (lensRules & generateSignatures .~ False) ''CatOpts
@@ -306,9 +307,22 @@ catMethod :: forall v. Lens' (CatOpts v) CatMethod
 --   between /origins/.
 sep :: forall v. Lens' (CatOpts v) (Scalar v)
 
+-- | This field exists solely to aid type inference; please ignore it.
+catOptsvProxy__ :: forall v. Lens' (CatOpts v) (Proxy v)
+
+-- The reason the proxy field is necessary is that without it,
+-- altering the sep field could theoretically change the type of a
+-- CatOpts record.  This causes problems when writing an expression
+-- like @with { sep = 10 }@, because knowing the type of the whole
+-- expression does not tell us anything about the type of @with@, and
+-- therefore the @Num (Scalar v)@ constraint cannot be satisfied.
+-- Adding the Proxy field constrains the type of @with@ in @with {sep
+-- = 10}@ to be the same as the type of the whole expression.
+
 instance Num (Scalar v) => Default (CatOpts v) where
   def = CatOpts { _catMethod       = Cat
                 , _sep             = 0
+                , _catOptsvProxy__ = Proxy
                 }
 
 -- | @cat v@ positions a list of objects so that their local origins
