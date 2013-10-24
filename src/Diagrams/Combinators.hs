@@ -38,11 +38,11 @@ module Diagrams.Combinators
        ) where
 
 import           Control.Lens       ( (&), (%~), (.~), Lens', makeLensesWith
-
-                                    , lensRules, generateSignatures, unwrapping)
+                                    , lensRules, lensField, generateSignatures, unwrapping)
 import           Data.AdditiveGroup
 import           Data.AffineSpace   ((.+^))
 import           Data.Default.Class
+import           Data.Proxy
 import           Data.Semigroup
 import           Data.VectorSpace
 
@@ -306,7 +306,17 @@ data CatOpts v = CatOpts { _catMethod       :: CatMethod
 -- this is not a problem when using the 'sep' lens, as its type is
 -- more restricted.
 
-makeLensesWith (lensRules & generateSignatures .~ False) ''CatOpts
+makeLensesWith
+  ( lensRules
+    -- don't make a lens for the proxy field
+    & lensField .~ (\label ->
+        case label of
+          "_catOptsvProxy__" -> Nothing
+          _ -> Just (drop 1 label)
+        )
+    & generateSignatures .~ False
+  )
+  ''CatOpts
 
 -- | Which 'CatMethod' should be used:
 --   normal catenation (default), or distribution?
@@ -317,7 +327,6 @@ catMethod :: forall v. Lens' (CatOpts v) CatMethod
 --   /envelopes/; when @catMethod = Distrib@, this is the distance
 --   between /origins/.
 sep :: forall v. Lens' (CatOpts v) (Scalar v)
-
 
 instance Num (Scalar v) => Default (CatOpts v) where
   def = CatOpts { _catMethod       = Cat
