@@ -8,6 +8,8 @@
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
+-- Tools for adjusting the length of parametric objects such as
+-- segments and trails.
 --
 -----------------------------------------------------------------------------
 module Diagrams.Parametric.Adjust
