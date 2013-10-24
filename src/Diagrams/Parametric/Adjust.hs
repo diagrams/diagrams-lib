@@ -14,13 +14,14 @@
 -----------------------------------------------------------------------------
 module Diagrams.Parametric.Adjust
     ( adjust
-    , AdjustOpts(..)
+    , AdjustOpts(_adjMethod, _adjSide, _adjEps)
     , adjMethod, adjSide, adjEps
     , AdjustMethod(..), AdjustSide(..)
 
     ) where
 
-import           Control.Lens (makeLenses, (^.))
+import           Control.Lens (makeLensesWith, lensRules, lensField, generateSignatures, (^.), (&), (.~), Lens')
+import           Data.Proxy
 
 import           Data.Default.Class
 import           Data.VectorSpace
@@ -47,9 +48,29 @@ data AdjustSide = Start  -- ^ Adjust only the beginning
 data AdjustOpts v = AO { _adjMethod       :: AdjustMethod v
                        , _adjSide         :: AdjustSide
                        , _adjEps          :: Scalar v
+                       , _adjOptsvProxy__ :: Proxy v
                        }
 
-makeLenses ''AdjustOpts
+makeLensesWith
+  ( lensRules
+    -- don't make a lens for the proxy field
+    & lensField .~ (\label ->
+        case label of
+          "_adjOptsvProxy__" -> Nothing
+          _ -> Just (drop 1 label)
+        )
+    & generateSignatures .~ False
+  )
+  ''AdjustOpts
+
+-- | Which method should be used for adjusting?
+adjMethod :: Lens' (AdjustOpts v) (AdjustMethod v)
+
+-- | Which end(s) of the object should be adjusted?
+adjSide :: Lens' (AdjustOpts v) AdjustSide
+
+-- | Tolerance to use when doing adjustment.
+adjEps :: Lens' (AdjustOpts v) (Scalar v)
 
 instance Fractional (Scalar v) => Default (AdjustMethod v) where
   def = ByParam 0.2
@@ -58,7 +79,7 @@ instance Default AdjustSide where
   def = Both
 
 instance Fractional (Scalar v) => Default (AdjustOpts v) where
-  def = AO def def stdTolerance
+  def = AO def def stdTolerance Proxy
 
 -- | Adjust the length of a parametric object such as a segment or
 --   trail.  The second parameter is an option record which controls how
