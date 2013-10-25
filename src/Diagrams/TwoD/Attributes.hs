@@ -19,7 +19,7 @@
 module Diagrams.TwoD.Attributes (
 
   -- * Gradient
-    GradientStop(..), SpreadMethod(..)
+    GradientStop, SpreadMethod(..)
   , LGradient(..), lGradStops, lGradStart, lGradEnd, lGradSpreadMethod
   , RGradient(..), rGradStops, rGradRadius, rGradCenter, rGradFocus, rGradSpreadMethod
   , lineLGradient, lineRGradient
@@ -48,8 +48,6 @@ import           Diagrams.TwoD.Types (R2)
 import           Control.Lens (makeLenses, makePrisms, (&), (%~))
 
 import           Data.Colour hiding (AffineSpace)
-import           Data.Colour.RGBSpace
-import           Data.Colour.SRGB (sRGBSpace)
 
 import           Data.Default.Class
 
@@ -86,6 +84,11 @@ data Texture = SC SomeColor | LG LGradient | RG RGradient
 
 makePrisms ''Texture
 
+-- | The texture with which lines (strokes) are drawn.  Note that child
+--   textures always override parent textures; that is, @'lineTexture' t1
+--   . 'lineTexture' t2 $ d@ is equivalent to @'lineTexture' t2 $ d@.
+--   More precisely, the semigroup structure on line texture attributes
+--   is that of 'Last'.
 newtype LineTexture = LineTexture (Last Texture)
   deriving (Typeable, Semigroup)
 instance AttributeClass LineTexture
@@ -130,14 +133,23 @@ lineLGradient g = lineTexture (LG g)
 lineRGradient :: (HasStyle a, V a ~ R2) => RGradient -> a -> a
 lineRGradient g = lineTexture (RG g)
 
+-- | The texture with which shapes are filled. Note that child
+--   textures always override parent colors; that is, @'fillTexture' t1
+--   . 'fillTexture' t2 $ d@ is equivalent to @'fillTexture' t2 $ d@.
+--   More precisely, the semigroup structure on fill textureå attributes
+--   is that of 'Last'.
 newtype FillTexture = FillTexture (Recommend (Last Texture))
   deriving (Typeable, Semigroup)
 instance AttributeClass FillTexture
 
 type instance V FillTexture = R2
 
+-- Recommended textures are assumed to colors and are therefore not transformed.
+-- For committed textures the transform is applied to the R2 elements of the
+-- gradient records.
 instance Transformable FillTexture where
-  transform t (FillTexture (Recommend (Last texture))) = FillTexture (Recommend (Last tx))
+  transform _ tx@(FillTexture (Recommend _)) = tx
+  transform t (FillTexture (Commit (Last texture))) = FillTexture (Commit (Last tx))
     where
       tx = texture & lgS . lgE . rgC . rgF
       lgS = _LG . lGradStart  %~ f
@@ -147,7 +159,7 @@ instance Transformable FillTexture where
       f   = transform t
 
 getFillTexture :: FillTexture -> Texture
-getFillTexture (FillTexture (Recommend (Last t))) = t
+getFillTexture (FillTexture tx) = getLast . getRecommend $ tx
 
 fillTexture :: (HasStyle a, V a ~ R2) => Texture -> a -> a
 fillTexture = applyTAttr . FillTexture . Commit . Last
@@ -155,21 +167,21 @@ fillTexture = applyTAttr . FillTexture . Commit . Last
 -- | Set the fill color.  This function is polymorphic in the color
 --   type (so it can be used with either 'Colour' or 'AlphaColour'),
 --   but this can sometimes create problems for type inference, so the
---   'fc' and 'fcA' variants are provided with more concrete types.
+--   'fcT' and 'fcAT' variants are provided with more concrete types.
 fillColorT :: (Color c, HasStyle a, V a ~ R2) => c -> a -> a
 fillColorT c = fillTexture (SC (SomeColor c))
 
 -- | Set a \"recommended\" fill color, to be used only if no explicit
---   calls to 'fillColor' (or 'fc', or 'fcA') are used.
+--   calls to 'fillColorT' (or 'fcT', or 'fcAT') are used.
 recommendFillColorT :: (Color c, HasStyle a, V a ~ R2) => c -> a -> a
 recommendFillColorT = applyTAttr . FillTexture . Recommend . Last . SC . SomeColor
 
--- | A synonym for 'fillColor', specialized to @'Colour' Double@
+-- | A synonym for 'fillColorT', specialized to @'Colour' Double@
 --   (i.e. opaque colors).
 fcT :: (HasStyle a, V a ~ R2) => Colour Double -> a -> a
 fcT= fillColorT
 
--- | A synonym for 'fillColor', specialized to @'AlphaColour' Double@
+-- | A synonym for 'fillColorT', specialized to @'AlphaColour' Double@
 --   (i.e. colors with transparency).
 fcAT :: (HasStyle a, V a ~ R2) => AlphaColour Double -> a -> a
 fcAT = fillColorT

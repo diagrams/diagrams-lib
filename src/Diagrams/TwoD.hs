@@ -225,6 +225,14 @@ module Diagrams.TwoD
          -- ** Adjusting size
        , sized, sizedAs
 
+        -- * Textures
+      , Texture(..)
+      , getFillTexture
+
+        -- ** Colors
+      , fillColorT, fcT, fcAT, recommendFillColorT
+      , lineColorT, lcT, lcAT
+
          -- * Visual aids for understanding the internal model
        , showOrigin
        , showOrigin'
@@ -237,6 +245,7 @@ import           Diagrams.TwoD.Align
 import           Diagrams.TwoD.Arc
 import           Diagrams.TwoD.Arrow
 import           Diagrams.TwoD.Arrowheads
+import           Diagrams.TwoD.Attributes
 import           Diagrams.TwoD.Combinators
 import           Diagrams.TwoD.Ellipse
 import           Diagrams.TwoD.Image
