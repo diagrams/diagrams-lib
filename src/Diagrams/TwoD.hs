@@ -227,7 +227,9 @@ module Diagrams.TwoD
 
         -- * Textures
       , Texture(..)
-      , getFillTexture
+      , LGradient(..), SpreadMethod(..), lGradStops
+      , RGradient(..), rGradStops
+      , getFillTexture, fillTexture
 
         -- ** Colors
       , fillColorT, fcT, fcAT, recommendFillColorT
