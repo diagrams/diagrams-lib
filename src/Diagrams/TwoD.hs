@@ -227,7 +227,7 @@ module Diagrams.TwoD
 
         -- * Textures
       , Texture(..), SpreadMethod(..)
-      , LGradient(..), lGradStops, lGradVector, lGradSpreadMethod
+      , LGradient(..), lGradStops, lGradVector, lGradStart, lGradEnd, lGradSpreadMethod
       , RGradient(..)
       , rGradStops, rGradRadius, rGradCenter, rGradFocus, rGradSpreadMethod
       , getFillTexture, fillTexture

@@ -20,7 +20,7 @@ module Diagrams.TwoD.Attributes (
 
   -- * Gradient
     GradientStop, SpreadMethod(..)
-  , LGradient(..), lGradStops, lGradVector, lGradSpreadMethod
+  , LGradient(..), lGradStops, lGradVector, lGradStart, lGradEnd, lGradSpreadMethod
   , RGradient(..), rGradStops, rGradRadius, rGradCenter, rGradFocus, rGradSpreadMethod
   , lineLGradient, lineRGradient
 
@@ -43,7 +43,7 @@ module Diagrams.TwoD.Attributes (
 
 import           Diagrams.Core
 import           Diagrams.Attributes (Color(..), SomeColor(..))
-import           Diagrams.TwoD.Types (R2)
+import           Diagrams.TwoD.Types (R2, P2)
 
 import           Control.Lens (makeLenses, makePrisms, (&), (%~))
 
@@ -61,6 +61,8 @@ data SpreadMethod = GradPad | GradReflect | GradRepeat
 -- | Linear Gradient
 data LGradient = LGradient
     { _lGradStops        :: [GradientStop]
+    , _lGradStart        :: P2
+    , _lGradEnd          :: P2
     , _lGradVector       :: R2
     , _lGradSpreadMethod :: SpreadMethod }
 
