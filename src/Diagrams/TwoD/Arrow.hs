@@ -1,10 +1,6 @@
 {-# LANGUAGE FlexibleContexts          #-}
 {-# LANGUAGE GADTs                     #-}
-{-# LANGUAGE MultiParamTypeClasses     #-}
-{-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE Rank2Types                #-}
-{-# LANGUAGE TypeFamilies              #-}
-{-# LANGUAGE UndecidableInstances      #-}
+{-# LANGUAGE TemplateHaskell           #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Arrow
@@ -18,8 +14,44 @@
 --
 -----------------------------------------------------------------------------
 
+
 module Diagrams.TwoD.Arrow
-       ( arrow
+       ( -- * Examples:
+         -- ** Example 1
+-- | <<diagrams/src_Diagrams_TwoD_Arrow_example1.svg#diagram=example1&width=500>>
+--
+--   > -- Connecting two diagrams at their origins.
+--   >
+--   > sq = square 2 # showOrigin # lc darkgray # lw 0.07
+--   > ds = (sq # named "left") ||| strutX 3 ||| (sq # named "right")
+--   >
+--   > shaft  = cubicSpline False ( map r2 [(0, 0), (1, 0), (1, 0.2), (2, 0.2)])
+--   >
+--   > example1 = ds # connect' (with & arrowHead .~ dart & headSize .~ 0.6
+--   >                                & tailSize .~ 0.5 & arrowTail .~ quill
+--   >                                & shaftStyle %~ lw 0.02 & arrowShaft .~ shaft)
+--   >                                "left" "right" # pad 1.1
+
+         -- ** Example 2
+
+-- | <<diagrams/src_Diagrams_TwoD_Arrow_example2.svg#diagram=example2&width=500>>
+--
+--   > -- Comparing connect, connectPerim, and arrowAt.
+--   >
+--   > oct  = octagon 1 # lc darkgray # lw 0.10 # showOrigin
+--   > dias = oct # named "first" ||| strut 3 ||| oct # named "second"
+--   >
+--   > -- Connect two diagrams and two points on their trails.
+--   > ex12 = dias # connect "first" "second"
+--   >             # connectPerim "first" "second" (15/16 :: Turn) (9/16 :: Turn)
+--   >
+--   > -- Place an arrow at (0,0) the size and direction of (0,1).
+--   > ex3 = arrowAt origin unit_Y
+--   >
+--   > example2 = (ex12 <> ex3) # centerXY # pad 1.1
+
+         -- * Documentation
+         arrow
        , arrow'
        , arrowAt
        , arrowAt'
@@ -29,18 +61,32 @@ module Diagrams.TwoD.Arrow
        , connect'
        , connectPerim
        , connectPerim'
+       , connectOutside
+       , connectOutside'
        , straightShaft
        , ArrowOpts(..)
+
+       , arrowHead
+       , arrowTail
+       , arrowShaft
+       , headSize
+       , tailSize
+       , headGap
+       , tailGap
+       , headStyle
+       , tailStyle
+       , shaftStyle
 
          -- | See "Diagrams.TwoD.Arrowheads" for a list of standard
          --   arrowheads and help creating your own.
        , module Diagrams.TwoD.Arrowheads
        ) where
 
+import           Control.Lens                     hiding ((#), moveTo, (<.>))
 import           Data.AffineSpace
 import           Data.Default.Class
 import           Data.Functor                     ((<$>))
-import           Data.Maybe                       (fromMaybe)
+import           Data.Maybe                       (fromMaybe, fromJust)
 import           Data.Monoid                      (mempty, (<>))
 import           Data.VectorSpace
 import           Diagrams.Core
@@ -49,7 +95,8 @@ import           Data.Colour                      hiding (atop)
 import           Diagrams.Attributes
 import           Diagrams.Parametric
 import           Diagrams.Path
-import           Diagrams.Segment
+import           Diagrams.Solve                   (quadForm)
+import           Diagrams.Tangent                 (tangentAtStart, tangentAtEnd)
 import           Diagrams.Trail
 import           Diagrams.TwoD.Arrowheads
 import           Diagrams.TwoD.Path               (strokeT)
@@ -61,125 +108,92 @@ import           Diagrams.Util                    (( # ))
 
 data ArrowOpts
   = ArrowOpts
-    { arrowHead  :: ArrowHT   -- ^ A shape to place at the head of the arrow.
-    , arrowTail  :: ArrowHT   -- ^ A shape to place at the tail of the arrow.
-    , arrowShaft :: Trail R2  -- ^ The trail to use for the arrow shaft.
-    , headSize   :: Double    -- ^ Radius of a circumcircle around the head.
-    , tailSize   :: Double    -- ^ Radius of a circumcircle around the tail.
-    , headGap    :: Double    -- ^ Distance to leave between
-                              --   the head and the target point.
-    , tailGap    :: Double    -- ^ Distance to leave between the
-                              --   starting point and the tail.
-    , shaftWidth :: Double    -- ^ Width of the shaft, measured in the
-                              --   diagram's final vector space.
-    , headStyle  :: HasStyle c => c -> c  -- ^ Style to apply to the head.
-    , tailStyle  :: HasStyle c => c -> c  -- ^ Style to apply to the tail.
-    , shaftStyle :: HasStyle c => c -> c  -- ^ Style to apply to the shaft.
+    { _arrowHead  :: ArrowHT
+    , _arrowTail  :: ArrowHT
+    , _arrowShaft :: Trail R2
+    , _headSize   :: Double
+    , _tailSize   :: Double
+    , _headGap    :: Double
+    , _tailGap    :: Double
+    , _headStyle  :: Style R2
+    , _tailStyle  :: Style R2
+    , _shaftStyle :: Style R2
     }
 
+-- | Straight line arrow shaft.
 straightShaft :: Trail R2
 straightShaft = trailFromOffsets [unitX]
 
+defShaftWidth :: Double
+defShaftWidth = 0.03
+
 instance Default ArrowOpts where
   def = ArrowOpts
-        { arrowHead    = dart
-        , arrowTail    = noTail
-        , arrowShaft   = trailFromOffsets [unitX]
-        , headSize     = 0.3
-        , tailSize     = 0.3
-        , headGap      = 0
-        , tailGap      = 0
-        , shaftWidth   = 0.03
+        { _arrowHead    = dart
+        , _arrowTail    = noTail
+        , _arrowShaft   = trailFromOffsets [unitX]
+        , _headSize     = 0.3
+        , _tailSize     = 0.3
+        , _headGap      = 0
+        , _tailGap      = 0
 
         -- See note [Default arrow style attributes]
-        , headStyle    = fc black
-        , tailStyle    = fc black
-        , shaftStyle   = lc black
+        , _headStyle    = mempty
+        , _tailStyle    = mempty
+        , _shaftStyle   = mempty
         }
 
-{- ~~~~ Note [Default arrow style attributes]
+makeLensesWith (lensRules & generateSignatures .~ False) ''ArrowOpts
 
-We want to set as few default attributes as possible.  The reason is
-that any attributes which get set by default cannot be overridden
-later.  For example, if we set 'opacity 1' in shaftStyle, then it
-means arrow shafts are always fully opaque (unless you set the opacity
-in shaftStyle).  That is, e.g.
+-- | A shape to place at the head of the arrow.
+arrowHead :: Lens' ArrowOpts ArrowHT
 
-  arrowBetween p q # opacity 0.5
+-- | A shape to place at the tail of the arrow.
+arrowTail :: Lens' ArrowOpts ArrowHT
 
-will produce exactly the same output as arrowBetween p q, because the
-opacity is already set in the arrowBetween call and cannot be
-overridden later.
+-- | The trail to use for the arrow shaft.
+arrowShaft :: Lens' ArrowOpts (Trail R2)
 
-So why set the fill color and line color to black?
+-- | Radius of a circumcircle around the head.
+headSize :: Lens' ArrowOpts Double
 
-  1. The default shaftStyle *must* be set to lc black, because we get
-     the joint fill color from the line color set in shaftStyle.  There is
-     no way to tell when the user has applied a line color externally to
-     the arrow function and magically have the joint fill color update to
-     match.  The downside is that the *only* way to change the color of an
-     arrow shaft is to modify shaftStyle.  Well, tough luck.
+-- | Radius of a circumcircle around the tail.
+tailSize :: Lens' ArrowOpts Double
 
-  2. Setting the head and tailStyle to 'id' does not work, because
-     then they have the diagrams-default fill, i.e. transparent.
+-- | Distance to leave between the head and the target point.
+headGap :: Lens' ArrowOpts Double
+-- | Distance to leave between the starting point and the tail.
+tailGap :: Lens' ArrowOpts Double
 
-  3. We could set the head and tailStyle using 'recommendFillColor'
-     instead of 'fc'.  That way they would be filled black by default
-     but could be overridden externally by the user, e.g.
+-- | Style to apply to the head. @headStyle@ is modified by using the lens
+--   combinator @%~@ to change the current style. For example, to change
+--   an opaque black arrowhead to translucent orange:
+--   @(with & headStyle %~ fc orange .  opacity 0.75)@.
+headStyle :: Lens' ArrowOpts (Style R2)
 
-       arrowBetween p q # fc orange
+-- | Style to apply to the tail. See `headStyle`.
+tailStyle :: Lens' ArrowOpts (Style R2)
 
-     would change the arrowhead to orange.  However, this just seems
-     inconsistent with the fact that # lc orange has no effect (see #1
-     above).  So instead we simply set the default head/tail fill with
-     'fc' and force the user to override it in the ArrowOpts, just as
-     with line color for the shaft.
--}
+-- | Style to apply to the shaft. See `headStyle`.
+shaftStyle :: Lens' ArrowOpts (Style R2)
 
--- | Invert a monotonic not decreasing function.
---   Search for x between low and high for the input to the
---   function f such that: |f(x) - target| < epsilon. If the search
---   has not converged after iter iterations then return the current guess.
---   If target is less than f(low) return low, if target is greater than
---   f(high) then return high.
-fInverse :: (Double -> Double)
-           -> Double -> Int -> Double -> Double -> Double -> Double
-fInverse f epsilon iter low high target
-  | iter < 1 = mid
-  | f low > target = low
-  | f high < target = high
-  | f mid > target + epsilon = fInverse f epsilon (iter - 1) low mid target
-  | f mid < target - epsilon = fInverse f epsilon (iter - 1) mid high target
-  | otherwise = mid
-  where mid = (low + high) / 2
+-- Set the default shaft style of an `ArrowOpts` record by applying the
+-- default style after all other styles have been applied.
+-- The semigroup stucture of the lw attribute will insure that the default
+-- is only used if it has not been set in @opts@.
+shaftSty :: ArrowOpts -> Style R2
+shaftSty opts = lw defShaftWidth (opts^.shaftStyle)
 
--- | Default number of iterations to try in hParam and tParam before giving up.
-stdIterations :: Int
-stdIterations = 64
+-- Set the default head style. See `shaftSty`.
+headSty :: ArrowOpts -> Style R2
+headSty opts = fc black (opts^.headStyle)
 
--- XXX hParam and tParam are not used in the current implementation, but may
--- XXX be useful, if we add a function that shortens the arrow shaft by the
--- XXX head width, instead of scaling it, as is currently done.
-
--- | Return the parameter p of the point on tr such that the distance from
---   tr `atParam` p to the end of tr is equal to w.
-hParam :: Trail R2 -> Double -> Double
-hParam tr w = (domainUpper tr) - fInverse (\x -> magnitude $ hOffset x)
-              stdTolerance stdIterations (domainLower tr) (domainUpper tr) w
-  where
-    hOffset x = (reverseDomain tr) `atParam` x
-
--- | Same as above but for the start of tr.
-tParam :: Trail R2 -> Double -> Double
-tParam tr w = fInverse (\x -> magnitude $ tOffset x)
-              stdTolerance stdIterations (domainLower tr) (domainUpper tr) w
-  where
-    tOffset x = tr `atParam` x
+-- Set the default tail style. See `shaftSty`.
+tailSty :: ArrowOpts -> Style R2
+tailSty opts = fc black (opts^.tailStyle)
 
 -- | Calculate the length of the portion of the horizontal line that passes
 --   through the origin and is inside of p.
--- XXX It may be possible to do away with this function by utilizing the new
--- XXX snug functions in TwoD.Align.
 xWidth :: (Traced t, V t ~ R2) => t -> Double
 xWidth p = a + b
   where
@@ -187,12 +201,21 @@ xWidth p = a + b
     b = fromMaybe 0 (magnitude <$> traceV origin unit_X p)
 
 -- | Get the line color from the shaft to use as the fill color for the joint.
-colorJoint :: (Style v -> Style v) -> Style v
+colorJoint :: Style v -> Style v
 colorJoint sStyle =
-    let c = fmap getLineColor . getAttr $ sStyle mempty in
+    let c = fmap getLineColor . getAttr $ sStyle in
     case c of
-        Nothing -> mempty
+        Nothing -> fillColor (black :: Colour Double)   -- default color for joints
+                   $ mempty
         Just c' -> fillColor c' $ mempty
+
+-- | Get line width from a style.
+widthOfJoint :: Style v -> Double
+widthOfJoint sStyle =
+    let w = fmap getLineWidth . getAttr $ sStyle in
+    case w of
+        Nothing -> defShaftWidth -- this case should never happen.
+        Just w' -> w'
 
 -- | Combine the head and its joint into a single scale invariant diagram
 --   and move the origin to the attachment point. Return the diagram
@@ -201,64 +224,64 @@ mkHead :: Renderable (Path R2) b => ArrowOpts -> (Diagram b R2, Double)
 mkHead opts = ( (j <> h) # moveOriginBy (jWidth *^ unit_X) # lw 0
               , hWidth + jWidth)
   where
-    (h', j') = (arrowHead opts) (headSize opts) (shaftWidth opts)
+    (h', j') = (opts^.arrowHead) (opts^.headSize) (widthOfJoint $ shaftSty opts)
     hWidth = xWidth h'
     jWidth = xWidth j'
-    h = scaleInvPrim h' unitX # (headStyle opts)
-    j = scaleInvPrim j' unitX # (shaftStyle opts)
-                              # applyStyle (colorJoint (shaftStyle opts))
+    h = scaleInvPrim h' unitX # applyStyle (headSty opts)
+    j = scaleInvPrim j' unitX # applyStyle (colorJoint (opts^.shaftStyle))
 
 -- | Just like mkHead only the attachment point is on the right.
 mkTail :: Renderable (Path R2) b => ArrowOpts -> (Diagram b R2, Double)
 mkTail opts = ( (t <> j) # moveOriginBy (jWidth *^ unitX) # lw 0
               , tWidth + jWidth)
   where
-    (t', j') = (arrowTail opts) (tailSize opts) (shaftWidth opts)
+    (t', j') = (opts^.arrowTail) (opts^.tailSize) (widthOfJoint $ shaftSty opts)
     tWidth = xWidth t'
     jWidth = xWidth j'
-    t = scaleInvPrim t' unitX # (tailStyle opts)
-    j = scaleInvPrim j' unitX # (shaftStyle opts)
-                              # applyStyle (colorJoint (shaftStyle opts))
-
--- | Find the vector pointing in the direction of the segment at its endpoint.
-endTangent :: Segment Closed R2 -> R2
-endTangent (Cubic _ c2 (OffsetClosed x2)) = (normalized (x2 ^-^ c2))
-endTangent (Linear (OffsetClosed x1)) = normalized x1
-
--- | Find the vector pointing in the direction of the segment away from
---   its starting point.
-startTangent :: Segment Closed R2 -> R2
-startTangent (Cubic c1 _ (OffsetClosed _)) = (normalized c1)
-startTangent (Linear (OffsetClosed x1)) = (normalized x1)
+    t = scaleInvPrim t' unitX # applyStyle (tailSty opts)
+    j = scaleInvPrim j' unitX # applyStyle (colorJoint (opts^.shaftStyle))
 
 -- | Make a trail with the same angles and offset as an arrow with tail width
 --   tw, head width hw and shaft of tr, such that the magnituted of the shaft
 --   offset is size. Used for calculating the offset of an arrow.
 spine :: Trail R2 -> Double -> Double -> Double -> Trail R2
-spine tr tw hw size = tS <> shaft <> hS
+spine tr tw hw size = tS <> tr # scale size <> hS
   where
-    tAngle = direction . startTangent $ (head $ trailSegments tr) :: Turn
-    hAngle = direction . endTangent $ (last $ trailSegments tr) :: Turn
-    shaft = tr # scale size
-    hSpine = trailFromOffsets [unitX] # scale hw # rotateBy hAngle
-    tSpine = trailFromOffsets [unitX] # scale tw # rotateBy tAngle
+    tSpine = trailFromOffsets [(normalized . tangentAtStart) $ tr] # scale tw
+    hSpine = trailFromOffsets [(normalized . tangentAtEnd) $ tr] # scale hw
     hS = if hw > 0 then hSpine else mempty
     tS = if tw > 0 then tSpine else mempty
 
--- | Calculate the amount required to scale a shaft trail so that an arrow with
---   head width hw and tail width tw has offset t. We use spine intead of the
---   arrow itself, since spine is a trail with the same offset and a trail
---   offset is readily available.
-shaftScale :: Trail R2 -> Double -> Double -> Double -> Double
-shaftScale tr tw hw t =
-    fInverse f stdTolerance stdIterations (1 / stdScale) stdScale t
-  where
-    f = magnitude . trailOffset . (spine tr tw hw)
+--  | Calculate the amount required to scale a shaft trail so that an arrow with
+--    head width hw and tail width tw has offset t.
+scaleFactor :: Trail R2 -> Double -> Double -> Double -> Double
+scaleFactor tr tw hw t
 
--- | Maximum scaling adjustment that can be applied to a trail to make the arrow
---   reach from its starting point to its end point.
-stdScale :: Double
-stdScale = 100
+  -- Let tv be a vector representing the tail width, i.e. a vector
+  -- of length tw tangent to the trail's start; similarly for hv.
+  -- Let v be the vector offset of the trail.
+  --
+  -- Then we want to find k such that
+  --
+  --   || tv + k*v + hv || = t.
+  --
+  -- We can solve by squaring both sides and expanding the LHS as a
+  -- dot product, resulting in a quadratic in k.
+
+  = case quadForm
+             (magnitudeSq v)
+             (2* (v <.> (tv ^+^ hv)))
+             (magnitudeSq (tv ^+^ hv) - t*t)
+    of
+      []  -> 1   -- no scale works, just return 1
+      [s] -> s   -- single solution
+      ss  -> maximum ss
+        -- we will usually get both a positive and a negative solution;
+        -- return the maximum (i.e. positive) solution
+  where
+    tv = tw *^ (tangentAtStart tr # normalized)
+    hv = hw *^ (tangentAtEnd   tr # normalized)
+    v  = trailOffset tr
 
 -- | @arrow len@ creates an arrow of length @len@ with default parameters.
 arrow :: Renderable (Path R2) b => Double -> Diagram b R2
@@ -266,26 +289,42 @@ arrow len = arrow' def len
 
 -- | @arrow' opts len@ creates an arrow of length @len@ using the
 --   given options.  In particular, it scales the given 'arrowShaft'
---   so that the entire arrow has length @len@. The size of
---   @arrowShaft@ is arbitrary since it will be scaled; however it
---   should be not be off by more than a factor of 'stdScale'.
+--   so that the entire arrow has length @len@.
 arrow' :: Renderable (Path R2) b => ArrowOpts -> Double -> Diagram b R2
-arrow' opts len = ar # rotateBy (- dir)
+arrow' opts len = dArrow # rotateBy (- dir)
   where
-    (h, hw') = mkHead opts
-    (t, tw') = mkTail opts
-    tr = arrowShaft opts
-    tw = tw' + tailGap opts
-    hw = hw' + headGap opts
-    tAngle = direction . startTangent $ (head $ trailSegments tr) :: Turn
-    hAngle = direction . endTangent $ (last $ trailSegments tr) :: Turn
-    sd = shaftScale tr tw hw len
-    tr' = tr # scale sd
-    shaft = strokeT tr' # lw (shaftWidth opts) # (shaftStyle opts)
-    hd = h # rotateBy hAngle # moveTo (origin .+^ tr' `atParam` (domainUpper tr'))
-    tl = t # rotateBy tAngle
-    dir = direction (trailOffset $ spine tr tw hw sd)
-    ar = moveOriginBy ((tw *^ (unit_X # rotateBy tAngle))) $ hd <> tl <> shaft
+    -- Make the head and tail and save their widths.
+    (h, hWidth') = mkHead opts
+    (t, tWidth') = mkTail opts
+
+    shaftTrail = opts^.arrowShaft
+
+    -- Adjust the head width and tail width to take into accoung gaps
+    tWidth = tWidth' + opts^.tailGap
+    hWidth = hWidth' + opts^.headGap
+
+    -- Calculate the angles that the head and tail should point.
+    tAngle = direction . tangentAtStart $ shaftTrail :: Turn
+    hAngle = direction . tangentAtEnd $ shaftTrail :: Turn
+
+    -- Calculte the scaling factor to apply to the shaft shaftTrail so that the entire
+    -- arrow will be of length len. Then apply it to the shaft and make the
+    -- shaft into a Diagram with using it's style.
+    sf = scaleFactor shaftTrail tWidth hWidth len
+    shaftTrail' = shaftTrail # scale sf
+    shaft = strokeT shaftTrail' # applyStyle (shaftSty opts)
+
+    -- Adjust the head and tail to point in the directions of the shaft ends.
+    h' = h # rotateBy hAngle
+           # moveTo (origin .+^ shaftTrail' `atParam` domainUpper shaftTrail')
+    t' = t # rotateBy tAngle
+
+    -- Find out what direction the arrow is pointing so we can set it back
+    -- to point in the direction unitX when we are done.
+    dir = direction (trailOffset $ spine shaftTrail tWidth hWidth sf)
+
+    -- Build the arrow and set it's origin at the start.
+    dArrow = moveOriginBy ((tWidth *^ (unit_X # rotateBy tAngle))) $ h' <> t' <> shaft
 
 -- | @arrowBetween s e@ creates an arrow pointing from @s@ to @e@
 --   with default parameters.
@@ -295,9 +334,7 @@ arrowBetween s e = arrowBetween' def s e
 -- | @arrowBetween' opts s e@ creates an arrow pointing from @s@ to
 --   @e@ using the given options.  In particular, it scales and
 --   rotates @arrowShaft@ to go between @s@ and @e@, taking head,
---   tail, and gaps into account.  The size of @arrowShaft@ is
---   arbitrary; however, it should be not be off by more than a factor
---   of 'stdScale'.
+--   tail, and gaps into account.
 arrowBetween'
   :: Renderable (Path R2) b =>
      ArrowOpts -> P2 -> P2 -> Diagram b R2
@@ -336,11 +373,11 @@ connect' opts n1 n2 =
     let [s,e] = map location [sub1, sub2]
     in  atop (arrowBetween' opts s e)
 
--- | Connect two diagrams at point on the perimeter of he diagrams, choosen
+-- | Connect two diagrams at point on the perimeter of the diagrams, choosen
 --   by angle.
 connectPerim
   :: (Renderable (Path R2) b, IsName n1, IsName n2, Angle a)
-  => n1 -> n2 -> a -> a
+ => n1 -> n2 -> a -> a
   -> (Diagram b R2 -> Diagram b R2)
 connectPerim = connectPerim' def
 
@@ -355,3 +392,24 @@ connectPerim' opts n1 n2 a1 a2 =
         s = fromMaybe os (maxTraceP os (unitX # rotate a1) sub1)
         e = fromMaybe oe (maxTraceP oe (unitX # rotate a2) sub2)
     in  atop (arrowBetween' opts s e)
+
+-- | Draw an arrow from diagram named "n1" to diagram named "n2".  The
+--   arrow lies on the line between the centres of the diagrams, but is
+--   drawn so that it stops at the boundaries of the diagrams, using traces
+--   to find the intersection points.
+connectOutside
+  :: (Renderable (Path R2) b, IsName n1, IsName n2)
+  => n1 -> n2 -> (Diagram b R2 -> Diagram b R2)
+connectOutside = connectOutside' def
+
+connectOutside'
+  :: (Renderable (Path R2) b, IsName n1, IsName n2)
+  => ArrowOpts -> n1 -> n2 -> (Diagram b R2 -> Diagram b R2)
+connectOutside' opts n1 n2 =
+  withName n1 $ \b1 ->
+  withName n2 $ \b2 ->
+    let v = location b2 .-. location b1
+        midpoint = location b1 .+^ (v/2)
+        s = fromJust $ traceP midpoint (-v) b1
+        e = fromJust $ traceP midpoint v b2
+    in atop (arrowBetween' opts s e)

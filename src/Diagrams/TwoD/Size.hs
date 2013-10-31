@@ -1,5 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TypeFamilies     #-}
+
+{-# OPTIONS_GHC -funbox-strict-fields #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Size
@@ -78,15 +80,15 @@ center2D = maybe origin (p2 . (mid *** mid)) . mm . (extentX &&& extentY)
 ------------------------------------------------------------
 
 -- | A specification of a (requested) rectangular size.
-data SizeSpec2D = Width  Double       -- ^ Specify an explicit
+data SizeSpec2D = Width  !Double       -- ^ Specify an explicit
                                       -- width. The height should be
                                       -- determined automatically (so
                                       -- as to preserve aspect ratio).
-                | Height Double       -- ^ Specify an explicit
+                | Height !Double       -- ^ Specify an explicit
                                       -- height. The width should be
                                       -- determined automatically (so
                                       -- as to preserve aspect ratio).
-                | Dims Double Double  -- ^ An explicit specification
+                | Dims !Double !Double  -- ^ An explicit specification
                                       -- of a width and height.
                 | Absolute            -- ^ Absolute size: use whatever
                                       -- size an object already has;

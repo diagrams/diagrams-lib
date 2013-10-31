@@ -3,6 +3,8 @@
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE Rank2Types                 #-}
+{-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE ViewPatterns               #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
@@ -31,7 +33,7 @@ module Diagrams.TwoD.Path
 
        , FillRule(..)
        , FillRuleA(..), getFillRule, fillRule
-       , StrokeOpts(..)
+       , StrokeOpts(..), vertexNames, queryFillRule
 
          -- ** Inside/outside testing
 
@@ -43,6 +45,9 @@ module Diagrams.TwoD.Path
        ) where
 
 import           Control.Applicative   (liftA2)
+import           Control.Lens          ( makeWrapped, makeLensesWith, (.~), (^.)
+                                       , generateSignatures, lensRules, op
+                                       , Lens, Lens', unwrapped)
 import qualified Data.Foldable         as F
 import           Data.Semigroup
 import           Data.Typeable
@@ -80,11 +85,65 @@ instance Traced (Trail R2) where
     . lineSegments
 
 instance Traced (Path R2) where
-  getTrace = F.foldMap getTrace . pathTrails
+  getTrace = F.foldMap getTrace . op Path
 
 ------------------------------------------------------------
 --  Constructing path-based diagrams  ----------------------
 ------------------------------------------------------------
+
+-- | Enumeration of algorithms or \"rules\" for determining which
+--   points lie in the interior of a (possibly self-intersecting)
+--   closed path.
+data FillRule = Winding  -- ^ Interior points are those with a nonzero
+                         --   /winding/ /number/.  See
+                         --   <http://en.wikipedia.org/wiki/Nonzero-rule>.
+              | EvenOdd  -- ^ Interior points are those where a ray
+                         --   extended infinitely in a particular
+                         --   direction crosses the path an odd number
+                         --   of times. See
+                         --   <http://en.wikipedia.org/wiki/Even-odd_rule>.
+    deriving (Eq, Show)
+
+instance Default FillRule where
+  def = Winding
+
+-- | A record of options that control how a path is stroked.
+--   @StrokeOpts@ is an instance of 'Default', so a @StrokeOpts@
+--   records can be created using @'with' { ... }@ notation.
+data StrokeOpts a
+  = StrokeOpts
+    { _vertexNames   :: [[a]]
+
+    , _queryFillRule :: FillRule
+
+    }
+
+makeLensesWith (generateSignatures .~ False $ lensRules) ''StrokeOpts
+
+-- | Atomic names that should be assigned to the vertices of the path so that
+--   they can be referenced later.  If there are not enough names, the extra
+--   vertices are not assigned names; if there are too many, the extra names
+--   are ignored.  Note that this is a /list of lists/ of names, since paths
+--   can consist of multiple trails.  The first list of names are assigned to
+--   the vertices of the first trail, the second list to the second trail, and
+--   so on.
+--
+--   The default value is the empty list.
+
+vertexNames :: forall a a'. Lens (StrokeOpts a) (StrokeOpts a') [[a]] [[a']]
+
+-- | The fill rule used for determining which points are inside the path.
+--   The default is 'Winding'.  NOTE: for now, this only affects the resulting
+--   diagram's 'Query', /not/ how it will be drawn!  To set the fill rule
+--   determining how it is to be drawn, use the 'fillRule' function.
+queryFillRule :: forall a. Lens' (StrokeOpts a) FillRule
+
+
+instance Default (StrokeOpts a) where
+  def = StrokeOpts
+        { _vertexNames    = []
+        , _queryFillRule = def
+        }
 
 -- | Convert a path into a diagram.  The resulting diagram has the
 --   names 0, 1, ... assigned to each of the path's vertices.
@@ -112,9 +171,9 @@ instance Renderable (Path R2) b => TrailLike (QDiagram b R2 Any) where
 --   ... }@ syntax may be used.
 stroke' :: (Renderable (Path R2) b, IsName a) => StrokeOpts a -> Path R2 -> Diagram b R2
 stroke' opts path
-  | null (pathTrails pLines) =           mkP pLoops
-  | null (pathTrails pLoops) = mkP pLines
-  | otherwise            = mkP pLines <> mkP pLoops
+  | null (pLines ^. unwrapped) =           mkP pLoops
+  | null (pLoops ^. unwrapped) = mkP pLines
+  | otherwise                   = mkP pLines <> mkP pLoops
   where
     (pLines,pLoops) = partitionPath (isLine . unLoc) path
     mkP p
@@ -122,47 +181,10 @@ stroke' opts path
          (getEnvelope p)
          (getTrace p)
          (fromNames . concat $
-           zipWith zip (vertexNames opts) ((map . map) subPoint (pathVertices p))
+           zipWith zip (opts^.vertexNames) ((map . map) subPoint (pathVertices p))
          )
-         (Query $ Any . flip (runFillRule (queryFillRule opts)) p)
+         (Query $ Any . flip (runFillRule (opts^.queryFillRule)) p)
 
--- | A record of options that control how a path is stroked.
---   @StrokeOpts@ is an instance of 'Default', so a @StrokeOpts@
---   records can be created using @'with' { ... }@ notation.
-data StrokeOpts a
-  = StrokeOpts
-    { vertexNames   :: [[a]]  -- ^ Atomic names that should be assigned
-                            --   to the vertices of the path so that
-                            --   they can be referenced later.  If
-                            --   there are not enough names, the extra
-                            --   vertices are not assigned names; if
-                            --   there are too many, the extra names
-                            --   are ignored.  Note that this is a
-                            --   /list of lists/ of names, since paths
-                            --   can consist of multiple trails.  The
-                            --   first list of names are assigned to
-                            --   the vertices of the first trail, the
-                            --   second list to the second trail, and
-                            --   so on.
-                            --
-                            --   The default value is the empty list.
-
-    , queryFillRule :: FillRule
-                            -- ^ The fill rule used for determining
-                            --   which points are inside the path.
-                            --   The default is 'Winding'.  NOTE: for
-                            --   now, this only affects the resulting
-                            --   diagram's 'Query', /not/ how it will
-                            --   be drawn!  To set the fill rule
-                            --   determining how it is to be drawn,
-                            --   use the 'fillRule' function.
-    }
-
-instance Default (StrokeOpts a) where
-  def = StrokeOpts
-        { vertexNames    = []
-        , queryFillRule = def
-        }
 
 -- | A composition of 'stroke' and 'pathFromTrail' for conveniently
 --   converting a trail directly into a diagram.
@@ -223,21 +245,7 @@ strokeLocLoop = stroke . trailLike . mapLoc wrapLoop
 --  Inside/outside testing
 ------------------------------------------------------------
 
--- | Enumeration of algorithms or \"rules\" for determining which
---   points lie in the interior of a (possibly self-intersecting)
---   closed path.
-data FillRule = Winding  -- ^ Interior points are those with a nonzero
-                         --   /winding/ /number/.  See
-                         --   <http://en.wikipedia.org/wiki/Nonzero-rule>.
-              | EvenOdd  -- ^ Interior points are those where a ray
-                         --   extended infinitely in a particular
-                         --   direction crosses the path an odd number
-                         --   of times. See
-                         --   <http://en.wikipedia.org/wiki/Even-odd_rule>.
-    deriving (Eq, Show)
 
-instance Default FillRule where
-  def = Winding
 
 runFillRule :: FillRule -> P2 -> Path R2 -> Bool
 runFillRule Winding = isInsideWinding
@@ -282,7 +290,7 @@ isInsideEvenOdd p = odd . crossings p
 -- | Compute the sum of /signed/ crossings of a path as we travel in the
 --   positive x direction from a given point.
 crossings :: P2 -> Path R2 -> Int
-crossings p = F.sum . map (trailCrossings p) . pathTrails
+crossings p = F.sum . map (trailCrossings p) . op Path
 
 -- | Compute the sum of signed crossings of a trail starting from the
 --   given point in the positive x direction.
@@ -332,8 +340,11 @@ trailCrossings p@(unp2 -> (x,y)) tr
 --   concatenation, so applying multiple clipping paths is sensible.
 --   The clipping region is the intersection of all the applied
 --   clipping paths.
-newtype Clip = Clip { getClip :: [Path R2] }
+newtype Clip = Clip [Path R2]
   deriving (Typeable, Semigroup)
+
+makeWrapped ''Clip
+
 instance AttributeClass Clip
 
 type instance V Clip = R2

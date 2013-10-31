@@ -17,38 +17,40 @@ module Diagrams.ThreeD.Vector
          unitX, unitY, unitZ, unit_X, unit_Y, unit_Z,
 
          -- * Converting between vectors and angles
-         direction, fromDirection
+         direction, fromDirection, angleBetween, angleBetweenDirs
        ) where
 
+import Control.Lens (op)
 import Data.VectorSpace
 import Data.Cross
 
-import Diagrams.Coordinates
 import Diagrams.ThreeD.Types
+import Diagrams.Coordinates
+
 
 -- | The unit vector in the positive X direction.
 unitX :: R3
-unitX = 1 & 0 & 0
+unitX = 1 ^& 0 ^& 0
 
 -- | The unit vector in the positive Y direction.
 unitY :: R3
-unitY = 0 & 1 & 0
+unitY = 0 ^& 1 ^& 0
 
 -- | The unit vector in the positive Z direction.
 unitZ :: R3
-unitZ = 0 & 0 & 1
+unitZ = 0 ^& 0 ^& 1
 
 -- | The unit vector in the negative X direction.
 unit_X :: R3
-unit_X = (-1) & 0 & 0
+unit_X = (-1) ^& 0 ^& 0
 
 -- | The unit vector in the negative Y direction.
 unit_Y :: R3
-unit_Y = 0 & (-1) & 0
+unit_Y = 0 ^& (-1) ^& 0
 
 -- | The unit vector in the negative Z direction.
 unit_Z :: R3
-unit_Z = 0 & 0 & (-1)
+unit_Z = 0 ^& 0 ^& (-1)
 
 
 -- | @direction v@ is the direction in which @v@ points.  Returns an
@@ -66,8 +68,8 @@ direction v
 -- | @fromDirection d@ is the unit vector in the direction @d@.
 fromDirection :: Direction d => d -> R3
 fromDirection (toSpherical -> (Spherical θ' φ')) = r3 (x,y,z) where
-  θ = getRad $ θ'
-  φ = getRad $ φ'
+  θ = op Rad $ θ'
+  φ = op Rad $ φ'
   x = cos θ * cos φ
   y = sin θ * cos φ
   z = sin φ
@@ -76,3 +78,7 @@ fromDirection (toSpherical -> (Spherical θ' φ')) = r3 (x,y,z) where
 angleBetween  :: (Angle a, Num a, Ord a) => R3 -> R3 -> a
 angleBetween v1 v2 = convertAngle . Rad $
                      atan2 (magnitude $ cross3 v1 v2) (v1 <.> v2)
+
+-- | compute the positive angle between the two vectors in their common plane
+angleBetweenDirs  :: (Direction d, Angle a, Num a, Ord a) => d -> d -> a
+angleBetweenDirs d1 d2 = angleBetween (fromDirection d1) (fromDirection d2)

@@ -7,10 +7,15 @@
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
 {-# LANGUAGE StandaloneDeriving         #-}
+{-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE TypeOperators              #-}
 {-# LANGUAGE UndecidableInstances       #-}
 {-# LANGUAGE ViewPatterns               #-}
+
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+-- We have an orphan Transformable FingerTree instance here.
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Trail
@@ -91,9 +96,14 @@ module Diagrams.Trail
 
        , SegTree(..), trailMeasure, numSegs, offset
 
+         -- ** Extracting segments
+
+       , GetSegment(..), getSegment
+
        ) where
 
 import           Control.Arrow       ((***))
+import           Control.Lens        (AnIso', iso, view, op, Wrapped(..))
 import           Data.AffineSpace
 import           Data.FingerTree     (FingerTree, ViewL (..), ViewR (..), (<|),
                                       (|>))
@@ -137,9 +147,15 @@ instance ( HasLinearMap (V a), InnerSpace (V a), OrderedField (Scalar (V a))
 --   also easily slice and dice them according to the measures
 --   (/e.g./, split off the smallest number of segments from the
 --   beginning which have a combined arc length of at least 5).
-newtype SegTree v = SegTree
-                  { getSegTree :: FingerTree (SegMeasure v) (Segment Closed v) }
+
+newtype SegTree v = SegTree (FingerTree (SegMeasure v) (Segment Closed v))
   deriving (Eq, Ord, Show)
+
+instance Wrapped (FingerTree (SegMeasure v) (Segment Closed v))
+                 (FingerTree (SegMeasure v) (Segment Closed v))
+                 (SegTree v)
+                 (SegTree v)
+  where wrapped = iso SegTree $ \(SegTree x) -> x
 
 type instance V (SegTree v) = v
 
@@ -150,7 +166,7 @@ deriving instance (OrderedField (Scalar v), InnerSpace v)
 
 instance (HasLinearMap v, InnerSpace v, OrderedField (Scalar v))
   => Transformable (SegTree v) where
-  transform t = SegTree . transform t . getSegTree
+  transform t = SegTree . transform t . op SegTree
 
 type instance Codomain (SegTree v) = v
 
@@ -183,7 +199,7 @@ instance (InnerSpace v, RealFrac (Scalar v), Floating (Scalar v))
     | otherwise = case FT.viewl after of
                     EmptyL    -> emptySplit
                     seg :< after' ->
-                      case seg `splitAtParam` (snd . properFraction $ p * tSegs) of
+                      case seg `splitAtParam` (snd . propFrac $ p * tSegs) of
                         (seg1, seg2) -> ( SegTree $ before |> seg1
                                         , SegTree $ seg2   <| after'
                                         )
@@ -253,14 +269,14 @@ numSegs :: ( Floating (Scalar v), Num c, Ord (Scalar v), InnerSpace v,
              FT.Measured (SegMeasure v) a
            )
         => a -> c
-numSegs = fromIntegral . trailMeasure 0 (getSum . getSegCount)
+numSegs = fromIntegral . trailMeasure 0 (getSum . op SegCount)
 
 -- | Compute the total offset of anything measured by 'SegMeasure'.
 offset :: ( Floating (Scalar v), Ord (Scalar v), InnerSpace v,
             FT.Measured (SegMeasure v) t
           )
        => t -> v
-offset = trailMeasure zeroV (getTotalOffset . oeOffset)
+offset = trailMeasure zeroV (op TotalOffset . view oeOffset)
 
 ------------------------------------------------------------
 --  Trails  ------------------------------------------------
@@ -366,7 +382,7 @@ instance (InnerSpace v, OrderedField (Scalar v)) => Enveloped (Trail' l v) where
   getEnvelope = withTrail' ftEnv (ftEnv . cutLoop)
     where
       ftEnv :: Trail' Line v -> Envelope v
-      ftEnv (Line t) = trailMeasure mempty oeEnvelope $ t
+      ftEnv (Line t) = trailMeasure mempty (view oeEnvelope) $ t
 
 instance (HasLinearMap v, InnerSpace v, OrderedField (Scalar v))
     => Renderable (Trail' o v) NullBackend where
@@ -376,12 +392,21 @@ instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
     => Parametric (Trail' l v) where
   atParam t p = withTrail'
                   (\(Line segT) -> segT `atParam` p)
-                  (\l -> cutLoop l `atParam` p')
+                  (\l -> cutLoop l `atParam` mod1 p)
                   t
-    where
-      pf = snd . properFraction $ p
-      p' | p >= 0    = pf
-         | otherwise = 1 + pf
+
+-- | Compute the remainder mod 1.  Convenient for constructing loop
+--   parameterizations that wrap around.
+mod1 :: RealFrac a => a -> a
+mod1 p = p'
+ where
+   pf = snd . propFrac $ p
+   p' | p >= 0    = pf
+      | otherwise = 1 + pf
+
+-- Get rid of defaulting warnings
+propFrac :: RealFrac a => a -> (Int, a)
+propFrac = properFraction
 
 instance Num (Scalar v) => DomainBounds (Trail' l v)
 
@@ -408,6 +433,137 @@ instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
       (\(Line t) -> arcLengthToParam eps t l)
       (\lp -> arcLengthToParam eps (cutLoop lp) l)
       tr
+
+--------------------------------------------------
+-- Extracting segments
+
+-- | A newtype wrapper around trails which exists solely for its
+--   'Parametric', 'DomainBounds' and 'EndValues' instances.  The idea
+--   is that if @tr@ is a trail, you can write, /e.g./
+--
+--   @
+--   getSegment tr `atParam` 0.6
+--   @
+--
+--   or
+--
+--   @
+--   atStart (getSegment tr)
+--   @
+--
+--   to get the segment at parameter 0.6 or the first segment in the
+--   trail, respectively.
+--
+--   The codomain for 'GetSegment', /i.e./ the result you get from
+--   calling 'atParam', 'atStart', or 'atEnd', is @Maybe (v, Segment
+--   Closed v, AnIso' (Scalar v) (Scalar v))@.  @Nothing@ results if
+--   the trail is empty; otherwise, you get:
+--
+--   * the offset from the start of the trail to the beginning of the
+--     segment,
+--
+--   * the segment itself, and
+--
+--   * a reparameterization isomorphism: in the forward direction, it
+--     translates from parameters on the whole trail to a parameters
+--     on the segment.  Note that for technical reasons you have to
+--     call 'cloneIso' on the @AnIso'@ value to get a real isomorphism
+--     you can use.
+newtype GetSegment t = GetSegment t
+
+-- | Create a 'GetSegment' wrapper around a trail, after which you can
+--   call 'atParam', 'atStart', or 'atEnd' to extract a segment.
+getSegment :: t -> GetSegment t
+getSegment = GetSegment
+
+type instance V (GetSegment t) = V t
+type instance Codomain (GetSegment t)
+  = Maybe
+    ( V t                                   -- offset from trail start to segment start
+    , Segment Closed (V t)                  -- the segment
+    , AnIso' (Scalar (V t)) (Scalar (V t))  -- reparameterization, trail <-> segment
+    )
+
+-- | Parameters less than 0 yield the first segment; parameters
+--   greater than 1 yield the last.  A parameter exactly at the
+--   junction of two segments yields the second segment (/i.e./ the
+--   one with higher parameter values).
+instance (InnerSpace v, OrderedField (Scalar v))
+    => Parametric (GetSegment (Trail' Line v)) where
+  atParam (GetSegment (Line (SegTree ft))) p
+    | p <= 0
+    = case FT.viewl ft of
+        EmptyL    -> Nothing
+        seg :< _  -> Just (zeroV, seg, reparam 0)
+
+    | p >= 1
+    = case FT.viewr ft of
+        EmptyR     -> Nothing
+        ft' :> seg -> Just (offset ft', seg, reparam (n-1))
+
+    | otherwise
+    = let (before, after) = FT.split ((p*n <) . numSegs) $ ft
+      in  case FT.viewl after of
+            EmptyL   -> Nothing
+            seg :< _ -> Just (offset before, seg, reparam (numSegs before))
+    where
+      n = numSegs ft
+      reparam k = iso (subtract k . (*n))
+                      ((/n) . (+ k))
+
+-- | The parameterization for loops wraps around, /i.e./ parameters
+--   are first reduced \"mod 1\".
+instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
+    => Parametric (GetSegment (Trail' Loop v)) where
+  atParam (GetSegment l) p = atParam (GetSegment (cutLoop l)) (mod1 p)
+
+instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
+    => Parametric (GetSegment (Trail v)) where
+  atParam (GetSegment t) p
+    = withTrail
+      ((`atParam` p) . GetSegment)
+      ((`atParam` p) . GetSegment)
+      t
+
+instance DomainBounds t => DomainBounds (GetSegment t) where
+  domainLower (GetSegment t) = domainLower t
+  domainUpper (GetSegment t) = domainUpper t
+
+instance (InnerSpace v, OrderedField (Scalar v))
+    => EndValues (GetSegment (Trail' Line v)) where
+  atStart (GetSegment (Line (SegTree ft)))
+    = case FT.viewl ft of
+        EmptyL   -> Nothing
+        seg :< _ ->
+          let n = numSegs ft
+          in  Just (zeroV, seg, iso (*n) (/n))
+
+  atEnd (GetSegment (Line (SegTree ft)))
+    = case FT.viewr ft of
+        EmptyR     -> Nothing
+        ft' :> seg ->
+          let n = numSegs ft
+          in  Just (offset ft', seg, iso (subtract (n-1) . (*n))
+                                         ((/n) . (+ (n-1)))
+                   )
+
+instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
+    => EndValues (GetSegment (Trail' Loop v)) where
+  atStart (GetSegment l) = atStart (GetSegment (cutLoop l))
+  atEnd   (GetSegment l) = atEnd   (GetSegment (cutLoop l))
+
+instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
+    => EndValues (GetSegment (Trail v)) where
+  atStart (GetSegment t)
+    = withTrail
+      (\l -> atStart (GetSegment l))
+      (\l -> atStart (GetSegment l))
+      t
+  atEnd (GetSegment t)
+    = withTrail
+      (\l -> atEnd (GetSegment l))
+      (\l -> atEnd (GetSegment l))
+      t
 
 --------------------------------------------------
 -- The Trail type
@@ -643,12 +799,11 @@ trailFromVertices = wrapTrail . lineFromVertices
 --
 --   <<diagrams/src_Diagrams_Trail_glueLineEx.svg#diagram=glueLineEx&width=500>>
 --
---   > import Diagrams.Coordinates
---   > glueLineEx = pad 1.1 . hcat' with {sep = 1}
+--   > glueLineEx = pad 1.1 . hcat' (with & sep .~ 1)
 --   >   $ [almostClosed # strokeLine, almostClosed # glueLine # strokeLoop]
 --   >
 --   > almostClosed :: Trail' Line R2
---   > almostClosed = fromOffsets [2 & (-1), (-3) & (-0.5), (-2) & 1, 1 & 0.5]
+--   > almostClosed = fromOffsets $ map r2 [(2, -1), (-3, -0.5), (-2, 1), (1, 0.5)]
 --
 --   @glueLine@ is left inverse to 'cutLoop', that is,
 --
@@ -688,7 +843,7 @@ glueTrail = onTrail glueLine id
 --
 --   <<diagrams/src_Diagrams_Trail_closeLineEx.svg#diagram=closeLineEx&width=500>>
 --
---   > closeLineEx = pad 1.1 . centerXY . hcat' with {sep = 1}
+--   > closeLineEx = pad 1.1 . centerXY . hcat' (with & sep .~ 1)
 --   >   $ [almostClosed # strokeLine, almostClosed # closeLine # strokeLoop]
 closeLine :: Trail' Line v -> Trail' Loop v
 closeLine (Line t) = Loop t (Linear OffsetOpen)
@@ -716,7 +871,7 @@ cutLoop (Loop (SegTree t) c) =
     (_   , Cubic c1 c2 OffsetOpen) -> Line (SegTree (t |> Cubic c1 c2 off))
   where
     offV :: v
-    offV = negateV . trailMeasure zeroV (getTotalOffset . oeOffset) $ t
+    offV = negateV . trailMeasure zeroV (op TotalOffset .view oeOffset) $ t
     off = OffsetClosed offV
 
 -- | @cutTrail@ is a variant of 'cutLoop' for 'Trail'; it is the is
@@ -799,7 +954,7 @@ loopOffsets = lineOffsets . cutLoop
 --   there is no corresponding @loopOffset@ function because by
 --   definition it would be constantly zero.)
 lineOffset :: (InnerSpace v, OrderedField (Scalar v)) => Trail' Line v -> v
-lineOffset (Line t) = trailMeasure zeroV (getTotalOffset . oeOffset) t
+lineOffset (Line t) = trailMeasure zeroV (op TotalOffset . view oeOffset) t
 
 -- | Extract the vertices of a concretely located trail.  Note that
 --   for loops, the starting vertex will /not/ be repeated at the end.

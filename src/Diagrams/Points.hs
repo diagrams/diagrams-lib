@@ -22,23 +22,13 @@ module Diagrams.Points
 
        ) where
 
-import           Diagrams.Coordinates
 import           Diagrams.Core.Points
 
-import           Control.Newtype
+import           Control.Arrow          ((&&&))
 
-import           Control.Arrow        ((&&&))
-
+import           Data.AffineSpace.Point
 import           Data.VectorSpace
 
 -- | The centroid of a set of /n/ points is their sum divided by /n/.
 centroid :: (VectorSpace v, Fractional (Scalar v)) => [Point v] -> Point v
-centroid = pack . uncurry (^/) . (sumV &&& (fromIntegral . length)) . map unpack
-
-instance Coordinates v => Coordinates (Point v) where
-  type FinalCoord (Point v)    = FinalCoord v
-  type PrevDim (Point v)       = PrevDim v
-  type Decomposition (Point v) = Decomposition v
-
-  x & y        = P (x & y)
-  coords (P v) = coords v
+centroid = P . uncurry (^/) . (sumV &&& (fromIntegral . length)) . map unPoint

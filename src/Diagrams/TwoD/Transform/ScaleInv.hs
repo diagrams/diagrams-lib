@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeFamilies          #-}
 -----------------------------------------------------------------------------
 -- |
@@ -13,9 +14,12 @@
 -----------------------------------------------------------------------------
 
 module Diagrams.TwoD.Transform.ScaleInv
-    ( ScaleInv(..), scaleInv, scaleInvPrim )
+    ( ScaleInv(..)
+    , scaleInvObj, scaleInvDir, scaleInvLoc
+    , scaleInv, scaleInvPrim )
     where
 
+import           Control.Lens            (makeLenses, view)
 import           Data.AffineSpace        ((.-.))
 import           Data.Semigroup
 
@@ -57,11 +61,13 @@ import           Diagrams.TwoD.Vector
 
 data ScaleInv t =
   ScaleInv
-  { unScaleInv  :: t
-  , scaleInvDir :: R2
-  , scaleInvLoc :: P2
+  { _scaleInvObj  :: t
+  , _scaleInvDir :: R2
+  , _scaleInvLoc :: P2
   }
   deriving (Show)
+
+makeLenses ''ScaleInv
 
 -- | Create a scale-invariant object pointing in the given direction,
 --   located at the origin.
@@ -161,7 +167,7 @@ instance (V t ~ R2, Transformable t) => IsPrim (ScaleInv t) where
       t''                       = transform t1 t'
 
 instance (Renderable t b, V t ~ R2) => Renderable (ScaleInv t) b where
-  render b = render b . unScaleInv
+  render b = render b . view scaleInvObj
 
 -- | Create a diagram from a single scale-invariant primitive.  The
 --   vector argument specifies the direction in which the primitive is

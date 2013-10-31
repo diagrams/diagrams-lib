@@ -20,9 +20,9 @@ module Diagrams.TwoD.Arc
 
     , wedge
     , arcBetween
+    , annularWedge
     ) where
 
-import           Diagrams.Coordinates
 import           Diagrams.Core
 import           Diagrams.Located        (at)
 import           Diagrams.Segment
@@ -36,6 +36,7 @@ import           Diagrams.Util           (tau, ( # ))
 import           Data.AffineSpace        ((.-.))
 import           Data.Semigroup          ((<>))
 import           Data.VectorSpace        (magnitude, negateV, (*^), (^-^))
+import           Diagrams.Coordinates
 
 -- For details of this approximation see:
 --   http://www.tinaja.com/glib/bezcirc2.pdf
@@ -47,7 +48,7 @@ import           Data.VectorSpace        (magnitude, negateV, (*^), (^-^))
 bezierFromSweepQ1 :: Rad -> Segment Closed R2
 bezierFromSweepQ1 s = fmap (^-^ v) . rotate (s/2) $ bezier3 c2 c1 p0
   where p0@(coords -> x :& y) = rotate (s/2) v
-        c1                    = ((4-x)/3)  &  ((1-x)*(3-x)/(3*y))
+        c1                    = ((4-x)/3)  ^&  ((1-x)*(3-x)/(3*y))
         c2                    = reflectY c1
         v                     = unitX
 
@@ -140,7 +141,7 @@ arc' r start end = trailLike $ scale (abs r) ts `at` (rotate start $ p2 (abs r,0
 --
 --   <<diagrams/src_Diagrams_TwoD_Arc_wedgeEx.svg#diagram=wedgeEx&width=400>>
 --
---   > wedgeEx = hcat' with {sep = 0.5}
+--   > wedgeEx = hcat' (with & sep .~ 0.5)
 --   >   [ wedge 1 (0 :: Turn) (1/4)
 --   >   , wedge 1 (7/30 :: Turn) (11/30)
 --   >   , wedge 1 (1/8 :: Turn) (7/8)
@@ -185,3 +186,24 @@ arcBetween p q ht = trailLike (a # rotateBy (direction v) # moveTo p)
         # translateY ((if ht > 0 then negate else id) (r-h))
         # translateX (d/2)
         # (if ht > 0 then reverseLocTrail else id)
+
+-- | Create an annular wedge of the given radii, beginning at the
+--   first angle and extending counterclockwise to the second.
+--   The radius of the outer circle is given first.
+--
+--   <<diagrams/src_Diagrams_TwoD_Arc_annularWedgeEx.svg#diagram=annularWedgeEx&width=400>>
+--
+--   > annularWedgeEx = hcat' (with & sep .~ 0.50)
+--   >   [ annularWedge 1 0.5 (0 :: Turn) (1/4)
+--   >   , annularWedge 1 0.3 (7/30 :: Turn) (11/30)
+--   >   , annularWedge 1 0.7 (1/8 :: Turn) (7/8)
+--   >   ]
+--   >   # fc blue
+--   >   # centerXY # pad 1.1
+annularWedge :: (Angle a, TrailLike p, V p ~ R2) => Double -> Double -> a -> a -> p
+annularWedge r1' r2' a1 a2 = trailLike . (`at` o) . glueTrail . wrapLine
+              $ fromOffsets [(r1'-r2') *^ e a1]
+                <> arc a1 a2 # scale r1'
+                <> fromOffsets [(r1'-r2') *^ negateV (e a2)]
+                <> arcCW a2 a1 # scale r2'
+  where o = origin # translate (r2' *^ e a1)

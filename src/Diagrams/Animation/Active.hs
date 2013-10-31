@@ -39,7 +39,6 @@ module Diagrams.Animation.Active where
 
 import           Control.Applicative (pure, (<$>))
 
-import           Diagrams.Align
 import           Diagrams.Core
 import           Diagrams.TrailLike
 

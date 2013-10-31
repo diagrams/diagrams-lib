@@ -5,6 +5,7 @@
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
 {-# LANGUAGE StandaloneDeriving         #-}
+{-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE UndecidableInstances       #-}
 {-# LANGUAGE ViewPatterns               #-}
@@ -28,7 +29,7 @@ module Diagrams.Path
 
          -- * Paths
 
-         Path(..)
+         Path(..), pathTrails
 
          -- * Constructing paths
          -- $construct
@@ -67,7 +68,8 @@ import           Diagrams.TrailLike
 import           Diagrams.Transform
 
 import           Control.Arrow        ((***))
-import           Control.Newtype      hiding (under)
+import           Control.Lens         ( Wrapped(..), mapped, over, view, iso
+                                      , unwrapped, wrapped, (%~), op)
 import           Data.AffineSpace
 import qualified Data.Foldable        as F
 import           Data.List            (partition)
@@ -82,8 +84,15 @@ import           Data.VectorSpace
 --   Hence, unlike trails, paths are not translationally invariant,
 --   and they form a monoid under /superposition/ (placing one path on
 --   top of another) rather than concatenation.
-newtype Path v = Path { pathTrails :: [Located (Trail v)] }
+newtype Path v = Path [Located (Trail v)]
   deriving (Semigroup, Monoid)
+
+instance Wrapped [Located (Trail v)] [Located (Trail v')] (Path v) (Path v')
+  where wrapped = iso Path $ \(Path x) -> x
+
+-- | Extract the located trails making up a 'Path'.
+pathTrails :: Path v -> [Located (Trail v)]
+pathTrails = op Path
 
 deriving instance Show v => Show (Path v)
 deriving instance Eq   v => Eq   (Path v)
@@ -91,12 +100,9 @@ deriving instance Ord  v => Ord  (Path v)
 
 type instance V (Path v) = v
 
-instance Newtype (Path v) [Located (Trail v)] where
-  pack   = Path
-  unpack = pathTrails
-
 instance VectorSpace v => HasOrigin (Path v) where
-  moveOriginTo = over Path . map . moveOriginTo
+  moveOriginTo = over unwrapped . map . moveOriginTo
+  --moveOriginTo = over pathTrails . map . moveOriginTo
 
 -- | Paths are trail-like; a trail can be used to construct a
 --   singleton path.
@@ -106,7 +112,7 @@ instance (InnerSpace v, OrderedField (Scalar v)) => TrailLike (Path v) where
 -- See Note [Transforming paths]
 instance (HasLinearMap v, InnerSpace v, OrderedField (Scalar v))
     => Transformable (Path v) where
-  transform = over Path . map . transform
+  transform = over unwrapped . map . transform
 
 {- ~~~~ Note [Transforming paths]
 
@@ -121,7 +127,7 @@ of the v's are inside Points and hence ought to be translated.
 instance (HasLinearMap v, InnerSpace v, OrderedField (Scalar v)) => IsPrim (Path v)
 
 instance (InnerSpace v, OrderedField (Scalar v)) => Enveloped (Path v) where
-  getEnvelope = F.foldMap trailEnvelope . pathTrails
+  getEnvelope = F.foldMap trailEnvelope . op Path --view pathTrails
           -- this type signature is necessary to work around an apparent bug in ghc 6.12.1
     where trailEnvelope :: Located (Trail v) -> Envelope v
           trailEnvelope (viewLoc -> (p, t)) = moveOriginTo ((-1) *. p) (getEnvelope t)
@@ -166,11 +172,11 @@ pathFromLocTrail = trailLike
 -- | Extract the vertices of a path, resulting in a separate list of
 --   vertices for each component trail (see 'trailVertices').
 pathVertices :: (InnerSpace v, OrderedField (Scalar v)) => Path v -> [[Point v]]
-pathVertices = map trailVertices . pathTrails
+pathVertices = map trailVertices . op Path
 
 -- | Compute the total offset of each trail comprising a path (see 'trailOffset').
 pathOffsets :: (InnerSpace v, OrderedField (Scalar v)) => Path v -> [v]
-pathOffsets = map (trailOffset . unLoc) . pathTrails
+pathOffsets = map (trailOffset . unLoc) . op Path
 
 -- | Compute the /centroid/ of a path (/i.e./ the average location of
 --   its vertices).
@@ -179,18 +185,18 @@ pathCentroid = centroid . concat . pathVertices
 
 -- | Convert a path into a list of lists of 'FixedSegment's.
 fixPath :: (InnerSpace v, OrderedField (Scalar v)) => Path v -> [[FixedSegment v]]
-fixPath = map fixTrail . unpack
+fixPath = map fixTrail . op Path
 
 -- | \"Explode\" a path by exploding every component trail (see
 --   'explodeTrail').
 explodePath :: (VectorSpace (V t), TrailLike t) => Path (V t) -> [[t]]
-explodePath = map explodeTrail . pathTrails
+explodePath = map explodeTrail . op Path
 
 -- | Partition a path into two paths based on a predicate on trails:
 --   the first containing all the trails for which the predicate returns
 --   @True@, and the second containing the remaining trails.
 partitionPath :: (Located (Trail v) -> Bool) -> Path v -> (Path v, Path v)
-partitionPath p = (pack *** pack) . partition p . unpack
+partitionPath p = (view wrapped *** view wrapped) . partition p . op Path
 
 ------------------------------------------------------------
 --  Modifying paths  ---------------------------------------
@@ -204,4 +210,4 @@ scalePath d p = (scale d `under` translation (origin .-. pathCentroid p)) p
 
 -- | Reverse all the component trails of a path.
 reversePath :: (InnerSpace v, OrderedField (Scalar v)) => Path v -> Path v
-reversePath = (over Path . map) reverseLocTrail
+reversePath = unwrapped . mapped %~ reverseLocTrail

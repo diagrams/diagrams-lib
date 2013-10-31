@@ -1,10 +1,10 @@
-{-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE TypeSynonymInstances #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE ViewPatterns #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE TypeOperators              #-}
+{-# LANGUAGE TypeSynonymInstances       #-}
+{-# LANGUAGE ViewPatterns               #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
@@ -21,32 +21,39 @@
 
 module Diagrams.ThreeD.Types
        ( -- * 3D Euclidean space
-         R3, r3, unr3
-       , P3, p3, unp3
+         R3, r3, unr3, mkR3
+       , P3, p3, unp3, mkP3
        , T3
+       , r3Iso, p3Iso
 
          -- * Two-dimensional angles
          -- | These are defined in "Diagrams.TwoD.Types" but
          --   reëxported here for convenience.
        , Angle(..)
-       , Turn(..), Rad(..), Deg(..)
+       , Turn(Turn), asTurn
+       , CircleFrac
+       , Rad(Rad), asRad
+       , Deg(Deg), asDeg
 
        , fullTurn, convertAngle, angleRatio
 
          -- * Directions in 3D
        , Direction(..)
        , Spherical(..)
+       , asSpherical
        ) where
 
-import Diagrams.Coordinates
-import Diagrams.TwoD.Types
-import Diagrams.Core
+import           Control.Applicative
+import           Control.Lens           (Iso', iso, over, Wrapped, wrapped, _1, _2, _3)
 
-import Control.Newtype
+import           Diagrams.Core
+import           Diagrams.TwoD.Types
+import           Diagrams.Coordinates
 
-import Data.Basis
-import Data.VectorSpace
-import Data.Cross
+import           Data.AffineSpace.Point
+import           Data.Basis
+import           Data.Cross
+import           Data.VectorSpace
 
 ------------------------------------------------------------
 -- 3D Euclidean space
@@ -55,23 +62,31 @@ import Data.Cross
 newtype R3 = R3 { unR3 :: (Double, Double, Double) }
   deriving (AdditiveGroup, Eq, Ord, Show, Read)
 
-instance Newtype R3 (Double, Double, Double) where
-  pack   = R3
-  unpack = unR3
+r3Iso :: Iso' R3 (Double, Double, Double)
+r3Iso = iso unR3 R3
 
 -- | Construct a 3D vector from a triple of components.
 r3 :: (Double, Double, Double) -> R3
-r3 = pack
+r3 = R3
+
+-- | Curried version of `r3`.
+mkR3 :: Double -> Double -> Double -> R3
+mkR3 x y z = r3 (x, y, z)
 
 -- | Convert a 3D vector back into a triple of components.
 unr3 :: R3 -> (Double, Double, Double)
-unr3 = unpack
+unr3 = unR3
+
+-- | Lens wrapped isomorphisms for R3.
+instance Wrapped (Double, Double, Double) (Double, Double, Double) R3 R3 where
+  wrapped = iso r3 unr3
+  {-# INLINE wrapped #-}
 
 type instance V R3 = R3
 
 instance VectorSpace R3 where
   type Scalar R3 = Double
-  (*^) = over R3 . (*^)
+  (*^) = over r3Iso . (*^)
 
 instance HasBasis R3 where
   type Basis R3 = Either () (Either () ()) -- = Basis (Double, Double, Double)
@@ -87,7 +102,7 @@ instance Coordinates R3 where
   type PrevDim R3          = R2
   type Decomposition R3    = Double :& Double :& Double
 
-  (coords -> x :& y) & z   = r3 (x,y,z)
+  (coords -> x :& y) ^& z   = r3 (x,y,z)
   coords (unR3 -> (x,y,z)) = x :& y :& z
 
 -- | Points in R^3.
@@ -95,11 +110,18 @@ type P3 = Point R3
 
 -- | Construct a 3D point from a triple of coordinates.
 p3 :: (Double, Double, Double) -> P3
-p3 = pack . pack
+p3 = P . R3
 
--- | Convert a 2D point back into a triple of coordinates.
+-- | Convert a 3D point back into a triple of coordinates.
 unp3 :: P3 -> (Double, Double, Double)
-unp3 = unpack . unpack
+unp3 = unR3 . unPoint
+
+p3Iso :: Iso' P3 (Double, Double, Double)
+p3Iso = iso unp3 p3
+
+-- | Curried version of `r3`.
+mkP3 :: Double -> Double -> Double -> P3
+mkP3 x y z = p3 (x, y, z)
 
 -- | Transformations in R^3.
 type T3 = Transformation R3
@@ -116,24 +138,52 @@ instance HasCross3 R3 where
 -- | Direction is a type class representing directions in R3.  The interface is
 -- based on that of the Angle class in 2D.
 
-class AdditiveGroup d => Direction d where
+class Direction d where
     -- | Convert to polar angles
     toSpherical :: Angle a => d -> Spherical a
 
     -- | Convert from polar angles
     fromSpherical :: Angle a => Spherical a -> d
 
-instance Angle a => AdditiveGroup (Spherical a) where
-    zeroV = Spherical 0 0
-    (Spherical θ φ) ^+^ (Spherical θ' φ') = Spherical (θ+θ') (φ+φ')
-    negateV (Spherical θ φ) = Spherical (-θ) (-φ)
-
-instance Angle a => Direction (Spherical a) where
-    toSpherical (Spherical θ φ) = Spherical (convertAngle θ) (convertAngle φ)
-    fromSpherical (Spherical θ φ) = Spherical (convertAngle θ) (convertAngle φ)
-
 -- | A direction expressed as a pair of spherical coordinates.
 -- `Spherical 0 0` is the direction of `unitX`.  The first coordinate
 -- represents rotation about the Z axis, the second rotation towards the Z axis.
-data Angle a => Spherical a = Spherical a a
-                            deriving (Show)
+data Spherical a = Spherical a a
+                   deriving (Show, Read, Eq)
+
+instance Applicative Spherical where
+    pure a = Spherical a a
+    Spherical a b <*> Spherical c d = Spherical (a c) (b d)
+
+instance Functor Spherical where
+    fmap f s = pure f <*> s
+
+instance (Angle a) => Direction (Spherical a) where
+    toSpherical = fmap convertAngle
+    fromSpherical = fmap convertAngle
+
+-- | The identity function with a restricted type, for conveniently
+-- restricting unwanted polymorphism.  For example, @fromDirection
+-- . asSpherical . camForward@ gives a unit vector pointing in the
+-- direction of the camera view.  Without @asSpherical@, the
+-- intermediate type would be ambiguous.
+asSpherical :: Spherical Turn -> Spherical Turn
+asSpherical = id
+
+instance HasX R3 where
+    _x = r3Iso . _1
+
+instance HasX P3 where
+    _x = p3Iso . _1
+
+instance HasY R3 where
+    _y = r3Iso . _2
+
+instance HasY P3 where
+    _y = p3Iso . _2
+
+instance HasZ R3 where
+    _z = r3Iso . _3
+
+instance HasZ P3 where
+    _z = p3Iso . _3

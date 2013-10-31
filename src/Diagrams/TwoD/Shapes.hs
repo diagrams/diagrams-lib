@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TemplateHaskell  #-}
 {-# LANGUAGE TypeFamilies     #-}
 
 -----------------------------------------------------------------------------
@@ -40,13 +41,12 @@ module Diagrams.TwoD.Shapes
          -- * Other shapes
 
        , roundedRect
-       , RoundedRectOpts(..)
+       , RoundedRectOpts(..), radiusTL, radiusTR, radiusBL, radiusBR
        , roundedRect'
        ) where
 
 import           Diagrams.Core
 
-import           Diagrams.Coordinates
 import           Diagrams.Located        (at)
 import           Diagrams.Path
 import           Diagrams.Segment
@@ -59,6 +59,7 @@ import           Diagrams.TwoD.Types
 
 import           Diagrams.Util
 
+import           Control.Lens            (makeLenses, op, (.~), (^.), (&))
 import           Data.Default.Class
 import           Data.Semigroup
 
@@ -66,27 +67,27 @@ import           Data.Semigroup
 --
 --   <<diagrams/src_Diagrams_TwoD_Shapes_hruleEx.svg#diagram=hruleEx&width=300>>
 --
---   > hruleEx = vcat' with {sep = 0.2} (map hrule [1..5])
+--   > hruleEx = vcat' (with & sep .~ 0.2) (map hrule [1..5])
 --   >         # centerXY # pad 1.1
 hrule :: (TrailLike t, V t ~ R2) => Double -> t
-hrule d = trailLike $ trailFromSegments [straight (d & 0)] `at` (p2 (-d/2,0))
+hrule d = trailLike $ trailFromSegments [straight $ r2 (d, 0)] `at` (p2 (-d/2,0))
 
 -- | Create a centered vertical (T-B) line of the given length.
 --
 --   <<diagrams/src_Diagrams_TwoD_Shapes_vruleEx.svg#diagram=vruleEx&height=100>>
 --
---   > vruleEx = hcat' with {sep = 0.2} (map vrule [1, 1.2 .. 2])
+--   > vruleEx = hcat' (with & sep .~ 0.2) (map vrule [1, 1.2 .. 2])
 --   >         # centerXY # pad 1.1
 vrule :: (TrailLike t, V t ~ R2) => Double -> t
-vrule d = trailLike $ trailFromSegments [straight (0 & (-d))] `at` (p2 (0,d/2))
+vrule d = trailLike $ trailFromSegments [straight $ r2 (0, (-d))] `at` (p2 (0,d/2))
 
 -- | A square with its center at the origin and sides of length 1,
 --   oriented parallel to the axes.
 --
 --   <<diagrams/src_Diagrams_TwoD_Shapes_unitSquareEx.svg#diagram=unitSquareEx&width=100>>
 unitSquare :: (TrailLike t, V t ~ R2) => t
-unitSquare = polygon with { polyType   = PolyRegular 4 (sqrt 2 / 2)
-                          , polyOrient = OrientH }
+unitSquare = polygon (def & polyType   .~ PolyRegular 4 (sqrt 2 / 2)
+                          & polyOrient .~ OrientH)
 
 -- > unitSquareEx = unitSquare # pad 1.1 # showOrigin
 
@@ -97,7 +98,7 @@ unitSquare = polygon with { polyType   = PolyRegular 4 (sqrt 2 / 2)
 square :: (TrailLike t, Transformable t, V t ~ R2) => Double -> t
 square d = rect d d
 
--- > squareEx = hcat' with {sep = 0.5} [square 1, square 2, square 3]
+-- > squareEx = hcat' (with & sep .~ 0.5) [square 1, square 2, square 3]
 -- >          # centerXY # pad 1.1 # lw 0.03
 
 -- | @rect w h@ is an axis-aligned rectangle of width @w@ and height
@@ -105,7 +106,7 @@ square d = rect d d
 --
 --   <<diagrams/src_Diagrams_TwoD_Shapes_rectEx.svg#diagram=rectEx&width=150>>
 rect :: (TrailLike t, Transformable t, V t ~ R2) => Double -> Double -> t
-rect w h = trailLike . head . pathTrails $ unitSquare # scaleX w # scaleY h
+rect w h = trailLike . head . op Path $ unitSquare # scaleX w # scaleY h
 
 -- > rectEx = rect 1 0.7 # pad 1.1
 
@@ -137,12 +138,12 @@ rect w h = trailLike . head . pathTrails $ unitSquare # scaleX w # scaleY h
 --
 --   The polygon will be oriented with one edge parallel to the x-axis.
 regPoly :: (TrailLike t, V t ~ R2) => Int -> Double -> t
-regPoly n l = polygon with { polyType =
+regPoly n l = polygon (def & polyType .~
                                PolySides
                                  (repeat (1/ fromIntegral n :: Turn))
                                  (replicate (n-1) l)
-                           , polyOrient = OrientH
-                           }
+                           & polyOrient .~ OrientH
+                           )
 
 -- > shapeEx sh   = sh 1 # pad 1.1
 -- > triangleEx   = shapeEx triangle
@@ -231,6 +232,16 @@ dodecagon = regPoly 12
 ------------------------------------------------------------
 --  Other shapes  ------------------------------------------
 ------------------------------------------------------------
+data RoundedRectOpts = RoundedRectOpts { _radiusTL :: Double
+                                       , _radiusTR :: Double
+                                       , _radiusBL :: Double
+                                       , _radiusBR :: Double
+                                       }
+
+makeLenses ''RoundedRectOpts
+
+instance Default RoundedRectOpts where
+  def = RoundedRectOpts 0 0 0 0
 
 -- | @roundedRect w h r@ generates a closed trail, or closed path
 --   centered at the origin, of an axis-aligned rectangle with width
@@ -245,19 +256,19 @@ dodecagon = regPoly 12
 --
 --   <<diagrams/src_Diagrams_TwoD_Shapes_roundedRectEx.svg#diagram=roundedRectEx&width=400>>
 --
---   > roundedRectEx = pad 1.1 . centerXY $ hcat' with { sep = 0.2 }
+--   > roundedRectEx = pad 1.1 . centerXY $ hcat' (with & sep .~ 0.2)
 --   >   [ roundedRect  0.5 0.4 0.1
 --   >   , roundedRect  0.5 0.4 (-0.1)
---   >   , roundedRect' 0.7 0.4 with { radiusTL = 0.2
---   >                               , radiusTR = -0.2
---   >                               , radiusBR = 0.1 }
+--   >   , roundedRect' 0.7 0.4 (with & radiusTL .~ 0.2
+--   >                                & radiusTR .~ -0.2
+--   >                                & radiusBR .~ 0.1)
 --   >   ]
 
 roundedRect :: (TrailLike t, V t ~ R2) => Double -> Double -> Double -> t
-roundedRect w h r = roundedRect' w h (with { radiusTL = r,
-                                             radiusBR = r,
-                                             radiusTR = r,
-                                             radiusBL = r})
+roundedRect w h r = roundedRect' w h (def & radiusTL .~ r
+                                          & radiusBR .~ r
+                                          & radiusTR .~ r
+                                          & radiusBL .~ r)
 
 -- | @roundedRect'@ works like @roundedRect@ but allows you to set the radius of
 --   each corner indivually, using @RoundedRectOpts@. The default corner radius is 0.
@@ -286,7 +297,7 @@ roundedRect' w h opts
         rBL                 = clampCnr radiusBR radiusTL radiusTR radiusBL
         rTR                 = clampCnr radiusTL radiusBR radiusBL radiusTR
         rBR                 = clampCnr radiusBL radiusTR radiusTL radiusBR
-        clampCnr rx ry ro r = let (rx',ry',ro',r') = (rx opts, ry opts, ro opts, r opts)
+        clampCnr rx ry ro r = let (rx',ry',ro',r') = (opts^.rx, opts^.ry, opts^.ro, opts^.r)
                                 in clampDiag ro' . clampAdj h ry' . clampAdj w rx' $ r'
         -- prevent curves of adjacent corners from overlapping
         clampAdj len adj r  = if abs r > len/2
@@ -301,11 +312,3 @@ roundedRect' w h opts
                      | r < 0     = doArc 3 2
                      | otherwise = doArc 0 1
                      where doArc d d' = arc' r ((k+d)/4) ((k+d')/4:: Turn)
-
-data RoundedRectOpts = RoundedRectOpts { radiusTL :: Double
-                                       , radiusTR :: Double
-                                       , radiusBL :: Double
-                                       , radiusBR :: Double
-                                       }
-instance Default RoundedRectOpts where
-  def = RoundedRectOpts 0 0 0 0

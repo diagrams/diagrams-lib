@@ -1,5 +1,7 @@
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE Rank2Types            #-}
+{-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
 -----------------------------------------------------------------------------
@@ -29,13 +31,22 @@ module Diagrams.Combinators
          -- * n-ary operations
        , appends
        , position, decorateTrail, decorateLocatedTrail, decoratePath
-       , cat, cat', CatOpts(..), CatMethod(..)
+       , cat, cat'
+       , CatOpts(_catMethod, _sep), catMethod, sep
+       , CatMethod(..)
 
        ) where
 
+<<<<<<< HEAD
 import           Data.AdditiveGroup hiding (Sum, getSum)
+=======
+import           Control.Lens       ( (&), (%~), (.~), Lens', makeLensesWith
+                                    , lensRules, lensField, generateSignatures, unwrapping)
+import           Data.AdditiveGroup
+>>>>>>> master
 import           Data.AffineSpace   ((.+^))
 import           Data.Default.Class
+import           Data.Proxy
 import           Data.Semigroup
 import           Data.VectorSpace hiding (Sum, getSum)
 import           Data.Monoid.Cut
@@ -151,7 +162,7 @@ deformEnvelope
   :: ( Ord (Scalar v), Num (Scalar v), AdditiveGroup (Scalar v)
      , Floating (Scalar v), HasLinearMap v, InnerSpace v, Monoid' m )
   => (Scalar v) -> v -> QDiagram b v m -> QDiagram b v m
-deformEnvelope s v d = setEnvelope (inEnvelope deform $ getEnvelope d) d
+deformEnvelope s v d = setEnvelope (getEnvelope d & unwrapping Envelope %~ deform) d
   where
     deform = Option . fmap deform' . getOption
     deform' env v'
@@ -285,36 +296,48 @@ data CatMethod = Cat     -- ^ Normal catenation: simply put diagrams
                          --   of separation, diagrams may overlap.
 
 -- | Options for 'cat''.
-data CatOpts v = CatOpts { catMethod       :: CatMethod
-                             -- ^ Which 'CatMethod' should be used:
-                             --   normal catenation (default), or
-                             --   distribution?
-                         , sep             :: Scalar v
-                             -- ^ How much separation should be used
-                             --   between successive diagrams
-                             --   (default: 0)?  When @catMethod =
-                             --   Cat@, this is the distance between
-                             --   /envelopes/; when @catMethod =
-                             --   Distrib@, this is the distance
-                             --   between /origins/.
-                         , catOptsvProxy__ :: Proxy v
-                             -- ^ This field exists solely to aid type inference;
-                             --   please ignore it.
+data CatOpts v = CatOpts { _catMethod       :: CatMethod
+                         , _sep             :: Scalar v
+                         , _catOptsvProxy__ :: Proxy v
                          }
 
 -- The reason the proxy field is necessary is that without it,
 -- altering the sep field could theoretically change the type of a
--- CatOpts record.  This causes problems when writing an expression
--- like @with { sep = 10 }@, because knowing the type of the whole
+-- CatOpts record.  This causes problems when using record update, as
+-- in @with { _sep = 10 }@, because knowing the type of the whole
 -- expression does not tell us anything about the type of @with@, and
 -- therefore the @Num (Scalar v)@ constraint cannot be satisfied.
--- Adding the Proxy field constrains the type of @with@ in @with {sep
--- = 10}@ to be the same as the type of the whole expression.
+-- Adding the Proxy field constrains the type of @with@ in @with {_sep
+-- = 10}@ to be the same as the type of the whole expression.  Note
+-- this is not a problem when using the 'sep' lens, as its type is
+-- more restricted.
+
+makeLensesWith
+  ( lensRules
+    -- don't make a lens for the proxy field
+    & lensField .~ (\label ->
+        case label of
+          "_catOptsvProxy__" -> Nothing
+          _ -> Just (drop 1 label)
+        )
+    & generateSignatures .~ False
+  )
+  ''CatOpts
+
+-- | Which 'CatMethod' should be used:
+--   normal catenation (default), or distribution?
+catMethod :: forall v. Lens' (CatOpts v) CatMethod
+
+-- | How much separation should be used between successive diagrams
+--   (default: 0)?  When @catMethod = Cat@, this is the distance between
+--   /envelopes/; when @catMethod = Distrib@, this is the distance
+--   between /origins/.
+sep :: forall v. Lens' (CatOpts v) (Scalar v)
 
 instance Num (Scalar v) => Default (CatOpts v) where
-  def = CatOpts { catMethod       = Cat
-                , sep             = 0
-                , catOptsvProxy__ = Proxy
+  def = CatOpts { _catMethod       = Cat
+                , _sep             = 0
+                , _catOptsvProxy__ = Proxy
                 }
 
 -- | @cat v@ positions a list of objects so that their local origins
@@ -352,7 +375,7 @@ cat' :: ( Enveloped a, Juxtaposable a, Monoid' a, HasOrigin a
         , InnerSpace (V a), OrderedField (Scalar (V a))
         )
      => V a -> CatOpts (V a) -> [a] -> a
-cat' v (CatOpts { catMethod = Cat, sep = s }) = snd . foldB comb mempty . map setSpace
+cat' v (CatOpts { _catMethod = Cat, _sep = s }) = snd . foldB comb mempty . map setSpace
   where setSpace a = case getOption . unEnvelope . getEnvelope $ a of
             Nothing -> (Uncut (Sum s), a)
             Just _  -> (Sum 0 :||: Sum s, a)
@@ -365,5 +388,5 @@ cat' v (CatOpts { catMethod = Cat, sep = s }) = snd . foldB comb mempty . map se
           lhs (Uncut _)  = 0
           lhs (a :||: _) = getSum a
 
-cat' v (CatOpts { catMethod = Distrib, sep = s }) =
+cat' v (CatOpts { _catMethod = Distrib, _sep = s }) =
   position . zip (iterate (.+^ (s *^ normalized v)) origin)

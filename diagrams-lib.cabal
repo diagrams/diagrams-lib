@@ -40,6 +40,7 @@ Library
                        Diagrams.CubicSpline,
                        Diagrams.CubicSpline.Internal,
                        Diagrams.Solve,
+                       Diagrams.Tangent,
                        Diagrams.Transform,
                        Diagrams.BoundingBox,
                        Diagrams.Names,
@@ -72,6 +73,9 @@ Library
                        Diagrams.ThreeD.Shapes,
                        Diagrams.ThreeD.Vector,
                        Diagrams.ThreeD.Transform,
+                       Diagrams.ThreeD.Camera,
+                       Diagrams.ThreeD.Light,
+                       Diagrams.ThreeD
                        Diagrams.Animation,
                        Diagrams.Animation.Active,
                        Diagrams.Util,
@@ -79,18 +83,20 @@ Library
   Build-depends:       base >= 4.2 && < 4.8,
                        containers >= 0.3 && < 0.6,
                        array >= 0.3 && < 0.5,
-                       semigroups >= 0.3.4 && < 0.10,
+                       semigroups >= 0.3.4 && < 0.12,
                        monoid-extras >= 0.3 && < 0.4,
                        diagrams-core >= 0.7 && < 0.8,
                        active >= 0.1 && < 0.2,
                        vector-space >= 0.7.7 && < 0.9,
                        vector-space-points >= 0.1.2 && < 0.2,
+                       MemoTrie >= 0.6 && < 0.7,
                        NumInstances >= 1.2 && < 1.4,
                        colour >= 2.3.2 && < 2.4,
                        data-default-class < 0.1,
                        pretty >= 1.0.1.2 && < 1.2,
-                       newtype >= 0.2 && < 0.3,
                        fingertree >= 0.1 && < 0.2,
-                       intervals >= 0.2.2 && < 0.3
+                       intervals >= 0.2.2 && < 0.3,
+                       lens >= 3.9 && < 3.11,
+                       tagged >= 0.7
   Hs-source-dirs:      src
   default-language:    Haskell2010

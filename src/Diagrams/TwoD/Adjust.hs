@@ -40,8 +40,6 @@ import Data.Semigroup
 
 import Data.Default.Class
 
-import Data.Colour.Names    (black)
-
 -- | Set default attributes of a 2D diagram (in case they have not
 --   been set):
 --
