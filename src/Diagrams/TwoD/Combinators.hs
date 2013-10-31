@@ -109,14 +109,14 @@ atAngle th = beside (fromDirection th)
 --     "Diagrams.TwoD.Align" before applying 'hcat'.
 --
 --   * For non-axis-aligned layout, see 'cat'.
-hcat :: (Enveloped a, Juxtaposable a, HasOrigin a, Monoid' a, V a ~ R2)
+hcat :: (HasEmpty a, Juxtaposable a, HasOrigin a, Monoid' a, V a ~ R2)
      => [a] -> a
 hcat = hcat' def
 
 -- | A variant of 'hcat' taking an extra 'CatOpts' record to control
 --   the spacing.  See the 'cat'' documentation for a description of
 --   the possibilities.
-hcat' :: (Enveloped a, Juxtaposable a, HasOrigin a, Monoid' a, V a ~ R2)
+hcat' :: (HasEmpty a, Juxtaposable a, HasOrigin a, Monoid' a, V a ~ R2)
       => CatOpts R2 -> [a] -> a
 hcat' = cat' unitX
 
@@ -131,14 +131,14 @@ hcat' = cat' unitX
 --     "Diagrams.TwoD.Align" before applying 'vcat'.
 --
 --   * For non-axis-aligned layout, see 'cat'.
-vcat :: (Enveloped a, Juxtaposable a, HasOrigin a, Monoid' a, V a ~ R2)
+vcat :: (HasEmpty a, Juxtaposable a, HasOrigin a, Monoid' a, V a ~ R2)
      => [a] -> a
 vcat = vcat' def
 
 -- | A variant of 'vcat' taking an extra 'CatOpts' record to control
 --   the spacing.  See the 'cat'' documentation for a description of the
 --   possibilities.
-vcat' :: (Enveloped a, Juxtaposable a, HasOrigin a, Monoid' a, V a ~ R2)
+vcat' :: (HasEmpty a, Juxtaposable a, HasOrigin a, Monoid' a, V a ~ R2)
       => CatOpts R2 -> [a] -> a
 vcat' = cat' (negateV unitY)
 
