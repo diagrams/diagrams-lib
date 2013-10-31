@@ -20,7 +20,7 @@ module Diagrams.TwoD.Attributes (
 
   -- * Gradient
     GradientStop, SpreadMethod(..)
-  , LGradient(..), lGradStops, lGradVector, lGradStart, lGradEnd, lGradSpreadMethod
+  , LGradient(..), lGradStops, lGradTrans, lGradStart, lGradEnd, lGradSpreadMethod
   , RGradient(..), rGradStops, rGradRadius, rGradCenter, rGradFocus, rGradSpreadMethod
   , lineLGradient, lineRGradient
 
@@ -43,7 +43,7 @@ module Diagrams.TwoD.Attributes (
 
 import           Diagrams.Core
 import           Diagrams.Attributes (Color(..), SomeColor(..))
-import           Diagrams.TwoD.Types (R2, P2)
+import           Diagrams.TwoD.Types (T2, R2, P2)
 
 import           Control.Lens (makeLenses, makePrisms, (&), (%~))
 
@@ -63,7 +63,7 @@ data LGradient = LGradient
     { _lGradStops        :: [GradientStop]
     , _lGradStart        :: P2
     , _lGradEnd          :: P2
-    , _lGradVector       :: R2
+    , _lGradTrans       :: T2
     , _lGradSpreadMethod :: SpreadMethod }
 
 makeLenses ''LGradient
@@ -72,8 +72,9 @@ makeLenses ''LGradient
 data RGradient = RGradient
     { _rGradStops        :: [GradientStop]
     , _rGradRadius       :: Double
-    , _rGradCenter       :: R2
-    , _rGradFocus        :: R2
+    , _rGradCenter       :: P2
+    , _rGradFocus        :: P2
+    , _rGradTrans        :: T2
     , _rGradSpreadMethod :: SpreadMethod }
 
 makeLenses ''RGradient
@@ -92,10 +93,9 @@ type instance V LineTexture = R2
 instance Transformable LineTexture where
   transform t (LineTexture (Last texture)) = LineTexture (Last tx)
     where
-      tx = texture & lgV . rgC . rgF
-      lgV = _LG . lGradVector %~ f
-      rgC = _RG . rGradCenter %~ f
-      rgF = _RG . rGradFocus  %~ f
+      tx = texture & lgt . rgt
+      lgt = _LG . lGradTrans %~ f
+      rgt = _RG . rGradTrans %~ f
       f = transform t
 
 instance Default LineTexture where
@@ -132,10 +132,9 @@ instance Transformable FillTexture where
   transform _ tx@(FillTexture (Recommend _)) = tx
   transform t (FillTexture (Commit (Last texture))) = FillTexture (Commit (Last tx))
     where
-      tx = texture & lgV . rgC . rgF
-      lgV = _LG . lGradVector %~ f
-      rgC = _RG . rGradCenter %~ f
-      rgF = _RG . rGradFocus  %~ f
+      tx = texture & lgt . rgt
+      lgt= _LG . lGradTrans %~ f
+      rgt = _RG . rGradTrans %~ f
       f   = transform t
 
 getFillTexture :: FillTexture -> Texture
