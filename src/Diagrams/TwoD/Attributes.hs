@@ -44,8 +44,10 @@ module Diagrams.TwoD.Attributes (
 import           Diagrams.Core
 import           Diagrams.Attributes (Color(..), SomeColor(..))
 import           Diagrams.TwoD.Types (T2, R2, P2)
+import           Diagrams.TwoD.Transform.ScaleInv (scaleInv, scaleInvObj)
+import           Diagrams.TwoD.Vector (unitX)
 
-import           Control.Lens (makeLenses, makePrisms, (&), (%~))
+import           Control.Lens (makeLenses, makePrisms, (&), (%~), view)
 
 import           Data.Colour hiding (AffineSpace)
 import           Data.Default.Class
@@ -135,7 +137,8 @@ instance Transformable FillTexture where
       tx = texture & lgt . rgt
       lgt= _LG . lGradTrans %~ f
       rgt = _RG . rGradTrans %~ f
-      f   = transform t
+      si o = scaleInv o unitX
+      f   = (view scaleInvObj) . transform t . si
 
 getFillTexture :: FillTexture -> Texture
 getFillTexture (FillTexture tx) = getLast . getRecommend $ tx
