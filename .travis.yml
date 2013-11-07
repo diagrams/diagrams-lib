@@ -1,15 +1,29 @@
 language: haskell
+
+env:
+  matrix:
+    - HPVER=2012.4.0.0
+    - HPVER=2013.2.0.0
+    - GHCVER=7.4.2
+    - GHCVER=7.6.3
+    - GHCVER=head
+  global:
+    - CABALVER=1.18
+    - HEAD_DEPS="diagrams-core"
+
+matrix:
+  allow_failures:
+    - env: GHCVER=head
+
 before_install:
-  - cabal update
-  - git clone --quiet git://github.com/diagrams/diagrams-core.git diagrams/diagrams-core
-  - cd diagrams/diagrams-core
-  - if git branch -a |grep -x "  remotes/origin/${TRAVIS_BRANCH}" > /dev/null; then git checkout ${TRAVIS_BRANCH}; fi
-  - cd ../..
-  - cd diagrams
-  - cabal install diagrams-core/
-  - cd ..
-script:
-  - cabal configure --enable-tests && cabal build --ghc-options='-Wall -Werror' && cabal test && cabal haddock
+  - git clone http://github.com/diagrams/diagrams-travis travis
+  - source travis/scripts/set_env.sh
+  - ./travis/scripts/before_install.sh
+
+install: ./travis/scripts/install.sh
+
+script: ./travis/scripts/script.sh
+
 notifications:
   email: false
   irc:
