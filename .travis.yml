@@ -24,6 +24,7 @@ install: ./travis/scripts/install.sh
 
 script: ./travis/scripts/script.sh
 
+
 notifications:
   email: false
   irc:
