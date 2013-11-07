@@ -37,16 +37,18 @@ module Diagrams.Combinators
 
        ) where
 
+import           Data.AdditiveGroup hiding (Sum, getSum)
 import           Control.Lens       ( (&), (%~), (.~), Lens', makeLensesWith
                                     , lensRules, lensField, generateSignatures, unwrapping)
-import           Data.AdditiveGroup
 import           Data.AffineSpace   ((.+^))
 import           Data.Default.Class
 import           Data.Proxy
 import           Data.Semigroup
-import           Data.VectorSpace
+import           Data.VectorSpace hiding (Sum, getSum)
+import           Data.Monoid.Cut
 
 import           Diagrams.Core
+import           Diagrams.Core.Envelope
 import           Diagrams.Located
 import           Diagrams.Path
 import           Diagrams.Segment   (straight)
@@ -342,7 +344,7 @@ instance Num (Scalar v) => Default (CatOpts v) where
 --
 --   See also 'cat'', which takes an extra options record allowing
 --   certain aspects of the operation to be tweaked.
-cat :: ( Juxtaposable a, Monoid' a, HasOrigin a
+cat :: ( HasEmpty a, Juxtaposable a, Monoid' a, HasOrigin a
        , InnerSpace (V a), OrderedField (Scalar (V a))
        )
        => V a -> [a] -> a
@@ -365,13 +367,23 @@ cat v = cat' v def
 --   Note that @cat' v with {catMethod = Distrib} === mconcat@
 --   (distributing with a separation of 0 is the same as
 --   superimposing).
-cat' :: ( Juxtaposable a, Monoid' a, HasOrigin a
+cat' :: ( HasEmpty a, Juxtaposable a, Monoid' a, HasOrigin a
         , InnerSpace (V a), OrderedField (Scalar (V a))
         )
      => V a -> CatOpts (V a) -> [a] -> a
-cat' v (CatOpts { _catMethod = Cat, _sep = s }) = foldB comb mempty
-  where comb d1 d2 = d1 <> (juxtapose v d1 d2 # moveOriginBy vs)
-        vs = s *^ normalized (negateV v)
+cat' v (CatOpts { _catMethod = Cat, _sep = s })
+    = snd . foldB comb mempty . map setSpace
+  where setSpace a = if isEmpty a
+                     then (Uncut (Sum s), a)
+                     else (Sum 0 :||: Sum s, a)
+        unit = normalized (negateV v)
+        comb (s1,d1) (s2,d2) = (s1 <> s2, d1 <> juxtapose v d1 d2 # moveOriginBy vs) where
+          vs = spacing *^ unit
+          spacing = rhs s1 ^+^ lhs s2
+          rhs (Uncut a)  = getSum a
+          rhs (_ :||: a) = getSum a
+          lhs (Uncut _)  = 0
+          lhs (a :||: _) = getSum a
 
 cat' v (CatOpts { _catMethod = Distrib, _sep = s }) =
   position . zip (iterate (.+^ (s *^ normalized v)) origin)
