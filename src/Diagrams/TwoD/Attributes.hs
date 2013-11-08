@@ -137,8 +137,9 @@ instance Transformable FillTexture where
       tx = texture & lgt . rgt
       lgt= _LG . lGradTrans %~ f
       rgt = _RG . rGradTrans %~ f
-      si o = scaleInv o unitX
-      f   = (view scaleInvObj) . transform t . si
+      f = transform t
+      --si o = scaleInv o unitX
+      --f   = (view scaleInvObj) . transform t . si
 
 getFillTexture :: FillTexture -> Texture
 getFillTexture (FillTexture tx) = getLast . getRecommend $ tx
