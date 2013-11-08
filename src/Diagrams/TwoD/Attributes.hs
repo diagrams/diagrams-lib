@@ -21,7 +21,7 @@ module Diagrams.TwoD.Attributes (
   -- * Gradient
     GradientStop, SpreadMethod(..)
   , LGradient(..), lGradStops, lGradTrans, lGradStart, lGradEnd, lGradSpreadMethod
-  , RGradient(..), rGradStops, rGradRadius, rGradCenter, rGradFocus, rGradSpreadMethod
+  , RGradient(..), rGradStops, rGradTrans, rGradRadius, rGradCenter, rGradFocus, rGradSpreadMethod
   , lineLGradient, lineRGradient
 
   -- * Texture
@@ -43,20 +43,20 @@ module Diagrams.TwoD.Attributes (
 
 import           Diagrams.Core
 import           Diagrams.Attributes (Color(..), SomeColor(..))
-import           Diagrams.TwoD.Types (T2, R2, P2)
-import           Diagrams.TwoD.Transform.ScaleInv (scaleInv, scaleInvObj)
-import           Diagrams.TwoD.Vector (unitX)
+import           Diagrams.TwoD.Types (T2, R2, P2, mkP2)
 
-import           Control.Lens (makeLenses, makePrisms, (&), (%~), view)
+import           Control.Lens (makeLenses, makePrisms, (&), (%~))
 
 import           Data.Colour hiding (AffineSpace)
+import           Data.Colour.Names (white)
 import           Data.Default.Class
 import           Data.Typeable
 
 import           Data.Monoid.Recommend
 import           Data.Semigroup
 
-type GradientStop = (SomeColor, Double)
+-- | A stop is (color, proportion, opacity)
+type GradientStop = (SomeColor, Double, Double)
 
 data SpreadMethod = GradPad | GradReflect | GradRepeat
 
@@ -65,8 +65,18 @@ data LGradient = LGradient
     { _lGradStops        :: [GradientStop]
     , _lGradStart        :: P2
     , _lGradEnd          :: P2
-    , _lGradTrans       :: T2
+    , _lGradTrans        :: T2
     , _lGradSpreadMethod :: SpreadMethod }
+
+instance Default LGradient where
+  def = LGradient
+        { _lGradStops        = [ (SomeColor (black :: Colour Double), 0, 1)
+                               , (SomeColor (white :: Colour Double), 1, 1)]
+        , _lGradStart        = mkP2 0 0
+        , _lGradEnd          = mkP2 1 0
+        , _lGradTrans        = scaling 1
+        , _lGradSpreadMethod = GradPad
+        }
 
 makeLenses ''LGradient
 
@@ -135,11 +145,9 @@ instance Transformable FillTexture where
   transform t (FillTexture (Commit (Last texture))) = FillTexture (Commit (Last tx))
     where
       tx = texture & lgt . rgt
-      lgt= _LG . lGradTrans %~ f
+      lgt = _LG . lGradTrans %~ f
       rgt = _RG . rGradTrans %~ f
       f = transform t
-      --si o = scaleInv o unitX
-      --f   = (view scaleInvObj) . transform t . si
 
 getFillTexture :: FillTexture -> Texture
 getFillTexture (FillTexture tx) = getLast . getRecommend $ tx
@@ -154,7 +162,7 @@ recommendFillColorT :: (Color c, HasStyle a, V a ~ R2) => c -> a -> a
 recommendFillColorT = applyTAttr . FillTexture . Recommend . Last . SC . SomeColor
 
 fcT :: (HasStyle a, V a ~ R2) => Colour Double -> a -> a
-fcT= fillColorT
+fcT = fillColorT
 
 fcAT :: (HasStyle a, V a ~ R2) => AlphaColour Double -> a -> a
 fcAT = fillColorT
