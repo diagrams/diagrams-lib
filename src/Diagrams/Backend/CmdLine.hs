@@ -35,7 +35,7 @@ module Diagrams.Backend.CmdLine
        , fpu
 
        , Parseable(..)
-       , ToDiagram(..)
+       , ToResult(..)
        , Mainable(..)
        ) where
 
@@ -48,7 +48,6 @@ import Prelude
 
 import Control.Monad       (forM_)
 import Control.Applicative ((<$>))
--- import Data.List.Split
 import Data.Data
 import Data.Monoid
 import Data.Typeable
@@ -83,134 +82,6 @@ data DiagramAnimOpts = DiagramAnimOpts
   deriving (Show, Data, Typeable)
 
 makeLenses ''DiagramAnimOpts
-
--- | Parseable instances give a command line parser for a type.
---   If a custom parser for a common type is wanted a newtype
---   wrapper could be used to make a new 'Parseable' instance.
---   Notice that there are instances that we do /not/ want as
---   many instances as 'Read' because we want to limit ourselves
---   to things that make sense to parse from the command line.
-class Parseable a where
-    parser :: Parser a
-
--- The following instance would overlap with the product instance for
--- Parseable.  We can't tell if one wants to parse (a,b) as one argument or a
--- as one argument and b as another.  Since this is the command line we almost
--- certainly want the latter.  So we need to have less Read instances.
---
--- instance Read a => Parseable a where
---    parser = argument readMaybe mempty
-readMaybe :: Read a => String -> Maybe a
-readMaybe s = case reads s of
-                [(x,"")] -> Just x
-                _        -> Nothing
-
-instance Parseable Int where
-    parser = argument readMaybe mempty
-   
-instance Parseable Double where
-    parser = argument readMaybe mempty
-
-instance Parseable String where
-    parser = argument Just mempty
-
-instance Parseable DiagramOpts where
-    parser = diagramOpts
-
-instance Parseable DiagramMultiOpts where
-    parser = diagramMultiOpts
-
-instance Parseable DiagramAnimOpts where
-    parser = diagramAnimOpts
-
-
--- This instance is needed to signal the end of a chain of
--- nested tuples.
-instance Parseable () where
-    parser = pure ()
-
--- Allow 'Parseable' things to be combined.
-instance (Parseable a, Parseable b) => Parseable (a,b) where
-    parser = (,) <$> parser <*> parser
-
--- Allow lists of 'Parseable'.
-instance Parseable a => Parseable [a] where
-    parser = many parser
-
-
--- | This class allows us to collect up arguments as well as things that can
---   produce a diagram and in turn produce a diagram.  This will let us write
---   something akin to curry and uncurry.
-class ToDiagram d where
-    type Args d :: *
-    type DiagramResult d :: *
-
-    toDiagram :: d -> Args d -> DiagramResult d
-
--- | A diagram can always produce a diagram when given '()' as an argument.
---   This is our base case.
-instance ToDiagram (Diagram b v) where
-    type Args (Diagram b v) = ()
-    type DiagramResult (Diagram b v) = Diagram b v
-
-    toDiagram d _ = d
-
--- | A list of diagrams can produce pages.
-instance ToDiagram [Diagram b v] where
-   type Args [Diagram b v]  = ()
-   type DiagramResult [Diagram b v] = [Diagram b v]
-
-   toDiagram ds _ = ds
-
--- | A list of named diagrams can give the multi-diagram interface.
-instance ToDiagram [(String,Diagram b v)] where
-   type Args [(String,Diagram b v)]  = ()
-   type DiagramResult [(String,Diagram b v)] = [(String,Diagram b v)]
-
-   toDiagram ds _ = ds
-
--- | A function that, given some 'a', can produce a diagram producer 'd' is also
---   a diagram producer.  For this to work we need both the argument 'a' and
---   all the arguments that the diagram producer 'd' will need.  Producing the
---   diagram is simply applying the argument to the producer and passing the 
---   remaining arguments to the produced producer.
---
---   The previous paragraph stands as a witness to the fact that Haskell code
---   is clearer and easier to understand then paragraphs in English written by
---   me.
-instance ToDiagram d => ToDiagram (a -> d) where
-    type Args (a -> d) = (a, Args d)
-    type DiagramResult (a -> d) = DiagramResult d
-
-    toDiagram f (a,args) = toDiagram (f a) args
-
-
--- | This class represents the various ways we want to support diagram creation
---   from the command line.  It has the right instances to select between creating
---   single static diagrams, multiple static diagrams, static animations, and 
---   functions that produce diagrams as long as the arguments are 'Parseable'.
-class Mainable d where
-    type MainOpts d :: *
-
-    -- TODO: can we get rid of the d argument here?
-    mainArgs :: (Parseable a, Parseable (MainOpts d)) => d -> IO (MainOpts d, a)
-    mainArgs _ = defaultOpts ((,) <$> parser <*> parser)
-
-    mainRender :: MainOpts d -> d -> IO ()
-
-    mainWith :: Parseable (MainOpts d) => d -> IO ()
-    mainWith d = do
-        (opts,()) <- mainArgs d
-        mainRender opts d
-
--- | This instance allows functions resulting in something that is 'Mainable' to
---   be 'Mainable'.  It takes a parse of collected arguments and applies them to
---   the given function producing the 'Mainable' result.
-instance (Parseable a, Parseable (Args d), ToDiagram d, Mainable (DiagramResult d)) => Mainable (a -> d) where
-    type MainOpts (a -> d) = (MainOpts (DiagramResult (a -> d)), Args (a -> d))
-
-    mainRender (opts, a) f  = mainRender opts (toDiagram f a)
-
 
 -- | Command line parser for 'DiagramOpts'.
 diagramOpts :: Parser DiagramOpts
@@ -270,4 +141,134 @@ defaultOpts optsParser = do
                 ( fullDesc
                <> progDesc "Command-line diagram generation."
                <> header prog)
-    execParser p
+    execParser p-- | Parseable instances give a command line parser for a type.
+--   If a custom parser for a common type is wanted a newtype
+--   wrapper could be used to make a new 'Parseable' instance.
+--   Notice that there are instances that we do /not/ want as
+--   many instances as 'Read' because we want to limit ourselves
+--   to things that make sense to parse from the command line.
+class Parseable a where
+    parser :: Parser a
+
+-- The following instance would overlap with the product instance for
+-- Parseable.  We can't tell if one wants to parse (a,b) as one argument or a
+-- as one argument and b as another.  Since this is the command line we almost
+-- certainly want the latter.  So we need to have less Read instances.
+--
+-- instance Read a => Parseable a where
+--    parser = argument readMaybe mempty
+readMaybe :: Read a => String -> Maybe a
+readMaybe s = case reads s of
+                [(x,"")] -> Just x
+                _        -> Nothing
+
+instance Parseable Int where
+    parser = argument readMaybe mempty
+   
+instance Parseable Double where
+    parser = argument readMaybe mempty
+
+instance Parseable String where
+    parser = argument Just mempty
+
+instance Parseable DiagramOpts where
+    parser = diagramOpts
+
+instance Parseable DiagramMultiOpts where
+    parser = diagramMultiOpts
+
+instance Parseable DiagramAnimOpts where
+    parser = diagramAnimOpts
+
+
+-- This instance is needed to signal the end of a chain of
+-- nested tuples.
+instance Parseable () where
+    parser = pure ()
+
+-- Allow 'Parseable' things to be combined.
+instance (Parseable a, Parseable b) => Parseable (a,b) where
+    parser = (,) <$> parser <*> parser
+
+-- Allow lists of 'Parseable'.
+instance Parseable a => Parseable [a] where
+    parser = many parser
+
+
+-- | This class allows us to abstract over functions that take some arguments
+--   and produce a final value.  When something 'd' is an instance of
+--   'ToResult' we get a type 'Args d' that is the type of /all/ the arguments
+--   at once, and a type 'ResultOf d' that is the type of the final result from
+--   some base case instance.
+class ToResult d where
+    type Args d :: *
+    type ResultOf d :: *
+
+    toResult :: d -> Args d -> ResultOf d
+
+-- | A diagram can always produce a diagram when given '()' as an argument.
+--   This is our base case.
+instance ToResult (Diagram b v) where
+    type Args (Diagram b v) = ()
+    type ResultOf (Diagram b v) = Diagram b v
+
+    toResult d _ = d
+
+-- | A list of diagrams can produce pages.
+instance ToResult [Diagram b v] where
+   type Args [Diagram b v]  = ()
+   type ResultOf [Diagram b v] = [Diagram b v]
+
+   toResult ds _ = ds
+
+-- | A list of named diagrams can give the multi-diagram interface.
+instance ToResult [(String,Diagram b v)] where
+   type Args [(String,Diagram b v)]  = ()
+   type ResultOf [(String,Diagram b v)] = [(String,Diagram b v)]
+
+   toResult ds _ = ds
+
+-- | An instance for a function that, given some 'a', can produce a 'd' that is
+--   also an instance of 'ToResult'.  For this to work we need both the
+--   argument 'a' and all the arguments that 'd' will need.  Producing the
+--   result is simply applying the argument to the producer and passing the
+--   remaining arguments to the produced producer.
+--
+--   The previous paragraph stands as a witness to the fact that Haskell code
+--   is clearer and easier to understand then paragraphs in English written by
+--   me.
+instance ToResult d => ToResult (a -> d) where
+    type Args (a -> d) = (a, Args d)
+    type ResultOf (a -> d) = ResultOf d
+
+    toResult f (a,args) = toResult (f a) args
+
+
+-- | This class represents the various ways we want to support diagram creation
+--   from the command line.  It has the right instances to select between creating
+--   single static diagrams, multiple static diagrams, static animations, and 
+--   functions that produce diagrams as long as the arguments are 'Parseable'.
+class Mainable d where
+    type MainOpts d :: *
+
+    mainArgs :: (Parseable a, Parseable (MainOpts d)) => d -> IO (MainOpts d, a)
+    mainArgs _ = defaultOpts ((,) <$> parser <*> parser)
+
+    mainRender :: MainOpts d -> d -> IO ()
+
+    mainWith :: Parseable (MainOpts d) => d -> IO ()
+    mainWith d = do
+        (opts,()) <- mainArgs d
+        mainRender opts d
+
+-- | This instance allows functions resulting in something that is 'Mainable' to
+--   be 'Mainable'.  It takes a parse of collected arguments and applies them to
+--   the given function producing the 'Mainable' result.
+instance (Parseable a, Parseable (Args d), ToResult d, Mainable (ResultOf d))
+        => Mainable (a -> d) where
+    type MainOpts (a -> d) = (MainOpts (ResultOf (a -> d)), Args (a -> d))
+
+    mainRender (opts, a) f  = mainRender opts (toResult f a)
+
+
+
