@@ -12,7 +12,10 @@
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
 -- Diagrams may have /attributes/ which affect the way they are
--- rendered.  This module defines Gradients and Colors in TwoD.
+-- rendered. This module defines Gradients and Colors (Textures) in two
+-- dimensions. Some of these functions are carbon copies of funtions defined
+-- in Diagrams.Attributes, provided for backward compatability. Functions
+-- ending in T like /fcT/ have counterparts without the T, e.g. /fc/.
 --
 -----------------------------------------------------------------------------
 
@@ -25,7 +28,7 @@ module Diagrams.TwoD.Attributes (
   , lineLGradient, lineRGradient
 
   -- * Texture
-  ,  Texture(..), _SC, _LG, _RG
+  ,  Texture(..), _SC, _LG, _RG, defaultLG, defaultRG, mkStops
 
   -- * Line texture
   ,  LineTexture(..), getLineTexture, lineTexture
@@ -48,7 +51,6 @@ import           Diagrams.TwoD.Types (T2, R2, P2, mkP2)
 import           Control.Lens (makeLenses, makePrisms, (&), (%~))
 
 import           Data.Colour hiding (AffineSpace)
-import           Data.Colour.Names (white)
 import           Data.Default.Class
 import           Data.Typeable
 
@@ -68,16 +70,6 @@ data LGradient = LGradient
     , _lGradTrans        :: T2
     , _lGradSpreadMethod :: SpreadMethod }
 
-instance Default LGradient where
-  def = LGradient
-        { _lGradStops        = [ (SomeColor (black :: Colour Double), 0, 1)
-                               , (SomeColor (white :: Colour Double), 1, 1)]
-        , _lGradStart        = mkP2 0 0
-        , _lGradEnd          = mkP2 1 0
-        , _lGradTrans        = scaling 1
-        , _lGradSpreadMethod = GradPad
-        }
-
 makeLenses ''LGradient
 
 -- | Radial Gradient
@@ -95,6 +87,28 @@ data Texture = SC SomeColor | LG LGradient | RG RGradient
   deriving (Typeable)
 
 makePrisms ''Texture
+
+defaultLG :: Texture
+defaultLG = LG (LGradient
+    { _lGradStops        = []
+    , _lGradStart        = mkP2 0 0
+    , _lGradEnd          = mkP2 1 0
+    , _lGradTrans        = scaling 1
+    , _lGradSpreadMethod = GradPad
+    })
+
+defaultRG :: Texture
+defaultRG = RG (RGradient
+    { _rGradStops        = []
+    , _rGradRadius       = 1
+    , _rGradCenter       = mkP2 0 0
+    , _rGradFocus        = mkP2 0 0
+    , _rGradTrans        = scaling 1
+    , _rGradSpreadMethod = GradPad
+    })
+
+mkStops :: Color c => [(c, Double, Double)] -> [GradientStop]
+mkStops s = map (\(x, y, z) -> (SomeColor x, y, z)) s
 
 newtype LineTexture = LineTexture (Last Texture)
   deriving (Typeable, Semigroup)
@@ -136,6 +150,10 @@ lineRGradient g = lineTexture (RG g)
 
 newtype FillTexture = FillTexture (Recommend (Last Texture))
   deriving (Typeable, Semigroup)
+
+--instance Typeable FillTexture where
+--  typeOf _ = typeOf (FillColor undefined)
+
 instance AttributeClass FillTexture
 
 type instance V FillTexture = R2

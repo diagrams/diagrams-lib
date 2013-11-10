@@ -226,11 +226,14 @@ module Diagrams.TwoD
        , sized, sizedAs
 
         -- * Textures
-      , Texture(..), SpreadMethod(..), GradientStop
-      , LGradient(..), lGradStops, lGradTrans, lGradStart, lGradEnd, lGradSpreadMethod
+      , Texture(..), SpreadMethod(..), GradientStop, mkStops
+
+      , LGradient(..), lGradStops, lGradTrans, lGradStart, lGradEnd
+      , lGradSpreadMethod, defaultLG, _LG
+
       , RGradient(..)
       , rGradStops, rGradTrans, rGradRadius, rGradCenter, rGradFocus, rGradSpreadMethod
-      , getFillTexture, fillTexture
+      , getFillTexture, fillTexture, defaultRG, _RG
 
         -- ** Colors
       , fillColorT, fcT, fcAT, recommendFillColorT
