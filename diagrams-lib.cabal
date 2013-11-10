@@ -79,7 +79,8 @@ Library
                        Diagrams.Animation,
                        Diagrams.Animation.Active,
                        Diagrams.Util,
-                       Diagrams.Backend.Show
+                       Diagrams.Backend.Show,
+                       Diagrams.Backend.CmdLine
   Build-depends:       base >= 4.2 && < 4.8,
                        containers >= 0.3 && < 0.6,
                        array >= 0.3 && < 0.5,
@@ -97,6 +98,7 @@ Library
                        fingertree >= 0.1 && < 0.2,
                        intervals >= 0.3 && < 0.5,
                        lens >= 3.9 && < 3.11,
-                       tagged >= 0.7
+                       tagged >= 0.7,
+                       optparse-applicative >= 0.7 && < 0.8
   Hs-source-dirs:      src
   default-language:    Haskell2010
