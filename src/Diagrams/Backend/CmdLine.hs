@@ -44,6 +44,7 @@ module Diagrams.Backend.CmdLine
 
 import Diagrams.Core hiding (value)
 import Diagrams.Animation
+import Diagrams.Attributes
 import Control.Lens hiding (argument)
 
 import Options.Applicative hiding ((&))
@@ -54,8 +55,14 @@ import Control.Monad       (forM_)
 
 import Data.Active
 import Data.Data
+import Data.Char           (isDigit)
+import Data.Colour
+import Data.Colour.Names
+import Data.Colour.SRGB
 import Data.List           (intercalate)
 import Data.Monoid
+
+import Numeric
 
 import Safe                (readMay)
 
@@ -186,6 +193,43 @@ instance Parseable DiagramMultiOpts where
 
 instance Parseable DiagramAnimOpts where
     parser = diagramAnimOpts
+
+-- TODO: Would  instance Color c => Parseable c where ... make sense?
+--       Can it be written?
+instance Parseable (Colour Double) where
+    parser = argument (liftA2 (<|>) rc rh) mempty
+      where
+        rh s = (f . colorToSRGBA) <$> readHexColor s
+        rc s = readColourName s
+        f (r,g,b,_) = sRGB r g b -- TODO: this seems unfortunate.
+
+instance Parseable (AlphaColour Double) where
+    parser = argument (liftA2 (<|>) rc rh) mempty
+      where
+        rh s = readHexColor s
+        rc s = opaque <$> readColourName s
+
+-- Addapted from the Clay.Color module of the clay package
+readHexColor :: String -> Maybe (AlphaColour Double)
+readHexColor cs = case cs of
+     ('0':'x':hs) -> handle hs
+     ('#':hs)     -> handle hs
+     hs           -> handle hs
+  where
+    handle hs | length hs <= 8 && all isHexDigit hs
+      = case hs of
+        [a,b,c,d,e,f,g,h] -> withOpacity <$> (sRGB <$> hex a b <*> hex c d <*> hex e f) <*> hex g h
+        [a,b,c,d,e,f    ] -> opaque      <$> (sRGB <$> hex a b <*> hex c d <*> hex e f)
+        [a,b,c,d        ] -> withOpacity <$> (sRGB <$> hex a a <*> hex b b <*> hex c c) <*> hex d d
+        [a,b,c          ] -> opaque      <$> (sRGB <$> hex a a <*> hex b b <*> hex c c)
+        _                 -> Nothing
+    handle _ = Nothing
+
+    isHexDigit c = isDigit c || c `elem` "abcdef"
+
+    hex a b = (/ 255) <$> case readHex [a,b] of
+                [(h,"")] -> Just h
+                _        -> Nothing
 
 
 -- This instance is needed to signal the end of a chain of
