@@ -20,15 +20,17 @@
 -----------------------------------------------------------------------------
 
 module Diagrams.TwoD.Attributes (
+  -- * Gradients
+    Texture(..), _SC, _LG, _RG, defaultLG, defaultRG, mkStops, idTransform
+  , GradientStop, SpreadMethod(..), lineLGradient
 
-  -- * Gradient
-    GradientStop, SpreadMethod(..)
-  , LGradient(..), lGradStops, lGradTrans, lGradStart, lGradEnd, lGradSpreadMethod
-  , RGradient(..), rGradStops, rGradTrans, rGradRadius, rGradCenter, rGradFocus, rGradSpreadMethod
-  , lineLGradient, lineRGradient
+  -- ** Linear Gradients
+  , LGradient(..), lGradStops, lGradTrans, lGradStart, lGradEnd
+  , lGradSpreadMethod, mkLinearGradient
 
-  -- * Texture
-  ,  Texture(..), _SC, _LG, _RG, defaultLG, defaultRG, mkStops
+  -- ** Radial Gradients
+  , RGradient(..), rGradStops, rGradTrans, rGradRadius, rGradCenter, rGradFocus
+  , rGradSpreadMethod, mkRadialGradient
 
   -- * Line texture
   ,  LineTexture(..), getLineTexture, lineTexture
@@ -88,6 +90,10 @@ data Texture = SC SomeColor | LG LGradient | RG RGradient
 
 makePrisms ''Texture
 
+-- XXX replace with a general version of identity transform in core.
+idTransform :: Transformation R2
+idTransform = scaling 1
+
 defaultLG :: Texture
 defaultLG = LG (LGradient
     { _lGradStops        = []
@@ -100,7 +106,7 @@ defaultLG = LG (LGradient
 defaultRG :: Texture
 defaultRG = RG (RGradient
     { _rGradStops        = []
-    , _rGradRadius       = 1
+    , _rGradRadius       = 0.5
     , _rGradCenter       = mkP2 0 0
     , _rGradFocus        = mkP2 0 0
     , _rGradTrans        = scaling 1
@@ -109,6 +115,14 @@ defaultRG = RG (RGradient
 
 mkStops :: Color c => [(c, Double, Double)] -> [GradientStop]
 mkStops s = map (\(x, y, z) -> (SomeColor x, y, z)) s
+
+mkLinearGradient :: [GradientStop]  -> P2 -> P2 -> SpreadMethod -> Texture
+mkLinearGradient stops  start end spreadMethod
+  = LG (LGradient stops start end (scaling 1) spreadMethod)
+
+mkRadialGradient :: [GradientStop] -> Double -> P2 -> P2 -> SpreadMethod -> Texture
+mkRadialGradient stops radius center focus spreadMethod
+  = RG (RGradient stops radius center focus (scaling 1) spreadMethod)
 
 newtype LineTexture = LineTexture (Last Texture)
   deriving (Typeable, Semigroup)
@@ -150,9 +164,6 @@ lineRGradient g = lineTexture (RG g)
 
 newtype FillTexture = FillTexture (Recommend (Last Texture))
   deriving (Typeable, Semigroup)
-
---instance Typeable FillTexture where
---  typeOf _ = typeOf (FillColor undefined)
 
 instance AttributeClass FillTexture
 
