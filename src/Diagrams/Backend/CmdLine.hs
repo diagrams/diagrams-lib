@@ -51,15 +51,13 @@ import Options.Applicative hiding ((&))
 import Prelude
 
 import Control.Monad       (forM_)
-import Control.Applicative ((<$>))
 
 import Data.Active
 import Data.Data
 import Data.List           (intercalate)
 import Data.Monoid
-import Data.Typeable
 
-import System.Environment  (getArgs, getProgName)
+import System.Environment  (getProgName)
 import System.FilePath     (addExtension, splitExtension)
 
 import Text.Printf
