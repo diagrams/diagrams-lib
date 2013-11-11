@@ -37,9 +37,13 @@ module Diagrams.Backend.CmdLine
        , Parseable(..)
        , ToResult(..)
        , Mainable(..)
+
+       , defaultAnimMainRender
+       , defaultMultiMainRender
        ) where
 
 import Diagrams.Core hiding (value)
+import Diagrams.Animation
 import Control.Lens hiding (argument)
 
 import Options.Applicative hiding ((&))
@@ -48,12 +52,17 @@ import Prelude
 
 import Control.Monad       (forM_)
 import Control.Applicative ((<$>))
+
+import Data.Active
 import Data.Data
+import Data.List           (intercalate)
 import Data.Monoid
 import Data.Typeable
 
 import System.Environment  (getArgs, getProgName)
+import System.FilePath     (addExtension, splitExtension)
 
+import Text.Printf
 
 -- | Standard options most diagrams are likely to have.
 data DiagramOpts = DiagramOpts
@@ -270,5 +279,55 @@ instance (Parseable a, Parseable (Args d), ToResult d, Mainable (ResultOf d))
 
     mainRender (opts, a) f  = mainRender opts (toResult f a)
 
+-- | @defaultMultiMainRender@ is an implementation of 'mainRender' where
+--   instead of a single diagram it takes a list of diagrams paired with names
+--   as input.  The generated executable then takes a @--selection@ option
+--   specifying the name of the diagram that should be rendered.  The list of
+--   available diagrams may also be printed by passing the option @--list@.
+defaultMultiMainRender :: Mainable d => (MainOpts d, DiagramMultiOpts) -> [(String, d)] -> IO () 
+defaultMultiMainRender (opts,multi) ds =
+    if multi^.list
+      then showDiaList (map fst ds)
+      else case multi^.selection of
+             Nothing  -> putStrLn "No diagram selected." >> showDiaList (map fst ds)
+             Just sel -> case lookup sel ds of
+                           Nothing -> putStrLn $ "Unknown diagram: " ++ sel
+                           Just d  -> mainRender opts d
+
+-- | Display the list of diagrams available for rendering.
+showDiaList :: [String] -> IO ()
+showDiaList ds = do
+  putStrLn "Available diagrams:"
+  putStrLn $ "  " ++ intercalate " " ds
+
+-- | @defaultAnimMainRender@ is an implementation of 'mainRender' which renders
+-- an animation as numbered frames, named by extending the given output file
+-- name by consecutive integers.  For example if the given output file name is
+-- @foo\/blah.ext@, the frames will be saved in @foo\/blah001.ext@,
+-- @foo\/blah002.ext@, and so on (the number of padding digits used depends on
+-- the total number of frames).  It is up to the user to take these images and
+-- stitch them together into an actual animation format (using, /e.g./
+-- @ffmpeg@).
+--
+--   Of course, this is a rather crude method of rendering animations;
+--   more sophisticated methods will likely be added in the future.
+--
+-- The @fpu@ option from 'DiagramAnimOpts' can be used to control how many frames will
+-- be output for each second (unit time) of animation.
+defaultAnimMainRender :: (Mainable (Diagram b v), MainOpts (Diagram b v) ~ DiagramOpts) 
+                      => (DiagramOpts,DiagramAnimOpts) -> Animation b v -> IO ()
+defaultAnimMainRender (opts,animOpts) anim = do
+    let frames  = simulate (toRational $ animOpts^.fpu) anim
+        nDigits = length . show . length $ frames
+    forM_ (zip [1..] frames) $ \(i,d) -> mainRender (indexize nDigits i opts) d
+
+-- | @indexize d n@ adds the integer index @n@ to the end of the
+--   output file name, padding with zeros if necessary so that it uses
+--   at least @d@ digits.
+indexize :: Int -> Integer -> DiagramOpts -> DiagramOpts
+indexize nDigits i opts = opts & output .~ output'
+  where fmt         = "%0" ++ show nDigits ++ "d"
+        output'     = addExtension (base ++ printf fmt (i::Integer)) ext
+        (base, ext) = splitExtension (opts^.output)
 
 
