@@ -150,7 +150,9 @@ defaultOpts optsParser = do
                 ( fullDesc
                <> progDesc "Command-line diagram generation."
                <> header prog)
-    execParser p-- | Parseable instances give a command line parser for a type.
+    execParser p
+
+-- | Parseable instances give a command line parser for a type.
 --   If a custom parser for a common type is wanted a newtype
 --   wrapper could be used to make a new 'Parseable' instance.
 --   Notice that there are instances that we do /not/ want as
