@@ -57,6 +57,8 @@ import Data.Data
 import Data.List           (intercalate)
 import Data.Monoid
 
+import Safe                (readMay)
+
 import System.Environment  (getProgName)
 import System.FilePath     (addExtension, splitExtension)
 
@@ -163,17 +165,13 @@ class Parseable a where
 -- certainly want the latter.  So we need to have less Read instances.
 --
 -- instance Read a => Parseable a where
---    parser = argument readMaybe mempty
-readMaybe :: Read a => String -> Maybe a
-readMaybe s = case reads s of
-                [(x,"")] -> Just x
-                _        -> Nothing
+--    parser = argument readMay mempty
 
 instance Parseable Int where
-    parser = argument readMaybe mempty
+    parser = argument readMay mempty
    
 instance Parseable Double where
-    parser = argument readMaybe mempty
+    parser = argument readMay mempty
 
 instance Parseable String where
     parser = argument Just mempty
