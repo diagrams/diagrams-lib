@@ -34,6 +34,12 @@ module Diagrams.Backend.CmdLine
        , diagramAnimOpts
        , fpu
 
+       , DiagramLoopOpts(..)
+       , diagramLoopOpts
+       , loop
+       , src
+       , interval
+
        , Parseable(..)
        , ToResult(..)
        , Mainable(..)
@@ -54,7 +60,7 @@ import Prelude
 
 import Control.Monad       (forM_)
 
-import Data.Active
+import Data.Active  hiding (interval)
 import Data.Data
 import Data.Char           (isDigit)
 import Data.Colour
@@ -100,6 +106,15 @@ data DiagramAnimOpts = DiagramAnimOpts
 
 makeLenses ''DiagramAnimOpts
 
+-- | Extra options for command-line looping.
+data DiagramLoopOpts = DiagramLoopOpts
+    { _loop     :: Bool
+    , _src      :: Maybe FilePath
+    , _interval :: Int
+    }
+
+makeLenses ''DiagramLoopOpts
+
 -- | Command line parser for 'DiagramOpts'.
 diagramOpts :: Parser DiagramOpts
 diagramOpts = DiagramOpts
@@ -137,6 +152,19 @@ diagramAnimOpts = DiagramAnimOpts
         ( long "fpu" <> short 'f'
        <> value 30.0
        <> help "Frames per unit time (for animations)")
+
+-- | CommandLine parser for 'DiagramLoopOpts'
+diagramLoopOpts :: Parser DiagramLoopOpts
+diagramLoopOpts = DiagramLoopOpts
+    <$> switch (long "loop" <> help "Run in a self-recompiling loop")
+    <*> (optional . strOption)
+        ( long "src" <> short 's'
+       <> help "Source file to watch")
+    <*> option
+        ( long "interval" <> short 'i'
+       <> value 1
+       <> metavar "INTERVAL"
+       <> help "When running in a loop, check for changes every INTERVAL seconds.")
 
 -- | A hidden \"helper\" option which always fails.
 --   Taken from Options.Applicative.Extra but without the
@@ -199,6 +227,11 @@ instance Parseable DiagramMultiOpts where
 -- | Parse 'DiagramAnimOpts' using the 'diagramAnimOpts' parser.
 instance Parseable DiagramAnimOpts where
     parser = diagramAnimOpts
+
+-- | Parse 'DiagramLoopOpts' using the 'diagramLoopOpts' parser.
+instance Parseable DiagramLoopOpts where
+    parser = diagramLoopOpts
+
 
 -- | Parse @'Colour' Double@ as either a named color from "Data.Colour.Names"
 --   or a hexidecimal color.
