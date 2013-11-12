@@ -40,6 +40,7 @@ module Diagrams.Backend.CmdLine
 
        , defaultAnimMainRender
        , defaultMultiMainRender
+       , readHexColor
        ) where
 
 import Diagrams.Core hiding (value)
@@ -159,12 +160,11 @@ defaultOpts optsParser = do
                <> header prog)
     execParser p
 
--- | Parseable instances give a command line parser for a type.
---   If a custom parser for a common type is wanted a newtype
---   wrapper could be used to make a new 'Parseable' instance.
---   Notice that there are instances that we do /not/ want as
---   many instances as 'Read' because we want to limit ourselves
---   to things that make sense to parse from the command line.
+-- | Parseable instances give a command line parser for a type.  If a custom
+--   parser for a common type is wanted a newtype wrapper could be used to make
+--   a new 'Parseable' instance.  Notice that we do /not/ want as many
+--   instances as 'Read' because we want to limit ourselves to things that make
+--   sense to parse from the command line.
 class Parseable a where
     parser :: Parser a
 
@@ -176,33 +176,42 @@ class Parseable a where
 -- instance Read a => Parseable a where
 --    parser = argument readMay mempty
 
+-- | Parse 'Int' according to its 'Read' instance.
 instance Parseable Int where
     parser = argument readMay mempty
    
+-- | Parse 'Double' according to its 'Read' instance.
 instance Parseable Double where
     parser = argument readMay mempty
 
+-- | Parse a string by just accepting the given string.
 instance Parseable String where
     parser = argument Just mempty
 
+-- | Parse 'DiagramOpts' using the 'diagramOpts' parser.
 instance Parseable DiagramOpts where
     parser = diagramOpts
 
+-- | Parse 'DiagramMultiOpts' using the 'diagramMultiOpts' parser.
 instance Parseable DiagramMultiOpts where
     parser = diagramMultiOpts
 
+-- | Parse 'DiagramAnimOpts' using the 'diagramAnimOpts' parser.
 instance Parseable DiagramAnimOpts where
     parser = diagramAnimOpts
 
--- TODO: Would  instance Color c => Parseable c where ... make sense?
---       Can it be written?
+-- | Parse @'Colour' Double@ as either a named color from "Data.Colour.Names"
+--   or a hexidecimal color.
 instance Parseable (Colour Double) where
     parser = argument (liftA2 (<|>) rc rh) mempty
       where
         rh s = (f . colorToSRGBA) <$> readHexColor s
         rc s = readColourName s
-        f (r,g,b,_) = sRGB r g b -- TODO: this seems unfortunate.
+        f (r,g,b,_) = sRGB r g b -- TODO: this seems unfortunate.  Should the alpha
+                                 -- value be applied to the r g b values?
 
+-- | Parse @'AlphaColour' Double@ as either a named color from "Data.Colour.Names"
+--   or a hexidecimal color.
 instance Parseable (AlphaColour Double) where
     parser = argument (liftA2 (<|>) rc rh) mempty
       where
@@ -210,6 +219,13 @@ instance Parseable (AlphaColour Double) where
         rc s = opaque <$> readColourName s
 
 -- Addapted from the Clay.Color module of the clay package
+
+-- | Parses a hexidecimal color.  The string can start with @\"0x\"@ or @\"#\"@
+--   or just be a string of hexidecimal values.  If four or three digits are
+--   given each digit is repeated to form a full 24 or 32 bit color.  For
+--   example, @\"0xfc4\"@ is the same as @\"0xffcc44\"@.  When eight or six
+--   digits are given each pair of digits is a color or alpha channel with the
+--   order being red, green, blue, alpha.
 readHexColor :: String -> Maybe (AlphaColour Double)
 readHexColor cs = case cs of
      ('0':'x':hs) -> handle hs
@@ -225,31 +241,31 @@ readHexColor cs = case cs of
         _                 -> Nothing
     handle _ = Nothing
 
-    isHexDigit c = isDigit c || c `elem` "abcdef"
+    isHexDigit c = isDigit c|| c `elem` "abcdef"
 
     hex a b = (/ 255) <$> case readHex [a,b] of
                 [(h,"")] -> Just h
                 _        -> Nothing
 
 
--- This instance is needed to signal the end of a chain of
--- nested tuples.
+-- | This instance is needed to signal the end of a chain of
+--   nested tuples.
 instance Parseable () where
     parser = pure ()
 
--- Allow 'Parseable' things to be combined.
+-- | Allow 'Parseable' things to be combined.
 instance (Parseable a, Parseable b) => Parseable (a,b) where
     parser = (,) <$> parser <*> parser
 
--- Allow lists of 'Parseable'.
+-- | Allow lists of 'Parseable'.
 instance Parseable a => Parseable [a] where
     parser = many parser
 
 
 -- | This class allows us to abstract over functions that take some arguments
---   and produce a final value.  When something 'd' is an instance of
---   'ToResult' we get a type 'Args d' that is the type of /all/ the arguments
---   at once, and a type 'ResultOf d' that is the type of the final result from
+--   and produce a final value.  When something @d@ is an instance of
+--   'ToResult' we get a type @'Args' d@ that is the type of /all/ the arguments
+--   at once, and a type @'ResultOf' d@ that is the type of the final result from
 --   some base case instance.
 class ToResult d where
     type Args d :: *
@@ -257,7 +273,7 @@ class ToResult d where
 
     toResult :: d -> Args d -> ResultOf d
 
--- | A diagram can always produce a diagram when given '()' as an argument.
+-- | A diagram can always produce a diagram when given @()@ as an argument.
 --   This is our base case.
 instance ToResult (Diagram b v) where
     type Args (Diagram b v) = ()
@@ -284,7 +300,7 @@ instance ToResult [(String,Diagram b v)] where
 --   argument 'a' and all the arguments that 'd' will need.  Producing the
 --   result is simply applying the argument to the producer and passing the
 --   remaining arguments to the produced producer.
---
+
 --   The previous paragraph stands as a witness to the fact that Haskell code
 --   is clearer and easier to understand then paragraphs in English written by
 --   me.
@@ -371,5 +387,3 @@ indexize nDigits i opts = opts & output .~ output'
   where fmt         = "%0" ++ show nDigits ++ "d"
         output'     = addExtension (base ++ printf fmt (i::Integer)) ext
         (base, ext) = splitExtension (opts^.output)
-
-
