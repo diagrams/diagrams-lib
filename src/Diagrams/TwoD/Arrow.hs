@@ -286,13 +286,16 @@ scaleFactor tr tw hw t
     hv = hw *^ (tangentAtEnd   tr # normalized)
     v  = trailOffset tr
 
--- | @arrow len@ creates an arrow of length @len@ with default parameters.
+-- | @arrow len@ creates a default arrow of length @len@ with default
+--   parameters, starting at the origin and ending at the point
+--   @(len,0)@.
 arrow :: Renderable (Path R2) b => Double -> Diagram b R2
 arrow len = arrow' def len
 
 -- | @arrow' opts len@ creates an arrow of length @len@ using the
---   given options.  In particular, it scales the given 'arrowShaft'
---   so that the entire arrow has length @len@.
+--   given options, starting at the origin and ending at the point
+--   @(len,0)@.  In particular, it scales the given 'arrowShaft' so
+--   that the entire arrow has length @len@.
 arrow' :: Renderable (Path R2) b => ArrowOpts -> Double -> Diagram b R2
 arrow' opts len = dArrow # rotateBy (- dir)
   where
