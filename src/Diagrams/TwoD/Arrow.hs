@@ -339,10 +339,11 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
     approx = dArrow origin (origin # translateX len)
 
     -- Build an arrow and set its endpoints to p and q.
-    dArrow p q = (h' <> t' <> shaft)
+    dArrow p q = traceShow p $ traceShow q $
+                 (h' <> t' <> shaft)
                # moveOriginBy (tWidth *^ (unit_X # rotateBy tAngle))
                # rotateBy (direction (q .-. p) - dir)
-               # moveOriginTo p
+               # moveTo p
       where
         -- Make the head and tail and save their widths.
         (h, hWidth') = mkHead opts
