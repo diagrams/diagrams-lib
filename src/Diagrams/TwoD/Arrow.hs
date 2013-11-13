@@ -85,8 +85,6 @@ module Diagrams.TwoD.Arrow
        , module Diagrams.TwoD.Arrowheads
        ) where
 
-import           Debug.Trace
-
 import           Control.Lens                     (Lens', generateSignatures,
                                                    lensRules, makeLensesWith,
                                                    (&), (.~), (^.))
@@ -339,8 +337,7 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
     approx = dArrow origin (origin # translateX len)
 
     -- Build an arrow and set its endpoints to p and q.
-    dArrow p q = traceShow p $ traceShow q $
-                 (h' <> t' <> shaft)
+    dArrow p q = (h' <> t' <> shaft)
                # moveOriginBy (tWidth *^ (unit_X # rotateBy tAngle))
                # rotateBy (direction (q .-. p) - dir)
                # moveTo p
