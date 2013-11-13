@@ -85,15 +85,16 @@ module Diagrams.TwoD.Arrow
        , module Diagrams.TwoD.Arrowheads
        ) where
 
+import           Control.Arrow                    (first)
 import           Control.Lens                     (Lens', generateSignatures,
                                                    lensRules, makeLensesWith,
-                                                   (&), (.~), (^.))
+                                                   (%~), (&), (.~), (^.))
 import           Data.AffineSpace
 import           Data.Default.Class
 import           Data.Functor                     ((<$>))
 import           Data.Maybe                       (fromJust, fromMaybe)
 import           Data.Monoid                      (mempty, (<>))
-import           Data.Monoid.Coproduct            (killR)
+import           Data.Monoid.Coproduct            (untangle)
 import           Data.Monoid.Split
 import           Data.Semigroup                   (option)
 import           Data.VectorSpace
@@ -328,23 +329,35 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
       -- transformation *do* affect scale-invariant objects like
       -- arrowheads, and will still be higher up in the tree (so we
       -- don't need to apply it here).
-      let unfrozenTr = option mempty (unsplitR . killR) . fst $ da
-      in  dArrow (origin # transform unfrozenTr) (origin # translateX len # transform unfrozenTr)
+      let (unfrozenTr, globalSty) = option mempty (first unsplitR . untangle) . fst $ da
+      in  dArrow globalSty
+            (origin # transform unfrozenTr)
+            (origin # translateX len # transform unfrozenTr)
 
     unsplitR (M    m) = m
     unsplitR (_ :| m) = m
 
-    approx = dArrow origin (origin # translateX len)
+    approx = dArrow mempty origin (origin # translateX len)
 
     -- Build an arrow and set its endpoints to p and q.
-    dArrow p q = (h' <> t' <> shaft)
+    dArrow sty p q = (h' <> t' <> shaft)
                # moveOriginBy (tWidth *^ (unit_X # rotateBy tAngle))
                # rotateBy (direction (q .-. p) - dir)
                # moveTo p
       where
+
+        -- Use the existing line color for head, tail, and shaft by
+        -- default (can be overridden by explicitly setting headStyle,
+        -- tailStyle, or shaftStyle).
+        globalLC = getLineColor <$> getAttr sty
+        opts' = opts
+          & headStyle  %~ maybe id fillColor globalLC
+          & tailStyle  %~ maybe id fillColor globalLC
+          & shaftStyle %~ maybe id lineColor globalLC
+
         -- Make the head and tail and save their widths.
-        (h, hWidth') = mkHead opts
-        (t, tWidth') = mkTail opts
+        (h, hWidth') = mkHead opts'
+        (t, tWidth') = mkTail opts'
 
         shaftTrail = opts^.arrowShaft
 
