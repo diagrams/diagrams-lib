@@ -1,6 +1,9 @@
-{-# LANGUAGE FlexibleContexts          #-}
-{-# LANGUAGE GADTs                     #-}
-{-# LANGUAGE TemplateHaskell           #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeFamilies          #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Arrow
@@ -82,11 +85,11 @@ module Diagrams.TwoD.Arrow
        , module Diagrams.TwoD.Arrowheads
        ) where
 
-import           Control.Lens                     hiding ((#), moveTo, (<.>))
+import           Control.Lens                     hiding (moveTo, ( # ), (<.>))
 import           Data.AffineSpace
 import           Data.Default.Class
 import           Data.Functor                     ((<$>))
-import           Data.Maybe                       (fromMaybe, fromJust)
+import           Data.Maybe                       (fromJust, fromMaybe)
 import           Data.Monoid                      (mempty, (<>))
 import           Data.VectorSpace
 import           Diagrams.Core
@@ -96,7 +99,7 @@ import           Diagrams.Attributes
 import           Diagrams.Parametric
 import           Diagrams.Path
 import           Diagrams.Solve                   (quadForm)
-import           Diagrams.Tangent                 (tangentAtStart, tangentAtEnd)
+import           Diagrams.Tangent                 (tangentAtEnd, tangentAtStart)
 import           Diagrams.Trail
 import           Diagrams.TwoD.Arrowheads
 import           Diagrams.TwoD.Path               (strokeT)
