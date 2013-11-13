@@ -332,7 +332,7 @@ arrow' opts len = dArrow # rotateBy (- dir)
 -- | @arrowBetween s e@ creates an arrow pointing from @s@ to @e@
 --   with default parameters.
 arrowBetween :: Renderable (Path R2) b => P2 -> P2 -> Diagram b R2
-arrowBetween s e = arrowBetween' def s e
+arrowBetween = arrowBetween' def
 
 -- | @arrowBetween' opts s e@ creates an arrow pointing from @s@ to
 --   @e@ using the given options.  In particular, it scales and
@@ -341,11 +341,7 @@ arrowBetween s e = arrowBetween' def s e
 arrowBetween'
   :: Renderable (Path R2) b =>
      ArrowOpts -> P2 -> P2 -> Diagram b R2
-arrowBetween' opts s e = arrow' opts len # rotateBy dir # moveTo s
-  where
-    v = e .-. s
-    len = magnitude v
-    dir = direction v
+arrowBetween' opts s e = arrowAt' opts s (e .-. s)
 
 -- | Create an arrow starting at s with length and direction determined by
 --   the vectore v.
