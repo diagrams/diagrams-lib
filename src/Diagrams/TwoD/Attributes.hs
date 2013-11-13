@@ -6,7 +6,7 @@
 
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Diagrams.Attributes
+-- Module      :  Diagrams.TwoD.Attributes
 -- Copyright   :  (c) 2013 diagrams-lib team (see LICENSE)
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
@@ -22,7 +22,8 @@
 module Diagrams.TwoD.Attributes (
   -- * Gradients
     Texture(..), _SC, _LG, _RG, defaultLG, defaultRG, mkStops, idTransform
-  , GradientStop, SpreadMethod(..), lineLGradient
+  , GradientStop(..), SpreadMethod(..), lineLGradient, lineRGradient
+  , stopColor, stopFraction
 
   -- ** Linear Gradients
   , LGradient(..), lGradStops, lGradTrans, lGradStart, lGradEnd
@@ -36,13 +37,13 @@ module Diagrams.TwoD.Attributes (
   ,  LineTexture(..), getLineTexture, lineTexture
 
   -- * Line color
-  , lineColorT, lcT, lcAT
+  , LineColor, lineColor, getLineColor, lc, lcA, lineColorA
 
   -- * Fill texture
   , FillTexture(..), getFillTexture, fillTexture
 
   -- * Fill color
-  , fillColorT, fcT, fcAT, recommendFillColorT
+  , FillColor, fillColor, getFillColor, fc, fcA, recommendFillColor
 
   ) where
 
@@ -60,7 +61,12 @@ import           Data.Monoid.Recommend
 import           Data.Semigroup
 
 -- | A stop is (color, proportion, opacity)
-type GradientStop = (SomeColor, Double, Double)
+--type GradientStop = (SomeColor, Double, Double)
+data GradientStop = GradientStop
+     { _stopColor    :: SomeColor
+     , _stopFraction :: Double}
+
+makeLenses ''GradientStop
 
 data SpreadMethod = GradPad | GradReflect | GradRepeat
 
@@ -113,16 +119,16 @@ defaultRG = RG (RGradient
     , _rGradSpreadMethod = GradPad
     })
 
-mkStops :: Color c => [(c, Double, Double)] -> [GradientStop]
-mkStops s = map (\(x, y, z) -> (SomeColor x, y, z)) s
+mkStops :: [(Colour Double, Double, Double)] -> [GradientStop]
+mkStops s = map (\(x, y, z) -> GradientStop (SomeColor (withOpacity x z)) y) s
 
 mkLinearGradient :: [GradientStop]  -> P2 -> P2 -> SpreadMethod -> Texture
 mkLinearGradient stops  start end spreadMethod
   = LG (LGradient stops start end (scaling 1) spreadMethod)
 
 mkRadialGradient :: [GradientStop] -> Double -> P2 -> P2 -> SpreadMethod -> Texture
-mkRadialGradient stops radius center focus spreadMethod
-  = RG (RGradient stops radius center focus (scaling 1) spreadMethod)
+mkRadialGradient stops r center focus spreadMethod
+  = RG (RGradient stops r center focus (scaling 1) spreadMethod)
 
 newtype LineTexture = LineTexture (Last Texture)
   deriving (Typeable, Semigroup)
@@ -147,14 +153,48 @@ getLineTexture (LineTexture (Last t)) = t
 lineTexture :: (HasStyle a, V a ~ R2) => Texture-> a -> a
 lineTexture = applyTAttr . LineTexture . Last
 
-lineColorT :: (Color c, HasStyle a, V a ~ R2) => c -> a -> a
-lineColorT c = lineTexture (SC (SomeColor c))
+-- | The color with which lines (strokes) are drawn.  Note that child
+--   colors always override parent colors; that is, @'lineColor' c1
+--   . 'lineColor' c2 $ d@ is equivalent to @'lineColor' c2 $ d@.
+--   More precisely, the semigroup structure on line color attributes
+--   is that of 'Last'.
+newtype LineColor = LineColor (Last SomeColor)
+  deriving (Typeable, Semigroup)
+instance AttributeClass LineColor
 
-lcT :: (HasStyle a, V a ~ R2) => Colour Double -> a -> a
-lcT = lineColorT
+instance Default LineColor where
+    def = LineColor (Last (SomeColor (black :: Colour Double)))
 
-lcAT :: (HasStyle a, V a ~ R2) => AlphaColour Double -> a -> a
-lcAT = lineColorT
+instance Color LineColor where
+  toAlphaColour (LineColor (Last c)) = toAlphaColour c
+
+getLineColor :: LineColor -> SomeColor
+getLineColor (LineColor (Last c)) = c
+
+-- | Set the line (stroke) color.  This function is polymorphic in the
+--   color type (so it can be used with either 'Colour' or
+--   'AlphaColour'), but this can sometimes create problems for type
+--   inference, so the 'lc' and 'lcA' variants are provided with more
+--   concrete types.
+lineColor :: (Color c, HasStyle a, V a ~ R2) => c -> a -> a
+lineColor c = (lTx c) . (lCl c)
+  where
+    lTx x = lineTexture (SC (SomeColor x))
+    lCl = applyAttr . LineColor . Last . SomeColor
+
+-- | Apply a 'lineColor' attribute.
+lineColorA :: HasStyle a => LineColor -> a -> a
+lineColorA = applyAttr
+
+-- | A synonym for 'lineColor', specialized to @'Colour' Double@
+--   (i.e. opaque colors).
+lc :: (HasStyle a, V a ~ R2) => Colour Double -> a -> a
+lc = lineColor
+
+-- | A synonym for 'lineColor', specialized to @'AlphaColour' Double@
+--   (i.e. colors with transparency).
+lcA :: (HasStyle a, V a ~ R2) => AlphaColour Double -> a -> a
+lcA = lineColor
 
 lineLGradient :: (HasStyle a, V a ~ R2) => LGradient -> a -> a
 lineLGradient g = lineTexture (LG g)
@@ -184,14 +224,45 @@ getFillTexture (FillTexture tx) = getLast . getRecommend $ tx
 fillTexture :: (HasStyle a, V a ~ R2) => Texture -> a -> a
 fillTexture = applyTAttr . FillTexture . Commit . Last
 
-fillColorT :: (Color c, HasStyle a, V a ~ R2) => c -> a -> a
-fillColorT c = fillTexture (SC (SomeColor c))
+-- | The color with which shapes are filled. Note that child
+--   colors always override parent colors; that is, @'fillColor' c1
+--   . 'fillColor' c2 $ d@ is equivalent to @'lineColor' c2 $ d@.
+--   More precisely, the semigroup structure on fill color attributes
+--   is that of 'Last'.
+newtype FillColor = FillColor (Recommend (Last SomeColor))
+  deriving (Typeable, Semigroup)
+instance AttributeClass FillColor
 
-recommendFillColorT :: (Color c, HasStyle a, V a ~ R2) => c -> a -> a
-recommendFillColorT = applyTAttr . FillTexture . Recommend . Last . SC . SomeColor
+instance Color FillColor where
+  toAlphaColour (FillColor c) = toAlphaColour . getLast . getRecommend $ c
 
-fcT :: (HasStyle a, V a ~ R2) => Colour Double -> a -> a
-fcT = fillColorT
+-- | Set the fill color.  This function is polymorphic in the color
+--   type (so it can be used with either 'Colour' or 'AlphaColour'),
+--   but this can sometimes create problems for type inference, so the
+--   'fc' and 'fcA' variants are provided with more concrete types.
+fillColor :: (Color c, HasStyle a, V a ~ R2) => c -> a -> a
+fillColor c = (fTx c) . (fCl c)
+  where
+    fTx x = fillTexture (SC (SomeColor x))
+    fCl  = applyAttr . FillColor . Commit . Last . SomeColor
 
-fcAT :: (HasStyle a, V a ~ R2) => AlphaColour Double -> a -> a
-fcAT = fillColorT
+-- | Set a \"recommended\" fill color, to be used only if no explicit
+--   calls to 'fillColor' (or 'fc', or 'fcA') are used.
+recommendFillColor :: (Color c, HasStyle a, V a ~ R2) => c -> a -> a
+recommendFillColor c = (fT c) . (fC c)
+  where
+    fT = applyTAttr . FillTexture . Recommend . Last . SC . SomeColor
+    fC = applyAttr . FillColor . Recommend . Last . SomeColor
+
+getFillColor :: FillColor -> SomeColor
+getFillColor (FillColor c) = getLast . getRecommend $ c
+
+-- | A synonym for 'fillColor', specialized to @'Colour' Double@
+--   (i.e. opaque colors).
+fc :: (HasStyle a, V a ~ R2) => Colour Double -> a -> a
+fc = fillColor
+
+-- | A synonym for 'fillColor', specialized to @'AlphaColour' Double@
+--   (i.e. colors with transparency).
+fcA :: (HasStyle a, V a ~ R2) => AlphaColour Double -> a -> a
+fcA = fillColor

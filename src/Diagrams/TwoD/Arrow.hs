@@ -93,6 +93,7 @@ import           Diagrams.Core
 
 import           Data.Colour                      hiding (atop)
 import           Diagrams.Attributes
+import           Diagrams.TwoD.Attributes
 import           Diagrams.Parametric
 import           Diagrams.Path
 import           Diagrams.Solve                   (quadForm)
@@ -201,7 +202,7 @@ xWidth p = a + b
     b = fromMaybe 0 (magnitude <$> traceV origin unit_X p)
 
 -- | Get the line color from the shaft to use as the fill color for the joint.
-colorJoint :: Style v -> Style v
+colorJoint :: Style R2 -> Style R2
 colorJoint sStyle =
     let c = fmap getLineColor . getAttr $ sStyle in
     case c of

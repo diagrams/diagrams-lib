@@ -30,7 +30,7 @@ module Diagrams.TwoD.Text (
   , FontWeight(..), FontWeightA, getFontWeight, fontWeight, bold
   ) where
 
-import           Diagrams.Attributes
+import           Diagrams.TwoD.Attributes (recommendFillColor)
 import           Diagrams.Core
 import           Diagrams.Core.Envelope (pointEnvelope)
 import           Diagrams.TwoD.Types

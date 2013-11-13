@@ -28,12 +28,6 @@ module Diagrams.Attributes (
 
     Color(..), SomeColor(..)
 
-  -- ** Line color
-  , LineColor, getLineColor, lineColor, lineColorA, lc, lcA
-
-  -- ** Fill color
-  , FillColor, getFillColor, recommendFillColor, fillColor, fc, fcA
-
   -- ** Opacity
   , Opacity, getOpacity, opacity
 
@@ -95,77 +89,6 @@ class Color c where
 data SomeColor = forall c. Color c => SomeColor c
   deriving Typeable
 
--- | The color with which lines (strokes) are drawn.  Note that child
---   colors always override parent colors; that is, @'lineColor' c1
---   . 'lineColor' c2 $ d@ is equivalent to @'lineColor' c2 $ d@.
---   More precisely, the semigroup structure on line color attributes
---   is that of 'Last'.
-newtype LineColor = LineColor (Last SomeColor)
-  deriving (Typeable, Semigroup)
-instance AttributeClass LineColor
-
-instance Default LineColor where
-    def = LineColor (Last (SomeColor (black :: Colour Double)))
-
-getLineColor :: LineColor -> SomeColor
-getLineColor (LineColor (Last c)) = c
-
--- | Set the line (stroke) color.  This function is polymorphic in the
---   color type (so it can be used with either 'Colour' or
---   'AlphaColour'), but this can sometimes create problems for type
---   inference, so the 'lc' and 'lcA' variants are provided with more
---   concrete types.
-lineColor :: (Color c, HasStyle a) => c -> a -> a
-lineColor = applyAttr . LineColor . Last . SomeColor
-
--- | Apply a 'lineColor' attribute.
-lineColorA :: HasStyle a => LineColor -> a -> a
-lineColorA = applyAttr
-
--- | A synonym for 'lineColor', specialized to @'Colour' Double@
---   (i.e. opaque colors).
-lc :: HasStyle a => Colour Double -> a -> a
-lc = lineColor
-
--- | A synonym for 'lineColor', specialized to @'AlphaColour' Double@
---   (i.e. colors with transparency).
-lcA :: HasStyle a => AlphaColour Double -> a -> a
-lcA = lineColor
-
--- | The color with which shapes are filled. Note that child
---   colors always override parent colors; that is, @'fillColor' c1
---   . 'fillColor' c2 $ d@ is equivalent to @'lineColor' c2 $ d@.
---   More precisely, the semigroup structure on fill color attributes
---   is that of 'Last'.
-newtype FillColor = FillColor (Recommend (Last SomeColor))
-  deriving (Typeable, Semigroup)
-instance AttributeClass FillColor
-
--- | Set the fill color.  This function is polymorphic in the color
---   type (so it can be used with either 'Colour' or 'AlphaColour'),
---   but this can sometimes create problems for type inference, so the
---   'fc' and 'fcA' variants are provided with more concrete types.
-fillColor :: (Color c, HasStyle a) => c -> a -> a
-fillColor = applyAttr . FillColor . Commit . Last . SomeColor
-
--- | Set a \"recommended\" fill color, to be used only if no explicit
---   calls to 'fillColor' (or 'fc', or 'fcA') are used.
-recommendFillColor :: (Color c, HasStyle a) => c -> a -> a
-recommendFillColor = applyAttr . FillColor . Recommend . Last . SomeColor
-
-getFillColor :: FillColor -> SomeColor
-getFillColor (FillColor c) = getLast . getRecommend $ c
-
--- | A synonym for 'fillColor', specialized to @'Colour' Double@
---   (i.e. opaque colors).
-fc :: HasStyle a => Colour Double -> a -> a
-fc = fillColor
-
--- | A synonym for 'fillColor', specialized to @'AlphaColour' Double@
---   (i.e. colors with transparency).
-fcA :: HasStyle a => AlphaColour Double -> a -> a
-fcA = fillColor
-
 instance (Floating a, Real a) => Color (Colour a) where
   toAlphaColour = opaque . colourConvert
 
@@ -174,12 +97,6 @@ instance (Floating a, Real a) => Color (AlphaColour a) where
 
 instance Color SomeColor where
   toAlphaColour (SomeColor c) = toAlphaColour c
-
-instance Color LineColor where
-  toAlphaColour (LineColor (Last c)) = toAlphaColour c
-
-instance Color FillColor where
-  toAlphaColour (FillColor c) = toAlphaColour . getLast . getRecommend $ c
 
 -- | Convert to an RGB space while preserving the alpha channel.
 toRGBAUsingSpace :: Color c => RGBSpace Double -> c
