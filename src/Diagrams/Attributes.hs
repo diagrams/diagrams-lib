@@ -62,7 +62,6 @@ import           Data.Default.Class
 
 import           Data.Typeable
 
-import           Data.Monoid.Recommend
 import           Data.Semigroup
 
 ------------------------------------------------------------
