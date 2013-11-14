@@ -34,7 +34,8 @@ module Diagrams.TwoD.Types
        , fullTurn, fullCircle, convertAngle, angleRatio
        ) where
 
-import           Control.Lens            (makeWrapped, Wrapped, wrapped, op, Iso', iso, _1, _2)
+import           Control.Lens            (Iso', Wrapped, iso, makeWrapped, op,
+                                          wrapped, _1, _2)
 
 import           Diagrams.Coordinates
 import           Diagrams.Core
@@ -42,9 +43,9 @@ import           Diagrams.Util           (tau)
 
 import           Data.AffineSpace.Point
 import           Data.Basis
+import           Data.MemoTrie           (HasTrie (..))
 import           Data.NumInstances.Tuple ()
 import           Data.VectorSpace
-import           Data.MemoTrie (HasTrie (..))
 
 import           Data.Typeable
 ------------------------------------------------------------
