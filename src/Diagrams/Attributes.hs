@@ -151,6 +151,9 @@ newtype FillColor = FillColor (Recommend (Last SomeColor))
   deriving (Typeable, Semigroup)
 instance AttributeClass FillColor
 
+instance Default FillColor where
+  def = FillColor (Recommend (Last (SomeColor (transparent :: AlphaColour Double))))
+
 mkFillColor :: Color c => c -> FillColor
 mkFillColor = FillColor . Commit . Last . SomeColor
 
