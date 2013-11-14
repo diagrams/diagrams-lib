@@ -1,6 +1,9 @@
-{-# LANGUAGE FlexibleContexts          #-}
-{-# LANGUAGE GADTs                     #-}
-{-# LANGUAGE TemplateHaskell           #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeFamilies          #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Arrow
@@ -82,25 +85,33 @@ module Diagrams.TwoD.Arrow
        , module Diagrams.TwoD.Arrowheads
        ) where
 
-import           Control.Lens                     hiding ((#), moveTo, (<.>))
+import           Control.Arrow                    (first)
+import           Control.Lens                     (Lens', generateSignatures,
+                                                   lensRules, makeLensesWith,
+                                                   (%~), (&), (.~), (^.))
 import           Data.AffineSpace
 import           Data.Default.Class
 import           Data.Functor                     ((<$>))
-import           Data.Maybe                       (fromMaybe, fromJust)
+import           Data.Maybe                       (fromJust, fromMaybe)
 import           Data.Monoid                      (mempty, (<>))
+import           Data.Monoid.Coproduct            (untangle)
+import           Data.Monoid.Split
+import           Data.Semigroup                   (option)
 import           Data.VectorSpace
-import           Diagrams.Core
 
 import           Data.Colour                      hiding (atop)
 import           Diagrams.Attributes
+import           Diagrams.Core
+import           Diagrams.Core.Types              (QDiaLeaf (..), mkQD')
+
 import           Diagrams.Parametric
 import           Diagrams.Path
 import           Diagrams.Solve                   (quadForm)
-import           Diagrams.Tangent                 (tangentAtStart, tangentAtEnd)
+import           Diagrams.Tangent                 (tangentAtEnd, tangentAtStart)
 import           Diagrams.Trail
 import           Diagrams.TwoD.Arrowheads
 import           Diagrams.TwoD.Path               (strokeT)
-import           Diagrams.TwoD.Transform          (rotate, rotateBy)
+import           Diagrams.TwoD.Transform          (rotate, rotateBy, translateX)
 import           Diagrams.TwoD.Transform.ScaleInv (scaleInvPrim)
 import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector             (direction, unitX, unit_X)
@@ -283,53 +294,110 @@ scaleFactor tr tw hw t
     hv = hw *^ (tangentAtEnd   tr # normalized)
     v  = trailOffset tr
 
--- | @arrow len@ creates an arrow of length @len@ with default parameters.
+-- | @arrow len@ creates an arrow of length @len@ with default
+--   parameters, starting at the origin and ending at the point
+--   @(len,0)@.
 arrow :: Renderable (Path R2) b => Double -> Diagram b R2
 arrow len = arrow' def len
 
 -- | @arrow' opts len@ creates an arrow of length @len@ using the
---   given options.  In particular, it scales the given 'arrowShaft'
---   so that the entire arrow has length @len@.
+--   given options, starting at the origin and ending at the point
+--   @(len,0)@.  In particular, it scales the given 'arrowShaft' so
+--   that the entire arrow has length @len@.
 arrow' :: Renderable (Path R2) b => ArrowOpts -> Double -> Diagram b R2
-arrow' opts len = dArrow # rotateBy (- dir)
+arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
+
+    -- We must approximate the envelope and trace by just drawing the
+    -- arrow from the origin to (len,0) and using its envelope and
+    -- trace.  That may not end up being exactly right (if the arrow
+    -- gets scaled, the shaft may get a bit longer or shorter, and so
+    -- on) but it's close enough.
+    (getEnvelope approx) (getTrace approx) mempty mempty
   where
-    -- Make the head and tail and save their widths.
-    (h, hWidth') = mkHead opts
-    (t, tWidth') = mkTail opts
 
-    shaftTrail = opts^.arrowShaft
+    -- Once we learn the global transformation context this arrow is
+    -- drawn in, we can apply it to the origin and (len,0) to find out
+    -- the actual final points between which this arrow should be
+    -- drawn.  We need to know this to draw it correctly, since the
+    -- head and tail are scale invariant, and hence the precise points
+    -- between which we need to draw the shaft do not transform
+    -- uniformly as the transformation applied to the entire arrow.
+    -- See https://github.com/diagrams/diagrams-lib/issues/112.
+    delayedArrow da =
 
-    -- Adjust the head width and tail width to take into accoung gaps
-    tWidth = tWidth' + opts^.tailGap
-    hWidth = hWidth' + opts^.headGap
+      -- Note we only take the *unfrozen* transformation.  The frozen
+      -- transformation *do* affect scale-invariant objects like
+      -- arrowheads, and will still be higher up in the tree (so we
+      -- don't need to apply it here).
+      let (unfrozenTr, globalSty) = option mempty (first unsplitR . untangle) . fst $ da
+      in  dArrow globalSty unfrozenTr len
 
-    -- Calculate the angles that the head and tail should point.
-    tAngle = direction . tangentAtStart $ shaftTrail :: Turn
-    hAngle = direction . tangentAtEnd $ shaftTrail :: Turn
+    unsplitR (M    m) = m
+    unsplitR (_ :| m) = m
 
-    -- Calculte the scaling factor to apply to the shaft shaftTrail so that the entire
-    -- arrow will be of length len. Then apply it to the shaft and make the
-    -- shaft into a Diagram with using it's style.
-    sf = scaleFactor shaftTrail tWidth hWidth len
-    shaftTrail' = shaftTrail # scale sf
-    shaft = strokeT shaftTrail' # applyStyle (shaftSty opts)
+    approx = dArrow mempty mempty len
 
-    -- Adjust the head and tail to point in the directions of the shaft ends.
-    h' = h # rotateBy hAngle
-           # moveTo (origin .+^ shaftTrail' `atParam` domainUpper shaftTrail')
-    t' = t # rotateBy tAngle
+    -- Build an arrow and set its endpoints to the image under tr of origin and (len,0).
+    dArrow sty tr ln = (h' <> t' <> shaft)
+               # moveOriginBy (tWidth *^ (unit_X # rotateBy tAngle))
+               # rotateBy (direction (q .-. p) - dir)
+               # moveTo p
+      where
 
-    -- Find out what direction the arrow is pointing so we can set it back
-    -- to point in the direction unitX when we are done.
-    dir = direction (trailOffset $ spine shaftTrail tWidth hWidth sf)
+        p = origin # transform tr
+        q = origin # translateX ln # transform tr
 
-    -- Build the arrow and set it's origin at the start.
-    dArrow = moveOriginBy ((tWidth *^ (unit_X # rotateBy tAngle))) $ h' <> t' <> shaft
+        -- Use the existing line color for head, tail, and shaft by
+        -- default (can be overridden by explicitly setting headStyle,
+        -- tailStyle, or shaftStyle).
+        globalLC = getLineColor <$> getAttr sty
+        opts' = opts
+          & headStyle  %~ maybe id fillColor globalLC
+          & tailStyle  %~ maybe id fillColor globalLC
+          & shaftStyle %~ maybe id lineColor globalLC
+
+        -- Make the head and tail and save their widths.
+        (h, hWidth') = mkHead opts'
+        (t, tWidth') = mkTail opts'
+
+        rawShaftTrail = opts^.arrowShaft
+        shaftTrail
+          = rawShaftTrail
+            -- rotate it so it is pointing in the positive X direction
+          # rotateBy (- direction (trailOffset rawShaftTrail))
+            -- apply the context transformation -- in case it includes
+            -- things like flips and shears (the possibility of shears
+            -- is why we must rotate it to a neutral position first)
+          # transform tr
+
+        -- Adjust the head width and tail width to take gaps into account
+        tWidth = tWidth' + opts^.tailGap
+        hWidth = hWidth' + opts^.headGap
+
+        -- Calculate the angles that the head and tail should point.
+        tAngle = direction . tangentAtStart $ shaftTrail :: Turn
+        hAngle = direction . tangentAtEnd $ shaftTrail :: Turn
+
+        -- Calculte the scaling factor to apply to the shaft shaftTrail so that the entire
+        -- arrow will be of length len. Then apply it to the shaft and make the
+        -- shaft into a Diagram with using its style.
+        sf = scaleFactor shaftTrail tWidth hWidth (magnitude (q .-. p))
+        shaftTrail' = shaftTrail # scale sf
+        shaft = strokeT shaftTrail' # applyStyle (shaftSty opts)
+
+        -- Adjust the head and tail to point in the directions of the shaft ends.
+        h' = h # rotateBy hAngle
+               # moveTo (origin .+^ shaftTrail' `atParam` domainUpper shaftTrail')
+        t' = t # rotateBy tAngle
+
+        -- Find out what direction the arrow is pointing so we can set it back
+        -- to point in the direction unitX when we are done.
+        dir = direction (trailOffset $ spine shaftTrail tWidth hWidth sf)
 
 -- | @arrowBetween s e@ creates an arrow pointing from @s@ to @e@
 --   with default parameters.
 arrowBetween :: Renderable (Path R2) b => P2 -> P2 -> Diagram b R2
-arrowBetween s e = arrowBetween' def s e
+arrowBetween = arrowBetween' def
 
 -- | @arrowBetween' opts s e@ creates an arrow pointing from @s@ to
 --   @e@ using the given options.  In particular, it scales and
@@ -338,11 +406,7 @@ arrowBetween s e = arrowBetween' def s e
 arrowBetween'
   :: Renderable (Path R2) b =>
      ArrowOpts -> P2 -> P2 -> Diagram b R2
-arrowBetween' opts s e = arrow' opts len # rotateBy dir # moveTo s
-  where
-    v = e .-. s
-    len = magnitude v
-    dir = direction v
+arrowBetween' opts s e = arrowAt' opts s (e .-. s)
 
 -- | Create an arrow starting at s with length and direction determined by
 --   the vectore v.
