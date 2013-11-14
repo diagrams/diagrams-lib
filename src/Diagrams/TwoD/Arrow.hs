@@ -294,7 +294,7 @@ scaleFactor tr tw hw t
     hv = hw *^ (tangentAtEnd   tr # normalized)
     v  = trailOffset tr
 
--- | @arrow len@ creates a default arrow of length @len@ with default
+-- | @arrow len@ creates an arrow of length @len@ with default
 --   parameters, starting at the origin and ending at the point
 --   @(len,0)@.
 arrow :: Renderable (Path R2) b => Double -> Diagram b R2
