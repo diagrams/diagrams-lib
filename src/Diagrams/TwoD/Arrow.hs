@@ -330,21 +330,22 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
       -- arrowheads, and will still be higher up in the tree (so we
       -- don't need to apply it here).
       let (unfrozenTr, globalSty) = option mempty (first unsplitR . untangle) . fst $ da
-      in  dArrow globalSty
-            (origin # transform unfrozenTr)
-            (origin # translateX len # transform unfrozenTr)
+      in  dArrow globalSty unfrozenTr len
 
     unsplitR (M    m) = m
     unsplitR (_ :| m) = m
 
-    approx = dArrow mempty origin (origin # translateX len)
+    approx = dArrow mempty mempty len
 
-    -- Build an arrow and set its endpoints to p and q.
-    dArrow sty p q = (h' <> t' <> shaft)
+    -- Build an arrow and set its endpoints to the image under tr of origin and (len,0).
+    dArrow sty tr ln = (h' <> t' <> shaft)
                # moveOriginBy (tWidth *^ (unit_X # rotateBy tAngle))
                # rotateBy (direction (q .-. p) - dir)
                # moveTo p
       where
+
+        p = origin # transform tr
+        q = origin # translateX ln # transform tr
 
         -- Use the existing line color for head, tail, and shaft by
         -- default (can be overridden by explicitly setting headStyle,
@@ -359,7 +360,15 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
         (h, hWidth') = mkHead opts'
         (t, tWidth') = mkTail opts'
 
-        shaftTrail = opts^.arrowShaft
+        rawShaftTrail = opts^.arrowShaft
+        shaftTrail
+          = rawShaftTrail
+            -- rotate it so it is pointing in the positive X direction
+          # rotateBy (- direction (trailOffset rawShaftTrail))
+            -- apply the context transformation -- in case it includes
+            -- things like flips and shears (the possibility of shears
+            -- is why we must rotate it to a neutral position first)
+          # transform tr
 
         -- Adjust the head width and tail width to take gaps into account
         tWidth = tWidth' + opts^.tailGap
