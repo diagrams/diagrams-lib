@@ -25,7 +25,7 @@ module Diagrams.Attributes (
   -- * Color
   -- $color
 
-    Color(..), SomeColor(..)
+    Color(..), SomeColor(..), someToAlpha
 
   -- ** Line color
   , LineColor, getLineColor, lineColor, lineColorA, lc, lcA
@@ -90,9 +90,17 @@ class Color c where
   -- | Convert a color to its standard representation, AlphaColour.
   toAlphaColour :: c -> AlphaColour Double
 
+  -- | Convert from an AlphaColour Double.  Note that this direction
+  --   may lose some information. For example, the instance for
+  --   'Colour' drops the alpha channel.
+  fromAlphaColour :: AlphaColour Double -> c
+
 -- | An existential wrapper for instances of the 'Color' class.
 data SomeColor = forall c. Color c => SomeColor c
   deriving Typeable
+
+someToAlpha :: SomeColor -> AlphaColour Double
+someToAlpha (SomeColor c) = toAlphaColour c
 
 -- | The color with which lines (strokes) are drawn.  Note that child
 --   colors always override parent colors; that is, @'lineColor' c1
@@ -166,19 +174,24 @@ fcA :: HasStyle a => AlphaColour Double -> a -> a
 fcA = fillColor
 
 instance (Floating a, Real a) => Color (Colour a) where
-  toAlphaColour = opaque . colourConvert
+  toAlphaColour   = opaque . colourConvert
+  fromAlphaColour = colourConvert . (`over` black)
 
 instance (Floating a, Real a) => Color (AlphaColour a) where
-  toAlphaColour = alphaColourConvert
+  toAlphaColour   = alphaColourConvert
+  fromAlphaColour = alphaColourConvert
 
 instance Color SomeColor where
   toAlphaColour (SomeColor c) = toAlphaColour c
+  fromAlphaColour c = SomeColor c
 
 instance Color LineColor where
-  toAlphaColour (LineColor (Last c)) = toAlphaColour c
+  toAlphaColour (LineColor c) = toAlphaColour . getLast $ c
+  fromAlphaColour = LineColor . Last . fromAlphaColour
 
 instance Color FillColor where
   toAlphaColour (FillColor c) = toAlphaColour . getLast . getRecommend $ c
+  fromAlphaColour = FillColor . Commit . Last . fromAlphaColour
 
 -- | Convert to an RGB space while preserving the alpha channel.
 toRGBAUsingSpace :: Color c => RGBSpace Double -> c
