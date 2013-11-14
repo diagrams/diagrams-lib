@@ -19,9 +19,11 @@ module Diagrams.Points
 
          -- * Point-related utilities
        , centroid
+       , pointDiagram
 
        ) where
 
+import           Diagrams.Core          (pointDiagram)
 import           Diagrams.Core.Points
 
 import           Control.Arrow          ((&&&))
