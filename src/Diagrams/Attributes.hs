@@ -1,7 +1,6 @@
-{-# LANGUAGE DeriveDataTypeable
-           , ExistentialQuantification
-           , GeneralizedNewtypeDeriving
-  #-}
+{-# LANGUAGE DeriveDataTypeable         #-}
+{-# LANGUAGE ExistentialQuantification  #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Attributes
@@ -62,7 +61,7 @@ import           Diagrams.Core
 
 import           Data.Colour
 import           Data.Colour.RGBSpace
-import           Data.Colour.SRGB (sRGBSpace)
+import           Data.Colour.SRGB      (sRGBSpace)
 
 import           Data.Default.Class
 
@@ -88,7 +87,7 @@ import           Data.Semigroup
 --   both the 'Data.Colour.Colour' and 'Data.Colour.AlphaColour' types
 --   from the "Data.Colour" library.
 class Color c where
-  -- | Convert a color to its standard representation, AlphaColour
+  -- | Convert a color to its standard representation, AlphaColour.
   toAlphaColour :: c -> AlphaColour Double
 
 -- | An existential wrapper for instances of the 'Color' class.
