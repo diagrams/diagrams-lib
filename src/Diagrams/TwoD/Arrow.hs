@@ -76,8 +76,11 @@ module Diagrams.TwoD.Arrow
        , tailSize
        , headGap
        , tailGap
+       , headColor
        , headStyle
+       , tailColor
        , tailStyle
+       , shaftColor
        , shaftStyle
 
          -- | See "Diagrams.TwoD.Arrowheads" for a list of standard
@@ -86,9 +89,10 @@ module Diagrams.TwoD.Arrow
        ) where
 
 import           Control.Arrow                    (first)
-import           Control.Lens                     (Lens', generateSignatures,
+import           Control.Lens                     (Lens', Setter,
+                                                   generateSignatures,
                                                    lensRules, makeLensesWith,
-                                                   (%~), (&), (.~), (^.))
+                                                   sets, (%~), (&), (.~), (^.))
 import           Data.AffineSpace
 import           Data.Default.Class
 import           Data.Functor                     ((<$>))
@@ -102,6 +106,7 @@ import           Data.VectorSpace
 import           Data.Colour                      hiding (atop)
 import           Diagrams.Attributes
 import           Diagrams.Core
+import           Diagrams.Core.Style              (setAttr)
 import           Diagrams.Core.Types              (QDiaLeaf (..), mkQD')
 
 import           Diagrams.Parametric
@@ -187,6 +192,40 @@ tailStyle :: Lens' ArrowOpts (Style R2)
 
 -- | Style to apply to the shaft. See `headStyle`.
 shaftStyle :: Lens' ArrowOpts (Style R2)
+
+-- | A lens for setting or modifying the color of an arrowhead. For
+-- example, one may write @... (with & headColor .~ blue)@ to get an
+-- arrow with a blue head, or @... (with & headColor %~
+-- (\`withOpacity\` 0.5))@ to make an arrow's head 50\% transparent.
+-- For more general control over the style of arrowheads, see
+-- 'headStyle'.
+headColor :: (Color c, Color c') => Setter ArrowOpts ArrowOpts c c'
+headColor = sets modifyHeadColor
+  where
+    modifyHeadColor f opts@(ArrowOpts { _headStyle = sty }) =
+      let c = fromMaybe (fromAlphaColour (opaque black))
+                (fromAlphaColour . someToAlpha . getFillColor <$> getAttr sty)
+      in  opts & headStyle %~ setAttr (mkFillColor (f c))
+
+-- | A lens for setting or modifying the color of an arrow
+--   tail. See 'headColor'.
+tailColor :: (Color c, Color c') => Setter ArrowOpts ArrowOpts c c'
+tailColor = sets modifyTailColor
+  where
+    modifyTailColor f opts@(ArrowOpts { _tailStyle = sty }) =
+      let c = fromMaybe (fromAlphaColour (opaque black))
+                (fromAlphaColour . someToAlpha . getFillColor <$> getAttr sty)
+      in  opts & tailStyle %~ setAttr (mkFillColor (f c))
+
+-- | A lens for setting or modifying the color of an arrow
+--   shaft. See 'headColor'.
+shaftColor :: (Color c, Color c') => Setter ArrowOpts ArrowOpts c c'
+shaftColor = sets modifyShaftColor
+  where
+    modifyShaftColor f opts@(ArrowOpts { _shaftStyle = sty }) =
+      let c = fromMaybe (fromAlphaColour (opaque black))
+                (fromAlphaColour . someToAlpha . getLineColor <$> getAttr sty)
+      in  opts & shaftStyle %~ setAttr (mkLineColor (f c))
 
 -- Set the default shaft style of an `ArrowOpts` record by applying the
 -- default style after all other styles have been applied.

@@ -152,8 +152,11 @@ module Diagrams.TwoD
        , tailSize
        , headGap
        , tailGap
+       , headColor
        , headStyle
+       , tailColor
        , tailStyle
+       , shaftColor
        , shaftStyle
 
          -- * Text
