@@ -19,7 +19,7 @@
 
 
 module Diagrams.TwoD.Arrow
-       ( -- * Examples:
+       ( -- * Examples
          -- ** Example 1
 -- | <<diagrams/src_Diagrams_TwoD_Arrow_example1.svg#diagram=example1&width=500>>
 --
@@ -53,7 +53,7 @@ module Diagrams.TwoD.Arrow
 --   >
 --   > example2 = (ex12 <> ex3) # centerXY # pad 1.1
 
-         -- * Documentation
+         -- * Creating arrows
          arrow
        , arrow'
        , arrowAt
@@ -67,6 +67,8 @@ module Diagrams.TwoD.Arrow
        , connectOutside
        , connectOutside'
        , straightShaft
+
+         -- * Options
        , ArrowOpts(..)
 
        , arrowHead
