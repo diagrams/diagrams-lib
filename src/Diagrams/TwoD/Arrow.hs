@@ -141,9 +141,6 @@ data ArrowOpts
 straightShaft :: Trail R2
 straightShaft = trailFromOffsets [unitX]
 
-defShaftWidth :: Double
-defShaftWidth = 0.03
-
 instance Default ArrowOpts where
   def = ArrowOpts
         { _arrowHead    = dart
@@ -228,7 +225,7 @@ shaftColor = shaftStyle . styleLineColor
 -- The semigroup stucture of the lw attribute will insure that the default
 -- is only used if it has not been set in @opts@.
 shaftSty :: ArrowOpts -> Style R2
-shaftSty opts = lw defShaftWidth (opts^.shaftStyle)
+shaftSty opts = opts^.shaftStyle
 
 -- Set the default head style. See `shaftSty`.
 headSty :: ArrowOpts -> Style R2
@@ -260,7 +257,7 @@ widthOfJoint :: Style v -> Double
 widthOfJoint sStyle =
     let w = fmap getLineWidth . getAttr $ sStyle in
     case w of
-        Nothing -> defShaftWidth -- this case should never happen.
+        Nothing -> 0.01 -- this case should never happen.
         Just w' -> w'
 
 -- | Combine the head and its joint into a single scale invariant diagram
