@@ -19,11 +19,13 @@
 
 module Diagrams.Located
     ( Located
-    , at, viewLoc, unLoc, loc, mapLoc
+    , at, viewLoc, unLoc, loc, mapLoc, located
     )
     where
 
+import           Control.Lens            (Lens)
 import           Data.AffineSpace
+import           Data.Functor            ((<$>))
 import           Data.VectorSpace
 
 import           Diagrams.Core
@@ -82,6 +84,10 @@ viewLoc (Loc p a) = (p,a)
 --   standard @Functor@ class.)
 mapLoc :: (V a ~ V b) => (a -> b) -> Located a -> Located b
 mapLoc f (Loc p a) = Loc p (f a)
+
+-- | A lens giving access to the object within a 'Located' wrapper.
+located :: (V a ~ V a') => Lens (Located a) (Located a') a a'
+located f (Loc p a) = Loc p <$> f a
 
 deriving instance (Eq   (V a), Eq a  ) => Eq   (Located a)
 deriving instance (Ord  (V a), Ord a ) => Ord  (Located a)
