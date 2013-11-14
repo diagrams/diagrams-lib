@@ -89,7 +89,7 @@ module Diagrams.TwoD.Arrow
        ) where
 
 import           Control.Arrow                    (first)
-import           Control.Lens                     (Lens', Setter,
+import           Control.Lens                     (Lens', Setter',
                                                    generateSignatures,
                                                    lensRules, makeLensesWith,
                                                    (%~), (&), (.~), (^.))
@@ -193,22 +193,32 @@ tailStyle :: Lens' ArrowOpts (Style R2)
 shaftStyle :: Lens' ArrowOpts (Style R2)
 
 -- | A lens for setting or modifying the color of an arrowhead. For
--- example, one may write @... (with & headColor .~ blue)@ to get an
--- arrow with a blue head, or @... (with & headColor %~
--- (\`withOpacity\` 0.5))@ to make an arrow's head 50\% transparent.
--- For more general control over the style of arrowheads, see
--- 'headStyle'.
-headColor :: (Color c, Color c') => Setter ArrowOpts ArrowOpts c c'
+--   example, one may write @... (with & headColor .~ blue)@ to get an
+--   arrow with a blue head, or @... (with & headColor %~ blend 0.5
+--   white)@ to make an arrow's head a lighter color.  For more general
+--   control over the style of arrowheads, see 'headStyle'.
+--
+--   Note that the most general type of @headColor@ would be
+--
+--   > (Color c, Color c') => Setter ArrowOpts ArrowOpts c c'
+--
+--   but that can cause problems for type inference when setting the
+--   color.  However, using it at that more general type may
+--   occasionally be useful, for example, if you want to apply some
+--   opacity to a color, as in @... (with & headColor %~
+--   (\`withOpacity\` 0.5))@.  If you want the more general type, you
+--   can use @'headStyle' . 'styleFillColor'@ in place of @headColor@.
+headColor :: Color c => Setter' ArrowOpts c
 headColor = headStyle . styleFillColor
 
 -- | A lens for setting or modifying the color of an arrow
 --   tail. See 'headColor'.
-tailColor :: (Color c, Color c') => Setter ArrowOpts ArrowOpts c c'
+tailColor :: Color c => Setter' ArrowOpts c
 tailColor = tailStyle . styleFillColor
 
 -- | A lens for setting or modifying the color of an arrow
 --   shaft. See 'headColor'.
-shaftColor :: (Color c, Color c') => Setter ArrowOpts ArrowOpts c c'
+shaftColor :: Color c => Setter' ArrowOpts c
 shaftColor = shaftStyle . styleLineColor
 
 -- Set the default shaft style of an `ArrowOpts` record by applying the
