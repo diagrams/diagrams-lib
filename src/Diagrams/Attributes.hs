@@ -28,10 +28,10 @@ module Diagrams.Attributes (
     Color(..), SomeColor(..), someToAlpha
 
   -- ** Line color
-  , LineColor, getLineColor, lineColor, lineColorA, lc, lcA
+  , LineColor, getLineColor, mkLineColor, lineColor, lineColorA, lc, lcA
 
   -- ** Fill color
-  , FillColor, getFillColor, recommendFillColor, fillColor, fc, fcA
+  , FillColor, getFillColor, mkFillColor, recommendFillColor, fillColor, fc, fcA
 
   -- ** Opacity
   , Opacity, getOpacity, opacity
@@ -117,13 +117,16 @@ instance Default LineColor where
 getLineColor :: LineColor -> SomeColor
 getLineColor (LineColor (Last c)) = c
 
+mkLineColor :: Color c => c -> LineColor
+mkLineColor = LineColor . Last . SomeColor
+
 -- | Set the line (stroke) color.  This function is polymorphic in the
 --   color type (so it can be used with either 'Colour' or
 --   'AlphaColour'), but this can sometimes create problems for type
 --   inference, so the 'lc' and 'lcA' variants are provided with more
 --   concrete types.
 lineColor :: (Color c, HasStyle a) => c -> a -> a
-lineColor = applyAttr . LineColor . Last . SomeColor
+lineColor = applyAttr . mkLineColor
 
 -- | Apply a 'lineColor' attribute.
 lineColorA :: HasStyle a => LineColor -> a -> a
@@ -148,12 +151,15 @@ newtype FillColor = FillColor (Recommend (Last SomeColor))
   deriving (Typeable, Semigroup)
 instance AttributeClass FillColor
 
+mkFillColor :: Color c => c -> FillColor
+mkFillColor = FillColor . Commit . Last . SomeColor
+
 -- | Set the fill color.  This function is polymorphic in the color
 --   type (so it can be used with either 'Colour' or 'AlphaColour'),
 --   but this can sometimes create problems for type inference, so the
 --   'fc' and 'fcA' variants are provided with more concrete types.
 fillColor :: (Color c, HasStyle a) => c -> a -> a
-fillColor = applyAttr . FillColor . Commit . Last . SomeColor
+fillColor = applyAttr . mkFillColor
 
 -- | Set a \"recommended\" fill color, to be used only if no explicit
 --   calls to 'fillColor' (or 'fc', or 'fcA') are used.
