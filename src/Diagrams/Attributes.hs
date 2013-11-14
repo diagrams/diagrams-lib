@@ -28,10 +28,10 @@ module Diagrams.Attributes (
     Color(..), SomeColor(..), someToAlpha
 
   -- ** Line color
-  , LineColor, getLineColor, mkLineColor, lineColor, lineColorA, lc, lcA
+  , LineColor, getLineColor, mkLineColor, styleLineColor, lineColor, lineColorA, lc, lcA
 
   -- ** Fill color
-  , FillColor, getFillColor, mkFillColor, recommendFillColor, fillColor, fc, fcA
+  , FillColor, getFillColor, mkFillColor, styleFillColor, recommendFillColor, fillColor, fc, fcA
 
   -- ** Opacity
   , Opacity, getOpacity, opacity
@@ -57,18 +57,18 @@ module Diagrams.Attributes (
 
   ) where
 
-import           Diagrams.Core
-
+import           Control.Lens          (Setter, sets)
 import           Data.Colour
 import           Data.Colour.RGBSpace
 import           Data.Colour.SRGB      (sRGBSpace)
-
 import           Data.Default.Class
-
-import           Data.Typeable
-
+import           Data.Maybe            (fromMaybe)
 import           Data.Monoid.Recommend
 import           Data.Semigroup
+import           Data.Typeable
+
+import           Diagrams.Core
+import           Diagrams.Core.Style   (setAttr)
 
 ------------------------------------------------------------
 --  Color  -------------------------------------------------
@@ -120,6 +120,18 @@ getLineColor (LineColor (Last c)) = c
 mkLineColor :: Color c => c -> LineColor
 mkLineColor = LineColor . Last . SomeColor
 
+styleLineColor :: (Color c, Color c') => Setter (Style v) (Style v) c c'
+styleLineColor = sets modifyLineColor
+  where
+    modifyLineColor f s
+      = flip setAttr s
+      . mkFillColor
+      . f
+      . fromAlphaColour . someToAlpha
+      . getLineColor
+      . fromMaybe def . getAttr
+      $ s
+
 -- | Set the line (stroke) color.  This function is polymorphic in the
 --   color type (so it can be used with either 'Colour' or
 --   'AlphaColour'), but this can sometimes create problems for type
@@ -156,6 +168,18 @@ instance Default FillColor where
 
 mkFillColor :: Color c => c -> FillColor
 mkFillColor = FillColor . Commit . Last . SomeColor
+
+styleFillColor :: (Color c, Color c') => Setter (Style v) (Style v) c c'
+styleFillColor = sets modifyFillColor
+  where
+    modifyFillColor f s
+      = flip setAttr s
+      . mkFillColor
+      . f
+      . fromAlphaColour . someToAlpha
+      . getFillColor
+      . fromMaybe def . getAttr
+      $ s
 
 -- | Set the fill color.  This function is polymorphic in the color
 --   type (so it can be used with either 'Colour' or 'AlphaColour'),
