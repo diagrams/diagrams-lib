@@ -125,7 +125,7 @@ styleLineColor = sets modifyLineColor
   where
     modifyLineColor f s
       = flip setAttr s
-      . mkFillColor
+      . mkLineColor
       . f
       . fromAlphaColour . someToAlpha
       . getLineColor
