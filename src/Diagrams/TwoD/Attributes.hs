@@ -12,18 +12,21 @@
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
 -- Diagrams may have /attributes/ which affect the way they are
--- rendered. This module defines Gradients and Colors (Textures) in two
--- dimensions. Some of these functions are carbon copies of funtions defined
--- in Diagrams.Attributes, provided for backward compatability. Functions
--- ending in T like /fcT/ have counterparts without the T, e.g. /fc/.
+-- rendered. This module defines /Textures/ (Gradients and Colors) in two
+-- dimensions. Like the attriubtes defined in the Diagrams.Attributes module,
+-- all attributes defined here use the 'Last' or 'Recommend' /semigroup/ structure.
+-- 'FillColor' and 'LineColor' attributes are provided so that backends that
+-- don't support gradients need not be concerned with using textures. Backends
+-- should only implement color attributes or textures attributes, not both.
 --
 -----------------------------------------------------------------------------
 
 module Diagrams.TwoD.Attributes (
-  -- * Gradients
-    Texture(..), _SC, _LG, _RG, defaultLG, defaultRG, mkStops, idTransform
-  , GradientStop(..), SpreadMethod(..), lineLGradient, lineRGradient
-  , stopColor, stopFraction
+  -- * Textures
+    Texture(..), _SC, _LG, _RG, defaultLG, defaultRG
+  , GradientStop(..), stopColor, stopFraction, mkStops
+  , SpreadMethod(..), lineLGradient, lineRGradient
+
 
   -- ** Linear Gradients
   , LGradient(..), lGradStops, lGradTrans, lGradStart, lGradEnd
@@ -33,16 +36,16 @@ module Diagrams.TwoD.Attributes (
   , RGradient(..), rGradStops, rGradTrans, rGradRadius, rGradCenter, rGradFocus
   , rGradSpreadMethod, mkRadialGradient
 
-  -- * Line texture
+  -- ** Line texture
   ,  LineTexture(..), getLineTexture, lineTexture
 
-  -- * Line color
+  -- ** Line color
   , LineColor, lineColor, getLineColor, lc, lcA, lineColorA
 
-  -- * Fill texture
+  -- ** Fill texture
   , FillTexture(..), getFillTexture, fillTexture
 
-  -- * Fill color
+  -- ** Fill color
   , FillColor, fillColor, getFillColor, fc, fcA, recommendFillColor
 
   ) where
@@ -51,7 +54,8 @@ import           Diagrams.Core
 import           Diagrams.Attributes (Color(..), SomeColor(..))
 import           Diagrams.TwoD.Types (T2, R2, P2, mkP2)
 
-import           Control.Lens (makeLenses, makePrisms, (&), (%~))
+import           Control.Lens ( makeLensesWith, generateSignatures, lensRules
+                              , makePrisms, Lens', (&), (%~), (.~), makeLenses)
 
 import           Data.Colour hiding (AffineSpace)
 import           Data.Default.Class
@@ -60,14 +64,24 @@ import           Data.Typeable
 import           Data.Monoid.Recommend
 import           Data.Semigroup
 
--- | A stop is (color, proportion, opacity)
---type GradientStop = (SomeColor, Double, Double)
+-- | A gradient stop contains a color and fraction (usually between 0 and 1)
 data GradientStop = GradientStop
      { _stopColor    :: SomeColor
      , _stopFraction :: Double}
 
-makeLenses ''GradientStop
+makeLensesWith (lensRules & generateSignatures .~ False) ''GradientStop
 
+-- | A color for the stop.
+stopColor :: Lens' GradientStop SomeColor
+
+-- | The fraction for stop.
+stopFraction :: Lens' GradientStop Double
+
+-- | The 'SpreadMethod' determines what happens before 'lGradStart' and after
+--   'lGradEnd'. 'GradPad' fills the space before the start of the gradient
+--   with the color of the first stop and the color after end of the gradient
+--   with the color of the last stop. 'GradRepeat' restarts the gradient and
+--   'GradReflect' restarts the gradient with the stops in reverse order.
 data SpreadMethod = GradPad | GradReflect | GradRepeat
 
 -- | Linear Gradient
@@ -78,7 +92,28 @@ data LGradient = LGradient
     , _lGradTrans        :: T2
     , _lGradSpreadMethod :: SpreadMethod }
 
-makeLenses ''LGradient
+makeLensesWith (lensRules & generateSignatures .~ False) ''LGradient
+
+-- | A list of stops (colors and fractions).
+lGradStops :: Lens' LGradient [GradientStop]
+
+-- | A transformation to be applied to the gradient. Usually this field will
+--   start as the identity transform and capture the transforms that are applied
+--   to the gradient.
+lGradTrans :: Lens' LGradient T2
+
+-- | The starting point for the first gradient stop. Values for the coordinates
+--   between 0 and 1 are inside of the object to which the gradient is applied.
+--   The default is (0,0).
+lGradStart :: Lens' LGradient P2
+
+-- | The ending point for the last gradient stop. Values for the coordinates
+--   between 0 and 1 are inside of the object to which the gradient is applied.
+--   The default is (1,0), that is the gradient runs from left to right.
+lGradEnd :: Lens' LGradient P2
+
+-- | For setting the spread method.
+lGradSpreadMethod :: Lens' LGradient SpreadMethod
 
 -- | Radial Gradient
 data RGradient = RGradient
@@ -89,53 +124,96 @@ data RGradient = RGradient
     , _rGradTrans        :: T2
     , _rGradSpreadMethod :: SpreadMethod }
 
-makeLenses ''RGradient
+makeLensesWith (lensRules & generateSignatures .~ False) ''RGradient
 
+-- | A list of stops (colors and fractions).
+rGradStops :: Lens' RGradient [GradientStop]
+
+-- | A transformation to be applied to the gradient. Usually this field will
+--   start as the identity transform and capture the transforms that are applied
+--   to the gradient.
+rGradTrans :: Lens' RGradient T2
+
+-- | The radius and center determine where the gradient ends.
+rGradRadius :: Lens' RGradient Double
+
+-- | The radius and center determine where the gradient ends.
+rGradCenter :: Lens' RGradient P2
+
+-- | The focal point of the radial gradient. The point to which the 0 gradient
+--   stop is mapped.
+rGradFocus :: Lens' RGradient P2
+
+-- | For setting the spread method.
+rGradSpreadMethod :: Lens' RGradient SpreadMethod
+
+-- | A Texture is either a color 'SC', linear gradient 'LG', or radial gradient 'RG'.
+--   An object can have only one texture which is determined by the 'Last'
+--   semigroup structure. The prisms '_SC', '_LG', '_RG' can be used as setters
+--   for a texture.
 data Texture = SC SomeColor | LG LGradient | RG RGradient
   deriving (Typeable)
 
 makePrisms ''Texture
 
--- XXX replace with a general version of identity transform in core.
-idTransform :: Transformation R2
-idTransform = scaling 1
-
+-- | A default is provided so that linear gradients can easily be created using
+--   lenses. For example, @lg = defaultLG & lGradStart .~ (0.25 ^& 0.33)@. Note that
+--   no default value is provided for @lGradStops@, this must be set before
+--   the gradient value is used, otherwise the object will appear transparent.
 defaultLG :: Texture
 defaultLG = LG (LGradient
     { _lGradStops        = []
     , _lGradStart        = mkP2 0 0
     , _lGradEnd          = mkP2 1 0
-    , _lGradTrans        = scaling 1
+    , _lGradTrans        = mempty
     , _lGradSpreadMethod = GradPad
     })
 
+-- | A default is provided so that radial gradients can easily be created using
+--   lenses. For example, @rg = defaultRG & rGradRadius .~ 0.25@. Note that
+--   no default value is provided for @rGradStops@, this must be set before
+--   the gradient value is used, otherwise the object will appear transparent.
 defaultRG :: Texture
 defaultRG = RG (RGradient
     { _rGradStops        = []
     , _rGradRadius       = 0.5
     , _rGradCenter       = mkP2 0 0
     , _rGradFocus        = mkP2 0 0
-    , _rGradTrans        = scaling 1
+    , _rGradTrans        = mempty
     , _rGradSpreadMethod = GradPad
     })
 
+-- | A convenient function for making gradient stops from a list of triples.
+--   (An opaque color, a stop fraction, an opacity).
 mkStops :: [(Colour Double, Double, Double)] -> [GradientStop]
 mkStops s = map (\(x, y, z) -> GradientStop (SomeColor (withOpacity x z)) y) s
 
+-- | Make a linear gradient texture from a stop list, start point, end point,
+--   and 'SpreadMethod'. The 'lGradTrans' field is set to the identity
+--   transfrom, to change it use the 'lGradTrans' lens.
 mkLinearGradient :: [GradientStop]  -> P2 -> P2 -> SpreadMethod -> Texture
 mkLinearGradient stops  start end spreadMethod
   = LG (LGradient stops start end (scaling 1) spreadMethod)
 
+-- | Make a radial gradient texture from a stop list, radius, start point,
+--   end point, and 'SpreadMethod'. The 'lGradTrans' field is set to the identity
+--   transfrom, to change it use the 'rGradTrans' lens.
 mkRadialGradient :: [GradientStop] -> Double -> P2 -> P2 -> SpreadMethod -> Texture
 mkRadialGradient stops r center focus spreadMethod
-  = RG (RGradient stops r center focus (scaling 1) spreadMethod)
+  = RG (RGradient stops r center focus mempty spreadMethod)
 
+-- | The texture which lines are drawn.  Note that child
+--   textures always override parent textures.
+--   More precisely, the semigroup structure on line texture attributes
+--   is that of 'Last'.
 newtype LineTexture = LineTexture (Last Texture)
   deriving (Typeable, Semigroup)
 instance AttributeClass LineTexture
 
 type instance V LineTexture = R2
 
+-- Only gradients get transformed. The transform is applied to the gradients
+-- transform field. Colors are left unchanged.
 instance Transformable LineTexture where
   transform t (LineTexture (Last texture)) = LineTexture (Last tx)
     where
@@ -175,33 +253,42 @@ getLineColor (LineColor (Last c)) = c
 --   color type (so it can be used with either 'Colour' or
 --   'AlphaColour'), but this can sometimes create problems for type
 --   inference, so the 'lc' and 'lcA' variants are provided with more
---   concrete types.
+--   concrete types. 'lineColor' adds both a texture attribute and a
+--   color attribute to the style so that backends that don't support gradients
+--   don't need to worry about them. It is important that backends only implement
+--   one or the other.
 lineColor :: (Color c, HasStyle a, V a ~ R2) => c -> a -> a
 lineColor c = (lTx c) . (lCl c)
   where
     lTx x = lineTexture (SC (SomeColor x))
     lCl = applyAttr . LineColor . Last . SomeColor
 
--- | Apply a 'lineColor' attribute.
+-- | Apply a 'lineColor' attribute. See comment in 'lineColor' about backends.
 lineColorA :: HasStyle a => LineColor -> a -> a
 lineColorA = applyAttr
 
 -- | A synonym for 'lineColor', specialized to @'Colour' Double@
---   (i.e. opaque colors).
+--   (i.e. opaque colors).  See comment in 'lineColor' about backends.
 lc :: (HasStyle a, V a ~ R2) => Colour Double -> a -> a
 lc = lineColor
 
 -- | A synonym for 'lineColor', specialized to @'AlphaColour' Double@
---   (i.e. colors with transparency).
+--   (i.e. colors with transparency).  See comment in 'lineColor'
+--   about backends.
 lcA :: (HasStyle a, V a ~ R2) => AlphaColour Double -> a -> a
 lcA = lineColor
 
+-- | Apply a linear gradient.
 lineLGradient :: (HasStyle a, V a ~ R2) => LGradient -> a -> a
 lineLGradient g = lineTexture (LG g)
 
+-- | Apply a radial gradient.
 lineRGradient :: (HasStyle a, V a ~ R2) => RGradient -> a -> a
 lineRGradient g = lineTexture (RG g)
 
+-- | The texture which objects are filled.
+--   The semigroup structure on fill texture attributes
+--   is that of 'Recommed . Last'.
 newtype FillTexture = FillTexture (Recommend (Last Texture))
   deriving (Typeable, Semigroup)
 
@@ -209,6 +296,8 @@ instance AttributeClass FillTexture
 
 type instance V FillTexture = R2
 
+-- Only gradients get transformed. The transform is applied to the gradients
+-- transform field. Colors are left unchanged.
 instance Transformable FillTexture where
   transform _ tx@(FillTexture (Recommend _)) = tx
   transform t (FillTexture (Commit (Last texture))) = FillTexture (Commit (Last tx))
@@ -240,6 +329,10 @@ instance Color FillColor where
 --   type (so it can be used with either 'Colour' or 'AlphaColour'),
 --   but this can sometimes create problems for type inference, so the
 --   'fc' and 'fcA' variants are provided with more concrete types.
+--   'fillColor' adds both a texture attribute and a
+--   color attribute to the style so that backends that don't support gradients
+--   don't need to worry about them. It is important that backends only implement
+--   one or the other.
 fillColor :: (Color c, HasStyle a, V a ~ R2) => c -> a -> a
 fillColor c = (fTx c) . (fCl c)
   where
@@ -248,6 +341,7 @@ fillColor c = (fTx c) . (fCl c)
 
 -- | Set a \"recommended\" fill color, to be used only if no explicit
 --   calls to 'fillColor' (or 'fc', or 'fcA') are used.
+--   See comment after 'fillColor' about backends.
 recommendFillColor :: (Color c, HasStyle a, V a ~ R2) => c -> a -> a
 recommendFillColor c = (fT c) . (fC c)
   where
@@ -258,11 +352,11 @@ getFillColor :: FillColor -> SomeColor
 getFillColor (FillColor c) = getLast . getRecommend $ c
 
 -- | A synonym for 'fillColor', specialized to @'Colour' Double@
---   (i.e. opaque colors).
+--   (i.e. opaque colors). See comment after 'fillColor' about backends.
 fc :: (HasStyle a, V a ~ R2) => Colour Double -> a -> a
 fc = fillColor
 
 -- | A synonym for 'fillColor', specialized to @'AlphaColour' Double@
---   (i.e. colors with transparency).
+--   (i.e. colors with transparency). See comment after 'fillColor' about backends.
 fcA :: (HasStyle a, V a ~ R2) => AlphaColour Double -> a -> a
 fcA = fillColor

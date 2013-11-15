@@ -227,7 +227,7 @@ module Diagrams.TwoD
 
         -- * Textures
       , Texture(..), SpreadMethod(..), GradientStop(..), mkStops, getFillTexture
-      , fillTexture, getLineTexture, lineTexture, idTransform
+      , fillTexture, getLineTexture, lineTexture
 
       , LGradient(..), lGradStops, lGradTrans, lGradStart, lGradEnd
       , lGradSpreadMethod, defaultLG, _LG, mkLinearGradient
