@@ -55,7 +55,7 @@ import           Diagrams.Attributes (Color(..), SomeColor(..))
 import           Diagrams.TwoD.Types (T2, R2, P2, mkP2)
 
 import           Control.Lens ( makeLensesWith, generateSignatures, lensRules
-                              , makePrisms, Lens', (&), (%~), (.~), makeLenses)
+                              , makePrisms, Lens', (&), (%~), (.~))
 
 import           Data.Colour hiding (AffineSpace)
 import           Data.Default.Class
