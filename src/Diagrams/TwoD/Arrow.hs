@@ -19,7 +19,7 @@
 
 
 module Diagrams.TwoD.Arrow
-       ( -- * Examples:
+       ( -- * Examples
          -- ** Example 1
 -- | <<diagrams/src_Diagrams_TwoD_Arrow_example1.svg#diagram=example1&width=500>>
 --
@@ -53,7 +53,7 @@ module Diagrams.TwoD.Arrow
 --   >
 --   > example2 = (ex12 <> ex3) # centerXY # pad 1.1
 
-         -- * Documentation
+         -- * Creating arrows
          arrow
        , arrow'
        , arrowAt
@@ -67,6 +67,8 @@ module Diagrams.TwoD.Arrow
        , connectOutside
        , connectOutside'
        , straightShaft
+
+         -- * Options
        , ArrowOpts(..)
 
        , arrowHead
@@ -76,8 +78,11 @@ module Diagrams.TwoD.Arrow
        , tailSize
        , headGap
        , tailGap
+       , headColor
        , headStyle
+       , tailColor
        , tailStyle
+       , shaftColor
        , shaftStyle
 
          -- | See "Diagrams.TwoD.Arrowheads" for a list of standard
@@ -86,7 +91,8 @@ module Diagrams.TwoD.Arrow
        ) where
 
 import           Control.Arrow                    (first)
-import           Control.Lens                     (Lens', generateSignatures,
+import           Control.Lens                     (Lens', Setter',
+                                                   generateSignatures,
                                                    lensRules, makeLensesWith,
                                                    (%~), (&), (.~), (^.))
 import           Data.AffineSpace
@@ -134,9 +140,6 @@ data ArrowOpts
 -- | Straight line arrow shaft.
 straightShaft :: Trail R2
 straightShaft = trailFromOffsets [unitX]
-
-defShaftWidth :: Double
-defShaftWidth = 0.03
 
 instance Default ArrowOpts where
   def = ArrowOpts
@@ -188,12 +191,41 @@ tailStyle :: Lens' ArrowOpts (Style R2)
 -- | Style to apply to the shaft. See `headStyle`.
 shaftStyle :: Lens' ArrowOpts (Style R2)
 
+-- | A lens for setting or modifying the color of an arrowhead. For
+--   example, one may write @... (with & headColor .~ blue)@ to get an
+--   arrow with a blue head, or @... (with & headColor %~ blend 0.5
+--   white)@ to make an arrow's head a lighter color.  For more general
+--   control over the style of arrowheads, see 'headStyle'.
+--
+--   Note that the most general type of @headColor@ would be
+--
+--   > (Color c, Color c') => Setter ArrowOpts ArrowOpts c c'
+--
+--   but that can cause problems for type inference when setting the
+--   color.  However, using it at that more general type may
+--   occasionally be useful, for example, if you want to apply some
+--   opacity to a color, as in @... (with & headColor %~
+--   (\`withOpacity\` 0.5))@.  If you want the more general type, you
+--   can use @'headStyle' . 'styleFillColor'@ in place of @headColor@.
+headColor :: Color c => Setter' ArrowOpts c
+headColor = headStyle . styleFillColor
+
+-- | A lens for setting or modifying the color of an arrow
+--   tail. See 'headColor'.
+tailColor :: Color c => Setter' ArrowOpts c
+tailColor = tailStyle . styleFillColor
+
+-- | A lens for setting or modifying the color of an arrow
+--   shaft. See 'headColor'.
+shaftColor :: Color c => Setter' ArrowOpts c
+shaftColor = shaftStyle . styleLineColor
+
 -- Set the default shaft style of an `ArrowOpts` record by applying the
 -- default style after all other styles have been applied.
 -- The semigroup stucture of the lw attribute will insure that the default
 -- is only used if it has not been set in @opts@.
 shaftSty :: ArrowOpts -> Style R2
-shaftSty opts = lw defShaftWidth (opts^.shaftStyle)
+shaftSty opts = opts^.shaftStyle
 
 -- Set the default head style. See `shaftSty`.
 headSty :: ArrowOpts -> Style R2
@@ -225,7 +257,7 @@ widthOfJoint :: Style v -> Double
 widthOfJoint sStyle =
     let w = fmap getLineWidth . getAttr $ sStyle in
     case w of
-        Nothing -> defShaftWidth -- this case should never happen.
+        Nothing -> 0.01 -- this case should never happen.
         Just w' -> w'
 
 -- | Combine the head and its joint into a single scale invariant diagram
