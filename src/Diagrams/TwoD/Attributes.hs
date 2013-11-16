@@ -38,7 +38,7 @@ module Diagrams.TwoD.Attributes (
   , rGradSpreadMethod, mkRadialGradient
 
   -- ** Line texture
-  ,  LineTexture(..), getLineTexture, lineTexture
+  ,  LineTexture(..), getLineTexture, lineTexture, lineTextureA
 
   -- ** Line color
   , LineColor, lineColor, getLineColor, lc, lcA, lineColorA
@@ -236,6 +236,9 @@ getLineTexture (LineTexture (Last t)) = t
 
 lineTexture :: (HasStyle a, V a ~ R2) => Texture-> a -> a
 lineTexture = applyTAttr . LineTexture . Last
+
+lineTextureA :: (HasStyle a, V a ~ R2) => LineTexture -> a -> a
+lineTextureA = applyTAttr
 
 -- | The color with which lines (strokes) are drawn.  Note that child
 --   colors always override parent colors; that is, @'lineColor' c1

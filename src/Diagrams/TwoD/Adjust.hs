@@ -27,7 +27,7 @@ import Diagrams.Core
 import Diagrams.Attributes       (lineWidthA, lineCap
                                  , lineJoin, lineMiterLimitA
                                  )
-import Diagrams.TwoD.Attributes  (lineColorA)
+import Diagrams.TwoD.Attributes  (lineColorA, lineTextureA)
 import Diagrams.Util             ((#))
 
 import Diagrams.TwoD.Types       (R2, p2)
@@ -58,6 +58,7 @@ import Data.Default.Class
 setDefault2DAttributes :: Semigroup m => QDiagram b R2 m -> QDiagram b R2 m
 setDefault2DAttributes d = d # lineWidthA def # lineColorA def # fontSizeA def
                              # lineCap def # lineJoin def # lineMiterLimitA def
+                             # lineTextureA def
 
 -- | Adjust the size and position of a 2D diagram to fit within the
 --   requested size. The first two arguments specify a method for
