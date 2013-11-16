@@ -33,7 +33,8 @@ module Diagrams.TwoD.Attributes (
   , lGradSpreadMethod, mkLinearGradient
 
   -- ** Radial Gradients
-  , RGradient(..), rGradStops, rGradTrans, rGradRadius, rGradCenter, rGradFocus
+  , RGradient(..), rGradStops, rGradTrans
+  , rGradCenter0, rGradRadius0, rGradCenter1, rGradRadius1
   , rGradSpreadMethod, mkRadialGradient
 
   -- ** Line texture
@@ -118,9 +119,10 @@ lGradSpreadMethod :: Lens' LGradient SpreadMethod
 -- | Radial Gradient
 data RGradient = RGradient
     { _rGradStops        :: [GradientStop]
-    , _rGradRadius       :: Double
-    , _rGradCenter       :: P2
-    , _rGradFocus        :: P2
+    , _rGradCenter0      :: P2
+    , _rGradRadius0      :: Double
+    , _rGradCenter1      :: P2
+    , _rGradRadius1      :: Double
     , _rGradTrans        :: T2
     , _rGradSpreadMethod :: SpreadMethod }
 
@@ -129,20 +131,22 @@ makeLensesWith (lensRules & generateSignatures .~ False) ''RGradient
 -- | A list of stops (colors and fractions).
 rGradStops :: Lens' RGradient [GradientStop]
 
+-- | The center point of the inner circle.
+rGradCenter0 :: Lens' RGradient P2
+
+-- | The radius of the inner cirlce.
+rGradRadius0 :: Lens' RGradient Double
+
+-- | The center of the outer circle.
+rGradCenter1  :: Lens' RGradient P2
+
+-- | The radius of the outer circle.
+rGradRadius1 :: Lens' RGradient Double
+
 -- | A transformation to be applied to the gradient. Usually this field will
 --   start as the identity transform and capture the transforms that are applied
 --   to the gradient.
 rGradTrans :: Lens' RGradient T2
-
--- | The radius and center determine where the gradient ends.
-rGradRadius :: Lens' RGradient Double
-
--- | The radius and center determine where the gradient ends.
-rGradCenter :: Lens' RGradient P2
-
--- | The focal point of the radial gradient. The point to which the 0 gradient
---   stop is mapped.
-rGradFocus :: Lens' RGradient P2
 
 -- | For setting the spread method.
 rGradSpreadMethod :: Lens' RGradient SpreadMethod
@@ -170,15 +174,16 @@ defaultLG = LG (LGradient
     })
 
 -- | A default is provided so that radial gradients can easily be created using
---   lenses. For example, @rg = defaultRG & rGradRadius .~ 0.25@. Note that
+--   lenses. For example, @rg = defaultRG & rGradRadius1 .~ 0.25@. Note that
 --   no default value is provided for @rGradStops@, this must be set before
 --   the gradient value is used, otherwise the object will appear transparent.
 defaultRG :: Texture
 defaultRG = RG (RGradient
     { _rGradStops        = []
-    , _rGradRadius       = 0.5
-    , _rGradCenter       = mkP2 0 0
-    , _rGradFocus        = mkP2 0 0
+    , _rGradCenter0      = mkP2 0 0
+    , _rGradRadius0      = 0.0
+    , _rGradCenter1      = mkP2 0 0
+    , _rGradRadius1      = 0.5
     , _rGradTrans        = mempty
     , _rGradSpreadMethod = GradPad
     })
@@ -198,9 +203,10 @@ mkLinearGradient stops  start end spreadMethod
 -- | Make a radial gradient texture from a stop list, radius, start point,
 --   end point, and 'SpreadMethod'. The 'lGradTrans' field is set to the identity
 --   transfrom, to change it use the 'rGradTrans' lens.
-mkRadialGradient :: [GradientStop] -> Double -> P2 -> P2 -> SpreadMethod -> Texture
-mkRadialGradient stops r center focus spreadMethod
-  = RG (RGradient stops r center focus mempty spreadMethod)
+mkRadialGradient :: [GradientStop] -> P2 -> Double
+                  -> P2 -> Double -> SpreadMethod -> Texture
+mkRadialGradient stops c0 r0 c1 r1 spreadMethod
+  = RG (RGradient stops c0 r0 c1 r1 mempty spreadMethod)
 
 -- | The texture which lines are drawn.  Note that child
 --   textures always override parent textures.

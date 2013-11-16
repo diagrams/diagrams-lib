@@ -233,8 +233,8 @@ module Diagrams.TwoD
       , lGradSpreadMethod, defaultLG, _LG, mkLinearGradient
 
       , RGradient(..)
-      , rGradStops, rGradTrans, rGradRadius, rGradCenter, rGradFocus
-      , rGradSpreadMethod, defaultRG, _RG, mkRadialGradient
+      , rGradStops, rGradCenter0, rGradRadius0, rGradCenter1, rGradRadius1
+      , rGradTrans, rGradSpreadMethod, defaultRG, _RG, mkRadialGradient
 
         -- ** Colors
       , fillColor, fc, fcA, recommendFillColor, getFillColor
