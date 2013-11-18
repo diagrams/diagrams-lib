@@ -5,7 +5,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE RankNTypes #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Backend.CmdLine
@@ -494,28 +494,34 @@ showDiaList ds = do
 --   The @fpu@ option from 'DiagramAnimOpts' can be used to control how many frames will
 --   be output for each second (unit time) of animation.
 --
---   The type for this function requires that @MainOpts (Diagram b v) ~ DiagramOpts@
---   because it works by modifying the output field and running the base @mainRender@.
+--   This function requires a lens into the structure that the particular backend
+--   uses for it's diagram base case.  If @MainOpts (Diagram b v) ~ DiagramOpts@
+--   then this lens will simply be 'output'.  For a backend supporting looping 
+--   it will most likely be @_1 . output@.  This lens is required because the 
+--   implementation works by modifying the output field and running the base @mainRender@.
 --   Typically a backend can write its @Animation B V@ instance as
 --
 --   > instance Mainable (Animation B V) where
 --   >     type MainOpts (Animation B V) = (DiagramOpts, DiagramAnimOpts)
---   >     mainRender = defaultMultiMainRender
+--   >     mainRender = defaultAnimMainRender output
 --
 --   We do not provide this instance in general so that backends can choose to
 --   opt-in to this form or provide a different instance that makes more sense.
-defaultAnimMainRender :: (Mainable (Diagram b v), MainOpts (Diagram b v) ~ DiagramOpts) 
-                      => (DiagramOpts,DiagramAnimOpts) -> Animation b v -> IO ()
-defaultAnimMainRender (opts,animOpts) anim = do
+defaultAnimMainRender :: (Mainable (Diagram b v)) 
+                      => (Lens' (MainOpts (Diagram b v)) FilePath) -- ^ A lens into the output path.
+                      -> (MainOpts (Diagram b v),DiagramAnimOpts) 
+                      -> Animation b v 
+                      -> IO ()
+defaultAnimMainRender out (opts,animOpts) anim = do
     let frames  = simulate (toRational $ animOpts^.fpu) anim
         nDigits = length . show . length $ frames
-    forM_ (zip [1..] frames) $ \(i,d) -> mainRender (indexize nDigits i opts) d
+    forM_ (zip [1..] frames) $ \(i,d) -> mainRender (indexize out nDigits i opts) d
 
 -- | @indexize d n@ adds the integer index @n@ to the end of the
 --   output file name, padding with zeros if necessary so that it uses
 --   at least @d@ digits.
-indexize :: Int -> Integer -> DiagramOpts -> DiagramOpts
-indexize nDigits i opts = opts & output .~ output'
+indexize :: Lens' s FilePath ->  Int -> Integer -> s -> s
+indexize out nDigits i opts = opts & out .~ output'
   where fmt         = "%0" ++ show nDigits ++ "d"
         output'     = addExtension (base ++ printf fmt (i::Integer)) ext
-        (base, ext) = splitExtension (opts^.output)
+        (base, ext) = splitExtension (opts^.out)
