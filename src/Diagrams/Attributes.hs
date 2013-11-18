@@ -1,7 +1,6 @@
-{-# LANGUAGE DeriveDataTypeable
-           , ExistentialQuantification
-           , GeneralizedNewtypeDeriving
-  #-}
+{-# LANGUAGE DeriveDataTypeable         #-}
+{-# LANGUAGE ExistentialQuantification  #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Attributes
@@ -26,13 +25,13 @@ module Diagrams.Attributes (
   -- * Color
   -- $color
 
-    Color(..), SomeColor(..)
+    Color(..), SomeColor(..), someToAlpha
 
   -- ** Line color
-  , LineColor, getLineColor, lineColor, lineColorA, lc, lcA
+  , LineColor, getLineColor, mkLineColor, styleLineColor, lineColor, lineColorA, lc, lcA
 
   -- ** Fill color
-  , FillColor, getFillColor, recommendFillColor, fillColor, fc, fcA
+  , FillColor, getFillColor, mkFillColor, styleFillColor, recommendFillColor, fillColor, fc, fcA
 
   -- ** Opacity
   , Opacity, getOpacity, opacity
@@ -58,18 +57,18 @@ module Diagrams.Attributes (
 
   ) where
 
-import           Diagrams.Core
-
+import           Control.Lens          (Setter, sets)
 import           Data.Colour
 import           Data.Colour.RGBSpace
-import           Data.Colour.SRGB (sRGBSpace)
-
+import           Data.Colour.SRGB      (sRGBSpace)
 import           Data.Default.Class
-
-import           Data.Typeable
-
+import           Data.Maybe            (fromMaybe)
 import           Data.Monoid.Recommend
 import           Data.Semigroup
+import           Data.Typeable
+
+import           Diagrams.Core
+import           Diagrams.Core.Style   (setAttr)
 
 ------------------------------------------------------------
 --  Color  -------------------------------------------------
@@ -88,12 +87,20 @@ import           Data.Semigroup
 --   both the 'Data.Colour.Colour' and 'Data.Colour.AlphaColour' types
 --   from the "Data.Colour" library.
 class Color c where
-  -- | Convert a color to its standard representation, AlphaColour
+  -- | Convert a color to its standard representation, AlphaColour.
   toAlphaColour :: c -> AlphaColour Double
+
+  -- | Convert from an AlphaColour Double.  Note that this direction
+  --   may lose some information. For example, the instance for
+  --   'Colour' drops the alpha channel.
+  fromAlphaColour :: AlphaColour Double -> c
 
 -- | An existential wrapper for instances of the 'Color' class.
 data SomeColor = forall c. Color c => SomeColor c
   deriving Typeable
+
+someToAlpha :: SomeColor -> AlphaColour Double
+someToAlpha (SomeColor c) = toAlphaColour c
 
 -- | The color with which lines (strokes) are drawn.  Note that child
 --   colors always override parent colors; that is, @'lineColor' c1
@@ -110,13 +117,28 @@ instance Default LineColor where
 getLineColor :: LineColor -> SomeColor
 getLineColor (LineColor (Last c)) = c
 
+mkLineColor :: Color c => c -> LineColor
+mkLineColor = LineColor . Last . SomeColor
+
+styleLineColor :: (Color c, Color c') => Setter (Style v) (Style v) c c'
+styleLineColor = sets modifyLineColor
+  where
+    modifyLineColor f s
+      = flip setAttr s
+      . mkLineColor
+      . f
+      . fromAlphaColour . someToAlpha
+      . getLineColor
+      . fromMaybe def . getAttr
+      $ s
+
 -- | Set the line (stroke) color.  This function is polymorphic in the
 --   color type (so it can be used with either 'Colour' or
 --   'AlphaColour'), but this can sometimes create problems for type
 --   inference, so the 'lc' and 'lcA' variants are provided with more
 --   concrete types.
 lineColor :: (Color c, HasStyle a) => c -> a -> a
-lineColor = applyAttr . LineColor . Last . SomeColor
+lineColor = applyAttr . mkLineColor
 
 -- | Apply a 'lineColor' attribute.
 lineColorA :: HasStyle a => LineColor -> a -> a
@@ -141,12 +163,30 @@ newtype FillColor = FillColor (Recommend (Last SomeColor))
   deriving (Typeable, Semigroup)
 instance AttributeClass FillColor
 
+instance Default FillColor where
+  def = FillColor (Recommend (Last (SomeColor (transparent :: AlphaColour Double))))
+
+mkFillColor :: Color c => c -> FillColor
+mkFillColor = FillColor . Commit . Last . SomeColor
+
+styleFillColor :: (Color c, Color c') => Setter (Style v) (Style v) c c'
+styleFillColor = sets modifyFillColor
+  where
+    modifyFillColor f s
+      = flip setAttr s
+      . mkFillColor
+      . f
+      . fromAlphaColour . someToAlpha
+      . getFillColor
+      . fromMaybe def . getAttr
+      $ s
+
 -- | Set the fill color.  This function is polymorphic in the color
 --   type (so it can be used with either 'Colour' or 'AlphaColour'),
 --   but this can sometimes create problems for type inference, so the
 --   'fc' and 'fcA' variants are provided with more concrete types.
 fillColor :: (Color c, HasStyle a) => c -> a -> a
-fillColor = applyAttr . FillColor . Commit . Last . SomeColor
+fillColor = applyAttr . mkFillColor
 
 -- | Set a \"recommended\" fill color, to be used only if no explicit
 --   calls to 'fillColor' (or 'fc', or 'fcA') are used.
@@ -167,19 +207,24 @@ fcA :: HasStyle a => AlphaColour Double -> a -> a
 fcA = fillColor
 
 instance (Floating a, Real a) => Color (Colour a) where
-  toAlphaColour = opaque . colourConvert
+  toAlphaColour   = opaque . colourConvert
+  fromAlphaColour = colourConvert . (`over` black)
 
 instance (Floating a, Real a) => Color (AlphaColour a) where
-  toAlphaColour = alphaColourConvert
+  toAlphaColour   = alphaColourConvert
+  fromAlphaColour = alphaColourConvert
 
 instance Color SomeColor where
   toAlphaColour (SomeColor c) = toAlphaColour c
+  fromAlphaColour c = SomeColor c
 
 instance Color LineColor where
-  toAlphaColour (LineColor (Last c)) = toAlphaColour c
+  toAlphaColour (LineColor c) = toAlphaColour . getLast $ c
+  fromAlphaColour = LineColor . Last . fromAlphaColour
 
 instance Color FillColor where
   toAlphaColour (FillColor c) = toAlphaColour . getLast . getRecommend $ c
+  fromAlphaColour = FillColor . Commit . Last . fromAlphaColour
 
 -- | Convert to an RGB space while preserving the alpha channel.
 toRGBAUsingSpace :: Color c => RGBSpace Double -> c

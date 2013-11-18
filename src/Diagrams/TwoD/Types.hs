@@ -34,7 +34,8 @@ module Diagrams.TwoD.Types
        , fullTurn, fullCircle, convertAngle, angleRatio
        ) where
 
-import           Control.Lens            (makeWrapped, Wrapped, wrapped, op, Iso', iso, _1, _2)
+import           Control.Lens            (Iso', Wrapped, iso, makeWrapped, op,
+                                          wrapped, _1, _2)
 
 import           Diagrams.Coordinates
 import           Diagrams.Core
@@ -42,9 +43,9 @@ import           Diagrams.Util           (tau)
 
 import           Data.AffineSpace.Point
 import           Data.Basis
+import           Data.MemoTrie           (HasTrie (..))
 import           Data.NumInstances.Tuple ()
 import           Data.VectorSpace
-import           Data.MemoTrie (HasTrie (..))
 
 import           Data.Typeable
 ------------------------------------------------------------
@@ -245,6 +246,10 @@ newtype Turn = Turn Double
 
 makeWrapped ''Turn
 
+instance VectorSpace Turn where
+  type Scalar Turn = Double
+  s *^ Turn t = Turn (s*t)
+
 -- | The identity function with a restricted type, for conveniently
 -- declaring that some value should have type 'Turn'.  For example,
 -- @rotation . asTurn . fromRational@ constructs a rotation from a
@@ -262,6 +267,10 @@ newtype Rad = Rad Double
 
 makeWrapped ''Rad
 
+instance VectorSpace Rad where
+  type Scalar Rad = Double
+  s *^ Rad r = Rad (s*r)
+
 -- | The identity function with a restricted type, for conveniently
 -- declaring that some value should have type 'Rad'.  For example,
 -- @rotation . asRad . fromRational@ constructs a rotation from a
@@ -275,6 +284,10 @@ newtype Deg = Deg Double
   deriving (Read, Show, Eq, Ord, Enum, Fractional, Num, Real, RealFrac, AdditiveGroup)
 
 makeWrapped ''Deg
+
+instance VectorSpace Deg where
+  type Scalar Deg = Double
+  s *^ Deg d = Deg (s*d)
 
 -- | The identity function with a restricted type, for conveniently
 -- declaring that some value should have type 'Deg'.  For example,

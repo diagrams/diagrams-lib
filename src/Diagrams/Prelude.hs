@@ -61,10 +61,6 @@ module Diagrams.Prelude
          --   conjugation of transformations.
        , module Diagrams.Transform
 
-         -- | Convenient definitions and utilities for working with
-         --   good old-fashioned, axis-aligned bounding boxes.
-       , module Diagrams.BoundingBox
-
          -- | Giving names to subdiagrams and later retrieving
          --   subdiagrams by name.
        , module Diagrams.Names
@@ -125,7 +121,6 @@ import           Diagrams.Core
 import           Diagrams.Align
 import           Diagrams.Animation
 import           Diagrams.Attributes
-import           Diagrams.BoundingBox
 import           Diagrams.Combinators
 import           Diagrams.Coordinates
 import           Diagrams.CubicSpline
