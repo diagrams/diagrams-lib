@@ -316,7 +316,7 @@ instance ToResult (Diagram b v) where
 
 -- | A list of diagrams can produce pages.
 instance ToResult [Diagram b v] where
-   type Args [Diagram b v]  = ()
+   type Args [Diagram b v] = ()
    type ResultOf [Diagram b v] = [Diagram b v]
 
    toResult ds _ = ds
@@ -327,6 +327,13 @@ instance ToResult [(String,Diagram b v)] where
    type ResultOf [(String,Diagram b v)] = [(String,Diagram b v)]
 
    toResult ds _ = ds
+
+-- | An animation is another suitable base case.
+instance ToResult (Animation b v) where
+   type Args (Animation b v) = ()
+   type ResultOf (Animation b v) = Animation b v
+
+   toResult a _ = a
 
 -- | An instance for a function that, given some 'a', can produce a 'd' that is
 --   also an instance of 'ToResult'.  For this to work we need both the
@@ -351,14 +358,14 @@ instance ToResult d => ToResult (a -> d) where
 class Mainable d where
     type MainOpts d :: *
 
-    mainArgs :: (Parseable a, Parseable (MainOpts d)) => d -> IO (MainOpts d, a)
-    mainArgs _ = defaultOpts ((,) <$> parser <*> parser)
+    mainArgs :: Parseable (MainOpts d) => d -> IO (MainOpts d)
+    mainArgs _ = defaultOpts parser
 
     mainRender :: MainOpts d -> d -> IO ()
 
     mainWith :: Parseable (MainOpts d) => d -> IO ()
     mainWith d = do
-        (opts,()) <- mainArgs d
+        opts <- mainArgs d
         mainRender opts d
 
 -- | This instance allows functions resulting in something that is 'Mainable' to
