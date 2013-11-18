@@ -14,39 +14,58 @@
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
 -- Convenient creation of command-line-driven executables for
--- rendering diagrams.
+-- rendering diagrams.  This module provides a general framework
+-- and default behaviors for parsing command-line arguments, 
+-- records for diagram creation options in various forms, and
+-- classes and instances for a unified entry point to command-line-driven
+-- diagram creation executables.
 --
 -----------------------------------------------------------------------------
 
 module Diagrams.Backend.CmdLine
-       ( DiagramOpts(..)
+       ( 
+
+         -- * Options
+       
+         -- ** Standard options
+         DiagramOpts(..)
        , diagramOpts
        , width
        , height
        , output
 
+         -- ** Multi-diagram options
        , DiagramMultiOpts(..)
        , diagramMultiOpts
        , selection
        , list
 
+         -- ** Animation options
        , DiagramAnimOpts(..)
        , diagramAnimOpts
        , fpu
 
+         -- ** Loop options
        , DiagramLoopOpts(..)
        , diagramLoopOpts
        , loop
        , src
        , interval
 
+         -- * Parsing
        , Parseable(..)
-       , ToResult(..)
+       , readHexColor
+
+         -- * Command-line programs (@Mainable@)
+         -- ** Arguments, rendering, and entry point
        , Mainable(..)
 
+         -- ** General currying
+       , ToResult(..)
+
+         -- ** Default @mainRender@ implementations
        , defaultAnimMainRender
        , defaultMultiMainRender
-       , readHexColor
        ) where
 
 import Diagrams.Core hiding (value)
@@ -244,7 +263,7 @@ instance Parseable DiagramLoopOpts where
 
 
 -- | Parse @'Colour' Double@ as either a named color from "Data.Colour.Names"
---   or a hexidecimal color.
+--   or a hexadecimal color.
 instance Parseable (Colour Double) where
     parser = argument (liftA2 (<|>) rc rh) mempty
       where
@@ -254,7 +273,7 @@ instance Parseable (Colour Double) where
                                  -- value be applied to the r g b values?
 
 -- | Parse @'AlphaColour' Double@ as either a named color from "Data.Colour.Names"
---   or a hexidecimal color.
+--   or a hexadecimal color.
 instance Parseable (AlphaColour Double) where
     parser = argument (liftA2 (<|>) rc rh) mempty
       where
@@ -263,8 +282,8 @@ instance Parseable (AlphaColour Double) where
 
 -- Addapted from the Clay.Color module of the clay package
 
--- | Parses a hexidecimal color.  The string can start with @\"0x\"@ or @\"#\"@
---   or just be a string of hexidecimal values.  If four or three digits are
+-- | Parses a hexadecimal color.  The string can start with @\"0x\"@ or @\"#\"@
+--   or just be a string of hexadecimal values.  If four or three digits are
 --   given each digit is repeated to form a full 24 or 32 bit color.  For
 --   example, @\"0xfc4\"@ is the same as @\"0xffcc44\"@.  When eight or six
 --   digits are given each pair of digits is a color or alpha channel with the
@@ -374,14 +393,44 @@ instance ToResult d => ToResult (a -> d) where
 --   @Diagram Postscript R2@, @[Diagram Postscript R2]@, @Animation Postscript R2@,
 --   and @[(String,Diagram Postscript R2)]@.  We can consider these as the base
 --   cases for the function instance.
+--
+--   The associated type 'MainOpts' describes the options which need to be parsed
+--   from the command-line and passed to @mainRender@.
 class Mainable d where
+    -- | Associated type that describes the options which need to be parsed
+    -- from the command-line and passed to @mainRender@.
     type MainOpts d :: *
 
+    -- | This method invokes the command-line parser resulting in an options
+    -- value or ending the program with an error or help message.
+    -- Typically the default instance will work.  If a different help message
+    -- or parsing behavior is desired a new implementation is appropriate.
+    --
+    -- Note the @d@ argument should only be needed to fix the type @d@.  Its
+    -- value should not be relied on as a parameter.  
     mainArgs :: Parseable (MainOpts d) => d -> IO (MainOpts d)
     mainArgs _ = defaultOpts parser
 
+    -- | Backend specific work of rendering with the given options and mainable
+    -- value is done here.  All backend instances should implement this method.
     mainRender :: MainOpts d -> d -> IO ()
 
+    -- | Main entry point for command-line diagram creation.  This is the method
+    -- that users will call from their program @main@.  For instance an expected
+    -- user program would take the following form.
+    --
+    -- @
+    --     import Diagrams.Prelude
+    --     import Diagrams.Backend.TheBestBackend.CmdLine
+    --
+    --     d :: Diagram B R2
+    --     d = ...
+    --
+    --     main = withMain d
+    -- @
+    --
+    -- Most backends should be able to use the default implementation.  A different
+    -- implementation should be used to handle more complex interactions with the user.
     mainWith :: Parseable (MainOpts d) => d -> IO ()
     mainWith d = do
         opts <- mainArgs d
@@ -413,7 +462,7 @@ instance (Parseable (Args (a -> d)), ToResult d, Mainable (ResultOf d))
 --         mainRender = defaultMultiMainRender
 -- @
 --
---   We do not provoide this instance in general so that backends can choose to
+--   We do not provide this instance in general so that backends can choose to
 --   opt-in to this form or provide a different instance that makes more sense.
 defaultMultiMainRender :: Mainable d => (MainOpts d, DiagramMultiOpts) -> [(String, d)] -> IO () 
 defaultMultiMainRender (opts,multi) ds =
@@ -451,12 +500,12 @@ showDiaList ds = do
 --   Typically a backend can write its @Animation B V@ instance as
 --
 -- @
---     instance Mainable Animation B V where
---         type MainOpts Animation B V = (DiagramOpts, DiagramAnimOpts)
+--     instance Mainable (Animation B V) where
+--         type MainOpts (Animation B V) = (DiagramOpts, DiagramAnimOpts)
 --         mainRender = defaultMultiMainRender
 -- @
 --
---   We do not provoide this instance in general so that backends can choose to
+--   We do not provide this instance in general so that backends can choose to
 --   opt-in to this form or provide a different instance that makes more sense.
 defaultAnimMainRender :: (Mainable (Diagram b v), MainOpts (Diagram b v) ~ DiagramOpts) 
                       => (DiagramOpts,DiagramAnimOpts) -> Animation b v -> IO ()
