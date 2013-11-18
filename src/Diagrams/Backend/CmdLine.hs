@@ -183,12 +183,12 @@ diagramAnimOpts = DiagramAnimOpts
        <> help "Frames per unit time (for animations)")
 
 -- | CommandLine parser for 'DiagramLoopOpts'
---   Loop is @--loop@.
+--   Loop is @--loop@ or @-l@.
 --   Source is @--src@ or @-s@.
 --   Interval is @-i@ defaulting to one second.
 diagramLoopOpts :: Parser DiagramLoopOpts
 diagramLoopOpts = DiagramLoopOpts
-    <$> switch (long "loop" <> help "Run in a self-recompiling loop")
+    <$> switch (long "loop" <> short 'l' <> help "Run in a self-recompiling loop")
     <*> (optional . strOption)
         ( long "src" <> short 's'
        <> help "Source file to watch")
