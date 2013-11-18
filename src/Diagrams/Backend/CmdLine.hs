@@ -20,6 +20,9 @@
 -- classes and instances for a unified entry point to command-line-driven
 -- diagram creation executables.
 --
+-- For a tutorial on command-line diagram creation see
+-- <http://http://projects.haskell.org/diagrams/doc/cmdline.html>.
+--
 -----------------------------------------------------------------------------
 
 module Diagrams.Backend.CmdLine
