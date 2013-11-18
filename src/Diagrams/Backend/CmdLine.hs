@@ -21,7 +21,7 @@
 -- diagram creation executables.
 --
 -- For a tutorial on command-line diagram creation see
--- <http://http://projects.haskell.org/diagrams/doc/cmdline.html>.
+-- <http://projects.haskell.org/diagrams/doc/cmdline.html>.
 --
 -----------------------------------------------------------------------------
 
