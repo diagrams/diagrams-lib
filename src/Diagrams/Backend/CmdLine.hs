@@ -428,7 +428,7 @@ class Mainable d where
     -- > d :: Diagram B R2
     -- > d = ...
     -- >  
-    -- > main = withMain d
+    -- > main = mainWith d
     --
     -- Most backends should be able to use the default implementation.  A different
     -- implementation should be used to handle more complex interactions with the user.
