@@ -80,9 +80,9 @@ import Text.Printf
 
 -- | Standard options most diagrams are likely to have.
 data DiagramOpts = DiagramOpts
-    { _width     :: Maybe Int
-    , _height    :: Maybe Int
-    , _output    :: FilePath
+    { _width     :: Maybe Int -- ^ Final output width of diagram.
+    , _height    :: Maybe Int -- ^ Final output height of diagram.
+    , _output    :: FilePath  -- ^ Output file path, format is typically chosen by extension.
     }
   deriving (Show, Data, Typeable)
 
@@ -91,8 +91,9 @@ makeLenses ''DiagramOpts
 -- | Extra options for a program that can offer a choice
 --   between multiple diagrams.
 data DiagramMultiOpts = DiagramMultiOpts
-    { _selection :: Maybe String
-    , _list      :: Bool
+    { _selection :: Maybe String -- ^ Selected diagram to render.
+    , _list      :: Bool         -- ^ Flag to indicate that a list of available diagrams should
+                                 --   be printed to standard out.
     }
   deriving (Show, Data, Typeable)
 
@@ -100,7 +101,7 @@ makeLenses ''DiagramMultiOpts
 
 -- | Extra options for animations.
 data DiagramAnimOpts = DiagramAnimOpts
-    { _fpu :: Double
+    { _fpu :: Double -- ^ Number of frames per unit time to generate for the animation.
     }
   deriving (Show, Data, Typeable)
 
@@ -108,14 +109,17 @@ makeLenses ''DiagramAnimOpts
 
 -- | Extra options for command-line looping.
 data DiagramLoopOpts = DiagramLoopOpts
-    { _loop     :: Bool
-    , _src      :: Maybe FilePath
-    , _interval :: Int
+    { _loop     :: Bool            -- ^ Flag to indicate that the program should loop creation.
+    , _src      :: Maybe FilePath  -- ^ File path for the source file to recompile.
+    , _interval :: Int             -- ^ Interval in seconds at which to check for recompilation.
     }
 
 makeLenses ''DiagramLoopOpts
 
 -- | Command line parser for 'DiagramOpts'.
+--   Width is option @--width@ or @-w@ defaulting to 400.
+--   Height is option @--height@ or @-h@ defaulting to 400 (note we change help to be @-?@ due to this).
+--   Output is option @--output@ or @-o@.
 diagramOpts :: Parser DiagramOpts
 diagramOpts = DiagramOpts
     <$> (optional . option)
@@ -135,6 +139,8 @@ diagramOpts = DiagramOpts
        <> help "OUTPUT file")
 
 -- | Command line parser for 'DiagramMultiOpts'.
+--   Selection is option @--selection@ or @-s@.
+--   List is @--list@ or @-l@.
 diagramMultiOpts :: Parser DiagramMultiOpts
 diagramMultiOpts = DiagramMultiOpts
     <$> (optional . strOption)
@@ -146,6 +152,7 @@ diagramMultiOpts = DiagramMultiOpts
        <> help "List all available diagrams")
 
 -- | Command line parser for 'DiagramAnimOpts'
+--   Frames per unit is @--fpu@ or @-f@.
 diagramAnimOpts :: Parser DiagramAnimOpts
 diagramAnimOpts = DiagramAnimOpts
     <$> option
@@ -154,6 +161,9 @@ diagramAnimOpts = DiagramAnimOpts
        <> help "Frames per unit time (for animations)")
 
 -- | CommandLine parser for 'DiagramLoopOpts'
+--   Loop is @--loop@.
+--   Source is @--src@ or @-s@.
+--   Interval is @-i@ defaulting to one second.
 diagramLoopOpts :: Parser DiagramLoopOpts
 diagramLoopOpts = DiagramLoopOpts
     <$> switch (long "loop" <> help "Run in a self-recompiling loop")
@@ -282,7 +292,8 @@ readHexColor cs = case cs of
 
 
 -- | This instance is needed to signal the end of a chain of
---   nested tuples.
+--   nested tuples, it always just results in the unit value
+--   without consuming anything.
 instance Parseable () where
     parser = pure ()
 
@@ -296,8 +307,8 @@ instance Parseable a => Parseable [a] where
 
 
 -- | This class allows us to abstract over functions that take some arguments
---   and produce a final value.  When something @d@ is an instance of
---   'ToResult' we get a type @'Args' d@ that is the type of /all/ the arguments
+--   and produce a final value.  When some @d@ is an instance of
+--   'ToResult' we get a type @'Args' d@ that is a type of /all/ the arguments
 --   at once, and a type @'ResultOf' d@ that is the type of the final result from
 --   some base case instance.
 class ToResult d where
@@ -355,6 +366,14 @@ instance ToResult d => ToResult (a -> d) where
 --   from the command line.  It has the right instances to select between creating
 --   single static diagrams, multiple static diagrams, static animations, and 
 --   functions that produce diagrams as long as the arguments are 'Parseable'.
+--
+--   Backends are expected to create @Mainable@ instances for the types that are
+--   suitable for generating output in the backend's format.  For instance,
+--   Postscript can handle single diagrams, pages of diagrams, animations as
+--   separate files, and association lists.  This implies instances for
+--   @Diagram Postscript R2@, @[Diagram Postscript R2]@, @Animation Postscript R2@,
+--   and @[(String,Diagram Postscript R2)]@.  We can consider these as the base
+--   cases for the function instance.
 class Mainable d where
     type MainOpts d :: *
 
@@ -371,17 +390,31 @@ class Mainable d where
 -- | This instance allows functions resulting in something that is 'Mainable' to
 --   be 'Mainable'.  It takes a parse of collected arguments and applies them to
 --   the given function producing the 'Mainable' result.
-instance (Parseable a, Parseable (Args d), ToResult d, Mainable (ResultOf d))
+instance (Parseable (Args (a -> d)), ToResult d, Mainable (ResultOf d))
         => Mainable (a -> d) where
     type MainOpts (a -> d) = (MainOpts (ResultOf (a -> d)), Args (a -> d))
 
     mainRender (opts, a) f  = mainRender opts (toResult f a)
+-- TODO: why can't we get away with: instance (Parseable (Args (a -> d)), Mainable (ResultOf d)) => ...
+--       Doesn't `Args (a -> d)` imply `ToResult (a -> d)` which implies `ToResult d` ?
+
 
 -- | @defaultMultiMainRender@ is an implementation of 'mainRender' where
 --   instead of a single diagram it takes a list of diagrams paired with names
 --   as input.  The generated executable then takes a @--selection@ option
 --   specifying the name of the diagram that should be rendered.  The list of
 --   available diagrams may also be printed by passing the option @--list@.
+--
+--   Typically a backend can write its @[(String,Diagram B V)]@ instance as
+--
+-- @
+--     instance Mainable [(String,Diagram B V)] where
+--         type MainOpts [(String,Diagram B V)] = (DiagramOpts, DiagramMultiOpts)
+--         mainRender = defaultMultiMainRender
+-- @
+--
+--   We do not provoide this instance in general so that backends can choose to
+--   opt-in to this form or provide a different instance that makes more sense.
 defaultMultiMainRender :: Mainable d => (MainOpts d, DiagramMultiOpts) -> [(String, d)] -> IO () 
 defaultMultiMainRender (opts,multi) ds =
     if multi^.list
@@ -399,19 +432,32 @@ showDiaList ds = do
   putStrLn $ "  " ++ intercalate " " ds
 
 -- | @defaultAnimMainRender@ is an implementation of 'mainRender' which renders
--- an animation as numbered frames, named by extending the given output file
--- name by consecutive integers.  For example if the given output file name is
--- @foo\/blah.ext@, the frames will be saved in @foo\/blah001.ext@,
--- @foo\/blah002.ext@, and so on (the number of padding digits used depends on
--- the total number of frames).  It is up to the user to take these images and
--- stitch them together into an actual animation format (using, /e.g./
--- @ffmpeg@).
+--   an animation as numbered frames, named by extending the given output file
+--   name by consecutive integers.  For example if the given output file name is
+--   @foo\/blah.ext@, the frames will be saved in @foo\/blah001.ext@,
+--   @foo\/blah002.ext@, and so on (the number of padding digits used depends on
+--   the total number of frames).  It is up to the user to take these images and
+--   stitch them together into an actual animation format (using, /e.g./
+--   @ffmpeg@).
 --
 --   Of course, this is a rather crude method of rendering animations;
 --   more sophisticated methods will likely be added in the future.
 --
--- The @fpu@ option from 'DiagramAnimOpts' can be used to control how many frames will
--- be output for each second (unit time) of animation.
+--   The @fpu@ option from 'DiagramAnimOpts' can be used to control how many frames will
+--   be output for each second (unit time) of animation.
+--
+--   The type for this function requires that @MainOpts (Diagram b v) ~ DiagramOpts@
+--   because it works by modifying the output field and running the base @mainRender@.
+--   Typically a backend can write its @Animation B V@ instance as
+--
+-- @
+--     instance Mainable Animation B V where
+--         type MainOpts Animation B V = (DiagramOpts, DiagramAnimOpts)
+--         mainRender = defaultMultiMainRender
+-- @
+--
+--   We do not provoide this instance in general so that backends can choose to
+--   opt-in to this form or provide a different instance that makes more sense.
 defaultAnimMainRender :: (Mainable (Diagram b v), MainOpts (Diagram b v) ~ DiagramOpts) 
                       => (DiagramOpts,DiagramAnimOpts) -> Animation b v -> IO ()
 defaultAnimMainRender (opts,animOpts) anim = do
