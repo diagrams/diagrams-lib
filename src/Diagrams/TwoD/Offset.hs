@@ -512,21 +512,25 @@ joinSegmentArc _ r e a b = capArc r e (atEnd a) (atStart b)
 --   If the intersection is beyond the miter limit times the radius, stop at the limit.
 joinSegmentIntersect
     :: Double -> Double -> P2 -> Located (Trail R2) -> Located (Trail R2) -> Trail R2
-joinSegmentIntersect miterLimit r e a b =
-    case traceP pa va t of
-      -- clip join when we excede the miter limit.  We could instead
-      -- Join at exactly the miter limit, but standard behavior seems
-      -- to be clipping.
-      Nothing -> joinSegmentClip miterLimit r e a b
-      Just p
-        -- If trace gave us garbage...
-        | p `distance` pb > abs (miterLimit * r) -> joinSegmentClip miterLimit r e a b
-        | otherwise                              -> unLoc $ fromVertices [ pa, p, pb ]
+joinSegmentIntersect miterLimit r e a b = 
+    if cross < 0.000001
+      then clip
+      else case traceP pa va t of
+          -- clip join when we excede the miter limit.  We could instead
+          -- Join at exactly the miter limit, but standard behavior seems
+          -- to be clipping.
+          Nothing -> clip
+          Just p
+            -- If trace gave us garbage...
+            | p `distance` pb > abs (miterLimit * r) -> clip
+            | otherwise                              -> unLoc $ fromVertices [ pa, p, pb ]
   where
-    -- TODO: is there really no instance for Traced (Located (Trail R2)) ?
-    t = strokeLocT (fromSegments [straight (miter vb)] `at` pb) :: Diagram NullBackend R2
+    t = straight (miter vb) `at` pb
     va = unitPerp (pa .-. e)
     vb = -unitPerp (pb .-. e)
     pa = atEnd a
     pb = atStart b
     miter v = (abs (miterLimit * r)) *^ v
+    clip = joinSegmentClip miterLimit r e a b
+    cross = let (xa,ya) = unr2 va; (xb,yb) = unr2 vb in abs (xa * yb - xb * ya)
+
