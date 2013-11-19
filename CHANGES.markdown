@@ -1,3 +1,60 @@
+1.0 (25 November 2013)
+----------------------
+
+* **New features**
+
+    - New module `Diagrams.TwoD.Arrow` and the accompanying `Diagrams.TwoD.Arrowheads`
+      for creating arrows.
+    - OptParse
+    - Lenses from `Control.Lens` is now used consistently as a record setter
+      throughout the library.
+    - `Diagrams.Offset`
+    - 3D
+    - Diagrams.Tangent
+    - `annularWedge` in `TwoD.Arc`
+    - `avgScale` utility in `TwoD.Transform`
+    - New functions in `Diagrams.Align` to allow diagrams to be aligned by `Trace`
+      called `snug`, `snugBy` and `snugCenter`
+      and the ability to define other boundary functions for alignment. Functions
+      `snugL`, `snugR`, etc. are included in `TwoD.Align`.
+    - New function `angleBetween` in `TwoD.Vector` to calculate the angle between
+      two vectors.
+
+
+
+* **New instances**
+
+  - `IO` instances for
+      -  `ToResult`
+      -  `Mainable`
+  - `VectoreSpace` instances for
+      - `Turn`
+      - `Rad`
+      - `Deg`
+  - `Alignable` instance fro `b->a`
+
+* **API changes**
+
+    - `e` no longer exported from `Diagrams.Prelude`.
+    - `Diagrams.BoundingBox` is no longer exported from the prelude.
+    - Re-export `Diagrams.Core.pointDiagram` from prelude.
+    - Added `fromAlphaColour` method to `Color` class.
+    - `&` changed to `^&`
+    - `tan`, `over`, and `both` are not re-exported from `Data.Colour`.
+
+
+* **Dependency/version changes**
+
+
+* **Bug fixes**
+
+    - Only look for miter join on corners in `Diagrams.TwoD.Offset`, test the
+      angle between the joining vectors and if they are parallel or anti-parallel
+      then use a clip join (#118).
+    - `wedge` from `TwdD.Arc` is now a Loop (#99)
+
+
+
 0.7.1.1 (27 September 2013)
 ---------------------------
 
