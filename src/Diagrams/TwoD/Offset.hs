@@ -58,7 +58,7 @@ import Diagrams.Trail           hiding (offset, isLoop)
 import Diagrams.TrailLike
 import Diagrams.TwoD.Arc
 import Diagrams.TwoD.Curvature
-import Diagrams.TwoD.Path
+import Diagrams.TwoD.Path       ()
 import Diagrams.TwoD.Types
 import Diagrams.TwoD.Vector     (perp, direction)
 
