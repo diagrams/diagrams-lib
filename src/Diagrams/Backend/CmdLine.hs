@@ -1,11 +1,11 @@
-{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DeriveDataTypeable        #-}
+{-# LANGUAGE FlexibleContexts          #-}
+{-# LANGUAGE FlexibleInstances         #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE RankNTypes                #-}
+{-# LANGUAGE TemplateHaskell           #-}
+{-# LANGUAGE TypeFamilies              #-}
+{-# LANGUAGE UndecidableInstances      #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Backend.CmdLine
@@ -15,7 +15,7 @@
 --
 -- Convenient creation of command-line-driven executables for
 -- rendering diagrams.  This module provides a general framework
--- and default behaviors for parsing command-line arguments, 
+-- and default behaviors for parsing command-line arguments,
 -- records for diagram creation options in various forms, and
 -- classes and instances for a unified entry point to command-line-driven
 -- diagram creation executables.
@@ -26,10 +26,10 @@
 -----------------------------------------------------------------------------
 
 module Diagrams.Backend.CmdLine
-       ( 
+       (
 
          -- * Options
-       
+
          -- ** Standard options
          DiagramOpts(..)
        , diagramOpts
@@ -71,40 +71,40 @@ module Diagrams.Backend.CmdLine
        , defaultMultiMainRender
        ) where
 
-import Diagrams.Core hiding (value)
-import Diagrams.Animation
-import Diagrams.Attributes
-import Control.Lens hiding (argument)
+import           Control.Lens        hiding (argument)
+import           Diagrams.Animation
+import           Diagrams.Attributes
+import           Diagrams.Core       hiding (value)
 
-import Options.Applicative hiding ((&))
+import           Options.Applicative hiding ((&))
 
-import Prelude
+import           Prelude
 
-import Control.Monad       (forM_)
+import           Control.Monad       (forM_)
 
-import Data.Active  hiding (interval)
-import Data.Data
-import Data.Char           (isDigit)
-import Data.Colour
-import Data.Colour.Names
-import Data.Colour.SRGB
-import Data.List           (intercalate)
-import Data.Monoid
+import           Data.Active         hiding (interval)
+import           Data.Char           (isDigit)
+import           Data.Colour
+import           Data.Colour.Names
+import           Data.Colour.SRGB
+import           Data.Data
+import           Data.List           (intercalate)
+import           Data.Monoid
 
-import Numeric
+import           Numeric
 
-import Safe                (readMay)
+import           Safe                (readMay)
 
-import System.Environment  (getProgName)
-import System.FilePath     (addExtension, splitExtension)
+import           System.Environment  (getProgName)
+import           System.FilePath     (addExtension, splitExtension)
 
-import Text.Printf
+import           Text.Printf
 
 -- | Standard options most diagrams are likely to have.
 data DiagramOpts = DiagramOpts
-    { _width     :: Maybe Int -- ^ Final output width of diagram.
-    , _height    :: Maybe Int -- ^ Final output height of diagram.
-    , _output    :: FilePath  -- ^ Output file path, format is typically chosen by extension.
+    { _width  :: Maybe Int -- ^ Final output width of diagram.
+    , _height :: Maybe Int -- ^ Final output height of diagram.
+    , _output :: FilePath  -- ^ Output file path, format is typically chosen by extension.
     }
   deriving (Show, Data, Typeable)
 
@@ -205,10 +205,10 @@ helper' :: Parser (a -> a)
 helper' = abortOption ShowHelpText $ mconcat
   [ long "help"
   , short '?'
-  , help "Show this help text" 
+  , help "Show this help text"
   ]
 
--- | Apply a parser to the command line that includes the standard 
+-- | Apply a parser to the command line that includes the standard
 --   program description and help behavior.  Results in parsed commands
 --   or fails with a help message.
 defaultOpts :: Parser a -> IO a
@@ -239,7 +239,7 @@ class Parseable a where
 -- | Parse 'Int' according to its 'Read' instance.
 instance Parseable Int where
     parser = argument readMay mempty
-   
+
 -- | Parse 'Double' according to its 'Read' instance.
 instance Parseable Double where
     parser = argument readMay mempty
@@ -386,7 +386,7 @@ instance ToResult d => ToResult (a -> d) where
 
 -- | This class represents the various ways we want to support diagram creation
 --   from the command line.  It has the right instances to select between creating
---   single static diagrams, multiple static diagrams, static animations, and 
+--   single static diagrams, multiple static diagrams, static animations, and
 --   functions that produce diagrams as long as the arguments are 'Parseable'.
 --
 --   Backends are expected to create @Mainable@ instances for the types that are
@@ -410,7 +410,7 @@ class Mainable d where
     -- or parsing behavior is desired a new implementation is appropriate.
     --
     -- Note the @d@ argument should only be needed to fix the type @d@.  Its
-    -- value should not be relied on as a parameter.  
+    -- value should not be relied on as a parameter.
     mainArgs :: Parseable (MainOpts d) => d -> IO (MainOpts d)
     mainArgs _ = defaultOpts parser
 
@@ -424,10 +424,10 @@ class Mainable d where
     --
     -- > import Diagrams.Prelude
     -- > import Diagrams.Backend.TheBestBackend.CmdLine
-    -- >  
+    -- >
     -- > d :: Diagram B R2
     -- > d = ...
-    -- >  
+    -- >
     -- > main = mainWith d
     --
     -- Most backends should be able to use the default implementation.  A different
@@ -463,7 +463,7 @@ instance (Parseable (Args (a -> d)), ToResult d, Mainable (ResultOf d))
 --
 --   We do not provide this instance in general so that backends can choose to
 --   opt-in to this form or provide a different instance that makes more sense.
-defaultMultiMainRender :: Mainable d => (MainOpts d, DiagramMultiOpts) -> [(String, d)] -> IO () 
+defaultMultiMainRender :: Mainable d => (MainOpts d, DiagramMultiOpts) -> [(String, d)] -> IO ()
 defaultMultiMainRender (opts,multi) ds =
     if multi^.list
       then showDiaList (map fst ds)
@@ -496,8 +496,8 @@ showDiaList ds = do
 --
 --   This function requires a lens into the structure that the particular backend
 --   uses for it's diagram base case.  If @MainOpts (Diagram b v) ~ DiagramOpts@
---   then this lens will simply be 'output'.  For a backend supporting looping 
---   it will most likely be @_1 . output@.  This lens is required because the 
+--   then this lens will simply be 'output'.  For a backend supporting looping
+--   it will most likely be @_1 . output@.  This lens is required because the
 --   implementation works by modifying the output field and running the base @mainRender@.
 --   Typically a backend can write its @Animation B V@ instance as
 --
@@ -507,10 +507,10 @@ showDiaList ds = do
 --
 --   We do not provide this instance in general so that backends can choose to
 --   opt-in to this form or provide a different instance that makes more sense.
-defaultAnimMainRender :: (Mainable (Diagram b v)) 
+defaultAnimMainRender :: (Mainable (Diagram b v))
                       => (Lens' (MainOpts (Diagram b v)) FilePath) -- ^ A lens into the output path.
-                      -> (MainOpts (Diagram b v),DiagramAnimOpts) 
-                      -> Animation b v 
+                      -> (MainOpts (Diagram b v),DiagramAnimOpts)
+                      -> Animation b v
                       -> IO ()
 defaultAnimMainRender out (opts,animOpts) anim = do
     let frames  = simulate (toRational $ animOpts^.fpu) anim
