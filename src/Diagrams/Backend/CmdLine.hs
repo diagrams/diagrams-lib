@@ -323,10 +323,6 @@ instance Parseable () where
 instance (Parseable a, Parseable b) => Parseable (a,b) where
     parser = (,) <$> parser <*> parser
 
--- | Allow lists of 'Parseable'.
-instance Parseable a => Parseable [a] where
-    parser = many parser
-
 
 -- | This class allows us to abstract over functions that take some arguments
 --   and produce a final value.  When some @d@ is an instance of
