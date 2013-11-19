@@ -323,10 +323,6 @@ instance Parseable () where
 instance (Parseable a, Parseable b) => Parseable (a,b) where
     parser = (,) <$> parser <*> parser
 
--- | Allow lists of 'Parseable'.
-instance Parseable a => Parseable [a] where
-    parser = many parser
-
 
 -- | This class allows us to abstract over functions that take some arguments
 --   and produce a final value.  When some @d@ is an instance of
@@ -367,6 +363,13 @@ instance ToResult (Animation b v) where
    type ResultOf (Animation b v) = Animation b v
 
    toResult a _ = a
+
+-- | Diagrams that require IO to build are a base case.
+instance ToResult d => ToResult (IO d) where
+   type Args (IO d) = Args d
+   type ResultOf (IO d) = IO (ResultOf d)
+
+   toResult d args = flip toResult args <$> d
 
 -- | An instance for a function that, given some 'a', can produce a 'd' that is
 --   also an instance of 'ToResult'.  For this to work we need both the
@@ -448,6 +451,12 @@ instance (Parseable (Args (a -> d)), ToResult d, Mainable (ResultOf d))
 -- TODO: why can't we get away with: instance (Parseable (Args (a -> d)), Mainable (ResultOf d)) => ...
 --       Doesn't `Args (a -> d)` imply `ToResult (a -> d)` which implies `ToResult d` ?
 
+-- | With this instance we can perform IO to produce something 
+--   'Mainable' before rendering.
+instance Mainable d => Mainable (IO d) where
+    type MainOpts (IO d) = MainOpts d
+
+    mainRender opts dio = dio >>= mainRender opts
 
 -- | @defaultMultiMainRender@ is an implementation of 'mainRender' where
 --   instead of a single diagram it takes a list of diagrams paired with names
