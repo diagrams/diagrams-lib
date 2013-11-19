@@ -6,21 +6,28 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Offset
--- Copyright   :  (c) 2012 diagrams-lib team (see LICENSE)
+-- Copyright   :  (c) 2013 diagrams-lib team (see LICENSE)
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
--- Compute offsets to segments in two dimensions.
+-- Compute offsets to segments in two dimensions.  More details can be 
+-- found in the manual at 
+-- <http://projects.haskell.org/diagrams/doc/manual.html#offsets-of-segments-trails-and-paths>.
 --
 -----------------------------------------------------------------------------
 module Diagrams.TwoD.Offset
-    ( offsetSegment
+    ( 
+      -- * Offsets
+      
+      offsetSegment
 
     , OffsetOpts(..), offsetJoin, offsetMiterLimit, offsetEpsilon
     , offsetTrail
     , offsetTrail'
     , offsetPath
     , offsetPath'
+
+      -- * Expansions
 
     , ExpandOpts(..), expandJoin, expandMiterLimit, expandCap, expandEpsilon
     , expandTrail
