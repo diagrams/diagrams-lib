@@ -139,21 +139,19 @@ data DiagramLoopOpts = DiagramLoopOpts
 makeLenses ''DiagramLoopOpts
 
 -- | Command line parser for 'DiagramOpts'.
---   Width is option @--width@ or @-w@ defaulting to 400.
---   Height is option @--height@ or @-h@ defaulting to 400 (note we change help to be @-?@ due to this).
+--   Width is option @--width@ or @-w@.
+--   Height is option @--height@ or @-h@ (note we change help to be @-?@ due to this).
 --   Output is option @--output@ or @-o@.
 diagramOpts :: Parser DiagramOpts
 diagramOpts = DiagramOpts
     <$> (optional . option)
         ( long "width" <> short 'w'
-       <> value 400
        <> metavar "WIDTH"
-       <> help "Desired WIDTH of the output image (default 400)")
+       <> help "Desired WIDTH of the output image")
     <*> (optional . option)
         ( long "height" <> short 'h'
-       <> value 400
        <> metavar "HEIGHT"
-       <> help "Desired HEIGHT of the output image (default 400)")
+       <> help "Desired HEIGHT of the output image")
     <*> strOption
         ( long "output" <> short 'o'
        <> value ""
