@@ -409,8 +409,8 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
         hWidth = hWidth' + opts^.headGap
 
         -- Calculate the angles that the head and tail should point.
-        tAngle = direction . tangentAtStart $ shaftTrail :: Turn
-        hAngle = direction . tangentAtEnd $ shaftTrail :: Turn
+        tAngle = direction . tangentAtStart $ shaftTrail
+        hAngle = direction . tangentAtEnd $ shaftTrail
 
         -- Calculte the scaling factor to apply to the shaft shaftTrail so that the entire
         -- arrow will be of length len. Then apply it to the shaft and make the
@@ -474,14 +474,14 @@ connect' opts n1 n2 =
 -- | Connect two diagrams at point on the perimeter of the diagrams, choosen
 --   by angle.
 connectPerim
-  :: (Renderable (Path R2) b, IsName n1, IsName n2, Angle a)
- => n1 -> n2 -> a -> a
+  :: (Renderable (Path R2) b, IsName n1, IsName n2)
+ => n1 -> n2 -> ArrowOpts -> Angle
   -> (Diagram b R2 -> Diagram b R2)
 connectPerim = connectPerim' def
 
 connectPerim'
-  :: (Renderable (Path R2) b, IsName n1, IsName n2, Angle a)
-  => ArrowOpts -> n1 -> n2 -> a -> a
+  :: (Renderable (Path R2) b, IsName n1, IsName n2)
+  => ArrowOpts -> n1 -> n2 -> Angle -> Angle
   -> (Diagram b R2 -> Diagram b R2)
 connectPerim' opts n1 n2 a1 a2 =
   withName n1 $ \sub1 ->

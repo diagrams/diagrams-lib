@@ -45,7 +45,8 @@ module Diagrams.TwoD.Polygons(
 
     ) where
 
-import           Control.Lens            hiding (transform, at, (<.>), (&), (#))
+import           Control.Lens            (Lens', generateSignatures, lensRules,
+                                          makeLensesWith, review, (.~), (^.))
 import           Control.Monad           (forM, liftM)
 import           Control.Monad.ST        (ST, runST)
 import           Data.Array.ST           (STUArray, newArray, readArray,
@@ -72,7 +73,7 @@ import           Diagrams.TwoD.Vector    (leftTurn, unitX, unitY, unit_Y)
 import           Diagrams.Util           (tau, ( # ))
 
 -- | Method used to determine the vertices of a polygon.
-data PolyType = forall a. Angle a => PolyPolar [a] [Double]
+data PolyType = PolyPolar [Angle] [Double]
                 -- ^ A \"polar\" polygon.
                 --
                 --   * The first argument is a list of /central/
@@ -89,7 +90,7 @@ data PolyType = forall a. Angle a => PolyPolar [a] [Double]
                 --   circle) can be constructed using a second
                 --   argument of @(repeat r)@.
 
-              | forall a. Angle a => PolySides [a] [Double]
+              | PolySides [Angle] [Double]
                 -- ^ A polygon determined by the distance between
                 --   successive vertices and the angles formed by
                 --   each three successive vertices.  In other
@@ -180,7 +181,7 @@ polygon = trailLike . polyTrail
 
 -- | Generate the located trail of a polygon specified by polar data
 --   (central angles and radii). See 'PolyPolar'.
-polyPolarTrail :: Angle a => [a] -> [Double] -> Located (Trail R2)
+polyPolarTrail :: [Angle] -> [Double] -> Located (Trail R2)
 polyPolarTrail [] _ = emptyTrail `at` origin
 polyPolarTrail _ [] = emptyTrail `at` origin
 polyPolarTrail ans (r:rs) = tr `at` p1
@@ -195,7 +196,7 @@ polyPolarTrail ans (r:rs) = tr `at` p1
 -- | Generate the vertices of a polygon specified by side length and
 --   angles, and a starting point for the trail such that the origin
 --   is at the centroid of the vertices.  See 'PolySides'.
-polySidesTrail :: Angle a => [a] -> [Double] -> Located (Trail R2)
+polySidesTrail :: [Angle] -> [Double] -> Located (Trail R2)
 polySidesTrail ans ls = tr `at` (centroid ps # scale (-1))
   where
     ans'    = scanl (+) 0 ans
@@ -206,7 +207,7 @@ polySidesTrail ans ls = tr `at` (centroid ps # scale (-1))
 -- | Generate the vertices of a regular polygon.  See 'PolyRegular'.
 polyRegularTrail :: Int -> Double -> Located (Trail R2)
 polyRegularTrail n r = polyPolarTrail
-                         (take (n-1) . repeat $ (tau::Rad) / fromIntegral n)
+                         (take (n-1) . repeat $ fullTurn / fromIntegral n)
                          (repeat r)
 
 -- | Generate a transformation to orient a trail.  @orient v t@
@@ -232,8 +233,8 @@ orientPoints v xs = rotation a
         o' = normalized o
         theta = acos (v' <.> o')
         phi
-          | theta <= tau/4 = Rad $ tau/4 - theta
-          | otherwise      = Rad $ theta - tau/4
+          | theta <= tau/4 = review rad $ tau/4 - theta
+          | otherwise      = review rad $ theta - tau/4
 
 ------------------------------------------------------------
 -- Function graphs

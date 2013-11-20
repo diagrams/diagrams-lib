@@ -61,16 +61,17 @@ import           Diagrams.Coordinates
 
 import           Data.AffineSpace
 import           Data.Semigroup
+import           Control.Lens            (review, (^.))
 
 -- Rotation ------------------------------------------------
 
 -- | Create a transformation which performs a rotation about the local
 --   origin by the given angle.  See also 'rotate'.
-rotation :: Angle a => a -> T2
+rotation :: Angle -> T2
 rotation ang = fromLinear r (linv r)
   where
     r            = rot theta <-> rot (-theta)
-    Rad theta    = convertAngle ang
+    theta    = ang^.rad
     rot th (coords -> x :& y) = (cos th * x - sin th * y) ^& (sin th * x + cos th * y)
 
 -- | Rotate about the local origin by the given angle. Positive angles
@@ -86,23 +87,23 @@ rotation ang = fromLinear r (linv r)
 --   yield an error since GHC cannot figure out which sort of angle
 --   you want to use.  In this common situation you can use
 --   'rotateBy', which is specialized to take a 'Turn' argument.
-rotate :: (Transformable t, V t ~ R2, Angle a) => a -> t -> t
+rotate :: (Transformable t, V t ~ R2) => Angle -> t -> t
 rotate = transform . rotation
 
--- | A synonym for 'rotate', specialized to only work with
---   @Turn@ arguments; it can be more convenient to write
---   @rotateBy (1\/4)@ than @'rotate' (1\/4 :: 'Turn')@.
-rotateBy :: (Transformable t, V t ~ R2) => Turn -> t -> t
-rotateBy = transform . rotation
+-- | A synonym for 'rotate', interpreting its argument in units of
+-- turns; it can be more convenient to write @rotateBy (1\/4)@ than
+-- @'rotate' (1\/4 ^. from turn')@.
+rotateBy :: (Transformable t, V t ~ R2) => Double -> t -> t
+rotateBy = transform . rotation . review turn
 
 -- | @rotationAbout p@ is a rotation about the point @p@ (instead of
 --   around the local origin).
-rotationAbout :: Angle a => P2 -> a -> T2
+rotationAbout :: P2 -> Angle -> T2
 rotationAbout p angle = conjugate (translation (origin .-. p)) (rotation angle)
 
 -- | @rotateAbout p@ is like 'rotate', except it rotates around the
 --   point @p@ instead of around the local origin.
-rotateAbout :: (Transformable t, V t ~ R2, Angle a) => P2 -> a -> t -> t
+rotateAbout :: (Transformable t, V t ~ R2) => P2 -> Angle -> t -> t
 rotateAbout p angle = rotate angle `under` translation (origin .-. p)
 
 -- Scaling -------------------------------------------------
@@ -203,7 +204,7 @@ reflectY = transform reflectionY
 --   the point @p@ and vector @v@.
 reflectionAbout :: P2 -> R2 -> T2
 reflectionAbout p v =
-  conjugate (rotation (-direction v :: Rad) <> translation (origin .-. p))
+  conjugate (rotation (-direction v) <> translation (origin .-. p))
             reflectionY
 
 -- | @reflectAbout p v@ reflects a diagram in the line determined by

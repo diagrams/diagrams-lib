@@ -25,7 +25,7 @@ import           Diagrams.ThreeD.Types
 import           Diagrams.ThreeD.Vector
 import           Diagrams.Coordinates
 
-import           Control.Lens                   ((*~), (//~))
+import           Control.Lens                   (view, (*~), (//~))
 import           Data.Semigroup
 
 import           Data.AffineSpace
@@ -46,30 +46,30 @@ import           Data.VectorSpace
 --   Note that writing @aboutZ (1\/4)@, with no type annotation, will
 --   yield an error since GHC cannot figure out which sort of angle
 --   you want to use.
-aboutZ :: Angle a => a -> T3
+aboutZ :: Angle -> T3
 aboutZ ang = fromLinear r (linv r) where
   r = rot theta <-> rot (-theta)
-  Rad theta = convertAngle ang
+  theta = view rad ang
   rot th (coords -> x :& y :& z) = (cos th * x - sin th * y) ^&
                                    (sin th * x + cos th * y) ^&
                                    z
 
 -- | Like 'aboutZ', but rotates about the X axis, bringing positive y-values
 -- towards the positive z-axis.
-aboutX :: Angle a => a -> T3
+aboutX :: Angle -> T3
 aboutX ang = fromLinear r (linv r) where
   r = rot theta <-> rot (-theta)
-  Rad theta = convertAngle ang
+  theta = view rad ang
   rot th (coords -> x :& y :& z) = (x) ^&
                                    (cos th * y - sin th * z) ^&
                                    (sin th * y + cos th * z)
 
 -- | Like 'aboutZ', but rotates about the Y axis, bringing postive
 -- x-values towards the negative z-axis.
-aboutY :: Angle a => a -> T3
+aboutY :: Angle -> T3
 aboutY ang = fromLinear r (linv r) where
   r = rot theta <-> rot (-theta)
-  Rad theta = convertAngle ang
+  theta = view rad ang
   rot th (coords -> x :& y :& z) = (cos th * x + sin th * z) ^&
                                     y ^&
                                     (-sin th * x + cos th * z)
@@ -77,17 +77,17 @@ aboutY ang = fromLinear r (linv r) where
 -- | @rotationAbout p d a@ is a rotation about a line parallel to @d@
 --   passing through @p@.
 rotationAbout
-  :: (Angle a, Direction d)
+  :: Direction d
   => P3     -- ^ origin of rotation
   -> d      -- ^ direction of rotation axis
-  -> a      -- ^ angle of rotation
+  -> Angle      -- ^ angle of rotation
   -> T3
 rotationAbout p d a
   = mconcat [translation (negateV t),
              fromLinear r (linv r),
              translation t] where
     r = rot theta <-> rot (-theta)
-    Rad theta = convertAngle a
+    theta = view rad a
     w = fromDirection d
     rot :: Double -> R3 -> R3
     rot th v = v ^* cos th ^+^
@@ -110,10 +110,10 @@ pointAt a i f = pointAt' (fromDirection a) (fromDirection i) (fromDirection f)
 pointAt' :: R3 -> R3 -> R3 -> T3
 pointAt' about initial final = tilt <> pan where
   inPanPlane    = final ^-^ project final initial
-  panAngle      = angleBetween initial inPanPlane :: Turn
-  pan           = rotationAbout origin (direction about :: Spherical Turn) panAngle
-  tiltAngle     = angleBetween initial inPanPlane :: Turn
-  tiltDir       = direction $ cross3 inPanPlane about :: Spherical Turn
+  panAngle      = angleBetween initial inPanPlane
+  pan           = rotationAbout origin (direction about :: Spherical) panAngle
+  tiltAngle     = angleBetween initial inPanPlane
+  tiltDir       = direction $ cross3 inPanPlane about :: Spherical
   tilt          = rotationAbout origin tiltDir tiltAngle
 
 -- Scaling -------------------------------------------------
