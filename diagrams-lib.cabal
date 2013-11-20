@@ -32,6 +32,7 @@ Library
                        Diagrams.Attributes,
                        Diagrams.Points,
                        Diagrams.Located,
+                       Diagrams.Palettes,
                        Diagrams.Parametric,
                        Diagrams.Parametric.Adjust,
                        Diagrams.Segment,
