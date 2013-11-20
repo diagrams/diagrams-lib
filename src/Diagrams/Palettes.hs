@@ -26,8 +26,8 @@ d3c10 = map sRGB24read [ "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd"
 --
 -- <<diagrams/src_Diagrams_Palettes_singles.svg#diagram=singles&width=400>>
 --
--- > singles  = hcat c
--- > colorBar = [square 1 # fc (d3Single i) | i <- [0..9]]
+-- > singles      = hcat (colorBar (const d3Single) 0)
+-- > colorBar m k = [square 1 # fc (m k i) | i <- [0..9]]
 d3Single :: Int ->  Colour Double
 d3Single n = d3c10 !! (n `mod` 10)
 
@@ -42,8 +42,7 @@ d3c20 = map sRGB24read [ "#1f77b4", "#aec7e8", "#ff7f0e", "#ffbb78", "#2ca02c"
 --
 -- <<diagrams/src_Diagrams_Palettes_pairs.svg#diagram=pairs&width=400>>
 --
--- > pairs      = vcat $ map (hcat . colorBar) [0, 1]
--- > colorBar k = [square 1 # fc (d3Pair k i) | i <- [0..9]]
+-- > pairs      = vcat $ map (hcat . colorBar d3Pair) [0, 1]
 d3Pair :: Int -> Int -> Colour Double
 d3Pair k n = d3c20 !! (((2*n) `mod` 20) + (k `mod` 2))
 
@@ -62,8 +61,7 @@ d3c20bc = map sRGB24read [ "#393b79", "#5254a3", "#6b6ecf", "#9c9ede", "#637939"
 --
 -- <<diagrams/src_Diagrams_Palettes_quads.svg#diagram=quads&width=400>>
 --
--- > quads      = vcat $ map (hcat . colorBar) [0..3]
--- > colorBar k = [square 1 # fc (d3Quad k i) | i <- [0..9]]
+-- > quads      = vcat $ map (hcat . colorBar d3Quad) [0..3]
 d3Quad :: Int -> Int -> Colour Double
 d3Quad k n =d3c20bc !! (((4*n) `mod` 40) + (k `mod` 4))
 
