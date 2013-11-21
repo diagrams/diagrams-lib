@@ -69,7 +69,7 @@ import           Diagrams.TwoD.Types
 -- > import Data.Monoid.Inf
 -- > import Diagrams.Coordinates
 -- >
--- > segmentA = Cubic (12 & 0) (8 & 10) (OffsetClosed (20 & 8))
+-- > segmentA = Cubic (12 ^& 0) (8 ^& 10) (OffsetClosed (20 ^& 8))
 -- >
 -- > curveA = lw 0.1 . stroke . fromSegments $ [segmentA]
 -- >
@@ -92,7 +92,7 @@ import           Diagrams.TwoD.Types
 -- >   | otherwise = go (radiusOfCurvature bez t)
 -- >   where
 -- >     v@(x,y) = unr2 $ firstDerivative b c d t
--- >     vp = (-y) & x
+-- >     vp = (-y) ^& x
 -- >
 -- >     firstDerivative b c d t = let tt = t*t in (3*(3*tt-4*t+1))*^b + (3*(2-3*t)*t)*^c + (3*tt)*^d
 -- >

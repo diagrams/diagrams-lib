@@ -28,7 +28,7 @@ module Diagrams.TwoD.Arrow
 --   > sq = square 2 # showOrigin # lc darkgray # lw 0.07
 --   > ds = (sq # named "left") ||| strutX 3 ||| (sq # named "right")
 --   >
---   > shaft  = cubicSpline False ( map r2 [(0, 0), (1, 0), (1, 0.2), (2, 0.2)])
+--   > shaft  = cubicSpline False ( map p2 [(0, 0), (1, 0), (1, 0.2), (2, 0.2)])
 --   >
 --   > example1 = ds # connect' (with & arrowHead .~ dart & headSize .~ 0.6
 --   >                                & tailSize .~ 0.5 & arrowTail .~ quill
@@ -199,7 +199,9 @@ shaftStyle :: Lens' ArrowOpts (Style R2)
 --
 --   Note that the most general type of @headColor@ would be
 --
---   > (Color c, Color c') => Setter ArrowOpts ArrowOpts c c'
+-- @
+--   (Color c, Color c') => Setter ArrowOpts ArrowOpts c c'
+-- @
 --
 --   but that can cause problems for type inference when setting the
 --   color.  However, using it at that more general type may

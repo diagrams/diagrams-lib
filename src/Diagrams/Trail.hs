@@ -743,7 +743,7 @@ trailFromSegments = wrapTrail . lineFromSegments
 --   <<diagrams/src_Diagrams_Trail_lineFromOffsetsEx.svg#diagram=lineFromOffsetsEx&width=300>>
 --
 --   > import Diagrams.Coordinates
---   > lineFromOffsetsEx = strokeLine $ lineFromOffsets [ 2 & 1, 2 & (-1), 2 & 0.5 ]
+--   > lineFromOffsetsEx = strokeLine $ lineFromOffsets [ 2 ^& 1, 2 ^& (-1), 2 ^& 0.5 ]
 lineFromOffsets :: (InnerSpace v, OrderedField (Scalar v))
                   => [v] -> Trail' Line v
 lineFromOffsets = lineFromSegments . map straight
@@ -772,7 +772,7 @@ trailFromOffsets = wrapTrail . lineFromOffsets
 --
 --   > import Diagrams.Coordinates
 --   > lineFromVerticesEx = pad 1.1 . centerXY . strokeLine
---   >   $ lineFromVertices [origin, 0 & 1, 1 & 2, 5 & 1]
+--   >   $ lineFromVertices [origin, 0 ^& 1, 1 ^& 2, 5 ^& 1]
 lineFromVertices :: (InnerSpace v, OrderedField (Scalar v))
                    => [Point v] -> Trail' Line v
 lineFromVertices []  = emptyLine
