@@ -13,19 +13,32 @@
 module Diagrams.Palettes
        ( -- * Choosing color schemes
 
-         Brightness(..)
+         Brightness(..), Kolor
 
-         -- ** Color schemes
+         -- ** Color utilities
 
-         , monochrome, complement, rotateColor, triad, analogous
+         , tint, tone, shade, rotateColor
 
-         -- ** From d3
+         -- ** Color harmonies
 
-       , colorSingles, colorPairs, colorQuads
+         , monochrome
+         , complement
+         , triad
+         , tetrad
+         , analogic
+         , accentAnalogic
+
+         -- ** Colors from d3
+
+         , colorSingles, colorPairs, colorQuads
+
+         -- ** Painter's color
+
+         , rybColors, rybColorA
 
          -- ** Common html colors
 
-       , webColor, infiniteWebColors, getWebColor
+         , webColor, infiniteWebColors, getWebColor
 
        ) where
 
@@ -36,44 +49,59 @@ import Data.Colour.SRGB         (RGB(..), sRGB24read, toSRGB, sRGB)
 import Data.Colour.RGBSpace.HSV
 import Data.Colour.Names
 
--- | Four levels of brightness for functions that take a @Brightness@ parameter.
---   For functions with only two levels of @Brightness@ we set @darkest == dark@
---   and @lightest == light@.
-data Brightness = Darkest | Dark | Light | Lightest
-  deriving (Eq)
+type Kolor = Colour Double
 
-tint :: Double -> Colour Double -> Colour Double
+-- | Tints a color by adding blending t * white + (1-t) color.
+--   t should be between 0 and 1.
+tint :: Double -> Kolor -> Kolor
 tint t c = blend t white c
 
-tone :: Double -> Colour Double -> Colour Double
+-- | Alter the tone of a color by adding blending t * gray + (1-t) color.
+--   t should be between 0 and 1.
+tone :: Double -> Kolor -> Kolor
 tone t c = blend t gray c
 
-shade :: Double -> Colour Double -> Colour Double
+-- | Shades a color by adding blending s * black + (1-s) color.
+--   t should be between 0 and 1.
+shade :: Double -> Kolor -> Kolor
 shade s c = blend s black c
 
-monochrome :: Colour Double -> [Colour Double]
-monochrome c = [tint 0.3 c, tint 0.15 c, c, shade 0.2 c, shade 0.4 c]
+monochrome :: Kolor -> [Kolor]
+monochrome c = [c, tint 0.4 c, tint 0.2 c, shade 0.25 c, shade 0.5 c]
 
-complement :: Colour Double -> [Colour Double]
-complement c = [tint 0.3 c, tint 0.15 c, c, rotateColor 180 c, shade 0.4 c]
+mkChord :: Kolor -> [Double] -> [Kolor]
+mkChord c xs = map (flip rotateColor c) xs
 
-triad :: Colour Double -> [Colour Double]
-triad c = [rotateColor 240 c, c, rotateColor 120 c]
+complement :: Kolor -> [Kolor]
+complement c = [c, rotateColor 180 c, tint 0.4 c, tint 0.2 c, shade 0.25 c, shade 0.5 c]
 
-analogous :: Colour Double -> [Colour Double]
-analogous c = map (\n -> rotateColor n c) [30, 15, 0, 345, 330]
+triad :: Kolor -> [Kolor]
+triad c = [c, rotateColor 240 c, rotateColor 120 c, darkgray, shade 0.6 c]
+
+tetrad :: Kolor -> [Kolor]
+tetrad c = mkChord c [0, 90, 180, 270] ++ [shade 0.6 c]
+
+analogic :: Kolor -> [Kolor]
+analogic c = mkChord c [0, 30, 15, 345, 330]
+
+accentAnalogic :: Kolor -> [Kolor]
+accentAnalogic c = mkChord c [0, 180, 30, 15, 345, 330]
 
 numColors :: Int
-numColors = length webColorList
+numColors = length webColors
 
--- Number of colors to skip beteen choices from hueColorList.
+-- Number of colors to skip beteen choices from hueColors.
 -- The idea is to skip enough similar colors so that the next color
 -- is not too similar.
 primeRepeat :: Int
 primeRepeat = 61
 
-hsbToKuler :: Double -> Double
-hsbToKuler x
+-- This function and it's inverse below are the key to using the artists'
+-- pigment color wheel. Red, blue and yellow are the primary colors and the
+-- corresponding secondary colors are green, oragne and violet. We convert a
+-- hue from the HSV in degrees (red = 0) to a hue on the artists' color wheel.
+hsvToRyb :: Double -> Double
+hsvToRyb x
   | x < 35    =       1.71 *  x
   | x < 60    = 60  + 2.40 * (x - 35)
   | x < 135   = 120 + 0.80 * (x - 60)
@@ -81,8 +109,9 @@ hsbToKuler x
   | x < 275   = 240 + 1.20 * (x - 225)
   | otherwise = 300 + 0.71 * (x - 275)
 
-kulerToHsb :: Double -> Double
-kulerToHsb x
+-- Convert of hue on the artists color wheel to a hue in HSV space.
+rybToHsv :: Double -> Double
+rybToHsv x
   | x < 60    =       0.58 *  x
   | x < 120   = 35  + 0.42 * (x - 60)
   | x < 180   = 60  + 1.25 * (x - 120)
@@ -90,27 +119,22 @@ kulerToHsb x
   | x < 300   = 225 + 0.83 * (x - 240)
   | otherwise = 275 + 1.42 * (x - 300)
 
-rotateColor :: Double -> Colour Double -> Colour Double
+rotateColor :: Double -> Kolor -> Kolor
 rotateColor degrees c  = sRGB r g b
   where
     (h, s, v) = hsvView (toSRGB c)
     RGB r g b = hsv y s v
-    k = (round $ hsbToKuler h + degrees :: Int) `mod` 360
-    y = kulerToHsb (fromIntegral k)
+    k = (round $ hsvToRyb h + degrees :: Int) `mod` 360
+    y = rybToHsv (fromIntegral k)
 
-hueColorList :: [Colour Double]
-hueColorList = sortBy (\x y -> f x `compare` f y) webColorList
-  where f = hue . toSRGB
+
 
 -- A few hundred common html colors -------------------------------------------
 -------------------------------------------------------------------------------
 
-webColors :: Array Int (Colour Double)
-webColors = listArray (0, numColors-1) hueColorList
-
 -- | Choose the `n`th color in an array @a@ skipping @skip@ colors
 --   every time.
-getWebColor :: Array Int (Colour Double) -> Int -> Int -> Colour Double
+getWebColor :: Array Int (Kolor) -> Int -> Int -> Kolor
 getWebColor a skip n  = a ! idx
   where
     (i, k) = bounds a
@@ -119,15 +143,21 @@ getWebColor a skip n  = a ! idx
 
 -- | Return a color from webColors arranged as to provide nice contrast
 --   between near by colors.
-webColor :: Int -> Colour Double
-webColor i = getWebColor webColors primeRepeat (i+1) -- Start with a blue.
+webColor :: Int -> Kolor
+webColor i = getWebColor webColorA primeRepeat (i+1) -- Start with a blue.
 
 -- | A List of webColors ordered as above, cycling infinitely many times.
-infiniteWebColors :: [Colour Double]
+infiniteWebColors :: [Kolor]
 infiniteWebColors = cycle [webColor j | j <- [0..numColors-1]]
 
 -- Colors from d3. ------------------------------------------------------------
 -------------------------------------------------------------------------------
+
+-- | Four levels of brightness for functions that take a @Brightness@ parameter.
+--   For functions with only two levels of @Brightness@ we set @darkest == dark@
+--   and @lightest == light@.
+data Brightness = Darkest | Dark | Light | Lightest
+  deriving (Eq)
 
 -- | Choose from one of 10 contrasting colors (0-9) borrowed from mbostock's d3.
 --
@@ -135,7 +165,7 @@ infiniteWebColors = cycle [webColor j | j <- [0..numColors-1]]
 --
 -- > singles      = hcat (colorBar (const colorSingles) 0)
 -- > colorBar m k = [square 1 # fc (m k i) | i <- [0..9]]
-colorSingles :: Int ->  Colour Double
+colorSingles :: Int ->  Kolor
 colorSingles n = d3c10 ! (n `mod` 10)
 
 
@@ -146,7 +176,7 @@ colorSingles n = d3c10 ! (n `mod` 10)
 -- <<diagrams/src_Diagrams_Palettes_pairs.svg#diagram=pairs&width=400>>
 --
 -- > pairs      = vcat $ map (hcat . colorBar colorPairs) [Dark, Light]
-colorPairs :: Brightness -> Int -> Colour Double
+colorPairs :: Brightness -> Int -> Kolor
 colorPairs b n = d3c20 ! ((n `mod` 10), k)
   where k = if b == Darkest || b == Dark then 0 else 1
 
@@ -158,7 +188,7 @@ colorPairs b n = d3c20 ! ((n `mod` 10), k)
 -- <<diagrams/src_Diagrams_Palettes_quads.svg#diagram=quads&width=400>>
 --
 -- > quads      = vcat $ map (hcat . colorBar colorQuads) [Darkest, Dark, Light, Lightest]
-colorQuads :: Brightness -> Int -> Colour Double
+colorQuads :: Brightness -> Int -> Kolor
 colorQuads b n =d3c20bc ! ((n `mod` 10), k)
   where k = case b of
               Darkest  -> 0
@@ -170,27 +200,27 @@ colorQuads b n =d3c20bc ! ((n `mod` 10), k)
 -------------------------------------------------------------------------------
 
 -- d3.scale.category10()
-d3_10 :: [Colour Double]
+d3_10 :: [Kolor]
 d3_10 = map sRGB24read
       [ "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd"
       , "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf"]
 
-d3c10 :: Array Int (Colour Double)
+d3c10 :: Array Int (Kolor)
 d3c10 = listArray (0,9) d3_10
 
 -- d3.scale.category20()
-d3_20 :: [Colour Double]
+d3_20 :: [Kolor]
 d3_20 = map sRGB24read
       [ "#1f77b4", "#aec7e8", "#ff7f0e", "#ffbb78", "#2ca02c"
       , "#98df8a", "#d62728", "#ff9896", "#9467bd", "#c5b0d5"
       , "#8c564b", "#c49c94", "#e377c2", "#f7b6d2", "#7f7f7f"
       , "#c7c7c7", "#bcbd22", "#dbdb8d", "#17becf", "#9edae5"]
 
-d3c20 ::  Array (Int, Int) (Colour Double)
+d3c20 ::  Array (Int, Int) (Kolor)
 d3c20 = listArray ((0,0),(9,1)) d3_20
 
 -- d3.scale.category20b() and d3.scale.category20c()
-d3_40 :: [Colour Double]
+d3_40 :: [Kolor]
 d3_40 = map sRGB24read
       [ "#393b79", "#5254a3", "#6b6ecf", "#9c9ede", "#637939"
       , "#8ca252", "#b5cf6b", "#cedb9c", "#8c6d31", "#bd9e39"
@@ -201,12 +231,12 @@ d3_40 = map sRGB24read
       , "#a1d99b", "#c7e9c0", "#756bb1", "#9e9ac8", "#bcbddc"
       , "#dadaeb", "#636363", "#969696", "#bdbdbd", "#d9d9d9"]
 
-d3c20bc ::  Array (Int, Int) (Colour Double)
+d3c20bc ::  Array (Int, Int) (Kolor)
 d3c20bc = listArray ((0,0),(9,3)) d3_40
 
 -- List of commonly used html colors.
-webColorList :: [Colour Double]
-webColorList = map sRGB24read
+htmlColors :: [Kolor]
+htmlColors = map sRGB24read
   [ "#000000", "#2c3539", "#2b1b17", "#34282c", "#25383c", "#3b3131", "#413839"
   , "#463e3f", "#4c4646", "#504a4b", "#565051", "#5c5858", "#625d5d", "#666362"
   , "#6d6968", "#726e6d", "#736f6e", "#837e7c", "#848482", "#b6b6b4", "#d1d0ce"
@@ -255,3 +285,21 @@ webColorList = map sRGB24read
   , "#9e7bff", "#d462ff", "#e238ec", "#c38ec7", "#c8a2c8", "#e6a9ec", "#e0b0ff"
   , "#f9b7ff", "#d2b9d3", "#e9cfec", "#ebdde2", "#e3e4fa", "#fdeef4", "#fff5ee"
   , "#fefcff", "#ffffff" ]
+
+webColors :: [Kolor]
+webColors = sortBy (\x y -> f x `compare` f y) htmlColors
+  where f = hue . toSRGB
+
+webColorA :: Array Int (Kolor)
+webColorA = listArray (0, numColors-1) webColors
+
+rybColors :: [Kolor]
+rybColors =  map sRGB24read
+  [ "#ff0000", "#ff4900", "#ff7400", "#ff9200", "#ffaa00"
+  , "#ffbf00", "#ffd300", "#ffe800", "#ffff00", "#ccf600"
+  , "#9fee00", "#67e300", "#00cc00", "#00af64", "#009999"
+  , "#0b61a4", "#1240ab", "#1b1bb3", "#3914af", "#530fad"
+  , "#7109aa", "#a600a6", "#cd0074", "#e40045"]
+
+rybColorA :: Array Int (Kolor)
+rybColorA = listArray (0,23) rybColors
