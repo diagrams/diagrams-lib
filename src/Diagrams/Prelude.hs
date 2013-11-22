@@ -83,6 +83,9 @@ module Diagrams.Prelude
          -- | Convenience infix operators for working with coordinates.
         , module Diagrams.Coordinates
 
+        -- | For choosing pleasing color combinations.
+        , module Diagrams.Palettes
+
          -- | A wide range of things (shapes, transformations,
          --   combinators) specific to creating two-dimensional
          --   diagrams.
@@ -127,6 +130,7 @@ import           Diagrams.CubicSpline
 import           Diagrams.Envelope
 import           Diagrams.Located
 import           Diagrams.Names
+import           Diagrams.Palettes
 import           Diagrams.Parametric
 import           Diagrams.Parametric.Adjust
 import           Diagrams.Path
