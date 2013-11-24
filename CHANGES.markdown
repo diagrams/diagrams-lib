@@ -3,57 +3,103 @@
 
 * **New features**
 
-    - New module `Diagrams.TwoD.Arrow` and the accompanying `Diagrams.TwoD.Arrowheads`
+    - New modules `Diagrams.TwoD.Arrow` and `Diagrams.TwoD.Arrowheads`
       for creating arrows.
-    - OptParse
-    - Lenses from `Control.Lens` is now used consistently as a record setter
-      throughout the library.
-    - `Diagrams.Offset`
-    - 3D
-    - Diagrams.Tangent
-    - `annularWedge` in `TwoD.Arc`
-    - `avgScale` utility in `TwoD.Transform`
+    - New module `Diagrams.Backend.CmdLine`, providing a flexible
+      framework for creating command-line-driven diagram rendering executables.
+    - New functions in `Diagrams.Offset`: `offsetTrail` and
+      `offsetPath` for one-sided offsets of trails and paths;
+      `expandTrail` and `expandPath` for "stroking" trails and paths,
+      computing a path whose fill corresponds to the stroke of the
+      given trail or path.
+    - New module `Diagrams.Tangent` for computing tangent and normal
+      vectors of segments, trails, and paths.
     - New functions in `Diagrams.Align` to allow diagrams to be aligned by `Trace`
       called `snug`, `snugBy` and `snugCenter`
       and the ability to define other boundary functions for alignment. Functions
       `snugL`, `snugR`, etc. are included in `TwoD.Align`.
-    - New function `angleBetween` in `TwoD.Vector` to calculate the angle between
-      two vectors.
-
-
+    - Lenses from `Control.Lens` are now used consistently for record fields
+      throughout the library.
+    - New function `angleRatio` for calculating the ratio between two angles.
+    - Restricted identity functions `asTurn`, `asRad`, and `asDeg` for
+      resolving type ambiguity
+    - New miter limit attribute.
+    - New function `annularWedge` in `TwoD.Arc`
+    - New `avgScale` utility in `TwoD.Transform`, for backends which
+      cannot fully implement freezing of line width
+    - New function `heptagon`, a vast improvement over the linguistic
+      frankenstein `septagon`.
+    - New function `lookupName` (re-exported from `diagrams-core`) for
+      simple lookups of named subdiagrams
+    - New function `angleBetween` to calculate the angle between two
+      vectors.
+    - New function `arcBetween` to draw an arc between two given
+      points.
+    - A bunch of new modules containing types, primitives and
+      utilities for constructing 3D diagrams: `Diagrams.ThreeD.Align`,
+      `.Camera`, `.Light`, `.Shapes`, `.Transform`, `.Types`, and
+      `.Vector`.  This is still a "feature preview" (in particular,
+      appropriate 3D backends are still under construction).
 
 * **New instances**
 
-  - `IO` instances for
-      -  `ToResult`
-      -  `Mainable`
-  - `VectoreSpace` instances for
-      - `Turn`
-      - `Rad`
-      - `Deg`
-  - `Alignable` instance fro `b->a`
+    - `AdditiveGroup` and `VectorSpace` instances for `Turn`, `Rad`, `Deg`
+    - `Alignable` instance for `(->) e`
+	- `Default` instances for `FillRule`, `FillRuleA`, `LineJoin`,
+      `LineCap`, `FillColor`
+	- `Show` instances for `FillRule`, `FillRuleA`
 
 * **API changes**
 
     - `e` no longer exported from `Diagrams.Prelude`.
-    - `Diagrams.BoundingBox` is no longer exported from the prelude.
-    - Re-export `Diagrams.Core.pointDiagram` from prelude.
+    - `Diagrams.BoundingBox` is no longer exported from `Diagrams.Prelude`.
+    - Re-export `Diagrams.Core.pointDiagram` from `Diagrams.Prelude`.
     - Added `fromAlphaColour` method to `Color` class.
-    - `&` changed to `^&`
-    - `tan`, `over`, and `both` are not re-exported from `Data.Colour`.
-
+    - `&` renamed to `^&`
+    - Stop re-exporting `tan`, `over`, and `both` from `Data.Colour`.
+	- New coordinate lenses `_x`, `_y`, and `_z` for `R2`, `P2`, `R3`, `P3`
+    - Export `fullTurn` from `Diagrams.Prelude`.
+    - `Codomain (Located a)` is now `Point (Codomain a)` instead of
+      `Located (Codomain a)`.
+	- Export `domainBounds` from `Diagrams.Parametric`.
+	- Adjusting functionality moved from `Diagrams.Parametric` to its
+      own module, `Diagrams.Parametric.Adjust`.
+    - Rename `strokeT` (and primed variant) to `strokeTrail`; rename
+      `strokeLocT` to `strokeLocTrail`.
+    - `ScaleInv` is now in its own module, `Diagrams.TwoD.Transform.ScaleInv`.
+	- Re-export `Image` type (but not constructor) from `Diagrams.TwoD`
+    - Removed `Floating` and `RealFloat` instances for `Turn` and `Deg`
+    - `offsetSegment` now returns a `Located` instead of a tuple.
+    - Removed `Num` and `Fractional` instances for `R2`.
 
 * **Dependency/version changes**
 
+    - Remove `newtype` dependency
+    - New dependencies on `lens`, `tagged`, `optparse-applicative`,
+      `filepath`, `safe`, `vector-space-points`, `MemoTrie`
+    - Depend on `intervals >= 0.3 && < 0.5`.
 
 * **Bug fixes**
 
-    - Only look for miter join on corners in `Diagrams.TwoD.Offset`, test the
-      angle between the joining vectors and if they are parallel or anti-parallel
-      then use a clip join (#118).
-    - `wedge` from `TwdD.Arc` is now a Loop (#99)
+    - Depend on `intervals 0.3`, which allows diagrams to build on
+      Windows, by evading a GHCi linker bug which affects the FFI use in
+      previous versions of intervals ([diagrams-contrib#14](https://github.com/diagrams/diagrams-contrib/issues/14))
 
+    - Use point envelope at the origin for text objects instead of an
+      empty envelope
+      ([#115](https://github.com/diagrams/diagrams-lib/issues/115),
+      [#116](https://github.com/diagrams/diagrams-lib/issues/116)).
+    - Adjusting the end of a trail now works correctly ([#95](https://github.com/diagrams/diagrams-lib/issues/95)).
+    - Only look for miter join on corners in `Diagrams.TwoD.Offset` ([#118](https://github.com/diagrams/diagrams-lib/issues/118)).
+    - `wedge` from `Diagrams.TwoD.Arc` is now a Loop ([#99](https://github.com/diagrams/diagrams-lib/issues/99))
 
+* **Performance improvements**
+
+    - `R2` is now strict and `UNPACK`ed
+    - Add strictness to `Offset`, `Segment`, `OffsetEnvelope`, and `SizeSpec2D`.
+	- Make `getEnvelope` calculation for `Segment` more efficient by
+      floating divisions out of the inner calculation.
+    - Use a specialized `HasTrie` instance for `R2`.
 
 0.7.1.1 (27 September 2013)
 ---------------------------
