@@ -56,6 +56,8 @@ import           Data.AffineSpace
 import           Data.Default.Class
 import           Data.VectorSpace
 
+import           Data.Colour           (transparent)
+
 import           Diagrams.Coordinates
 import           Diagrams.Core
 import           Diagrams.Located      (Located, mapLoc, unLoc)
@@ -65,6 +67,7 @@ import           Diagrams.Segment
 import           Diagrams.Solve
 import           Diagrams.Trail
 import           Diagrams.TrailLike
+import           Diagrams.Attributes   (fcA)
 import           Diagrams.TwoD.Segment ()
 import           Diagrams.TwoD.Types
 import           Diagrams.Util         (tau)
@@ -171,9 +174,9 @@ instance Renderable (Path R2) b => TrailLike (QDiagram b R2 Any) where
 --   ... }@ syntax may be used.
 stroke' :: (Renderable (Path R2) b, IsName a) => StrokeOpts a -> Path R2 -> Diagram b R2
 stroke' opts path
-  | null (pLines ^. unwrapped) =           mkP pLoops
-  | null (pLoops ^. unwrapped) = mkP pLines
-  | otherwise                   = mkP pLines <> mkP pLoops
+  | null (pLines ^. unwrapped) =  mkP pLoops
+  | null (pLoops ^. unwrapped) =  fcA transparent $ mkP pLines
+  | otherwise                  = (fcA transparent $ mkP pLines) <> mkP pLoops
   where
     (pLines,pLoops) = partitionPath (isLine . unLoc) path
     mkP p
