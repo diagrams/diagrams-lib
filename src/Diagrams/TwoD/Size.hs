@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveGeneric    #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TypeFamilies     #-}
 
@@ -35,6 +36,8 @@ import           Diagrams.TwoD.Vector
 
 import           Control.Applicative  (liftA2, (<$>))
 import           Control.Arrow        ((&&&), (***))
+import           Data.Hashable        (Hashable)
+import           GHC.Generics         (Generic)
 
 ------------------------------------------------------------
 -- Computing diagram sizes
@@ -93,7 +96,9 @@ data SizeSpec2D = Width  !Double       -- ^ Specify an explicit
                 | Absolute            -- ^ Absolute size: use whatever
                                       -- size an object already has;
                                       -- do not rescale.
-  deriving (Eq, Ord, Show)
+  deriving (Eq, Ord, Show, Generic)
+
+instance Hashable SizeSpec2D
 
 -- | Create a size specification from a possibly-specified width and
 --   height.
