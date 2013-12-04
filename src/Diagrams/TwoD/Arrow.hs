@@ -373,8 +373,8 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
 
     -- Build an arrow and set its endpoints to the image under tr of origin and (len,0).
     dArrow sty tr ln = (h' <> t' <> shaft)
-               # moveOriginBy (tWidth *^ (unit_X # rotateBy tAngle))
-               # rotateBy (direction (q .-. p) - dir)
+               # moveOriginBy (tWidth *^ (unit_X # rotate tAngle))
+               # rotate (direction (q .-. p) - dir)
                # moveTo p
       where
 
@@ -398,7 +398,7 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
         shaftTrail
           = rawShaftTrail
             -- rotate it so it is pointing in the positive X direction
-          # rotateBy (- direction (trailOffset rawShaftTrail))
+          # rotate (- direction (trailOffset rawShaftTrail))
             -- apply the context transformation -- in case it includes
             -- things like flips and shears (the possibility of shears
             -- is why we must rotate it to a neutral position first)
@@ -420,9 +420,9 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
         shaft = strokeT shaftTrail' # applyStyle (shaftSty opts)
 
         -- Adjust the head and tail to point in the directions of the shaft ends.
-        h' = h # rotateBy hAngle
+        h' = h # rotate hAngle
                # moveTo (origin .+^ shaftTrail' `atParam` domainUpper shaftTrail')
-        t' = t # rotateBy tAngle
+        t' = t # rotate tAngle
 
         -- Find out what direction the arrow is pointing so we can set it back
         -- to point in the direction unitX when we are done.
@@ -450,7 +450,7 @@ arrowAt s v = arrowAt' def s v
 arrowAt'
   :: Renderable (Path R2) b =>
      ArrowOpts -> P2 -> R2 -> Diagram b R2
-arrowAt' opts s v = arrow' opts len # rotateBy dir # moveTo s
+arrowAt' opts s v = arrow' opts len # rotate dir # moveTo s
   where
     len = magnitude v
     dir = direction v
@@ -475,7 +475,7 @@ connect' opts n1 n2 =
 --   by angle.
 connectPerim
   :: (Renderable (Path R2) b, IsName n1, IsName n2)
- => n1 -> n2 -> ArrowOpts -> Angle
+ => n1 -> n2 -> Angle -> Angle
   -> (Diagram b R2 -> Diagram b R2)
 connectPerim = connectPerim' def
 

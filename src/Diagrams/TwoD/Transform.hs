@@ -76,17 +76,17 @@ rotation ang = fromLinear r (linv r)
 
 -- | Rotate about the local origin by the given angle. Positive angles
 --   correspond to counterclockwise rotation, negative to
---   clockwise. The angle can be expressed using any type which is an
---   instance of 'Angle'.  For example, @rotate (1\/4 ::
---   'Turn')@, @rotate (tau\/4 :: 'Rad')@, and @rotate (90 ::
---   'Deg')@ all represent the same transformation, namely, a
---   counterclockwise rotation by a right angle.  To rotate about some
---   point other than the local origin, see 'rotateAbout'.
+--   clockwise. The angle can be expressed using any of the 'Iso's on
+--   'Angle'.  For example, @rotate (1\/4 ^. from 'turn')@, @rotate
+--   (tau\/4 ^. from rad)@, and @rotate (90 ^. from deg)@ all
+--   represent the same transformation, namely, a counterclockwise
+--   rotation by a right angle.  To rotate about some point other than
+--   the local origin, see 'rotateAbout'.
 --
---   Note that writing @rotate (1\/4)@, with no type annotation, will
---   yield an error since GHC cannot figure out which sort of angle
---   you want to use.  In this common situation you can use
---   'rotateBy', which is specialized to take a 'Turn' argument.
+--   Note that writing @rotate (1\/4)@, with no 'Angle' constructor,
+--   will yield an error since GHC cannot figure out which sort of
+--   angle you want to use.  In this common situation you can use
+--   'rotateBy', which interprets its argument as a number of turns.
 rotate :: (Transformable t, V t ~ R2) => Angle -> t -> t
 rotate = transform . rotation
 
