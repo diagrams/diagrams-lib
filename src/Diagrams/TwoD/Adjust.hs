@@ -107,7 +107,7 @@ adjustDia2D :: Monoid' m
             -> b -> Options b R2 -> QDiagram b R2 m
             -> (Options b R2, QDiagram b R2 m)
 adjustDia2D getSize setSize b opts d
-  = adjustDiaSize2D getSize setSize b opts (d # setDefault2DAttributes # freeze)
+  = adjustDiaSize2D getSize setSize b opts (d # setDefault2DAttributes)
 
 {-# DEPRECATED adjustSize "Use Diagrams.TwoD.Size.requiredScaleT instead." #-}
 -- | Re-export 'requiredScaleT' with the name 'adjustSize' for

@@ -90,7 +90,6 @@ module Diagrams.TwoD.Arrow
        , module Diagrams.TwoD.Arrowheads
        ) where
 
-import           Control.Arrow                    (first)
 import           Control.Lens                     (Lens', Setter',
                                                    generateSignatures,
                                                    lensRules, makeLensesWith,
@@ -101,7 +100,6 @@ import           Data.Functor                     ((<$>))
 import           Data.Maybe                       (fromJust, fromMaybe)
 import           Data.Monoid                      (mempty, (<>))
 import           Data.Monoid.Coproduct            (untangle)
-import           Data.Monoid.Split
 import           Data.Semigroup                   (option)
 import           Data.VectorSpace
 
@@ -363,11 +361,8 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
       -- transformation *do* affect scale-invariant objects like
       -- arrowheads, and will still be higher up in the tree (so we
       -- don't need to apply it here).
-      let (unfrozenTr, globalSty) = option mempty (first unsplitR . untangle) . fst $ da
-      in  dArrow globalSty unfrozenTr len
-
-    unsplitR (M    m) = m
-    unsplitR (_ :| m) = m
+      let (trans, globalSty) = option mempty untangle . fst $ da
+      in  dArrow globalSty trans len
 
     approx = dArrow mempty mempty len
 
