@@ -37,8 +37,9 @@ module Diagrams.Combinators
 
        ) where
 
-import           Control.Lens       ( (&), (%~), (.~), Lens', makeLensesWith
-                                    , lensRules, lensField, generateSignatures, unwrapping)
+import           Control.Lens       (Lens', generateSignatures, lensField,
+                                     lensRules, makeLensesWith, unwrapping,
+                                     (%~), (&), (.~))
 import           Data.AdditiveGroup
 import           Data.AffineSpace   ((.+^))
 import           Data.Default.Class
@@ -360,9 +361,9 @@ cat v = cat' v def
 --     default is 0.
 --
 --   'CatOpts' is an instance of 'Default', so 'with' may be used for
---   the second argument, as in @cat' (1,2) with {sep = 2}@.
+--   the second argument, as in @cat' (1,2) (with & sep .~ 2)@.
 --
---   Note that @cat' v with {catMethod = Distrib} === mconcat@
+--   Note that @cat' v (with & catMethod .~ Distrib) === mconcat@
 --   (distributing with a separation of 0 is the same as
 --   superimposing).
 cat' :: ( Juxtaposable a, Monoid' a, HasOrigin a
