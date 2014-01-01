@@ -41,7 +41,7 @@ module Diagrams.TwoD.Path
 
          -- * Clipping
 
-       , Clip(..), clipBy
+       , Clip(..), clipBy, clipTo
        ) where
 
 import           Control.Applicative   (liftA2)
@@ -361,7 +361,14 @@ instance Transformable Clip where
 clipBy :: (HasStyle a, V a ~ R2) => Path R2 -> a -> a
 clipBy = applyTAttr . Clip . (:[])
 
--- XXX Should include a 'clipTo' function which clips a diagram AND
--- restricts its envelope.  It will have to take a *pointwise minimum*
--- of the diagram's current envelope and the path's envelope.  Not
--- sure of the best way to do this at the moment.
+-- | Clip a diagram to the given path setting its envelope to the pointwise
+--   minimum of the envelopes of the diagram and path. Set the trace to the
+--   pointwise minimum of their traces.
+clipTo :: (Renderable (Path R2) b) => Path R2 ->  Diagram b R2 ->  Diagram b R2
+clipTo p d = setTrace (getTrace p <> getTrace d) . toEnvelope $ clipBy p d
+  where
+    envP = appEnvelope . getEnvelope $ p
+    envD = appEnvelope . getEnvelope $ d
+    toEnvelope = case (envP, envD) of
+      (Just eP, Just eD) -> setEnvelope . mkEnvelope $ \v -> min (eP v) (eD v)
+      (_, _)             -> id
