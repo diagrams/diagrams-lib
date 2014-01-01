@@ -41,7 +41,7 @@ module Diagrams.TwoD.Path
 
          -- * Clipping
 
-       , Clip(..), clipBy, clipTo
+       , Clip(..), clipBy, clipTo, clipped
        ) where
 
 import           Control.Applicative   (liftA2)
@@ -56,6 +56,7 @@ import           Data.AffineSpace
 import           Data.Default.Class
 import           Data.VectorSpace
 
+import           Diagrams.Combinators  (withEnvelope, withTrace)
 import           Diagrams.Coordinates
 import           Diagrams.Core
 import           Diagrams.Located      (Located, mapLoc, unLoc)
@@ -362,13 +363,19 @@ clipBy :: (HasStyle a, V a ~ R2) => Path R2 -> a -> a
 clipBy = applyTAttr . Clip . (:[])
 
 -- | Clip a diagram to the given path setting its envelope to the pointwise
---   minimum of the envelopes of the diagram and path. Set the trace to the
---   pointwise minimum of their traces.
+--   minimum of the envelopes of the diagram and path. XXX The trace is left
+--   unchanged but should probably be the trace of the intersection of the
+--   clip path and diagram.
 clipTo :: (Renderable (Path R2) b) => Path R2 ->  Diagram b R2 ->  Diagram b R2
-clipTo p d = setTrace (getTrace p <> getTrace d) . toEnvelope $ clipBy p d
+clipTo p d = toEnvelope $ clipBy p d
   where
     envP = appEnvelope . getEnvelope $ p
     envD = appEnvelope . getEnvelope $ d
     toEnvelope = case (envP, envD) of
       (Just eP, Just eD) -> setEnvelope . mkEnvelope $ \v -> min (eP v) (eD v)
       (_, _)             -> id
+
+-- | Clip a diagram to the clip path taking the envelope and trace of the clip
+--   path.
+clipped :: (Renderable (Path R2) b) => Path R2 ->  Diagram b R2 ->  Diagram b R2
+clipped p = (withTrace p) . (withEnvelope p) . (clipBy p)

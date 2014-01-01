@@ -84,7 +84,7 @@ module Diagrams.TwoD
        , StrokeOpts(..), vertexNames, queryFillRule
 
          -- ** Clipping
-       , clipBy, clipTo
+       , clipBy, clipTo, clipped
 
          -- * Shapes
          -- ** Rules
