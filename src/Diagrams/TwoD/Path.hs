@@ -380,7 +380,7 @@ clipTo p d = setTrace intersectionTrace . toEnvelope $ clipBy p d
     -- Find the first Trace result that is part of the intersection
     tryTrace pt v = let
         -- locate the point corresponding to a trace distance
-        newPt d = pt .+^ v ^* d
+        newPt dist = pt .+^ v ^* dist
         -- handle an intersection with the trace of d
         dTest dDist = if testPt (newPt dDist) pQuery
                       then (Finite dDist) else tryTrace (newPt dDist) v
