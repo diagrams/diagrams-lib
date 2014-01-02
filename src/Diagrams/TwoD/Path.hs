@@ -54,6 +54,7 @@ import           Data.Typeable
 
 import           Data.AffineSpace
 import           Data.Default.Class
+import           Data.Monoid.Inf
 import           Data.VectorSpace
 
 import           Diagrams.Combinators  (withEnvelope, withTrace)
@@ -168,8 +169,8 @@ instance Renderable (Path R2) b => TrailLike (QDiagram b R2 Any) where
 --
 --     * Names can be assigned to the path's vertices
 --
---   'StrokeOpts' is an instance of 'Default', so @stroke' 'with' {
---   ... }@ syntax may be used.
+--   'StrokeOpts' is an instance of 'Default', so @stroke' ('with' &
+--   ... )@ syntax may be used.
 stroke' :: (Renderable (Path R2) b, IsName a) => StrokeOpts a -> Path R2 -> Diagram b R2
 stroke' opts path
   | null (pLines ^. unwrapped) =           mkP pLoops
@@ -362,18 +363,43 @@ instance Transformable Clip where
 clipBy :: (HasStyle a, V a ~ R2) => Path R2 -> a -> a
 clipBy = applyTAttr . Clip . (:[])
 
--- | Clip a diagram to the given path setting its envelope to the pointwise
---   minimum of the envelopes of the diagram and path. XXX The trace is left
---   unchanged but should probably be the trace of the intersection of the
---   clip path and diagram.
+-- | Clip a diagram to the given path setting its envelope to the
+--   pointwise minimum of the envelopes of the diagram and path. The
+--   trace consists of those parts of the original diagram's trace
+--   which fall within the clipping path, or parts of the path's trace
+--   within the original diagram.
 clipTo :: (Renderable (Path R2) b) => Path R2 ->  Diagram b R2 ->  Diagram b R2
-clipTo p d = toEnvelope $ clipBy p d
+clipTo p d = setTrace intersectionTrace . toEnvelope $ clipBy p d
   where
     envP = appEnvelope . getEnvelope $ p
     envD = appEnvelope . getEnvelope $ d
     toEnvelope = case (envP, envD) of
       (Just eP, Just eD) -> setEnvelope . mkEnvelope $ \v -> min (eP v) (eD v)
       (_, _)             -> id
+    intersectionTrace = Trace tryTrace
+    -- Find the first Trace result that is part of the intersection
+    tryTrace pt v = let
+        -- locate the point corresponding to a trace distance
+        newPt d = pt .+^ v ^* d
+        -- handle an intersection with the trace of d
+        dTest dDist = if testPt (newPt dDist) pQuery
+                      then (Finite dDist) else tryTrace (newPt dDist) v
+        -- handle an intersection with the trace of p
+        pTest pDist = if testPt (newPt pDist) (query d)
+                      then (Finite pDist) else tryTrace (newPt pDist) v
+        in
+         case (appTrace (getTrace p) pt v, appTrace (getTrace d) pt v) of
+             -- No intersections
+             (Infinity, Infinity) -> Infinity
+             -- One intersection, test if it counts, recurse if not
+             (Infinity, Finite dDist) -> dTest dDist
+             (Finite pDist, Infinity) -> pTest pDist
+             -- Two intersections, use the nearest or recurse
+             (Finite pDist, Finite dDist) ->
+                 if pDist < dDist then pTest pDist else dTest dDist
+    -- Check if pt is inside the Path / Diagram
+    testPt pt q = getAny $ runQuery q pt
+    pQuery = Query $ Any . flip (runFillRule Winding) p
 
 -- | Clip a diagram to the clip path taking the envelope and trace of the clip
 --   path.
