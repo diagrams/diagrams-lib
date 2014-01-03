@@ -236,7 +236,7 @@ instance HasY P2 where
 ------------------------------------------------------------
 -- Angles
 
--- | Angles can be represented in a variety of units.  Internally,
+-- | Angles can be expressed in a variety of units.  Internally,
 -- they are represented in radians.
 newtype Angle = Radians Double
               deriving (Read, Show, Eq, Ord, Enum, Fractional, Num, Real, RealFrac, AdditiveGroup)
@@ -245,12 +245,20 @@ instance VectorSpace Angle where
   type Scalar Angle = Double
   s *^ Radians t = Radians (s*t)
 
+-- | The radian measure of an @Angle@ @a@ can be accessed as @a
+-- ^. rad@.  A new @Angle@ can be defined in radians as @pi \@\@ rad@.
 rad :: Iso' Angle Double
 rad = iso (\(Radians r) -> r) Radians
 
+-- | The measure of an @Angle@ @a@ in full circles can be accessed as
+-- @a ^. turn@.  A new @Angle@ of one-half circle can be defined in as
+-- @1/2 \@\@ turn@.
 turn :: Iso' Angle Double
 turn = iso (\(Radians r) -> r/2/pi) (Radians . (*(2*pi)))
 
+-- | The degree measure of an @Angle@ @a@ can be accessed as @a
+-- ^. deg@.  A new @Angle@ can be defined in degrees as @180 \@\@
+-- deg@.
 deg :: Iso' Angle Double
 deg = iso (\(Radians r) -> r/2/pi*360) (Radians . (*(2*pi/360)))
 
@@ -262,14 +270,14 @@ fullTurn = 1 ^. from turn
 fullCircle :: Angle
 fullCircle = fullTurn
 
--- | Calculate ratio between two angles
+-- | Calculate ratio between two angles.
 angleRatio :: Angle -> Angle -> Double
 angleRatio a b = (a^.rad) / (b^.rad)
 
 
 -- | @30 \@\@ deg@ is an @Angle@ of the given measure and units.
 --
--- More generally, @\@\@@ reverses the 'Iso\'' on its right, and
+-- More generally, @\@\@@ reverses the @Iso\'@ on its right, and
 -- applies the @Iso\'@ to the value on the left.  @Angle@s are the
 -- motivating example where this order improves readability.
 (@@) :: b -> Iso' a b -> a
