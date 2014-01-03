@@ -38,7 +38,6 @@ module Diagrams.ThreeD.Types
        , asSpherical
        ) where
 
-import           Control.Applicative
 import           Control.Lens           (Iso', iso, over, Wrapped, wrapped, _1, _2, _3)
 
 import           Diagrams.Core

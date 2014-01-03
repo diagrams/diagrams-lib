@@ -31,7 +31,7 @@ import           Diagrams.TrailLike
 import           Diagrams.TwoD.Transform
 import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector    (direction, e, unitX)
-import           Diagrams.Util           (tau, ( # ))
+import           Diagrams.Util           (( # ))
 
 import           Control.Lens            (from, (^.))
 import           Data.AffineSpace        ((.-.))

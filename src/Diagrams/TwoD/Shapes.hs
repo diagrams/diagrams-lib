@@ -59,7 +59,7 @@ import           Diagrams.TwoD.Types
 
 import           Diagrams.Util
 
-import           Control.Lens            (review, makeLenses, op, (.~), (^.), (&))
+import           Control.Lens            (makeLenses, op, (.~), (^.), (&))
 import           Data.Default.Class
 import           Data.Semigroup
 
