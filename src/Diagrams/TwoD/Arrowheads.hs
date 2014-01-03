@@ -103,7 +103,7 @@ closedPath = pathFromTrail . closeTrail
 
 -- | <<diagrams/src_Diagrams_TwoD_Arrowheads_tri25Ex.svg#diagram=tri25Ex&width=120>>
 
---   > tri25Ex = arrowAt' (with & arrowHead .~ arrowheadTriangle (2/5 :: Turn) & shaftStyle %~ lw 0)
+--   > tri25Ex = arrowAt' (with & arrowHead .~ arrowheadTriangle (2/5 \@\@ turn) & shaftStyle %~ lw 0)
 --   >           origin (r2 (0.001, 0))
 --   >        <> square 0.6 # alignL # lw 0
 arrowheadTriangle :: Angle -> ArrowHT
@@ -219,7 +219,7 @@ tri = arrowheadTriangle (1/3 @@ turn)
 
 --   > spikeEx = drawHead spike
 spike :: ArrowHT
-spike = arrowheadSpike (3/8 ^. from turn)
+spike = arrowheadSpike (3/8 @@ turn)
 
 -- | <<diagrams/src_Diagrams_TwoD_Arrowheads_thornEx.svg#diagram=thornEx&width=100>>
 

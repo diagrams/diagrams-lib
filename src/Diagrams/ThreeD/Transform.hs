@@ -37,9 +37,9 @@ import           Data.VectorSpace
 --   A positive angle brings positive x-values towards the positive-y axis.
 --
 --   The angle can be expressed using any type which is an
---   instance of 'Angle'.  For example, @aboutZ (1\/4 ::
---   'Turn')@, @aboutZ (tau\/4 :: 'Rad')@, and @aboutZ (90 ::
---   'Deg')@ all represent the same transformation, namely, a
+--   instance of 'Angle'.  For example, @aboutZ (1\/4 \@\@
+--   'turn')@, @aboutZ (tau\/4 \@\@ 'rad')@, and @aboutZ (90 \@\@
+--   'deg')@ all represent the same transformation, namely, a
 --   counterclockwise rotation by a right angle.  For more general rotations,
 --   see 'rotationAbout'.
 --

@@ -55,10 +55,10 @@ bezierFromSweepQ1 s = fmap (^-^ v) . rotate (s/2) $ bezier3 c2 c1 p0
 
 -- | @bezierFromSweep s@ constructs a series of 'Cubic' segments that
 --   start in the positive y direction and sweep counter clockwise
---   through @s@ radians.  If @s@ is negative, it will start in the
+--   through the angle @s@.  If @s@ is negative, it will start in the
 --   negative y direction and sweep clockwise.  When @s@ is less than
 --   0.0001 the empty list results.  If the sweep is greater than tau
---   then it is truncated to tau.
+--   radians then it is truncated to one full revolution.
 bezierFromSweep :: Angle -> [Segment Closed R2]
 bezierFromSweep s
   | s > fullTurn = bezierFromSweep fullTurn
@@ -130,7 +130,7 @@ arcCW start end = trailLike $
 --
 --   <<diagrams/src_Diagrams_TwoD_Arc_arc'Ex.svg#diagram=arc'Ex&width=300>>
 --
---   > arc'Ex = mconcat [ arc' r 0 (1/4 :: Turn) | r <- [0.5,-1,1.5] ]
+--   > arc'Ex = mconcat [ arc' r 0 (1/4 \@\@ Turn) | r <- [0.5,-1,1.5] ]
 --   >        # centerXY # pad 1.1
 arc' :: (TrailLike p, V p ~ R2) => Double -> Angle -> Angle -> p
 arc' r start end = trailLike $ scale (abs r) ts `at` (rotate start $ p2 (abs r,0))
@@ -143,9 +143,9 @@ arc' r start end = trailLike $ scale (abs r) ts `at` (rotate start $ p2 (abs r,0
 --   <<diagrams/src_Diagrams_TwoD_Arc_wedgeEx.svg#diagram=wedgeEx&width=400>>
 --
 --   > wedgeEx = hcat' (with & sep .~ 0.5)
---   >   [ wedge 1 (0 :: Turn) (1/4)
---   >   , wedge 1 (7/30 :: Turn) (11/30)
---   >   , wedge 1 (1/8 :: Turn) (7/8)
+--   >   [ wedge 1 (0 \@\@ turn) (1/4)
+--   >   , wedge 1 (7/30 \@\@ turn) (11/30)
+--   >   , wedge 1 (1/8 \@\@ turn) (7/8)
 --   >   ]
 --   >   # fc blue
 --   >   # centerXY # pad 1.1
@@ -177,8 +177,8 @@ arcBetween p q ht = trailLike (a # rotate (direction v) # moveTo p)
     r = d/(2*sin th)
     mid | ht >= 0    = fullTurn/4
         | otherwise = 3*fullTurn/4
-    st  = mid - (th^.from rad)
-    end = mid + (th^.from rad)
+    st  = mid - (th @@ rad)
+    end = mid + (th @@ rad)
     a | isStraight
       = fromOffsets [d *^ unitX]
       | otherwise
@@ -195,9 +195,9 @@ arcBetween p q ht = trailLike (a # rotate (direction v) # moveTo p)
 --   <<diagrams/src_Diagrams_TwoD_Arc_annularWedgeEx.svg#diagram=annularWedgeEx&width=400>>
 --
 --   > annularWedgeEx = hcat' (with & sep .~ 0.50)
---   >   [ annularWedge 1 0.5 (0 :: Turn) (1/4)
---   >   , annularWedge 1 0.3 (7/30 :: Turn) (11/30)
---   >   , annularWedge 1 0.7 (1/8 :: Turn) (7/8)
+--   >   [ annularWedge 1 0.5 (0 \@\@ turn) (1/4)
+--   >   , annularWedge 1 0.3 (7/30 \@\@ turn) (11/30)
+--   >   , annularWedge 1 0.7 (1/8 \@\@ turn) (7/8)
 --   >   ]
 --   >   # fc blue
 --   >   # centerXY # pad 1.1

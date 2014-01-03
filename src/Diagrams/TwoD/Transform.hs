@@ -77,8 +77,8 @@ rotation ang = fromLinear r (linv r)
 -- | Rotate about the local origin by the given angle. Positive angles
 --   correspond to counterclockwise rotation, negative to
 --   clockwise. The angle can be expressed using any of the 'Iso's on
---   'Angle'.  For example, @rotate (1\/4 ^. from 'turn')@, @rotate
---   (tau\/4 ^. from rad)@, and @rotate (90 ^. from deg)@ all
+--   'Angle'.  For example, @rotate (1\/4 \@\@ 'turn')@, @rotate
+--   (tau\/4 \@\@ rad)@, and @rotate (90 \@\@ deg)@ all
 --   represent the same transformation, namely, a counterclockwise
 --   rotation by a right angle.  To rotate about some point other than
 --   the local origin, see 'rotateAbout'.
@@ -92,7 +92,7 @@ rotate = transform . rotation
 
 -- | A synonym for 'rotate', interpreting its argument in units of
 -- turns; it can be more convenient to write @rotateBy (1\/4)@ than
--- @'rotate' (1\/4 ^. from 'turn')@.
+-- @'rotate' (1\/4 \@\@ 'turn')@.
 rotateBy :: (Transformable t, V t ~ R2) => Double -> t -> t
 rotateBy = transform . rotation . review turn
 

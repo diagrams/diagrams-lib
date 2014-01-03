@@ -46,7 +46,7 @@ module Diagrams.TwoD.Arrow
 --   >
 --   > -- Connect two diagrams and two points on their trails.
 --   > ex12 = dias # connect "first" "second"
---   >             # connectPerim "first" "second" (15/16 :: Turn) (9/16 :: Turn)
+--   >             # connectPerim "first" "second" (15/16 \@\@ turn) (9/16 \@\@ turn)
 --   >
 --   > -- Place an arrow at (0,0) the size and direction of (0,1).
 --   > ex3 = arrowAt origin unit_Y
