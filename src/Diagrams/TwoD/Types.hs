@@ -275,3 +275,5 @@ angleRatio a b = (a^.rad) / (b^.rad)
 (@@) :: b -> Iso' a b -> a
 -- The signature above is slightly specialized, in favor of readability
 a @@ i = review i a
+
+infixl 5 @@

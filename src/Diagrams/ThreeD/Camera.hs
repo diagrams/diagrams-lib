@@ -28,7 +28,7 @@ module Diagrams.ThreeD.Camera
        )
        where
 
-import Control.Lens            (makeLenses, (#))
+import Control.Lens            (makeLenses)
 import Data.Monoid
 import Data.Cross
 
@@ -104,15 +104,15 @@ mm50, mm50Wide, mm50Narrow :: PerspectiveLens
 
 -- | mm50 has the field of view of a 50mm lens on standard 35mm film,
 -- hence an aspect ratio of 3:2.
-mm50 = PerspectiveLens (deg # 40.5) (deg # 27)
+mm50 = PerspectiveLens (40.5 @@ deg) (27 @@ deg)
 
--- | mm50Wide has the same vertical field of view as mm50, but an
+-- | mm50blWide has the same vertical field of view as mm50, but an
 -- aspect ratio of 1.6, suitable for wide screen computer monitors.
-mm50Wide = PerspectiveLens (deg # 43.2)  (deg # 27)
+mm50Wide = PerspectiveLens (43.2 @@ deg)  (27 @@ deg)
 
 -- | mm50Narrow has the same vertical field of view as mm50, but an
 -- aspect ratio of 4:3, for VGA and similar computer resulotions.
-mm50Narrow = PerspectiveLens (deg # 36) (deg # 27)
+mm50Narrow = PerspectiveLens (36 @@ deg) (27 @@ deg)
 
 camForward :: Direction d => Camera l -> d
 camForward = direction . forward

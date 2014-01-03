@@ -55,7 +55,7 @@ module Diagrams.TwoD.Arrowheads
        , ArrowHT
        ) where
 
-import           Control.Lens            (from, review, (&), (.~), (^.))
+import           Control.Lens            (from, (&), (.~), (^.))
 import           Data.Default.Class
 import           Data.AffineSpace
 import           Data.Functor            ((<$>))
@@ -147,7 +147,7 @@ arrowheadSpike theta = aHead
         c  = reflectX $ arc' htRadius theta (-theta)
         barb = (closedPath $ (l1 <> c <> l2)) # scale size
         m = xWidth barb --c `atParam` 0.5
-        b =  review rad $ asin ((shaftWidth / 2) / (htRadius  * size))
+        b =  asin ((shaftWidth / 2) / (htRadius  * size)) @@ rad
         c' = arc' htRadius (-b ) b # scale size
         joint = (closedPath $ (c')) # centerY # alignR
         xWidth p = pa + pb
@@ -213,7 +213,7 @@ noHead _ _ = (mempty, mempty)
 
 --   > triEx = drawHead tri
 tri :: ArrowHT
-tri = arrowheadTriangle (1/3^.from turn)
+tri = arrowheadTriangle (1/3 @@ turn)
 
 -- | <<diagrams/src_Diagrams_TwoD_Arrowheads_spikeEx.svg#diagram=spikeEx&width=100>>
 
@@ -225,19 +225,19 @@ spike = arrowheadSpike (3/8 ^. from turn)
 
 --   > thornEx = drawHead thorn
 thorn :: ArrowHT
-thorn = arrowheadThorn (3/8 ^. from turn) 1
+thorn = arrowheadThorn (3/8 @@ turn) 1
 
 -- | <<diagrams/src_Diagrams_TwoD_Arrowheads_dartEx.svg#diagram=dartEx&width=100>>
 
 --   > dartEx = drawHead dart
 dart :: ArrowHT
-dart = arrowheadDart (2/5 ^. from turn)
+dart = arrowheadDart (2/5 @@ turn)
 
 -- | <<diagrams/src_Diagrams_TwoD_Arrowheads_missileEx.svg#diagram=missileEx&width=100>>
 
 --   > missileEx = drawHead missile
 missile :: ArrowHT
-missile = arrowheadMissile (2/5 ^. from turn)
+missile = arrowheadMissile (2/5 @@ turn)
 
 -- Tails ------------------------------------------------------------------
 --   > drawTail t = arrowAt' (with  & arrowTail .~ t & shaftStyle %~ lw 0 & arrowHead .~ noHead)
@@ -328,10 +328,10 @@ missile' = headToTail missile
 
 --   > quillEx = drawTail quill
 quill :: ArrowHT
-quill = arrowtailQuill (2/5 ^. from turn)
+quill = arrowtailQuill (2/5 @@ turn)
 
 -- | <<diagrams/src_Diagrams_TwoD_Arrowheads_blockEx.svg#diagram=blockEx&width=100>>
 
 --   > blockEx = drawTail block
 block :: ArrowHT
-block = arrowtailBlock (2/5 ^. from turn)
+block = arrowtailBlock (2/5 @@ turn)

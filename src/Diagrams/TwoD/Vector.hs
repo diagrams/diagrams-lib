@@ -22,7 +22,7 @@ module Diagrams.TwoD.Vector
        , perp, leftTurn
        ) where
 
-import           Control.Lens         (from, (^.))
+import           Control.Lens         ((^.))
 import           Data.VectorSpace     ((<.>))
 import           Diagrams.TwoD.Types
 import           Diagrams.Coordinates
@@ -47,7 +47,7 @@ unit_Y = 0 ^& (-1)
 --   the positive x-axis as a fraction of a full turn.  The zero
 --   vector is arbitrarily assigned the direction 0.
 direction :: R2 -> Angle
-direction (coords -> x :& y) = (atan2 y x) ^. from rad
+direction (coords -> x :& y) = atan2 y x @@ rad
 
 -- | Compute the counterclockwise angle from the first vector to the second.
 angleBetween :: R2 -> R2 -> Angle

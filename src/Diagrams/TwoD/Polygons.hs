@@ -46,7 +46,7 @@ module Diagrams.TwoD.Polygons(
     ) where
 
 import           Control.Lens            (Lens', generateSignatures, lensRules,
-                                          makeLensesWith, review, (.~), (^.))
+                                          makeLensesWith, (.~), (^.))
 import           Control.Monad           (forM, liftM)
 import           Control.Monad.ST        (ST, runST)
 import           Data.Array.ST           (STUArray, newArray, readArray,
@@ -233,8 +233,8 @@ orientPoints v xs = rotation a
         o' = normalized o
         theta = acos (v' <.> o')
         phi
-          | theta <= tau/4 = review rad $ tau/4 - theta
-          | otherwise      = review rad $ theta - tau/4
+          | theta <= tau/4 = tau/4 - theta @@ rad
+          | otherwise      = theta - tau/4 @@ rad
 
 ------------------------------------------------------------
 -- Function graphs

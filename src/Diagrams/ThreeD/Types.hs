@@ -29,7 +29,7 @@ module Diagrams.ThreeD.Types
          -- * Two-dimensional angles
          -- | These are defined in "Diagrams.TwoD.Types" but
          --   reëxported here for convenience.
-       , Angle, rad, turn, deg
+       , Angle, rad, turn, deg, (@@)
        , fullTurn, angleRatio
 
          -- * Directions in 3D
