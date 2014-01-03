@@ -25,7 +25,6 @@ import           Control.Applicative     (liftA2)
 
 import           Data.AffineSpace
 import           Data.List               (sort)
-import           Data.Monoid.Inf         hiding (minimum)
 import           Data.VectorSpace
 
 import           Diagrams.Core
@@ -78,8 +77,8 @@ instance Traced (FixedSegment R2) where
       t1     = (perp v0 <.> p) / det
     in
       if det == 0 || t0 < 0 || t0 > 1
-        then [Infinity]
-        else [Finite t1]
+        then SortedList []
+        else SortedList [t1]
 
 {- To do intersection of a line with a cubic Bezier, we first rotate
    and scale everything so that the line has parameters (origin, unitX);
@@ -105,7 +104,5 @@ instance Traced (FixedSegment R2) where
       ts = filter (liftA2 (&&) (>= 0) (<= 1)) (cubForm a b c d)
       xs = map (fst . unp2 . atParam bez') ts
     in
-      case xs of
-        [] -> [Infinity]
-        _  -> map Finite (sort xs)
+      SortedList $ sort xs
 

@@ -25,7 +25,6 @@ import Data.Semigroup
 
 import Data.AffineSpace
 import Data.List         (sort)
-import Data.Monoid.Inf
 import Data.VectorSpace
 
 import Diagrams.Core
@@ -52,7 +51,7 @@ sphere = mkQD (Prim $ Ellipsoid mempty)
               mempty
               (Query sphereQuery)
   where sphereEnv v = 1 / magnitude v
-        sphereTrace p v = map Finite (sort $ quadForm a b c)
+        sphereTrace p v = SortedList $ sort (quadForm a b c)
           where a = v <.> v
                 b = 2 *^ p' <.> v
                 c = p' <.> p' - 1
