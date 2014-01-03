@@ -69,9 +69,10 @@ module Diagrams.TwoD
 
          -- * Angles
        , tau
-       , Angle(..)
+       , Angle
        , rad, turn, deg
        , fullTurn, fullCircle, angleRatio
+       , (@@)
 
          -- * Paths
          -- ** Stroking

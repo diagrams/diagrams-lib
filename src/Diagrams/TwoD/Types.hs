@@ -2,7 +2,7 @@
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE TemplateHaskell            #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE TypeOperators              #-}
 {-# LANGUAGE TypeSynonymInstances       #-}
@@ -29,14 +29,14 @@ module Diagrams.TwoD.Types
        , Angle
        , rad, turn, deg
        , fullTurn, fullCircle, angleRatio
+       , (@@)
        ) where
 
-import           Control.Lens            (Iso', Wrapped, from, iso, makeWrapped,
-                                          wrapped, _1, _2, (^.))
+import           Control.Lens            (Iso', Wrapped, from, iso,
+                                          wrapped, _1, _2, (^.), review)
 
 import           Diagrams.Coordinates
 import           Diagrams.Core
-import           Diagrams.Util           (tau)
 
 import           Data.AffineSpace.Point
 import           Data.Basis
@@ -265,3 +265,13 @@ fullCircle = fullTurn
 -- | Calculate ratio between two angles
 angleRatio :: Angle -> Angle -> Double
 angleRatio a b = (a^.rad) / (b^.rad)
+
+
+-- | @30 \@\@ deg@ is an @Angle@ of the given measure and units.
+--
+-- More generally, @\@\@@ reverses the 'Iso\'' on its right, and
+-- applies the @Iso\'@ to the value on the left.  @Angle@s are the
+-- motivating example where this order improves readability.
+(@@) :: b -> Iso' a b -> a
+-- The signature above is slightly specialized, in favor of readability
+a @@ i = review i a
