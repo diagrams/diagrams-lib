@@ -92,7 +92,7 @@ rotate = transform . rotation
 
 -- | A synonym for 'rotate', interpreting its argument in units of
 -- turns; it can be more convenient to write @rotateBy (1\/4)@ than
--- @'rotate' (1\/4 ^. from turn')@.
+-- @'rotate' (1\/4 ^. from 'turn')@.
 rotateBy :: (Transformable t, V t ~ R2) => Double -> t -> t
 rotateBy = transform . rotation . review turn
 
