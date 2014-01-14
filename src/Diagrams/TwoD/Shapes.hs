@@ -311,4 +311,4 @@ roundedRect' w h opts
         mkCorner k r | r == 0    = mempty
                      | r < 0     = doArc 3 2
                      | otherwise = doArc 0 1
-                     where doArc d d' = arc' r ((k+d)/4) ((k+d')/4)
+                     where doArc d d' = arc' r ((k+d)/4 @@ turn) ((k+d')/4 @@ turn)
