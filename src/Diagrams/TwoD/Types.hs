@@ -2,7 +2,7 @@
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE RankNTypes                 #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE TypeOperators              #-}
 {-# LANGUAGE TypeSynonymInstances       #-}
@@ -32,8 +32,8 @@ module Diagrams.TwoD.Types
        , (@@)
        ) where
 
-import           Control.Lens            (Iso', Wrapped, from, iso,
-                                          wrapped, _1, _2, (^.), review)
+import           Control.Lens            (Iso', Wrapped, iso, review, wrapped,
+                                          (^.), _1, _2)
 
 import           Diagrams.Coordinates
 import           Diagrams.Core
@@ -264,7 +264,7 @@ deg = iso (\(Radians r) -> r/2/pi*360) (Radians . (*(2*pi/360)))
 
 -- | An angle representing one full turn.
 fullTurn :: Angle
-fullTurn = 1 ^. from turn
+fullTurn = 1 @@ turn
 
 -- | Deprecated synonym for 'fullTurn', retained for backwards compatibility.
 fullCircle :: Angle
