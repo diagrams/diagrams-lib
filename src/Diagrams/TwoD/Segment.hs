@@ -24,7 +24,6 @@ module Diagrams.TwoD.Segment where
 import           Control.Applicative     (liftA2)
 
 import           Data.AffineSpace
-import           Data.Monoid.Inf         hiding (minimum)
 import           Data.VectorSpace
 
 import           Diagrams.Core
@@ -37,6 +36,10 @@ import           Diagrams.TwoD.Transform
 import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector
 import           Diagrams.Util
+
+{- All instances of Traced should maintain the invariant that the list of
+   traces is sorted in increasing order.
+-}
 
 instance Traced (Segment Closed R2) where
   getTrace = getTrace . mkFixedSeg . (`at` origin)
@@ -73,8 +76,8 @@ instance Traced (FixedSegment R2) where
       t1     = (perp v0 <.> p) / det
     in
       if det == 0 || t0 < 0 || t0 > 1
-        then Infinity
-        else Finite t1
+        then mkSortedList []
+        else mkSortedList [t1]
 
 {- To do intersection of a line with a cubic Bezier, we first rotate
    and scale everything so that the line has parameters (origin, unitX);
@@ -100,7 +103,5 @@ instance Traced (FixedSegment R2) where
       ts = filter (liftA2 (&&) (>= 0) (<= 1)) (cubForm a b c d)
       xs = map (fst . unp2 . atParam bez') ts
     in
-      case xs of
-        [] -> Infinity
-        _  -> Finite (minimum xs)
+      mkSortedList xs
 
