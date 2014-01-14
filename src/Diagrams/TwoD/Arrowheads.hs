@@ -56,8 +56,8 @@ module Diagrams.TwoD.Arrowheads
        ) where
 
 import           Control.Lens            (from, (&), (.~), (^.))
-import           Data.Default.Class
 import           Data.AffineSpace
+import           Data.Default.Class
 import           Data.Functor            ((<$>))
 import           Data.Maybe              (fromMaybe)
 import           Data.Monoid             (mempty, (<>))
@@ -120,10 +120,12 @@ arrowheadDart theta = aHead
   where
     aHead size shaftWidth = (dartP # moveOriginTo (dartVertices !! 2), joint)
       where
-        a = theta
         r = htRadius * size
-        dartP = polygon (def & polyType .~ PolyPolar [a, 1/2 - a, 1/2 - a]
-               [r, r, 0.1 * size, r]  & polyOrient .~ NoOrient)
+        dartP = polygon
+                ( def & polyType .~ PolyPolar [theta, (1/2 @@ turn) - theta, (1/2 @@ turn) - theta]
+                                              [r, r, 0.1 * size, r]
+                      & polyOrient .~ NoOrient
+                )
         dartVertices =  (concat . pathVertices) $ dartP
         m = magnitude (dartVertices !! 1 .-. dartVertices !! 3)
         s = 1 - shaftWidth / m
