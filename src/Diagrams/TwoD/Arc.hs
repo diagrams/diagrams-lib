@@ -66,7 +66,7 @@ bezierFromSweep s
   | s < 0.0001     = []
   | s < fullTurn/4      = [bezierFromSweepQ1 s]
   | otherwise      = bezierFromSweepQ1 (fullTurn/4)
-          : map (rotate (1/4)) (bezierFromSweep (max (s - fullTurn/4) 0))
+          : map (rotateBy (1/4)) (bezierFromSweep (max (s - fullTurn/4) 0))
 
 {-
 ~~~~ Note [segment spacing]
