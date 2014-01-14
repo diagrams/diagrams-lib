@@ -130,7 +130,7 @@ arcCW start end = trailLike $
 --
 --   <<diagrams/src_Diagrams_TwoD_Arc_arc'Ex.svg#diagram=arc'Ex&width=300>>
 --
---   > arc'Ex = mconcat [ arc' r 0 (1/4 \@\@ Turn) | r <- [0.5,-1,1.5] ]
+--   > arc'Ex = mconcat [ arc' r 0 (1/4 \@\@ turn) | r <- [0.5,-1,1.5] ]
 --   >        # centerXY # pad 1.1
 arc' :: (TrailLike p, V p ~ R2) => Double -> Angle -> Angle -> p
 arc' r start end = trailLike $ scale (abs r) ts `at` (rotate start $ p2 (abs r,0))
