@@ -59,7 +59,7 @@ import           Diagrams.TwoD.Types
 
 import           Diagrams.Util
 
-import           Control.Lens            (makeLenses, op, (.~), (^.), (&))
+import           Control.Lens            (makeLenses, op, (&), (.~), (^.))
 import           Data.Default.Class
 import           Data.Semigroup
 
@@ -140,7 +140,7 @@ rect w h = trailLike . head . op Path $ unitSquare # scaleX w # scaleY h
 regPoly :: (TrailLike t, V t ~ R2) => Int -> Double -> t
 regPoly n l = polygon (def & polyType .~
                                PolySides
-                                 (repeat (1/ fromIntegral n))
+                                 (repeat (1/fromIntegral n @@ turn))
                                  (replicate (n-1) l)
                            & polyOrient .~ OrientH
                            )
