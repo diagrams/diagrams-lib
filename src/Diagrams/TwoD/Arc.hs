@@ -33,7 +33,7 @@ import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector    (direction, e, unitX)
 import           Diagrams.Util           (( # ))
 
-import           Control.Lens            (from, (^.))
+import           Control.Lens            ((^.))
 import           Data.AffineSpace        ((.-.))
 import           Data.Semigroup          ((<>))
 import           Data.VectorSpace        (magnitude, negateV, (*^), (^-^))
