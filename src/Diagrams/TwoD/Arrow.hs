@@ -513,4 +513,4 @@ connectOutside' opts n1 n2 =
     in
       case (s', e') of
         (Just s,  Just e)  -> atop (arrowBetween' opts s e)
-        (_, _)             -> atop mempty
+        (_, _)             -> id
