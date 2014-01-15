@@ -508,6 +508,9 @@ connectOutside' opts n1 n2 =
   withName n2 $ \b2 ->
     let v = location b2 .-. location b1
         midpoint = location b1 .+^ (v/2)
-        s = fromJust $ traceP midpoint (-v) b1
-        e = fromJust $ traceP midpoint v b2
-    in atop (arrowBetween' opts s e)
+        s' = traceP midpoint (-v) b1
+        e' = traceP midpoint v b2
+    in
+      case (s', e') of
+        (Just s,  Just e)  -> atop (arrowBetween' opts s e)
+        (_, _)             -> atop mempty
