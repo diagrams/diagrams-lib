@@ -92,7 +92,7 @@ the approximation error.
 --   'Trail' of a radius one arc counterclockwise between the two angles.
 arcT :: Angle -> Angle -> Trail R2
 arcT start end
-    | end' < start' = arcT start (end + fromIntegral d)
+    | end' < start' = arcT start (end + (fromIntegral d @@ turn))
     | otherwise     = (if sweep >= fullTurn then glueTrail else id)
                     $ trailFromSegments bs
   where sweep = end - start
