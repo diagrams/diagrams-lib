@@ -151,6 +151,7 @@ module Diagrams.TwoD
        , tailSize
        , headGap
        , tailGap
+       , gap
        , headColor
        , headStyle
        , tailColor

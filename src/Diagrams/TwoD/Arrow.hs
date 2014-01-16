@@ -78,6 +78,7 @@ module Diagrams.TwoD.Arrow
        , tailSize
        , headGap
        , tailGap
+       , gap
        , headColor
        , headStyle
        , tailColor
@@ -90,8 +91,9 @@ module Diagrams.TwoD.Arrow
        , module Diagrams.TwoD.Arrowheads
        ) where
 
+import           Control.Applicative              ((<*>))
 import           Control.Arrow                    (first)
-import           Control.Lens                     (Lens', Setter',
+import           Control.Lens                     (Lens', Setter', Traversal',
                                                    generateSignatures,
                                                    lensRules, makeLensesWith,
                                                    (%~), (&), (.~), (^.))
@@ -176,8 +178,12 @@ tailSize :: Lens' ArrowOpts Double
 
 -- | Distance to leave between the head and the target point.
 headGap :: Lens' ArrowOpts Double
+
 -- | Distance to leave between the starting point and the tail.
 tailGap :: Lens' ArrowOpts Double
+
+gap :: Traversal' ArrowOpts Double
+gap f opts = (\h t -> opts & headGap .~ h & tailGap .~ t) <$> f (opts ^. headGap) <*> f (opts ^. tailGap)
 
 -- | Style to apply to the head. @headStyle@ is modified by using the lens
 --   combinator @%~@ to change the current style. For example, to change
