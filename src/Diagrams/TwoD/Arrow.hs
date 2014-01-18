@@ -100,7 +100,7 @@ import           Control.Lens                     (Lens', Setter', Traversal',
 import           Data.AffineSpace
 import           Data.Default.Class
 import           Data.Functor                     ((<$>))
-import           Data.Maybe                       (fromJust, fromMaybe)
+import           Data.Maybe                       (fromMaybe)
 import           Data.Monoid                      (mempty, (<>))
 import           Data.Monoid.Coproduct            (untangle)
 import           Data.Monoid.Split
