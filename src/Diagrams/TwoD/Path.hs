@@ -54,7 +54,6 @@ import           Data.Typeable
 
 import           Data.AffineSpace
 import           Data.Default.Class
-import           Data.Monoid.Inf
 import           Data.VectorSpace
 
 import           Diagrams.Combinators  (withEnvelope, withTrace)
