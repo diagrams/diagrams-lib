@@ -95,7 +95,7 @@ infixl 6 |||
 --   'th' from the first.  The local origin of the resulting combined
 --   diagram is the same as the local origin of the first.
 --   See the documentation of 'beside' for more information.
-atAngle :: (Juxtaposable a, V a ~ R2, Semigroup a, Angle b) => b -> a -> a -> a
+atAngle :: (Juxtaposable a, V a ~ R2, Semigroup a) => Angle -> a -> a -> a
 atAngle th = beside (fromDirection th)
 
 -- | Lay out a list of juxtaposable objects in a row from left to right,

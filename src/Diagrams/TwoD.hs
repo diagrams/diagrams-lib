@@ -69,11 +69,10 @@ module Diagrams.TwoD
 
          -- * Angles
        , tau
-       , Angle(..)
-       , Turn(..), asTurn, CircleFrac
-       , Rad(..), asRad
-       , Deg(..), asDeg
-       , fullTurn, fullCircle, convertAngle
+       , Angle
+       , rad, turn, deg
+       , fullTurn, fullCircle, angleRatio
+       , (@@)
 
          -- * Paths
          -- ** Stroking
@@ -152,6 +151,7 @@ module Diagrams.TwoD
        , tailSize
        , headGap
        , tailGap
+       , gap
        , headColor
        , headStyle
        , tailColor

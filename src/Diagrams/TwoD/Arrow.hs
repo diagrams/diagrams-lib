@@ -46,7 +46,7 @@ module Diagrams.TwoD.Arrow
 --   >
 --   > -- Connect two diagrams and two points on their trails.
 --   > ex12 = dias # connect "first" "second"
---   >             # connectPerim "first" "second" (15/16 :: Turn) (9/16 :: Turn)
+--   >             # connectPerim "first" "second" (15/16 \@\@ turn) (9/16 \@\@ turn)
 --   >
 --   > -- Place an arrow at (0,0) the size and direction of (0,1).
 --   > ex3 = arrowAt origin unit_Y
@@ -78,6 +78,7 @@ module Diagrams.TwoD.Arrow
        , tailSize
        , headGap
        , tailGap
+       , gap
        , headColor
        , headStyle
        , tailColor
@@ -90,8 +91,9 @@ module Diagrams.TwoD.Arrow
        , module Diagrams.TwoD.Arrowheads
        ) where
 
+import           Control.Applicative              ((<*>))
 import           Control.Arrow                    (first)
-import           Control.Lens                     (Lens', Setter',
+import           Control.Lens                     (Lens', Setter', Traversal',
                                                    generateSignatures,
                                                    lensRules, makeLensesWith,
                                                    (%~), (&), (.~), (^.))
@@ -117,7 +119,7 @@ import           Diagrams.Tangent                 (tangentAtEnd, tangentAtStart)
 import           Diagrams.Trail
 import           Diagrams.TwoD.Arrowheads
 import           Diagrams.TwoD.Path               (strokeT)
-import           Diagrams.TwoD.Transform          (rotate, rotateBy, translateX)
+import           Diagrams.TwoD.Transform          (rotate, translateX)
 import           Diagrams.TwoD.Transform.ScaleInv (scaleInvPrim)
 import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector             (direction, unitX, unit_X)
@@ -176,8 +178,12 @@ tailSize :: Lens' ArrowOpts Double
 
 -- | Distance to leave between the head and the target point.
 headGap :: Lens' ArrowOpts Double
+
 -- | Distance to leave between the starting point and the tail.
 tailGap :: Lens' ArrowOpts Double
+
+gap :: Traversal' ArrowOpts Double
+gap f opts = (\h t -> opts & headGap .~ h & tailGap .~ t) <$> f (opts ^. headGap) <*> f (opts ^. tailGap)
 
 -- | Style to apply to the head. @headStyle@ is modified by using the lens
 --   combinator @%~@ to change the current style. For example, to change
@@ -373,8 +379,8 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
 
     -- Build an arrow and set its endpoints to the image under tr of origin and (len,0).
     dArrow sty tr ln = (h' <> t' <> shaft)
-               # moveOriginBy (tWidth *^ (unit_X # rotateBy tAngle))
-               # rotateBy (direction (q .-. p) - dir)
+               # moveOriginBy (tWidth *^ (unit_X # rotate tAngle))
+               # rotate (direction (q .-. p) - dir)
                # moveTo p
       where
 
@@ -398,7 +404,7 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
         shaftTrail
           = rawShaftTrail
             -- rotate it so it is pointing in the positive X direction
-          # rotateBy (- direction (trailOffset rawShaftTrail))
+          # rotate (- direction (trailOffset rawShaftTrail))
             -- apply the context transformation -- in case it includes
             -- things like flips and shears (the possibility of shears
             -- is why we must rotate it to a neutral position first)
@@ -409,8 +415,8 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
         hWidth = hWidth' + opts^.headGap
 
         -- Calculate the angles that the head and tail should point.
-        tAngle = direction . tangentAtStart $ shaftTrail :: Turn
-        hAngle = direction . tangentAtEnd $ shaftTrail :: Turn
+        tAngle = direction . tangentAtStart $ shaftTrail
+        hAngle = direction . tangentAtEnd $ shaftTrail
 
         -- Calculte the scaling factor to apply to the shaft shaftTrail so that the entire
         -- arrow will be of length len. Then apply it to the shaft and make the
@@ -420,9 +426,9 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
         shaft = strokeT shaftTrail' # applyStyle (shaftSty opts)
 
         -- Adjust the head and tail to point in the directions of the shaft ends.
-        h' = h # rotateBy hAngle
+        h' = h # rotate hAngle
                # moveTo (origin .+^ shaftTrail' `atParam` domainUpper shaftTrail')
-        t' = t # rotateBy tAngle
+        t' = t # rotate tAngle
 
         -- Find out what direction the arrow is pointing so we can set it back
         -- to point in the direction unitX when we are done.
@@ -450,7 +456,7 @@ arrowAt s v = arrowAt' def s v
 arrowAt'
   :: Renderable (Path R2) b =>
      ArrowOpts -> P2 -> R2 -> Diagram b R2
-arrowAt' opts s v = arrow' opts len # rotateBy dir # moveTo s
+arrowAt' opts s v = arrow' opts len # rotate dir # moveTo s
   where
     len = magnitude v
     dir = direction v
@@ -474,14 +480,14 @@ connect' opts n1 n2 =
 -- | Connect two diagrams at point on the perimeter of the diagrams, choosen
 --   by angle.
 connectPerim
-  :: (Renderable (Path R2) b, IsName n1, IsName n2, Angle a)
- => n1 -> n2 -> a -> a
+  :: (Renderable (Path R2) b, IsName n1, IsName n2)
+ => n1 -> n2 -> Angle -> Angle
   -> (Diagram b R2 -> Diagram b R2)
 connectPerim = connectPerim' def
 
 connectPerim'
-  :: (Renderable (Path R2) b, IsName n1, IsName n2, Angle a)
-  => ArrowOpts -> n1 -> n2 -> a -> a
+  :: (Renderable (Path R2) b, IsName n1, IsName n2)
+  => ArrowOpts -> n1 -> n2 -> Angle -> Angle
   -> (Diagram b R2 -> Diagram b R2)
 connectPerim' opts n1 n2 a1 a2 =
   withName n1 $ \sub1 ->
@@ -508,6 +514,9 @@ connectOutside' opts n1 n2 =
   withName n2 $ \b2 ->
     let v = location b2 .-. location b1
         midpoint = location b1 .+^ (v/2)
-        s = fromJust $ traceP midpoint (-v) b1
-        e = fromJust $ traceP midpoint v b2
-    in atop (arrowBetween' opts s e)
+        s' = traceP midpoint (-v) b1
+        e' = traceP midpoint v b2
+    in
+      case (s', e') of
+        (Just s,  Just e)  -> atop (arrowBetween' opts s e)
+        (_, _)             -> id

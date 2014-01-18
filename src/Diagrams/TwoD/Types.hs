@@ -2,7 +2,7 @@
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE TemplateHaskell            #-}
+{-# LANGUAGE RankNTypes                 #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE TypeOperators              #-}
 {-# LANGUAGE TypeSynonymInstances       #-}
@@ -26,20 +26,17 @@ module Diagrams.TwoD.Types
        , T2
 
          -- * Angles
-       , Angle(..)
-
-       , Turn(..), asTurn, CircleFrac
-       , Rad(..), asRad
-       , Deg(..), asDeg
-       , fullTurn, fullCircle, convertAngle, angleRatio
+       , Angle
+       , rad, turn, deg
+       , fullTurn, fullCircle, angleRatio
+       , (@@)
        ) where
 
-import           Control.Lens            (Iso', Wrapped, iso, makeWrapped, op,
-                                          wrapped, _1, _2)
+import           Control.Lens            (Iso', Wrapped, iso, review, wrapped,
+                                          (^.), _1, _2)
 
 import           Diagrams.Coordinates
 import           Diagrams.Core
-import           Diagrams.Util           (tau)
 
 import           Data.AffineSpace.Point
 import           Data.Basis
@@ -239,98 +236,52 @@ instance HasY P2 where
 ------------------------------------------------------------
 -- Angles
 
--- | Newtype wrapper used to represent angles as fractions of a
---   circle.  For example, 1\/3 turn = tau\/3 radians = 120 degrees.
-newtype Turn = Turn Double
-  deriving (Read, Show, Eq, Ord, Enum, Fractional, Num, Real, RealFrac, AdditiveGroup)
+-- | Angles can be expressed in a variety of units.  Internally,
+-- they are represented in radians.
+newtype Angle = Radians Double
+              deriving (Read, Show, Eq, Ord, Enum, Fractional, Num, Real, RealFrac, AdditiveGroup)
 
-makeWrapped ''Turn
+instance VectorSpace Angle where
+  type Scalar Angle = Double
+  s *^ Radians t = Radians (s*t)
 
-instance VectorSpace Turn where
-  type Scalar Turn = Double
-  s *^ Turn t = Turn (s*t)
+-- | The radian measure of an @Angle@ @a@ can be accessed as @a
+-- ^. rad@.  A new @Angle@ can be defined in radians as @pi \@\@ rad@.
+rad :: Iso' Angle Double
+rad = iso (\(Radians r) -> r) Radians
 
--- | The identity function with a restricted type, for conveniently
--- declaring that some value should have type 'Turn'.  For example,
--- @rotation . asTurn . fromRational@ constructs a rotation from a
--- rational value considered as a @Turn@.  Without @asTurn@, the angle
--- type would be ambiguous.
-asTurn :: Turn -> Turn
-asTurn = id
+-- | The measure of an @Angle@ @a@ in full circles can be accessed as
+-- @a ^. turn@.  A new @Angle@ of one-half circle can be defined in as
+-- @1/2 \@\@ turn@.
+turn :: Iso' Angle Double
+turn = iso (\(Radians r) -> r/2/pi) (Radians . (*(2*pi)))
 
--- | Deprecated synonym for 'Turn', retained for backwards compatibility.
-type CircleFrac = Turn
-
--- | Newtype wrapper for representing angles in radians.
-newtype Rad = Rad Double
-  deriving (Read, Show, Eq, Ord, Enum, Floating, Fractional, Num, Real, RealFloat, RealFrac, AdditiveGroup)
-
-makeWrapped ''Rad
-
-instance VectorSpace Rad where
-  type Scalar Rad = Double
-  s *^ Rad r = Rad (s*r)
-
--- | The identity function with a restricted type, for conveniently
--- declaring that some value should have type 'Rad'.  For example,
--- @rotation . asRad . fromRational@ constructs a rotation from a
--- rational value considered as a value in radians.  Without @asRad@,
--- the angle type would be ambiguous.
-asRad :: Rad -> Rad
-asRad = id
-
--- | Newtype wrapper for representing angles in degrees.
-newtype Deg = Deg Double
-  deriving (Read, Show, Eq, Ord, Enum, Fractional, Num, Real, RealFrac, AdditiveGroup)
-
-makeWrapped ''Deg
-
-instance VectorSpace Deg where
-  type Scalar Deg = Double
-  s *^ Deg d = Deg (s*d)
-
--- | The identity function with a restricted type, for conveniently
--- declaring that some value should have type 'Deg'.  For example,
--- @rotation . asDeg . fromIntegral@ constructs a rotation from an
--- integral value considered as a value in degrees.  Without @asDeg@,
--- the angle type would be ambiguous.
-asDeg :: Deg -> Deg
-asDeg = id
-
--- | Type class for types that measure angles.
-class Num a => Angle a where
-  -- | Convert to a turn, /i.e./ a fraction of a circle.
-  toTurn   :: a -> Turn
-
-  -- | Convert from a turn, /i.e./ a fraction of a circle.
-  fromTurn :: Turn -> a
-
-instance Angle Turn where
-  toTurn   = id
-  fromTurn = id
-
--- | tau radians = 1 full turn.
-instance Angle Rad where
-  toTurn   = Turn . (/tau) . op Rad
-  fromTurn = Rad . (*tau) . op Turn
-
--- | 360 degrees = 1 full turn.
-instance Angle Deg where
-  toTurn   = Turn . (/360) . op Deg
-  fromTurn = Deg . (*360) . op Turn
+-- | The degree measure of an @Angle@ @a@ can be accessed as @a
+-- ^. deg@.  A new @Angle@ can be defined in degrees as @180 \@\@
+-- deg@.
+deg :: Iso' Angle Double
+deg = iso (\(Radians r) -> r/2/pi*360) (Radians . (*(2*pi/360)))
 
 -- | An angle representing one full turn.
-fullTurn :: Angle a => a
-fullTurn = fromTurn 1
+fullTurn :: Angle
+fullTurn = 1 @@ turn
 
 -- | Deprecated synonym for 'fullTurn', retained for backwards compatibility.
-fullCircle :: Angle a => a
+fullCircle :: Angle
 fullCircle = fullTurn
 
--- | Convert between two angle representations.
-convertAngle :: (Angle a, Angle b) => a -> b
-convertAngle = fromTurn . toTurn
+-- | Calculate ratio between two angles.
+angleRatio :: Angle -> Angle -> Double
+angleRatio a b = (a^.rad) / (b^.rad)
 
--- | Calculate ratio between two angles
-angleRatio :: Angle a => a -> a -> Double
-angleRatio a b = op Turn (toTurn a) / op Turn (toTurn b)
+
+-- | @30 \@\@ deg@ is an @Angle@ of the given measure and units.
+--
+-- More generally, @\@\@@ reverses the @Iso\'@ on its right, and
+-- applies the @Iso\'@ to the value on the left.  @Angle@s are the
+-- motivating example where this order improves readability.
+(@@) :: b -> Iso' a b -> a
+-- The signature above is slightly specialized, in favor of readability
+a @@ i = review i a
+
+infixl 5 @@

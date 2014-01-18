@@ -29,13 +29,8 @@ module Diagrams.ThreeD.Types
          -- * Two-dimensional angles
          -- | These are defined in "Diagrams.TwoD.Types" but
          --   reëxported here for convenience.
-       , Angle(..)
-       , Turn(Turn), asTurn
-       , CircleFrac
-       , Rad(Rad), asRad
-       , Deg(Deg), asDeg
-
-       , fullTurn, convertAngle, angleRatio
+       , Angle, rad, turn, deg, (@@)
+       , fullTurn, angleRatio
 
          -- * Directions in 3D
        , Direction(..)
@@ -43,7 +38,6 @@ module Diagrams.ThreeD.Types
        , asSpherical
        ) where
 
-import           Control.Applicative
 import           Control.Lens           (Iso', iso, over, Wrapped, wrapped, _1, _2, _3)
 
 import           Diagrams.Core
@@ -139,35 +133,28 @@ instance HasCross3 R3 where
 -- based on that of the Angle class in 2D.
 
 class Direction d where
-    -- | Convert to polar angles
-    toSpherical :: Angle a => d -> Spherical a
+    -- | Convert to spherical coördinates
+    toSpherical :: d -> Spherical
 
-    -- | Convert from polar angles
-    fromSpherical :: Angle a => Spherical a -> d
+    -- | Convert from spherical coördinates
+    fromSpherical :: Spherical -> d
 
 -- | A direction expressed as a pair of spherical coordinates.
 -- `Spherical 0 0` is the direction of `unitX`.  The first coordinate
 -- represents rotation about the Z axis, the second rotation towards the Z axis.
-data Spherical a = Spherical a a
+data Spherical = Spherical Angle Angle
                    deriving (Show, Read, Eq)
 
-instance Applicative Spherical where
-    pure a = Spherical a a
-    Spherical a b <*> Spherical c d = Spherical (a c) (b d)
-
-instance Functor Spherical where
-    fmap f s = pure f <*> s
-
-instance (Angle a) => Direction (Spherical a) where
-    toSpherical = fmap convertAngle
-    fromSpherical = fmap convertAngle
+instance Direction Spherical where
+    toSpherical = id
+    fromSpherical = id
 
 -- | The identity function with a restricted type, for conveniently
 -- restricting unwanted polymorphism.  For example, @fromDirection
 -- . asSpherical . camForward@ gives a unit vector pointing in the
 -- direction of the camera view.  Without @asSpherical@, the
 -- intermediate type would be ambiguous.
-asSpherical :: Spherical Turn -> Spherical Turn
+asSpherical :: Spherical -> Spherical
 asSpherical = id
 
 instance HasX R3 where
