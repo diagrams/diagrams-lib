@@ -60,6 +60,7 @@ import           Data.VectorSpace
 import           Diagrams.Combinators  (withEnvelope, withTrace)
 import           Diagrams.Coordinates
 import           Diagrams.Core
+import           Diagrams.Core.Trace
 import           Diagrams.Located      (Located, mapLoc, unLoc)
 import           Diagrams.Parametric
 import           Diagrams.Path
@@ -376,30 +377,15 @@ clipTo p d = setTrace intersectionTrace . toEnvelope $ clipBy p d
     toEnvelope = case (envP, envD) of
       (Just eP, Just eD) -> setEnvelope . mkEnvelope $ \v -> min (eP v) (eD v)
       (_, _)             -> id
-    intersectionTrace = Trace tryTrace
-    -- Find the first Trace result that is part of the intersection
-    tryTrace pt v = let
-        -- locate the point corresponding to a trace distance
-        newPt dist = pt .+^ v ^* dist
-        -- handle an intersection with the trace of d
-        dTest dDist = if testPt (newPt dDist) pQuery
-                      then (Finite dDist) else tryTrace (newPt dDist) v
-        -- handle an intersection with the trace of p
-        pTest pDist = if testPt (newPt pDist) (query d)
-                      then (Finite pDist) else tryTrace (newPt pDist) v
-        in
-         case (appTrace (getTrace p) pt v, appTrace (getTrace d) pt v) of
-             -- No intersections
-             (Infinity, Infinity) -> Infinity
-             -- One intersection, test if it counts, recurse if not
-             (Infinity, Finite dDist) -> dTest dDist
-             (Finite pDist, Infinity) -> pTest pDist
-             -- Two intersections, use the nearest or recurse
-             (Finite pDist, Finite dDist) ->
-                 if pDist < dDist then pTest pDist else dTest dDist
-    -- Check if pt is inside the Path / Diagram
-    testPt pt q = getAny $ runQuery q pt
-    pQuery = Query $ Any . flip (runFillRule Winding) p
+    intersectionTrace = Trace intersections
+    intersections pt v =
+        -- on boundary of d, inside p
+        onSortedList (filter pInside) (appTrace (getTrace d) pt v) <>
+        -- or on boundary of p, inside d
+        onSortedList (filter dInside) (appTrace (getTrace p) pt v) where
+          newPt dist = pt .+^ v ^* dist
+          pInside dDist = runFillRule Winding (newPt dDist) p
+          dInside pDist = getAny . sample d $ newPt pDist
 
 -- | Clip a diagram to the clip path taking the envelope and trace of the clip
 --   path.
