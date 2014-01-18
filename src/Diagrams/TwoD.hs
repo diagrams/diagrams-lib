@@ -133,12 +133,13 @@ module Diagrams.TwoD
        , RoundedRectOpts(..), radiusTL, radiusTR, radiusBL, radiusBR
 
          -- ** Arrows
-       , arrow, arrow'
+       , arrowV, arrowV'
        , arrowAt, arrowAt'
        , arrowBetween, arrowBetween'
        , connect, connect'
        , connectPerim, connectPerim'
        , connectOutside, connectOutside'
+       , arrow, arrow'
        , straightShaft
        , module Diagrams.TwoD.Arrowheads
 

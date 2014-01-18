@@ -54,8 +54,8 @@ module Diagrams.TwoD.Arrow
 --   > example2 = (ex12 <> ex3) # centerXY # pad 1.1
 
          -- * Creating arrows
-         arrow
-       , arrow'
+         arrowV
+       , arrowV'
        , arrowAt
        , arrowAt'
        , arrowBetween
@@ -66,7 +66,9 @@ module Diagrams.TwoD.Arrow
        , connectPerim'
        , connectOutside
        , connectOutside'
-       , straightShaft
+
+       , arrow
+       , arrow'
 
          -- * Options
        , ArrowOpts(..)
@@ -85,6 +87,7 @@ module Diagrams.TwoD.Arrow
        , tailStyle
        , shaftColor
        , shaftStyle
+       , straightShaft
 
          -- | See "Diagrams.TwoD.Arrowheads" for a list of standard
          --   arrowheads and help creating your own.
@@ -460,6 +463,19 @@ arrowAt' opts s v = arrow' opts len # rotate dir # moveTo s
   where
     len = magnitude v
     dir = direction v
+
+-- | @arrowV v@ creates an arrow with the direction and magnitude of
+--   the vector @v@ (with its tail at the origin), using default
+--   parameters.
+arrowV :: Renderable (Path R2) b => R2 -> Diagram b R2
+arrowV = arrowV' def
+
+-- | @arrowV' v@ creates an arrow with the direction and magnitude of
+--   the vector @v@ (with its tail at the origin).
+arrowV'
+  :: Renderable (Path R2) b
+  => ArrowOpts -> R2 -> Diagram b R2
+arrowV' opts = arrowAt' opts origin
 
 -- | Connect two diagrams with a straight arrow.
 connect
