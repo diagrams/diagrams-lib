@@ -42,7 +42,7 @@ import           Data.AffineSpace.Point
 import           Data.Basis
 import           Data.MemoTrie           (HasTrie (..))
 import           Data.NumInstances.Tuple ()
-import           Data.VectorSpace
+import           Data.VectorSpace hiding (project)
 
 import           Data.Typeable
 ------------------------------------------------------------
