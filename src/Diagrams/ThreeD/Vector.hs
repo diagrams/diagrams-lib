@@ -20,7 +20,7 @@ module Diagrams.ThreeD.Vector
          direction, fromDirection, angleBetween, angleBetweenDirs
        ) where
 
-import Control.Lens (op)
+import Control.Lens ((^.))
 import Data.VectorSpace
 import Data.Cross
 
@@ -61,24 +61,23 @@ direction v
   | otherwise = fromSpherical $ Spherical θ φ where
   r = magnitude v
   (x,y,z) = unr3 v
-  φ = Rad . asin $ z / r
-  θ = Rad . atan2 y $ x
-  zero = Rad $ 0
+  φ = asin (z / r) @@ rad
+  θ = atan2 y x @@ rad
+  zero = 0 @@ rad
 
 -- | @fromDirection d@ is the unit vector in the direction @d@.
 fromDirection :: Direction d => d -> R3
 fromDirection (toSpherical -> (Spherical θ' φ')) = r3 (x,y,z) where
-  θ = op Rad $ θ'
-  φ = op Rad $ φ'
+  θ = θ'^.rad
+  φ = φ'^.rad
   x = cos θ * cos φ
   y = sin θ * cos φ
   z = sin φ
 
 -- | compute the positive angle between the two vectors in their common plane
-angleBetween  :: (Angle a, Num a, Ord a) => R3 -> R3 -> a
-angleBetween v1 v2 = convertAngle . Rad $
-                     atan2 (magnitude $ cross3 v1 v2) (v1 <.> v2)
+angleBetween  :: R3 -> R3 -> Angle
+angleBetween v1 v2 = atan2 (magnitude $ cross3 v1 v2) (v1 <.> v2) @@ rad
 
 -- | compute the positive angle between the two vectors in their common plane
-angleBetweenDirs  :: (Direction d, Angle a, Num a, Ord a) => d -> d -> a
+angleBetweenDirs  :: Direction d => d -> d -> Angle
 angleBetweenDirs d1 d2 = angleBetween (fromDirection d1) (fromDirection d2)

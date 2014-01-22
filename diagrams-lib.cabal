@@ -84,7 +84,7 @@ Library
                        Diagrams.Backend.CmdLine
   Build-depends:       base >= 4.2 && < 4.8,
                        containers >= 0.3 && < 0.6,
-                       array >= 0.3 && < 0.5,
+                       array >= 0.3 && < 0.6,
                        semigroups >= 0.3.4 && < 0.13,
                        monoid-extras >= 0.3 && < 0.4,
                        diagrams-core >= 1.0 && < 1.1,
@@ -98,7 +98,7 @@ Library
                        pretty >= 1.0.1.2 && < 1.2,
                        fingertree >= 0.1 && < 0.2,
                        intervals >= 0.3 && < 0.5,
-                       lens >= 3.9 && < 3.11,
+                       lens >= 3.8 && < 3.11,
                        tagged >= 0.7,
                        optparse-applicative >= 0.7 && < 0.8,
                        filepath,
