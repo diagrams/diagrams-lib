@@ -55,7 +55,7 @@ module Diagrams.TwoD.Arrowheads
        , ArrowHT
        ) where
 
-import           Control.Lens            (from, (&), (.~), (^.))
+import           Control.Lens            ((&), (.~))
 import           Data.AffineSpace
 import           Data.Default.Class
 import           Data.Functor            ((<$>))

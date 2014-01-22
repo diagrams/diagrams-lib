@@ -30,7 +30,7 @@ module Diagrams.TrailLike
 
 import           Data.AffineSpace ((.-.))
 import           Data.VectorSpace
-import           Control.Lens (view, wrapped, wrapped')
+import           Control.Lens (view, wrapped')
 
 import           Diagrams.Core
 import           Diagrams.Located
