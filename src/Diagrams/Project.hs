@@ -7,7 +7,8 @@
 {-# LANGUAGE UndecidableInstances       #-}
 {-# LANGUAGE ViewPatterns       #-}
 
-module Diagrams.Project where
+module Diagrams.Project () -- export only instances
+    where
 
 import Data.AffineSpace
 import Data.VectorSpace hiding (project)

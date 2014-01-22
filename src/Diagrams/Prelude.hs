@@ -131,6 +131,7 @@ import           Diagrams.Parametric
 import           Diagrams.Parametric.Adjust
 import           Diagrams.Path
 import           Diagrams.Points
+import           Diagrams.Project ()
 import           Diagrams.Query
 import           Diagrams.Segment
 import           Diagrams.Tangent
