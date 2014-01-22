@@ -47,7 +47,7 @@ module Diagrams.TwoD.Path
 import           Control.Applicative   (liftA2)
 import           Control.Lens          ( makeWrapped, makeLensesWith, (.~), (^.)
                                        , generateSignatures, lensRules, op
-                                       , Lens, Lens', unwrapped)
+                                       , Lens, Lens', unwrapped')
 import qualified Data.Foldable         as F
 import           Data.Semigroup
 import           Data.Typeable
@@ -171,8 +171,8 @@ instance Renderable (Path R2) b => TrailLike (QDiagram b R2 Any) where
 --   ... }@ syntax may be used.
 stroke' :: (Renderable (Path R2) b, IsName a) => StrokeOpts a -> Path R2 -> Diagram b R2
 stroke' opts path
-  | null (pLines ^. unwrapped) =           mkP pLoops
-  | null (pLoops ^. unwrapped) = mkP pLines
+  | null (pLines ^. unwrapped') =           mkP pLoops
+  | null (pLoops ^. unwrapped') = mkP pLines
   | otherwise                   = mkP pLines <> mkP pLoops
   where
     (pLines,pLoops) = partitionPath (isLine . unLoc) path

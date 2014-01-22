@@ -69,7 +69,7 @@ import           Diagrams.Transform
 
 import           Control.Arrow        ((***))
 import           Control.Lens         ( Wrapped(..), mapped, over, view, iso
-                                      , unwrapped, wrapped, (%~), op)
+                                      , unwrapped, wrapped, (%~), op, wrapped')
 import           Data.AffineSpace
 import qualified Data.Foldable        as F
 import           Data.List            (partition)
@@ -196,7 +196,7 @@ explodePath = map explodeTrail . op Path
 --   the first containing all the trails for which the predicate returns
 --   @True@, and the second containing the remaining trails.
 partitionPath :: (Located (Trail v) -> Bool) -> Path v -> (Path v, Path v)
-partitionPath p = (view wrapped *** view wrapped) . partition p . op Path
+partitionPath p = (view wrapped' *** view wrapped') . partition p . op Path
 
 ------------------------------------------------------------
 --  Modifying paths  ---------------------------------------
