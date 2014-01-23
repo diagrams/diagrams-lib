@@ -41,7 +41,7 @@ module Diagrams.TwoD.Path
 
          -- * Clipping
 
-       , Clip(..), clipBy
+       , Clip(..), clipBy, clipTo, clipped
        ) where
 
 import           Control.Applicative   (liftA2)
@@ -56,8 +56,10 @@ import           Data.AffineSpace
 import           Data.Default.Class
 import           Data.VectorSpace
 
+import           Diagrams.Combinators  (withEnvelope, withTrace)
 import           Diagrams.Coordinates
 import           Diagrams.Core
+import           Diagrams.Core.Trace
 import           Diagrams.Located      (Located, mapLoc, unLoc)
 import           Diagrams.Parametric
 import           Diagrams.Path
@@ -167,8 +169,8 @@ instance Renderable (Path R2) b => TrailLike (QDiagram b R2 Any) where
 --
 --     * Names can be assigned to the path's vertices
 --
---   'StrokeOpts' is an instance of 'Default', so @stroke' 'with' {
---   ... }@ syntax may be used.
+--   'StrokeOpts' is an instance of 'Default', so @stroke' ('with' &
+--   ... )@ syntax may be used.
 stroke' :: (Renderable (Path R2) b, IsName a) => StrokeOpts a -> Path R2 -> Diagram b R2
 stroke' opts path
   | null (pLines ^. unwrapped') =           mkP pLoops
@@ -361,7 +363,30 @@ instance Transformable Clip where
 clipBy :: (HasStyle a, V a ~ R2) => Path R2 -> a -> a
 clipBy = applyTAttr . Clip . (:[])
 
--- XXX Should include a 'clipTo' function which clips a diagram AND
--- restricts its envelope.  It will have to take a *pointwise minimum*
--- of the diagram's current envelope and the path's envelope.  Not
--- sure of the best way to do this at the moment.
+-- | Clip a diagram to the given path setting its envelope to the
+--   pointwise minimum of the envelopes of the diagram and path. The
+--   trace consists of those parts of the original diagram's trace
+--   which fall within the clipping path, or parts of the path's trace
+--   within the original diagram.
+clipTo :: (Renderable (Path R2) b) => Path R2 ->  Diagram b R2 ->  Diagram b R2
+clipTo p d = setTrace intersectionTrace . toEnvelope $ clipBy p d
+  where
+    envP = appEnvelope . getEnvelope $ p
+    envD = appEnvelope . getEnvelope $ d
+    toEnvelope = case (envP, envD) of
+      (Just eP, Just eD) -> setEnvelope . mkEnvelope $ \v -> min (eP v) (eD v)
+      (_, _)             -> id
+    intersectionTrace = Trace intersections
+    intersections pt v =
+        -- on boundary of d, inside p
+        onSortedList (filter pInside) (appTrace (getTrace d) pt v) <>
+        -- or on boundary of p, inside d
+        onSortedList (filter dInside) (appTrace (getTrace p) pt v) where
+          newPt dist = pt .+^ v ^* dist
+          pInside dDist = runFillRule Winding (newPt dDist) p
+          dInside pDist = getAny . sample d $ newPt pDist
+
+-- | Clip a diagram to the clip path taking the envelope and trace of the clip
+--   path.
+clipped :: (Renderable (Path R2) b) => Path R2 ->  Diagram b R2 ->  Diagram b R2
+clipped p = (withTrace p) . (withEnvelope p) . (clipBy p)

@@ -452,7 +452,7 @@ arrowBetween'
 arrowBetween' opts s e = arrowAt' opts s (e .-. s)
 
 -- | Create an arrow starting at s with length and direction determined by
---   the vectore v.
+--   the vector v.
 arrowAt :: Renderable (Path R2) b => P2 -> R2 -> Diagram b R2
 arrowAt s v = arrowAt' def s v
 
