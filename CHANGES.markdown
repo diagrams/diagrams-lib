@@ -1,3 +1,9 @@
+1.x
+---
+     - Added clipTo which sets the envelope and trace to that of
+       the diagram ana the clipping path. And clipped which uses the
+       envelope and trace of the clipping path.
+
 1.0.0.1 (28 November 2013)
 --------------------------
 
