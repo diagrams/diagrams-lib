@@ -1,8 +1,6 @@
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE ExistentialQuantification  #-}
-{-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Attributes
@@ -27,7 +25,7 @@ module Diagrams.Attributes (
   -- * Color
   -- $color
 
-    Color(..), SomeColor(..), black, transparent, SRGBA(..), SRGB(..)
+    Color(..), SomeColor(..), someToAlpha
 
   -- ** Line color
   , LineColor, getLineColor, mkLineColor, styleLineColor, lineColor, lineColorA, lc, lcA
@@ -60,10 +58,9 @@ module Diagrams.Attributes (
   ) where
 
 import           Control.Lens          (Setter, sets)
-import           Data.Colour           hiding (black, transparent)
-import qualified Data.Colour as Colour (black)
+import           Data.Colour
 import           Data.Colour.RGBSpace  (RGB(..))
-import           Data.Colour.SRGB      (toSRGB, sRGB)
+import           Data.Colour.SRGB      (toSRGB)
 import           Data.Default.Class
 import           Data.Maybe            (fromMaybe)
 import           Data.Monoid.Recommend
@@ -77,37 +74,33 @@ import           Diagrams.Core.Style   (setAttr)
 --  Color  -------------------------------------------------
 ------------------------------------------------------------
 
-data SRGBA = SRGBA !Double !Double !Double !Double
-
-transparent :: SRGBA
-transparent = SRGBA 0 0 0 0
-
-data SRGB = SRGB !Double !Double !Double
-
-black :: SRGB
-black = SRGB 0 0 0
+-- $color
+-- Diagrams outsources all things color-related to Russell O\'Connor\'s
+-- very nice colour package
+-- (<http://hackage.haskell.org/package/colour>).  For starters, it
+-- provides a large collection of standard color names.  However, it
+-- also provides a rich set of combinators for combining and
+-- manipulating colors; see its documentation for more information.
 
 -- | The 'Color' type class encompasses color representations which
 --   can be used by the Diagrams library.  Instances are provided for
 --   both the 'Data.Colour.Colour' and 'Data.Colour.AlphaColour' types
 --   from the "Data.Colour" library.
 class Color c where
-  -- | Convert a color to its standard representation sRGBA.
-  toSRGBA :: c -> SRGBA
+  -- | Convert a color to its standard representation, AlphaColour.
+  toAlphaColour :: c -> AlphaColour Double
 
-  -- | Convert from a SRGBA.
-  fromSRGBA :: SRGBA -> c
+  -- | Convert from an AlphaColour Double.  Note that this direction
+  --   may lose some information. For example, the instance for
+  --   'Colour' drops the alpha channel.
+  fromAlphaColour :: AlphaColour Double -> c
 
 -- | An existential wrapper for instances of the 'Color' class.
 data SomeColor = forall c. Color c => SomeColor c
   deriving Typeable
 
-
-someToSRGBA :: SomeColor -> SRGBA
-someToSRGBA (SomeColor c) = toSRGBA c
-
---someToAlpha :: SomeColor -> AlphaColour Double
---someToAlpha (SomeColor c) = toAlphaColour c
+someToAlpha :: SomeColor -> AlphaColour Double
+someToAlpha (SomeColor c) = toAlphaColour c
 
 -- | The color with which lines (strokes) are drawn.  Note that child
 --   colors always override parent colors; that is, @'lineColor' c1
@@ -119,7 +112,7 @@ newtype LineColor = LineColor (Last SomeColor)
 instance AttributeClass LineColor
 
 instance Default LineColor where
-    def = LineColor (Last (SomeColor black))
+    def = LineColor (Last (SomeColor (black :: Colour Double)))
 
 getLineColor :: LineColor -> SomeColor
 getLineColor (LineColor (Last c)) = c
@@ -134,13 +127,14 @@ styleLineColor = sets modifyLineColor
       = flip setAttr s
       . mkLineColor
       . f
-      . fromSRGBA . someToSRGBA
+      . fromAlphaColour . someToAlpha
       . getLineColor
       . fromMaybe def . getAttr
       $ s
 
 -- | Set the line (stroke) color.  This function is polymorphic in the
---   color type , but this can sometimes create problems for type
+--   color type (so it can be used with either 'Colour' or
+--   'AlphaColour'), but this can sometimes create problems for type
 --   inference, so the 'lc' and 'lcA' variants are provided with more
 --   concrete types.
 lineColor :: (Color c, HasStyle a) => c -> a -> a
@@ -150,14 +144,14 @@ lineColor = applyAttr . mkLineColor
 lineColorA :: HasStyle a => LineColor -> a -> a
 lineColorA = applyAttr
 
--- | A synonym for 'lineColor', specialized to @'SRGB'@
+-- | A synonym for 'lineColor', specialized to @'Colour' Double@
 --   (i.e. opaque colors).
-lc :: HasStyle a => SRGB -> a -> a
+lc :: HasStyle a => Colour Double -> a -> a
 lc = lineColor
 
--- | A synonym for 'lineColor', specialized to @'SRGBA'@
+-- | A synonym for 'lineColor', specialized to @'AlphaColour' Double@
 --   (i.e. colors with transparency).
-lcA :: HasStyle a => SRGBA -> a -> a
+lcA :: HasStyle a => AlphaColour Double -> a -> a
 lcA = lineColor
 
 -- | The color with which shapes are filled. Note that child
@@ -170,7 +164,7 @@ newtype FillColor = FillColor (Recommend (Last SomeColor))
 instance AttributeClass FillColor
 
 instance Default FillColor where
-  def = FillColor (Recommend (Last (SomeColor transparent)))
+  def = FillColor (Recommend (Last (SomeColor (transparent :: AlphaColour Double))))
 
 mkFillColor :: Color c => c -> FillColor
 mkFillColor = FillColor . Commit . Last . SomeColor
@@ -182,7 +176,7 @@ styleFillColor = sets modifyFillColor
       = flip setAttr s
       . mkFillColor
       . f
-      . fromSRGBA . someToSRGBA
+      . fromAlphaColour . someToAlpha
       . getFillColor
       . fromMaybe def . getAttr
       $ s
@@ -202,63 +196,51 @@ recommendFillColor = applyAttr . FillColor . Recommend . Last . SomeColor
 getFillColor :: FillColor -> SomeColor
 getFillColor (FillColor c) = getLast . getRecommend $ c
 
--- | A synonym for 'fillColor', specialized to @'SRGB'@
+-- | A synonym for 'fillColor', specialized to @'Colour' Double@
 --   (i.e. opaque colors).
-fc :: HasStyle a => SRGB -> a -> a
+fc :: HasStyle a => Colour Double -> a -> a
 fc = fillColor
 
--- | A synonym for 'fillColor', specialized to @'SRGBA'@
+-- | A synonym for 'fillColor', specialized to @'AlphaColour' Double@
 --   (i.e. colors with transparency).
-fcA :: HasStyle a => SRGBA -> a -> a
+fcA :: HasStyle a => AlphaColour Double -> a -> a
 fcA = fillColor
 
-instance Color SRGBA where
-  toSRGBA = id
-  fromSRGBA = id
+instance (Floating a, Real a) => Color (Colour a) where
+  toAlphaColour   = opaque . colourConvert
+  fromAlphaColour = colourConvert . (`over` black)
 
-instance Color SRGB where
-  toSRGBA (SRGB r g b) = SRGBA r g b 1
-  fromSRGBA (SRGBA r g b _) = SRGB r g b
-
-instance Color (Colour Double) where
-  toSRGBA col = SRGBA r g b 1
-    where RGB r g b = toSRGB col
-  fromSRGBA (SRGBA r g b _) = sRGB r g b
-
-instance Color (AlphaColour Double) where
-  toSRGBA col = SRGBA r g b a
-    where
-      c' = alphaColourConvert col
-      c = alphaToColour c'
-      a = alphaChannel c'
-      RGB r g b = toSRGB c
-  fromSRGBA (SRGBA r g b a) = sRGB r g b `withOpacity` a
-
-alphaToColour :: (Floating a, Ord a, Fractional a) => AlphaColour a -> Colour a
-alphaToColour ac | alphaChannel ac == 0 = ac `over` Colour.black
-                 | otherwise = darken (recip (alphaChannel ac)) (ac `over` Colour.black)
+instance (Floating a, Real a) => Color (AlphaColour a) where
+  toAlphaColour   = alphaColourConvert
+  fromAlphaColour = alphaColourConvert
 
 instance Color SomeColor where
-  toSRGBA (SomeColor c) = toSRGBA c
-  fromSRGBA c = SomeColor c
+  toAlphaColour (SomeColor c) = toAlphaColour c
+  fromAlphaColour c = SomeColor c
 
 instance Color LineColor where
-  toSRGBA (LineColor c) = toSRGBA . getLast $ c
-  fromSRGBA = LineColor . Last . fromSRGBA
+  toAlphaColour (LineColor c) = toAlphaColour . getLast $ c
+  fromAlphaColour = LineColor . Last . fromAlphaColour
 
 instance Color FillColor where
-  toSRGBA (FillColor c) = toSRGBA . getLast . getRecommend $ c
-  fromSRGBA = FillColor . Commit . Last . fromSRGBA
+  toAlphaColour (FillColor c) = toAlphaColour . getLast . getRecommend $ c
+  fromAlphaColour = FillColor . Commit . Last . fromAlphaColour
 
--- | Convert to SRGBA.
+-- | Convert to sRGBA.
 colorToSRGBA, colorToRGBA :: Color c => c -> (Double, Double, Double, Double)
 colorToSRGBA col = (r, g, b, a)
-  where SRGBA r g b a = toSRGBA col
+  where
+    c' = toAlphaColour col
+    c = alphaToColour c'
+    a = alphaChannel c'
+    RGB r g b = toSRGB c
 
 colorToRGBA = colorToSRGBA
 {-# DEPRECATED colorToRGBA "Renamed to colorToSRGBA." #-}
 
-
+alphaToColour :: (Floating a, Ord a, Fractional a) => AlphaColour a -> Colour a
+alphaToColour ac | alphaChannel ac == 0 = ac `over` black
+                 | otherwise = darken (recip (alphaChannel ac)) (ac `over` black)
 
 ------------------------------------------------------------
 -- Opacity

@@ -39,6 +39,8 @@ import           Data.AffineSpace       ((.-.))
 
 import           Data.Semigroup
 
+import           Data.Colour
+
 import           Data.Default.Class
 
 import           Data.Typeable
@@ -70,7 +72,7 @@ instance Renderable Text NullBackend where
 data TextAlignment = BaselineText | BoxAlignedText Double Double
 
 mkText :: Renderable Text b => TextAlignment -> String -> Diagram b R2
-mkText a t = recommendFillColor black
+mkText a t = recommendFillColor (black :: Colour Double)
              -- See Note [recommendFillColor]
 
            $ mkQD (Prim (Text mempty a t))

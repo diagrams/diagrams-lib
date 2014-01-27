@@ -110,6 +110,7 @@ import           Data.Monoid.Split
 import           Data.Semigroup                   (option)
 import           Data.VectorSpace
 
+import           Data.Colour                      hiding (atop)
 import           Diagrams.Attributes
 import           Diagrams.Core
 import           Diagrams.Core.Types              (QDiaLeaf (..), mkQD')
@@ -258,7 +259,7 @@ colorJoint :: Style v -> Style v
 colorJoint sStyle =
     let c = fmap getLineColor . getAttr $ sStyle in
     case c of
-        Nothing -> fillColor black   -- default color for joints
+        Nothing -> fillColor (black :: Colour Double)   -- default color for joints
                    $ mempty
         Just c' -> fillColor c' $ mempty
 
