@@ -93,7 +93,7 @@ instance Traced (FixedSegment R2) where
     let
       bez'@(FCubic x1 c1 c2 x2) =
         bez # moveOriginTo p1
-            # rotate (negate (direction v1))
+            # rotate (negateV (direction v1))
             # scale (1/magnitude v1)
       [y0,y1,y2,y3] = map (snd . unp2) [x1,c1,c2,x2]
       a  = -y0 + 3*y1 - 3*y2 + y3

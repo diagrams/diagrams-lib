@@ -46,7 +46,7 @@ module Diagrams.TwoD.Polygons(
     ) where
 
 import           Control.Lens            (Lens', generateSignatures, lensRules,
-                                          makeLensesWith, (.~), (^.))
+                                          makeLensesWith, (.~), (^.), view)
 import           Control.Monad           (forM, liftM)
 import           Control.Monad.ST        (ST, runST)
 import           Data.Array.ST           (STUArray, newArray, readArray,
@@ -58,8 +58,7 @@ import           Data.Ord                (comparing)
 
 import           Data.AffineSpace        ((.+^), (.-.))
 import           Data.Default.Class
-import           Data.VectorSpace        (magnitude, normalized, project, (<.>),
-                                          (^*))
+import           Data.VectorSpace
 
 import           Diagrams.Core
 import           Diagrams.Located
@@ -190,7 +189,7 @@ polyPolarTrail ans (r:rs) = tr `at` p1
     tr = closeTrail . trailFromVertices $
            zipWith
              (\a l -> rotate a . scale l $ p2 (1,0))
-             (scanl (+) 0 ans)
+             (scanl (^+^) zeroV ans)
              (r:rs)
 
 -- | Generate the vertices of a polygon specified by side length and
@@ -199,7 +198,7 @@ polyPolarTrail ans (r:rs) = tr `at` p1
 polySidesTrail :: [Angle] -> [Double] -> Located (Trail R2)
 polySidesTrail ans ls = tr `at` (centroid ps # scale (-1))
   where
-    ans'    = scanl (+) 0 ans
+    ans'    = scanl (^+^) zeroV ans
     offsets = zipWith rotate ans' (map (unitY ^*) ls)
     ps      = scanl (.+^) origin offsets
     tr      = closeTrail . trailFromOffsets $ offsets
@@ -207,7 +206,7 @@ polySidesTrail ans ls = tr `at` (centroid ps # scale (-1))
 -- | Generate the vertices of a regular polygon.  See 'PolyRegular'.
 polyRegularTrail :: Int -> Double -> Located (Trail R2)
 polyRegularTrail n r = polyPolarTrail
-                         (take (n-1) . repeat $ fullTurn / fromIntegral n)
+                         (take (n-1) . repeat $ fullTurn ^/ fromIntegral n)
                          (repeat r)
 
 -- | Generate a transformation to orient a trail.  @orient v t@
@@ -224,14 +223,18 @@ orientPoints v xs = rotation a
                   (zip3 (tail (cycle xs)) xs (last xs : init xs))
     distAlong w ((.-. origin) -> p) = signum (w <.> p) * magnitude (project w p)
     sndOf3 (_,b,_) = b
-    a = minimumBy (comparing abs) . map (angleFromNormal . (.-. x)) $ [n1,n2]
+    a :: Angle
+    a = minimumBy (comparing $ abs . view rad)
+        . map (angleFromNormal . (.-. x)) $ [n1,n2]
     v' = normalized v
+    angleFromNormal :: R2 -> Angle
     angleFromNormal o
       | leftTurn o' v' = phi
-      | otherwise      = negate phi
+      | otherwise      = negateV phi
       where
         o' = normalized o
         theta = acos (v' <.> o')
+        phi :: Angle
         phi
           | theta <= tau/4 = tau/4 - theta @@ rad
           | otherwise      = theta - tau/4 @@ rad
