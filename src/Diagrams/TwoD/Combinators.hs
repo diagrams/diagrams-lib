@@ -38,14 +38,13 @@ module Diagrams.TwoD.Combinators
     ) where
 
 import           Data.AffineSpace
-import           Data.Colour
 import           Data.Default.Class
 import           Data.Semigroup
 import           Data.VectorSpace
 
 import           Diagrams.Core
 
-import           Diagrams.Attributes     (fc, lw)
+import           Diagrams.Attributes     (fc, lw, SRGB)
 import           Diagrams.BoundingBox
 import           Diagrams.Combinators
 import           Diagrams.Coordinates
@@ -246,5 +245,5 @@ boundingRect = (`boxFit` rect 1 1) . boundingBox
 
 -- | \"Set the background color\" of a diagram.  That is, place a
 --   diagram atop a bounding rectangle of the given color.
-bg :: (Renderable (Path R2) b) => Colour Double -> Diagram b R2 -> Diagram b R2
+bg :: (Renderable (Path R2) b) => SRGB -> Diagram b R2 -> Diagram b R2
 bg c d = d <> boundingRect d # lw 0 # fc c

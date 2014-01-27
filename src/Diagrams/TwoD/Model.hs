@@ -40,14 +40,11 @@ import           Data.VectorSpace      ((^*))
 
 import qualified Data.Map              as M
 
-import           Data.Colour           (Colour)
-import           Data.Colour.Names
-
 ------------------------------------------------------------
 -- Marking the origin
 ------------------------------------------------------------
 
-data OriginOpts = OriginOpts { _oColor   :: Colour Double
+data OriginOpts = OriginOpts { _oColor   :: SRGB
                              , _oScale   :: Double
                              , _oMinSize :: Double
                              }
@@ -55,7 +52,7 @@ data OriginOpts = OriginOpts { _oColor   :: Colour Double
 makeLenses ''OriginOpts
 
 instance Default OriginOpts where
-  def = OriginOpts red (1/50) 0.001
+  def = OriginOpts (SRGB 1 0 0) (1/50) 0.001
 
 -- | Mark the origin of a diagram by placing a red dot 1/50th its size.
 showOrigin :: (Renderable (Path R2) b, Backend b R2, Monoid' m)

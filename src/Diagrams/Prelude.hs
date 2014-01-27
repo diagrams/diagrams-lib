@@ -95,10 +95,10 @@ module Diagrams.Prelude
        , module Diagrams.Util
 
          -- * Convenience re-exports
+
          -- | For representing and operating on colors.
-       , module Data.Colour
          -- | A large list of color names.
-       , module Data.Colour.Names
+
          -- | Semigroups and monoids show up all over the place, so things from
          --   Data.Semigroup and Data.Monoid often come in handy.
        , module Data.Semigroup
