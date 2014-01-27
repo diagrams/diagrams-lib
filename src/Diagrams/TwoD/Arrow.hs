@@ -383,7 +383,7 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
     -- Build an arrow and set its endpoints to the image under tr of origin and (len,0).
     dArrow sty tr ln = (h' <> t' <> shaft)
                # moveOriginBy (tWidth *^ (unit_X # rotate tAngle))
-               # rotate (direction (q .-. p) - dir)
+               # rotate (direction (q .-. p) ^-^ dir)
                # moveTo p
       where
 
@@ -407,7 +407,7 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
         shaftTrail
           = rawShaftTrail
             -- rotate it so it is pointing in the positive X direction
-          # rotate (- direction (trailOffset rawShaftTrail))
+          # rotate (negateV direction (trailOffset rawShaftTrail))
             -- apply the context transformation -- in case it includes
             -- things like flips and shears (the possibility of shears
             -- is why we must rotate it to a neutral position first)

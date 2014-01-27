@@ -111,7 +111,7 @@ arrowheadTriangle theta = aHead
   where
     aHead size _ = (p, mempty)
       where
-        p = polygon (def & polyType .~ PolyPolar [theta, (-2 * theta)]
+        p = polygon (def & polyType .~ PolyPolar [theta, (negateV 2 *^ theta)]
             (repeat (htRadius * size)) & polyOrient .~ NoOrient)  # alignL
 
 -- | Isoceles triangle with linear concave base. Inkscape type 1 - dart like.
@@ -122,7 +122,7 @@ arrowheadDart theta = aHead
       where
         r = htRadius * size
         dartP = polygon
-                ( def & polyType .~ PolyPolar [theta, (1/2 @@ turn) - theta, (1/2 @@ turn) - theta]
+                ( def & polyType .~ PolyPolar [theta, (1/2 @@ turn) ^-^ theta, (1/2 @@ turn) ^-^ theta]
                                               [r, r, 0.1 * size, r]
                       & polyOrient .~ NoOrient
                 )
@@ -146,11 +146,11 @@ arrowheadSpike theta = aHead
         a' = reflectY a
         l1 = trailFromSegments [straight (unit_X2 ^+^ a)]
         l2 = trailFromSegments [reverseSegment . straight $ (unit_X2 ^+^ a')]
-        c  = reflectX $ arc' htRadius theta (-theta)
+        c  = reflectX $ arc' htRadius theta (negateV theta)
         barb = (closedPath $ (l1 <> c <> l2)) # scale size
         m = xWidth barb --c `atParam` 0.5
         b =  asin ((shaftWidth / 2) / (htRadius  * size)) @@ rad
-        c' = arc' htRadius (-b ) b # scale size
+        c' = arc' htRadius (negateV b) b # scale size
         joint = (closedPath $ (c')) # centerY # alignR
         xWidth p = pa + pb
           where
@@ -167,7 +167,7 @@ arrowheadThorn theta r = aHead
         c1 = curvedSide theta
         l1 = straight $ (reflectY a) ^-^ (unit_X2 # scale r)
         l2 = straight $ unit_X2 # scale r ^-^ a
-        c2 = c1 # rotate (-theta)
+        c2 = c1 # rotate (negateV theta)
         thornP = (closedPath $ trailFromSegments [c1, l1, l2, c2]) # scale size
         thornVertices =  (concat . pathVertices) $ thornP
         m = magnitude (thornVertices !! 1 .-. thornVertices !! 3)
