@@ -26,6 +26,7 @@ Source-repository head
 
 Library
   Exposed-modules:     Diagrams.Prelude,
+                       Diagrams.Prelude.ThreeD,
                        Diagrams.Align,
                        Diagrams.Combinators,
                        Diagrams.Coordinates,
@@ -70,6 +71,7 @@ Library
                        Diagrams.TwoD.Text,
                        Diagrams.TwoD.Image,
                        Diagrams.TwoD.Adjust,
+                       Diagrams.ThreeD.Align,
                        Diagrams.ThreeD.Camera,
                        Diagrams.ThreeD.Light,
                        Diagrams.ThreeD.Shapes,

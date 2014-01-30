@@ -20,7 +20,7 @@
 --
 -----------------------------------------------------------------------------
 
-module Diagrams.TwoD.Align
+module Diagrams.ThreeD.Align
     ( -- * Absolute alignment
       -- ** Align by envelope
       alignXMin, alignXMax, alignYMin, alignYMax, alignZMin, alignZMax
