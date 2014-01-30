@@ -16,11 +16,37 @@
 --
 -----------------------------------------------------------------------------
 
-module Diagrams.ThreeD.Transform where
+module Diagrams.ThreeD.Transform
+       (
+         -- * Rotation
+         aboutX, aboutY, aboutZ
+       , rotationAbout, pointAt, pointAt'
+
+       -- * Scaling
+       , scalingX, scalingY, scalingZ
+       , scaleX, scaleY, scaleZ
+       , scaling, scale
+
+       -- * Translation
+       , translationX, translateX
+       , translationY, translateY
+       , translationZ, translateZ
+       , translation, translate
+
+         -- * Reflection
+       , reflectionX, reflectX
+       , reflectionY, reflectY
+       , reflectionZ, reflectZ
+       , reflectionAbout, reflectAbout
+
+       -- * Utilities for Backends
+       , onBasis
+       ) where
 
 import           Diagrams.Core
 import qualified Diagrams.Core.Transform as T
 
+import           Diagrams.Transform
 import           Diagrams.ThreeD.Types
 import           Diagrams.ThreeD.Vector
 import           Diagrams.Coordinates
@@ -150,6 +176,85 @@ scalingZ c = fromLinear s s
 -- uniformly, use 'scale'.
 scaleZ :: (Transformable t, V t ~ R3) => Double -> t -> t
 scaleZ = transform . scalingZ
+
+-- Translation ----------------------------------------
+
+-- | Construct a transformation which translates by the given distance
+--   in the x direction.
+translationX :: Double -> T3
+translationX x = translation (x ^& 0 ^& 0)
+
+-- | Translate a diagram by the given distance in the x
+--   direction.
+translateX :: (Transformable t, V t ~ R3) => Double -> t -> t
+translateX = transform . translationX
+
+-- | Construct a transformation which translates by the given distance
+--   in the y direction.
+translationY :: Double -> T3
+translationY y = translation (0 ^& y ^& 0)
+
+-- | Translate a diagram by the given distance in the y
+--   direction.
+translateY :: (Transformable t, V t ~ R3) => Double -> t -> t
+translateY = transform . translationY
+
+-- | Construct a transformation which translates by the given distance
+--   in the z direction.
+translationZ :: Double -> T3
+translationZ z = translation (0 ^& 0 ^& z)
+
+-- | Translate a diagram by the given distance in the y
+--   direction.
+translateZ :: (Transformable t, V t ~ R3) => Double -> t -> t
+translateZ = transform . translationZ
+
+-- Reflection ----------------------------------------------
+
+-- | Construct a transformation which flips a diagram across x=0,
+-- i.e. sends the point (x,y,z) to (-x,y,z).
+reflectionX :: T3
+reflectionX = scalingX (-1)
+
+-- | Flip a diagram across x=0, i.e. send the point (x,y,z) to (-x,y,z).
+reflectX :: (Transformable t, V t ~ R3) => t -> t
+reflectX = transform reflectionX
+
+-- | Construct a transformation which flips a diagram across y=0,
+-- i.e. sends the point (x,y,z) to (x,-y,z).
+reflectionY :: T3
+reflectionY = scalingY (-1)
+
+-- | Flip a diagram across y=0, i.e. send the point (x,y,z) to
+-- (x,-y,z).
+reflectY :: (Transformable t, V t ~ R3) => t -> t
+reflectY = transform reflectionY
+
+-- | Construct a transformation which flips a diagram across z=0,
+-- i.e. sends the point (x,y,z) to (x,y,-z).
+reflectionZ :: T3
+reflectionZ = scalingZ (-1)
+
+-- | Flip a diagram across z=0, i.e. send the point (x,y,z) to
+-- (x,y,-z).
+reflectZ :: (Transformable t, V t ~ R3) => t -> t
+reflectZ = transform reflectionZ
+
+-- | @reflectionAbout p v@ is a reflection across the plane through
+--   the point @p@ and normal to vector @v@.
+reflectionAbout :: P3 -> R3 -> T3
+reflectionAbout p v =
+  conjugate (translation (origin .-. p)) reflect where
+    reflect = fromLinear t (linv t)
+    t = f v <-> f (negateV v)
+    f u w = w ^-^ 2 *^ project u w
+
+-- | @reflectAbout p v@ reflects a diagram in the line determined by
+--   the point @p@ and the vector @v@.
+reflectAbout :: (Transformable t, V t ~ R3) => P3 -> R3 -> t -> t
+reflectAbout p v = transform (reflectionAbout p v)
+
+-- Utilities ----------------------------------------
 
 -- | Get the matrix equivalent of an affine transform, as a triple of
 --   columns paired with the translation vector.  This is mostly
