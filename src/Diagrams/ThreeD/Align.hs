@@ -33,9 +33,9 @@ module Diagrams.ThreeD.Align
 
       -- * Centering
     , centerX, centerY, centerZ
-    , centerXY, centerXZ, centerYZ
+    , centerXY, centerXZ, centerYZ, centerXYZ
     , snugCenterX, snugCenterY, snugCenterZ
-    , snugCenterXY, snugCenterXZ, snugCenterYZ
+    , snugCenterXY, snugCenterXZ, snugCenterYZ, snugCenterXYZ
 
     ) where
 
