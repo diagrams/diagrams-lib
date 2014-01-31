@@ -100,7 +100,7 @@ Library
                        pretty >= 1.0.1.2 && < 1.2,
                        fingertree >= 0.1 && < 0.2,
                        intervals >= 0.3 && < 0.5,
-                       lens >= 3.8 && < 3.11,
+                       lens >= 4.0 && < 4.1,
                        tagged >= 0.7,
                        optparse-applicative >= 0.7 && < 0.8,
                        filepath,

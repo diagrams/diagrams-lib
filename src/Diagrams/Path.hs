@@ -68,8 +68,9 @@ import           Diagrams.TrailLike
 import           Diagrams.Transform
 
 import           Control.Arrow        ((***))
-import           Control.Lens         ( Wrapped(..), mapped, over, view, iso
-                                      , unwrapped, wrapped, (%~), op, wrapped')
+import           Control.Lens         ( Wrapped(..), Rewrapped, mapped, over
+                                      , view, iso , _Unwrapped, _Wrapped, (%~)
+                                      , op, _Unwrapped')
 import           Data.AffineSpace
 import qualified Data.Foldable        as F
 import           Data.List            (partition)
@@ -87,8 +88,11 @@ import           Data.VectorSpace
 newtype Path v = Path [Located (Trail v)]
   deriving (Semigroup, Monoid)
 
-instance Wrapped [Located (Trail v)] [Located (Trail v')] (Path v) (Path v')
-  where wrapped = iso Path $ \(Path x) -> x
+instance Wrapped (Path v) where
+    type Unwrapped (Path v) = [Located (Trail v)]
+    _Wrapped' = iso (\(Path x) -> x) Path
+
+instance Rewrapped (Path v) (Path v')
 
 -- | Extract the located trails making up a 'Path'.
 pathTrails :: Path v -> [Located (Trail v)]
@@ -101,7 +105,7 @@ deriving instance Ord  v => Ord  (Path v)
 type instance V (Path v) = v
 
 instance VectorSpace v => HasOrigin (Path v) where
-  moveOriginTo = over unwrapped . map . moveOriginTo
+  moveOriginTo = over _Wrapped' . map . moveOriginTo
   --moveOriginTo = over pathTrails . map . moveOriginTo
 
 -- | Paths are trail-like; a trail can be used to construct a
@@ -112,7 +116,7 @@ instance (InnerSpace v, OrderedField (Scalar v)) => TrailLike (Path v) where
 -- See Note [Transforming paths]
 instance (HasLinearMap v, InnerSpace v, OrderedField (Scalar v))
     => Transformable (Path v) where
-  transform = over unwrapped . map . transform
+  transform = over _Wrapped . map . transform
 
 {- ~~~~ Note [Transforming paths]
 
@@ -196,7 +200,7 @@ explodePath = map explodeTrail . op Path
 --   the first containing all the trails for which the predicate returns
 --   @True@, and the second containing the remaining trails.
 partitionPath :: (Located (Trail v) -> Bool) -> Path v -> (Path v, Path v)
-partitionPath p = (view wrapped' *** view wrapped') . partition p . op Path
+partitionPath p = (view _Unwrapped' *** view _Unwrapped') . partition p . op Path
 
 ------------------------------------------------------------
 --  Modifying paths  ---------------------------------------
@@ -210,4 +214,4 @@ scalePath d p = (scale d `under` translation (origin .-. pathCentroid p)) p
 
 -- | Reverse all the component trails of a path.
 reversePath :: (InnerSpace v, OrderedField (Scalar v)) => Path v -> Path v
-reversePath = unwrapped . mapped %~ reverseLocTrail
+reversePath = _Wrapped . mapped %~ reverseLocTrail
