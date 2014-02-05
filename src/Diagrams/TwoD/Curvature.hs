@@ -20,7 +20,6 @@ module Diagrams.TwoD.Curvature
     ) where
 
 import           Data.Monoid.Inf
-import           Data.NumInstances.Tuple ()
 import           Data.VectorSpace
 
 import           Control.Arrow        (first, second)
@@ -147,7 +146,7 @@ curvaturePair seg@(Cubic b c (OffsetClosed d)) t = ((x'*y'' - y'*x''), (x'*x' + 
   where
     (x' ,y' ) = seg `tangentAtParam` t
     (x'',y'') = secondDerivative
-    secondDerivative = (6*(3*t-2))*^b + (6-18*t)*^c + (6*t)*^d
+    secondDerivative = (6*(3*t-2))*^b ^+^ (6-18*t)*^c ^+^ (6*t)*^d
 
 -- TODO: We should be able to generalize this to higher dimensions.  See
 -- <http://en.wikipedia.org/wiki/Curvature>

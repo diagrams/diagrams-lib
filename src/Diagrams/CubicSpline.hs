@@ -31,9 +31,6 @@ import           Diagrams.Segment
 import           Diagrams.Trail
 import           Diagrams.TrailLike            (TrailLike (..))
 
--- for e.g. the Fractional (Double, Double) instance
-import           Data.NumInstances.Tuple       ()
-
 import           Data.AffineSpace.Point
 import           Data.VectorSpace
 
