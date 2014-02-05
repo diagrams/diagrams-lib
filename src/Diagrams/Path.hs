@@ -69,7 +69,7 @@ import           Diagrams.Transform
 
 import           Control.Arrow        ((***))
 import           Control.Lens         ( Wrapped(..), Rewrapped, mapped, over
-                                      , view, iso , _Unwrapped, _Wrapped, (%~)
+                                      , view, iso, _Wrapped, (%~)
                                       , op, _Unwrapped')
 import           Data.AffineSpace
 import qualified Data.Foldable        as F

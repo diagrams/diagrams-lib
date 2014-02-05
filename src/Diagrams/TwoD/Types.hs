@@ -33,7 +33,7 @@ module Diagrams.TwoD.Types
        ) where
 
 import           Control.Lens            (Iso', Wrapped(..), Rewrapped, iso
-                                         , review , _Unwrapped, (^.), _1, _2)
+                                         , review , (^.), _1, _2)
 
 import           Diagrams.Coordinates
 import           Diagrams.Core
