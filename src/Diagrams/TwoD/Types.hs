@@ -41,7 +41,6 @@ import           Diagrams.Core
 import           Data.AffineSpace.Point
 import           Data.Basis
 import           Data.MemoTrie           (HasTrie (..))
-import           Data.NumInstances.Tuple ()
 import           Data.VectorSpace
 
 import           Data.Typeable
