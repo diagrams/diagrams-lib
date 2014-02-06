@@ -1,3 +1,14 @@
+1.0.1 (26 January 2014)
+-----------------------
+
+    - Depend on `hashable` package, and add `Hashable` instance for
+      `SizeSpec2D`.
+
+      Technically, the PVP specifies that adding a new instance
+      requires a major version bump.  However, I highly doubt anyone
+      was making their own orphan `Hashable` instances before.  Feel
+      free to yell at Brent if this breaks your build.
+
 1.0.0.1 (28 November 2013)
 --------------------------
 

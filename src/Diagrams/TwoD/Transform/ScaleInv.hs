@@ -20,6 +20,7 @@ module Diagrams.TwoD.Transform.ScaleInv
     where
 
 import           Control.Lens            (makeLenses, view)
+import           Data.AdditiveGroup
 import           Data.AffineSpace        ((.-.))
 import           Data.Semigroup
 
@@ -82,8 +83,7 @@ instance (V t ~ R2, HasOrigin t) => HasOrigin (ScaleInv t) where
 instance (V t ~ R2, Transformable t) => Transformable (ScaleInv t) where
   transform tr (ScaleInv t v l) = ScaleInv (trans . rot $ t) (rot v) l'
     where
-      angle :: Rad
-      angle = direction (transform tr v) - direction v
+      angle = direction (transform tr v) ^-^ direction v
       rot :: (Transformable t, V t ~ R2) => t -> t
       rot = rotateAbout l angle
       l'  = transform tr l

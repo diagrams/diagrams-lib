@@ -37,7 +37,7 @@ module Diagrams.Attributes (
   , Opacity, getOpacity, opacity
 
   -- ** Converting colors
-  , toRGBAUsingSpace, colorToSRGBA, colorToRGBA
+  , colorToSRGBA, colorToRGBA
 
   -- * Lines
   -- ** Width
@@ -59,8 +59,8 @@ module Diagrams.Attributes (
 
 import           Control.Lens          (Setter, sets)
 import           Data.Colour
-import           Data.Colour.RGBSpace
-import           Data.Colour.SRGB      (sRGBSpace)
+import           Data.Colour.RGBSpace  (RGB(..))
+import           Data.Colour.SRGB      (toSRGB)
 import           Data.Default.Class
 import           Data.Maybe            (fromMaybe)
 import           Data.Monoid.Recommend
@@ -226,20 +226,14 @@ instance Color FillColor where
   toAlphaColour (FillColor c) = toAlphaColour . getLast . getRecommend $ c
   fromAlphaColour = FillColor . Commit . Last . fromAlphaColour
 
--- | Convert to an RGB space while preserving the alpha channel.
-toRGBAUsingSpace :: Color c => RGBSpace Double -> c
-                            -> (Double, Double, Double, Double)
-toRGBAUsingSpace s col = (r,g,b,a)
-  where c' = toAlphaColour col
-        c  = toRGBUsingSpace s (alphaToColour c')
-        a  = alphaChannel  c'
-        r  = channelRed   c
-        g  = channelGreen c
-        b  = channelBlue  c
-
 -- | Convert to sRGBA.
 colorToSRGBA, colorToRGBA :: Color c => c -> (Double, Double, Double, Double)
-colorToSRGBA = toRGBAUsingSpace sRGBSpace
+colorToSRGBA col = (r, g, b, a)
+  where
+    c' = toAlphaColour col
+    c = alphaToColour c'
+    a = alphaChannel c'
+    RGB r g b = toSRGB c
 
 colorToRGBA = colorToSRGBA
 {-# DEPRECATED colorToRGBA "Renamed to colorToSRGBA." #-}

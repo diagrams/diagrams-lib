@@ -69,11 +69,10 @@ module Diagrams.TwoD
 
          -- * Angles
        , tau
-       , Angle(..)
-       , Turn(..), asTurn, CircleFrac
-       , Rad(..), asRad
-       , Deg(..), asDeg
-       , fullTurn, fullCircle, convertAngle
+       , Angle
+       , rad, turn, deg
+       , fullTurn, fullCircle, angleRatio
+       , (@@)
 
          -- * Paths
          -- ** Stroking
@@ -84,7 +83,7 @@ module Diagrams.TwoD
        , StrokeOpts(..), vertexNames, queryFillRule
 
          -- ** Clipping
-       , clipBy
+       , clipBy, clipTo, clipped
 
          -- * Shapes
          -- ** Rules
@@ -134,12 +133,13 @@ module Diagrams.TwoD
        , RoundedRectOpts(..), radiusTL, radiusTR, radiusBL, radiusBR
 
          -- ** Arrows
-       , arrow, arrow'
+       , arrowV, arrowV'
        , arrowAt, arrowAt'
        , arrowBetween, arrowBetween'
        , connect, connect'
        , connectPerim, connectPerim'
        , connectOutside, connectOutside'
+       , arrow, arrow'
        , straightShaft
        , module Diagrams.TwoD.Arrowheads
 
@@ -152,6 +152,7 @@ module Diagrams.TwoD
        , tailSize
        , headGap
        , tailGap
+       , gap
        , headColor
        , headStyle
        , tailColor

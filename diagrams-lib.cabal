@@ -26,6 +26,7 @@ Source-repository head
 
 Library
   Exposed-modules:     Diagrams.Prelude,
+                       Diagrams.Prelude.ThreeD,
                        Diagrams.Align,
                        Diagrams.Combinators,
                        Diagrams.Coordinates,
@@ -70,12 +71,13 @@ Library
                        Diagrams.TwoD.Text,
                        Diagrams.TwoD.Image,
                        Diagrams.TwoD.Adjust,
-                       Diagrams.ThreeD.Types,
-                       Diagrams.ThreeD.Shapes,
-                       Diagrams.ThreeD.Vector,
-                       Diagrams.ThreeD.Transform,
+                       Diagrams.ThreeD.Align,
                        Diagrams.ThreeD.Camera,
                        Diagrams.ThreeD.Light,
+                       Diagrams.ThreeD.Shapes,
+                       Diagrams.ThreeD.Transform,
+                       Diagrams.ThreeD.Types,
+                       Diagrams.ThreeD.Vector,
                        Diagrams.ThreeD
                        Diagrams.Animation,
                        Diagrams.Animation.Active,
@@ -84,7 +86,7 @@ Library
                        Diagrams.Backend.CmdLine
   Build-depends:       base >= 4.2 && < 4.8,
                        containers >= 0.3 && < 0.6,
-                       array >= 0.3 && < 0.5,
+                       array >= 0.3 && < 0.6,
                        semigroups >= 0.3.4 && < 0.13,
                        monoid-extras >= 0.3 && < 0.4,
                        diagrams-core >= 1.0 && < 1.1,
@@ -92,16 +94,18 @@ Library
                        vector-space >= 0.7.7 && < 0.9,
                        vector-space-points >= 0.1.2 && < 0.2,
                        MemoTrie >= 0.6 && < 0.7,
-                       NumInstances >= 1.2 && < 1.4,
                        colour >= 2.3.2 && < 2.4,
                        data-default-class < 0.1,
                        pretty >= 1.0.1.2 && < 1.2,
                        fingertree >= 0.1 && < 0.2,
                        intervals >= 0.3 && < 0.5,
-                       lens >= 3.9 && < 3.11,
+                       lens >= 3.8 && < 3.11,
                        tagged >= 0.7,
                        optparse-applicative >= 0.7 && < 0.8,
                        filepath,
-                       safe >= 0.2 && < 0.4
+                       safe >= 0.2 && < 0.4,
+                       hashable >= 1.1 && < 1.3
+  if impl(ghc < 7.6)
+    Build-depends: ghc-prim
   Hs-source-dirs:      src
   default-language:    Haskell2010

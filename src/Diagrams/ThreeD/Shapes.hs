@@ -1,8 +1,6 @@
-{-# LANGUAGE TypeFamilies
-           , FlexibleContexts
-           , MultiParamTypeClasses
-           , ViewPatterns
-  #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeFamilies          #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.ThreeD.Shapes
@@ -20,17 +18,16 @@ module Diagrams.ThreeD.Shapes
        , sphere
        ) where
 
-import Prelude hiding (minimum)
-import Data.Semigroup
+import           Data.Semigroup
+import           Prelude
 
-import Data.AffineSpace
-import Data.Monoid.Inf (minimum)
-import Data.VectorSpace
+import           Data.AffineSpace
+import           Data.VectorSpace
 
-import Diagrams.Core
+import           Diagrams.Core
 
-import Diagrams.ThreeD.Types
-import Diagrams.Solve
+import           Diagrams.Solve
+import           Diagrams.ThreeD.Types
 
 data Ellipsoid = Ellipsoid T3
 
@@ -51,7 +48,7 @@ sphere = mkQD (Prim $ Ellipsoid mempty)
               mempty
               (Query sphereQuery)
   where sphereEnv v = 1 / magnitude v
-        sphereTrace p v = minimum (quadForm a b c)
+        sphereTrace p v = mkSortedList $ quadForm a b c
           where a = v <.> v
                 b = 2 *^ p' <.> v
                 c = p' <.> p' - 1
