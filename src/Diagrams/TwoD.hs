@@ -189,7 +189,7 @@ module Diagrams.TwoD
        , shearingX, shearX
        , shearingY, shearY
 
-         -- * Projections - non-affine transforms
+         -- * Deformations - non-affine transforms
        , parallelX0, perspectiveX1, parallelY0, perspectiveY1
        , facingX, facingY
 
@@ -251,7 +251,7 @@ import           Diagrams.TwoD.Image
 import           Diagrams.TwoD.Model
 import           Diagrams.TwoD.Path
 import           Diagrams.TwoD.Polygons
-import           Diagrams.TwoD.Project
+import           Diagrams.TwoD.Deform
 import           Diagrams.TwoD.Shapes
 import           Diagrams.TwoD.Size
 import           Diagrams.TwoD.Text

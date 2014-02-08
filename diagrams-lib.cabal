@@ -43,7 +43,7 @@ Library
                        Diagrams.Solve,
                        Diagrams.Tangent,
                        Diagrams.Transform,
-                       Diagrams.Project
+                       Diagrams.Deform
                        Diagrams.BoundingBox,
                        Diagrams.Names,
                        Diagrams.Envelope,
@@ -55,6 +55,7 @@ Library
                        Diagrams.TwoD.Arrow,
                        Diagrams.TwoD.Arrowheads,
                        Diagrams.TwoD.Combinators,
+                       Diagrams.TwoD.Deform,
                        Diagrams.TwoD.Transform,
                        Diagrams.TwoD.Transform.ScaleInv,
                        Diagrams.TwoD.Ellipse,
@@ -64,7 +65,6 @@ Library
                        Diagrams.TwoD.Offset,
                        Diagrams.TwoD.Path,
                        Diagrams.TwoD.Polygons,
-                       Diagrams.TwoD.Project,
                        Diagrams.TwoD.Shapes,
                        Diagrams.TwoD.Vector,
                        Diagrams.TwoD.Size,
@@ -72,7 +72,7 @@ Library
                        Diagrams.TwoD.Text,
                        Diagrams.TwoD.Image,
                        Diagrams.TwoD.Adjust,
-                       Diagrams.ThreeD.Project,
+                       Diagrams.ThreeD.Deform,
                        Diagrams.ThreeD.Types,
                        Diagrams.ThreeD.Shapes,
                        Diagrams.ThreeD.Vector,

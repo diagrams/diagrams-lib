@@ -124,6 +124,7 @@ import           Diagrams.Attributes
 import           Diagrams.Combinators
 import           Diagrams.Coordinates
 import           Diagrams.CubicSpline
+import           Diagrams.Deform ()
 import           Diagrams.Envelope
 import           Diagrams.Located
 import           Diagrams.Names
@@ -131,7 +132,6 @@ import           Diagrams.Parametric
 import           Diagrams.Parametric.Adjust
 import           Diagrams.Path
 import           Diagrams.Points
-import           Diagrams.Project ()
 import           Diagrams.Query
 import           Diagrams.Segment
 import           Diagrams.Tangent
