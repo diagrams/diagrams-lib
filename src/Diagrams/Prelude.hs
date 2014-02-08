@@ -148,5 +148,5 @@ import           Data.AffineSpace
 import           Data.Colour                hiding (AffineSpace (..), atop, over)
 import           Data.Colour.Names          hiding (tan)
 import           Data.Semigroup
-import           Data.VectorSpace           hiding (Sum (..), project)
+import           Data.VectorSpace           hiding (Sum (..))
 import           Control.Lens               ((&), (.~), (%~))

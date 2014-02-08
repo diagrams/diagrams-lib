@@ -47,7 +47,7 @@ import           Diagrams.Coordinates
 import           Data.AffineSpace.Point
 import           Data.Basis
 import           Data.Cross
-import           Data.VectorSpace hiding (project)
+import           Data.VectorSpace
 
 ------------------------------------------------------------
 -- 3D Euclidean space

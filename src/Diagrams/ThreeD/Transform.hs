@@ -18,7 +18,7 @@
 
 module Diagrams.ThreeD.Transform where
 
-import           Diagrams.Core hiding (project)
+import           Diagrams.Core
 import qualified Diagrams.Core.Transform as T
 
 import           Diagrams.ThreeD.Types

@@ -61,7 +61,7 @@ import           Data.Default.Class
 import           Data.VectorSpace        (magnitude, normalized, project, (<.>),
                                           (^*))
 
-import           Diagrams.Core hiding (project)
+import           Diagrams.Core
 import           Diagrams.Located
 import           Diagrams.Path
 import           Diagrams.Points         (centroid)
