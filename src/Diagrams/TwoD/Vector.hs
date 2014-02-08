@@ -23,6 +23,7 @@ module Diagrams.TwoD.Vector
        ) where
 
 import           Control.Lens         ((^.))
+import           Data.AdditiveGroup
 import           Data.VectorSpace     ((<.>))
 import           Diagrams.TwoD.Types
 import           Diagrams.Coordinates
@@ -52,8 +53,8 @@ direction (coords -> x :& y) = atan2 y x @@ rad
 -- | Compute the counterclockwise angle from the first vector to the second.
 angleBetween :: R2 -> R2 -> Angle
 angleBetween v1 v2
-  | d2 > d1   = d2 - d1
-  | otherwise = fullTurn + d2 - d1
+  | d2 > d1   = d2 ^-^ d1
+  | otherwise = fullTurn ^+^ d2 ^-^ d1
   where
     d1 = direction v1
     d2 = direction v2

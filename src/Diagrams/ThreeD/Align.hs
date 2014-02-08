@@ -20,7 +20,7 @@
 --
 -----------------------------------------------------------------------------
 
-module Diagrams.TwoD.Align
+module Diagrams.ThreeD.Align
     ( -- * Absolute alignment
       -- ** Align by envelope
       alignXMin, alignXMax, alignYMin, alignYMax, alignZMin, alignZMax
@@ -33,9 +33,9 @@ module Diagrams.TwoD.Align
 
       -- * Centering
     , centerX, centerY, centerZ
-    , centerXY, centerXZ, centerYZ
+    , centerXY, centerXZ, centerYZ, centerXYZ
     , snugCenterX, snugCenterY, snugCenterZ
-    , snugCenterXY, snugCenterXZ, snugCenterYZ
+    , snugCenterXY, snugCenterXZ, snugCenterYZ, snugCenterXYZ
 
     ) where
 

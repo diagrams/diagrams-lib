@@ -59,6 +59,7 @@ import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector    (direction)
 import           Diagrams.Coordinates
 
+import           Data.AdditiveGroup
 import           Data.AffineSpace
 import           Data.Semigroup
 import           Control.Lens            (review, (^.))
@@ -204,7 +205,7 @@ reflectY = transform reflectionY
 --   the point @p@ and vector @v@.
 reflectionAbout :: P2 -> R2 -> T2
 reflectionAbout p v =
-  conjugate (rotation (-direction v) <> translation (origin .-. p))
+  conjugate (rotation (negateV $ direction v) <> translation (origin .-. p))
             reflectionY
 
 -- | @reflectAbout p v@ reflects a diagram in the line determined by

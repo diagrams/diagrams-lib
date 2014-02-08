@@ -36,7 +36,7 @@ import           Diagrams.Util           (( # ))
 import           Control.Lens            ((^.))
 import           Data.AffineSpace        ((.-.))
 import           Data.Semigroup          ((<>))
-import           Data.VectorSpace        (magnitude, negateV, (*^), (^-^))
+import           Data.VectorSpace
 import           Diagrams.Coordinates
 
 -- For details of this approximation see:
@@ -47,8 +47,8 @@ import           Diagrams.Coordinates
 --   radians.  The approximation is only valid for angles in the first
 --   quadrant.
 bezierFromSweepQ1 :: Angle -> Segment Closed R2
-bezierFromSweepQ1 s = fmap (^-^ v) . rotate (s/2) $ bezier3 c2 c1 p0
-  where p0@(coords -> x :& y) = rotate (s/2) v
+bezierFromSweepQ1 s = fmap (^-^ v) . rotate (s ^/ 2) $ bezier3 c2 c1 p0
+  where p0@(coords -> x :& y) = rotate (s ^/ 2) v
         c1                    = ((4-x)/3)  ^&  ((1-x)*(3-x)/(3*y))
         c2                    = reflectY c1
         v                     = unitX
@@ -62,11 +62,11 @@ bezierFromSweepQ1 s = fmap (^-^ v) . rotate (s/2) $ bezier3 c2 c1 p0
 bezierFromSweep :: Angle -> [Segment Closed R2]
 bezierFromSweep s
   | s > fullTurn = bezierFromSweep fullTurn
-  | s < 0          = fmap reflectY . bezierFromSweep $ (-s)
-  | s < 0.0001     = []
-  | s < fullTurn/4      = [bezierFromSweepQ1 s]
-  | otherwise      = bezierFromSweepQ1 (fullTurn/4)
-          : map (rotateBy (1/4)) (bezierFromSweep (max (s - fullTurn/4) 0))
+  | s < zeroV      = fmap reflectY . bezierFromSweep $ (negateV s)
+  | s < 0.0001 @@ rad     = []
+  | s < fullTurn^/4      = [bezierFromSweepQ1 s]
+  | otherwise      = bezierFromSweepQ1 (fullTurn^/4)
+          : map (rotateBy (1/4)) (bezierFromSweep (max (s ^-^ fullTurn^/4) zeroV))
 
 {-
 ~~~~ Note [segment spacing]
@@ -92,10 +92,10 @@ the approximation error.
 --   'Trail' of a radius one arc counterclockwise between the two angles.
 arcT :: Angle -> Angle -> Trail R2
 arcT start end
-    | end' < start' = arcT start (end + (fromIntegral d @@ turn))
+    | end' < start' = arcT start (end ^+^ (fromIntegral d @@ turn))
     | otherwise     = (if sweep >= fullTurn then glueTrail else id)
                     $ trailFromSegments bs
-  where sweep = end - start
+  where sweep = end ^-^ start
         bs    = map (rotate start) . bezierFromSweep $ sweep
 
         -- We want to compare the start and the end and in case
@@ -175,10 +175,10 @@ arcBetween p q ht = trailLike (a # rotate (direction v) # moveTo p)
     d = magnitude (q .-. p)
     th  = acos ((d*d - 4*h*h)/(d*d + 4*h*h))
     r = d/(2*sin th)
-    mid | ht >= 0    = fullTurn/4
-        | otherwise = 3*fullTurn/4
-    st  = mid - (th @@ rad)
-    end = mid + (th @@ rad)
+    mid | ht >= 0    = fullTurn ^/ 4
+        | otherwise = 3 *^ fullTurn ^/ 4
+    st  = mid ^-^ (th @@ rad)
+    end = mid ^+^ (th @@ rad)
     a | isStraight
       = fromOffsets [d *^ unitX]
       | otherwise

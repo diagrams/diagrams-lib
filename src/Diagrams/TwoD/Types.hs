@@ -41,7 +41,6 @@ import           Diagrams.Core
 import           Data.AffineSpace.Point
 import           Data.Basis
 import           Data.MemoTrie           (HasTrie (..))
-import           Data.NumInstances.Tuple ()
 import           Data.VectorSpace
 
 import           Data.Typeable
@@ -239,7 +238,7 @@ instance HasY P2 where
 -- | Angles can be expressed in a variety of units.  Internally,
 -- they are represented in radians.
 newtype Angle = Radians Double
-              deriving (Read, Show, Eq, Ord, Enum, Fractional, Num, Real, RealFrac, AdditiveGroup)
+              deriving (Read, Show, Eq, Ord, Enum, AdditiveGroup)
 
 instance VectorSpace Angle where
   type Scalar Angle = Double

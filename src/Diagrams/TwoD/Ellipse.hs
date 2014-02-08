@@ -22,6 +22,8 @@ module Diagrams.TwoD.Ellipse
     , ellipseXY
     ) where
 
+import           Data.AdditiveGroup
+
 import           Diagrams.Core
 
 import           Diagrams.Located        (at)
@@ -33,7 +35,7 @@ import           Diagrams.Util
 
 -- | A circle of radius 1, with center at the origin.
 unitCircle :: (TrailLike t, V t ~ R2) => t
-unitCircle = trailLike $ arcT 0 fullTurn `at` (p2 (1,0))
+unitCircle = trailLike $ arcT zeroV fullTurn `at` (p2 (1,0))
 
 -- | A circle of the given radius, centered at the origin.  As a path,
 --   it begins at (r,0).

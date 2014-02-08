@@ -31,18 +31,19 @@
 --     for rendering 3D geometry to (2D) images.
 -----------------------------------------------------------------------------
 module Diagrams.ThreeD
-       ( module Diagrams.ThreeD.Types
-       , module Diagrams.ThreeD.Transform
-       , module Diagrams.ThreeD.Vector
-       , module Diagrams.ThreeD.Shapes
-       , module Diagrams.ThreeD.Light
+       ( module Diagrams.ThreeD.Align
        , module Diagrams.ThreeD.Camera
+       , module Diagrams.ThreeD.Light
+       , module Diagrams.ThreeD.Shapes
+       , module Diagrams.ThreeD.Transform
+       , module Diagrams.ThreeD.Types
+       , module Diagrams.ThreeD.Vector
        ) where
 
-
-import Diagrams.ThreeD.Transform
-import Diagrams.ThreeD.Vector
-import Diagrams.ThreeD.Light
-import Diagrams.ThreeD.Types
+import Diagrams.ThreeD.Align
 import Diagrams.ThreeD.Camera
+import Diagrams.ThreeD.Light
 import Diagrams.ThreeD.Shapes
+import Diagrams.ThreeD.Transform
+import Diagrams.ThreeD.Types
+import Diagrams.ThreeD.Vector
