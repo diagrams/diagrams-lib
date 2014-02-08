@@ -1,7 +1,8 @@
-{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE DeriveDataTypeable    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeFamilies          #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Image
@@ -19,19 +20,20 @@ module Diagrams.TwoD.Image
     , image
     ) where
 
-import Control.Lens (makeLenses)
+import           Control.Lens         (makeLenses)
+import           Data.Typeable
 
-import Diagrams.Core
+import           Diagrams.Core
 
-import Diagrams.Path
-import Diagrams.TwoD.Types
-import Diagrams.TwoD.Path
-import Diagrams.TwoD.Shapes
-import Diagrams.TwoD.Size (SizeSpec2D(..))
+import           Diagrams.Path
+import           Diagrams.TwoD.Path
+import           Diagrams.TwoD.Shapes
+import           Diagrams.TwoD.Size   (SizeSpec2D (..))
+import           Diagrams.TwoD.Types
 
-import Data.AffineSpace ((.-.))
+import           Data.AffineSpace     ((.-.))
 
-import Data.Semigroup
+import           Data.Semigroup
 
 -- | An external image primitive, representing an image the backend
 --   should import from another file when rendering.
@@ -39,6 +41,7 @@ data Image = Image { _imgFile   :: FilePath
                    , _imgSize   :: SizeSpec2D
                    , _imgTransf :: T2
                    }
+  deriving Typeable
 
 makeLenses ''Image
 

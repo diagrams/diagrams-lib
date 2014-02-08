@@ -37,9 +37,11 @@ module Diagrams.Combinators
 
        ) where
 
+import           Data.Typeable
+
 import           Control.Lens       (Lens', generateSignatures, lensField,
-                                     lensRules, makeLensesWith, _Wrapping,
-                                     (%~), (&), (.~))
+                                     lensRules, makeLensesWith, (%~), (&), (.~),
+                                     _Wrapping)
 import           Data.AdditiveGroup
 import           Data.AffineSpace   ((.+^))
 import           Data.Default.Class
@@ -83,7 +85,7 @@ withTrace = setTrace . getTrace
 
 -- | @phantom x@ produces a \"phantom\" diagram, which has the same
 --   envelope and trace as @x@ but produces no output.
-phantom :: (Backend b (V a), Enveloped a, Traced a, Monoid' m) => a -> QDiagram b (V a) m
+phantom :: (Backend b (V a), Typeable (V a), Enveloped a, Traced a, Monoid' m) => a -> QDiagram b (V a) m
 phantom a = mkQD nullPrim (getEnvelope a) (getTrace a) mempty mempty
 
 -- | @pad s@ \"pads\" a diagram, expanding its envelope by a factor of
@@ -109,7 +111,8 @@ pad s d = withEnvelope (d # scale s) d
 --   <<diagrams/src_Diagrams_Combinators_strutEx.svg#diagram=strutEx&width=300>>
 --
 --   > strutEx = (circle 1 ||| strut unitX ||| circle 1) # centerXY # pad 1.1
-strut :: ( Backend b v, InnerSpace v
+strut :: ( Backend b v, Typeable v
+         , InnerSpace v
          , OrderedField (Scalar v)
          , Monoid' m
          )
