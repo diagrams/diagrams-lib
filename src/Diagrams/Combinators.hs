@@ -157,10 +157,10 @@ deformEnvelope
   :: ( Ord (Scalar v), Num (Scalar v), AdditiveGroup (Scalar v)
      , Floating (Scalar v), HasLinearMap v, InnerSpace v, Monoid' m )
   => (Scalar v) -> v -> QDiagram b v m -> QDiagram b v m
-deformEnvelope s v d = setEnvelope (getEnvelope d & unwrapping Envelope %~ deform) d
+deformEnvelope s v d = setEnvelope (getEnvelope d & unwrapping Envelope %~ deformE) d
   where
-    deform = Option . fmap deform' . getOption
-    deform' env v'
+    deformE = Option . fmap deformE' . getOption
+    deformE' env v'
         | dot > 0 = Max $ getMax (env v') + (dot * s) / magnitude v'
         | otherwise = env v'
       where
