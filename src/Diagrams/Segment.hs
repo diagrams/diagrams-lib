@@ -64,7 +64,7 @@ module Diagrams.Segment
 
        ) where
 
-import           Control.Lens (makeLenses, Wrapped(..), iso, op)
+import           Control.Lens (makeLenses, Wrapped(..), Rewrapped, iso, op)
 import           Control.Applicative (liftA2)
 import           Data.AffineSpace
 import           Data.FingerTree
@@ -416,8 +416,11 @@ instance (VectorSpace v, Fractional (Scalar v)) => Sectionable (FixedSegment v) 
 newtype SegCount = SegCount (Sum Int)
   deriving (Semigroup, Monoid)
 
-instance Wrapped (Sum Int) (Sum Int) SegCount SegCount
-  where wrapped = iso SegCount $ \(SegCount x) -> x
+instance Wrapped SegCount where
+    type Unwrapped SegCount = Sum Int
+    _Wrapped' = iso (\(SegCount x) -> x) SegCount
+
+instance Rewrapped SegCount SegCount
 
 -- | A type to represent the total arc length of a chain of
 --   segments. The first component is a \"standard\" arc length,
@@ -428,12 +431,12 @@ instance Wrapped (Sum Int) (Sum Int) SegCount SegCount
 newtype ArcLength v
   = ArcLength (Sum (Interval (Scalar v)), Scalar v -> Sum (Interval (Scalar v)))
 
-instance (Scalar v ~ u, Scalar v' ~ u', u ~ u') => Wrapped
-    (Sum (Interval u), u  -> Sum (Interval u ))
-    (Sum (Interval u'), u' -> Sum (Interval u'))
-    (ArcLength v)
-    (ArcLength v')
-  where wrapped = iso ArcLength $ \(ArcLength x) -> x
+instance Wrapped (ArcLength v) where
+    type Unwrapped (ArcLength v) =
+        (Sum (Interval (Scalar v)), Scalar v -> Sum (Interval (Scalar v)))
+    _Wrapped' = iso (\(ArcLength x) -> x) ArcLength
+
+instance Rewrapped (ArcLength v) (ArcLength v')
 
 -- | Project out the cached arc length, stored together with error
 --   bounds.
@@ -462,8 +465,11 @@ deriving instance (Num (Scalar v), Ord (Scalar v)) => Monoid    (ArcLength v)
 --   segments.
 newtype TotalOffset v = TotalOffset v
 
-instance Wrapped v v (TotalOffset v) (TotalOffset v)
-  where wrapped = iso TotalOffset $ \(TotalOffset x) -> x
+instance Wrapped (TotalOffset v) where
+    type Unwrapped (TotalOffset v) = v
+    _Wrapped' = iso (\(TotalOffset x) -> x) TotalOffset
+
+instance Rewrapped (TotalOffset v) (TotalOffset v')
 
 instance AdditiveGroup v => Semigroup (TotalOffset v) where
   TotalOffset v1 <> TotalOffset v2 = TotalOffset (v1 ^+^ v2)

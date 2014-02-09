@@ -38,7 +38,7 @@ module Diagrams.TwoD.Offset
     ) where
 
 import Control.Applicative
-import Control.Lens            hiding (at, moveTo)
+import Control.Lens            hiding (at)
 
 import Data.AffineSpace
 import Data.Monoid
