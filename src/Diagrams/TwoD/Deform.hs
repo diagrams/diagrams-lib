@@ -2,7 +2,7 @@ module Diagrams.TwoD.Deform where
 
 import Control.Lens
 
-import Diagrams.Core.Deform
+import Diagrams.Deform
 
 import Diagrams.Coordinates
 import Diagrams.TwoD.Types
