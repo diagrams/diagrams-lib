@@ -54,6 +54,7 @@ import           Data.Typeable
 --   vector space of the text to the vector space in which it is
 --   embedded.
 data Text = Text T2 TextAlignment String
+  deriving Typeable
 
 type instance V Text = R2
 

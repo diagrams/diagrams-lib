@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE DeriveFunctor              #-}
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE FlexibleInstances          #-}
@@ -57,6 +58,8 @@ module Diagrams.Path
 
        ) where
 
+import           Data.Typeable
+
 import           Diagrams.Align
 import           Diagrams.Core
 import           Diagrams.Core.Points ()
@@ -68,9 +71,8 @@ import           Diagrams.TrailLike
 import           Diagrams.Transform
 
 import           Control.Arrow        ((***))
-import           Control.Lens         ( Wrapped(..), Rewrapped, mapped, over
-                                      , view, iso, _Wrapped, (%~)
-                                      , op, _Unwrapped')
+import           Control.Lens         (Rewrapped, Wrapped (..), iso, mapped, op,
+                                       over, view, (%~), _Unwrapped', _Wrapped)
 import           Data.AffineSpace
 import qualified Data.Foldable        as F
 import           Data.List            (partition)
@@ -86,7 +88,7 @@ import           Data.VectorSpace
 --   and they form a monoid under /superposition/ (placing one path on
 --   top of another) rather than concatenation.
 newtype Path v = Path [Located (Trail v)]
-  deriving (Semigroup, Monoid)
+  deriving (Semigroup, Monoid, Typeable)
 
 instance Wrapped (Path v) where
     type Unwrapped (Path v) = [Located (Trail v)]
