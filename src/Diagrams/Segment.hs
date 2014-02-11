@@ -375,6 +375,35 @@ instance VectorSpace v => Parametric (FixedSegment v) where
 
           p3  = alerp p21 p22 t
 
+instance Num (Scalar v) => DomainBounds (FixedSegment v)
+
+instance (VectorSpace v, Num (Scalar v)) => EndValues (FixedSegment v) where
+  atStart (FLinear p0 _)     = p0
+  atStart (FCubic  p0 _ _ _) = p0
+  atEnd   (FLinear _ p1)     = p1
+  atEnd   (FCubic _ _ _ p1 ) = p1
+
+instance (VectorSpace v, Fractional (Scalar v)) => Sectionable (FixedSegment v) where
+  splitAtParam (FLinear p0 p1) t = (left, right)
+    where left  = FLinear p0 p
+          right = FLinear p  p1
+          p = alerp p0 p1 t
+  splitAtParam (FCubic p0 c1 c2 p1) t = (left, right)
+    where left  = FCubic p0 a b cut
+          right = FCubic cut c d p1
+          -- first round
+          a   = alerp p0 c1 t
+          p   = alerp c1 c2 t
+          d   = alerp c2 p1 t
+          -- second round
+          b   = alerp a  p  t
+          c   = alerp p  d  t
+          -- final round
+          cut = alerp b  c  t
+
+  reverseDomain (FLinear p0 p1) = FLinear p1 p0
+  reverseDomain (FCubic p0 c1 c2 p1) = FCubic p1 c2 c1 p0
+
 ------------------------------------------------------------
 --  Segment measures  --------------------------------------
 ------------------------------------------------------------

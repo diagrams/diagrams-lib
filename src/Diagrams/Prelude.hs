@@ -61,6 +61,10 @@ module Diagrams.Prelude
          --   conjugation of transformations.
        , module Diagrams.Transform
 
+         -- | Projective transformations and other deformations
+         -- lacking an inverse.
+       , module Diagrams.Deform
+
          -- | Giving names to subdiagrams and later retrieving
          --   subdiagrams by name.
        , module Diagrams.Names
@@ -124,6 +128,7 @@ import           Diagrams.Attributes
 import           Diagrams.Combinators
 import           Diagrams.Coordinates
 import           Diagrams.CubicSpline
+import           Diagrams.Deform
 import           Diagrams.Envelope
 import           Diagrams.Located
 import           Diagrams.Names
