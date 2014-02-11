@@ -438,7 +438,7 @@ splitFills = fst . splitFills' Nothing
   --   * is not a path : don't apply the fill; return True
   --   * contains lines: don't apply the fill; return False
   --   * contains loops:  do   apply the fill; return True
-  splitFills' mfc (Node rp@(RPrim tr (Prim p)) _) =
+  splitFills' mfc (Node rp@(RPrim _ (Prim p)) _) =
       case cast p :: Maybe (Path v) of
         Nothing  -> (Node rp [], True)
         Just pth ->
@@ -484,6 +484,6 @@ splitFills = fst . splitFills' Nothing
   -- Prepend a new fill color node if Just; the identity function if
   -- Nothing.
   applyMfc :: Maybe FillColor -> RTree b v a -> RTree b v a
-  applyMfc Nothing   t = t
-  applyMfc (Just fc) t = Node (RStyle $ attrToStyle fc) [t]
+  applyMfc Nothing  t = t
+  applyMfc (Just f) t = Node (RStyle $ attrToStyle f) [t]
 
