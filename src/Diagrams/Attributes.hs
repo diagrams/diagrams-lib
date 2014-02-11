@@ -1,6 +1,8 @@
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE ExistentialQuantification  #-}
+{-# LANGUAGE GADTs                      #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE ScopedTypeVariables        #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Attributes
@@ -76,6 +78,9 @@ import           Data.Typeable
 import           Diagrams.Core
 import           Diagrams.Core.Style   (Style (..), attrToStyle, setAttr)
 import           Diagrams.Core.Types   (RNode (..), RTree)
+import           Diagrams.Located      (unLoc)
+import           Diagrams.Path         (Path, pathTrails)
+import           Diagrams.Trail        (isLine)
 
 ------------------------------------------------------------
 --  Color  -------------------------------------------------
@@ -402,9 +407,9 @@ dashing ds offs = applyAttr (DashingA (Last (Dashing ds offs)))
 
 -- | Push fill attributes down until they are at the roots of trees
 --   containing only loops.
-splitFills :: RTree b v a -> RTree b v a
+splitFills :: forall b v a. Typeable v => RTree b v a -> RTree b v a
 splitFills = fst . splitFills' Nothing
- where
+  where
 
   -- splitFills' is where the most interesting logic happens.
   -- Mutually recursive with splitFills'Forest. rebuildNode and
@@ -429,11 +434,17 @@ splitFills = fst . splitFills' Nothing
       t' | ok        = rebuildNode Nothing ok (RStyle sty) cs'
          | otherwise = rebuildNode mfc ok (RStyle sty') cs'
 
-  -- RPrim node: check whether it is a
-  --   * line:          don't apply the fill; return False
-  --   * loop:          do    apply the fill; return True
-  --   * anything else: don't apply the fill; return True
-  splitFills' mfc (Node (RPrim tr pr) cs) = undefined
+  -- RPrim node: check whether it
+  --   * is not a path : don't apply the fill; return True
+  --   * contains lines: don't apply the fill; return False
+  --   * contains loops:  do   apply the fill; return True
+  splitFills' mfc (Node rp@(RPrim tr (Prim p)) _) =
+      case cast p :: Maybe (Path v) of
+        Nothing  -> (Node rp [], True)
+        Just pth ->
+          case any (isLine . unLoc) . pathTrails $ pth of
+            True  -> (Node rp [], False)
+            False -> (rebuildNode mfc True rp [], True)
 
   -- RFrozenTr, RAnnot, REmpty cases: just recurse and rebuild.  Note
   -- that transformations do not affect fill attributes.
