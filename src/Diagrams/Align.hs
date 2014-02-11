@@ -29,9 +29,9 @@ module Diagrams.Align
 
        , align
        , snug
-       , center, centerOrigin
+       , centerV, center
        , snugBy
-       , snugCenter, snugCenterOrigin
+       , snugCenterV, snugCenter
 
        ) where
 
@@ -141,28 +141,28 @@ snug :: (Fractional (Scalar (V a)), Alignable a, Traced a, HasOrigin a)
       => V a -> a -> a
 snug v = snugBy  v 1
 
--- | @center v@ centers an enveloped object along the direction of
+-- | @centerV v@ centers an enveloped object along the direction of
 --   @v@.
-center :: ( Alignable a, HasOrigin a, Num (Scalar (V a))
+centerV :: ( Alignable a, HasOrigin a, Num (Scalar (V a))
           , Fractional (Scalar (V a))) => V a -> a -> a
-center v = alignBy v 0
+centerV v = alignBy v 0
 
--- | @centerOrigin@ centers an enveloped object along all of its basis vectors.
-centerOrigin :: ( HasLinearMap (V a), Alignable a, HasOrigin a, Num (Scalar (V a)),
+-- | @center@ centers an enveloped object along all of its basis vectors.
+center :: ( HasLinearMap (V a), Alignable a, HasOrigin a, Num (Scalar (V a)),
              Fractional (Scalar (V a))) => a -> a
-centerOrigin d = applyAll fs d
+center d = applyAll fs d
   where
-    fs = map center basis
+    fs = map centerV basis
 
--- | Like @center@ using trace.
-snugCenter
+-- | Like @centerV@ using trace.
+snugCenterV
   :: (Fractional (Scalar (V a)), Alignable a, Traced a, HasOrigin a)
    => V a -> a -> a
-snugCenter v = (alignBy' traceBoundary) v 0
+snugCenterV v = (alignBy' traceBoundary) v 0
 
--- | Like @centerOrigin@ using trace.
-snugCenterOrigin :: ( HasLinearMap (V a), Alignable a, HasOrigin a, Num (Scalar (V a)),
+-- | Like @center@ using trace.
+snugCenter :: ( HasLinearMap (V a), Alignable a, HasOrigin a, Num (Scalar (V a)),
                       Fractional (Scalar (V a)), Traced a) => a -> a
-snugCenterOrigin d = applyAll fs d
+snugCenter d = applyAll fs d
   where
-    fs = map snugCenter basis
+    fs = map snugCenterV basis
