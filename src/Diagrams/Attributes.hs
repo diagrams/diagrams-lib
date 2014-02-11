@@ -55,14 +55,18 @@ module Diagrams.Attributes (
   -- ** Dashing
   , Dashing(..), DashingA, getDashing, dashing
 
+  -- * Compilation utilities
+  , splitFills
+
   ) where
 
 import           Control.Arrow         (second)
-import           Control.Lens          (Setter, sets)
+import           Control.Lens          (Setter, sets, (%~), (&), _Wrapping')
 import           Data.Colour
 import           Data.Colour.RGBSpace  (RGB (..))
 import           Data.Colour.SRGB      (toSRGB)
 import           Data.Default.Class
+import qualified Data.Map              as M
 import           Data.Maybe            (fromMaybe)
 import           Data.Monoid.Recommend
 import           Data.Semigroup
@@ -70,7 +74,7 @@ import           Data.Tree
 import           Data.Typeable
 
 import           Diagrams.Core
-import           Diagrams.Core.Style   (setAttr)
+import           Diagrams.Core.Style   (Style (..), attrToStyle, setAttr)
 import           Diagrams.Core.Types   (RNode (..), RTree)
 
 ------------------------------------------------------------
@@ -396,9 +400,6 @@ dashing ds offs = applyAttr (DashingA (Last (Dashing ds offs)))
 
 ------------------------------------------------------------
 
--- XXX todo:
---   * change type to take fill attribute explicitly, not style
-
 -- | Push fill attributes down until they are at the roots of trees
 --   containing only loops.
 splitFills :: RTree b v a -> RTree b v a
@@ -406,64 +407,72 @@ splitFills = fst . splitFills' Nothing
  where
 
   -- splitFills' is where the most interesting logic happens.
-  -- Mutually recursive with splitFills'Forest.
+  -- Mutually recursive with splitFills'Forest. rebuildNode and
+  -- applyMfc are helper functions.
   --
   -- Input: fill attribute to apply to subtrees containing only loops.
   --
   -- Output: tree with fill attributes pushed down appropriately, and
   -- a Bool indicating whether the tree contains only loops (True) or
   -- contains some lines (False).
-  splitFills' :: Maybe (Style v) -> RTree b v a -> (RTree b v a, Bool)
+  splitFills' :: Maybe FillColor -> RTree b v a -> (RTree b v a, Bool)
 
   -- RStyle node: Check for fill attribute and split it out of the
   -- style, combining it with incoming fill attribute.  Recurse and
   -- rebuild.
-  splitFills' msty (Node (RStyle sty) cs)  = undefined
+  splitFills' mfc (Node (RStyle sty) cs) = (t', ok)
+    where
+      mfc' = mfc <> getAttr sty
+      sty' = sty & _Wrapping' Style %~ M.delete ty
+      ty   = show . typeOf $ (undefined :: FillColor)
+      (cs', ok) = splitFills'Forest mfc' cs
+      t' | ok        = rebuildNode Nothing ok (RStyle sty) cs'
+         | otherwise = rebuildNode mfc ok (RStyle sty') cs'
 
   -- RPrim node: check whether it is a
   --   * line:          don't apply the fill; return False
   --   * loop:          do    apply the fill; return True
   --   * anything else: don't apply the fill; return True
-  splitFills' msty (Node (RPrim tr pr) cs) = undefined
+  splitFills' mfc (Node (RPrim tr pr) cs) = undefined
 
   -- RFrozenTr, RAnnot, REmpty cases: just recurse and rebuild.  Note
   -- that transformations do not affect fill attributes.
-  splitFills' msty (Node nd cs)    = (t', ok)
+  splitFills' mfc (Node nd cs)    = (t', ok)
     where
-      (cs', ok) = splitFills'Forest msty cs
-      t'        = rebuildNode msty ok nd cs'
+      (cs', ok) = splitFills'Forest mfc cs
+      t'        = rebuildNode mfc ok nd cs'
 
   -- Recursively call splitFills' on all subtrees, returning the
   -- logical AND of the Bool results returned (the whole forest
   -- contains only loops iff all the subtrees do).  The tricky bit is
-  -- that we use some knot-tying to determine the right style to pass
+  -- that we use some knot-tying to determine the right attribute to pass
   -- down to the subtrees based on this computed Bool: if all subtrees
-  -- contain only loops, then we will apply the style at the root of
+  -- contain only loops, then we will apply the fill at the root of
   -- this forest, and pass Nothing to all the subtrees.  Otherwise, we
-  -- pass the given style along.  This works out because the style
+  -- pass the given fill along.  This works out because the fill
   -- does not need to be pattern-matched until actually applying it at
   -- some root, so the recursion can proceed and the Bool values be
-  -- computed with the actual value of the style nodes filled in
+  -- computed with the actual value of the fill nodes filled in
   -- lazily.
-  splitFills'Forest :: Maybe (Style v) -> [RTree b v a] -> ([RTree b v a], Bool)
-  splitFills'Forest msty cs = (cs', ok)
+  splitFills'Forest :: Maybe FillColor -> [RTree b v a] -> ([RTree b v a], Bool)
+  splitFills'Forest mfc cs = (cs', ok)
     where
-      (cs', ok) = second and . unzip . map (splitFills' msty') $ cs
-      msty' | ok        = Nothing
-            | otherwise = msty
+      (cs', ok) = second and . unzip . map (splitFills' mfc') $ cs
+      mfc' | ok        = Nothing
+           | otherwise = mfc
 
-  -- Given a style, a Bool indicating whether the given subforest
-  -- contains only loops, a node, and a subforest, rebuild a tree,
-  -- applying the style as appropriate (only if the Bool is true and
-  -- the style is not Nothing).
-  rebuildNode :: Maybe (Style v) -> Bool -> RNode b v a -> [RTree b v a] -> RTree b v a
-  rebuildNode msty ok nd cs
-    | ok        = applyMSty msty (Node nd cs)
+  -- Given a fill attribute, a Bool indicating whether the given
+  -- subforest contains only loops, a node, and a subforest, rebuild a
+  -- tree, applying the fill attribute as appropriate (only if the
+  -- Bool is true and the attribute is not Nothing).
+  rebuildNode :: Maybe FillColor -> Bool -> RNode b v a -> [RTree b v a] -> RTree b v a
+  rebuildNode mfc ok nd cs
+    | ok        = applyMfc mfc (Node nd cs)
     | otherwise = Node nd cs
 
-  -- Prepend a new style node if Just; the identity function if
+  -- Prepend a new fill color node if Just; the identity function if
   -- Nothing.
-  applyMSty :: Maybe (Style v) -> RTree b v a -> RTree b v a
-  applyMSty Nothing t = t
-  applyMSty (Just sty) t = Node (RStyle sty) [t]
+  applyMfc :: Maybe FillColor -> RTree b v a -> RTree b v a
+  applyMfc Nothing   t = t
+  applyMfc (Just fc) t = Node (RStyle $ attrToStyle fc) [t]
 
