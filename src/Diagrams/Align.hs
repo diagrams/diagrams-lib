@@ -29,13 +29,14 @@ module Diagrams.Align
 
        , align
        , snug
-       , center
+       , center, centerOrigin
        , snugBy
-       , snugCenter
+       , snugCenter, snugCenterOrigin
 
        ) where
 
 import           Diagrams.Core
+import           Diagrams.Util    (applyAll)
 
 import           Data.AffineSpace (alerp, (.-.))
 import           Data.VectorSpace
@@ -146,9 +147,22 @@ center :: ( Alignable a, HasOrigin a, Num (Scalar (V a))
           , Fractional (Scalar (V a))) => V a -> a -> a
 center v = alignBy v 0
 
+-- | @centerOrigin@ centers an enveloped object along all of its basis vectors.
+centerOrigin :: ( HasLinearMap (V a), Alignable a, HasOrigin a, Num (Scalar (V a)),
+             Fractional (Scalar (V a))) => a -> a
+centerOrigin d = applyAll fs d
+  where
+    fs = map center basis
+
 -- | Like @center@ using trace.
 snugCenter
   :: (Fractional (Scalar (V a)), Alignable a, Traced a, HasOrigin a)
    => V a -> a -> a
 snugCenter v = (alignBy' traceBoundary) v 0
 
+-- | Like @centerOrigin@ using trace.
+snugCenterOrigin :: ( HasLinearMap (V a), Alignable a, HasOrigin a, Num (Scalar (V a)),
+                      Fractional (Scalar (V a)), Traced a) => a -> a
+snugCenterOrigin d = applyAll fs d
+  where
+    fs = map snugCenter basis

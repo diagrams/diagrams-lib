@@ -20,7 +20,7 @@ module Diagrams.Combinators
 
          withEnvelope, withTrace
        , phantom, strut
-       , pad
+       , pad, frame
        , extrudeEnvelope, intrudeEnvelope
 
          -- * Binary operations
@@ -41,7 +41,7 @@ import           Data.Typeable
 
 import           Control.Lens       (Lens', generateSignatures, lensField,
                                      lensRules, makeLensesWith, (%~), (&), (.~),
-                                     _Wrapping)
+                                     (^.), _Wrapping)
 import           Data.AdditiveGroup
 import           Data.AffineSpace   ((.+^))
 import           Data.Default.Class
@@ -99,6 +99,16 @@ pad :: ( Backend b v
        , Monoid' m )
     => Scalar v -> QDiagram b v m -> QDiagram b v m
 pad s d = withEnvelope (d # scale s) d
+
+-- | @frame s@ increases the envelope of a diagram by and absolute amount @s@,
+--   s is in the local units of the diagram. This function is similar to @pad@,
+--   only it takes an absolute quantity and pre-centering should not be
+--   necessary.
+frame :: ( Backend b v, InnerSpace v, OrderedField (Scalar v), Monoid' m)
+        => Scalar v -> QDiagram b v m -> QDiagram b v m
+frame s d = setEnvelope (onEnvelope t (d^.envelope)) d
+  where
+    t f = \x -> f x + s
 
 -- | @strut v@ is a diagram which produces no output, but with respect
 --   to alignment and envelope acts like a 1-dimensional segment
