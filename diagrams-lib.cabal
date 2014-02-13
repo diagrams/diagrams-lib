@@ -55,6 +55,7 @@ Library
                        Diagrams.TwoD.Align,
 --                       Diagrams.TwoD.Arrow,
 --                       Diagrams.TwoD.Arrowheads,
+                       Diagrams.TwoD.Attributes,
                        Diagrams.TwoD.Combinators,
                        Diagrams.TwoD.Deform,
                        Diagrams.TwoD.Transform,

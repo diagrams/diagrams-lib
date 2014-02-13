@@ -233,6 +233,12 @@ module Diagrams.TwoD
          -- ** Adjusting size
        , sized, sizedAs
 
+       -- ** Width
+       , LineWidth, getLineWidth, lineWidth, lineWidthA, lw
+
+       -- * Measure conversion
+       , toOutput
+
          -- * Visual aids for understanding the internal model
        , showOrigin
        , showOrigin'
@@ -243,6 +249,7 @@ module Diagrams.TwoD
 
 import           Diagrams.TwoD.Align
 import           Diagrams.TwoD.Arc
+import           Diagrams.TwoD.Attributes
 --import           Diagrams.TwoD.Arrow
 --import           Diagrams.TwoD.Arrowheads
 import           Diagrams.TwoD.Combinators

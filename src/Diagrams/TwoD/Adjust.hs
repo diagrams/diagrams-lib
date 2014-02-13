@@ -24,18 +24,19 @@ module Diagrams.TwoD.Adjust
 
 import Diagrams.Core
 
-import Diagrams.Attributes  (lineWidthA, lineColorA, lineCap
-                            , lineJoin, lineMiterLimitA
-                            )
-import Diagrams.Util        ((#))
+import Diagrams.Attributes      (lineColorA, lineCap
+                                , lineJoin, lineMiterLimitA
+                                )
+import Diagrams.Util            ((#))
 
-import Diagrams.TwoD.Types  (R2, p2)
-import Diagrams.TwoD.Size   ( size2D, center2D, SizeSpec2D(..)
-                            , requiredScaleT, requiredScale
-                            )
-import Diagrams.TwoD.Text   (fontSizeA)
+import Diagrams.TwoD.Attributes (lineWidthA)
+import Diagrams.TwoD.Types      (R2, p2)
+import Diagrams.TwoD.Size       ( size2D, center2D, SizeSpec2D(..)
+                                , requiredScaleT, requiredScale
+                                )
+import Diagrams.TwoD.Text       (fontSizeA)
 
-import Data.AffineSpace     ((.-.))
+import Data.AffineSpace         ((.-.))
 import Data.Semigroup
 
 import Data.Default.Class
