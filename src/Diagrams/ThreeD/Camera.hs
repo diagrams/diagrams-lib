@@ -1,8 +1,9 @@
-{-# LANGUAGE TypeFamilies               #-}
-{-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE FlexibleContexts           #-}
-{-# LANGUAGE GADTs                      #-}
-{-# LANGUAGE TemplateHaskell            #-}
+{-# LANGUAGE DeriveDataTypeable    #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeFamilies          #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -28,24 +29,26 @@ module Diagrams.ThreeD.Camera
        )
        where
 
-import Control.Lens            (makeLenses)
-import Data.Monoid
-import Data.Cross
+import           Control.Lens           (makeLenses)
+import           Data.Cross
+import           Data.Monoid
+import           Data.Typeable
 
-import Diagrams.Core
-import Diagrams.ThreeD.Types
-import Diagrams.ThreeD.Vector
+import           Diagrams.Core
+import           Diagrams.ThreeD.Types
+import           Diagrams.ThreeD.Vector
 
 -- Parameterize Camera on the lens type, so that Backends can express which
 -- lenses they handle.
 data Camera l = Camera
-    { camLoc   :: P3
-    , forward  :: R3
-    , up       :: R3
-    , lens     :: l
+    { camLoc  :: P3
+    , forward :: R3
+    , up      :: R3
+    , lens    :: l
     }
+  deriving Typeable
 
-class CameraLens l where
+class Typeable l => CameraLens l where
     -- | The natural aspect ratio of the projection.
     aspect :: l -> Double
 
@@ -54,6 +57,7 @@ data PerspectiveLens = PerspectiveLens
                      { _horizontalFieldOfView :: Angle -- ^ Horizontal field of view.
                      , _verticalFieldOfView   :: Angle -- ^ Vertical field of view.
                      }
+  deriving Typeable
 
 makeLenses ''PerspectiveLens
 
@@ -65,6 +69,7 @@ data OrthoLens = OrthoLens
                { _orthoWidth  :: Double -- ^ Width
                , _orthoHeight :: Double -- ^ Height
                }
+  deriving Typeable
 
 makeLenses ''OrthoLens
 

@@ -1,5 +1,5 @@
 Name:                diagrams-lib
-Version:             1.0
+Version:             1.1
 Synopsis:            Embedded domain-specific language for declarative graphics
 Description:         Diagrams is a flexible, extensible EDSL for creating
                      graphics of many types.  Graphics can be created
@@ -44,6 +44,7 @@ Library
                        Diagrams.Solve,
                        Diagrams.Tangent,
                        Diagrams.Transform,
+                       Diagrams.Deform
                        Diagrams.BoundingBox,
                        Diagrams.Names,
                        Diagrams.Envelope,
@@ -55,6 +56,7 @@ Library
 --                       Diagrams.TwoD.Arrow,
 --                       Diagrams.TwoD.Arrowheads,
                        Diagrams.TwoD.Combinators,
+                       Diagrams.TwoD.Deform,
                        Diagrams.TwoD.Transform,
                        Diagrams.TwoD.Transform.ScaleInv,
                        Diagrams.TwoD.Ellipse,
@@ -73,12 +75,13 @@ Library
                        Diagrams.TwoD.Adjust,
                        Diagrams.ThreeD.Align,
                        Diagrams.ThreeD.Camera,
+                       Diagrams.ThreeD.Deform,
                        Diagrams.ThreeD.Light,
                        Diagrams.ThreeD.Shapes,
                        Diagrams.ThreeD.Transform,
                        Diagrams.ThreeD.Types,
                        Diagrams.ThreeD.Vector,
-                       Diagrams.ThreeD
+                       Diagrams.ThreeD,
                        Diagrams.Animation,
                        Diagrams.Animation.Active,
                        Diagrams.Util,
@@ -99,7 +102,7 @@ Library
                        pretty >= 1.0.1.2 && < 1.2,
                        fingertree >= 0.1 && < 0.2,
                        intervals >= 0.3 && < 0.5,
-                       lens >= 3.8 && < 3.11,
+                       lens >= 4.0 && < 4.1,
                        tagged >= 0.7,
                        optparse-applicative >= 0.7 && < 0.8,
                        filepath,

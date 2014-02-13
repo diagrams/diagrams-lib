@@ -1,6 +1,7 @@
-{-# LANGUAGE TypeFamilies               #-}
-{-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE DeriveDataTypeable    #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeFamilies          #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -15,16 +16,19 @@
 
 module Diagrams.ThreeD.Light where
 
-import Data.Colour
-import Data.Monoid
+import           Data.Colour
+import           Data.Monoid
+import           Data.Typeable
 
-import Diagrams.Core
-import Diagrams.ThreeD.Types
-import Diagrams.ThreeD.Vector
+import           Diagrams.Core
+import           Diagrams.ThreeD.Types
+import           Diagrams.ThreeD.Vector
 
 data PointLight = PointLight P3 (Colour Double)
+  deriving Typeable
 
 data ParallelLight = ParallelLight R3 (Colour Double)
+  deriving Typeable
 
 type instance V PointLight = R3
 type instance V ParallelLight = R3

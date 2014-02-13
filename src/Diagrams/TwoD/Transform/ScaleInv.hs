@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveDataTypeable    #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TemplateHaskell       #-}
@@ -23,6 +24,7 @@ import           Control.Lens            (makeLenses, view)
 import           Data.AdditiveGroup
 import           Data.AffineSpace        ((.-.))
 import           Data.Semigroup
+import           Data.Typeable
 
 import           Diagrams.Core
 import           Diagrams.TwoD.Transform
@@ -62,11 +64,11 @@ import           Diagrams.TwoD.Vector
 
 data ScaleInv t =
   ScaleInv
-  { _scaleInvObj  :: t
+  { _scaleInvObj :: t
   , _scaleInvDir :: R2
   , _scaleInvLoc :: P2
   }
-  deriving (Show)
+  deriving (Show, Typeable)
 
 makeLenses ''ScaleInv
 
@@ -184,6 +186,6 @@ instance (Renderable t b, V t ~ R2) => Renderable (ScaleInv t) b where
 --   scale-invariant things will be used only as \"decorations\" (/e.g./
 --   arrowheads) which should not affect the envelope, trace, and
 --   query.
-scaleInvPrim :: (Transformable t, Renderable t b, V t ~ R2, Monoid m)
+scaleInvPrim :: (Transformable t, Typeable t, Renderable t b, V t ~ R2, Monoid m)
              => t -> R2 -> QDiagram b R2 m
 scaleInvPrim t d = mkQD (Prim $ scaleInv t d) mempty mempty mempty mempty

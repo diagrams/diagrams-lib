@@ -38,7 +38,8 @@ module Diagrams.ThreeD.Types
        , asSpherical
        ) where
 
-import           Control.Lens           (Iso', iso, over, Wrapped, wrapped, _1, _2, _3)
+import           Control.Lens           (Iso', iso, over, Wrapped(..), Rewrapped
+                                        , _1, _2, _3)
 
 import           Diagrams.Core
 import           Diagrams.TwoD.Types
@@ -72,9 +73,12 @@ unr3 :: R3 -> (Double, Double, Double)
 unr3 = unR3
 
 -- | Lens wrapped isomorphisms for R3.
-instance Wrapped (Double, Double, Double) (Double, Double, Double) R3 R3 where
-  wrapped = iso r3 unr3
-  {-# INLINE wrapped #-}
+instance Wrapped R3 where
+    type Unwrapped R3 = (Double, Double, Double)
+    _Wrapped' = iso unr3 r3
+    {-# INLINE _Wrapped' #-}
+
+instance Rewrapped R3 R3
 
 type instance V R3 = R3
 

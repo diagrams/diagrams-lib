@@ -20,7 +20,7 @@ module Diagrams.Combinators
 
          withEnvelope, withTrace
        , phantom, strut
-       , pad
+       , pad, frame
        , extrudeEnvelope, intrudeEnvelope
 
          -- * Binary operations
@@ -37,9 +37,11 @@ module Diagrams.Combinators
 
        ) where
 
+import           Data.Typeable
+
 import           Control.Lens       (Lens', generateSignatures, lensField,
-                                     lensRules, makeLensesWith, unwrapping,
-                                     (%~), (&), (.~))
+                                     lensRules, makeLensesWith, (%~), (&), (.~),
+                                     (^.), _Wrapping)
 import           Data.AdditiveGroup
 import           Data.AffineSpace   ((.+^))
 import           Data.Default.Class
@@ -83,7 +85,7 @@ withTrace = setTrace . getTrace
 
 -- | @phantom x@ produces a \"phantom\" diagram, which has the same
 --   envelope and trace as @x@ but produces no output.
-phantom :: (Backend b (V a), Enveloped a, Traced a, Monoid' m) => a -> QDiagram b (V a) m
+phantom :: (Backend b (V a), Typeable (V a), Enveloped a, Traced a, Monoid' m) => a -> QDiagram b (V a) m
 phantom a = mkQD nullPrim (getEnvelope a) (getTrace a) mempty mempty
 
 -- | @pad s@ \"pads\" a diagram, expanding its envelope by a factor of
@@ -98,6 +100,16 @@ pad :: ( Backend b v
     => Scalar v -> QDiagram b v m -> QDiagram b v m
 pad s d = withEnvelope (d # scale s) d
 
+-- | @frame s@ increases the envelope of a diagram by and absolute amount @s@,
+--   s is in the local units of the diagram. This function is similar to @pad@,
+--   only it takes an absolute quantity and pre-centering should not be
+--   necessary.
+frame :: ( Backend b v, InnerSpace v, OrderedField (Scalar v), Monoid' m)
+        => Scalar v -> QDiagram b v m -> QDiagram b v m
+frame s d = setEnvelope (onEnvelope t (d^.envelope)) d
+  where
+    t f = \x -> f x + s
+
 -- | @strut v@ is a diagram which produces no output, but with respect
 --   to alignment and envelope acts like a 1-dimensional segment
 --   oriented along the vector @v@, with local origin at its
@@ -109,7 +121,8 @@ pad s d = withEnvelope (d # scale s) d
 --   <<diagrams/src_Diagrams_Combinators_strutEx.svg#diagram=strutEx&width=300>>
 --
 --   > strutEx = (circle 1 ||| strut unitX ||| circle 1) # centerXY # pad 1.1
-strut :: ( Backend b v, InnerSpace v
+strut :: ( Backend b v, Typeable v
+         , InnerSpace v
          , OrderedField (Scalar v)
          , Monoid' m
          )
@@ -157,10 +170,10 @@ deformEnvelope
   :: ( Ord (Scalar v), Num (Scalar v), AdditiveGroup (Scalar v)
      , Floating (Scalar v), HasLinearMap v, InnerSpace v, Monoid' m )
   => (Scalar v) -> v -> QDiagram b v m -> QDiagram b v m
-deformEnvelope s v d = setEnvelope (getEnvelope d & unwrapping Envelope %~ deform) d
+deformEnvelope s v d = setEnvelope (getEnvelope d & _Wrapping Envelope %~ deformE) d
   where
-    deform = Option . fmap deform' . getOption
-    deform' env v'
+    deformE = Option . fmap deformE' . getOption
+    deformE' env v'
         | dot > 0 = Max $ getMax (env v') + (dot * s) / magnitude v'
         | otherwise = env v'
       where

@@ -32,8 +32,8 @@ module Diagrams.TwoD.Types
        , (@@)
        ) where
 
-import           Control.Lens            (Iso', Wrapped, iso, review, wrapped,
-                                          (^.), _1, _2)
+import           Control.Lens            (Iso', Wrapped(..), Rewrapped, iso
+                                         , review , (^.), _1, _2)
 
 import           Diagrams.Coordinates
 import           Diagrams.Core
@@ -132,9 +132,12 @@ mkR2 :: Double -> Double -> R2
 mkR2 = curry r2
 
 -- | Lens wrapped isomorphisms for R2.
-instance Wrapped (Double, Double) (Double, Double) R2 R2 where
-  wrapped = iso r2 unr2
-  {-# INLINE wrapped #-}
+instance Wrapped R2 where
+    type Unwrapped R2 = (Double, Double)
+    _Wrapped' = iso unr2 r2
+    {-# INLINE _Wrapped' #-}
+
+instance Rewrapped R2 R2
 
 type instance V R2 = R2
 

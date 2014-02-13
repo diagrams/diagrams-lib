@@ -38,7 +38,7 @@ module Diagrams.TwoD.Offset
     ) where
 
 import Control.Applicative
-import Control.Lens            hiding (at, moveTo)
+import Control.Lens            hiding (at)
 
 import Data.AffineSpace
 import Data.Monoid
@@ -481,9 +481,9 @@ joinSegments _ _ _ _ _ [] = mempty `at` origin
 joinSegments _ _ _ _ [] _ = mempty `at` origin
 joinSegments j isLoop ml r es ts@(t:_) = t'
   where
-    t' | isLoop    = mapLoc (glueTrail . (<> mconcat (take (length ts) $ ss es (ts ++ [t])))) t
+    t' | isLoop    = mapLoc (glueTrail . (<> mconcat (take (length ts * 2 - 1) $ ss es (ts ++ [t])))) t
        | otherwise = mapLoc (<> mconcat (ss es ts)) t
-    ss es' ts' = [j ml r e a b <> unLoc b | (e,(a,b)) <- zip es' . (zip <*> tail) $ ts']
+    ss es' ts' = concat [[j ml r e a b, unLoc b] | (e,(a,b)) <- zip es' . (zip <*> tail) $ ts']
 
 -- | Take a join style and give the join function to be used by joinSegments.
 fromLineJoin

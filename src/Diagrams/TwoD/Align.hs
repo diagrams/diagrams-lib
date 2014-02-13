@@ -144,8 +144,8 @@ snugCenterY = snugBy unitY 0
 
 -- | Center along both the X- and Y-axes.
 centerXY :: (Alignable a, HasOrigin a, V a ~ R2) => a -> a
-centerXY = centerX . centerY
+centerXY = center
 
 snugCenterXY :: (Fractional (Scalar (V a)), Alignable a, Traced a,
       HasOrigin a, V a ~ R2) => a -> a
-snugCenterXY = snugCenterX . snugCenterY
+snugCenterXY = snugCenter

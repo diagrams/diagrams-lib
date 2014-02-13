@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveDataTypeable    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies          #-}
@@ -18,18 +19,17 @@ module Diagrams.ThreeD.Shapes
        , sphere
        ) where
 
-import           Data.Semigroup
-import           Prelude
+import           Data.Typeable
 
 import           Data.AffineSpace
+import           Data.Semigroup
 import           Data.VectorSpace
-
 import           Diagrams.Core
-
 import           Diagrams.Solve
 import           Diagrams.ThreeD.Types
 
 data Ellipsoid = Ellipsoid T3
+  deriving Typeable
 
 type instance V Ellipsoid = R3
 

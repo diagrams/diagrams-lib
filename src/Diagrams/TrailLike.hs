@@ -30,7 +30,7 @@ module Diagrams.TrailLike
 
 import           Data.AffineSpace ((.-.))
 import           Data.VectorSpace
-import           Control.Lens (view, wrapped')
+import           Control.Lens (view, _Unwrapped')
 
 import           Diagrams.Core
 import           Diagrams.Located
@@ -96,7 +96,7 @@ instance (InnerSpace v, OrderedField (Scalar v)) => TrailLike (Trail v) where
 -- | Translationally invariant things are trail-like as long as the
 --   underlying type is.
 instance TrailLike t => TrailLike (TransInv t) where
-  trailLike = view wrapped' . trailLike
+  trailLike = view _Unwrapped' . trailLike
 
 -- | 'Located' things are trail-like as long as the underlying type
 --   is.  The location is taken to be the location of the input
