@@ -234,7 +234,7 @@ module Diagrams.TwoD
        , sized, sizedAs
 
        -- ** Width
-       , LineWidth, getLineWidth, lineWidth, lineWidthA, lw
+       , LineWidth, getLineWidth, lineWidth, lineWidthA, lw, lwO, lwL
 
        -- * Measure conversion
        , toOutput

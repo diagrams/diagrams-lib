@@ -21,7 +21,7 @@
 
 module Diagrams.TwoD.Attributes (
   -- ** Width
-      LineWidth, getLineWidth, lineWidth, lineWidthA, lw
+      LineWidth, getLineWidth, lineWidth, lineWidthA, lw, lwO, lwL
 
   -- * Measure conversion
     , toOutput
@@ -79,9 +79,17 @@ lineWidth = applyTAttr . LineWidth . Last
 lineWidthA ::  (HasStyle a, V a ~ R2) => LineWidth -> a -> a
 lineWidthA = applyTAttr
 
--- | A convenient synonym for 'lineWidth'.
-lw :: (HasStyle a, V a ~ R2) => (Measure Double) -> a -> a
-lw = lineWidth
+-- | A convenient synonym for 'lineWidth (Normalized w)'.
+lw :: (HasStyle a, V a ~ R2) => Double -> a -> a
+lw w = lineWidth (Normalized w)
+
+-- | A convenient synonym for `lineWidth (Output w)`.
+lwO :: (HasStyle a, V a ~ R2) => Double -> a -> a
+lwO w = lineWidth (Output w)
+
+-- | A convenient sysnonym for `lineWidth (Local w)`.
+lwL :: (HasStyle a, V a ~ R2) => Double -> a -> a
+lwL w = lineWidth (Local w)
 
 -- | Convert all of the @LineWidth@ attributes in an @RTree@ to output
 --   units. `w` and `h` are the width and height of the final diagram.
