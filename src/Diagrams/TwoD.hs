@@ -133,32 +133,32 @@ module Diagrams.TwoD
        , RoundedRectOpts(..), radiusTL, radiusTR, radiusBL, radiusBR
 
          -- ** Arrows
-       , arrowV, arrowV'
-       , arrowAt, arrowAt'
-       , arrowBetween, arrowBetween'
-       , connect, connect'
-       , connectPerim, connectPerim'
-       , connectOutside, connectOutside'
-       , arrow, arrow'
-       , straightShaft
-       , module Diagrams.TwoD.Arrowheads
+       --, arrowV, arrowV'
+       --, arrowAt, arrowAt'
+       --, arrowBetween, arrowBetween'
+       --, connect, connect'
+       --, connectPerim, connectPerim'
+       --, connectOutside, connectOutside'
+       --, arrow, arrow'
+       --, straightShaft
+       --, module Diagrams.TwoD.Arrowheads
 
-       , ArrowOpts(..)
+       --, ArrowOpts(..)
 
-       , arrowHead
-       , arrowTail
-       , arrowShaft
-       , headSize
-       , tailSize
-       , headGap
-       , tailGap
-       , gap
-       , headColor
-       , headStyle
-       , tailColor
-       , tailStyle
-       , shaftColor
-       , shaftStyle
+       --, arrowHead
+       --, arrowTail
+       --, arrowShaft
+       --, headSize
+       --, tailSize
+       --, headGap
+       --, tailGap
+       --, gap
+       --, headColor
+       --, headStyle
+       --, tailColor
+       --, tailStyle
+       --, shaftColor
+       --, shaftStyle
 
          -- * Text
        , text, topLeftText, alignedText, baselineText
@@ -239,8 +239,8 @@ module Diagrams.TwoD
 
 import           Diagrams.TwoD.Align
 import           Diagrams.TwoD.Arc
-import           Diagrams.TwoD.Arrow
-import           Diagrams.TwoD.Arrowheads
+--import           Diagrams.TwoD.Arrow
+--import           Diagrams.TwoD.Arrowheads
 import           Diagrams.TwoD.Combinators
 import           Diagrams.TwoD.Ellipse
 import           Diagrams.TwoD.Image

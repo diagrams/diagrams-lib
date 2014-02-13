@@ -69,7 +69,7 @@ showOrigin' :: (Renderable (Path R2) b, Backend b R2, Monoid' m)
 showOrigin' oo d = o <> d
   where o     = stroke (circle sz)
                 # fc (oo^.oColor)
-                # lw 0
+                # lw (Output 0)
                 # fmap (const mempty)
         (w,h) = size2D d ^* oo^.oScale
         sz = maximum [w, h, oo^.oMinSize]

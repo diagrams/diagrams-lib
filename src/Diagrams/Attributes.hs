@@ -55,6 +55,9 @@ module Diagrams.Attributes (
   -- ** Dashing
   , Dashing(..), DashingA, getDashing, dashing
 
+  -- * Measure conversion
+  , toOutput
+
   ) where
 
 import           Control.Lens          (Setter, sets)
@@ -66,9 +69,12 @@ import           Data.Maybe            (fromMaybe)
 import           Data.Monoid.Recommend
 import           Data.Semigroup
 import           Data.Typeable
+import           Data.VectorSpace      (magnitude)
 
 import           Diagrams.Core
+import           Diagrams.Core.Compile (mapRTreeStyle)
 import           Diagrams.Core.Style   (setAttr)
+import           Diagrams.Core.Types   (RTree)
 
 ------------------------------------------------------------
 --  Color  -------------------------------------------------
@@ -270,30 +276,30 @@ opacity = applyAttr . Opacity . Product
 --  Lines and stuff    -------------------------------------
 ------------------------------------------------------------
 
--- | The width of lines.  By default, the line width is measured with
---   respect to the /final/ coordinate system of a rendered diagram,
---   as opposed to the local coordinate systems in effect at the time
---   the line width was set for various subdiagrams.  This is so that
---   it is easy to combine a variety of shapes (some created by
---   scaling) and have them all drawn using a consistent line width.
---   However, sometimes it is desirable for scaling to affect line
---   width; the 'freeze' operation is provided for this purpose.  The
---   line width of frozen diagrams is affected by transformations.
---
---   Line widths specified on child nodes always override line widths
+-- | Line widths specified on child nodes always override line widths
 --   specified at parent nodes.
-newtype LineWidth = LineWidth (Last Double)
+newtype LineWidth = LineWidth (Last (Measure Double))
   deriving (Typeable, Semigroup)
 instance AttributeClass LineWidth
 
-instance Default LineWidth where
-    def = LineWidth (Last 0.01)
+geometricScale :: Transformation t -> Double
+geometricScale t = sqrt (w * h)
+  where
+    w = magnitude $ transform t unitX
+    h = magnitude $ transform t unitY
 
-getLineWidth :: LineWidth -> Double
+--instance Transformable LineWidth where
+--  transform t l@(LineWidth (Last (Output w))) = l
+--  transform t    LineWidth (Last (Normalized w)) =
+
+instance Default LineWidth where
+    def = LineWidth (Last (Output 1))
+
+getLineWidth :: LineWidth -> (Measure Double)
 getLineWidth (LineWidth (Last w)) = w
 
 -- | Set the line (stroke) width.
-lineWidth :: HasStyle a => Double -> a -> a
+lineWidth :: HasStyle a => (Measure Double) -> a -> a
 lineWidth = applyAttr . LineWidth . Last
 
 -- | Apply a 'LineWidth' attribute.
@@ -301,8 +307,23 @@ lineWidthA ::  HasStyle a => LineWidth -> a -> a
 lineWidthA = applyAttr
 
 -- | A convenient synonym for 'lineWidth'.
-lw :: HasStyle a => Double -> a -> a
+lw :: HasStyle a => (Measure Double) -> a -> a
 lw = lineWidth
+
+-- | Convert all of the @LineWidth@ attributes in an @RTree@ to output
+--   units. `w` and `h` are the width and height of the final diagram.
+--   The scaling factor is the geometric mean of `h` and `w`.
+toOutput :: Double -> Double -> RTree b v () -> RTree b v ()
+toOutput w h tr = mapRTreeStyle f tr
+  where
+    f sty = case getAttr sty of
+              Just (LineWidth (Last (Output t))) -> out t sty
+              Just (LineWidth (Last (Normalized t))) -> out (s*t) sty
+              Just (LineWidth (Last (Local t))) -> out (s*t) sty
+              Just (LineWidth (Last (Global t))) -> out t sty
+              Nothing -> sty
+    out z st = setAttr (LineWidth (Last (Output z))) st
+    s = sqrt (w * h)
 
 -- | What sort of shape should be placed at the endpoints of lines?
 data LineCap = LineCapButt   -- ^ Lines end precisely at their endpoints.

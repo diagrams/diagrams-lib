@@ -95,7 +95,6 @@ module Diagrams.TwoD.Arrow
        ) where
 
 import           Control.Applicative              ((<*>))
-import           Control.Arrow                    (first)
 import           Control.Lens                     (Lens', Setter', Traversal',
                                                    generateSignatures,
                                                    lensRules, makeLensesWith,
