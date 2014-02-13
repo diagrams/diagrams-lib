@@ -406,7 +406,11 @@ dashing ds offs = applyAttr (DashingA (Last (Dashing ds offs)))
 ------------------------------------------------------------
 
 -- | Push fill attributes down until they are at the roots of trees
---   containing only loops.
+--   containing only loops.  This makes life much easier for backends,
+--   which typically have a semantics where fill attributes are
+--   applied to lines/non-closed paths as well as loops/closed paths,
+--   whereas in the semantics of diagrams, fill attributes only apply
+--   to loops.
 splitFills :: forall b v a. Typeable v => RTree b v a -> RTree b v a
 splitFills = fst . splitFills' Nothing
   where
@@ -422,9 +426,9 @@ splitFills = fst . splitFills' Nothing
   -- contains some lines (False).
   splitFills' :: Maybe FillColor -> RTree b v a -> (RTree b v a, Bool)
 
-  -- RStyle node: Check for fill attribute and split it out of the
-  -- style, combining it with incoming fill attribute.  Recurse and
-  -- rebuild.
+  -- RStyle node: Check for a fill attribute, and split it out of the
+  -- style, combining it with the incoming fill attribute.  Recurse
+  -- and rebuild.
   splitFills' mfc (Node (RStyle sty) cs) = (t', ok)
     where
       mfc' = mfc <> getAttr sty
@@ -486,4 +490,3 @@ splitFills = fst . splitFills' Nothing
   applyMfc :: Maybe FillColor -> RTree b v a -> RTree b v a
   applyMfc Nothing  t = t
   applyMfc (Just f) t = Node (RStyle $ attrToStyle f) [t]
-
