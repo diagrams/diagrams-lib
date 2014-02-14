@@ -75,6 +75,7 @@ Library
                        Diagrams.TwoD.Image,
                        Diagrams.TwoD.Adjust,
                        Diagrams.ThreeD.Align,
+                       Diagrams.ThreeD.Attributes,
                        Diagrams.ThreeD.Camera,
                        Diagrams.ThreeD.Deform,
                        Diagrams.ThreeD.Light,
