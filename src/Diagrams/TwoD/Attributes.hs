@@ -31,14 +31,14 @@ module Diagrams.TwoD.Attributes (
 import           Data.Default.Class
 import           Data.Semigroup
 import           Data.Typeable
-import           Data.VectorSpace      (magnitude)
 
 import           Diagrams.Core
-import           Diagrams.Core.Compile (mapRTreeStyle)
-import           Diagrams.Core.Style   (setAttr)
-import           Diagrams.Core.Types   (RTree)
-import           Diagrams.TwoD.Types   (R2)
-import           Diagrams.TwoD.Vector  (unitX, unitY)
+import           Diagrams.Core.Compile   (mapRTreeStyle)
+import           Diagrams.Core.Style     (setAttr)
+import           Diagrams.Core.Types     (RTree)
+import           Diagrams.TwoD.Size      (SizeSpec2D, sizePair)
+import           Diagrams.TwoD.Transform (avgScale)
+import           Diagrams.TwoD.Types     (R2)
 
 ------------------------------------------------------------
 --  Line Width  -------------------------------------------------
@@ -52,17 +52,9 @@ instance AttributeClass LineWidth
 
 type instance V LineWidth = R2
 
--- Estimate the line width scaling based on the geometric mean of the x and y
--- scaling of the transformation
-geometricScale :: Transformation R2 -> Double -> Double
-geometricScale t w = w * sqrt (x*y)
-  where
-    x = magnitude $ transform t unitX
-    y = magnitude $ transform t unitY
-
 instance Transformable LineWidth where
   transform t (LineWidth (Last (Local w))) =
-    LineWidth (Last (Local (geometricScale t w)))
+    LineWidth (Last (Local (avgScale t * w)))
   transform _ l = l
 
 instance Default LineWidth where
@@ -94,13 +86,15 @@ lwL w = lineWidth (Local w)
 -- | Convert all of the @LineWidth@ attributes in an @RTree@ to output
 --   units. `w` and `h` are the width and height of the final diagram.
 --   The scaling factor is the geometric mean of `h` and `w`.
-toOutput :: Double -> Double -> RTree b v () -> RTree b v ()
-toOutput w h tr = mapRTreeStyle f tr
+toOutput :: SizeSpec2D -> Double -> RTree b v () -> RTree b v ()
+toOutput sizeSpec gs tr = mapRTreeStyle f tr
   where
     f sty = case getAttr sty of
               Just (LineWidth (Last (Output t))) -> out t sty
-              Just (LineWidth (Last (Normalized t))) -> out (s*t) sty
+              Just (LineWidth (Last (Normalized t))) -> out (nScale * t) sty
               Just (LineWidth (Last (Local t))) -> out t sty
+              Just (LineWidth (Last (Global t))) -> out (gs * t) sty
               Nothing -> sty
     out z st = setAttr (LineWidth (Last (Output z))) st
-    s = sqrt (w * h)
+    nScale = sqrt (w * h)
+    (w, h) = sizePair sizeSpec

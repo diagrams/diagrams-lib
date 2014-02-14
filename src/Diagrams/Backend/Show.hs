@@ -36,7 +36,7 @@ instance HasLinearMap v => Backend ShowBackend v where
   data Options ShowBackend v = SBOpt
 
   doRender _ _ (SR r) = PP.render r
-  renderData _ _ = SR empty
+  renderData _ _ _ = SR empty
 
 instance Monoid (Render ShowBackend v) where
   mempty = SR empty

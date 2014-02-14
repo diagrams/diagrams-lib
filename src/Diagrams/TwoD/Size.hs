@@ -27,7 +27,7 @@ module Diagrams.TwoD.Size
        , requiredScaleT, requiredScale
 
          -- ** Changing the size of things
-       , sized, sizedAs
+       , sized, sizedAs, sizePair
        ) where
 
 import           Diagrams.Core
@@ -148,3 +148,10 @@ sizedAs :: ( Transformable a, Enveloped a, V a ~ R2
            , Enveloped b, V b ~ R2)
         => b -> a -> a
 sizedAs other = sized (sizeSpec2D other)
+
+-- | Make width and height of `SizeSpec2D` into a tuple.
+sizePair :: SizeSpec2D -> (Double, Double)
+sizePair (Width w')   = (w',w')
+sizePair (Height h')  = (h',h')
+sizePair (Dims w' h') = (w',h')
+sizePair Absolute     = (100,100)
