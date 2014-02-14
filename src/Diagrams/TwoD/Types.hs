@@ -29,6 +29,7 @@ module Diagrams.TwoD.Types
        , Angle
        , rad, turn, deg
        , fullTurn, fullCircle, angleRatio
+       , sinA, cosA, tanA, asinA, acosA, atanA
        , (@@)
        ) where
 
@@ -276,6 +277,29 @@ fullCircle = fullTurn
 angleRatio :: Angle -> Angle -> Double
 angleRatio a b = (a^.rad) / (b^.rad)
 
+-- | The sine of the given @Angle@.
+sinA :: Angle -> Double
+sinA (Radians r) = sin r
+
+-- | The cosine of the given @Angle@.
+cosA :: Angle -> Double
+cosA (Radians r) = cos r
+
+-- | The tangent function of the given @Angle@.
+tanA :: Angle -> Double
+tanA (Radians r) = tan r
+
+-- | The @Angle@ with the given sine.
+asinA :: Double -> Angle
+asinA = Radians . asin
+
+-- | The @Angle@ with the given cosine.
+acosA :: Double -> Angle
+acosA = Radians . acos
+
+-- | The @Angle@ with the given tangent.
+atanA :: Double -> Angle
+atanA = Radians . atan
 
 -- | @30 \@\@ deg@ is an @Angle@ of the given measure and units.
 --

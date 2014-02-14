@@ -31,6 +31,7 @@ module Diagrams.ThreeD.Types
          --   reëxported here for convenience.
        , Angle, rad, turn, deg, (@@)
        , fullTurn, angleRatio
+       , sinA, cosA, tanA
 
          -- * Directions in 3D
        , Direction(..)

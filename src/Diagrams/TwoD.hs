@@ -72,6 +72,7 @@ module Diagrams.TwoD
        , Angle
        , rad, turn, deg
        , fullTurn, fullCircle, angleRatio
+       , sinA, cosA, tanA
        , (@@)
 
          -- * Paths
