@@ -119,6 +119,7 @@ import           Diagrams.Solve                   (quadForm)
 import           Diagrams.Tangent                 (tangentAtEnd, tangentAtStart)
 import           Diagrams.Trail
 import           Diagrams.TwoD.Arrowheads
+import           Diagrams.TwoD.Attributes
 import           Diagrams.TwoD.Path               (strokeT)
 import           Diagrams.TwoD.Transform          (rotate, translateX)
 import           Diagrams.TwoD.Transform.ScaleInv (scaleInvPrim)
@@ -266,8 +267,9 @@ widthOfJoint :: Style v -> Double
 widthOfJoint sStyle =
     let w = fmap getLineWidth . getAttr $ sStyle in
     case w of
+        Just (Global w') -> w'
         Nothing -> 0.01 -- this case should never happen.
-        Just w' -> w'
+        _ -> 0.01 -- XXX need to figure out what to do here XXX
 
 -- | Combine the head and its joint into a single scale invariant diagram
 --   and move the origin to the attachment point. Return the diagram
@@ -365,11 +367,6 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
     -- uniformly as the transformation applied to the entire arrow.
     -- See https://github.com/diagrams/diagrams-lib/issues/112.
     delayedArrow da =
-
-      -- Note we only take the *unfrozen* transformation.  The frozen
-      -- transformation *do* affect scale-invariant objects like
-      -- arrowheads, and will still be higher up in the tree (so we
-      -- don't need to apply it here).
       let (trans, globalSty) = option mempty untangle . fst $ da
       in  dArrow globalSty trans len
 

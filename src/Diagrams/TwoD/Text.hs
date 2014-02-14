@@ -61,8 +61,6 @@ type instance V Text = R2
 instance Transformable Text where
   transform t (Text tt a s) = Text (t <> tt) a s
 
-instance IsPrim Text
-
 instance HasOrigin Text where
   moveOriginTo p = translate (origin .-. p)
 

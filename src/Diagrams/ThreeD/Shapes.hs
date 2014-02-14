@@ -36,8 +36,6 @@ type instance V Ellipsoid = R3
 instance Transformable Ellipsoid where
   transform t1 (Ellipsoid t2) = Ellipsoid (t1 <> t2)
 
-instance IsPrim Ellipsoid
-
 instance Renderable Ellipsoid NullBackend where
   render _ _ = mempty
 

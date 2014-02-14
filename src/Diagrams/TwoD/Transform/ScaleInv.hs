@@ -156,17 +156,17 @@ instance (V t ~ R2, Transformable t) => Transformable (ScaleInv t) where
 -- applied directly to the underlying object, scales and all.  We must
 -- take care to transform the reference point and direction vector
 -- appropriately.
-instance (V t ~ R2, Transformable t) => IsPrim (ScaleInv t) where
-  transformWithFreeze t1 t2 s = ScaleInv t'' d'' origin''
-    where
+--instance (V t ~ R2, Transformable t) => IsPrim (ScaleInv t) where
+--  transformWithFreeze t1 t2 s = ScaleInv t'' d'' origin''
+--    where
       -- first, apply t2 normally, i.e. ignoring scaling
-      s'@(ScaleInv t' _ _)      = transform t2 s
+      --s'@(ScaleInv t' _ _)      = transform t2 s
 
       -- now apply t1 to get the new direction and origin
-      (ScaleInv _ d'' origin'') = transform t1 s'
+      --(ScaleInv _ d'' origin'') = transform t1 s'
 
       -- but apply t1 directly to the underlying thing, scales and all.
-      t''                       = transform t1 t'
+      --t''                       = transform t1 t'
 
 instance (Renderable t b, V t ~ R2) => Renderable (ScaleInv t) b where
   render b = render b . view scaleInvObj

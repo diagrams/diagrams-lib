@@ -39,9 +39,6 @@ instance Transformable PointLight where
 instance Transformable ParallelLight where
     transform t (ParallelLight v c) = ParallelLight (transform t v) c
 
-instance IsPrim PointLight
-instance IsPrim ParallelLight
-
 -- | Construct a Diagram with a single PointLight at the origin, which
 -- takes up no space.
 pointLight :: (Backend b R3, Renderable PointLight b)

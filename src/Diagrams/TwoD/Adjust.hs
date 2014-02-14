@@ -97,8 +97,6 @@ adjustDiaSize2D getSize setSize _ opts d =
 --
 --   * Set default attributes (see 'setDefault2DAttributes')
 --
---   * Freeze the diagram in its final form
---
 --   * Scale and translate the diagram to fit within the requested
 --     size (see 'adjustDiaSize2D')
 --
