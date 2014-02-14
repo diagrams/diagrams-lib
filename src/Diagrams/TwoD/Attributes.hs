@@ -21,7 +21,7 @@
 
 module Diagrams.TwoD.Attributes (
   -- ** Width
-      LineWidth, getLineWidth, lineWidth, lineWidthA, lw, lwO, lwL
+      LineWidth, getLineWidth, lineWidth, lineWidthA, lw, lwN, lwO, lwL
 
   -- * Measure conversion
     , toOutput
@@ -71,9 +71,13 @@ lineWidth = applyTAttr . LineWidth . Last
 lineWidthA ::  (HasStyle a, V a ~ R2) => LineWidth -> a -> a
 lineWidthA = applyTAttr
 
--- | A convenient synonym for 'lineWidth (Normalized w)'.
+-- | A convenient synonym for 'lineWidth (Global w)'.
 lw :: (HasStyle a, V a ~ R2) => Double -> a -> a
-lw w = lineWidth (Normalized w)
+lw w = lineWidth (Global w)
+
+-- | A convenient synonym for 'lineWidth (Normalized w)'.
+lwN :: (HasStyle a, V a ~ R2) => Double -> a -> a
+lwN w = lineWidth (Normalized w)
 
 -- | A convenient synonym for `lineWidth (Output w)`.
 lwO :: (HasStyle a, V a ~ R2) => Double -> a -> a

@@ -68,9 +68,10 @@ adjustDiaSize2D :: Monoid' m
                 => (Options b R2 -> SizeSpec2D)
                 -> (SizeSpec2D -> Options b R2 -> Options b R2)
                 -> b -> Options b R2 -> QDiagram b R2 m
-                -> (Options b R2, QDiagram b R2 m)
+                -> (Double, Options b R2, QDiagram b R2 m)
 adjustDiaSize2D getSize setSize _ opts d =
-  ( case spec of
+  ( s
+  , case spec of
        Dims _ _ -> opts
        _        -> setSize (uncurry Dims . scale s $ size) opts
 
@@ -106,7 +107,7 @@ adjustDia2D :: Monoid' m
             => (Options b R2 -> SizeSpec2D)
             -> (SizeSpec2D -> Options b R2 -> Options b R2)
             -> b -> Options b R2 -> QDiagram b R2 m
-            -> (Options b R2, QDiagram b R2 m)
+            -> (Double, Options b R2, QDiagram b R2 m)
 adjustDia2D getSize setSize b opts d
   = adjustDiaSize2D getSize setSize b opts (d # setDefault2DAttributes)
 
