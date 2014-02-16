@@ -120,9 +120,8 @@ import           Diagrams.Tangent                 (tangentAtEnd, tangentAtStart)
 import           Diagrams.Trail
 import           Diagrams.TwoD.Arrowheads
 import           Diagrams.TwoD.Attributes
-import           Diagrams.TwoD.Path               (strokeT)
+import           Diagrams.TwoD.Path               (strokeT, stroke)
 import           Diagrams.TwoD.Transform          (rotate, translateX)
-import           Diagrams.TwoD.Transform.ScaleInv (scaleInvPrim)
 import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector             (direction, unitX, unit_X)
 import           Diagrams.Util                    (( # ))
@@ -275,25 +274,25 @@ widthOfJoint sStyle =
 --   and move the origin to the attachment point. Return the diagram
 --   and its width.
 mkHead :: Renderable (Path R2) b => ArrowOpts -> (Diagram b R2, Double)
-mkHead opts = ( (j <> h) # moveOriginBy (jWidth *^ unit_X) # lw 0
+mkHead opts = ((j <> h) # moveOriginBy (jWidth *^ unit_X) # lw 0
               , hWidth + jWidth)
   where
     (h', j') = (opts^.arrowHead) (opts^.headSize) (widthOfJoint $ shaftSty opts)
     hWidth = xWidth h'
     jWidth = xWidth j'
-    h = scaleInvPrim h' unitX # applyStyle (headSty opts)
-    j = scaleInvPrim j' unitX # applyStyle (colorJoint (opts^.shaftStyle))
+    h = stroke h' # applyStyle (headSty opts)
+    j = stroke j' # applyStyle (colorJoint (opts^.shaftStyle))
 
 -- | Just like mkHead only the attachment point is on the right.
 mkTail :: Renderable (Path R2) b => ArrowOpts -> (Diagram b R2, Double)
-mkTail opts = ( (t <> j) # moveOriginBy (jWidth *^ unitX) # lw 0
+mkTail opts = ((t <> j) # moveOriginBy (jWidth *^ unitX) # lw 0
               , tWidth + jWidth)
   where
     (t', j') = (opts^.arrowTail) (opts^.tailSize) (widthOfJoint $ shaftSty opts)
     tWidth = xWidth t'
     jWidth = xWidth j'
-    t = scaleInvPrim t' unitX # applyStyle (tailSty opts)
-    j = scaleInvPrim j' unitX # applyStyle (colorJoint (opts^.shaftStyle))
+    t = stroke t' # applyStyle (tailSty opts)
+    j = stroke j' # applyStyle (colorJoint (opts^.shaftStyle))
 
 -- | Make a trail with the same angles and offset as an arrow with tail width
 --   tw, head width hw and shaft of tr, such that the magnituted of the shaft
@@ -350,12 +349,10 @@ arrow len = arrow' def len
 arrow' :: Renderable (Path R2) b => ArrowOpts -> Double -> Diagram b R2
 arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
 
-    -- We must approximate the envelope and trace by just drawing the
-    -- arrow from the origin to (len,0) and using its envelope and
-    -- trace.  That may not end up being exactly right (if the arrow
-    -- gets scaled, the shaft may get a bit longer or shorter, and so
-    -- on) but it's close enough.
-    (getEnvelope approx) (getTrace approx) mempty mempty
+    -- We set the envelope and trace of the arrow to empty.
+    -- XXX I'm not sure if this is the semantics we will end up
+    --     using, but I think it makes sense
+    mempty mempty mempty mempty
   where
 
     -- Once we learn the global transformation context this arrow is
@@ -369,8 +366,6 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
     delayedArrow da =
       let (trans, globalSty) = option mempty untangle . fst $ da
       in  dArrow globalSty trans len
-
-    approx = dArrow mempty mempty len
 
     -- Build an arrow and set its endpoints to the image under tr of origin and (len,0).
     dArrow sty tr ln = (h' <> t' <> shaft)
