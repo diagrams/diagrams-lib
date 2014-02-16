@@ -149,8 +149,8 @@ instance Default ArrowOpts where
         { _arrowHead    = dart
         , _arrowTail    = noTail
         , _arrowShaft   = trailFromOffsets [unitX]
-        , _headSize     = 0.3
-        , _tailSize     = 0.3
+        , _headSize     = 20
+        , _tailSize     = 20
         , _headGap      = 0
         , _tailGap      = 0
 
