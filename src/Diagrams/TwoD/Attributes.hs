@@ -22,6 +22,7 @@
 module Diagrams.TwoD.Attributes (
   -- ** Width
       LineWidth, getLineWidth, lineWidth, lineWidthA, lw, lwN, lwO, lwL
+    , ultraThin, veryThin, thin, medium, thick, veryThick
 
   -- * Measure conversion
     , toOutput
@@ -79,17 +80,27 @@ lw w = lineWidth (Global w)
 lwN :: (HasStyle a, V a ~ R2) => Double -> a -> a
 lwN w = lineWidth (Normalized w)
 
--- | A convenient synonym for `lineWidth (Output w)`.
+-- | A convenient synonym for 'lineWidth (Output w)'.
 lwO :: (HasStyle a, V a ~ R2) => Double -> a -> a
 lwO w = lineWidth (Output w)
 
--- | A convenient sysnonym for `lineWidth (Local w)`.
+-- | A convenient sysnonym for 'lineWidth (Local w)'.
 lwL :: (HasStyle a, V a ~ R2) => Double -> a -> a
 lwL w = lineWidth (Local w)
 
+-- | Standard line widths.
+ultraThin, veryThin, thin, medium, thick, veryThick
+  :: (HasStyle a, V a ~ R2) => a -> a
+ultraThin = lwO 0.25
+veryThin  = lwO 0.5
+thin      = lwO 1
+medium    = lwO 2
+thick     = lwO 4
+veryThick = lwO 5
+
 -- | Convert all of the @LineWidth@ attributes in an @RTree@ to output
---   units. `w` and `h` are the width and height of the final diagram.
---   The scaling factor is the geometric mean of `h` and `w`.
+--   units. 'w' and 'h' are the width and height of the final diagram.
+--   The scaling factor is the geometric mean of 'h' and 'w'.
 toOutput :: SizeSpec2D -> Double -> RTree b v () -> RTree b v ()
 toOutput sizeSpec gs tr = mapRTreeStyle f tr
   where

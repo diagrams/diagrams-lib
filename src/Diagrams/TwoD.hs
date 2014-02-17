@@ -235,7 +235,7 @@ module Diagrams.TwoD
 
        -- ** Width
        , LineWidth, getLineWidth, lineWidth, lineWidthA, lw, lwN, lwO, lwL
-
+       , ultraThin, veryThin, thin, medium, thick, veryThick
        -- * Measure conversion
        , toOutput
 
