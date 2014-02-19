@@ -31,6 +31,7 @@ Library
                        Diagrams.Combinators,
                        Diagrams.Coordinates,
                        Diagrams.Attributes,
+                       Diagrams.Attributes.Compile,
                        Diagrams.Points,
                        Diagrams.Located,
                        Diagrams.Parametric,
