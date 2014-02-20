@@ -1,3 +1,64 @@
+1.1 (XXX)
+---------
+
+* **New features**
+
+    - Support for `Deformation`s, arbitrary (non-affine)
+      transformations on objects such as points, paths, and located
+      trails (though not on diagrams).
+
+    - New functions `clipTo`, which clips a diagram's envelope and
+      trace along with its visual representation, and `clipped`, which
+      clips the diagram's visual representation but replaces its
+      envelope and trace with those of the clipping path.
+
+    - New `arrowV` function, for creating an arrow with the direction
+      and magnitude of a given vector.
+
+    - `gap` traversal, for setting the head and tail gaps of an arrow
+      simultaneously.
+
+    - Generalized types for `centerXY` and `snugXY`, based on new
+      `basis` function from `diagrams-core
+
+    - New 3D `Transform`s, alignment, and 3D-specific `Prelude`.
+
+* **New instances**
+
+    - `Typeable` instances for all data types that are used as diagram
+      primitives.
+    - `Sectionable` instance for `FixedSegment`.
+
+* **API changes**
+
+    - `Angle` is now a type, rather than a class.  It uses a single
+      internal representation for angles, and lenses `turn`, `rad,`
+      and `deg` are supplied for constructing (using `@@`) and viewing
+      (using `^.`) `Angle`s in various units.  In addition, the `Num`
+      instance for `Angle` has been removed, eliminating a class of
+      errors where a bare number is interpreted in units other than
+      what you expect.
+
+    - Removed `Num` instance for angles.
+
+* **Dependency/version changes**
+
+    - Require `lens >= 4.0`.
+	- Allow `array-0.5`.
+	- Allow `hashable-1.1`.
+	- Remove `NumInstances` dependency.
+
+* **Bug fixes**
+
+    - Exclude joins in offsets on close segments (#160).
+    - Exclude extra segment when joining loops in offset (#155).
+
+* **Performance improvements**
+
+    - `colorToSRGBA` function now avoids expensive matrix operations,
+      offering dramatic speedups in rendering diagrams with many color
+      attributes.
+
 1.0.1 (26 January 2014)
 -----------------------
 
