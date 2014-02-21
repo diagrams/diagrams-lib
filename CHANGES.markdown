@@ -22,6 +22,10 @@
       `basis` function from `diagrams-core
 
     - New 3D `Transform`s, alignment, and 3D-specific `Prelude`.
+    
+    - New `frame` function similar to `pad`, but increases the envelope 
+      of a diagram by an amount specified in the local units. 
+      Pre-centering is not necessary.
 
 * **New instances**
 
