@@ -24,8 +24,8 @@
     - New 3D `Transform`s, alignment, and 3D-specific `Prelude`.
     
     - New `frame` function similar to `pad`, but increases the envelope 
-      of a diagram by an amount specified in the local units. 
-      Pre-centering is not necessary.
+      of a diagram by an amount specified in local units in every direction
+      irrespective of the local origin. 
 
 * **New instances**
 
