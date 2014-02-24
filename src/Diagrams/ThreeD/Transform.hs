@@ -102,11 +102,10 @@ aboutY ang = fromLinear r (linv r) where
 
 -- | @rotationAbout p d a@ is a rotation about a line parallel to @d@
 --   passing through @p@.
-rotationAbout
-  :: Direction d
-  => P3     -- ^ origin of rotation
-  -> d      -- ^ direction of rotation axis
-  -> Angle      -- ^ angle of rotation
+rotationAbout ::
+     P3        -- ^ origin of rotation
+  -> Direction -- ^ direction of rotation axis
+  -> Angle     -- ^ angle of rotation
   -> T3
 rotationAbout p d a
   = mconcat [translation (negateV t),
@@ -128,7 +127,7 @@ rotationAbout p d a
 -- without tilting, it will be, otherwise if only tilting is
 -- necessary, no panning will occur.  The tilt will always be between
 -- ± 1/4 turn.
-pointAt :: Direction d => d -> d -> d -> T3
+pointAt :: Direction -> Direction -> Direction -> T3
 pointAt a i f = pointAt' (fromDirection a) (fromDirection i) (fromDirection f)
 
 -- | pointAt' has the same behavior as 'pointAt', but takes vectors
@@ -137,9 +136,9 @@ pointAt' :: R3 -> R3 -> R3 -> T3
 pointAt' about initial final = tilt <> pan where
   inPanPlane    = final ^-^ project final initial
   panAngle      = angleBetween initial inPanPlane
-  pan           = rotationAbout origin (direction about :: Spherical) panAngle
+  pan           = rotationAbout origin (direction about) panAngle
   tiltAngle     = angleBetween initial inPanPlane
-  tiltDir       = direction $ cross3 inPanPlane about :: Spherical
+  tiltDir       = direction $ cross3 inPanPlane about
   tilt          = rotationAbout origin tiltDir tiltAngle
 
 -- Scaling -------------------------------------------------

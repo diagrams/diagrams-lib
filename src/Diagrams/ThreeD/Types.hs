@@ -1,12 +1,12 @@
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE RankNTypes                 #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE TypeOperators              #-}
 {-# LANGUAGE TypeSynonymInstances       #-}
+{-# LANGUAGE UndecidableInstances       #-}
 {-# LANGUAGE ViewPatterns               #-}
-
-{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -31,21 +31,21 @@ module Diagrams.ThreeD.Types
          --   reëxported here for convenience.
        , Angle, rad, turn, deg, (@@)
        , fullTurn, angleRatio
-       , sinA, cosA, tanA
+       , sinA, cosA, tanA, asinA, acosA, atanA
 
          -- * Directions in 3D
-       , Direction(..)
-       , Spherical(..)
-       , asSpherical
+       , Direction, direction, fromDirection
+       , Spherical(..), Cylindrical(..)
        ) where
 
 import           Control.Lens           (Iso', iso, over, Wrapped(..), Rewrapped
-                                        , _1, _2, _3)
+                                        , _1, _2, _3, (^.))
 
 import           Diagrams.Core
 import           Diagrams.TwoD.Types
 import           Diagrams.Coordinates
 
+import           Data.AffineSpace
 import           Data.AffineSpace.Point
 import           Data.Basis
 import           Data.Cross
@@ -131,33 +131,14 @@ instance HasCross3 R3 where
 --------------------------------------------------------------------------------
 -- Direction
 
--- | Direction is a type class representing directions in R3.  The interface is
--- based on that of the Angle class in 2D.
+-- | A @Direction@ represents directions in R3.  The constructor is
+-- not exported; @Direction@s can be used with 'fromDirection' and the
+-- lenses provided by its instances.
+data Direction = Direction R3
 
-class Direction d where
-    -- | Convert to spherical coördinates
-    toSpherical :: d -> Spherical
-
-    -- | Convert from spherical coördinates
-    fromSpherical :: Spherical -> d
-
--- | A direction expressed as a pair of spherical coordinates.
--- `Spherical 0 0` is the direction of `unitX`.  The first coordinate
--- represents rotation about the Z axis, the second rotation towards the Z axis.
-data Spherical = Spherical Angle Angle
-                   deriving (Show, Read, Eq)
-
-instance Direction Spherical where
-    toSpherical = id
-    fromSpherical = id
-
--- | The identity function with a restricted type, for conveniently
--- restricting unwanted polymorphism.  For example, @fromDirection
--- . asSpherical . camForward@ gives a unit vector pointing in the
--- direction of the camera view.  Without @asSpherical@, the
--- intermediate type would be ambiguous.
-asSpherical :: Spherical -> Spherical
-asSpherical = id
+-- | Not exported
+_Dir :: Iso' Direction R3
+_Dir = iso (\(Direction v) -> v) Direction
 
 instance HasX R3 where
     _x = r3Iso . _1

@@ -17,7 +17,7 @@ module Diagrams.ThreeD.Vector
          unitX, unitY, unitZ, unit_X, unit_Y, unit_Z,
 
          -- * Converting between vectors and angles
-         direction, fromDirection, angleBetween, angleBetweenDirs
+         angleBetween, angleBetweenDirs
        ) where
 
 import Control.Lens ((^.))
@@ -52,32 +52,10 @@ unit_Y = 0 ^& (-1) ^& 0
 unit_Z :: R3
 unit_Z = 0 ^& 0 ^& (-1)
 
-
--- | @direction v@ is the direction in which @v@ points.  Returns an
---   unspecified value when given the zero vector as input.
-direction :: Direction d => R3 -> d
-direction v
-  | r == 0 = fromSpherical $ Spherical zero zero
-  | otherwise = fromSpherical $ Spherical θ φ where
-  r = magnitude v
-  (x,y,z) = unr3 v
-  φ = asin (z / r) @@ rad
-  θ = atan2 y x @@ rad
-  zero = 0 @@ rad
-
--- | @fromDirection d@ is the unit vector in the direction @d@.
-fromDirection :: Direction d => d -> R3
-fromDirection (toSpherical -> (Spherical θ' φ')) = r3 (x,y,z) where
-  θ = θ'^.rad
-  φ = φ'^.rad
-  x = cos θ * cos φ
-  y = sin θ * cos φ
-  z = sin φ
-
 -- | compute the positive angle between the two vectors in their common plane
 angleBetween  :: R3 -> R3 -> Angle
 angleBetween v1 v2 = acos (normalized v1 <.> normalized v2) @@ rad
 
--- | compute the positive angle between the two vectors in their common plane
-angleBetweenDirs  :: Direction d => d -> d -> Angle
+-- | compute the positive angle between the two directions in their common plane
+angleBetweenDirs  :: Direction -> Direction -> Angle
 angleBetweenDirs d1 d2 = angleBetween (fromDirection d1) (fromDirection d2)
