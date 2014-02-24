@@ -260,4 +260,4 @@ reflectAbout p v = transform (reflectionAbout p v)
 --   useful for implementing backends.
 onBasis :: T3 -> ((R3, R3, R3), R3)
 onBasis t = ((x, y, z), v)
-  where ((x:y:z:[]), v) = T.onBasis t
+  where (x:y:z:[], v) = T.onBasis t
