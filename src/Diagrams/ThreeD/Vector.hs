@@ -76,7 +76,7 @@ fromDirection (toSpherical -> (Spherical θ' φ')) = r3 (x,y,z) where
 
 -- | compute the positive angle between the two vectors in their common plane
 angleBetween  :: R3 -> R3 -> Angle
-angleBetween v1 v2 = atan2 (magnitude $ cross3 v1 v2) (v1 <.> v2) @@ rad
+angleBetween v1 v2 = acos (normalized v1 <.> normalized v2) @@ rad
 
 -- | compute the positive angle between the two vectors in their common plane
 angleBetweenDirs  :: Direction d => d -> d -> Angle
