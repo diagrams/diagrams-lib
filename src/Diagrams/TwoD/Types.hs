@@ -31,14 +31,17 @@ module Diagrams.TwoD.Types
        , fullTurn, fullCircle, angleRatio
        , sinA, cosA, tanA, asinA, acosA, atanA
        , (@@)
+       -- * Polar Coordinates
+       , HasTheta(..), HasPhi(..)
        ) where
 
 import           Control.Lens            (Iso', Wrapped(..), Rewrapped, iso
-                                         , review , (^.), _1, _2)
+                                         , review , (^.), _1, _2, Lens', lens)
 
 import           Diagrams.Coordinates
 import           Diagrams.Core
 
+import           Data.AffineSpace
 import           Data.AffineSpace.Point
 import           Data.Basis
 import           Data.MemoTrie           (HasTrie (..))
@@ -185,6 +188,13 @@ instance HasX R2 where
 instance HasY R2 where
     _y = r2Iso . _2
 
+instance HasTheta R2 where
+    _theta = lens (\v -> atanA (v^._y / v^._x))
+      (\v θ -> let r = magnitude v in R2 (r * cosA θ) (r * sinA θ))
+
+instance HasR R2 where
+    _r = lens magnitude (\v r -> let s = r/magnitude v in s *^ v)
+
 -- | Points in R^2.  This type is intentionally abstract.
 --
 --   * To construct a point, use 'p2', or '^&' (see
@@ -236,6 +246,18 @@ instance HasX P2 where
 
 instance HasY P2 where
     _y = p2Iso . _2
+
+-- not sure about exporting this
+-- If we do want to export it, make it polymorphic, put it in Core.Points
+_relative :: P2 -> Iso' P2 R2
+_relative p0 = iso (.-. p0) (p0 .+^)
+
+instance HasR P2 where
+    _r = _relative origin . _r
+
+instance HasTheta P2 where
+    _theta = _relative origin . _theta
+
 ------------------------------------------------------------
 -- Angles
 
@@ -311,3 +333,14 @@ atanA = Radians . atan
 a @@ i = review i a
 
 infixl 5 @@
+
+------------------------------------------------------------
+-- Polar Coordinates
+
+-- | The class of types with at least one angle coordinate, called _theta.
+class HasTheta t where
+    _theta :: Lens' t Angle
+
+-- | The class of types with at least two angle coordinates, the second called _phi.
+class HasPhi t where
+    _phi :: Lens' t Angle

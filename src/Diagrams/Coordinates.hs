@@ -16,7 +16,7 @@ module Diagrams.Coordinates
     ( (:&)(..), Coordinates(..)
 
     -- * Lenses for particular axes
-    , HasX(..), HasY(..), HasZ(..)
+    , HasX(..), HasY(..), HasZ(..), HasR(..)
     )
     where
 
@@ -121,3 +121,8 @@ class HasY t where
 -- | The class of types with at least three coordinates, the third called _z.
 class HasZ t where
     _z :: Lens' t Double
+
+-- | _r is the vector magnitude in 2D polar coordinates, or the
+-- distance from the central axis in cylindrical coordinates.
+class HasR t where
+    _r :: Lens' t Double

@@ -179,3 +179,57 @@ instance HasZ R3 where
 
 instance HasZ P3 where
     _z = p3Iso . _3
+
+-- | Types which can be expressed in spherical 3D coordinates, as a
+-- triple (r,θ,φ), where θ is rotation about the Z axis, and φ is the
+-- angle from the Z axis.
+class Spherical t where
+    spherical :: Iso' t (Double, Angle, Angle)
+
+-- | Types which can be expressed in cylindrical 3D coordinates.
+class Cylindrical t where
+    cylindrical :: Iso' t (Double, Angle, Double) -- r, θ, z
+
+instance Cylindrical R3 where
+    cylindrical = iso (\(R3 x y z) -> (sqrt (x^2+y^2), atanA (y/x), z))
+                      (\(r,θ,z) -> R3 (r*cosA θ) (r*sinA θ) z)
+
+instance Spherical R3 where
+    spherical = iso
+      (\v@(R3 x y z) -> (magnitude v, atanA (y/x), atanA (v^._r/z)))
+      (\(r,θ,φ) -> R3 (r*cosA θ*sinA φ) (r*sinA θ*sinA φ) (r*cosA φ))
+
+instance Cylindrical t => HasR t where
+    _r = cylindrical . _1
+
+instance Cylindrical t => HasTheta t where
+    _theta = cylindrical . _2
+
+instance Spherical t => HasPhi t where
+    _phi = spherical . _3
+
+-- not sure about exporting this
+-- If we do want to export it, make it polymorphic, put it in Core.Points
+_relative :: P3 -> Iso' P3 R3
+_relative p0 = iso (.-. p0) (p0 .+^)
+
+instance Cylindrical P3 where
+    cylindrical = _relative origin . cylindrical
+
+instance Spherical P3 where
+    spherical = _relative origin . spherical
+
+instance HasTheta Direction where
+    _theta = _Dir . _theta
+
+instance HasPhi Direction where
+    _phi = _Dir . _phi
+
+-- | @direction v@ is the direction in which @v@ points.  Returns an
+--   unspecified value when given the zero vector as input.
+direction :: R3 -> Direction
+direction = Direction
+
+-- | @fromDirection d@ is the unit vector in the direction @d@.
+fromDirection :: Direction -> R3
+fromDirection (Direction v) = normalized v
