@@ -19,7 +19,7 @@ Build-type:          Simple
 Cabal-version:       >=1.10
 Extra-source-files:  CHANGES.markdown, README.markdown, diagrams/*.svg
 Extra-doc-files:     diagrams/*.svg
-Tested-with:         GHC == 7.4.2, GHC == 7.6.1
+Tested-with:         GHC == 7.4.2, GHC == 7.6.3
 Source-repository head
   type:     git
   location: http://github.com/diagrams/diagrams-lib.git
