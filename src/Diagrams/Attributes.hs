@@ -62,24 +62,20 @@ module Diagrams.Attributes (
 
   ) where
 
-import           Control.Arrow               (second)
-import           Control.Lens                (Setter, sets, (%~), (&),
-                                              _Wrapping')
+import           Control.Lens                (Setter, sets)
 import           Data.Colour
 import           Data.Colour.RGBSpace        (RGB (..))
 import           Data.Colour.SRGB            (toSRGB)
 import           Data.Default.Class
-import qualified Data.Map                    as M
 import           Data.Maybe                  (fromMaybe)
 import           Data.Monoid.Recommend
 import           Data.Semigroup
-import           Data.Tree
 import           Data.Typeable
 
 import           Diagrams.Attributes.Compile
 import           Diagrams.Core
-import           Diagrams.Core.Style         (Style (..), attrToStyle, setAttr)
-import           Diagrams.Core.Types         (RNode (..), RTree)
+import           Diagrams.Core.Style         (setAttr)
+import           Diagrams.Core.Types         (RTree)
 import           Diagrams.Located            (unLoc)
 import           Diagrams.Path               (Path, pathTrails)
 import           Diagrams.Trail              (isLoop)
