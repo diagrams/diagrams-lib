@@ -18,27 +18,24 @@ module Diagrams.TwoD.Adjust
       setDefault2DAttributes
     , adjustDiaSize2D
     , adjustDia2D
-    , adjustSize     -- for backwards compatibility
     , requiredScale  -- re-exported for backwards compatibility
     ) where
 
-import Diagrams.Core
+import           Diagrams.Core
 
-import Diagrams.Attributes  (lineWidthA, lineColorA, lineCap
-                            , lineJoin, lineMiterLimitA
-                            )
-import Diagrams.Util        ((#))
+import           Diagrams.Attributes (lineCap, lineColorA, lineJoin,
+                                      lineMiterLimitA, lineWidthA)
+import           Diagrams.Util       (( # ))
 
-import Diagrams.TwoD.Types  (R2, p2)
-import Diagrams.TwoD.Size   ( size2D, center2D, SizeSpec2D(..)
-                            , requiredScaleT, requiredScale
-                            )
-import Diagrams.TwoD.Text   (fontSizeA)
+import           Diagrams.TwoD.Size  (SizeSpec2D (..), center2D, requiredScale,
+                                      requiredScaleT, size2D)
+import           Diagrams.TwoD.Text  (fontSizeA)
+import           Diagrams.TwoD.Types (R2, p2)
 
-import Data.AffineSpace     ((.-.))
-import Data.Semigroup
+import           Data.AffineSpace    ((.-.))
+import           Data.Semigroup
 
-import Data.Default.Class
+import           Data.Default.Class
 
 -- | Set default attributes of a 2D diagram (in case they have not
 --   been set):
@@ -58,6 +55,7 @@ setDefault2DAttributes :: Semigroup m => QDiagram b R2 m -> QDiagram b R2 m
 setDefault2DAttributes d = d # lineWidthA def # lineColorA def # fontSizeA def
                              # lineCap def # lineJoin def # lineMiterLimitA def
 
+-- XXX
 -- | Adjust the size and position of a 2D diagram to fit within the
 --   requested size. The first two arguments specify a method for
 --   extracting the requested output size from the rendering options,
@@ -67,14 +65,13 @@ adjustDiaSize2D :: Monoid' m
                 => (Options b R2 -> SizeSpec2D)
                 -> (SizeSpec2D -> Options b R2 -> Options b R2)
                 -> b -> Options b R2 -> QDiagram b R2 m
-                -> (Options b R2, QDiagram b R2 m)
+                -> (Options b R2, T2, QDiagram b R2 m)
 adjustDiaSize2D getSize setSize _ opts d =
   ( case spec of
        Dims _ _ -> opts
        _        -> setSize (uncurry Dims . scale s $ size) opts
-
-  , d # scale s
-      # translate tr
+  , inv adjustT
+  , d # transform adjustT
   )
   where spec = getSize opts
         size = size2D d
@@ -83,7 +80,9 @@ adjustDiaSize2D getSize setSize _ opts d =
                     Dims w h -> (w,h)
                     _        -> scale s size
         tr = (0.5 *. p2 finalSz) .-. (s *. center2D d)
+        adjustT = translation tr <> scaling s
 
+-- XXX
 -- | @adjustDia2D@ provides a useful default implementation of
 --   the 'adjustDia' method from the 'Backend' type class.
 --
@@ -105,12 +104,6 @@ adjustDia2D :: Monoid' m
             => (Options b R2 -> SizeSpec2D)
             -> (SizeSpec2D -> Options b R2 -> Options b R2)
             -> b -> Options b R2 -> QDiagram b R2 m
-            -> (Options b R2, QDiagram b R2 m)
+            -> (Options b R2, T2, QDiagram b R2 m)
 adjustDia2D getSize setSize b opts d
   = adjustDiaSize2D getSize setSize b opts (d # setDefault2DAttributes # freeze)
-
-{-# DEPRECATED adjustSize "Use Diagrams.TwoD.Size.requiredScaleT instead." #-}
--- | Re-export 'requiredScaleT' with the name 'adjustSize' for
---   backwards compatibility.
-adjustSize :: SizeSpec2D -> (Double, Double) -> Transformation R2
-adjustSize = requiredScaleT
