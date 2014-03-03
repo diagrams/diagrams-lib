@@ -42,6 +42,7 @@ module Diagrams.TwoD.Arrowheads
        , spike'
        , thorn'
        , missile'
+       , lineTail
        , noTail
        , quill
        , block
@@ -292,6 +293,9 @@ arrowtailQuill theta =aTail
                 [ v0, n1, n2, v0, n3, n4, v0 ])
 
 -- Standard tails ---------------------------------------------------------
+
+lineTail :: ArrowHT
+lineTail l w = (square 1 # scaleX l # scaleY w # alignR, mempty)
 
 noTail :: ArrowHT
 noTail _ _ = (mempty, mempty)

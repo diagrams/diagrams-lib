@@ -78,6 +78,7 @@ module Diagrams.TwoD.Arrow
        , arrowShaft
        , headSize
        , tailSize
+       , bothSize
        , headGap
        , tailGap
        , gap
@@ -149,7 +150,7 @@ straightShaft = trailFromOffsets [unitX]
 instance Default ArrowOpts where
   def = ArrowOpts
         { _arrowHead    = dart
-        , _arrowTail    = noTail
+        , _arrowTail    = lineTail
         , _arrowShaft   = trailFromOffsets [unitX]
         , _headSize     = 0.3
         , _tailSize     = 0.3
@@ -178,6 +179,19 @@ headSize :: Lens' ArrowOpts Double
 
 -- | Radius of a circumcircle around the tail.
 tailSize :: Lens' ArrowOpts Double
+
+bothSize :: Traversal' ArrowOpts Double
+bothSize f opts =
+  (\h t -> opts & headSize .~ h & tailSize .~ toTailSize opts t)
+    <$> f (opts ^. headSize) <*> f (opts ^. tailSize)
+
+toTailSize :: ArrowOpts -> Double -> Double
+toTailSize opts s = hw / tw
+  where
+    (h, j) = (opts^.arrowHead) s (widthOfJoint $ shaftSty opts)
+    (t, k) = (opts^.arrowTail) 1 (widthOfJoint $ shaftSty opts)
+    hw = xWidth h + xWidth j
+    tw = xWidth t + xWidth k
 
 -- | Distance to leave between the head and the target point.
 headGap :: Lens' ArrowOpts Double
