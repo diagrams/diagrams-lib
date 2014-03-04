@@ -150,7 +150,7 @@ straightShaft = trailFromOffsets [unitX]
 instance Default ArrowOpts where
   def = ArrowOpts
         { _arrowHead    = dart
-        , _arrowTail    = lineTail
+        , _arrowTail    = noTail
         , _arrowShaft   = trailFromOffsets [unitX]
         , _headSize     = 0.3
         , _tailSize     = 0.3
