@@ -210,6 +210,7 @@ arrowheadMissile :: Angle -> ArrowHT
 arrowheadMissile theta = smoothArrowhead $ arrowheadDart theta
 
 -- Standard heads ---------------------------------------------------------
+-- | A line the same width as the shaft.
 lineHead :: ArrowHT
 lineHead l w = (square 1 # scaleX l # scaleY w # alignL, mempty)
 
@@ -297,7 +298,7 @@ arrowtailQuill theta =aTail
                 [ v0, n1, n2, v0, n3, n4, v0 ])
 
 -- Standard tails ---------------------------------------------------------
-
+-- | A line the same width as the shaft.
 lineTail :: ArrowHT
 lineTail l w = (square 1 # scaleX l # scaleY w # alignR, mempty)
 
