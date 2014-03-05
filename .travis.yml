@@ -6,7 +6,7 @@ env:
     - HPVER=2013.2.0.0
     - GHCVER=7.4.2
     - GHCVER=7.6.3
-    - GHCVER=head
+    - GHCVER=7.8.1
   global:
     - CABALVER=1.18
     - HEAD_DEPS="diagrams-core"
@@ -14,6 +14,7 @@ env:
 matrix:
   allow_failures:
     - env: GHCVER=head
+    - env: GHCVER=7.8.1
 
 before_install:
   - git clone http://github.com/diagrams/diagrams-travis travis
