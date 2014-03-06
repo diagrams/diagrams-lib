@@ -55,12 +55,17 @@ setDefault2DAttributes :: Semigroup m => QDiagram b R2 m -> QDiagram b R2 m
 setDefault2DAttributes d = d # lineWidthA def # lineColorA def # fontSizeA def
                              # lineCap def # lineJoin def # lineMiterLimitA def
 
--- XXX
+-- XXX TODO: we should make adjustDiaSize2D and adjustDia2D (below)
+-- take a lens instead of a pair of getter and setter for the size.
+
 -- | Adjust the size and position of a 2D diagram to fit within the
 --   requested size. The first two arguments specify a method for
 --   extracting the requested output size from the rendering options,
 --   and a way of updating the rendering options with a new (more
---   specific) size.
+--   specific) size.  Returns an updated options record, the /inverse/
+--   of any transformation applied to the diagram (which can be used,
+--   say, to translate output/device coordinates back into local
+--   diagram coordinates), and the modified diagram itself.
 adjustDiaSize2D :: Monoid' m
                 => (Options b R2 -> SizeSpec2D)
                 -> (SizeSpec2D -> Options b R2 -> Options b R2)
@@ -82,7 +87,6 @@ adjustDiaSize2D getSize setSize _ opts d =
         tr = (0.5 *. p2 finalSz) .-. (s *. center2D d)
         adjustT = translation tr <> scaling s
 
--- XXX
 -- | @adjustDia2D@ provides a useful default implementation of
 --   the 'adjustDia' method from the 'Backend' type class.
 --
@@ -99,7 +103,10 @@ adjustDiaSize2D getSize setSize _ opts d =
 --   * Scale and translate the diagram to fit within the requested
 --     size (see 'adjustDiaSize2D')
 --
---   * Also return the actual adjusted size of the diagram.
+--   It returns an updated options record, the /inverse/ of any
+--   transformation applied to the diagram (which can be used, say, to
+--   translate output/device coordinates back into local diagram
+--   coordinates), and the modified diagram itself.
 adjustDia2D :: Monoid' m
             => (Options b R2 -> SizeSpec2D)
             -> (SizeSpec2D -> Options b R2 -> Options b R2)
