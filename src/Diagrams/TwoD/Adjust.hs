@@ -30,7 +30,7 @@ import           Diagrams.Util       (( # ))
 import           Diagrams.TwoD.Size  (SizeSpec2D (..), center2D, requiredScale,
                                       requiredScaleT, size2D)
 import           Diagrams.TwoD.Text  (fontSizeA)
-import           Diagrams.TwoD.Types (R2, p2)
+import           Diagrams.TwoD.Types (R2, T2, p2)
 
 import           Data.AffineSpace    ((.-.))
 import           Data.Semigroup
