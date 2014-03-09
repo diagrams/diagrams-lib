@@ -177,14 +177,14 @@ instance Spherical R3 where
       (\v@(R3 x y z) -> (magnitude v, atanA (y/x), atanA (v^._r/z)))
       (\(r,θ,φ) -> R3 (r*cosA θ*sinA φ) (r*sinA θ*sinA φ) (r*cosA φ))
 
--- We'd like to write: instance Cylindrical t => HasR t
+-- We'd like to write: instance Spherical t => HasR t
 -- But GHC can't work out that the instance won't overlap.  Just write them explicitly:
 
 instance HasR R3 where
-    _r = cylindrical . _1
+    _r = spherical . _1
 
 instance HasR P3 where
-    _r = cylindrical . _1
+    _r = spherical . _1
 
 instance HasTheta R3 where
     _theta = cylindrical . _2

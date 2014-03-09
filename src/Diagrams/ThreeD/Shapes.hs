@@ -22,7 +22,7 @@ module Diagrams.ThreeD.Shapes
 
 import           Data.Typeable
 import           Control.Applicative
-import           Control.Lens            ((^.), review)
+import           Control.Lens            ((^.), review, _1)
 
 import           Data.AffineSpace
 import           Data.Semigroup
@@ -151,7 +151,7 @@ frustum r0 r1 = mkQD (Prim $ Frustum r0 r1 mempty)
         c = px**2 + py**2 - (r0 + dr*pz)**2
         zbounds t = (ray t)^._z >= 0 && (ray t)^._z <= 1
         ends = concatMap cap [0,1]
-        cap z = if (ray t)^._r < r0 + z*dr
+        cap z = if (ray t)^.cylindrical._1 < r0 + z*dr
                 then [t]
                 else []
           where

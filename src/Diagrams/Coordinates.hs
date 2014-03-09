@@ -122,7 +122,6 @@ class HasY t where
 class HasZ t where
     _z :: Lens' t Double
 
--- | _r is the vector magnitude in 2D polar coordinates, or the
--- distance from the central axis in cylindrical coordinates.
+-- | _r is the vector magnitude
 class HasR t where
     _r :: Lens' t Double
