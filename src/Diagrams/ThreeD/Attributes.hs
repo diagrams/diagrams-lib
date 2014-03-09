@@ -31,7 +31,6 @@ import Data.Typeable
 
 import Data.Colour
 
-import Diagrams.Attributes
 import Diagrams.Core
 
 -- | @SurfaceColor@ is the inherent pigment of an object, assumed to

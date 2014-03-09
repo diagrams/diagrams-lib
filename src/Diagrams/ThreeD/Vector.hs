@@ -20,9 +20,7 @@ module Diagrams.ThreeD.Vector
          angleBetween, angleBetweenDirs
        ) where
 
-import Control.Lens ((^.))
 import Data.VectorSpace
-import Data.Cross
 
 import Diagrams.ThreeD.Types
 import Diagrams.Coordinates

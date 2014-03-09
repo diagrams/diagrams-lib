@@ -23,7 +23,6 @@ module Diagrams.ThreeD.Shapes
 import           Data.Typeable
 import           Control.Applicative
 import           Control.Lens            ((^.), review)
-import           Data.Semigroup
 
 import           Data.AffineSpace
 import           Data.Semigroup

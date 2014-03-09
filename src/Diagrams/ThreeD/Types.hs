@@ -38,7 +38,7 @@ module Diagrams.ThreeD.Types
        , Spherical(..), Cylindrical(..)
        ) where
 
-import           Control.Lens           (Iso', iso, over, Wrapped(..), Rewrapped
+import           Control.Lens           (Iso', iso, over
                                         , _1, _2, _3, (^.))
 
 import           Diagrams.Core

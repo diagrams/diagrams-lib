@@ -22,7 +22,6 @@ import           Data.Typeable
 
 import           Diagrams.Core
 import           Diagrams.ThreeD.Types
-import           Diagrams.ThreeD.Vector
 
 data PointLight = PointLight P3 (Colour Double)
   deriving Typeable
