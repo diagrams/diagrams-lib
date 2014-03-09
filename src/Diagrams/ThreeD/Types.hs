@@ -169,7 +169,7 @@ class Cylindrical t where
     cylindrical :: Iso' t (Double, Angle, Double) -- r, θ, z
 
 instance Cylindrical R3 where
-    cylindrical = iso (\(R3 x y z) -> (sqrt (x^2+y^2), atanA (y/x), z))
+    cylindrical = iso (\(R3 x y z) -> (sqrt (x^(2::Int)+y^(2::Int)), atanA (y/x), z))
                       (\(r,θ,z) -> R3 (r*cosA θ) (r*sinA θ) z)
 
 instance Spherical R3 where
@@ -177,13 +177,25 @@ instance Spherical R3 where
       (\v@(R3 x y z) -> (magnitude v, atanA (y/x), atanA (v^._r/z)))
       (\(r,θ,φ) -> R3 (r*cosA θ*sinA φ) (r*sinA θ*sinA φ) (r*cosA φ))
 
-instance Cylindrical t => HasR t where
+-- We'd like to write: instance Cylindrical t => HasR t
+-- But GHC can't work out that the instance won't overlap.  Just write them explicitly:
+
+instance HasR R3 where
     _r = cylindrical . _1
 
-instance Cylindrical t => HasTheta t where
+instance HasR P3 where
+    _r = cylindrical . _1
+
+instance HasTheta R3 where
     _theta = cylindrical . _2
 
-instance Spherical t => HasPhi t where
+instance HasTheta P3 where
+    _theta = cylindrical . _2
+
+instance HasPhi R3 where
+    _phi = spherical . _3
+
+instance HasPhi P3 where
     _phi = spherical . _3
 
 -- not sure about exporting this
