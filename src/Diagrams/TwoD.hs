@@ -65,15 +65,17 @@ module Diagrams.TwoD
        , P2, p2, unp2, mkP2
        , T2
        , unitX, unitY, unit_X, unit_Y
-       , direction, angleBetween, fromDirection
+       , direction, fromDirection
 
          -- * Angles
        , tau
        , Angle
        , rad, turn, deg
        , fullTurn, fullCircle, angleRatio
-       , sinA, cosA, tanA
+       , sinA, cosA, tanA, asinA, acosA, atanA
        , (@@)
+       , angleBetween
+       , HasTheta(..)
 
          -- * Paths
          -- ** Stroking
