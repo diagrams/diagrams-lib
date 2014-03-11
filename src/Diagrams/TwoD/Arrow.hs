@@ -115,6 +115,7 @@ import           Diagrams.Attributes
 import           Diagrams.Core
 import           Diagrams.Core.Types              (QDiaLeaf (..), mkQD')
 
+import           Diagrams.Angle
 import           Diagrams.Parametric
 import           Diagrams.Path
 import           Diagrams.Solve                   (quadForm)

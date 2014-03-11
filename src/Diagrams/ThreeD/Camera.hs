@@ -34,6 +34,7 @@ import           Data.Cross
 import           Data.Monoid
 import           Data.Typeable
 
+import           Diagrams.Angle
 import           Diagrams.Core
 import           Diagrams.ThreeD.Types
 import           Diagrams.ThreeD.Vector

@@ -25,6 +25,8 @@ module Diagrams.TwoD.Vector
 import           Control.Lens         ((^.))
 import           Data.AdditiveGroup
 import           Data.VectorSpace     ((<.>))
+
+import           Diagrams.Angle
 import           Diagrams.TwoD.Types
 import           Diagrams.Coordinates
 

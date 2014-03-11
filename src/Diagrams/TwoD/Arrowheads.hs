@@ -63,6 +63,7 @@ import           Data.Maybe              (fromMaybe)
 import           Data.Monoid             (mempty, (<>))
 import           Data.VectorSpace
 
+import           Diagrams.Angle
 import           Diagrams.Core
 import           Diagrams.CubicSpline    (cubicSpline)
 import           Diagrams.Path

@@ -260,4 +260,5 @@ import           Diagrams.TwoD.Transform
 import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector
 
+import           Diagrams.Angle
 import           Diagrams.Util             (tau)

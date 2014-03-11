@@ -32,7 +32,7 @@ import           Diagrams.Core
 import           Diagrams.Solve
 import           Diagrams.ThreeD.Types
 import           Diagrams.ThreeD.Vector
-import           Diagrams.TwoD.Types
+import           Diagrams.Angle
 
 data Ellipsoid = Ellipsoid T3
   deriving Typeable

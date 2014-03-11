@@ -26,13 +26,6 @@ module Diagrams.ThreeD.Types
        , T3
        , r3Iso, p3Iso
 
-         -- * Two-dimensional angles
-         -- | These are defined in "Diagrams.TwoD.Types" but
-         --   reëxported here for convenience.
-       , Angle, rad, turn, deg, (@@)
-       , fullTurn, angleRatio
-       , sinA, cosA, tanA, asinA, acosA, atanA
-
          -- * Directions in 3D
        , Direction, direction, fromDirection
        , Spherical(..), Cylindrical(..), HasPhi(..)
@@ -42,7 +35,8 @@ import           Control.Lens           (Iso', Lens', iso, over
                                         , _1, _2, _3, (^.))
 
 import           Diagrams.Core
-import           Diagrams.TwoD.Types
+import           Diagrams.Angle
+import           Diagrams.TwoD.Types    (R2)
 import           Diagrams.Coordinates
 
 import           Data.AffineSpace

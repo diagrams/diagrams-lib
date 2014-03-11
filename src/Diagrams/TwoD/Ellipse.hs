@@ -26,6 +26,7 @@ import           Data.AdditiveGroup
 
 import           Diagrams.Core
 
+import           Diagrams.Angle
 import           Diagrams.Located        (at)
 import           Diagrams.TrailLike
 import           Diagrams.TwoD.Arc

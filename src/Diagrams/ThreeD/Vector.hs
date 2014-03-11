@@ -22,8 +22,9 @@ module Diagrams.ThreeD.Vector
 
 import Data.VectorSpace
 
-import Diagrams.ThreeD.Types
+import Diagrams.Angle
 import Diagrams.Coordinates
+import Diagrams.ThreeD.Types
 
 
 -- | The unit vector in the positive X direction.
