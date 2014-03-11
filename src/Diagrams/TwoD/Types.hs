@@ -34,7 +34,6 @@ import           Diagrams.Angle
 import           Diagrams.Coordinates
 import           Diagrams.Core
 
-import           Data.AffineSpace
 import           Data.AffineSpace.Point
 import           Data.Basis
 import           Data.MemoTrie           (HasTrie (..))

@@ -40,7 +40,6 @@ import           Diagrams.Angle
 import           Diagrams.TwoD.Types    (R2)
 import           Diagrams.Coordinates
 
-import           Data.AffineSpace
 import           Data.AffineSpace.Point
 import           Data.Basis
 import           Data.Cross
