@@ -51,7 +51,7 @@ unit_Z :: R3
 unit_Z = 0 ^& 0 ^& (-1)
 
 -- | compute the positive angle between the two vectors in their common plane
-angleBetween  :: R3 -> R3 -> Angle
+angleBetween  :: (InnerSpace v, Scalar v ~ Double) => v -> v -> Angle
 angleBetween v1 v2 = acos (normalized v1 <.> normalized v2) @@ rad
 
 -- | compute the positive angle between the two directions in their common plane
