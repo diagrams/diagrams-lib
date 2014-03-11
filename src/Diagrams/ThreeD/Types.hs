@@ -27,7 +27,8 @@ module Diagrams.ThreeD.Types
        , r3Iso, p3Iso
 
          -- * Directions in 3D
-       , Direction, direction, fromDirection
+       , Direction, direction, fromDirection, angleBetweenDirs
+       -- * other coördinate systems
        , Spherical(..), Cylindrical(..), HasPhi(..)
        ) where
 
@@ -222,3 +223,7 @@ direction = Direction
 -- | @fromDirection d@ is the unit vector in the direction @d@.
 fromDirection :: Direction -> R3
 fromDirection (Direction v) = normalized v
+
+-- | compute the positive angle between the two directions in their common plane
+angleBetweenDirs  :: Direction -> Direction -> Angle
+angleBetweenDirs d1 d2 = angleBetween (fromDirection d1) (fromDirection d2)

@@ -23,7 +23,6 @@ module Diagrams.TwoD.Vector
        ) where
 
 import           Control.Lens         ((^.))
-import           Data.AdditiveGroup
 import           Data.VectorSpace     ((<.>))
 
 import           Diagrams.Angle
@@ -51,15 +50,6 @@ unit_Y = 0 ^& (-1)
 --   vector is arbitrarily assigned the direction 0.
 direction :: R2 -> Angle
 direction (coords -> x :& y) = atan2 y x @@ rad
-
--- | Compute the counterclockwise angle from the first vector to the second.
-angleBetween :: R2 -> R2 -> Angle
-angleBetween v1 v2
-  | d2 > d1   = d2 ^-^ d1
-  | otherwise = fullTurn ^+^ d2 ^-^ d1
-  where
-    d1 = direction v1
-    d2 = direction v2
 
 -- | Convert an angle into a unit vector pointing in that direction.
 fromDirection :: Angle -> R2

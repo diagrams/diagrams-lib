@@ -49,7 +49,6 @@ import qualified Diagrams.Core.Transform as T
 import           Diagrams.Angle
 import           Diagrams.Transform
 import           Diagrams.ThreeD.Types
-import           Diagrams.ThreeD.Vector
 import           Diagrams.Coordinates
 
 import           Control.Lens                   (view, (*~), (//~))

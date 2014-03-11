@@ -19,6 +19,7 @@ module Diagrams.Angle
        , fullTurn, fullCircle, angleRatio
        , sinA, cosA, tanA, asinA, acosA, atanA
        , (@@)
+       , angleBetween
        , HasTheta(..)
        ) where
 
@@ -99,6 +100,10 @@ atanA = Radians . atan
 a @@ i = review i a
 
 infixl 5 @@
+
+-- | compute the positive angle between the two vectors in their common plane
+angleBetween  :: (InnerSpace v, Scalar v ~ Double) => v -> v -> Angle
+angleBetween v1 v2 = acos (normalized v1 <.> normalized v2) @@ rad
 
 ------------------------------------------------------------
 -- Polar Coordinates
