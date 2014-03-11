@@ -240,11 +240,6 @@ instance HasX P2 where
 instance HasY P2 where
     _y = p2Iso . _2
 
--- not sure about exporting this
--- If we do want to export it, make it polymorphic, put it in Core.Points
-_relative :: P2 -> Iso' P2 R2
-_relative p0 = iso (.-. p0) (p0 .+^)
-
 instance HasR P2 where
     _r = _relative origin . _r
 

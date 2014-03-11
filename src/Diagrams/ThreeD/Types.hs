@@ -198,11 +198,6 @@ instance HasPhi R3 where
 instance HasPhi P3 where
     _phi = spherical . _3
 
--- not sure about exporting this
--- If we do want to export it, make it polymorphic, put it in Core.Points
-_relative :: P3 -> Iso' P3 R3
-_relative p0 = iso (.-. p0) (p0 .+^)
-
 instance Cylindrical P3 where
     cylindrical = _relative origin . cylindrical
 
