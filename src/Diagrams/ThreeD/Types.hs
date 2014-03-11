@@ -35,10 +35,10 @@ module Diagrams.ThreeD.Types
 
          -- * Directions in 3D
        , Direction, direction, fromDirection
-       , Spherical(..), Cylindrical(..)
+       , Spherical(..), Cylindrical(..), HasPhi(..)
        ) where
 
-import           Control.Lens           (Iso', iso, over
+import           Control.Lens           (Iso', Lens', iso, over
                                         , _1, _2, _3, (^.))
 
 import           Diagrams.Core
@@ -91,15 +91,15 @@ instance HasBasis R3 where
   decompose' = decompose' . unr3
 
 instance InnerSpace R3 where
-  (unr3 -> vec1) <.> (unr3 -> vec2) = vec1 <.> vec2
+    (R3 x1 y1 z1) <.> (R3 x2 y2 z2) = x1*x2 + y1*y2 + z1*z2
 
 instance Coordinates R3 where
   type FinalCoord R3       = Double
   type PrevDim R3          = R2
   type Decomposition R3    = Double :& Double :& Double
 
-  (coords -> x :& y) ^& z   = r3 (x,y,z)
-  coords (unr3 -> (x,y,z)) = x :& y :& z
+  (coords -> x :& y) ^& z   = R3 x y z
+  coords (R3 x y z) = x :& y :& z
 
 -- | Points in R^3.
 type P3 = Point R3
@@ -191,6 +191,11 @@ instance HasTheta R3 where
 
 instance HasTheta P3 where
     _theta = cylindrical . _2
+
+-- | The class of types with at least two angle coordinates, the
+-- second called _phi.
+class HasPhi t where
+    _phi :: Lens' t Angle
 
 instance HasPhi R3 where
     _phi = spherical . _3

@@ -32,7 +32,7 @@ module Diagrams.TwoD.Types
        , sinA, cosA, tanA, asinA, acosA, atanA
        , (@@)
        -- * Polar Coordinates
-       , HasTheta(..), HasPhi(..)
+       , HasTheta(..)
        ) where
 
 import           Control.Lens            (Iso', Wrapped(..), Rewrapped, iso
@@ -340,7 +340,3 @@ infixl 5 @@
 -- | The class of types with at least one angle coordinate, called _theta.
 class HasTheta t where
     _theta :: Lens' t Angle
-
--- | The class of types with at least two angle coordinates, the second called _phi.
-class HasPhi t where
-    _phi :: Lens' t Angle
