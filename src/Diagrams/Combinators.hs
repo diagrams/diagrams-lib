@@ -45,7 +45,6 @@ import           Control.Lens       (Lens', generateSignatures, lensField,
 import           Data.AdditiveGroup
 import           Data.AffineSpace   ((.+^))
 import           Data.Default.Class
-import           Data.Proxy
 import           Data.Semigroup
 import           Data.VectorSpace
 
