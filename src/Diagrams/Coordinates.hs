@@ -122,6 +122,7 @@ class HasY t where
 class HasZ t where
     _z :: Lens' t Double
 
--- | _r is the vector magnitude
+-- | The class of types with a single length coordinate _r.  _r is
+-- magnitude of a vector, or the distance from the origin of a point.
 class HasR t where
     _r :: Lens' t Double

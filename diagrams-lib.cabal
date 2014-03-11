@@ -28,6 +28,7 @@ Library
   Exposed-modules:     Diagrams.Prelude,
                        Diagrams.Prelude.ThreeD,
                        Diagrams.Align,
+                       Diagrams.Angle,
                        Diagrams.Combinators,
                        Diagrams.Coordinates,
                        Diagrams.Attributes,

@@ -42,6 +42,7 @@ instance AttributeClass SurfaceColor
 surfaceColor :: Iso' SurfaceColor (Colour Double)
 surfaceColor = iso (\(SurfaceColor (Last c)) -> c) (SurfaceColor . Last)
 
+-- | Set the surface color.
 sc :: HasStyle d => Colour Double -> d -> d
 sc = applyAttr . review surfaceColor
 
@@ -57,6 +58,7 @@ instance AttributeClass Diffuse
 _Diffuse :: Iso' Diffuse Double
 _Diffuse = iso (\(Diffuse (Last d)) -> d) (Diffuse . Last)
 
+-- | Set the diffuse reflectance.
 diffuse :: HasStyle d => Double -> d -> d
 diffuse = applyAttr . review _Diffuse
 
@@ -73,6 +75,7 @@ instance AttributeClass Ambient
 _Ambient :: Iso' Ambient Double
 _Ambient = iso (\(Ambient (Last d)) -> d) (Ambient . Last)
 
+-- | Set the emittance due to ambient light.
 ambient :: HasStyle d => Double -> d -> d
 ambient = applyAttr . review _Ambient
 
@@ -96,5 +99,6 @@ instance AttributeClass Highlight
 _Highlight :: Iso' Highlight Specular
 _Highlight = iso (\(Highlight (Last s)) -> s) (Highlight . Last)
 
+-- | Set the specular highlight.
 highlight :: HasStyle d => Specular -> d -> d
 highlight = applyAttr . review _Highlight
