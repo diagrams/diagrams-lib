@@ -101,7 +101,7 @@ module Diagrams.TwoD.Arrow
 import           Control.Applicative              ((<*>))
 import           Control.Arrow                    (first)
 import           Control.Lens                     (Lens', Setter', Traversal',
-                                                   sets, generateSignatures,
+                                                   generateSignatures,
                                                    lensRules, makeLensesWith,
                                                    (%~), (&), (.~), (^.))
 import           Data.AffineSpace
