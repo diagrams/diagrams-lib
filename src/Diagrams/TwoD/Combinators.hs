@@ -45,6 +45,7 @@ import           Data.VectorSpace
 
 import           Diagrams.Core
 
+import           Diagrams.Angle
 import           Diagrams.Attributes     (fc, lw)
 import           Diagrams.BoundingBox
 import           Diagrams.Combinators

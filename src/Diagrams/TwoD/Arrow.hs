@@ -78,6 +78,10 @@ module Diagrams.TwoD.Arrow
        , arrowShaft
        , headSize
        , tailSize
+       , sizes
+       , headWidth
+       , tailWidth
+       , widths
        , headGap
        , tailGap
        , gap
@@ -115,6 +119,7 @@ import           Diagrams.Attributes
 import           Diagrams.Core
 import           Diagrams.Core.Types              (QDiaLeaf (..), mkQD')
 
+import           Diagrams.Angle
 import           Diagrams.Parametric
 import           Diagrams.Path
 import           Diagrams.Solve                   (quadForm)
@@ -179,12 +184,57 @@ headSize :: Lens' ArrowOpts Double
 -- | Radius of a circumcircle around the tail.
 tailSize :: Lens' ArrowOpts Double
 
+-- | Width of the head.
+headWidth :: Setter' ArrowOpts Double
+headWidth f opts =
+  (\hd -> opts & headSize .~ g hd) <$> f (opts ^. headSize)
+  where
+    g w = w / (xWidth h + xWidth j)
+    (h, j) = (opts ^. arrowHead) 1 (widthOfJoint $ shaftSty opts)
+
+-- | Width of the tail.
+tailWidth :: Setter' ArrowOpts Double
+tailWidth f opts =
+  (\tl -> opts & tailSize .~ g tl) <$> f (opts ^. tailSize)
+  where
+    g w = w / (xWidth t + xWidth j)
+    (t, j) = (opts ^. arrowTail) 1 (widthOfJoint $ shaftSty opts)
+
+-- | Set both the @headWidth@ and @tailWidth@.
+widths :: Traversal' ArrowOpts Double
+widths f opts =
+  (\hd tl -> opts & headSize .~ gh hd & tailSize .~ gt tl)
+  <$> f (opts ^. headSize) <*> f (opts ^. tailSize)
+    where
+      gh w = w / (xWidth h + xWidth j)
+      (h, j) = (opts ^. arrowHead) 1 (widthOfJoint $ shaftSty opts)
+      gt w = w / (xWidth t + xWidth j')
+      (t, j') = (opts ^. arrowTail) 1 (widthOfJoint $ shaftSty opts)
+
+-- | Set the size of both the head and tail.
+sizes :: Traversal' ArrowOpts Double
+sizes f opts =
+  (\h t -> opts & headSize .~ h & tailSize .~ {-toTailSize opts-} t)
+    <$> f (opts ^. headSize) <*> f (opts ^. tailSize)
+
+-- Calculate the tailSize needed so that the head and tail are the same width.
+-- If either is zero, revert to the default size. This is needed for example
+-- in the noHead arrow head case.
+--toTailSize :: ArrowOpts -> Double -> Double
+--toTailSize opts s = if (hw > 0) && (tw > 0) then hw / tw else 0.3
+--  where
+--    (h, j) = (opts^.arrowHead) s (widthOfJoint $ shaftSty opts)
+--    (t, k) = (opts^.arrowTail) 1 (widthOfJoint $ shaftSty opts)
+--    hw = xWidth h + xWidth j
+--    tw = xWidth t + xWidth k
+
 -- | Distance to leave between the head and the target point.
 headGap :: Lens' ArrowOpts Double
 
 -- | Distance to leave between the starting point and the tail.
 tailGap :: Lens' ArrowOpts Double
 
+-- | Set both the @headGap@ and @tailGap@ simultaneously.
 gap :: Traversal' ArrowOpts Double
 gap f opts = (\h t -> opts & headGap .~ h & tailGap .~ t) <$> f (opts ^. headGap) <*> f (opts ^. tailGap)
 

@@ -1,5 +1,5 @@
 Name:                diagrams-lib
-Version:             1.1
+Version:             1.1.0.1
 Synopsis:            Embedded domain-specific language for declarative graphics
 Description:         Diagrams is a flexible, extensible EDSL for creating
                      graphics of many types.  Graphics can be created
@@ -28,6 +28,7 @@ Library
   Exposed-modules:     Diagrams.Prelude,
                        Diagrams.Prelude.ThreeD,
                        Diagrams.Align,
+                       Diagrams.Angle,
                        Diagrams.Combinators,
                        Diagrams.Coordinates,
                        Diagrams.Attributes,
@@ -75,6 +76,7 @@ Library
                        Diagrams.TwoD.Image,
                        Diagrams.TwoD.Adjust,
                        Diagrams.ThreeD.Align,
+                       Diagrams.ThreeD.Attributes,
                        Diagrams.ThreeD.Camera,
                        Diagrams.ThreeD.Deform,
                        Diagrams.ThreeD.Light,
@@ -96,7 +98,7 @@ Library
                        diagrams-core >= 1.1 && < 1.2,
                        active >= 0.1 && < 0.2,
                        vector-space >= 0.7.7 && < 0.9,
-                       vector-space-points >= 0.1.2 && < 0.2,
+                       vector-space-points >= 0.1.2 && < 0.3,
                        MemoTrie >= 0.6 && < 0.7,
                        colour >= 2.3.2 && < 2.4,
                        data-default-class < 0.1,
