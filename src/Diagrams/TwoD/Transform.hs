@@ -47,7 +47,6 @@ module Diagrams.TwoD.Transform
 
          -- * Utilities
        , onBasis
-       , avgScale
        ) where
 
 import           Diagrams.Core
@@ -249,41 +248,3 @@ shearY = transform . shearingY
 onBasis :: Transformation R2 -> ((R2, R2), R2)
 onBasis t = ((x, y), v)
   where ((x:y:[]), v) = T.onBasis t
-
--- | Compute the \"average\" amount of scaling performed by a
---   transformation.  Satisfies the properties
---
---   @
---   avgScale (scaling k) == k
---   avgScale (t1 <> t2)  == avgScale t1 * avgScale t2
---   @
---
---   Backends which do not support stroking in the context of an
---   arbitrary transformation may instead call 'avgScale' on
---   \"frozen\" transformations and multiply the line width by the
---   resulting value.
-avgScale :: T2 -> Double
-avgScale t = sqrt (abs (x1*y2 - y1*x2))
-  where ((unr2 -> (x1,y1), unr2 -> (x2,y2)), _) = onBasis t
-
-{-
-
-avgScale is computed as the square root of the positive
-determinant. Proofs for the specified properties:
-
-1. sqrt (|det (scaling k)|) = sqrt (k^2) = k
-2. sqrt (|det t1|) * sqrt (|det t2|)
-   = sqrt (|det t1| * |det t2|)
-   = sqrt (|det t1 * det t2|)
-   = sqrt (|det (t1 * t2)|)
-
-From wikipedia:
-
-     A geometric interpretation can be given to the value of the
-     determinant of a square matrix with real entries: the absolute
-     value of the determinant gives the scale factor by which area or
-     volume (or a higher dimensional analogue) is multiplied under the
-     associated linear transformation, while its sign indicates whether
-     the transformation preserves orientation.
-
--}
