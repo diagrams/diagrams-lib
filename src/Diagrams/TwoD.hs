@@ -69,13 +69,6 @@ module Diagrams.TwoD
 
          -- * Angles
        , tau
-       , Angle
-       , rad, turn, deg
-       , fullTurn, fullCircle, angleRatio
-       , sinA, cosA, tanA, asinA, acosA, atanA
-       , (@@)
-       , angleBetween
-       , HasTheta(..)
 
          -- * Paths
          -- ** Stroking
@@ -262,5 +255,4 @@ import           Diagrams.TwoD.Transform
 import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector
 
-import           Diagrams.Angle
 import           Diagrams.Util             (tau)

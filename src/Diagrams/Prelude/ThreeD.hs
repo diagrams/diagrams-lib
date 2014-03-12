@@ -80,8 +80,11 @@ module Diagrams.Prelude.ThreeD
          -- | Utilities for working with points.
        , module Diagrams.Points
 
+         -- | Angles
+       , module Diagrams.Angle
+
          -- | Convenience infix operators for working with coordinates.
-        , module Diagrams.Coordinates
+       , module Diagrams.Coordinates
 
          -- | things (shapes, transformations, combinators) specific
          -- to creating three-dimensional diagrams.
@@ -118,6 +121,7 @@ module Diagrams.Prelude.ThreeD
 import           Diagrams.Core
 
 import           Diagrams.Align
+import           Diagrams.Angle
 import           Diagrams.Animation
 import           Diagrams.Attributes
 import           Diagrams.Combinators

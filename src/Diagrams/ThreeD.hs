@@ -31,8 +31,8 @@
 --     for rendering 3D geometry to (2D) images.
 -----------------------------------------------------------------------------
 module Diagrams.ThreeD
-       ( module Diagrams.Angle
-       , module Diagrams.ThreeD.Align
+       (
+         module Diagrams.ThreeD.Align
        , module Diagrams.ThreeD.Attributes
        , module Diagrams.ThreeD.Camera
        , module Diagrams.ThreeD.Light
@@ -41,8 +41,6 @@ module Diagrams.ThreeD
        , module Diagrams.ThreeD.Types
        , module Diagrams.ThreeD.Vector
        ) where
-
-import Diagrams.Angle
 
 import Diagrams.ThreeD.Align
 import Diagrams.ThreeD.Attributes
