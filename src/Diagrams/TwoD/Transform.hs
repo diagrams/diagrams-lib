@@ -52,6 +52,7 @@ module Diagrams.TwoD.Transform
 import           Diagrams.Core
 import qualified Diagrams.Core.Transform as T
 
+import           Diagrams.Angle
 import           Diagrams.Transform
 import           Diagrams.TwoD.Size      (height, width)
 import           Diagrams.TwoD.Types

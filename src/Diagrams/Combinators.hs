@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE Rank2Types            #-}
@@ -45,7 +46,9 @@ import           Control.Lens       (Lens', generateSignatures, lensField,
 import           Data.AdditiveGroup
 import           Data.AffineSpace   ((.+^))
 import           Data.Default.Class
+#if __GLASGOW_HASKELL__ < 707
 import           Data.Proxy
+#endif
 import           Data.Semigroup
 import           Data.VectorSpace
 
