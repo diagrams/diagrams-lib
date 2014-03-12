@@ -163,10 +163,8 @@ deriving instance (OrderedField (Scalar v), InnerSpace v)
   => Monoid (SegTree v)
 deriving instance (OrderedField (Scalar v), InnerSpace v)
   => FT.Measured (SegMeasure v) (SegTree v)
-
-instance (HasLinearMap v, InnerSpace v, OrderedField (Scalar v))
-  => Transformable (SegTree v) where
-  transform t = SegTree . transform t . op SegTree
+deriving instance (HasLinearMap v, InnerSpace v, OrderedField (Scalar v))
+  => Transformable (SegTree v)
 
 type instance Codomain (SegTree v) = v
 
