@@ -146,6 +146,10 @@ module Diagrams.TwoD
        , arrowShaft
        , headSize
        , tailSize
+       , sizes
+       , headWidth
+       , tailWidth
+       , widths
        , headGap
        , tailGap
        , gap
