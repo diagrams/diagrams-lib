@@ -152,7 +152,7 @@ module Diagrams.TwoD
        , widths
        , headGap
        , tailGap
-       , gap
+       , gaps, gap
        , headColor
        , headStyle
        , tailColor
