@@ -214,19 +214,8 @@ widths f opts =
 -- | Set the size of both the head and tail.
 sizes :: Traversal' ArrowOpts Double
 sizes f opts =
-  (\h t -> opts & headSize .~ h & tailSize .~ {-toTailSize opts-} t)
+  (\h t -> opts & headSize .~ h & tailSize .~ t)
     <$> f (opts ^. headSize) <*> f (opts ^. tailSize)
-
--- Calculate the tailSize needed so that the head and tail are the same width.
--- If either is zero, revert to the default size. This is needed for example
--- in the noHead arrow head case.
---toTailSize :: ArrowOpts -> Double -> Double
---toTailSize opts s = if (hw > 0) && (tw > 0) then hw / tw else 0.3
---  where
---    (h, j) = (opts^.arrowHead) s (widthOfJoint $ shaftSty opts)
---    (t, k) = (opts^.arrowTail) 1 (widthOfJoint $ shaftSty opts)
---    hw = xWidth h + xWidth j
---    tw = xWidth t + xWidth k
 
 -- | Distance to leave between the head and the target point.
 headGap :: Lens' ArrowOpts Double
