@@ -84,7 +84,7 @@ module Diagrams.TwoD.Arrow
        , widths
        , headGap
        , tailGap
-       , gap
+       , gaps, gap
        , headColor
        , headStyle
        , tailColor
@@ -224,8 +224,12 @@ headGap :: Lens' ArrowOpts Double
 tailGap :: Lens' ArrowOpts Double
 
 -- | Set both the @headGap@ and @tailGap@ simultaneously.
+gaps :: Traversal' ArrowOpts Double
+gaps f opts = (\h t -> opts & headGap .~ h & tailGap .~ t) <$> f (opts ^. headGap) <*> f (opts ^. tailGap)
+
+-- | Same as gaps, provided for backward compatiiblity.
 gap :: Traversal' ArrowOpts Double
-gap f opts = (\h t -> opts & headGap .~ h & tailGap .~ t) <$> f (opts ^. headGap) <*> f (opts ^. tailGap)
+gap = gaps
 
 -- | Style to apply to the head. @headStyle@ is modified by using the lens
 --   combinator @%~@ to change the current style. For example, to change
