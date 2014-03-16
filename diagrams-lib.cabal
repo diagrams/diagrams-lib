@@ -63,6 +63,7 @@ Library
                        Diagrams.TwoD.Ellipse,
                        Diagrams.TwoD.Arc,
                        Diagrams.TwoD.Segment,
+                       Diagrams.TwoD.Compile,
                        Diagrams.TwoD.Curvature,
                        Diagrams.TwoD.Offset,
                        Diagrams.TwoD.Path,

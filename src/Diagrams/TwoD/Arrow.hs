@@ -1,5 +1,7 @@
+{-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeFamilies          #-}
@@ -30,8 +32,7 @@ module Diagrams.TwoD.Arrow
 --   >
 --   > shaft  = cubicSpline False ( map p2 [(0, 0), (1, 0), (1, 0.2), (2, 0.2)])
 --   >
---   > example1 = ds # connect' (with & arrowHead .~ dart & headSize .~ 0.6
---   >                                & tailSize .~ 0.5 & arrowTail .~ quill
+--   > example1 = ds # connect' (with & arrowHead .~ dart &  & arrowTail .~ quill
 --   >                                & shaftStyle %~ lw 0.02 & arrowShaft .~ shaft)
 --   >                                "left" "right" # pad 1.1
 
@@ -70,14 +71,16 @@ module Diagrams.TwoD.Arrow
        , arrow
        , arrow'
 
+         -- * Attributes
+       , HeadSize, headSize, getHeadSize
+       , TailSize, tailSize, getTailSize
+
          -- * Options
        , ArrowOpts(..)
 
        , arrowHead
        , arrowTail
        , arrowShaft
-       , headSize
-       , tailSize
        , headGap
        , tailGap
        , gap
@@ -103,9 +106,9 @@ import           Data.AffineSpace
 import           Data.Default.Class
 import           Data.Functor                     ((<$>))
 import           Data.Maybe                       (fromMaybe)
-import           Data.Monoid                      (mempty, (<>))
 import           Data.Monoid.Coproduct            (untangle)
-import           Data.Semigroup                   (option)
+import           Data.Semigroup
+import           Data.Typeable
 import           Data.VectorSpace
 
 import           Data.Colour                      hiding (atop)
@@ -121,7 +124,7 @@ import           Diagrams.Trail
 import           Diagrams.TwoD.Arrowheads
 import           Diagrams.TwoD.Attributes
 import           Diagrams.TwoD.Path               (strokeT, stroke)
-import           Diagrams.TwoD.Transform          (rotate, translateX)
+import           Diagrams.TwoD.Transform          (avgScale, rotate, translateX)
 import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector             (direction, unitX, unit_X)
 import           Diagrams.Util                    (( # ))
@@ -131,8 +134,6 @@ data ArrowOpts
     { _arrowHead  :: ArrowHT
     , _arrowTail  :: ArrowHT
     , _arrowShaft :: Trail R2
-    , _headSize   :: Double
-    , _tailSize   :: Double
     , _headGap    :: Double
     , _tailGap    :: Double
     , _headStyle  :: Style R2
@@ -149,8 +150,6 @@ instance Default ArrowOpts where
         { _arrowHead    = dart
         , _arrowTail    = noTail
         , _arrowShaft   = trailFromOffsets [unitX]
-        , _headSize     = 20
-        , _tailSize     = 20
         , _headGap      = 0
         , _tailGap      = 0
 
@@ -170,12 +169,6 @@ arrowTail :: Lens' ArrowOpts ArrowHT
 
 -- | The trail to use for the arrow shaft.
 arrowShaft :: Lens' ArrowOpts (Trail R2)
-
--- | Radius of a circumcircle around the head.
-headSize :: Lens' ArrowOpts Double
-
--- | Radius of a circumcircle around the tail.
-tailSize :: Lens' ArrowOpts Double
 
 -- | Distance to leave between the head and the target point.
 headGap :: Lens' ArrowOpts Double
@@ -244,6 +237,44 @@ headSty opts = fc black (opts^.headStyle)
 tailSty :: ArrowOpts -> Style R2
 tailSty opts = fc black (opts^.tailStyle)
 
+
+-- | Radius of a circumcircle around the head.
+newtype HeadSize = HeadSize (Last (Measure Double))
+                 deriving (Typeable, Semigroup)
+instance AttributeClass HeadSize
+
+type instance V HeadSize = R2
+
+instance Transformable HeadSize where
+  transform t (HeadSize (Last (Local w))) =
+    HeadSize (Last (Local (avgScale t * w)))
+  transform _ l = l
+
+-- | Set the radius of the circumcircle around the head.
+headSize :: (HasStyle a, V a ~ R2) => Measure Double -> a -> a
+headSize = applyTAttr . HeadSize . Last
+
+getHeadSize :: HeadSize -> Measure Double
+getHeadSize (HeadSize (Last s)) = s
+
+newtype TailSize = TailSize (Last (Measure Double))
+                 deriving (Typeable, Semigroup)
+instance AttributeClass TailSize
+
+type instance V TailSize = R2
+
+instance Transformable TailSize where
+  transform t (TailSize (Last (Local w))) =
+    TailSize (Last (Local (avgScale t * w)))
+  transform _ l = l
+
+-- | Set the radius of a circumcircle around the arrow tail.
+tailSize :: (HasStyle a, V a ~ R2) => Measure Double -> a -> a
+tailSize = applyTAttr . TailSize . Last
+
+getTailSize :: TailSize -> Measure Double
+getTailSize (TailSize (Last s)) = s
+
 -- | Calculate the length of the portion of the horizontal line that passes
 --   through the origin and is inside of p.
 xWidth :: (Traced t, V t ~ R2) => t -> Double
@@ -273,22 +304,22 @@ widthOfJoint sStyle =
 -- | Combine the head and its joint into a single scale invariant diagram
 --   and move the origin to the attachment point. Return the diagram
 --   and its width.
-mkHead :: Renderable (Path R2) b => ArrowOpts -> (Diagram b R2, Double)
-mkHead opts = ((j <> h) # moveOriginBy (jWidth *^ unit_X) # lw 0
+mkHead :: Renderable (Path R2) b => Double -> ArrowOpts -> (Diagram b R2, Double)
+mkHead size opts = ((j <> h) # moveOriginBy (jWidth *^ unit_X) # lw 0
               , hWidth + jWidth)
   where
-    (h', j') = (opts^.arrowHead) (opts^.headSize) (widthOfJoint $ shaftSty opts)
+    (h', j') = (opts^.arrowHead) size (widthOfJoint $ shaftSty opts)
     hWidth = xWidth h'
     jWidth = xWidth j'
     h = stroke h' # applyStyle (headSty opts)
     j = stroke j' # applyStyle (colorJoint (opts^.shaftStyle))
 
 -- | Just like mkHead only the attachment point is on the right.
-mkTail :: Renderable (Path R2) b => ArrowOpts -> (Diagram b R2, Double)
-mkTail opts = ((t <> j) # moveOriginBy (jWidth *^ unitX) # lw 0
+mkTail :: Renderable (Path R2) b => Double -> ArrowOpts -> (Diagram b R2, Double)
+mkTail size opts = ((t <> j) # moveOriginBy (jWidth *^ unitX) # lw 0
               , tWidth + jWidth)
   where
-    (t', j') = (opts^.arrowTail) (opts^.tailSize) (widthOfJoint $ shaftSty opts)
+    (t', j') = (opts^.arrowTail) size (widthOfJoint $ shaftSty opts)
     tWidth = xWidth t'
     jWidth = xWidth j'
     t = stroke t' # applyStyle (tailSty opts)
@@ -386,9 +417,12 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
           & tailStyle  %~ maybe id fillColor globalLC
           & shaftStyle %~ maybe id lineColor globalLC
 
+        (Just (HeadSize (Last (Output hSize)))) = getAttr sty
+        (Just (TailSize (Last (Output tSize)))) = getAttr sty
+
         -- Make the head and tail and save their widths.
-        (h, hWidth') = mkHead opts'
-        (t, tWidth') = mkTail opts'
+        (h, hWidth') = mkHead hSize opts'
+        (t, tWidth') = mkTail tSize opts'
 
         rawShaftTrail = opts^.arrowShaft
         shaftTrail

@@ -148,8 +148,6 @@ module Diagrams.TwoD
        , arrowHead
        , arrowTail
        , arrowShaft
-       , headSize
-       , tailSize
        , headGap
        , tailGap
        , gap
@@ -159,6 +157,8 @@ module Diagrams.TwoD
        , tailStyle
        , shaftColor
        , shaftStyle
+       , HeadSize, headSize, getHeadSize
+       , TailSize, tailSize, getTailSize
 
          -- * Text
        , text, topLeftText, alignedText, baselineText
@@ -253,6 +253,7 @@ import           Diagrams.TwoD.Attributes
 import           Diagrams.TwoD.Arrow
 import           Diagrams.TwoD.Arrowheads
 import           Diagrams.TwoD.Combinators
+import           Diagrams.TwoD.Compile
 import           Diagrams.TwoD.Ellipse
 import           Diagrams.TwoD.Image
 import           Diagrams.TwoD.Model

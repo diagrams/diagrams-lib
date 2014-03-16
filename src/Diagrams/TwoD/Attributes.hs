@@ -24,9 +24,6 @@ module Diagrams.TwoD.Attributes (
       LineWidth, getLineWidth, lineWidth, lineWidthA, lw, lwN, lwO, lwL
     , ultraThin, veryThin, thin, medium, thick, veryThick
 
-  -- * Measure conversion
-    , toOutput
-
     ) where
 
 import           Data.Default.Class
@@ -34,10 +31,6 @@ import           Data.Semigroup
 import           Data.Typeable
 
 import           Diagrams.Core
-import           Diagrams.Core.Compile   (mapRTreeStyle)
-import           Diagrams.Core.Style     (setAttr)
-import           Diagrams.Core.Types     (RTree)
-import           Diagrams.TwoD.Size      (SizeSpec2D, sizePair)
 import           Diagrams.TwoD.Transform (avgScale)
 import           Diagrams.TwoD.Types     (R2)
 
@@ -97,19 +90,3 @@ thin      = lwO 1
 medium    = lwO 2
 thick     = lwO 4
 veryThick = lwO 5
-
--- | Convert all of the @LineWidth@ attributes in an @RTree@ to output
---   units. 'w' and 'h' are the width and height of the final diagram.
---   The scaling factor is the geometric mean of 'h' and 'w'.
-toOutput :: SizeSpec2D -> Double -> RTree b v () -> RTree b v ()
-toOutput sizeSpec gs tr = mapRTreeStyle f tr
-  where
-    f sty = case getAttr sty of
-              Just (LineWidth (Last (Output t))) -> out t sty
-              Just (LineWidth (Last (Normalized t))) -> out (nScale * t) sty
-              Just (LineWidth (Last (Local t))) -> out t sty
-              Just (LineWidth (Last (Global t))) -> out (gs * t) sty
-              Nothing -> sty
-    out z st = setAttr (LineWidth (Last (Output z))) st
-    nScale = sqrt (w * h)
-    (w, h) = sizePair sizeSpec
