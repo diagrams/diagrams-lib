@@ -164,23 +164,22 @@ font = applyAttr . Font . Last
 -- Font size
 
 -- | The @FontSize@ attribute specifies the size of a font's
---   em-square, measured with respect to the current local vector space.
---   Inner @FontSize@ attributes override outer ones.
-newtype FontSize = FontSize (Last Double)
-  deriving (Typeable, Semigroup, Eq)
+--   em-square.  Inner @FontSize@ attributes override outer ones.
+newtype FontSize = FontSize (Last (Measure Double))
+  deriving (Typeable, Semigroup)
 instance AttributeClass FontSize
 
 instance Default FontSize where
-    def = FontSize (Last 1)
+    def = FontSize (Last (Local 1))
 
 -- | Extract the size from a @FontSize@ attribute.
-getFontSize :: FontSize -> Double
+getFontSize :: FontSize -> Measure Double
 getFontSize (FontSize (Last s)) = s
 
 -- | Set the font size, that is, the size of the font's em-square as
 --   measured within the current local vector space.  The default size
 --   is @1@.
-fontSize :: HasStyle a => Double -> a -> a
+fontSize :: HasStyle a => Measure Double -> a -> a
 fontSize = applyAttr . FontSize . Last
 
 -- | Apply a 'FontSize' attribute.

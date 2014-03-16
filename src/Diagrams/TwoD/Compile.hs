@@ -20,6 +20,7 @@ import Diagrams.Core.Types      (RTree)
 import Diagrams.TwoD.Arrow
 import Diagrams.TwoD.Attributes
 import Diagrams.TwoD.Size       (SizeSpec2D, sizePair)
+import Diagrams.TwoD.Text
 import Diagrams.TwoD.Types      (R2)
 
 -- | Take a getter, a setter, and two scaling terms, return a function
@@ -48,4 +49,5 @@ toOutput ns gs = mapRTreeStyle f
   where
     f = modifyStyle getLineWidth lineWidth ns gs .
         modifyStyle getHeadSize headSize ns gs .
-        modifyStyle getTailSize tailSize ns gs
+        modifyStyle getTailSize tailSize ns gs .
+        modifyStyle getFontSize fontSize ns gs
