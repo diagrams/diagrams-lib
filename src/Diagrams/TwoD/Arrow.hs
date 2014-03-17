@@ -72,8 +72,8 @@ module Diagrams.TwoD.Arrow
        , arrow'
 
          -- * Attributes
-       , HeadSize, headSize, getHeadSize
-       , TailSize, tailSize, getTailSize
+       , HeadSize, headSize, headSizeA, getHeadSize
+       , TailSize, tailSize, tailSizeA, getTailSize
 
          -- * Options
        , ArrowOpts(..)
@@ -250,9 +250,15 @@ instance Transformable HeadSize where
     HeadSize (Last (Local (avgScale t * w)))
   transform _ l = l
 
+instance Default HeadSize where
+    def = HeadSize (Last (Output 20))
+
 -- | Set the radius of the circumcircle around the head.
 headSize :: (HasStyle a, V a ~ R2) => Measure Double -> a -> a
 headSize = applyTAttr . HeadSize . Last
+
+headSizeA :: (HasStyle a, V a ~ R2) => HeadSize -> a -> a
+headSizeA = applyTAttr
 
 getHeadSize :: HeadSize -> Measure Double
 getHeadSize (HeadSize (Last s)) = s
@@ -268,9 +274,15 @@ instance Transformable TailSize where
     TailSize (Last (Local (avgScale t * w)))
   transform _ l = l
 
+instance Default TailSize where
+    def = TailSize (Last (Output 20))
+
 -- | Set the radius of a circumcircle around the arrow tail.
 tailSize :: (HasStyle a, V a ~ R2) => Measure Double -> a -> a
 tailSize = applyTAttr . TailSize . Last
+
+tailSizeA :: (HasStyle a, V a ~ R2) => TailSize -> a -> a
+tailSizeA = applyTAttr
 
 getTailSize :: TailSize -> Measure Double
 getTailSize (TailSize (Last s)) = s
