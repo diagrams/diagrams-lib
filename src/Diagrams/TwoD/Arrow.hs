@@ -573,9 +573,7 @@ connectOutside' opts n1 n2 =
   withName n2 $ \b2 ->
     let v = location b2 .-. location b1
         midpoint = location b1 .+^ (v/2)
-        s' = traceP midpoint (-v) b1
-        e' = traceP midpoint v b2
+        s' = fromMaybe (location b1) $ traceP midpoint (-v) b1
+        e' = fromMaybe (location b2) $ traceP midpoint v b2
     in
-      case (s', e') of
-        (Just s,  Just e)  -> atop (arrowBetween' opts s e)
-        (_, _)             -> id
+      atop (arrowBetween' opts s' e')
