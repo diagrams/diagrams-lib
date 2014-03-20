@@ -189,6 +189,11 @@ pathOffsets = map (trailOffset . unLoc) . op Path
 pathCentroid :: (InnerSpace v, OrderedField (Scalar v)) => Path v -> Point v
 pathCentroid = centroid . concat . pathVertices
 
+-- | Convert a path into a list of lists of located segments.
+pathLocSegments :: (InnerSpace v, OrderedField (Scalar v))
+                 => Path v -> [[Located (Segment Closed v)]]
+pathLocSegments = map trailLocSegments . op Path
+
 -- | Convert a path into a list of lists of 'FixedSegment's.
 fixPath :: (InnerSpace v, OrderedField (Scalar v)) => Path v -> [[FixedSegment v]]
 fixPath = map fixTrail . op Path
