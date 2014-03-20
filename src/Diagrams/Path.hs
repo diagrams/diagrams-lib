@@ -44,7 +44,7 @@ module Diagrams.Path
        , pathVertices
        , pathOffsets
        , pathCentroid
-       , fixPath
+       , pathLocSegments, fixPath
 
          -- * Modifying paths
 
