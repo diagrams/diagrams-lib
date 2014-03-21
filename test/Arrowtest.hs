@@ -43,8 +43,8 @@ example = d # connect' (with & arrowHead .~ dart & arrowTail .~ noTail
                              & shaftStyle  %~  dashing [0.1,0.2,0.3,0.1] 0) "8" "9"
   where
     c = circle 1 # showOrigin # lw 0.02
-    a = arc (5/12 :: Turn) (11/12 :: Turn)
-    a1 = arc (1/2 :: Turn) (3/4 :: Turn)
+    a = arc (5/12 @@ turn) (11/12 @@ turn)
+    a1 = arc (1/2 @@ turn) (3/4 @@ turn)
     t = bezier3 (r2 (1,1)) (r2 (1,1)) (r2 (0,2))
     t' = reflectX t
     l = straight unitX
