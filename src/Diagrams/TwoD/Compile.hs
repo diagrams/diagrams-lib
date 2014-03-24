@@ -55,4 +55,4 @@ toOutput :: SizeSpec2D -> Double -> Style R2 -> Style R2
 toOutput ns gs = modifyStyle getLineWidth setLineWidth ns gs .
                  modifyStyle getHeadSize setHeadSize ns gs .
                  modifyStyle getTailSize setTailSize ns gs .
-                 modifyStyle getFontSize fontSize ns gs
+                 modifyStyle getFontSize setFontSize ns gs
