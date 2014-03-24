@@ -11,6 +11,8 @@
 --
 -----------------------------------------------------------------------------
 
+{-# LANGUAGE TypeFamilies #-}
+
 module Diagrams.Transform
     ( -- * Transformations
       Transformation, inv, transl, apply, papply
@@ -52,5 +54,5 @@ conjugate t1 t2  = inv t1 <> t2 <> t1
 --   @
 --
 --   for all transformations @t1@ and @t2@.
-under :: Transformable a => (a -> a) -> Transformation (V a) -> a -> a
+under :: (Transformable a, Transformable b, V a ~ V b) => (a -> b) -> Transformation (V a) -> a -> b
 f `under` t = transform (inv t) . f . transform t
