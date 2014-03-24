@@ -37,7 +37,15 @@ modifyStyle get set outputSize gs sty = case getAttr sty of
         Output _     -> sty
         Normalized t -> set (Output $ sqrt (w*h) * t) sty where
           (w,h) = sizePair outputSize
+
+        -- Note: we assume here that this function is being called on
+        -- values in an RTree; conversion to RTree involves pushing
+        -- transformations down to the leaves, and transforming any
+        -- styles encountered along the way.  In particular this will
+        -- scale any 'Local' values; hence any 'Local' value
+        -- encountered here must already be in Output units.
         Local t      -> set (Output t) sty
+
         Global t     -> set (Output $ gs * t) sty
 
 -- | Convert all of the @LineWidth@ attributes in an @RTree@ to output
