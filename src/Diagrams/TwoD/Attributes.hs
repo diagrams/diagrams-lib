@@ -21,7 +21,8 @@
 
 module Diagrams.TwoD.Attributes (
   -- ** Width
-      LineWidth, getLineWidth, lineWidth, lineWidthA, lw, lwN, lwO, lwL
+      LineWidth, getLineWidth, lineWidth, lineWidthA, setLineWidth
+    , lw, lwN, lwO, lwL
     , ultraThin, veryThin, thin, medium, thick, veryThick
 
     ) where
@@ -31,6 +32,7 @@ import           Data.Semigroup
 import           Data.Typeable
 
 import           Diagrams.Core
+import           Diagrams.Core.Style     (setAttr)
 import           Diagrams.TwoD.Transform (avgScale)
 import           Diagrams.TwoD.Types     (R2)
 
@@ -56,6 +58,9 @@ instance Default LineWidth where
 
 getLineWidth :: LineWidth -> (Measure Double)
 getLineWidth (LineWidth (Last w)) = w
+
+setLineWidth :: (Measure Double) -> Style R2 -> Style R2
+setLineWidth = setAttr . LineWidth . Last
 
 -- | Set the line (stroke) width.
 lineWidth :: (HasStyle a, V a ~ R2) => (Measure Double) -> a -> a

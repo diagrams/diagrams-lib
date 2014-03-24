@@ -52,7 +52,7 @@ modifyStyle get set outputSize gs sty = case getAttr sty of
 --   units. 'w' and 'h' are the width and height of the final diagram.
 --   The scaling factor is the geometric mean of 'h' and 'w'.
 toOutput :: SizeSpec2D -> Double -> Style R2 -> Style R2
-toOutput ns gs = modifyStyle getLineWidth lineWidth ns gs .
+toOutput ns gs = modifyStyle getLineWidth setLineWidth ns gs .
                  modifyStyle getHeadSize headSize ns gs .
                  modifyStyle getTailSize tailSize ns gs .
                  modifyStyle getFontSize fontSize ns gs
