@@ -53,6 +53,6 @@ modifyStyle get set outputSize gs sty = case getAttr sty of
 --   The scaling factor is the geometric mean of 'h' and 'w'.
 toOutput :: SizeSpec2D -> Double -> Style R2 -> Style R2
 toOutput ns gs = modifyStyle getLineWidth setLineWidth ns gs .
-                 modifyStyle getHeadSize headSize ns gs .
-                 modifyStyle getTailSize tailSize ns gs .
+                 modifyStyle getHeadSize setHeadSize ns gs .
+                 modifyStyle getTailSize setTailSize ns gs .
                  modifyStyle getFontSize fontSize ns gs

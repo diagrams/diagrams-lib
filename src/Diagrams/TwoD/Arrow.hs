@@ -72,8 +72,8 @@ module Diagrams.TwoD.Arrow
        , arrow'
 
          -- * Attributes
-       , HeadSize, headSize, headSizeA, getHeadSize
-       , TailSize, tailSize, tailSizeA, getTailSize
+       , HeadSize, headSize, headSizeA, getHeadSize, setHeadSize
+       , TailSize, tailSize, tailSizeA, getTailSize, setTailSize
 
          -- * Options
        , ArrowOpts(..)
@@ -115,6 +115,7 @@ import           Data.Colour                      hiding (atop)
 import           Diagrams.Attributes
 import           Diagrams.Core
 import           Diagrams.Core.Types              (QDiaLeaf (..), mkQD')
+import           Diagrams.Core.Style              (setAttr)
 
 import           Diagrams.Parametric
 import           Diagrams.Path
@@ -257,6 +258,9 @@ instance Default HeadSize where
 headSize :: (HasStyle a, V a ~ R2) => Measure Double -> a -> a
 headSize = applyTAttr . HeadSize . Last
 
+setHeadSize :: (Measure Double) -> Style R2 -> Style R2
+setHeadSize = setAttr . HeadSize . Last
+
 headSizeA :: (HasStyle a, V a ~ R2) => HeadSize -> a -> a
 headSizeA = applyTAttr
 
@@ -280,6 +284,9 @@ instance Default TailSize where
 -- | Set the radius of a circumcircle around the arrow tail.
 tailSize :: (HasStyle a, V a ~ R2) => Measure Double -> a -> a
 tailSize = applyTAttr . TailSize . Last
+
+setTailSize :: (Measure Double) -> Style R2 -> Style R2
+setTailSize = setAttr . TailSize . Last
 
 tailSizeA :: (HasStyle a, V a ~ R2) => TailSize -> a -> a
 tailSizeA = applyTAttr
