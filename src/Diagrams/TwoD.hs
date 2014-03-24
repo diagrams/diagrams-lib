@@ -249,17 +249,17 @@ module Diagrams.TwoD
 
 import           Diagrams.TwoD.Align
 import           Diagrams.TwoD.Arc
-import           Diagrams.TwoD.Attributes
 import           Diagrams.TwoD.Arrow
 import           Diagrams.TwoD.Arrowheads
+import           Diagrams.TwoD.Attributes
 import           Diagrams.TwoD.Combinators
 import           Diagrams.TwoD.Compile
+import           Diagrams.TwoD.Deform
 import           Diagrams.TwoD.Ellipse
 import           Diagrams.TwoD.Image
 import           Diagrams.TwoD.Model
 import           Diagrams.TwoD.Path
 import           Diagrams.TwoD.Polygons
-import           Diagrams.TwoD.Deform
 import           Diagrams.TwoD.Shapes
 import           Diagrams.TwoD.Size
 import           Diagrams.TwoD.Text
