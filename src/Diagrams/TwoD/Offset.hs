@@ -41,6 +41,7 @@ import Control.Applicative
 import Control.Lens            hiding (at)
 
 import Data.AffineSpace
+import Data.Maybe              (catMaybes)
 import Data.Monoid
 import Data.Monoid.Inf
 import Data.VectorSpace
@@ -263,9 +264,10 @@ offsetTrail' :: OffsetOpts
                         --   loop.
              -> Located (Trail R2)
              -> Located (Trail R2)
-offsetTrail' opts r t = joinSegments j isLoop (opts^.offsetMiterLimit) r ends . offset $ t
+offsetTrail' opts r t = joinSegments eps j isLoop (opts^.offsetMiterLimit) r ends . offset $ t
     where
-      offset = map (bindLoc (offsetSegment (opts^.offsetEpsilon) r)) . locatedTrailSegments
+      eps = opts^.offsetEpsilon
+      offset = map (bindLoc (offsetSegment eps r)) . locatedTrailSegments
       ends | isLoop    = (\(a:as) -> as ++ [a]) . trailVertices $ t
            | otherwise = tail . trailVertices $ t
       j = fromLineJoin (opts^.offsetJoin)
@@ -356,8 +358,10 @@ expandTrail' o r t
 expandLine :: ExpandOpts -> Double -> Located (Trail' Line R2) -> Located (Trail R2)
 expandLine opts r (mapLoc wrapLine -> t) = caps cap r s e (f r) (f $ -r)
     where
-      offset r' = map (bindLoc (offsetSegment (opts^.expandEpsilon) r')) . locatedTrailSegments
-      f r' = joinSegments (fromLineJoin (opts^.expandJoin)) False (opts^.expandMiterLimit) r' ends . offset r' $ t
+      eps = opts^.expandEpsilon
+      offset r' = map (bindLoc (offsetSegment eps r')) . locatedTrailSegments
+      f r' = joinSegments eps (fromLineJoin (opts^.expandJoin)) False (opts^.expandMiterLimit) r' ends 
+           . offset r' $ t
       ends = tail . trailVertices $ t
       s = atStart t
       e = atEnd t
@@ -366,8 +370,10 @@ expandLine opts r (mapLoc wrapLine -> t) = caps cap r s e (f r) (f $ -r)
 expandLoop :: ExpandOpts -> Double -> Located (Trail' Loop R2) -> Path R2
 expandLoop opts r (mapLoc wrapLoop -> t) = (trailLike $ f r) <> (trailLike . reverseDomain . f $ -r)
     where
-      offset r' = map (bindLoc (offsetSegment (opts^.expandEpsilon) r')) . locatedTrailSegments
-      f r' = joinSegments (fromLineJoin (opts^.expandJoin)) True (opts^.expandMiterLimit) r' ends . offset r' $ t
+      eps = opts^.expandEpsilon
+      offset r' = map (bindLoc (offsetSegment eps r')) . locatedTrailSegments
+      f r' = joinSegments eps (fromLineJoin (opts^.expandJoin)) True (opts^.expandMiterLimit) r' ends 
+           . offset r' $ t
       ends = (\(a:as) -> as ++ [a]) . trailVertices $ t
 
 -- | Expand a 'Trail' with the given radius and default options.  See 'expandTrail''.
@@ -470,20 +476,25 @@ arcVCW u v = arcCW (direction u) (direction v)
 --   Note: this is not a general purpose join and assumes that we are joining an
 --   offset trail.  For instance, a fixed radius arc will not fit between arbitrary
 --   trails without trimming or extending.
-joinSegments :: (Double -> Double -> P2 -> Located (Trail R2) -> Located (Trail R2) -> Trail R2)
+joinSegments :: Double
+             -> (Double -> Double -> P2 -> Located (Trail R2) -> Located (Trail R2) -> Trail R2)
              -> Bool
              -> Double
              -> Double
              -> [Point R2]
              -> [Located (Trail R2)]
              -> Located (Trail R2)
-joinSegments _ _ _ _ _ [] = mempty `at` origin
-joinSegments _ _ _ _ [] _ = mempty `at` origin
-joinSegments j isLoop ml r es ts@(t:_) = t'
+joinSegments _ _ _ _ _ _ [] = mempty `at` origin
+joinSegments _ _ _ _ _ [] _ = mempty `at` origin
+joinSegments epsilon j isLoop ml r es ts@(t:_) = t'
   where
-    t' | isLoop    = mapLoc (glueTrail . (<> mconcat (take (length ts * 2 - 1) $ ss es (ts ++ [t])))) t
-       | otherwise = mapLoc (<> mconcat (ss es ts)) t
-    ss es' ts' = concat [[j ml r e a b, unLoc b] | (e,(a,b)) <- zip es' . (zip <*> tail) $ ts']
+    t' | isLoop    = mapLoc (glueTrail . (<> f (take (length ts * 2 - 1) $ ss es (ts ++ [t])))) t
+       | otherwise = mapLoc (<> f (ss es ts)) t
+    ss es' ts' = concat [[test a b $ j ml r e a b, Just $ unLoc b] | (e,(a,b)) <- zip es' . (zip <*> tail) $ ts']
+    test a b tj
+        | atStart b `distance` atEnd a > epsilon = Just tj
+        | otherwise                              = Nothing
+    f = mconcat . catMaybes
 
 -- | Take a join style and give the join function to be used by joinSegments.
 fromLineJoin

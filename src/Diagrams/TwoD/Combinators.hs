@@ -45,7 +45,8 @@ import           Data.VectorSpace
 
 import           Diagrams.Core
 
-import           Diagrams.Attributes      (fc)
+import           Diagrams.Angle
+import           Diagrams.Attributes      (fc, lw)
 import           Diagrams.BoundingBox
 import           Diagrams.Combinators
 import           Diagrams.Coordinates
@@ -77,7 +78,7 @@ infixl 6 |||
 --
 --   to place @c@ above @d@.  The local origin of the resulting
 --   combined diagram is the same as the local origin of the first.
---   @(|||)@ is associative and has 'mempty' as an identity.  See the
+--   @(===)@ is associative and has 'mempty' as an identity.  See the
 --   documentation of 'beside' for more information.
 (===) :: (Juxtaposable a, V a ~ R2, Semigroup a) => a -> a -> a
 (===) = beside (negateV unitY)
@@ -85,7 +86,7 @@ infixl 6 |||
 -- | Place two diagrams (or other juxtaposable objects) horizontally
 --   adjacent to one another, with the first diagram to the left of
 --   the second.  The local origin of the resulting combined diagram
---   is the same as the local origin of the first.  @(===)@ is
+--   is the same as the local origin of the first.  @(|||)@ is
 --   associative and has 'mempty' as an identity.  See the
 --   documentation of 'beside' for more information.
 (|||) :: (Juxtaposable a, V a ~ R2, Semigroup a) => a -> a -> a

@@ -12,10 +12,10 @@
 
 module Main where
 
-import           Diagrams.Prelude
+import           Control.Lens                 ((%~), (&), (.~))
 import           Diagrams.Backend.SVG
 import           Diagrams.Backend.SVG.CmdLine
-import           Control.Lens ((.~), (&), (%~))
+import           Diagrams.Prelude
 
 
 -- | example 0 ------------------------------------------------------------
@@ -68,4 +68,4 @@ example = d # connect' (with & arrowHead .~ dart & arrowTail .~ noTail
         ===
         row3
 
-main = defaultMain $ ( example # pad 1.1)
+main = defaultMain $ ( example # centerXY) # pad 1.1

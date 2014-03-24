@@ -23,6 +23,7 @@ module Diagrams.TwoD.Arrowheads
        , spike
        , thorn
        , missile
+       , lineHead
        , noHead
 
        -- ** Configurable arrowheads
@@ -42,6 +43,7 @@ module Diagrams.TwoD.Arrowheads
        , spike'
        , thorn'
        , missile'
+       , lineTail
        , noTail
        , quill
        , block
@@ -63,6 +65,7 @@ import           Data.Maybe              (fromMaybe)
 import           Data.Monoid             (mempty, (<>))
 import           Data.VectorSpace
 
+import           Diagrams.Angle
 import           Diagrams.Core
 import           Diagrams.CubicSpline    (cubicSpline)
 import           Diagrams.Path
@@ -208,6 +211,10 @@ arrowheadMissile :: Angle -> ArrowHT
 arrowheadMissile theta = smoothArrowhead $ arrowheadDart theta
 
 -- Standard heads ---------------------------------------------------------
+-- | A line the same width as the shaft.
+lineHead :: ArrowHT
+lineHead l w = (square 1 # scaleX l # scaleY w # alignL, mempty)
+
 noHead :: ArrowHT
 noHead _ _ = (mempty, mempty)
 
@@ -292,6 +299,9 @@ arrowtailQuill theta =aTail
                 [ v0, n1, n2, v0, n3, n4, v0 ])
 
 -- Standard tails ---------------------------------------------------------
+-- | A line the same width as the shaft.
+lineTail :: ArrowHT
+lineTail l w = (square 1 # scaleX l # scaleY w # alignR, mempty)
 
 noTail :: ArrowHT
 noTail _ _ = (mempty, mempty)

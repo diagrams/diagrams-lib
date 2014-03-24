@@ -1,10 +1,10 @@
 {-# LANGUAGE DeriveDataTypeable         #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE GADTs                      #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE TemplateHaskell            #-}
+{-# LANGUAGE TypeFamilies               #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -83,7 +83,7 @@ module Diagrams.TwoD.Arrow
        , arrowShaft
        , headGap
        , tailGap
-       , gap
+       , gaps, gap
        , headColor
        , headStyle
        , tailColor
@@ -97,38 +97,39 @@ module Diagrams.TwoD.Arrow
        , module Diagrams.TwoD.Arrowheads
        ) where
 
-import           Control.Applicative              ((<*>))
-import           Control.Lens                     (Lens', Setter', Traversal',
-                                                   generateSignatures,
-                                                   lensRules, makeLensesWith,
-                                                   (%~), (&), (.~), (^.))
+import           Control.Applicative      ((<*>))
+import           Control.Lens             (Lens', Setter', Traversal',
+                                           generateSignatures, lensRules,
+                                           makeLensesWith, (%~), (&), (.~),
+                                           (^.))
 import           Data.AffineSpace
 import           Data.Default.Class
-import           Data.Functor                     ((<$>))
-import           Data.Maybe                       (fromMaybe)
-import           Data.Monoid.Coproduct            (untangle)
+import           Data.Functor             ((<$>))
+import           Data.Maybe               (fromMaybe)
+import           Data.Monoid.Coproduct    (untangle)
 import           Data.Semigroup
 import           Data.Typeable
 import           Data.VectorSpace
 
-import           Data.Colour                      hiding (atop)
+import           Data.Colour              hiding (atop)
 import           Diagrams.Attributes
 import           Diagrams.Core
-import           Diagrams.Core.Types              (QDiaLeaf (..), mkQD')
-import           Diagrams.Core.Style              (setAttr)
+import           Diagrams.Core.Style      (setAttr)
+import           Diagrams.Core.Types      (QDiaLeaf (..), mkQD')
 
+import           Diagrams.Angle
 import           Diagrams.Parametric
 import           Diagrams.Path
-import           Diagrams.Solve                   (quadForm)
-import           Diagrams.Tangent                 (tangentAtEnd, tangentAtStart)
+import           Diagrams.Solve           (quadForm)
+import           Diagrams.Tangent         (tangentAtEnd, tangentAtStart)
 import           Diagrams.Trail
 import           Diagrams.TwoD.Arrowheads
 import           Diagrams.TwoD.Attributes
-import           Diagrams.TwoD.Path               (strokeT, stroke)
-import           Diagrams.TwoD.Transform          (avgScale, rotate, translateX)
+import           Diagrams.TwoD.Path       (stroke, strokeT)
+import           Diagrams.TwoD.Transform  (avgScale, rotate, translateX)
 import           Diagrams.TwoD.Types
-import           Diagrams.TwoD.Vector             (direction, unitX, unit_X)
-import           Diagrams.Util                    (( # ))
+import           Diagrams.TwoD.Vector     (direction, unitX, unit_X)
+import           Diagrams.Util            (( # ))
 
 data ArrowOpts
   = ArrowOpts
@@ -171,14 +172,58 @@ arrowTail :: Lens' ArrowOpts ArrowHT
 -- | The trail to use for the arrow shaft.
 arrowShaft :: Lens' ArrowOpts (Trail R2)
 
+-- -- | Radius of a circumcircle around the head.
+-- headSize :: Lens' ArrowOpts Double
+
+-- -- | Radius of a circumcircle around the tail.
+-- tailSize :: Lens' ArrowOpts Double
+
+-- -- | Width of the head.
+-- headWidth :: Setter' ArrowOpts Double
+-- headWidth f opts =
+--   (\hd -> opts & headSize .~ g hd) <$> f (opts ^. headSize)
+--   where
+--     g w = w / (xWidth h + xWidth j)
+--     (h, j) = (opts ^. arrowHead) 1 (widthOfJoint $ shaftSty opts)
+
+-- -- | Width of the tail.
+-- tailWidth :: Setter' ArrowOpts Double
+-- tailWidth f opts =
+--   (\tl -> opts & tailSize .~ g tl) <$> f (opts ^. tailSize)
+--   where
+--     g w = w / (xWidth t + xWidth j)
+--     (t, j) = (opts ^. arrowTail) 1 (widthOfJoint $ shaftSty opts)
+
+-- -- | Set both the @headWidth@ and @tailWidth@.
+-- widths :: Traversal' ArrowOpts Double
+-- widths f opts =
+--   (\hd tl -> opts & headSize .~ gh hd & tailSize .~ gt tl)
+--   <$> f (opts ^. headSize) <*> f (opts ^. tailSize)
+--     where
+--       gh w = w / (xWidth h + xWidth j)
+--       (h, j) = (opts ^. arrowHead) 1 (widthOfJoint $ shaftSty opts)
+--       gt w = w / (xWidth t + xWidth j')
+--       (t, j') = (opts ^. arrowTail) 1 (widthOfJoint $ shaftSty opts)
+
+-- -- | Set the size of both the head and tail.
+-- sizes :: Traversal' ArrowOpts Double
+-- sizes f opts =
+--   (\h t -> opts & headSize .~ h & tailSize .~ t)
+--     <$> f (opts ^. headSize) <*> f (opts ^. tailSize)
+
 -- | Distance to leave between the head and the target point.
 headGap :: Lens' ArrowOpts Double
 
 -- | Distance to leave between the starting point and the tail.
 tailGap :: Lens' ArrowOpts Double
 
+-- | Set both the @headGap@ and @tailGap@ simultaneously.
+gaps :: Traversal' ArrowOpts Double
+gaps f opts = (\h t -> opts & headGap .~ h & tailGap .~ t) <$> f (opts ^. headGap) <*> f (opts ^. tailGap)
+
+-- | Same as gaps, provided for backward compatiiblity.
 gap :: Traversal' ArrowOpts Double
-gap f opts = (\h t -> opts & headGap .~ h & tailGap .~ t) <$> f (opts ^. headGap) <*> f (opts ^. tailGap)
+gap = gaps
 
 -- | Style to apply to the head. @headStyle@ is modified by using the lens
 --   combinator @%~@ to change the current style. For example, to change
@@ -570,9 +615,7 @@ connectOutside' opts n1 n2 =
   withName n2 $ \b2 ->
     let v = location b2 .-. location b1
         midpoint = location b1 .+^ (v/2)
-        s' = traceP midpoint (-v) b1
-        e' = traceP midpoint v b2
+        s' = fromMaybe (location b1) $ traceP midpoint (-v) b1
+        e' = fromMaybe (location b2) $ traceP midpoint v b2
     in
-      case (s', e') of
-        (Just s,  Just e)  -> atop (arrowBetween' opts s e)
-        (_, _)             -> id
+      atop (arrowBetween' opts s' e')

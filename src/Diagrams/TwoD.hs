@@ -65,14 +65,10 @@ module Diagrams.TwoD
        , P2, p2, unp2, mkP2
        , T2
        , unitX, unitY, unit_X, unit_Y
-       , direction, angleBetween, fromDirection
+       , direction, fromDirection
 
          -- * Angles
        , tau
-       , Angle
-       , rad, turn, deg
-       , fullTurn, fullCircle, angleRatio
-       , (@@)
 
          -- * Paths
          -- ** Stroking
@@ -150,7 +146,7 @@ module Diagrams.TwoD
        , arrowShaft
        , headGap
        , tailGap
-       , gap
+       , gaps, gap
        , headColor
        , headStyle
        , tailColor

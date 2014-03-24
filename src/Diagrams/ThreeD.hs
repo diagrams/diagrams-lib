@@ -31,7 +31,9 @@
 --     for rendering 3D geometry to (2D) images.
 -----------------------------------------------------------------------------
 module Diagrams.ThreeD
-       ( module Diagrams.ThreeD.Align
+       (
+         module Diagrams.ThreeD.Align
+       , module Diagrams.ThreeD.Attributes
        , module Diagrams.ThreeD.Camera
        , module Diagrams.ThreeD.Light
        , module Diagrams.ThreeD.Shapes
@@ -41,6 +43,7 @@ module Diagrams.ThreeD
        ) where
 
 import Diagrams.ThreeD.Align
+import Diagrams.ThreeD.Attributes
 import Diagrams.ThreeD.Camera
 import Diagrams.ThreeD.Light
 import Diagrams.ThreeD.Shapes

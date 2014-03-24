@@ -1,6 +1,8 @@
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE ExistentialQuantification  #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE ScopedTypeVariables        #-}
+{-# LANGUAGE TypeFamilies               #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Attributes
@@ -52,21 +54,28 @@ module Diagrams.Attributes (
   -- ** Dashing
   , Dashing(..), DashingA, getDashing, dashing
 
+  -- * Compilation utilities
+  , splitFills
 
   ) where
 
-import           Control.Lens          (Setter, sets)
+import           Control.Lens                (Setter, sets)
 import           Data.Colour
-import           Data.Colour.RGBSpace  (RGB(..))
-import           Data.Colour.SRGB      (toSRGB)
+import           Data.Colour.RGBSpace        (RGB (..))
+import           Data.Colour.SRGB            (toSRGB)
 import           Data.Default.Class
-import           Data.Maybe            (fromMaybe)
+import           Data.Maybe                  (fromMaybe)
 import           Data.Monoid.Recommend
 import           Data.Semigroup
 import           Data.Typeable
 
+import           Diagrams.Attributes.Compile
 import           Diagrams.Core
-import           Diagrams.Core.Style   (setAttr)
+import           Diagrams.Core.Style         (setAttr)
+import           Diagrams.Core.Types         (RTree)
+import           Diagrams.Located            (unLoc)
+import           Diagrams.Path               (Path, pathTrails)
+import           Diagrams.Trail              (isLoop)
 
 ------------------------------------------------------------
 --  Color  -------------------------------------------------
@@ -354,3 +363,22 @@ dashing :: HasStyle a =>
                      --   stroke should start.
         -> a -> a
 dashing ds offs = applyAttr (DashingA (Last (Dashing ds offs)))
+
+------------------------------------------------------------
+
+data FillLoops v = FillLoops
+
+instance Typeable v => SplitAttribute (FillLoops v) where
+  type AttrType (FillLoops v) = FillColor
+  type PrimType (FillLoops v) = Path v
+
+  primOK _ = all (isLoop . unLoc) . pathTrails
+
+-- | Push fill attributes down until they are at the root of subtrees
+--   containing only loops. This makes life much easier for backends,
+--   which typically have a semantics where fill attributes are
+--   applied to lines/non-closed paths as well as loops/closed paths,
+--   whereas in the semantics of diagrams, fill attributes only apply
+--   to loops.
+splitFills :: forall b v a. Typeable v => RTree b v a -> RTree b v a
+splitFills = splitAttr (FillLoops :: FillLoops v)

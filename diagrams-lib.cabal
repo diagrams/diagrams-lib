@@ -1,5 +1,5 @@
 Name:                diagrams-lib
-Version:             1.1
+Version:             1.1.0.1
 Synopsis:            Embedded domain-specific language for declarative graphics
 Description:         Diagrams is a flexible, extensible EDSL for creating
                      graphics of many types.  Graphics can be created
@@ -19,7 +19,7 @@ Build-type:          Simple
 Cabal-version:       >=1.10
 Extra-source-files:  CHANGES.markdown, README.markdown, diagrams/*.svg
 Extra-doc-files:     diagrams/*.svg
-Tested-with:         GHC == 7.4.2, GHC == 7.6.1
+Tested-with:         GHC == 7.4.2, GHC == 7.6.3, GHC == 7.8.1
 Source-repository head
   type:     git
   location: http://github.com/diagrams/diagrams-lib.git
@@ -28,9 +28,11 @@ Library
   Exposed-modules:     Diagrams.Prelude,
                        Diagrams.Prelude.ThreeD,
                        Diagrams.Align,
+                       Diagrams.Angle,
                        Diagrams.Combinators,
                        Diagrams.Coordinates,
                        Diagrams.Attributes,
+                       Diagrams.Attributes.Compile,
                        Diagrams.Points,
                        Diagrams.Located,
                        Diagrams.Parametric,
@@ -76,6 +78,7 @@ Library
                        Diagrams.TwoD.Image,
                        Diagrams.TwoD.Adjust,
                        Diagrams.ThreeD.Align,
+                       Diagrams.ThreeD.Attributes,
                        Diagrams.ThreeD.Camera,
                        Diagrams.ThreeD.Deform,
                        Diagrams.ThreeD.Light,
@@ -94,19 +97,19 @@ Library
                        array >= 0.3 && < 0.6,
                        semigroups >= 0.3.4 && < 0.13,
                        monoid-extras >= 0.3 && < 0.4,
-                       diagrams-core >= 1.0 && < 1.1,
+                       diagrams-core >= 1.1 && < 1.2,
                        active >= 0.1 && < 0.2,
                        vector-space >= 0.7.7 && < 0.9,
-                       vector-space-points >= 0.1.2 && < 0.2,
+                       vector-space-points >= 0.1.2 && < 0.3,
                        MemoTrie >= 0.6 && < 0.7,
                        colour >= 2.3.2 && < 2.4,
                        data-default-class < 0.1,
                        pretty >= 1.0.1.2 && < 1.2,
                        fingertree >= 0.1 && < 0.2,
                        intervals >= 0.3 && < 0.5,
-                       lens >= 4.0 && < 4.1,
+                       lens >= 4.0 && < 4.2,
                        tagged >= 0.7,
-                       optparse-applicative >= 0.7 && < 0.8,
+                       optparse-applicative >= 0.7 && < 0.9,
                        filepath,
                        safe >= 0.2 && < 0.4,
                        hashable >= 1.1 && < 1.3
