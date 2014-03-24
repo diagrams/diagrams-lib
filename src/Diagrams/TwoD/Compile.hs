@@ -38,7 +38,7 @@ modifyStyle get set outputSize gs sty = case getAttr sty of
         Output _     -> sty
         Normalized t -> set (Output $ sqrt (w*h) * t) sty where
           (w,h) = sizePair outputSize
-        Local _      -> sty
+        Local t      -> set (Output t) sty
         Global t     -> set (Output $ gs * t) sty
 
 -- | Convert all of the @LineWidth@ attributes in an @RTree@ to output
