@@ -14,14 +14,13 @@ module Diagrams.TwoD.Compile
 
        ) where
 
-import Diagrams.Core
-import Diagrams.Core.Compile    (mapRTreeStyle)
-import Diagrams.Core.Types      (RTree)
-import Diagrams.TwoD.Arrow
-import Diagrams.TwoD.Attributes
-import Diagrams.TwoD.Size       (SizeSpec2D, sizePair)
-import Diagrams.TwoD.Text
-import Diagrams.TwoD.Types      (R2)
+import           Diagrams.Core
+import           Diagrams.Core.Types      (RTree)
+import           Diagrams.TwoD.Arrow
+import           Diagrams.TwoD.Attributes
+import           Diagrams.TwoD.Size       (SizeSpec2D, sizePair)
+import           Diagrams.TwoD.Text
+import           Diagrams.TwoD.Types      (R2)
 
 -- | Take a getter, a setter, and two scaling terms, return a function
 -- that rewrites the given Measure-containing Attribute into Output
