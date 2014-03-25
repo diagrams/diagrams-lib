@@ -51,9 +51,6 @@ module Diagrams.Attributes (
   -- ** Miter limit
   , LineMiterLimit(..), getLineMiterLimit, lineMiterLimit, lineMiterLimitA
 
-  -- ** Dashing
-  , Dashing(..), DashingA, getDashing, dashing
-
   -- * Compilation utilities
   , splitFills
 
@@ -342,28 +339,6 @@ lineMiterLimit = applyAttr . LineMiterLimit . Last
 -- | Apply a 'LineMiterLimit' attribute.
 lineMiterLimitA :: HasStyle a => LineMiterLimit -> a -> a
 lineMiterLimitA = applyAttr
-
--- | Create lines that are dashing... er, dashed.
-data Dashing = Dashing [Double] Double
-  deriving (Typeable, Eq)
-
-newtype DashingA = DashingA (Last Dashing)
-  deriving (Typeable, Semigroup, Eq)
-instance AttributeClass DashingA
-
-getDashing :: DashingA -> Dashing
-getDashing (DashingA (Last d)) = d
-
--- | Set the line dashing style.
-dashing :: HasStyle a =>
-           [Double]  -- ^ A list specifying alternate lengths of on
-                     --   and off portions of the stroke.  The empty
-                     --   list indicates no dashing.
-        -> Double    -- ^ An offset into the dash pattern at which the
-                     --   stroke should start.
-        -> a -> a
-dashing ds offs = applyAttr (DashingA (Last (Dashing ds offs)))
-
 ------------------------------------------------------------
 
 data FillLoops v = FillLoops

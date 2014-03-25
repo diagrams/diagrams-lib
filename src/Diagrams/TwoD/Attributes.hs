@@ -25,6 +25,9 @@ module Diagrams.TwoD.Attributes (
     , lw, lwN, lwO, lwL
     , ultraThin, veryThin, thin, medium, thick, veryThick
 
+    -- ** Dashing
+  , Dashing(..), DashingA, getDashing, dashing
+
     ) where
 
 import           Data.Data
@@ -90,3 +93,36 @@ thin      = lwO 1
 medium    = lwO 2
 thick     = lwO 4
 veryThick = lwO 5
+
+------------------------------------------------------------
+
+-- | Create lines that are dashing... er, dashed.
+data Dashing = Dashing [Measure Double] (Measure Double)
+  deriving (Typeable, Data, Eq)
+
+newtype DashingA = DashingA (Last Dashing)
+  deriving (Typeable, Data, Semigroup, Eq)
+instance AttributeClass DashingA
+
+type instance V DashingA = R2
+
+instance Transformable DashingA where
+  transform t (DashingA (Last (Dashing [Local w] (Local v)))) =
+    DashingA (Last (Dashing [Local r] (Local s)))
+    where
+      r = avgScale t * w
+      s = avgScale t * v
+  transform _ l = l
+
+getDashing :: DashingA -> Dashing
+getDashing (DashingA (Last d)) = d
+
+-- | Set the line dashing style.
+dashing :: (HasStyle a, V a ~ R2) =>
+           [Measure Double]  -- ^ A list specifying alternate lengths of on
+                     --   and off portions of the stroke.  The empty
+                     --   list indicates no dashing.
+        -> Measure Double    -- ^ An offset into the dash pattern at which the
+                     --   stroke should start.
+        -> a -> a
+dashing ds offs = applyGTAttr (DashingA (Last (Dashing ds offs)))
