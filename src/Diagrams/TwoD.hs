@@ -234,7 +234,8 @@ module Diagrams.TwoD
        , ultraThin, veryThin, thin, medium, thick, veryThick
 
        -- ** Dashing
-       , Dashing(..), DashingA, getDashing, dashing
+       , Dashing(..), DashingA, getDashing
+       , dashing, dashingO, dashingL, dashingN
 
          -- * Visual aids for understanding the internal model
        , showOrigin

@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveDataTypeable         #-}
+{-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE TypeFamilies               #-}
 
@@ -26,7 +27,8 @@ module Diagrams.TwoD.Attributes (
     , ultraThin, veryThin, thin, medium, thick, veryThick
 
     -- ** Dashing
-  , Dashing(..), DashingA, getDashing, dashing
+  , Dashing(..), DashingA, getDashing, setDashing
+  , dashing, dashingN, dashingO, dashingL
 
     ) where
 
@@ -37,9 +39,17 @@ import           Data.Semigroup
 import           Diagrams.Core
 import           Diagrams.TwoD.Types (R2)
 
-------------------------------------------------------------
+-----------------------------------------------------------------
+
+type instance V (Measure Double) = R2
+
+instance Transformable (Measure Double) where
+  transform tr (Local x) = Local (avgScale tr * x)
+  transform _ y = y
+
+-----------------------------------------------------------------
 --  Line Width  -------------------------------------------------
-------------------------------------------------------------
+-----------------------------------------------------------------
 
 -- | Line widths specified on child nodes always override line widths
 --   specified at parent nodes.
@@ -50,9 +60,8 @@ instance AttributeClass LineWidth
 type instance V LineWidth = R2
 
 instance Transformable LineWidth where
-  transform t (LineWidth (Last (Local w))) =
-    LineWidth (Last (Local (avgScale t * w)))
-  transform _ l = l
+  transform t (LineWidth (Last w)) =
+    LineWidth (Last (transform t w))
 
 instance Default LineWidth where
     def = LineWidth (Last (Output 1))
@@ -94,7 +103,9 @@ medium    = lwO 2
 thick     = lwO 4
 veryThick = lwO 5
 
-------------------------------------------------------------
+-----------------------------------------------------------------
+--  Dashing  ----------------------------------------------------
+-----------------------------------------------------------------
 
 -- | Create lines that are dashing... er, dashed.
 data Dashing = Dashing [Measure Double] (Measure Double)
@@ -108,21 +119,36 @@ type instance V DashingA = R2
 
 instance Transformable DashingA where
   transform t (DashingA (Last (Dashing w v))) =
-    DashingA (Last (Dashing (map trLocal w) (trLocal v)))
+    DashingA (Last (Dashing r s))
     where
-      s = avgScale t
-      trLocal (Local y) = Local (y * s)
-      trLocal z = z
+      r = map (transform t) w
+      s = transform t v
 
 getDashing :: DashingA -> Dashing
 getDashing (DashingA (Last d)) = d
 
 -- | Set the line dashing style.
-dashing :: (HasStyle a, V a ~ R2) =>
+setDashing :: (HasStyle a, V a ~ R2) =>
            [Measure Double]  -- ^ A list specifying alternate lengths of on
                      --   and off portions of the stroke.  The empty
                      --   list indicates no dashing.
         -> Measure Double    -- ^ An offset into the dash pattern at which the
                      --   stroke should start.
         -> a -> a
-dashing ds offs = applyGTAttr (DashingA (Last (Dashing ds offs)))
+setDashing ds offs = applyGTAttr (DashingA (Last (Dashing ds offs)))
+
+-- | A convenient synonym for 'setDashing (Global w)'.
+dashing :: (HasStyle a, V a ~ R2) => [Double] -> Double -> a -> a
+dashing w v = setDashing (map Global w) (Global v)
+
+-- | A convenient synonym for 'setDashing (Normalized w)'.
+dashingN :: (HasStyle a, V a ~ R2) => [Double] -> Double -> a -> a
+dashingN w v = setDashing (map Normalized w) (Normalized v)
+
+-- | A convenient synonym for 'setDashing (Output w)'.
+dashingO :: (HasStyle a, V a ~ R2) => [Double] -> Double -> a -> a
+dashingO w v = setDashing (map Output w) (Output v)
+
+-- | A convenient sysnonym for 'setDashing (Local w)'.
+dashingL :: (HasStyle a, V a ~ R2) => [Double] -> Double -> a -> a
+dashingL w v = setDashing (map Local w) (Local v)
