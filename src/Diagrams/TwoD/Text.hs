@@ -23,7 +23,8 @@ module Diagrams.TwoD.Text (
   -- ** Font family
   , Font(..), getFont, font
   -- ** Font size
-  , FontSize(..), getFontSize, fontSize, fontSizeA
+  , FontSize(..), getFontSize, setFontSize, fontSizeA
+  , fontSize, fontSizeN, fontSizeO, fontSizeL
   -- ** Font slant
   , FontSlant(..), FontSlantA, getFontSlant, fontSlant, italic, oblique
   -- ** Font weight
@@ -181,8 +182,24 @@ getFontSize (FontSize (Last s)) = s
 -- | Set the font size, that is, the size of the font's em-square as
 --   measured within the current local vector space.  The default size
 --   is @1@.
-fontSize :: (HasStyle a, V a ~ R2) => Measure Double -> a -> a
-fontSize = applyGTAttr . FontSize . Last
+setFontSize :: (HasStyle a, V a ~ R2) => Measure Double -> a -> a
+setFontSize = applyGTAttr . FontSize . Last
+
+-- | A convenient synonym for 'setFontSize (Global w)'.
+fontSize :: (HasStyle a, V a ~ R2) => Double -> a -> a
+fontSize w = setFontSize (Global w)
+
+-- | A convenient synonym for 'setFontSize (Normalized w)'.
+fontSizeN :: (HasStyle a, V a ~ R2) => Double -> a -> a
+fontSizeN w = setFontSize (Normalized w)
+
+-- | A convenient synonym for 'setFontSize (Output w)'.
+fontSizeO :: (HasStyle a, V a ~ R2) => Double -> a -> a
+fontSizeO w = setFontSize (Output w)
+
+-- | A convenient sysnonym for 'setFontSize (Local w)'.
+fontSizeL :: (HasStyle a, V a ~ R2) => Double -> a -> a
+fontSizeL w = setFontSize (Local w)
 
 -- | Apply a 'FontSize' attribute.
 fontSizeA :: (HasStyle a, V a ~ R2) => FontSize -> a -> a
