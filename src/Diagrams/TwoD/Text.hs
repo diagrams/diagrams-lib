@@ -33,7 +33,6 @@ module Diagrams.TwoD.Text (
 import           Diagrams.Attributes
 import           Diagrams.Core
 import           Diagrams.Core.Envelope (pointEnvelope)
-import           Diagrams.Core.Style    (setAttr)
 import           Diagrams.TwoD.Types
 
 import           Data.AffineSpace       ((.-.))
