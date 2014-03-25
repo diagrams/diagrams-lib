@@ -72,8 +72,8 @@ module Diagrams.TwoD.Arrow
        , arrow'
 
          -- * Attributes
-       , HeadSize, headSize, headSizeA, getHeadSize, setHeadSize
-       , TailSize, tailSize, tailSizeA, getTailSize, setTailSize
+       , HeadSize, headSize, headSizeA, getHeadSize
+       , TailSize, tailSize, tailSizeA, getTailSize
 
          -- * Options
        , ArrowOpts(..)
@@ -103,6 +103,7 @@ import           Control.Lens             (Lens', Setter', Traversal',
                                            makeLensesWith, (%~), (&), (.~),
                                            (^.))
 import           Data.AffineSpace
+import           Data.Data
 import           Data.Default.Class
 import           Data.Functor             ((<$>))
 import           Data.Maybe               (fromMaybe)
@@ -286,7 +287,7 @@ tailSty opts = fc black (opts^.tailStyle)
 
 -- | Radius of a circumcircle around the head.
 newtype HeadSize = HeadSize (Last (Measure Double))
-                 deriving (Typeable, Semigroup)
+                 deriving (Typeable, Data, Semigroup)
 instance AttributeClass HeadSize
 
 type instance V HeadSize = R2
@@ -301,19 +302,16 @@ instance Default HeadSize where
 
 -- | Set the radius of the circumcircle around the head.
 headSize :: (HasStyle a, V a ~ R2) => Measure Double -> a -> a
-headSize = applyTAttr . HeadSize . Last
-
-setHeadSize :: (Measure Double) -> Style R2 -> Style R2
-setHeadSize = setAttr . HeadSize . Last
+headSize = applyGTAttr . HeadSize . Last
 
 headSizeA :: (HasStyle a, V a ~ R2) => HeadSize -> a -> a
-headSizeA = applyTAttr
+headSizeA = applyGTAttr
 
 getHeadSize :: HeadSize -> Measure Double
 getHeadSize (HeadSize (Last s)) = s
 
 newtype TailSize = TailSize (Last (Measure Double))
-                 deriving (Typeable, Semigroup)
+                 deriving (Typeable, Data, Semigroup)
 instance AttributeClass TailSize
 
 type instance V TailSize = R2
@@ -328,13 +326,10 @@ instance Default TailSize where
 
 -- | Set the radius of a circumcircle around the arrow tail.
 tailSize :: (HasStyle a, V a ~ R2) => Measure Double -> a -> a
-tailSize = applyTAttr . TailSize . Last
-
-setTailSize :: (Measure Double) -> Style R2 -> Style R2
-setTailSize = setAttr . TailSize . Last
+tailSize = applyGTAttr . TailSize . Last
 
 tailSizeA :: (HasStyle a, V a ~ R2) => TailSize -> a -> a
-tailSizeA = applyTAttr
+tailSizeA = applyGTAttr
 
 getTailSize :: TailSize -> Measure Double
 getTailSize (TailSize (Last s)) = s

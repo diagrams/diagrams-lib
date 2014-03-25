@@ -153,12 +153,12 @@ module Diagrams.TwoD
        , tailStyle
        , shaftColor
        , shaftStyle
-       , HeadSize, headSize, headSizeA, getHeadSize, setHeadSize
-       , TailSize, tailSize, tailSizeA, getTailSize, setTailSize
+       , HeadSize, headSize, headSizeA, getHeadSize
+       , TailSize, tailSize, tailSizeA, getTailSize
 
          -- * Text
        , text, topLeftText, alignedText, baselineText
-       , font, fontSize, italic, oblique, bold, setFontSize
+       , font, fontSize, italic, oblique, bold
 
          -- * Images
        , Image, image
