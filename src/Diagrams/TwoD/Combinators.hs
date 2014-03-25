@@ -54,7 +54,7 @@ import           Diagrams.Path
 import           Diagrams.Segment
 import           Diagrams.TrailLike
 import           Diagrams.TwoD.Align
-import           Diagrams.TwoD.Attributes (lineWidth, lw)
+import           Diagrams.TwoD.Attributes (lineWidth)
 import           Diagrams.TwoD.Path       ()
 import           Diagrams.TwoD.Shapes
 import           Diagrams.TwoD.Transform  (scaleX, scaleY)
