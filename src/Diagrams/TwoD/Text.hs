@@ -168,7 +168,7 @@ instance AttributeClass FontSize
 type instance V FontSize = R2
 
 instance Default FontSize where
-    def = FontSize (Last (Local 1))
+    def = FontSize (Last (Output 12))
 
 instance Transformable FontSize where
   transform t (FontSize (Last s)) =
