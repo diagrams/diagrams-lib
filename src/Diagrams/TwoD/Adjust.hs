@@ -1,4 +1,4 @@
-{-# LANGUAGE Rank2Types   #-}
+{-# LANGUAGE Rank2Types #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -25,8 +25,7 @@ import           Diagrams.Core
 import           Diagrams.TwoD.Arrow      (headSizeA, tailSizeA)
 import           Diagrams.TwoD.Attributes (lineWidthA)
 import           Diagrams.TwoD.Size       (SizeSpec2D (..), center2D,
-                                           requiredScale, requiredScaleT,
-                                           size2D)
+                                           requiredScale, size2D)
 import           Diagrams.TwoD.Text       (fontSizeA)
 import           Diagrams.TwoD.Types      (R2, T2, p2)
 import           Diagrams.Util            (( # ))
