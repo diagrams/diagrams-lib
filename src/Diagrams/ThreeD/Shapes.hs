@@ -20,19 +20,19 @@ module Diagrams.ThreeD.Shapes
        , Frustum(..) , frustum, cone, cylinder
        ) where
 
-import           Data.Typeable
 import           Control.Applicative
-import           Control.Lens            ((^.), review, _1)
+import           Control.Lens           (review, (^.), _1)
+import           Data.Typeable
 
 import           Data.AffineSpace
 import           Data.Semigroup
 import           Data.VectorSpace
+import           Diagrams.Angle
 import           Diagrams.Coordinates
 import           Diagrams.Core
 import           Diagrams.Solve
 import           Diagrams.ThreeD.Types
 import           Diagrams.ThreeD.Vector
-import           Diagrams.Angle
 
 data Ellipsoid = Ellipsoid T3
   deriving Typeable
@@ -67,8 +67,6 @@ type instance V Box = R3
 
 instance Transformable Box where
     transform t1 (Box t2) = Box (t1 <> t2)
-
-instance IsPrim Box
 
 instance Renderable Box NullBackend where
     render _ _ = mempty
@@ -105,8 +103,6 @@ type instance V Frustum = R3
 
 instance Transformable Frustum where
     transform t1 (Frustum r0 r1 t2) = Frustum r0 r1 (t1 <> t2)
-
-instance IsPrim Frustum
 
 instance Renderable Frustum NullBackend where
     render _ _ = mempty

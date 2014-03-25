@@ -46,7 +46,7 @@ import           Data.VectorSpace
 import           Diagrams.Core
 
 import           Diagrams.Angle
-import           Diagrams.Attributes      (fc, lw)
+import           Diagrams.Attributes      (fc)
 import           Diagrams.BoundingBox
 import           Diagrams.Combinators
 import           Diagrams.Coordinates
@@ -54,7 +54,7 @@ import           Diagrams.Path
 import           Diagrams.Segment
 import           Diagrams.TrailLike
 import           Diagrams.TwoD.Align
-import           Diagrams.TwoD.Attributes (lineWidth)
+import           Diagrams.TwoD.Attributes (lineWidth, lw)
 import           Diagrams.TwoD.Path       ()
 import           Diagrams.TwoD.Shapes
 import           Diagrams.TwoD.Transform  (scaleX, scaleY)

@@ -27,14 +27,13 @@ module Diagrams.TwoD.Attributes (
 
     ) where
 
+import           Data.Data
 import           Data.Default.Class
 import           Data.Semigroup
-import           Data.Typeable
 
 import           Diagrams.Core
-import           Diagrams.Core.Style     (setAttr)
-import           Diagrams.TwoD.Transform (avgScale)
-import           Diagrams.TwoD.Types     (R2)
+import           Diagrams.Core.Style (setAttr)
+import           Diagrams.TwoD.Types (R2)
 
 ------------------------------------------------------------
 --  Line Width  -------------------------------------------------
@@ -43,7 +42,7 @@ import           Diagrams.TwoD.Types     (R2)
 -- | Line widths specified on child nodes always override line widths
 --   specified at parent nodes.
 newtype LineWidth = LineWidth (Last (Measure Double))
-  deriving (Typeable, Semigroup)
+  deriving (Typeable, Data, Semigroup)
 instance AttributeClass LineWidth
 
 type instance V LineWidth = R2
@@ -64,11 +63,11 @@ setLineWidth = setAttr . LineWidth . Last
 
 -- | Set the line (stroke) width.
 lineWidth :: (HasStyle a, V a ~ R2) => (Measure Double) -> a -> a
-lineWidth = applyTAttr . LineWidth . Last
+lineWidth = applyGTAttr . LineWidth . Last
 
 -- | Apply a 'LineWidth' attribute.
 lineWidthA ::  (HasStyle a, V a ~ R2) => LineWidth -> a -> a
-lineWidthA = applyTAttr
+lineWidthA = applyGTAttr
 
 -- | A convenient synonym for 'lineWidth (Global w)'.
 lw :: (HasStyle a, V a ~ R2) => Double -> a -> a

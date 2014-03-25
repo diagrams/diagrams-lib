@@ -27,8 +27,8 @@ module Diagrams.TwoD.Types
 
        ) where
 
-import           Control.Lens            (Iso', Wrapped(..), Rewrapped, iso
-                                         , (^.), _1, _2, lens)
+import           Control.Lens           (Iso', Rewrapped, Wrapped (..), iso,
+                                         lens, (^.), _1, _2)
 
 import           Diagrams.Angle
 import           Diagrams.Coordinates
@@ -36,10 +36,10 @@ import           Diagrams.Core
 
 import           Data.AffineSpace.Point
 import           Data.Basis
-import           Data.MemoTrie           (HasTrie (..))
+import           Data.MemoTrie          (HasTrie (..))
 import           Data.VectorSpace
 
-import           Data.Typeable
+import           Data.Data
 ------------------------------------------------------------
 -- 2D Euclidean space
 
@@ -73,7 +73,7 @@ import           Data.Typeable
 
 data R2 = R2 {-# UNPACK #-} !Double
              {-# UNPACK #-} !Double
-  deriving (Eq, Ord, Typeable)
+  deriving (Eq, Ord, Typeable, Data)
 
 instance AdditiveGroup R2 where
   zeroV = R2 0 0

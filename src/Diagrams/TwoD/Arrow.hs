@@ -126,7 +126,7 @@ import           Diagrams.Trail
 import           Diagrams.TwoD.Arrowheads
 import           Diagrams.TwoD.Attributes
 import           Diagrams.TwoD.Path       (stroke, strokeT)
-import           Diagrams.TwoD.Transform  (avgScale, rotate, translateX)
+import           Diagrams.TwoD.Transform  (rotate, translateX)
 import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector     (direction, unitX, unit_X)
 import           Diagrams.Util            (( # ))

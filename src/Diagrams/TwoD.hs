@@ -232,8 +232,6 @@ module Diagrams.TwoD
        -- ** Width
        , LineWidth, getLineWidth, lineWidth, lineWidthA, lw, lwN, lwO, lwL
        , ultraThin, veryThin, thin, medium, thick, veryThick
-       -- * Measure conversion
-       , toOutput
 
          -- * Visual aids for understanding the internal model
        , showOrigin
@@ -249,7 +247,6 @@ import           Diagrams.TwoD.Arrow
 import           Diagrams.TwoD.Arrowheads
 import           Diagrams.TwoD.Attributes
 import           Diagrams.TwoD.Combinators
-import           Diagrams.TwoD.Compile
 import           Diagrams.TwoD.Deform
 import           Diagrams.TwoD.Ellipse
 import           Diagrams.TwoD.Image
