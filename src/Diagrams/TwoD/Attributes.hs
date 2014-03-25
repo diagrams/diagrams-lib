@@ -107,12 +107,18 @@ instance AttributeClass DashingA
 type instance V DashingA = R2
 
 instance Transformable DashingA where
-  transform t (DashingA (Last (Dashing [Local w] (Local v)))) =
-    DashingA (Last (Dashing [Local r] (Local s)))
+  transform t (DashingA (Last (Dashing w v))) =
+    DashingA (Last (Dashing (trLocals w) (trLocal v)))
     where
-      r = avgScale t * w
-      s = avgScale t * v
-  transform _ l = l
+      s = avgScale t
+
+      trLocals [] = []
+      trLocals ((Local h) : tl) = Local (h * s) : trLocals tl
+      trLocals (x : tl) = x : trLocals tl
+
+      trLocal (Local y) = Local (y * s)
+      trLocal z = z
+
 
 getDashing :: DashingA -> Dashing
 getDashing (DashingA (Last d)) = d
