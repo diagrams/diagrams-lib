@@ -244,3 +244,11 @@ instance HasR P2 where
 
 instance HasTheta P2 where
     _theta = _relative origin . _theta
+
+-----------------------------------------------------------------
+
+type instance V (Measure Double) = R2
+
+instance Transformable (Measure Double) where
+  transform tr (Local x) = Local (avgScale tr * x)
+  transform _ y = y

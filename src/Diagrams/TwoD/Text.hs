@@ -38,8 +38,8 @@ import           Diagrams.TwoD.Types
 import           Data.AffineSpace       ((.-.))
 import           Data.Semigroup
 import           Data.Colour
+import           Data.Data
 import           Data.Default.Class
-import           Data.Typeable
 
 ------------------------------------------------------------
 -- Text diagrams
@@ -162,11 +162,17 @@ font = applyAttr . Font . Last
 -- | The @FontSize@ attribute specifies the size of a font's
 --   em-square.  Inner @FontSize@ attributes override outer ones.
 newtype FontSize = FontSize (Last (Measure Double))
-  deriving (Typeable, Semigroup)
+  deriving (Typeable, Data, Semigroup)
 instance AttributeClass FontSize
+
+type instance V FontSize = R2
 
 instance Default FontSize where
     def = FontSize (Last (Local 1))
+
+instance Transformable FontSize where
+  transform t (FontSize (Last s)) =
+    FontSize (Last (transform t s))
 
 -- | Extract the size from a @FontSize@ attribute.
 getFontSize :: FontSize -> Measure Double
@@ -175,12 +181,12 @@ getFontSize (FontSize (Last s)) = s
 -- | Set the font size, that is, the size of the font's em-square as
 --   measured within the current local vector space.  The default size
 --   is @1@.
-fontSize :: HasStyle a => Measure Double -> a -> a
-fontSize = applyAttr . FontSize . Last
+fontSize :: (HasStyle a, V a ~ R2) => Measure Double -> a -> a
+fontSize = applyGTAttr . FontSize . Last
 
 -- | Apply a 'FontSize' attribute.
-fontSizeA :: HasStyle a => FontSize -> a -> a
-fontSizeA = applyAttr
+fontSizeA :: (HasStyle a, V a ~ R2) => FontSize -> a -> a
+fontSizeA = applyGTAttr
 
 --------------------------------------------------
 -- Font slant

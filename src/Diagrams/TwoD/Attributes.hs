@@ -2,7 +2,6 @@
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE TypeFamilies               #-}
-{-# OPTIONS_GHC -fno-warn-orphans       #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -38,15 +37,8 @@ import           Data.Default.Class
 import           Data.Semigroup
 
 import           Diagrams.Core
-import           Diagrams.TwoD.Types (R2)
+import           Diagrams.TwoD.Types
 
------------------------------------------------------------------
-
-type instance V (Measure Double) = R2
-
-instance Transformable (Measure Double) where
-  transform tr (Local x) = Local (avgScale tr * x)
-  transform _ y = y
 
 -----------------------------------------------------------------
 --  Line Width  -------------------------------------------------
