@@ -23,7 +23,7 @@ module Diagrams.TwoD.Text (
   -- ** Font family
   , Font(..), getFont, font
   -- ** Font size
-  , FontSize(..), getFontSize, fontSize, fontSizeA, setFontSize
+  , FontSize(..), getFontSize, fontSize, fontSizeA
   -- ** Font slant
   , FontSlant(..), FontSlantA, getFontSlant, fontSlant, italic, oblique
   -- ** Font weight
@@ -37,13 +37,9 @@ import           Diagrams.Core.Style    (setAttr)
 import           Diagrams.TwoD.Types
 
 import           Data.AffineSpace       ((.-.))
-
 import           Data.Semigroup
-
 import           Data.Colour
-
 import           Data.Default.Class
-
 import           Data.Typeable
 
 ------------------------------------------------------------
@@ -177,8 +173,6 @@ instance Default FontSize where
 getFontSize :: FontSize -> Measure Double
 getFontSize (FontSize (Last s)) = s
 
-setFontSize :: (Measure Double) -> Style R2 -> Style R2
-setFontSize = setAttr . FontSize . Last
 -- | Set the font size, that is, the size of the font's em-square as
 --   measured within the current local vector space.  The default size
 --   is @1@.

@@ -1,6 +1,8 @@
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE ExistentialQuantification  #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE ScopedTypeVariables        #-}
+{-# LANGUAGE TypeFamilies               #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Attributes
@@ -49,24 +51,28 @@ module Diagrams.Attributes (
   -- ** Miter limit
   , LineMiterLimit(..), getLineMiterLimit, lineMiterLimit, lineMiterLimitA
 
-  -- ** Dashing
-  , Dashing(..), DashingA, getDashing, dashing
-
+  -- * Compilation utilities
+  , splitFills
 
   ) where
 
-import           Control.Lens          (Setter, sets)
+import           Control.Lens                (Setter, sets)
 import           Data.Colour
-import           Data.Colour.RGBSpace  (RGB(..))
-import           Data.Colour.SRGB      (toSRGB)
+import           Data.Colour.RGBSpace        (RGB (..))
+import           Data.Colour.SRGB            (toSRGB)
 import           Data.Default.Class
-import           Data.Maybe            (fromMaybe)
+import           Data.Maybe                  (fromMaybe)
 import           Data.Monoid.Recommend
 import           Data.Semigroup
 import           Data.Typeable
 
+import           Diagrams.Attributes.Compile
 import           Diagrams.Core
-import           Diagrams.Core.Style   (setAttr)
+import           Diagrams.Core.Style         (setAttr)
+import           Diagrams.Core.Types         (RTree)
+import           Diagrams.Located            (unLoc)
+import           Diagrams.Path               (Path, pathTrails)
+import           Diagrams.Trail              (isLoop)
 
 ------------------------------------------------------------
 --  Color  -------------------------------------------------
@@ -333,24 +339,21 @@ lineMiterLimit = applyAttr . LineMiterLimit . Last
 -- | Apply a 'LineMiterLimit' attribute.
 lineMiterLimitA :: HasStyle a => LineMiterLimit -> a -> a
 lineMiterLimitA = applyAttr
+------------------------------------------------------------
 
--- | Create lines that are dashing... er, dashed.
-data Dashing = Dashing [Double] Double
-  deriving (Typeable, Eq)
+data FillLoops v = FillLoops
 
-newtype DashingA = DashingA (Last Dashing)
-  deriving (Typeable, Semigroup, Eq)
-instance AttributeClass DashingA
+instance Typeable v => SplitAttribute (FillLoops v) where
+  type AttrType (FillLoops v) = FillColor
+  type PrimType (FillLoops v) = Path v
 
-getDashing :: DashingA -> Dashing
-getDashing (DashingA (Last d)) = d
+  primOK _ = all (isLoop . unLoc) . pathTrails
 
--- | Set the line dashing style.
-dashing :: HasStyle a =>
-           [Double]  -- ^ A list specifying alternate lengths of on
-                     --   and off portions of the stroke.  The empty
-                     --   list indicates no dashing.
-        -> Double    -- ^ An offset into the dash pattern at which the
-                     --   stroke should start.
-        -> a -> a
-dashing ds offs = applyAttr (DashingA (Last (Dashing ds offs)))
+-- | Push fill attributes down until they are at the root of subtrees
+--   containing only loops. This makes life much easier for backends,
+--   which typically have a semantics where fill attributes are
+--   applied to lines/non-closed paths as well as loops/closed paths,
+--   whereas in the semantics of diagrams, fill attributes only apply
+--   to loops.
+splitFills :: forall b v a. Typeable v => RTree b v a -> RTree b v a
+splitFills = splitAttr (FillLoops :: FillLoops v)

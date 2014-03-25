@@ -77,7 +77,7 @@ module Diagrams.Trail
        , trailOffsets, trailOffset
        , lineOffsets, lineOffset, loopOffsets
        , trailVertices, lineVertices, loopVertices
-       , fixTrail
+       , trailLocSegments, fixTrail
 
          -- * Modifying trails
 
@@ -163,10 +163,8 @@ deriving instance (OrderedField (Scalar v), InnerSpace v)
   => Monoid (SegTree v)
 deriving instance (OrderedField (Scalar v), InnerSpace v)
   => FT.Measured (SegMeasure v) (SegTree v)
-
-instance (HasLinearMap v, InnerSpace v, OrderedField (Scalar v))
-  => Transformable (SegTree v) where
-  transform t = SegTree . transform t . op SegTree
+deriving instance (HasLinearMap v, InnerSpace v, OrderedField (Scalar v))
+  => Transformable (SegTree v)
 
 type instance Codomain (SegTree v) = v
 
@@ -993,8 +991,12 @@ segmentVertices p = scanl (.+^) p . map segOffset
 -- | Convert a concretely located trail into a list of fixed segments.
 fixTrail :: (InnerSpace v, OrderedField (Scalar v))
          => Located (Trail v) -> [FixedSegment v]
-fixTrail t = zipWith ((mkFixedSeg .) . at)
-               (trailSegments (unLoc t)) (trailVertices t)
+fixTrail t = map mkFixedSeg (trailLocSegments t)
+
+-- | Convert a concretely located trail into a list of located segments.
+trailLocSegments :: (InnerSpace v, OrderedField (Scalar v))
+                  => Located (Trail v) -> [Located (Segment Closed v)]
+trailLocSegments t = zipWith at (trailSegments (unLoc t)) (trailVertices t)
 
 ------------------------------------------------------------
 --  Modifying trails  --------------------------------------

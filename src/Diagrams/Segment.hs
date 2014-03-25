@@ -493,7 +493,7 @@ instance (InnerSpace v, OrderedField (Scalar v)) => Semigroup (OffsetEnvelope v)
   (OffsetEnvelope o1 e1) <> (OffsetEnvelope o2 e2)
     = let !negOff = negateV . op TotalOffset $ o1
           e2Off = moveOriginBy negOff e2
-          !() = maybe () (\f -> f `seq` ()) $ appEnvelope e2Off
+          !_unused = maybe () (\f -> f `seq` ()) $ appEnvelope e2Off
       in OffsetEnvelope
           (o1 <> o2)
           (e1 <> e2Off)

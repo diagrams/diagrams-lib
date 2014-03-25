@@ -25,25 +25,21 @@ module Diagrams.TwoD.Types
        , P2, p2, mkP2, unp2, p2Iso
        , T2
 
-         -- * Angles
-       , Angle
-       , rad, turn, deg
-       , fullTurn, fullCircle, angleRatio
-       , (@@)
        ) where
 
-import           Control.Lens            (Iso', Wrapped(..), Rewrapped, iso
-                                         , review , (^.), _1, _2)
+import           Control.Lens           (Iso', Rewrapped, Wrapped (..), iso,
+                                         lens, (^.), _1, _2)
 
+import           Diagrams.Angle
 import           Diagrams.Coordinates
 import           Diagrams.Core
 
 import           Data.AffineSpace.Point
 import           Data.Basis
-import           Data.MemoTrie           (HasTrie (..))
+import           Data.MemoTrie          (HasTrie (..))
 import           Data.VectorSpace
 
-import           Data.Typeable
+import           Data.Data
 ------------------------------------------------------------
 -- 2D Euclidean space
 
@@ -77,7 +73,7 @@ import           Data.Typeable
 
 data R2 = R2 {-# UNPACK #-} !Double
              {-# UNPACK #-} !Double
-  deriving (Eq, Ord, Typeable)
+  deriving (Eq, Ord, Typeable, Data)
 
 instance AdditiveGroup R2 where
   zeroV = R2 0 0
@@ -184,6 +180,13 @@ instance HasX R2 where
 instance HasY R2 where
     _y = r2Iso . _2
 
+instance HasTheta R2 where
+    _theta = lens (\v -> atanA (v^._y / v^._x))
+      (\v θ -> let r = magnitude v in R2 (r * cosA θ) (r * sinA θ))
+
+instance HasR R2 where
+    _r = lens magnitude (\v r -> let s = r/magnitude v in s *^ v)
+
 -- | Points in R^2.  This type is intentionally abstract.
 --
 --   * To construct a point, use 'p2', or '^&' (see
@@ -235,55 +238,9 @@ instance HasX P2 where
 
 instance HasY P2 where
     _y = p2Iso . _2
-------------------------------------------------------------
--- Angles
 
--- | Angles can be expressed in a variety of units.  Internally,
--- they are represented in radians.
-newtype Angle = Radians Double
-              deriving (Read, Show, Eq, Ord, Enum, AdditiveGroup)
+instance HasR P2 where
+    _r = _relative origin . _r
 
-instance VectorSpace Angle where
-  type Scalar Angle = Double
-  s *^ Radians t = Radians (s*t)
-
--- | The radian measure of an @Angle@ @a@ can be accessed as @a
--- ^. rad@.  A new @Angle@ can be defined in radians as @pi \@\@ rad@.
-rad :: Iso' Angle Double
-rad = iso (\(Radians r) -> r) Radians
-
--- | The measure of an @Angle@ @a@ in full circles can be accessed as
--- @a ^. turn@.  A new @Angle@ of one-half circle can be defined in as
--- @1/2 \@\@ turn@.
-turn :: Iso' Angle Double
-turn = iso (\(Radians r) -> r/2/pi) (Radians . (*(2*pi)))
-
--- | The degree measure of an @Angle@ @a@ can be accessed as @a
--- ^. deg@.  A new @Angle@ can be defined in degrees as @180 \@\@
--- deg@.
-deg :: Iso' Angle Double
-deg = iso (\(Radians r) -> r/2/pi*360) (Radians . (*(2*pi/360)))
-
--- | An angle representing one full turn.
-fullTurn :: Angle
-fullTurn = 1 @@ turn
-
--- | Deprecated synonym for 'fullTurn', retained for backwards compatibility.
-fullCircle :: Angle
-fullCircle = fullTurn
-
--- | Calculate ratio between two angles.
-angleRatio :: Angle -> Angle -> Double
-angleRatio a b = (a^.rad) / (b^.rad)
-
-
--- | @30 \@\@ deg@ is an @Angle@ of the given measure and units.
---
--- More generally, @\@\@@ reverses the @Iso\'@ on its right, and
--- applies the @Iso\'@ to the value on the left.  @Angle@s are the
--- motivating example where this order improves readability.
-(@@) :: b -> Iso' a b -> a
--- The signature above is slightly specialized, in favor of readability
-a @@ i = review i a
-
-infixl 5 @@
+instance HasTheta P2 where
+    _theta = _relative origin . _theta

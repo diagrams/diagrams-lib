@@ -23,6 +23,7 @@ module Diagrams.TwoD.Arc
     , annularWedge
     ) where
 
+import           Diagrams.Angle
 import           Diagrams.Core
 import           Diagrams.Located        (at)
 import           Diagrams.Segment

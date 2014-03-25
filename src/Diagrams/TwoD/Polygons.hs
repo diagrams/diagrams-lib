@@ -60,6 +60,7 @@ import           Data.AffineSpace        ((.+^), (.-.))
 import           Data.Default.Class
 import           Data.VectorSpace
 
+import           Diagrams.Angle
 import           Diagrams.Core
 import           Diagrams.Located
 import           Diagrams.Path

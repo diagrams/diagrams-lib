@@ -47,6 +47,7 @@ module Diagrams.TwoD.Shapes
 
 import           Diagrams.Core
 
+import           Diagrams.Angle
 import           Diagrams.Located        (at)
 import           Diagrams.Path
 import           Diagrams.Segment

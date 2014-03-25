@@ -65,14 +65,10 @@ module Diagrams.TwoD
        , P2, p2, unp2, mkP2
        , T2
        , unitX, unitY, unit_X, unit_Y
-       , direction, angleBetween, fromDirection
+       , direction, fromDirection
 
          -- * Angles
        , tau
-       , Angle
-       , rad, turn, deg
-       , fullTurn, fullCircle, angleRatio
-       , (@@)
 
          -- * Paths
          -- ** Stroking
@@ -150,19 +146,19 @@ module Diagrams.TwoD
        , arrowShaft
        , headGap
        , tailGap
-       , gap
+       , gaps, gap
        , headColor
        , headStyle
        , tailColor
        , tailStyle
        , shaftColor
        , shaftStyle
-       , HeadSize, headSize, headSizeA, getHeadSize, setHeadSize
-       , TailSize, tailSize, tailSizeA, getTailSize, setTailSize
+       , HeadSize, headSize, headSizeA, getHeadSize
+       , TailSize, tailSize, tailSizeA, getTailSize
 
          -- * Text
        , text, topLeftText, alignedText, baselineText
-       , font, fontSize, italic, oblique, bold, setFontSize
+       , font, fontSize, italic, oblique, bold
 
          -- * Images
        , Image, image
@@ -236,8 +232,10 @@ module Diagrams.TwoD
        -- ** Width
        , LineWidth, getLineWidth, lineWidth, lineWidthA, lw, lwN, lwO, lwL
        , ultraThin, veryThin, thin, medium, thick, veryThick
-       -- * Measure conversion
-       , toOutput
+
+       -- ** Dashing
+       , Dashing(..), DashingA, getDashing
+       , dashing, dashingO, dashingL, dashingN
 
          -- * Visual aids for understanding the internal model
        , showOrigin
@@ -253,7 +251,6 @@ import           Diagrams.TwoD.Arrow
 import           Diagrams.TwoD.Arrowheads
 import           Diagrams.TwoD.Attributes
 import           Diagrams.TwoD.Combinators
-import           Diagrams.TwoD.Compile
 import           Diagrams.TwoD.Deform
 import           Diagrams.TwoD.Ellipse
 import           Diagrams.TwoD.Image
