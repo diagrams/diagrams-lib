@@ -108,17 +108,11 @@ type instance V DashingA = R2
 
 instance Transformable DashingA where
   transform t (DashingA (Last (Dashing w v))) =
-    DashingA (Last (Dashing (trLocals w) (trLocal v)))
+    DashingA (Last (Dashing (map trLocal w) (trLocal v)))
     where
       s = avgScale t
-
-      trLocals [] = []
-      trLocals ((Local h) : tl) = Local (h * s) : trLocals tl
-      trLocals (x : tl) = x : trLocals tl
-
       trLocal (Local y) = Local (y * s)
       trLocal z = z
-
 
 getDashing :: DashingA -> Dashing
 getDashing (DashingA (Last d)) = d
