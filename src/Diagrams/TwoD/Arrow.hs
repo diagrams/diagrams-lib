@@ -474,8 +474,19 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
           & tailStyle  %~ maybe id fillColor globalLC
           & shaftStyle %~ maybe id lineColor globalLC
 
-        (Just (HeadSize (Last (Output hSize)))) = getAttr sty
-        (Just (TailSize (Last (Output tSize)))) = getAttr sty
+        -- XXX hSize and tSize Measures not implemented for Global and
+        -- Normalized.
+        hSize = case fromMaybe (Output 20) (getHeadSize <$> getAttr sty) of
+          Output x     -> x
+          Local x      -> x
+          Normalized x -> x
+          Global x     -> x
+
+        tSize = case fromMaybe (Output 20) (getTailSize <$> getAttr sty) of
+          Output x     -> x
+          Local x      -> x
+          Normalized x -> x
+          Global x     -> x
 
         -- Make the head and tail and save their widths.
         (h, hWidth') = mkHead hSize opts'
