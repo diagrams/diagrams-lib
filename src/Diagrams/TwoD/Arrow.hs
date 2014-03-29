@@ -447,12 +447,12 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
     -- between which we need to draw the shaft do not transform
     -- uniformly as the transformation applied to the entire arrow.
     -- See https://github.com/diagrams/diagrams-lib/issues/112.
-    delayedArrow da =
+    delayedArrow da g n =
       let (trans, globalSty) = option mempty untangle . fst $ da
-      in  dArrow globalSty trans len
+      in  dArrow globalSty trans len g n
 
     -- Build an arrow and set its endpoints to the image under tr of origin and (len,0).
-    dArrow sty tr ln = (h' <> t' <> shaft)
+    dArrow sty tr ln gToO nToO = (h' <> t' <> shaft)
                # moveOriginBy (tWidth *^ (unit_X # rotate tAngle))
                # rotate (direction (q .-. p) ^-^ dir)
                # moveTo p
@@ -475,14 +475,14 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
         hSize = case fromMaybe (Output 20) (getHeadSize <$> getAttr sty) of
           Output x     -> x
           Local x      -> x
-          Normalized x -> x
-          Global x     -> x
+          Normalized x -> nToO * x
+          Global x     -> gToO * x
 
         tSize = case fromMaybe (Output 20) (getTailSize <$> getAttr sty) of
           Output x     -> x
           Local x      -> x
-          Normalized x -> x
-          Global x     -> x
+          Normalized x -> nToO * x
+          Global x     -> gToO * x
 
         -- Make the head and tail and save their widths.
         (h, hWidth') = mkHead hSize opts'
