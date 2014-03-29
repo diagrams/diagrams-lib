@@ -291,9 +291,7 @@ instance AttributeClass HeadSize
 type instance V HeadSize = R2
 
 instance Transformable HeadSize where
-  transform t (HeadSize (Last (Local w))) =
-    HeadSize (Last (Local (avgScale t * w)))
-  transform _ l = l
+  transform t (HeadSize (Last w)) = HeadSize (Last (transform t w))
 
 instance Default HeadSize where
     def = HeadSize (Last (Output 20))
@@ -315,9 +313,7 @@ instance AttributeClass TailSize
 type instance V TailSize = R2
 
 instance Transformable TailSize where
-  transform t (TailSize (Last (Local w))) =
-    TailSize (Last (Local (avgScale t * w)))
-  transform _ l = l
+  transform t (TailSize (Last w)) = TailSize (Last (transform t w))
 
 instance Default TailSize where
     def = TailSize (Last (Output 20))
