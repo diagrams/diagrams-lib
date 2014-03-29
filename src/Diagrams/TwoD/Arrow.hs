@@ -284,7 +284,7 @@ tailSty opts = fc black (opts^.tailStyle)
 
 
 -- | Radius of a circumcircle around the head.
-newtype HeadSize = HeadSize (Last (Measure Double))
+newtype HeadSize = HeadSize (Last (Measure R2))
                  deriving (Typeable, Data, Semigroup)
 instance AttributeClass HeadSize
 
@@ -299,16 +299,16 @@ instance Default HeadSize where
     def = HeadSize (Last (Output 20))
 
 -- | Set the radius of the circumcircle around the head.
-headSize :: (HasStyle a, V a ~ R2) => Measure Double -> a -> a
+headSize :: (HasStyle a, V a ~ R2) => Measure R2 -> a -> a
 headSize = applyGTAttr . HeadSize . Last
 
 headSizeA :: (HasStyle a, V a ~ R2) => HeadSize -> a -> a
 headSizeA = applyGTAttr
 
-getHeadSize :: HeadSize -> Measure Double
+getHeadSize :: HeadSize -> Measure R2
 getHeadSize (HeadSize (Last s)) = s
 
-newtype TailSize = TailSize (Last (Measure Double))
+newtype TailSize = TailSize (Last (Measure R2))
                  deriving (Typeable, Data, Semigroup)
 instance AttributeClass TailSize
 
@@ -323,13 +323,13 @@ instance Default TailSize where
     def = TailSize (Last (Output 20))
 
 -- | Set the radius of a circumcircle around the arrow tail.
-tailSize :: (HasStyle a, V a ~ R2) => Measure Double -> a -> a
+tailSize :: (HasStyle a, V a ~ R2) => Measure R2 -> a -> a
 tailSize = applyGTAttr . TailSize . Last
 
 tailSizeA :: (HasStyle a, V a ~ R2) => TailSize -> a -> a
 tailSizeA = applyGTAttr
 
-getTailSize :: TailSize -> Measure Double
+getTailSize :: TailSize -> Measure R2
 getTailSize (TailSize (Last s)) = s
 
 -- | Calculate the length of the portion of the horizontal line that passes

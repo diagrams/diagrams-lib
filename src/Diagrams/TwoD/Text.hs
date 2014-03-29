@@ -37,10 +37,10 @@ import           Diagrams.Core.Envelope (pointEnvelope)
 import           Diagrams.TwoD.Types
 
 import           Data.AffineSpace       ((.-.))
-import           Data.Semigroup
 import           Data.Colour
 import           Data.Data
 import           Data.Default.Class
+import           Data.Semigroup
 
 ------------------------------------------------------------
 -- Text diagrams
@@ -162,7 +162,7 @@ font = applyAttr . Font . Last
 
 -- | The @FontSize@ attribute specifies the size of a font's
 --   em-square.  Inner @FontSize@ attributes override outer ones.
-newtype FontSize = FontSize (Last (Measure Double))
+newtype FontSize = FontSize (Last (Measure R2))
   deriving (Typeable, Data, Semigroup)
 instance AttributeClass FontSize
 
@@ -176,13 +176,13 @@ instance Transformable FontSize where
     FontSize (Last (transform t s))
 
 -- | Extract the size from a @FontSize@ attribute.
-getFontSize :: FontSize -> Measure Double
+getFontSize :: FontSize -> Measure R2
 getFontSize (FontSize (Last s)) = s
 
 -- | Set the font size, that is, the size of the font's em-square as
 --   measured within the current local vector space.  The default size
 --   is @1@.
-setFontSize :: (HasStyle a, V a ~ R2) => Measure Double -> a -> a
+setFontSize :: (HasStyle a, V a ~ R2) => Measure R2 -> a -> a
 setFontSize = applyGTAttr . FontSize . Last
 
 -- | A convenient synonym for 'setFontSize (Global w)'.

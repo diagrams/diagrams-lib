@@ -46,7 +46,7 @@ import           Diagrams.TwoD.Types
 
 -- | Line widths specified on child nodes always override line widths
 --   specified at parent nodes.
-newtype LineWidth = LineWidth (Last (Measure Double))
+newtype LineWidth = LineWidth (Last (Measure R2))
   deriving (Typeable, Data, Semigroup)
 instance AttributeClass LineWidth
 
@@ -59,11 +59,11 @@ instance Transformable LineWidth where
 instance Default LineWidth where
     def = LineWidth (Last (Output 1))
 
-getLineWidth :: LineWidth -> Measure Double
+getLineWidth :: LineWidth -> Measure R2
 getLineWidth (LineWidth (Last w)) = w
 
 -- | Set the line (stroke) width.
-lineWidth :: (HasStyle a, V a ~ R2) => (Measure Double) -> a -> a
+lineWidth :: (HasStyle a, V a ~ R2) => Measure R2 -> a -> a
 lineWidth = applyGTAttr . LineWidth . Last
 
 -- | Apply a 'LineWidth' attribute.
@@ -101,7 +101,7 @@ veryThick = lwO 5
 -----------------------------------------------------------------
 
 -- | Create lines that are dashing... er, dashed.
-data Dashing = Dashing [Measure Double] (Measure Double)
+data Dashing = Dashing [Measure R2] (Measure R2)
   deriving (Typeable, Data, Eq)
 
 newtype DashingA = DashingA (Last Dashing)
@@ -122,11 +122,11 @@ getDashing (DashingA (Last d)) = d
 
 -- | Set the line dashing style.
 setDashing :: (HasStyle a, V a ~ R2) =>
-           [Measure Double]  -- ^ A list specifying alternate lengths of on
-                     --   and off portions of the stroke.  The empty
-                     --   list indicates no dashing.
-        -> Measure Double    -- ^ An offset into the dash pattern at which the
-                     --   stroke should start.
+           [Measure R2]  -- ^ A list specifying alternate lengths of on
+                         --   and off portions of the stroke.  The empty
+                         --   list indicates no dashing.
+        -> Measure R2    -- ^ An offset into the dash pattern at which the
+                         --   stroke should start.
         -> a -> a
 setDashing ds offs = applyGTAttr (DashingA (Last (Dashing ds offs)))
 
