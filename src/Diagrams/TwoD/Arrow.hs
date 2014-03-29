@@ -73,7 +73,9 @@ module Diagrams.TwoD.Arrow
 
          -- * Attributes
        , HeadSize, headSize, headSizeA, getHeadSize
+       , hs, hsO, hsL, hsN
        , TailSize, tailSize, tailSizeA, getTailSize
+       , ts, tsO, tsL, tsN
 
          -- * Options
        , ArrowOpts(..)
@@ -306,6 +308,22 @@ headSizeA = applyGTAttr
 getHeadSize :: HeadSize -> Measure R2
 getHeadSize (HeadSize (Last s)) = s
 
+-- | A convenient synonym for 'headSize (Global w)'.
+hs :: (HasStyle a, V a ~ R2) => Double -> a -> a
+hs w = headSize (Global w)
+
+-- | A convenient synonym for 'headSize (Normalized w)'.
+hsN :: (HasStyle a, V a ~ R2) => Double -> a -> a
+hsN w = headSize (Normalized w)
+
+-- | A convenient synonym for 'headSize (Output w)'.
+hsO :: (HasStyle a, V a ~ R2) => Double -> a -> a
+hsO w = headSize (Output w)
+
+-- | A convenient sysnonym for 'headSize (Local w)'.
+hsL :: (HasStyle a, V a ~ R2) => Double -> a -> a
+hsL w = headSize (Local w)
+
 newtype TailSize = TailSize (Last (Measure R2))
                  deriving (Typeable, Data, Semigroup)
 instance AttributeClass TailSize
@@ -327,6 +345,22 @@ tailSizeA = applyGTAttr
 
 getTailSize :: TailSize -> Measure R2
 getTailSize (TailSize (Last s)) = s
+
+-- | A convenient synonym for 'tailSize (Global w)'.
+ts :: (HasStyle a, V a ~ R2) => Double -> a -> a
+ts w = tailSize (Global w)
+
+-- | A convenient synonym for 'tailSize (Normalized w)'.
+tsN :: (HasStyle a, V a ~ R2) => Double -> a -> a
+tsN w = tailSize (Normalized w)
+
+-- | A convenient synonym for 'tailSize (Output w)'.
+tsO :: (HasStyle a, V a ~ R2) => Double -> a -> a
+tsO w = tailSize (Output w)
+
+-- | A convenient sysnonym for 'tailSize (Local w)'.
+tsL :: (HasStyle a, V a ~ R2) => Double -> a -> a
+tsL w = tailSize (Local w)
 
 -- | Calculate the length of the portion of the horizontal line that passes
 --   through the origin and is inside of p.
@@ -439,7 +473,8 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
     mempty mempty mempty mempty
   where
 
-    -- Once we learn the global transformation context this arrow is
+    -- Once we learn the global transformation context (da) and the two scale
+    -- factors, normal to output (n) and global to output (g), this arrow is
     -- drawn in, we can apply it to the origin and (len,0) to find out
     -- the actual final points between which this arrow should be
     -- drawn.  We need to know this to draw it correctly, since the
@@ -470,15 +505,17 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
           & tailStyle  %~ maybe id fillColor globalLC
           & shaftStyle %~ maybe id lineColor globalLC
 
-        -- XXX hSize and tSize Measures not implemented for Global and
-        -- Normalized.
-        hSize = case fromMaybe (Output 20) (getHeadSize <$> getAttr sty) of
+        -- The head size is obtained from the style and converted to output
+        -- units.
+        hSize = case fromMaybe (Output 25) (getHeadSize <$> getAttr sty) of
           Output x     -> x
           Local x      -> x
           Normalized x -> nToO * x
           Global x     -> gToO * x
 
-        tSize = case fromMaybe (Output 20) (getTailSize <$> getAttr sty) of
+        -- The tail size is obtained from the style and converted to output
+        -- units.
+        tSize = case fromMaybe (Output 25) (getTailSize <$> getAttr sty) of
           Output x     -> x
           Local x      -> x
           Normalized x -> nToO * x
