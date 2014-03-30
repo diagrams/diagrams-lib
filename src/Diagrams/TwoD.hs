@@ -154,9 +154,9 @@ module Diagrams.TwoD
        , shaftColor
        , shaftStyle
        , HeadSize, headSize, headSizeA, getHeadSize
-       , hs, hsO, hsL, hsN
+       , hs, hsO, hsL, hsN, hsG
        , TailSize, tailSize, tailSizeA, getTailSize
-       , ts, tsO, tsL, tsN
+       , ts, tsO, tsL, tsN, tsG
 
          -- * Text
        , text, topLeftText, alignedText, baselineText
@@ -233,12 +233,12 @@ module Diagrams.TwoD
        , sized, sizedAs
 
        -- ** Width
-       , LineWidth, getLineWidth, lineWidth, lineWidthA, lw, lwN, lwO, lwL
+       , LineWidth, getLineWidth, lineWidth, lineWidthA, lw, lwN, lwO, lwL, lwG
        , ultraThin, veryThin, thin, medium, thick, veryThick
 
        -- ** Dashing
        , Dashing(..), DashingA, getDashing
-       , dashing, dashingO, dashingL, dashingN
+       , dashing, dashingO, dashingL, dashingN, dashingG
 
          -- * Visual aids for understanding the internal model
        , showOrigin

@@ -73,9 +73,9 @@ module Diagrams.TwoD.Arrow
 
          -- * Attributes
        , HeadSize, headSize, headSizeA, getHeadSize
-       , hs, hsO, hsL, hsN
+       , hs, hsO, hsL, hsN, hsG
        , TailSize, tailSize, tailSizeA, getTailSize
-       , ts, tsO, tsL, tsN
+       , ts, tsO, tsL, tsN, tsG
 
          -- * Options
        , ArrowOpts(..)
@@ -308,9 +308,13 @@ headSizeA = applyGTAttr
 getHeadSize :: HeadSize -> Measure R2
 getHeadSize (HeadSize (Last s)) = s
 
--- | A convenient synonym for 'headSize (Global w)'.
+-- | Default for 'headSize'.
 hs :: (HasStyle a, V a ~ R2) => Double -> a -> a
-hs w = headSize (Global w)
+hs = hsG
+
+-- | A convenient synonym for 'headSize (Global w)'.
+hsG :: (HasStyle a, V a ~ R2) => Double -> a -> a
+hsG w = headSize (Global w)
 
 -- | A convenient synonym for 'headSize (Normalized w)'.
 hsN :: (HasStyle a, V a ~ R2) => Double -> a -> a
@@ -346,9 +350,13 @@ tailSizeA = applyGTAttr
 getTailSize :: TailSize -> Measure R2
 getTailSize (TailSize (Last s)) = s
 
--- | A convenient synonym for 'tailSize (Global w)'.
+-- | Default for 'tailSize'
 ts :: (HasStyle a, V a ~ R2) => Double -> a -> a
-ts w = tailSize (Global w)
+ts = tsG
+
+-- | A convenient synonym for 'tailSize (Global w)'.
+tsG :: (HasStyle a, V a ~ R2) => Double -> a -> a
+tsG w = tailSize (Global w)
 
 -- | A convenient synonym for 'tailSize (Normalized w)'.
 tsN :: (HasStyle a, V a ~ R2) => Double -> a -> a

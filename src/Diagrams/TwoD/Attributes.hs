@@ -23,12 +23,12 @@
 module Diagrams.TwoD.Attributes (
   -- ** Width
       LineWidth, getLineWidth, lineWidth, lineWidthA
-    , lw, lwN, lwO, lwL
+    , lw, lwN, lwO, lwL, lwG
     , ultraThin, veryThin, thin, medium, thick, veryThick
 
     -- ** Dashing
   , Dashing(..), DashingA, getDashing, setDashing
-  , dashing, dashingN, dashingO, dashingL
+  , dashing, dashingN, dashingO, dashingL, dashingG
 
     ) where
 
@@ -70,9 +70,13 @@ lineWidth = applyGTAttr . LineWidth . Last
 lineWidthA ::  (HasStyle a, V a ~ R2) => LineWidth -> a -> a
 lineWidthA = applyGTAttr
 
--- | A convenient synonym for 'lineWidth (Global w)'.
+-- | Default for 'lineWidth'.
 lw :: (HasStyle a, V a ~ R2) => Double -> a -> a
-lw w = lineWidth (Global w)
+lw = lwG
+
+-- | A convenient synonym for 'lineWidth (Global w)'.
+lwG :: (HasStyle a, V a ~ R2) => Double -> a -> a
+lwG w = lineWidth (Global w)
 
 -- | A convenient synonym for 'lineWidth (Normalized w)'.
 lwN :: (HasStyle a, V a ~ R2) => Double -> a -> a
@@ -130,9 +134,13 @@ setDashing :: (HasStyle a, V a ~ R2) =>
         -> a -> a
 setDashing ds offs = applyGTAttr (DashingA (Last (Dashing ds offs)))
 
--- | A convenient synonym for 'setDashing (Global w)'.
+-- | Default for 'setDashing'.
 dashing :: (HasStyle a, V a ~ R2) => [Double] -> Double -> a -> a
-dashing w v = setDashing (map Global w) (Global v)
+dashing = dashingG
+
+-- | A convenient synonym for 'setDashing (Global w)'.
+dashingG :: (HasStyle a, V a ~ R2) => [Double] -> Double -> a -> a
+dashingG w v = setDashing (map Global w) (Global v)
 
 -- | A convenient synonym for 'setDashing (Normalized w)'.
 dashingN :: (HasStyle a, V a ~ R2) => [Double] -> Double -> a -> a
