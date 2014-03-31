@@ -89,7 +89,6 @@ Library
                        Diagrams.Animation,
                        Diagrams.Animation.Active,
                        Diagrams.Util,
-                       Diagrams.Backend.Show,
                        Diagrams.Backend.CmdLine
   Build-depends:       base >= 4.2 && < 4.8,
                        containers >= 0.3 && < 0.6,
