@@ -56,7 +56,9 @@ data Text = Text T2 TextAlignment String
 type instance V Text = R2
 
 instance Transformable Text where
-  transform t (Text tt a s) = Text (t <> tt) a s
+  transform t (Text tt a s) = Text (t <> tt <> t') a s
+    where
+      t' = scaling (1 / avgScale t)
 
 instance HasOrigin Text where
   moveOriginTo p = translate (origin .-. p)
