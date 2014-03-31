@@ -95,6 +95,7 @@ Library
                        array >= 0.3 && < 0.6,
                        semigroups >= 0.3.4 && < 0.13,
                        monoid-extras >= 0.3 && < 0.4,
+                       dual-tree >= 0.2 && < 0.3,
                        diagrams-core >= 1.1 && < 1.2,
                        active >= 0.1 && < 0.2,
                        vector-space >= 0.7.7 && < 0.9,
