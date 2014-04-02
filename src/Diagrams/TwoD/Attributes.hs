@@ -72,7 +72,7 @@ lineWidthA = applyGTAttr
 
 -- | Default for 'lineWidth'.
 lw :: (HasStyle a, V a ~ R2) => Double -> a -> a
-lw = lwG
+lw = lwN
 
 -- | A convenient synonym for 'lineWidth (Global w)'.
 lwG :: (HasStyle a, V a ~ R2) => Double -> a -> a
@@ -93,12 +93,12 @@ lwL w = lineWidth (Local w)
 -- | Standard line widths.
 ultraThin, veryThin, thin, medium, thick, veryThick
   :: (HasStyle a, V a ~ R2) => a -> a
-ultraThin = lwO 0.25
-veryThin  = lwO 0.5
-thin      = lwO 1
-medium    = lwO 2
-thick     = lwO 4
-veryThick = lwO 5
+ultraThin = lwN 0.05
+veryThin  = lwN 0.1
+thin      = lwN 0.2
+medium    = lwN 0.4
+thick     = lwN 0.75
+veryThick = lwN 1
 
 -----------------------------------------------------------------
 --  Dashing  ----------------------------------------------------
@@ -136,7 +136,7 @@ setDashing ds offs = applyGTAttr (DashingA (Last (Dashing ds offs)))
 
 -- | Default for 'setDashing'.
 dashing :: (HasStyle a, V a ~ R2) => [Double] -> Double -> a -> a
-dashing = dashingG
+dashing = dashingN
 
 -- | A convenient synonym for 'setDashing (Global w)'.
 dashingG :: (HasStyle a, V a ~ R2) => [Double] -> Double -> a -> a

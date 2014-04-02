@@ -24,7 +24,7 @@ module Diagrams.TwoD.Text (
   , Font(..), getFont, font
   -- ** Font size
   , FontSize(..), getFontSize, setFontSize, fontSizeA
-  , fontSize, fontSizeN, fontSizeO, fontSizeL
+  , fontSize, fontSizeN, fontSizeO, fontSizeL, fontSizeG
   -- ** Font slant
   , FontSlant(..), FontSlantA, getFontSlant, fontSlant, italic, oblique
   -- ** Font weight
@@ -187,9 +187,13 @@ getFontSize (FontSize (Last s)) = s
 setFontSize :: (HasStyle a, V a ~ R2) => Measure R2 -> a -> a
 setFontSize = applyGTAttr . FontSize . Last
 
--- | A convenient synonym for 'setFontSize (Global w)'.
+-- | Default for 'FontSize'.
 fontSize :: (HasStyle a, V a ~ R2) => Double -> a -> a
-fontSize w = setFontSize (Global w)
+fontSize  = fontSizeN
+
+-- | A convenient synonym for 'setFontSize (Global w)'.
+fontSizeG :: (HasStyle a, V a ~ R2) => Double -> a -> a
+fontSizeG w = setFontSize (Global w)
 
 -- | A convenient synonym for 'setFontSize (Normalized w)'.
 fontSizeN :: (HasStyle a, V a ~ R2) => Double -> a -> a

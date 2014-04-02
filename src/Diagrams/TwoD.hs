@@ -161,7 +161,7 @@ module Diagrams.TwoD
          -- * Text
        , text, topLeftText, alignedText, baselineText
        , font, setFontSize, italic, oblique, bold
-       , fontSize, fontSizeO, fontSizeL, fontSizeN
+       , fontSize, fontSizeO, fontSizeL, fontSizeN, fontSizeG
 
          -- * Images
        , Image, image

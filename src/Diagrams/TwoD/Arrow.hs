@@ -310,7 +310,7 @@ getHeadSize (HeadSize (Last s)) = s
 
 -- | Default for 'headSize'.
 hs :: (HasStyle a, V a ~ R2) => Double -> a -> a
-hs = hsG
+hs = hsN
 
 -- | A convenient synonym for 'headSize (Global w)'.
 hsG :: (HasStyle a, V a ~ R2) => Double -> a -> a
@@ -352,7 +352,7 @@ getTailSize (TailSize (Last s)) = s
 
 -- | Default for 'tailSize'
 ts :: (HasStyle a, V a ~ R2) => Double -> a -> a
-ts = tsG
+ts = tsN
 
 -- | A convenient synonym for 'tailSize (Global w)'.
 tsG :: (HasStyle a, V a ~ R2) => Double -> a -> a
