@@ -32,7 +32,7 @@ module Diagrams.TwoD.Arrow
 --   >
 --   > shaft  = cubicSpline False ( map p2 [(0, 0), (1, 0), (1, 0.2), (2, 0.2)])
 --   >
---   > example1 = ds # connect' (with & arrowHead .~ dart &  & arrowTail .~ quill
+--   > example1 = ds # connect' (with & arrowHead .~ dart & arrowTail .~ quill
 --   >                                & shaftStyle %~ lw 0.02 & arrowShaft .~ shaft)
 --   >                                "left" "right" # pad 1.1
 
@@ -132,13 +132,6 @@ import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector     (direction, unitX, unit_X)
 import           Diagrams.Util            (( # ))
 
-------- Debugging --------------------------------------------------------------
---import Debug.Trace
-
---traceShow' :: Show a => a -> a
---traceShow' x = traceShow x x
---------------------------------------------------------------------------------
-
 data ArrowOpts
   = ArrowOpts
     { _arrowHead  :: ArrowHT
@@ -159,7 +152,7 @@ instance Default ArrowOpts where
   def = ArrowOpts
         { _arrowHead    = dart
         , _arrowTail    = noTail
-        , _arrowShaft   = trailFromOffsets [unitX]
+        , _arrowShaft   = straightShaft
         , _headGap      = 0
         , _tailGap      = 0
 
@@ -338,6 +331,12 @@ tsO w = tailSize (Output w)
 tsL :: (HasStyle a, V a ~ R2) => Double -> a -> a
 tsL w = tailSize (Local w)
 
+fromMeasure :: Double -> Double -> Double -> Measure R2 -> Double
+fromMeasure _    _     _    (Output x)      = x
+fromMeasure _    _     _    (Local x)      = x
+fromMeasure _    nToO units (Normalized x) = nToO * x / units
+fromMeasure gToO _    _     (Global x)     = gToO * x
+
 -- | Calculate the length of the portion of the horizontal line that passes
 --   through the origin and is inside of p.
 xWidth :: (Traced t, V t ~ R2) => t -> Double
@@ -358,13 +357,9 @@ colorJoint sStyle =
 -- | Get line width from a style.
 widthOfJoint :: Style v -> Double -> Double  -> Double
 widthOfJoint sStyle gToO nToO =
-    let w = fmap getLineWidth . getAttr $ sStyle in
-    case w of
-        Just (Output t) -> t
-        Just (Normalized t) -> t * nToO / 100
-        Just (Global t) -> t * gToO
-        Just (Local t) -> t
-        Nothing -> error "No shaft width."
+  maybe (error "No shaft width")
+        (fromMeasure gToO nToO 100)
+        (fmap getLineWidth . getAttr $ sStyle)
 
 -- | Combine the head and its joint into a single scale invariant diagram
 --   and move the origin to the attachment point. Return the diagram
@@ -459,14 +454,7 @@ arrow len = arrow' def len
 arrow' :: Renderable (Path R2) b => ArrowOpts -> Double -> Diagram b R2
 arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
 
-    -- We must approximate the envelope and trace by just drawing the
-    -- arrow from the origin to (len,0) and using its envelope and
-    -- trace.  That may not end up being exactly right (if the arrow
-    -- gets scaled, the shaft may get a bit longer or shorter, and so
-    -- on) but it's close enough.
-    -- (getEnvelope approx) (getTrace approx) mempty mempty
-
-    -- Actually right now arrows have an empty envelope and trace.
+      -- Currently arrows have an empty envelope and trace.
       mempty mempty mempty mempty
 
   where
@@ -507,19 +495,15 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
 
         -- The head size is obtained from the style and converted to output
         -- units.
-        hSize = case fromMaybe (Normalized 0.05) (getHeadSize <$> getAttr sty) of
-          Output x     -> x
-          Local x      -> x
-          Normalized x -> nToO * x
-          Global x     -> gToO * x
+        hSize = maybe (error "No head size.")
+                      (fromMeasure gToO nToO 1)
+                      (getHeadSize <$> getAttr sty)
 
         -- The tail size is obtained from the style and converted to output
         -- units.
-        tSize = case fromMaybe (Normalized 0.05) (getTailSize <$> getAttr sty) of
-          Output x     -> x
-          Local x      -> x
-          Normalized x -> nToO * x
-          Global x     -> gToO * x
+        tSize = maybe (error "No tail size.")
+                      (fromMeasure gToO nToO 1)
+                      (getTailSize <$> getAttr sty)
 
         -- Make the head and tail and save their widths.
         (h, hWidth') = mkHead hSize opts' gToO nToO
