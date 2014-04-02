@@ -132,6 +132,13 @@ import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector     (direction, unitX, unit_X)
 import           Diagrams.Util            (( # ))
 
+------- Debugging --------------------------------------------------------------
+--import Debug.Trace
+
+--traceShow' :: Show a => a -> a
+--traceShow' x = traceShow x x
+--------------------------------------------------------------------------------
+
 data ArrowOpts
   = ArrowOpts
     { _arrowHead  :: ArrowHT
@@ -349,47 +356,53 @@ colorJoint sStyle =
         Just c' -> fillColor c' $ mempty
 
 -- | Get line width from a style.
-widthOfJoint :: Style v -> Double
-widthOfJoint sStyle =
+widthOfJoint :: Style v -> Double -> Double  -> Double
+widthOfJoint sStyle gToO nToO =
     let w = fmap getLineWidth . getAttr $ sStyle in
     case w of
-        Just (Global w') -> w'
-        Nothing -> 0.01 -- this case should never happen.
-        _ -> 0.01 -- XXX need to figure out what to do here XXX
+        Just (Output t) -> t
+        Just (Normalized t) -> t * nToO / 100
+        Just (Global t) -> t * gToO
+        Just (Local t) -> t
+        Nothing -> error "No shaft width."
 
 -- | Combine the head and its joint into a single scale invariant diagram
 --   and move the origin to the attachment point. Return the diagram
 --   and its width.
-mkHead :: Renderable (Path R2) b => Double -> ArrowOpts -> (Diagram b R2, Double)
-mkHead size opts = ((j <> h) # moveOriginBy (jWidth *^ unit_X) # lw 0
+mkHead :: Renderable (Path R2) b =>
+          Double -> ArrowOpts -> Double -> Double -> (Diagram b R2, Double)
+mkHead size opts gToO nToO = ((j <> h) # moveOriginBy (jWidth *^ unit_X) # lw 0
               , hWidth + jWidth)
   where
-    (h', j') = (opts^.arrowHead) (size / refHeadWidth opts) (widthOfJoint $ shaftSty opts)
+    (h', j') = (opts^.arrowHead) size
+               (widthOfJoint (shaftSty opts) gToO nToO)
     hWidth = xWidth h'
     jWidth = xWidth j'
     h = stroke h' # applyStyle (headSty opts)
     j = stroke j' # applyStyle (colorJoint (opts^.shaftStyle))
 
 -- | Just like mkHead only the attachment point is on the right.
-mkTail :: Renderable (Path R2) b => Double -> ArrowOpts -> (Diagram b R2, Double)
-mkTail size opts = ((t <> j) # moveOriginBy (jWidth *^ unitX) # lw 0
+mkTail :: Renderable (Path R2) b =>
+          Double -> ArrowOpts -> Double -> Double -> (Diagram b R2, Double)
+mkTail size opts gToO nToO = ((t <> j) # moveOriginBy (jWidth *^ unitX) # lw 0
               , tWidth + jWidth)
   where
-    (t', j') = (opts^.arrowTail) (size / refTailWidth opts) (widthOfJoint $ shaftSty opts)
+    (t', j') = (opts^.arrowTail) size
+               (widthOfJoint (shaftSty opts) gToO nToO)
     tWidth = xWidth t'
     jWidth = xWidth j'
     t = stroke t' # applyStyle (tailSty opts)
     j = stroke j' # applyStyle (colorJoint (opts^.shaftStyle))
 
 -- The width of a head of with diameter 1 and its joint.
-refHeadWidth :: ArrowOpts -> Double
-refHeadWidth opts = xWidth h + xWidth j
-  where (h, j) = (opts ^. arrowHead) 1 (widthOfJoint $ shaftSty opts)
+--refHeadWidth :: ArrowOpts -> Double -> Double -> Double
+--refHeadWidth opts gToO nToO = xWidth h + xWidth j
+--  where (h, j) = (opts ^. arrowHead) 1 (widthOfJoint (shaftSty opts) gToO nToO)
 
 -- The width of a tail of with diameter 1 and its joint.
-refTailWidth :: ArrowOpts -> Double
-refTailWidth opts = xWidth t + xWidth j
-  where (t, j) = (opts ^. arrowTail) 1 (widthOfJoint $ shaftSty opts)
+--refTailWidth :: ArrowOpts -> Double -> Double -> Double
+--refTailWidth opts gToO nToO = xWidth t + xWidth j
+--  where (t, j) = (opts ^. arrowTail) 1 (widthOfJoint (shaftSty opts) gToO nToO)
 
 -- | Make a trail with the same angles and offset as an arrow with tail width
 --   tw, head width hw and shaft of tr, such that the magnituted of the shaft
@@ -451,9 +464,9 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
     -- trace.  That may not end up being exactly right (if the arrow
     -- gets scaled, the shaft may get a bit longer or shorter, and so
     -- on) but it's close enough.
-    --(getEnvelope approx) (getTrace approx) mempty mempty
+    -- (getEnvelope approx) (getTrace approx) mempty mempty
 
-    -- Actually right now arrows have and empty envelope and trace.
+    -- Actually right now arrows have an empty envelope and trace.
       mempty mempty mempty mempty
 
   where
@@ -509,8 +522,8 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
           Global x     -> gToO * x
 
         -- Make the head and tail and save their widths.
-        (h, hWidth') = mkHead hSize opts'
-        (t, tWidth') = mkTail tSize opts'
+        (h, hWidth') = mkHead hSize opts' gToO nToO
+        (t, tWidth') = mkTail tSize opts' gToO nToO
 
         rawShaftTrail = opts^.arrowShaft
         shaftTrail
