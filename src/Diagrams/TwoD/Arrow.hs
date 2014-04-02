@@ -42,7 +42,7 @@ module Diagrams.TwoD.Arrow
 --
 --   > -- Comparing connect, connectPerim, and arrowAt.
 --   >
---   > oct  = octagon 1 # lc darkgray # lw 0.10 # showOrigin
+--   > oct  = octagon 1 # lc darkgray # lw 0.050 # showOrigin
 --   > dias = oct # named "first" ||| strut 3 ||| oct # named "second"
 --   >
 --   > -- Connect two diagrams and two points on their trails.
@@ -264,7 +264,7 @@ instance Transformable HeadSize where
   transform t (HeadSize (Last w)) = HeadSize (Last (transform t w))
 
 instance Default HeadSize where
-    def = HeadSize (Last (Output 20))
+    def = HeadSize (Last (Normalized 0.05))
 
 -- | Set the radius of the circumcircle around the head.
 headSize :: (HasStyle a, V a ~ R2) => Measure R2 -> a -> a
@@ -306,7 +306,7 @@ instance Transformable TailSize where
   transform t (TailSize (Last w)) = TailSize (Last (transform t w))
 
 instance Default TailSize where
-    def = TailSize (Last (Output 20))
+    def = TailSize (Last (Normalized 0.05))
 
 -- | Set the radius of a circumcircle around the arrow tail.
 tailSize :: (HasStyle a, V a ~ R2) => Measure R2 -> a -> a
@@ -507,7 +507,7 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
 
         -- The head size is obtained from the style and converted to output
         -- units.
-        hSize = case fromMaybe (Output 25) (getHeadSize <$> getAttr sty) of
+        hSize = case fromMaybe (Normalized 0.05) (getHeadSize <$> getAttr sty) of
           Output x     -> x
           Local x      -> x
           Normalized x -> nToO * x
@@ -515,7 +515,7 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
 
         -- The tail size is obtained from the style and converted to output
         -- units.
-        tSize = case fromMaybe (Output 25) (getTailSize <$> getAttr sty) of
+        tSize = case fromMaybe (Normalized 0.05) (getTailSize <$> getAttr sty) of
           Output x     -> x
           Local x      -> x
           Normalized x -> nToO * x
