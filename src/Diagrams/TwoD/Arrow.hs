@@ -173,45 +173,6 @@ arrowTail :: Lens' ArrowOpts ArrowHT
 -- | The trail to use for the arrow shaft.
 arrowShaft :: Lens' ArrowOpts (Trail R2)
 
--- -- | Radius of a circumcircle around the head.
--- headSize :: Lens' ArrowOpts Double
-
--- -- | Radius of a circumcircle around the tail.
--- tailSize :: Lens' ArrowOpts Double
-
--- -- | Width of the head.
--- headWidth :: Setter' ArrowOpts Double
--- headWidth f opts =
---   (\hd -> opts & headSize .~ g hd) <$> f (opts ^. headSize)
---   where
---     g w = w / (xWidth h + xWidth j)
---     (h, j) = (opts ^. arrowHead) 1 (widthOfJoint $ shaftSty opts)
-
--- -- | Width of the tail.
--- tailWidth :: Setter' ArrowOpts Double
--- tailWidth f opts =
---   (\tl -> opts & tailSize .~ g tl) <$> f (opts ^. tailSize)
---   where
---     g w = w / (xWidth t + xWidth j)
---     (t, j) = (opts ^. arrowTail) 1 (widthOfJoint $ shaftSty opts)
-
--- -- | Set both the @headWidth@ and @tailWidth@.
--- widths :: Traversal' ArrowOpts Double
--- widths f opts =
---   (\hd tl -> opts & headSize .~ gh hd & tailSize .~ gt tl)
---   <$> f (opts ^. headSize) <*> f (opts ^. tailSize)
---     where
---       gh w = w / (xWidth h + xWidth j)
---       (h, j) = (opts ^. arrowHead) 1 (widthOfJoint $ shaftSty opts)
---       gt w = w / (xWidth t + xWidth j')
---       (t, j') = (opts ^. arrowTail) 1 (widthOfJoint $ shaftSty opts)
-
--- -- | Set the size of both the head and tail.
--- sizes :: Traversal' ArrowOpts Double
--- sizes f opts =
---   (\h t -> opts & headSize .~ h & tailSize .~ t)
---     <$> f (opts ^. headSize) <*> f (opts ^. tailSize)
-
 -- | Distance to leave between the head and the target point.
 headGap :: Lens' ArrowOpts Double
 
@@ -403,7 +364,7 @@ mkHead :: Renderable (Path R2) b => Double -> ArrowOpts -> (Diagram b R2, Double
 mkHead size opts = ((j <> h) # moveOriginBy (jWidth *^ unit_X) # lw 0
               , hWidth + jWidth)
   where
-    (h', j') = (opts^.arrowHead) size (widthOfJoint $ shaftSty opts)
+    (h', j') = (opts^.arrowHead) (size / refHeadWidth opts) (widthOfJoint $ shaftSty opts)
     hWidth = xWidth h'
     jWidth = xWidth j'
     h = stroke h' # applyStyle (headSty opts)
@@ -414,11 +375,21 @@ mkTail :: Renderable (Path R2) b => Double -> ArrowOpts -> (Diagram b R2, Double
 mkTail size opts = ((t <> j) # moveOriginBy (jWidth *^ unitX) # lw 0
               , tWidth + jWidth)
   where
-    (t', j') = (opts^.arrowTail) size (widthOfJoint $ shaftSty opts)
+    (t', j') = (opts^.arrowTail) (size / refTailWidth opts) (widthOfJoint $ shaftSty opts)
     tWidth = xWidth t'
     jWidth = xWidth j'
     t = stroke t' # applyStyle (tailSty opts)
     j = stroke j' # applyStyle (colorJoint (opts^.shaftStyle))
+
+-- The width of a head of with diameter 1 and its joint.
+refHeadWidth :: ArrowOpts -> Double
+refHeadWidth opts = xWidth h + xWidth j
+  where (h, j) = (opts ^. arrowHead) 1 (widthOfJoint $ shaftSty opts)
+
+-- The width of a tail of with diameter 1 and its joint.
+refTailWidth :: ArrowOpts -> Double
+refTailWidth opts = xWidth t + xWidth j
+  where (t, j) = (opts ^. arrowTail) 1 (widthOfJoint $ shaftSty opts)
 
 -- | Make a trail with the same angles and offset as an arrow with tail width
 --   tw, head width hw and shaft of tr, such that the magnituted of the shaft
@@ -475,10 +446,16 @@ arrow len = arrow' def len
 arrow' :: Renderable (Path R2) b => ArrowOpts -> Double -> Diagram b R2
 arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
 
-    -- We set the envelope and trace of the arrow to empty.
-    -- XXX I'm not sure if this is the semantics we will end up
-    --     using, but I think it makes sense
-    mempty mempty mempty mempty
+    -- We must approximate the envelope and trace by just drawing the
+    -- arrow from the origin to (len,0) and using its envelope and
+    -- trace.  That may not end up being exactly right (if the arrow
+    -- gets scaled, the shaft may get a bit longer or shorter, and so
+    -- on) but it's close enough.
+    --(getEnvelope approx) (getTrace approx) mempty mempty
+
+    -- Actually right now arrows have and empty envelope and trace.
+      mempty mempty mempty mempty
+
   where
 
     -- Once we learn the global transformation context (da) and the two scale
@@ -493,6 +470,8 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
     delayedArrow da g n =
       let (trans, globalSty) = option mempty untangle . fst $ da
       in  dArrow globalSty trans len g n
+
+    -- approx = dArrow mempty mempty len 0 0
 
     -- Build an arrow and set its endpoints to the image under tr of origin and (len,0).
     dArrow sty tr ln gToO nToO = (h' <> t' <> shaft)

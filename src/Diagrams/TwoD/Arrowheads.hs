@@ -301,7 +301,7 @@ arrowtailQuill theta =aTail
 -- Standard tails ---------------------------------------------------------
 -- | A line the same width as the shaft.
 lineTail :: ArrowHT
-lineTail l w = (square 1 # scaleX l # scaleY w # alignR, mempty)
+lineTail l w = (square 1 # scaleY w # scaleX l # alignR, mempty)
 
 noTail :: ArrowHT
 noTail _ _ = (mempty, mempty)
