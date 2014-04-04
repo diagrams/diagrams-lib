@@ -71,8 +71,8 @@ import           Data.FingerTree
 import           Data.Monoid.MList
 import           Data.Semigroup
 import           Data.VectorSpace    hiding (Sum (..))
-import           Numeric.Interval    (Interval (..))
-import qualified Numeric.Interval    as I
+import           Numeric.Interval.Kaucher    (Interval (..))
+import qualified Numeric.Interval.Kaucher    as I
 
 import           Diagrams.Core
 import           Diagrams.Located
