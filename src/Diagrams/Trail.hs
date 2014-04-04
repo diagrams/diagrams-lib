@@ -112,7 +112,7 @@ import qualified Data.Foldable       as F
 import           Data.Monoid.MList
 import           Data.Semigroup
 import           Data.VectorSpace    hiding (Sum (..))
-import qualified Numeric.Interval    as I
+import qualified Numeric.Interval.Kaucher    as I
 
 import           Diagrams.Core       hiding ((|>))
 import           Diagrams.Located
