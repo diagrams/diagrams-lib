@@ -1,3 +1,10 @@
+1.1.0.4 (4 April 2014)
+----------------------
+
+  - Require `intervals-0.7`
+  - Give `connectOutside` a reasonable behavior even when one or both
+    endpoints has no trace
+
 1.1.0.3 (19 March 2014)
 ----------------------
 
