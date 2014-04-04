@@ -357,7 +357,7 @@ colorJoint sStyle =
 -- | Get line width from a style.
 widthOfJoint :: Style v -> Double -> Double  -> Double
 widthOfJoint sStyle gToO nToO =
-  maybe (error "No shaft width")
+  maybe (fromMeasure gToO nToO 100 (Output 1)) -- Should be same as default line width
         (fromMeasure gToO nToO 100)
         (fmap getLineWidth . getAttr $ sStyle)
 
@@ -388,16 +388,6 @@ mkTail size opts gToO nToO = ((t <> j) # moveOriginBy (jWidth *^ unitX) # lw 0
     jWidth = xWidth j'
     t = stroke t' # applyStyle (tailSty opts)
     j = stroke j' # applyStyle (colorJoint (opts^.shaftStyle))
-
--- The width of a head of with diameter 1 and its joint.
---refHeadWidth :: ArrowOpts -> Double -> Double -> Double
---refHeadWidth opts gToO nToO = xWidth h + xWidth j
---  where (h, j) = (opts ^. arrowHead) 1 (widthOfJoint (shaftSty opts) gToO nToO)
-
--- The width of a tail of with diameter 1 and its joint.
---refTailWidth :: ArrowOpts -> Double -> Double -> Double
---refTailWidth opts gToO nToO = xWidth t + xWidth j
---  where (t, j) = (opts ^. arrowTail) 1 (widthOfJoint (shaftSty opts) gToO nToO)
 
 -- | Make a trail with the same angles and offset as an arrow with tail width
 --   tw, head width hw and shaft of tr, such that the magnituted of the shaft
@@ -471,8 +461,6 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
     delayedArrow da g n =
       let (trans, globalSty) = option mempty untangle . fst $ da
       in  dArrow globalSty trans len g n
-
-    -- approx = dArrow mempty mempty len 0 0
 
     -- Build an arrow and set its endpoints to the image under tr of origin and (len,0).
     dArrow sty tr ln gToO nToO = (h' <> t' <> shaft)
