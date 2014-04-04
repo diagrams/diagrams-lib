@@ -23,8 +23,8 @@ module Diagrams.TwoD.Text (
   -- ** Font family
   , Font(..), getFont, font
   -- ** Font size
-  , FontSize(..), getFontSize, setFontSize, fontSizeA
-  , fontSize, fontSizeN, fontSizeO, fontSizeL, fontSizeG
+  , FontSize(..), getFontSize, fontSizeA, fontSize
+  , fontSizeN, fontSizeO, fontSizeL, fontSizeG
   -- ** Font slant
   , FontSlant(..), FontSlantA, getFontSlant, fontSlant, italic, oblique
   -- ** Font weight
@@ -184,28 +184,24 @@ getFontSize (FontSize (Last s)) = s
 -- | Set the font size, that is, the size of the font's em-square as
 --   measured within the current local vector space.  The default size
 --   is @1@.
-setFontSize :: (HasStyle a, V a ~ R2) => Measure R2 -> a -> a
-setFontSize = applyGTAttr . FontSize . Last
+fontSize :: (HasStyle a, V a ~ R2) => Measure R2 -> a -> a
+fontSize = applyGTAttr . FontSize . Last
 
--- | Default for 'FontSize'.
-fontSize :: (HasStyle a, V a ~ R2) => Double -> a -> a
-fontSize  = fontSizeN
-
--- | A convenient synonym for 'setFontSize (Global w)'.
+-- | A convenient synonym for 'fontSize (Global w)'.
 fontSizeG :: (HasStyle a, V a ~ R2) => Double -> a -> a
-fontSizeG w = setFontSize (Global w)
+fontSizeG w = fontSize (Global w)
 
--- | A convenient synonym for 'setFontSize (Normalized w)'.
+-- | A convenient synonym for 'fontSize (Normalized w)'.
 fontSizeN :: (HasStyle a, V a ~ R2) => Double -> a -> a
-fontSizeN w = setFontSize (Normalized w)
+fontSizeN w = fontSize (Normalized w)
 
--- | A convenient synonym for 'setFontSize (Output w)'.
+-- | A convenient synonym for 'fontSize (Output w)'.
 fontSizeO :: (HasStyle a, V a ~ R2) => Double -> a -> a
-fontSizeO w = setFontSize (Output w)
+fontSizeO w = fontSize (Output w)
 
--- | A convenient sysnonym for 'setFontSize (Local w)'.
+-- | A convenient sysnonym for 'fontSize (Local w)'.
 fontSizeL :: (HasStyle a, V a ~ R2) => Double -> a -> a
-fontSizeL w = setFontSize (Local w)
+fontSizeL w = fontSize (Local w)
 
 -- | Apply a 'FontSize' attribute.
 fontSizeA :: (HasStyle a, V a ~ R2) => FontSize -> a -> a

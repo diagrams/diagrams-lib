@@ -160,8 +160,8 @@ module Diagrams.TwoD
 
          -- * Text
        , text, topLeftText, alignedText, baselineText
-       , font, setFontSize, italic, oblique, bold
-       , fontSize, fontSizeO, fontSizeL, fontSizeN, fontSizeG
+       , font, italic, oblique, bold, fontSize
+       , fontSizeO, fontSizeL, fontSizeN, fontSizeG
 
          -- * Images
        , Image, image
@@ -233,7 +233,8 @@ module Diagrams.TwoD
        , sized, sizedAs
 
        -- ** Width
-       , LineWidth, getLineWidth, lineWidth, lineWidthA, lw, lwN, lwO, lwL, lwG
+       , LineWidth, getLineWidth, lineWidth, lineWidthA
+       , lw, lwN, lwO, lwL, lwG
        , ultraThin, veryThin, thin, medium, thick, veryThick
 
        -- ** Dashing

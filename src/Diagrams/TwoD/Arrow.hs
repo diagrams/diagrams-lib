@@ -269,9 +269,9 @@ headSizeA = applyGTAttr
 getHeadSize :: HeadSize -> Measure R2
 getHeadSize (HeadSize (Last s)) = s
 
--- | Default for 'headSize'.
-hs :: (HasStyle a, V a ~ R2) => Double -> a -> a
-hs = hsN
+-- | Synonym for 'headSize'.
+hs :: (HasStyle a, V a ~ R2) => Measure R2 -> a -> a
+hs = headSize
 
 -- | A convenient synonym for 'headSize (Global w)'.
 hsG :: (HasStyle a, V a ~ R2) => Double -> a -> a
@@ -311,9 +311,9 @@ tailSizeA = applyGTAttr
 getTailSize :: TailSize -> Measure R2
 getTailSize (TailSize (Last s)) = s
 
--- | Default for 'tailSize'
-ts :: (HasStyle a, V a ~ R2) => Double -> a -> a
-ts = tsN
+-- | Synonym for 'tailSize'
+ts :: (HasStyle a, V a ~ R2) => Measure R2 -> a -> a
+ts = tailSize
 
 -- | A convenient synonym for 'tailSize (Global w)'.
 tsG :: (HasStyle a, V a ~ R2) => Double -> a -> a
@@ -366,7 +366,7 @@ widthOfJoint sStyle gToO nToO =
 --   and its width.
 mkHead :: Renderable (Path R2) b =>
           Double -> ArrowOpts -> Double -> Double -> (Diagram b R2, Double)
-mkHead size opts gToO nToO = ((j <> h) # moveOriginBy (jWidth *^ unit_X) # lw 0
+mkHead size opts gToO nToO = ((j <> h) # moveOriginBy (jWidth *^ unit_X) # lwO 0
               , hWidth + jWidth)
   where
     (h', j') = (opts^.arrowHead) size
@@ -379,7 +379,7 @@ mkHead size opts gToO nToO = ((j <> h) # moveOriginBy (jWidth *^ unit_X) # lw 0
 -- | Just like mkHead only the attachment point is on the right.
 mkTail :: Renderable (Path R2) b =>
           Double -> ArrowOpts -> Double -> Double -> (Diagram b R2, Double)
-mkTail size opts gToO nToO = ((t <> j) # moveOriginBy (jWidth *^ unitX) # lw 0
+mkTail size opts gToO nToO = ((t <> j) # moveOriginBy (jWidth *^ unitX) # lwO 0
               , tWidth + jWidth)
   where
     (t', j') = (opts^.arrowTail) size

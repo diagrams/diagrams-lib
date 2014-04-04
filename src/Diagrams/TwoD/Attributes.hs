@@ -27,7 +27,7 @@ module Diagrams.TwoD.Attributes (
     , ultraThin, veryThin, thin, medium, thick, veryThick
 
     -- ** Dashing
-  , Dashing(..), DashingA, getDashing, setDashing
+  , Dashing(..), DashingA, getDashing
   , dashing, dashingN, dashingO, dashingL, dashingG
 
     ) where
@@ -39,6 +39,14 @@ import           Data.Semigroup
 import           Diagrams.Core
 import           Diagrams.TwoD.Types
 
+-- | Standard 'Measures'.
+ultraThin, veryThin, thin, medium, thick, veryThick :: Measure R2
+ultraThin = Normalized 0.05
+veryThin  = Normalized 0.1
+thin      = Normalized 0.2
+medium    = Normalized 0.4
+thick     = Normalized 0.75
+veryThick = Normalized 1
 
 -----------------------------------------------------------------
 --  Line Width  -------------------------------------------------
@@ -71,8 +79,8 @@ lineWidthA ::  (HasStyle a, V a ~ R2) => LineWidth -> a -> a
 lineWidthA = applyGTAttr
 
 -- | Default for 'lineWidth'.
-lw :: (HasStyle a, V a ~ R2) => Double -> a -> a
-lw = lwN
+lw :: (HasStyle a, V a ~ R2) => Measure R2 -> a -> a
+lw = lineWidth
 
 -- | A convenient synonym for 'lineWidth (Global w)'.
 lwG :: (HasStyle a, V a ~ R2) => Double -> a -> a
@@ -89,16 +97,6 @@ lwO w = lineWidth (Output w)
 -- | A convenient sysnonym for 'lineWidth (Local w)'.
 lwL :: (HasStyle a, V a ~ R2) => Double -> a -> a
 lwL w = lineWidth (Local w)
-
--- | Standard line widths.
-ultraThin, veryThin, thin, medium, thick, veryThick
-  :: (HasStyle a, V a ~ R2) => a -> a
-ultraThin = lwN 0.05
-veryThin  = lwN 0.1
-thin      = lwN 0.2
-medium    = lwN 0.4
-thick     = lwN 0.75
-veryThick = lwN 1
 
 -----------------------------------------------------------------
 --  Dashing  ----------------------------------------------------
@@ -125,31 +123,27 @@ getDashing :: DashingA -> Dashing
 getDashing (DashingA (Last d)) = d
 
 -- | Set the line dashing style.
-setDashing :: (HasStyle a, V a ~ R2) =>
+dashing :: (HasStyle a, V a ~ R2) =>
            [Measure R2]  -- ^ A list specifying alternate lengths of on
                          --   and off portions of the stroke.  The empty
                          --   list indicates no dashing.
         -> Measure R2    -- ^ An offset into the dash pattern at which the
                          --   stroke should start.
         -> a -> a
-setDashing ds offs = applyGTAttr (DashingA (Last (Dashing ds offs)))
+dashing ds offs = applyGTAttr (DashingA (Last (Dashing ds offs)))
 
--- | Default for 'setDashing'.
-dashing :: (HasStyle a, V a ~ R2) => [Double] -> Double -> a -> a
-dashing = dashingN
-
--- | A convenient synonym for 'setDashing (Global w)'.
+-- | A convenient synonym for 'dashing (Global w)'.
 dashingG :: (HasStyle a, V a ~ R2) => [Double] -> Double -> a -> a
-dashingG w v = setDashing (map Global w) (Global v)
+dashingG w v = dashing (map Global w) (Global v)
 
--- | A convenient synonym for 'setDashing (Normalized w)'.
+-- | A convenient synonym for 'dashing (Normalized w)'.
 dashingN :: (HasStyle a, V a ~ R2) => [Double] -> Double -> a -> a
-dashingN w v = setDashing (map Normalized w) (Normalized v)
+dashingN w v = dashing (map Normalized w) (Normalized v)
 
--- | A convenient synonym for 'setDashing (Output w)'.
+-- | A convenient synonym for 'dashing (Output w)'.
 dashingO :: (HasStyle a, V a ~ R2) => [Double] -> Double -> a -> a
-dashingO w v = setDashing (map Output w) (Output v)
+dashingO w v = dashing (map Output w) (Output v)
 
--- | A convenient sysnonym for 'setDashing (Local w)'.
+-- | A convenient sysnonym for 'dashing (Local w)'.
 dashingL :: (HasStyle a, V a ~ R2) => [Double] -> Double -> a -> a
-dashingL w v = setDashing (map Local w) (Local v)
+dashingL w v = dashing (map Local w) (Local v)
