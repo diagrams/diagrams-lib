@@ -41,10 +41,7 @@ module Diagrams.Attributes (
   -- ** Converting colors
   , colorToSRGBA, colorToRGBA
 
-  -- * Lines
-  -- ** Width
-  , LineWidth, getLineWidth, lineWidth, lineWidthA, lw
-
+  -- * Line stuff
   -- ** Cap style
   , LineCap(..), LineCapA, getLineCap, lineCap
 
@@ -53,9 +50,6 @@ module Diagrams.Attributes (
 
   -- ** Miter limit
   , LineMiterLimit(..), getLineMiterLimit, lineMiterLimit, lineMiterLimitA
-
-  -- ** Dashing
-  , Dashing(..), DashingA, getDashing, dashing
 
   -- * Compilation utilities
   , splitFills
@@ -277,42 +271,8 @@ opacity :: HasStyle a => Double -> a -> a
 opacity = applyAttr . Opacity . Product
 
 ------------------------------------------------------------
---  Lines and stuff    -------------------------------------
+--  Line stuff    -------------------------------------
 ------------------------------------------------------------
-
--- | The width of lines.  By default, the line width is measured with
---   respect to the /final/ coordinate system of a rendered diagram,
---   as opposed to the local coordinate systems in effect at the time
---   the line width was set for various subdiagrams.  This is so that
---   it is easy to combine a variety of shapes (some created by
---   scaling) and have them all drawn using a consistent line width.
---   However, sometimes it is desirable for scaling to affect line
---   width; the 'freeze' operation is provided for this purpose.  The
---   line width of frozen diagrams is affected by transformations.
---
---   Line widths specified on child nodes always override line widths
---   specified at parent nodes.
-newtype LineWidth = LineWidth (Last Double)
-  deriving (Typeable, Semigroup)
-instance AttributeClass LineWidth
-
-instance Default LineWidth where
-    def = LineWidth (Last 0.01)
-
-getLineWidth :: LineWidth -> Double
-getLineWidth (LineWidth (Last w)) = w
-
--- | Set the line (stroke) width.
-lineWidth :: HasStyle a => Double -> a -> a
-lineWidth = applyAttr . LineWidth . Last
-
--- | Apply a 'LineWidth' attribute.
-lineWidthA ::  HasStyle a => LineWidth -> a -> a
-lineWidthA = applyAttr
-
--- | A convenient synonym for 'lineWidth'.
-lw :: HasStyle a => Double -> a -> a
-lw = lineWidth
 
 -- | What sort of shape should be placed at the endpoints of lines?
 data LineCap = LineCapButt   -- ^ Lines end precisely at their endpoints.
@@ -379,28 +339,6 @@ lineMiterLimit = applyAttr . LineMiterLimit . Last
 -- | Apply a 'LineMiterLimit' attribute.
 lineMiterLimitA :: HasStyle a => LineMiterLimit -> a -> a
 lineMiterLimitA = applyAttr
-
--- | Create lines that are dashing... er, dashed.
-data Dashing = Dashing [Double] Double
-  deriving (Typeable, Eq)
-
-newtype DashingA = DashingA (Last Dashing)
-  deriving (Typeable, Semigroup, Eq)
-instance AttributeClass DashingA
-
-getDashing :: DashingA -> Dashing
-getDashing (DashingA (Last d)) = d
-
--- | Set the line dashing style.
-dashing :: HasStyle a =>
-           [Double]  -- ^ A list specifying alternate lengths of on
-                     --   and off portions of the stroke.  The empty
-                     --   list indicates no dashing.
-        -> Double    -- ^ An offset into the dash pattern at which the
-                     --   stroke should start.
-        -> a -> a
-dashing ds offs = applyAttr (DashingA (Last (Dashing ds offs)))
-
 ------------------------------------------------------------
 
 data FillLoops v = FillLoops

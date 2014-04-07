@@ -144,12 +144,6 @@ module Diagrams.TwoD
        , arrowHead
        , arrowTail
        , arrowShaft
-       , headSize
-       , tailSize
-       , sizes
-       , headWidth
-       , tailWidth
-       , widths
        , headGap
        , tailGap
        , gaps, gap
@@ -159,10 +153,15 @@ module Diagrams.TwoD
        , tailStyle
        , shaftColor
        , shaftStyle
+       , HeadSize, headSize, headSizeA, getHeadSize
+       , hs, hsO, hsL, hsN, hsG
+       , TailSize, tailSize, tailSizeA, getTailSize
+       , ts, tsO, tsL, tsN, tsG
 
          -- * Text
        , text, topLeftText, alignedText, baselineText
-       , font, fontSize, italic, oblique, bold
+       , font, italic, oblique, bold, fontSize
+       , fontSizeO, fontSizeL, fontSizeN, fontSizeG
 
          -- * Images
        , Image, image
@@ -233,6 +232,16 @@ module Diagrams.TwoD
          -- ** Adjusting size
        , sized, sizedAs
 
+       -- ** Width
+       , LineWidth, getLineWidth, lineWidth, lineWidthA
+       , lw, lwN, lwO, lwL, lwG
+       , ultraThin, veryThin, thin, medium, thick, veryThick, none
+       , tiny, verySmall, small, normal, large, veryLarge, huge
+
+       -- ** Dashing
+       , Dashing(..), DashingA, getDashing
+       , dashing, dashingO, dashingL, dashingN, dashingG
+
          -- * Visual aids for understanding the internal model
        , showOrigin
        , showOrigin'
@@ -245,13 +254,14 @@ import           Diagrams.TwoD.Align
 import           Diagrams.TwoD.Arc
 import           Diagrams.TwoD.Arrow
 import           Diagrams.TwoD.Arrowheads
+import           Diagrams.TwoD.Attributes
 import           Diagrams.TwoD.Combinators
+import           Diagrams.TwoD.Deform
 import           Diagrams.TwoD.Ellipse
 import           Diagrams.TwoD.Image
 import           Diagrams.TwoD.Model
 import           Diagrams.TwoD.Path
 import           Diagrams.TwoD.Polygons
-import           Diagrams.TwoD.Deform
 import           Diagrams.TwoD.Shapes
 import           Diagrams.TwoD.Size
 import           Diagrams.TwoD.Text

@@ -12,35 +12,37 @@
 
 module Main where
 
-import           Diagrams.Prelude
+import           Control.Lens                 ((%~), (&), (.~))
 import           Diagrams.Backend.SVG
 import           Diagrams.Backend.SVG.CmdLine
-import           Control.Lens ((.~), (&), (%~))
+import           Diagrams.Prelude
 
 
 -- | example 0 ------------------------------------------------------------
 example = d # connect' (with & arrowHead .~ dart & arrowTail .~ noTail
-                                  & tailSize .~ 0.5 & headSize .~ 0.6
-                                  & arrowShaft .~ s & shaftStyle %~ lw 0.1
-                                  & headStyle %~ fc orange & tailStyle %~ fc yellow )
+                                  & tailSize .~ 40 & headSize .~ 40
+                                  & arrowShaft .~ s & shaftStyle %~ lwO 5
+                                  & headStyle %~ fc black & tailStyle %~ fc black )
                             "1" "2"
-            # connect' (with & arrowHead .~ missile & headSize .~ 0.8 & arrowTail .~ missile'
-                                   & tailSize .~ 0.8 & shaftStyle %~ lw 0.05 & arrowShaft .~ s1
+            # connect' (with & arrowHead .~ missile & headSize .~ 15 & arrowTail .~ missile'
+                                   & tailSize .~ 15 & shaftStyle %~ lw 0.05 & arrowShaft .~ s1
                                    & headGap .~ 0 & tailGap .~ 0.1 )
                             "4" "3"
-            # connect' (with & arrowHead .~ thorn & headSize .~ 0.8 & arrowShaft .~ a1
+            # connect' (with & arrowHead .~ thorn & arrowShaft .~ a1
                                    & arrowTail .~ noTail & shaftStyle %~ lw 0.03 )
                             "1" "6"
-            # connect' (with & arrowHead .~ dart & tailSize .~ 0.75 & arrowTail .~ dart'
-                                  & headSize .~ 1 & shaftStyle %~ lw 0.1 & arrowShaft .~ s2
+            # connect' (with & arrowHead .~ dart & tailSize .~ 35 & arrowTail .~ dart'
+                                  & headSize .~ 35 & shaftStyle %~ lw 0.1 & arrowShaft .~ s2
                                   & headGap .~ 0.1 & tailGap .~ 0.1 )
                             "4" "7"
-            # connect' (with & arrowTail .~ dart' & tailSize .~ 1 & arrowShaft .~ a
-                                  & arrowHead .~ spike & headSize .~ 1
-                                  & shaftStyle %~ lw 0.2 )
+            # connect' (with & arrowTail .~ dart' & tailSize .~ 15 & arrowShaft .~ a
+                                  & arrowHead .~ spike & headSize .~ 15
+                                  & shaftStyle %~ lwO 2 )
                             "9" "5"
             # connect' (with & arrowHead .~ tri & arrowTail .~ block
-                             & shaftStyle  %~  dashing [0.1,0.2,0.3,0.1] 0) "8" "9"
+                             & headSize .~ 15 & tailSize .~ 15
+                             & shaftStyle  %~  dashing [1,2,3,1] 0) "8" "9"
+            # connectOutside "5" "8"
   where
     c = circle 1 # showOrigin # lw 0.02
     a = arc (5/12 @@ turn) (11/12 @@ turn)
@@ -57,7 +59,7 @@ example = d # connect' (with & arrowHead .~ dart & arrowTail .~ noTail
     row2 = (c # named "4") |-| (c # named "5") |-| (c # named "6")
     row3 = (c # named "7") |-| (c # named "8") |-| (c # named "9")
     d = row1
-        ===
+         ===
         strutY 2
         ===
         row2

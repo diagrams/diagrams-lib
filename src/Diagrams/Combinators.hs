@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE CPP                   #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE Rank2Types            #-}
@@ -40,23 +40,27 @@ module Diagrams.Combinators
 
 import           Data.Typeable
 
-import           Control.Lens       (Lens', generateSignatures, lensField,
-                                     lensRules, makeLensesWith, (%~), (&), (.~),
-                                     (^.), _Wrapping)
+import           Control.Lens          (Lens', generateSignatures, lensField,
+                                        lensRules, makeLensesWith, (%~), (&),
+                                        (.~), (^.), _Wrapping)
 import           Data.AdditiveGroup
-import           Data.AffineSpace   ((.+^))
+import           Data.AffineSpace      ((.+^))
 import           Data.Default.Class
+import           Data.Monoid.Deletable (toDeletable)
+import           Data.Monoid.MList     (inj)
 #if __GLASGOW_HASKELL__ < 707
 import           Data.Proxy
 #endif
 import           Data.Semigroup
+import qualified Data.Tree.DUAL        as D
 import           Data.VectorSpace
 
 import           Diagrams.Core
+import           Diagrams.Core.Types   (QDiagram (QD))
 import           Diagrams.Located
 import           Diagrams.Path
-import           Diagrams.Segment   (straight)
-import           Diagrams.Trail     (Trail, trailVertices)
+import           Diagrams.Segment      (straight)
+import           Diagrams.Trail        (Trail, trailVertices)
 import           Diagrams.Util
 
 ------------------------------------------------------------
@@ -89,7 +93,7 @@ withTrace = setTrace . getTrace
 -- | @phantom x@ produces a \"phantom\" diagram, which has the same
 --   envelope and trace as @x@ but produces no output.
 phantom :: (Backend b (V a), Typeable (V a), Enveloped a, Traced a, Monoid' m) => a -> QDiagram b (V a) m
-phantom a = mkQD nullPrim (getEnvelope a) (getTrace a) mempty mempty
+phantom a = QD $ D.leafU ((inj . toDeletable . getEnvelope $ a) <> (inj . toDeletable . getTrace $ a))
 
 -- | @pad s@ \"pads\" a diagram, expanding its envelope by a factor of
 --   @s@ (factors between 0 and 1 can be used to shrink the envelope).
@@ -130,7 +134,7 @@ strut :: ( Backend b v, Typeable v
          , Monoid' m
          )
       => v -> QDiagram b v m
-strut v = mkQD nullPrim env mempty mempty mempty
+strut v = QD $ D.leafU (inj . toDeletable $ env)
   where env = translate ((-0.5) *^ v) . getEnvelope $ straight v
   -- note we can't use 'phantom' here because it tries to construct a
   -- trace as well, and segments do not have a trace in general (only

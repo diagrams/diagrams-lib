@@ -86,8 +86,6 @@ instance Transformable (Camera l) where
              (transform t u)
              l
 
-instance IsPrim (Camera l)
-
 instance Renderable (Camera l) NullBackend where
     render _ _ = mempty
 

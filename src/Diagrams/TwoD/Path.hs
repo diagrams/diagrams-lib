@@ -45,9 +45,9 @@ module Diagrams.TwoD.Path
        ) where
 
 import           Control.Applicative   (liftA2)
-import           Control.Lens          ( makeWrapped, makeLensesWith, (.~), (^.)
-                                       , generateSignatures, lensRules, op
-                                       , Lens, Lens', _Wrapped')
+import           Control.Lens          (Lens, Lens', generateSignatures,
+                                        lensRules, makeLensesWith, makeWrapped,
+                                        op, (.~), (^.), _Wrapped')
 import qualified Data.Foldable         as F
 import           Data.Semigroup
 import           Data.Typeable

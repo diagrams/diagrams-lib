@@ -23,7 +23,8 @@ module Diagrams.TwoD.Text (
   -- ** Font family
   , Font(..), getFont, font
   -- ** Font size
-  , FontSize(..), getFontSize, fontSize, fontSizeA
+  , FontSize(..), getFontSize, fontSizeA, fontSize
+  , fontSizeN, fontSizeO, fontSizeL, fontSizeG
   -- ** Font slant
   , FontSlant(..), FontSlantA, getFontSlant, fontSlant, italic, oblique
   -- ** Font weight
@@ -36,14 +37,10 @@ import           Diagrams.Core.Envelope (pointEnvelope)
 import           Diagrams.TwoD.Types
 
 import           Data.AffineSpace       ((.-.))
-
-import           Data.Semigroup
-
 import           Data.Colour
-
+import           Data.Data
 import           Data.Default.Class
-
-import           Data.Typeable
+import           Data.Semigroup
 
 ------------------------------------------------------------
 -- Text diagrams
@@ -59,9 +56,9 @@ data Text = Text T2 TextAlignment String
 type instance V Text = R2
 
 instance Transformable Text where
-  transform t (Text tt a s) = Text (t <> tt) a s
-
-instance IsPrim Text
+  transform t (Text tt a s) = Text (t <> tt <> t') a s
+    where
+      t' = scaling (1 / avgScale t)
 
 instance HasOrigin Text where
   moveOriginTo p = translate (origin .-. p)
@@ -166,28 +163,49 @@ font = applyAttr . Font . Last
 -- Font size
 
 -- | The @FontSize@ attribute specifies the size of a font's
---   em-square, measured with respect to the current local vector space.
---   Inner @FontSize@ attributes override outer ones.
-newtype FontSize = FontSize (Last Double)
-  deriving (Typeable, Semigroup, Eq)
+--   em-square.  Inner @FontSize@ attributes override outer ones.
+newtype FontSize = FontSize (Last (Measure R2))
+  deriving (Typeable, Data, Semigroup)
 instance AttributeClass FontSize
 
+type instance V FontSize = R2
+
 instance Default FontSize where
-    def = FontSize (Last 1)
+    def = FontSize (Last (Output 1))
+
+instance Transformable FontSize where
+  transform t (FontSize (Last s)) =
+    FontSize (Last (transform t s))
 
 -- | Extract the size from a @FontSize@ attribute.
-getFontSize :: FontSize -> Double
+getFontSize :: FontSize -> Measure R2
 getFontSize (FontSize (Last s)) = s
 
 -- | Set the font size, that is, the size of the font's em-square as
 --   measured within the current local vector space.  The default size
 --   is @1@.
-fontSize :: HasStyle a => Double -> a -> a
-fontSize = applyAttr . FontSize . Last
+fontSize :: (HasStyle a, V a ~ R2) => Measure R2 -> a -> a
+fontSize = applyGTAttr . FontSize . Last
+
+-- | A convenient synonym for 'fontSize (Global w)'.
+fontSizeG :: (HasStyle a, V a ~ R2) => Double -> a -> a
+fontSizeG w = fontSize (Global w)
+
+-- | A convenient synonym for 'fontSize (Normalized w)'.
+fontSizeN :: (HasStyle a, V a ~ R2) => Double -> a -> a
+fontSizeN w = fontSize (Normalized w)
+
+-- | A convenient synonym for 'fontSize (Output w)'.
+fontSizeO :: (HasStyle a, V a ~ R2) => Double -> a -> a
+fontSizeO w = fontSize (Output w)
+
+-- | A convenient sysnonym for 'fontSize (Local w)'.
+fontSizeL :: (HasStyle a, V a ~ R2) => Double -> a -> a
+fontSizeL w = fontSize (Local w)
 
 -- | Apply a 'FontSize' attribute.
-fontSizeA :: HasStyle a => FontSize -> a -> a
-fontSizeA = applyAttr
+fontSizeA :: (HasStyle a, V a ~ R2) => FontSize -> a -> a
+fontSizeA = applyGTAttr
 
 --------------------------------------------------
 -- Font slant

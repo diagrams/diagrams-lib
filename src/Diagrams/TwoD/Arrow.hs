@@ -1,8 +1,10 @@
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE GADTs                 #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE DeriveDataTypeable         #-}
+{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE GADTs                      #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE TemplateHaskell            #-}
+{-# LANGUAGE TypeFamilies               #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -30,8 +32,7 @@ module Diagrams.TwoD.Arrow
 --   >
 --   > shaft  = cubicSpline False ( map p2 [(0, 0), (1, 0), (1, 0.2), (2, 0.2)])
 --   >
---   > example1 = ds # connect' (with & arrowHead .~ dart & headSize .~ 0.6
---   >                                & tailSize .~ 0.5 & arrowTail .~ quill
+--   > example1 = ds # connect' (with & arrowHead .~ dart & arrowTail .~ quill
 --   >                                & shaftStyle %~ lw 0.02 & arrowShaft .~ shaft)
 --   >                                "left" "right" # pad 1.1
 
@@ -41,7 +42,7 @@ module Diagrams.TwoD.Arrow
 --
 --   > -- Comparing connect, connectPerim, and arrowAt.
 --   >
---   > oct  = octagon 1 # lc darkgray # lw 0.10 # showOrigin
+--   > oct  = octagon 1 # lc darkgray # lw 0.050 # showOrigin
 --   > dias = oct # named "first" ||| strut 3 ||| oct # named "second"
 --   >
 --   > -- Connect two diagrams and two points on their trails.
@@ -70,18 +71,18 @@ module Diagrams.TwoD.Arrow
        , arrow
        , arrow'
 
+         -- * Attributes
+       , HeadSize, headSize, headSizeA, getHeadSize
+       , hs, hsO, hsL, hsN, hsG
+       , TailSize, tailSize, tailSizeA, getTailSize
+       , ts, tsO, tsL, tsN, tsG
+
          -- * Options
        , ArrowOpts(..)
 
        , arrowHead
        , arrowTail
        , arrowShaft
-       , headSize
-       , tailSize
-       , sizes
-       , headWidth
-       , tailWidth
-       , widths
        , headGap
        , tailGap
        , gaps, gap
@@ -98,48 +99,44 @@ module Diagrams.TwoD.Arrow
        , module Diagrams.TwoD.Arrowheads
        ) where
 
-import           Control.Applicative              ((<*>))
-import           Control.Arrow                    (first)
-import           Control.Lens                     (Lens', Setter', Traversal',
-                                                   generateSignatures,
-                                                   lensRules, makeLensesWith,
-                                                   (%~), (&), (.~), (^.))
+import           Control.Applicative      ((<*>))
+import           Control.Lens             (Lens', Setter', Traversal',
+                                           generateSignatures, lensRules,
+                                           makeLensesWith, (%~), (&), (.~),
+                                           (^.))
 import           Data.AffineSpace
+import           Data.Data
 import           Data.Default.Class
-import           Data.Functor                     ((<$>))
-import           Data.Maybe                       (fromMaybe)
-import           Data.Monoid                      (mempty, (<>))
-import           Data.Monoid.Coproduct            (untangle)
-import           Data.Monoid.Split
-import           Data.Semigroup                   (option)
+import           Data.Functor             ((<$>))
+import           Data.Maybe               (fromMaybe)
+import           Data.Monoid.Coproduct    (untangle)
+import           Data.Semigroup
 import           Data.VectorSpace
 
-import           Data.Colour                      hiding (atop)
+import           Data.Colour              hiding (atop)
 import           Diagrams.Attributes
 import           Diagrams.Core
-import           Diagrams.Core.Types              (QDiaLeaf (..), mkQD')
+import           Diagrams.Core.Types      (QDiaLeaf (..), mkQD')
 
 import           Diagrams.Angle
 import           Diagrams.Parametric
 import           Diagrams.Path
-import           Diagrams.Solve                   (quadForm)
-import           Diagrams.Tangent                 (tangentAtEnd, tangentAtStart)
+import           Diagrams.Solve           (quadForm)
+import           Diagrams.Tangent         (tangentAtEnd, tangentAtStart)
 import           Diagrams.Trail
 import           Diagrams.TwoD.Arrowheads
-import           Diagrams.TwoD.Path               (strokeT)
-import           Diagrams.TwoD.Transform          (rotate, translateX)
-import           Diagrams.TwoD.Transform.ScaleInv (scaleInvPrim)
+import           Diagrams.TwoD.Attributes
+import           Diagrams.TwoD.Path       (stroke, strokeT)
+import           Diagrams.TwoD.Transform  (rotate, translateX)
 import           Diagrams.TwoD.Types
-import           Diagrams.TwoD.Vector             (direction, unitX, unit_X)
-import           Diagrams.Util                    (( # ))
+import           Diagrams.TwoD.Vector     (direction, unitX, unit_X)
+import           Diagrams.Util            (( # ))
 
 data ArrowOpts
   = ArrowOpts
     { _arrowHead  :: ArrowHT
     , _arrowTail  :: ArrowHT
     , _arrowShaft :: Trail R2
-    , _headSize   :: Double
-    , _tailSize   :: Double
     , _headGap    :: Double
     , _tailGap    :: Double
     , _headStyle  :: Style R2
@@ -155,9 +152,7 @@ instance Default ArrowOpts where
   def = ArrowOpts
         { _arrowHead    = dart
         , _arrowTail    = noTail
-        , _arrowShaft   = trailFromOffsets [unitX]
-        , _headSize     = 0.3
-        , _tailSize     = 0.3
+        , _arrowShaft   = straightShaft
         , _headGap      = 0
         , _tailGap      = 0
 
@@ -177,45 +172,6 @@ arrowTail :: Lens' ArrowOpts ArrowHT
 
 -- | The trail to use for the arrow shaft.
 arrowShaft :: Lens' ArrowOpts (Trail R2)
-
--- | Radius of a circumcircle around the head.
-headSize :: Lens' ArrowOpts Double
-
--- | Radius of a circumcircle around the tail.
-tailSize :: Lens' ArrowOpts Double
-
--- | Width of the head.
-headWidth :: Setter' ArrowOpts Double
-headWidth f opts =
-  (\hd -> opts & headSize .~ g hd) <$> f (opts ^. headSize)
-  where
-    g w = w / (xWidth h + xWidth j)
-    (h, j) = (opts ^. arrowHead) 1 (widthOfJoint $ shaftSty opts)
-
--- | Width of the tail.
-tailWidth :: Setter' ArrowOpts Double
-tailWidth f opts =
-  (\tl -> opts & tailSize .~ g tl) <$> f (opts ^. tailSize)
-  where
-    g w = w / (xWidth t + xWidth j)
-    (t, j) = (opts ^. arrowTail) 1 (widthOfJoint $ shaftSty opts)
-
--- | Set both the @headWidth@ and @tailWidth@.
-widths :: Traversal' ArrowOpts Double
-widths f opts =
-  (\hd tl -> opts & headSize .~ gh hd & tailSize .~ gt tl)
-  <$> f (opts ^. headSize) <*> f (opts ^. tailSize)
-    where
-      gh w = w / (xWidth h + xWidth j)
-      (h, j) = (opts ^. arrowHead) 1 (widthOfJoint $ shaftSty opts)
-      gt w = w / (xWidth t + xWidth j')
-      (t, j') = (opts ^. arrowTail) 1 (widthOfJoint $ shaftSty opts)
-
--- | Set the size of both the head and tail.
-sizes :: Traversal' ArrowOpts Double
-sizes f opts =
-  (\h t -> opts & headSize .~ h & tailSize .~ t)
-    <$> f (opts ^. headSize) <*> f (opts ^. tailSize)
 
 -- | Distance to leave between the head and the target point.
 headGap :: Lens' ArrowOpts Double
@@ -289,6 +245,96 @@ headSty opts = fc black (opts^.headStyle)
 tailSty :: ArrowOpts -> Style R2
 tailSty opts = fc black (opts^.tailStyle)
 
+
+-- | Radius of a circumcircle around the head.
+newtype HeadSize = HeadSize (Last (Measure R2))
+                 deriving (Typeable, Data, Semigroup)
+instance AttributeClass HeadSize
+
+type instance V HeadSize = R2
+
+instance Transformable HeadSize where
+  transform t (HeadSize (Last w)) = HeadSize (Last (transform t w))
+
+instance Default HeadSize where
+    def = HeadSize (Last (Normalized 0.05))
+
+-- | Set the radius of the circumcircle around the head.
+headSize :: (HasStyle a, V a ~ R2) => Measure R2 -> a -> a
+headSize = applyGTAttr . HeadSize . Last
+
+headSizeA :: (HasStyle a, V a ~ R2) => HeadSize -> a -> a
+headSizeA = applyGTAttr
+
+getHeadSize :: HeadSize -> Measure R2
+getHeadSize (HeadSize (Last s)) = s
+
+-- | Synonym for 'headSize'.
+hs :: (HasStyle a, V a ~ R2) => Measure R2 -> a -> a
+hs = headSize
+
+-- | A convenient synonym for 'headSize (Global w)'.
+hsG :: (HasStyle a, V a ~ R2) => Double -> a -> a
+hsG w = headSize (Global w)
+
+-- | A convenient synonym for 'headSize (Normalized w)'.
+hsN :: (HasStyle a, V a ~ R2) => Double -> a -> a
+hsN w = headSize (Normalized w)
+
+-- | A convenient synonym for 'headSize (Output w)'.
+hsO :: (HasStyle a, V a ~ R2) => Double -> a -> a
+hsO w = headSize (Output w)
+
+-- | A convenient sysnonym for 'headSize (Local w)'.
+hsL :: (HasStyle a, V a ~ R2) => Double -> a -> a
+hsL w = headSize (Local w)
+
+newtype TailSize = TailSize (Last (Measure R2))
+                 deriving (Typeable, Data, Semigroup)
+instance AttributeClass TailSize
+
+type instance V TailSize = R2
+
+instance Transformable TailSize where
+  transform t (TailSize (Last w)) = TailSize (Last (transform t w))
+
+instance Default TailSize where
+    def = TailSize (Last (Normalized 0.05))
+
+-- | Set the radius of a circumcircle around the arrow tail.
+tailSize :: (HasStyle a, V a ~ R2) => Measure R2 -> a -> a
+tailSize = applyGTAttr . TailSize . Last
+
+tailSizeA :: (HasStyle a, V a ~ R2) => TailSize -> a -> a
+tailSizeA = applyGTAttr
+
+getTailSize :: TailSize -> Measure R2
+getTailSize (TailSize (Last s)) = s
+
+-- | Synonym for 'tailSize'
+ts :: (HasStyle a, V a ~ R2) => Measure R2 -> a -> a
+ts = tailSize
+
+-- | A convenient synonym for 'tailSize (Global w)'.
+tsG :: (HasStyle a, V a ~ R2) => Double -> a -> a
+tsG w = tailSize (Global w)
+
+-- | A convenient synonym for 'tailSize (Normalized w)'.
+tsN :: (HasStyle a, V a ~ R2) => Double -> a -> a
+tsN w = tailSize (Normalized w)
+
+-- | A convenient synonym for 'tailSize (Output w)'.
+tsO :: (HasStyle a, V a ~ R2) => Double -> a -> a
+tsO w = tailSize (Output w)
+
+-- | A convenient sysnonym for 'tailSize (Local w)'.
+tsL :: (HasStyle a, V a ~ R2) => Double -> a -> a
+tsL w = tailSize (Local w)
+
+fromMeasure :: Double -> Double -> Measure R2 -> Double
+fromMeasure g n m = u
+  where Output u = toOutput g n m
+
 -- | Calculate the length of the portion of the horizontal line that passes
 --   through the origin and is inside of p.
 xWidth :: (Traced t, V t ~ R2) => t -> Double
@@ -307,36 +353,39 @@ colorJoint sStyle =
         Just c' -> fillColor c' $ mempty
 
 -- | Get line width from a style.
-widthOfJoint :: Style v -> Double
-widthOfJoint sStyle =
-    let w = fmap getLineWidth . getAttr $ sStyle in
-    case w of
-        Nothing -> 0.01 -- this case should never happen.
-        Just w' -> w'
+widthOfJoint :: Style v -> Double -> Double  -> Double
+widthOfJoint sStyle gToO nToO =
+  maybe (fromMeasure gToO nToO (Output 1)) -- Should be same as default line width
+        (fromMeasure gToO nToO)
+        (fmap getLineWidth . getAttr $ sStyle)
 
 -- | Combine the head and its joint into a single scale invariant diagram
 --   and move the origin to the attachment point. Return the diagram
 --   and its width.
-mkHead :: Renderable (Path R2) b => ArrowOpts -> (Diagram b R2, Double)
-mkHead opts = ( (j <> h) # moveOriginBy (jWidth *^ unit_X) # lw 0
+mkHead :: Renderable (Path R2) b =>
+          Double -> ArrowOpts -> Double -> Double -> (Diagram b R2, Double)
+mkHead size opts gToO nToO = ((j <> h) # moveOriginBy (jWidth *^ unit_X) # lwO 0
               , hWidth + jWidth)
   where
-    (h', j') = (opts^.arrowHead) (opts^.headSize) (widthOfJoint $ shaftSty opts)
+    (h', j') = (opts^.arrowHead) size
+               (widthOfJoint (shaftSty opts) gToO nToO)
     hWidth = xWidth h'
     jWidth = xWidth j'
-    h = scaleInvPrim h' unitX # applyStyle (headSty opts)
-    j = scaleInvPrim j' unitX # applyStyle (colorJoint (opts^.shaftStyle))
+    h = stroke h' # applyStyle (headSty opts)
+    j = stroke j' # applyStyle (colorJoint (opts^.shaftStyle))
 
 -- | Just like mkHead only the attachment point is on the right.
-mkTail :: Renderable (Path R2) b => ArrowOpts -> (Diagram b R2, Double)
-mkTail opts = ( (t <> j) # moveOriginBy (jWidth *^ unitX) # lw 0
+mkTail :: Renderable (Path R2) b =>
+          Double -> ArrowOpts -> Double -> Double -> (Diagram b R2, Double)
+mkTail size opts gToO nToO = ((t <> j) # moveOriginBy (jWidth *^ unitX) # lwO 0
               , tWidth + jWidth)
   where
-    (t', j') = (opts^.arrowTail) (opts^.tailSize) (widthOfJoint $ shaftSty opts)
+    (t', j') = (opts^.arrowTail) size
+               (widthOfJoint (shaftSty opts) gToO nToO)
     tWidth = xWidth t'
     jWidth = xWidth j'
-    t = scaleInvPrim t' unitX # applyStyle (tailSty opts)
-    j = scaleInvPrim j' unitX # applyStyle (colorJoint (opts^.shaftStyle))
+    t = stroke t' # applyStyle (tailSty opts)
+    j = stroke j' # applyStyle (colorJoint (opts^.shaftStyle))
 
 -- | Make a trail with the same angles and offset as an arrow with tail width
 --   tw, head width hw and shaft of tr, such that the magnituted of the shaft
@@ -393,15 +442,13 @@ arrow len = arrow' def len
 arrow' :: Renderable (Path R2) b => ArrowOpts -> Double -> Diagram b R2
 arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
 
-    -- We must approximate the envelope and trace by just drawing the
-    -- arrow from the origin to (len,0) and using its envelope and
-    -- trace.  That may not end up being exactly right (if the arrow
-    -- gets scaled, the shaft may get a bit longer or shorter, and so
-    -- on) but it's close enough.
-    (getEnvelope approx) (getTrace approx) mempty mempty
+      -- Currently arrows have an empty envelope and trace.
+      mempty mempty mempty mempty
+
   where
 
-    -- Once we learn the global transformation context this arrow is
+    -- Once we learn the global transformation context (da) and the two scale
+    -- factors, normal to output (n) and global to output (g), this arrow is
     -- drawn in, we can apply it to the origin and (len,0) to find out
     -- the actual final points between which this arrow should be
     -- drawn.  We need to know this to draw it correctly, since the
@@ -409,22 +456,12 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
     -- between which we need to draw the shaft do not transform
     -- uniformly as the transformation applied to the entire arrow.
     -- See https://github.com/diagrams/diagrams-lib/issues/112.
-    delayedArrow da =
-
-      -- Note we only take the *unfrozen* transformation.  The frozen
-      -- transformation *do* affect scale-invariant objects like
-      -- arrowheads, and will still be higher up in the tree (so we
-      -- don't need to apply it here).
-      let (unfrozenTr, globalSty) = option mempty (first unsplitR . untangle) . fst $ da
-      in  dArrow globalSty unfrozenTr len
-
-    unsplitR (M    m) = m
-    unsplitR (_ :| m) = m
-
-    approx = dArrow mempty mempty len
+    delayedArrow da g n =
+      let (trans, globalSty) = option mempty untangle . fst $ da
+      in  dArrow globalSty trans len g n
 
     -- Build an arrow and set its endpoints to the image under tr of origin and (len,0).
-    dArrow sty tr ln = (h' <> t' <> shaft)
+    dArrow sty tr ln gToO nToO = (h' <> t' <> shaft)
                # moveOriginBy (tWidth *^ (unit_X # rotate tAngle))
                # rotate (direction (q .-. p) ^-^ dir)
                # moveTo p
@@ -442,9 +479,21 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
           & tailStyle  %~ maybe id fillColor globalLC
           & shaftStyle %~ maybe id lineColor globalLC
 
+        -- The head size is obtained from the style and converted to output
+        -- units.
+        hSize = maybe (error "No head size.")
+                      (fromMeasure gToO nToO)
+                      (getHeadSize <$> getAttr sty)
+
+        -- The tail size is obtained from the style and converted to output
+        -- units.
+        tSize = maybe (error "No tail size.")
+                      (fromMeasure gToO nToO)
+                      (getTailSize <$> getAttr sty)
+
         -- Make the head and tail and save their widths.
-        (h, hWidth') = mkHead opts'
-        (t, tWidth') = mkTail opts'
+        (h, hWidth') = mkHead hSize opts' gToO nToO
+        (t, tWidth') = mkTail tSize opts' gToO nToO
 
         rawShaftTrail = opts^.arrowShaft
         shaftTrail

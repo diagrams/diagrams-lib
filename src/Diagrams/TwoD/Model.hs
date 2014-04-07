@@ -25,6 +25,7 @@ import           Control.Lens          (makeLenses, (^.))
 import           Diagrams.Core
 import           Diagrams.Attributes
 import           Diagrams.Path
+import           Diagrams.TwoD.Attributes
 import           Diagrams.TwoD.Ellipse
 import           Diagrams.TwoD.Path
 import           Diagrams.TwoD.Size    (size2D)
@@ -69,7 +70,7 @@ showOrigin' :: (Renderable (Path R2) b, Backend b R2, Monoid' m)
 showOrigin' oo d = o <> d
   where o     = stroke (circle sz)
                 # fc (oo^.oColor)
-                # lw 0
+                # lineWidth (Output 0)
                 # fmap (const mempty)
         (w,h) = size2D d ^* oo^.oScale
         sz = maximum [w, h, oo^.oMinSize]

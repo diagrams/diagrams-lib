@@ -46,7 +46,7 @@ import           Data.VectorSpace
 import           Diagrams.Core
 
 import           Diagrams.Angle
-import           Diagrams.Attributes     (fc, lw)
+import           Diagrams.Attributes      (fc)
 import           Diagrams.BoundingBox
 import           Diagrams.Combinators
 import           Diagrams.Coordinates
@@ -54,12 +54,13 @@ import           Diagrams.Path
 import           Diagrams.Segment
 import           Diagrams.TrailLike
 import           Diagrams.TwoD.Align
-import           Diagrams.TwoD.Path      ()
+import           Diagrams.TwoD.Attributes (lineWidth)
+import           Diagrams.TwoD.Path       ()
 import           Diagrams.TwoD.Shapes
-import           Diagrams.TwoD.Transform (scaleX, scaleY)
+import           Diagrams.TwoD.Transform  (scaleX, scaleY)
 import           Diagrams.TwoD.Types
-import           Diagrams.TwoD.Vector    (fromDirection, unitX, unitY)
-import           Diagrams.Util           (( # ))
+import           Diagrams.TwoD.Vector     (fromDirection, unitX, unitY)
+import           Diagrams.Util            (( # ))
 
 
 infixl 6 ===
@@ -248,4 +249,4 @@ boundingRect = (`boxFit` rect 1 1) . boundingBox
 -- | \"Set the background color\" of a diagram.  That is, place a
 --   diagram atop a bounding rectangle of the given color.
 bg :: (Renderable (Path R2) b) => Colour Double -> Diagram b R2 -> Diagram b R2
-bg c d = d <> boundingRect d # lw 0 # fc c
+bg c d = d <> boundingRect d # lineWidth (Output 0) # fc c

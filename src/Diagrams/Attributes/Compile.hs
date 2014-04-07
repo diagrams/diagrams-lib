@@ -83,7 +83,7 @@ splitAttr code = fst . splitAttr' Nothing
   --   * is some sort of prim not under consideration: don't apply the attribute; return True
   --   * is unsafe: don't apply the attribute; return False
   --   * is safe  :  do   apply the attribute; return True
-  splitAttr' mattr (Node rp@(RPrim _ (Prim prm)) _) =
+  splitAttr' mattr (Node rp@(RPrim (Prim prm)) _) =
       case cast prm :: Maybe (PrimType code) of
         Nothing  -> (Node rp [], True)
         Just p ->
