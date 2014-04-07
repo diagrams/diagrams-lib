@@ -331,11 +331,9 @@ tsO w = tailSize (Output w)
 tsL :: (HasStyle a, V a ~ R2) => Double -> a -> a
 tsL w = tailSize (Local w)
 
-fromMeasure :: Double -> Double -> Double -> Measure R2 -> Double
-fromMeasure _    _     _    (Output x)      = x
-fromMeasure _    _     _    (Local x)      = x
-fromMeasure _    nToO units (Normalized x) = nToO * x / units
-fromMeasure gToO _    _     (Global x)     = gToO * x
+fromMeasure :: Double -> Double -> Measure R2 -> Double
+fromMeasure g n m = u
+  where Output u = toOutput g n m
 
 -- | Calculate the length of the portion of the horizontal line that passes
 --   through the origin and is inside of p.
@@ -357,8 +355,8 @@ colorJoint sStyle =
 -- | Get line width from a style.
 widthOfJoint :: Style v -> Double -> Double  -> Double
 widthOfJoint sStyle gToO nToO =
-  maybe (fromMeasure gToO nToO 100 (Output 1)) -- Should be same as default line width
-        (fromMeasure gToO nToO 100)
+  maybe (fromMeasure gToO nToO (Output 1)) -- Should be same as default line width
+        (fromMeasure gToO nToO)
         (fmap getLineWidth . getAttr $ sStyle)
 
 -- | Combine the head and its joint into a single scale invariant diagram
@@ -484,13 +482,13 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
         -- The head size is obtained from the style and converted to output
         -- units.
         hSize = maybe (error "No head size.")
-                      (fromMeasure gToO nToO 1)
+                      (fromMeasure gToO nToO)
                       (getHeadSize <$> getAttr sty)
 
         -- The tail size is obtained from the style and converted to output
         -- units.
         tSize = maybe (error "No tail size.")
-                      (fromMeasure gToO nToO 1)
+                      (fromMeasure gToO nToO)
                       (getTailSize <$> getAttr sty)
 
         -- Make the head and tail and save their widths.
