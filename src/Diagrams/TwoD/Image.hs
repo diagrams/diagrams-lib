@@ -56,10 +56,9 @@ data ImageData :: * -> * where
   ImageRef :: FilePath -> ImageData External
 
 -------------------------------------------------------------------------------
--- | An image primitive.
+-- | An image primitive, the two ints are width followed by height.
 data DImage :: * -> * where
   DImage :: ImageData t -> Int -> Int -> T2 -> DImage t
-  -- ^ width, height, applied transformation
   deriving Typeable
 
 type instance V (DImage a) = R2
