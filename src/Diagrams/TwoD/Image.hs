@@ -46,14 +46,13 @@ import           Diagrams.TwoD.Types
 import           Data.AffineSpace     ((.-.))
 import           Data.Semigroup
 
--- |
 data Embedded deriving Typeable
 data External deriving Typeable
 
--- |
+-- | 'ImageData' is either a JuicyPixels @DynamicImage@ tagged as 'Embedded' or
+--   a reference tagged as 'External'.
 data ImageData :: * -> * where
   ImageRaster :: DynamicImage -> ImageData Embedded
-  -- ^ DynamicImage is from JuicyPixels
   ImageRef :: FilePath -> ImageData External
 
 -------------------------------------------------------------------------------
@@ -89,12 +88,12 @@ image img = mkQD (Prim (img)) (getEnvelope r) (getTrace r) mempty
     DImage _ w h _ = img
 -- See Note [Image size specification]
 
--- | Make a Dynamic image into a Diagram, i.e a primitive of type DImage Embedded.
+-- | Make a@DynamicImage@ into a 'Diagram', i.e a primitive of type 'DImage Embedded'.
 mkImageRaster :: Renderable (DImage Embedded) b
               => DynamicImage -> Int -> Int -> Diagram b R2
 mkImageRaster dImg w h = image $ DImage (ImageRaster dImg) w h mempty
 
--- | Make a Dynamic image into a Diagram, i.e a primitive of type DImage Embedded.
+-- | Make a file path into a 'Diagram', i.e a primitive of type 'DImage External'.
 --   This function calls @uncheckedImageRef@ and provides no guarantee that
 --   the image file exists.
 mkImageRef :: Renderable (DImage External) b
