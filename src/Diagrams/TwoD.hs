@@ -164,7 +164,7 @@ module Diagrams.TwoD
        , fontSizeO, fontSizeL, fontSizeN, fontSizeG
 
          -- * Images
-       , Image, image
+       , DImage --, image
 
          -- * Transformations
          -- ** Rotation
