@@ -58,6 +58,9 @@ data ImageData :: * -> * where
 
 -------------------------------------------------------------------------------
 -- | An image primitive, the two ints are width followed by height.
+--   Will typically be created by @loadImageEmb@ or @loadImageExt@ which,
+--   will handle setting the width and heigh to the actual width and height
+--   of the image.
 data DImage :: * -> * where
   DImage :: ImageData t -> Int -> Int -> T2 -> DImage t
   deriving Typeable
