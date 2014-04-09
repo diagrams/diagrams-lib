@@ -167,12 +167,11 @@ module Diagrams.TwoD
        , DImage(..), ImageData(..)
        , Embedded, External
        , image
-       , imageRef
-       , mkImageRaster
-       , mkImageRef
+       , loadImageEmb
+       , loadImageExt
        , uncheckedImageRef
-       , loadImage
        , raster
+       , fromRaster
 
          -- * Transformations
          -- ** Rotation

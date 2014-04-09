@@ -12,7 +12,9 @@
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
 -- Importing external images into diagrams.
---
+-- Usage: To create a diagram from an embedded image with width 1 and height
+--   set according to the aspect ratio: 'image img # scaleUToX 1`
+--   where 'img' is a 'DImage Embedded'
 -----------------------------------------------------------------------------
 
 module Diagrams.TwoD.Image
@@ -20,12 +22,11 @@ module Diagrams.TwoD.Image
       DImage(..), ImageData(..)
     , Embedded, External
     , image
-    , imageRef
-    , mkImageRaster
-    , mkImageRef
+    , loadImageEmb
+    , loadImageExt
     , uncheckedImageRef
-    , loadImage
     , raster
+    , fromRaster
     ) where
 
 
@@ -69,14 +70,6 @@ instance Transformable (DImage a) where
 instance HasOrigin (DImage a) where
   moveOriginTo p = translate (origin .-. p)
 
--- | Use JuicyPixels to read an image in any format.
-loadImage :: FilePath -> IO (Either String (DImage Embedded))
-loadImage path = do
-    dImg <- readImage path
-    return $ case dImg of
-      Left msg  -> Left msg
-      Right img -> Right (DImage (ImageRaster img) 1 1 mempty)
-
 -- | Make a 'DImage' into a 'Diagram'.
 image :: (Typeable a, Renderable (DImage a) b) => DImage a -> Diagram b R2
 image img = mkQD (Prim (img)) (getEnvelope r) (getTrace r) mempty
@@ -85,25 +78,24 @@ image img = mkQD (Prim (img)) (getEnvelope r) (getTrace r) mempty
     r :: Path R2
     r = rect (fromIntegral w) (fromIntegral h)
     DImage _ w h _ = img
--- See Note [Image size specification]
 
--- | Make a@DynamicImage@ into a 'Diagram', i.e a primitive of type 'DImage Embedded'.
-mkImageRaster :: Renderable (DImage Embedded) b
-              => DynamicImage -> Int -> Int -> Diagram b R2
-mkImageRaster dImg w h = image $ DImage (ImageRaster dImg) w h mempty
-
--- | Make a file path into a 'Diagram', i.e a primitive of type 'DImage External'.
---   This function calls @uncheckedImageRef@ and provides no guarantee that
---   the image file exists.
-mkImageRef :: Renderable (DImage External) b
-              => FilePath -> Int -> Int -> Diagram b R2
-mkImageRef path w h = image $ uncheckedImageRef path w h
+-- | Use JuicyPixels to read an image in any format and wrap it in a 'DImage'.
+--   The width and height of the image are set to their actual values.
+loadImageEmb :: FilePath -> IO (Either String (DImage Embedded))
+loadImageEmb path = do
+    dImg <- readImage path
+    return $ case dImg of
+      Left msg  -> Left msg
+      Right img -> Right (DImage (ImageRaster img) w h mempty)
+        where
+          w = dynamicMap imageWidth img
+          h = dynamicMap imageHeight img
 
 -- | Check that a file exists, and use JuicyPixels to figure out
 --   the right size, but save a reference to the image instead
 --   of the raster data
-imageRef :: FilePath -> IO (Either String (DImage External))
-imageRef path = do
+loadImageExt :: FilePath -> IO (Either String (DImage External))
+loadImageExt path = do
   dImg <- readImage path
   return $ case dImg of
     Left msg  -> Left msg
@@ -113,9 +105,15 @@ imageRef path = do
         h = dynamicMap imageHeight img
 
 -- | Make an "unchecked" image reference; have to specify a
---   width and height.
+--   width and height. Unless the aspect ratio of the external
+--   image is the w :: h, then the image will be distorted.
 uncheckedImageRef :: FilePath -> Int -> Int -> DImage External
 uncheckedImageRef path w h = DImage (ImageRef path) w h mempty
+
+-- | Crate a diagram from raw raster data.
+fromRaster :: Renderable (DImage Embedded) b
+          => (Int -> Int -> AlphaColour Double) -> Int -> Int -> Diagram b R2
+fromRaster f w h = image $ raster f w h
 
 -- | Create an image "from scratch" by specifying the pixel data
 raster :: (Int -> Int -> AlphaColour Double) -> Int -> Int -> DImage Embedded
@@ -133,16 +131,3 @@ fromAlphaColour c = PixelRGBA8 r g b a
 
 instance Renderable (DImage a) NullBackend where
   render _ _ = mempty
-
-{- ~~~~ Note [Image size specification]
-
-It's tempting to make 'image' take a SizeSpec2D instead of two
-Doubles.  For example, if I know I want the image to be x units wide
-but I don't know the original aspect ratio of the image, I'd like to
-be able to just say "make it x units wide".  The problem is that
-diagrams would then not know how tall the image is until rendering
-time (at least, not without unsafePerformIO yuckiness).  A more
-general solution will have to wait until we can specify constraints
-and solve them later.
-
--}
