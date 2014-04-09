@@ -164,7 +164,15 @@ module Diagrams.TwoD
        , fontSizeO, fontSizeL, fontSizeN, fontSizeG
 
          -- * Images
-       , Image, image
+       , DImage(..), ImageData(..)
+       , Embedded, External
+       , image
+       , imageRef
+       , mkImageRaster
+       , mkImageRef
+       , uncheckedImageRef
+       , loadImage
+       , raster
 
          -- * Transformations
          -- ** Rotation
