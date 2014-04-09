@@ -458,8 +458,10 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
     -- See https://github.com/diagrams/diagrams-lib/issues/112.
     delayedArrow da g n =
       --let (trans, globalSty) = option mempty untangle . fst $ da
-      let trans = option mempty get da
-          globalSty   = option mempty get da
+      let trans :: Transformation R2
+          trans     = option mempty id (get da)
+          globalSty :: Style R2
+          globalSty = option mempty id (get da)
       in  dArrow globalSty trans len g n
 
     -- Build an arrow and set its endpoints to the image under tr of origin and (len,0).
