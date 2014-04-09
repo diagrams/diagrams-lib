@@ -109,7 +109,7 @@ import           Data.Data
 import           Data.Default.Class
 import           Data.Functor             ((<$>))
 import           Data.Maybe               (fromMaybe)
-import           Data.Monoid.Coproduct    (untangle)
+import           Data.Monoid.MList
 import           Data.Semigroup
 import           Data.VectorSpace
 
@@ -457,7 +457,9 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
     -- uniformly as the transformation applied to the entire arrow.
     -- See https://github.com/diagrams/diagrams-lib/issues/112.
     delayedArrow da g n =
-      let (trans, globalSty) = option mempty untangle . fst $ da
+      --let (trans, globalSty) = option mempty untangle . fst $ da
+      let trans = option mempty get da
+          globalSty   = option mempty get da
       in  dArrow globalSty trans len g n
 
     -- Build an arrow and set its endpoints to the image under tr of origin and (len,0).
