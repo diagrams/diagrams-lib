@@ -154,9 +154,9 @@ module Diagrams.TwoD
        , shaftColor
        , shaftStyle
        , HeadSize, headSize, headSizeA, getHeadSize
-       , hs, hsO, hsL, hsN, hsG
+       , headSizeO, headSizeL, headSizeN, headSizeG
        , TailSize, tailSize, tailSizeA, getTailSize
-       , ts, tsO, tsL, tsN, tsG
+       , tailSizeO, tailSizeL, tailSizeN, tailSizeG
 
          -- * Text
        , text, topLeftText, alignedText, baselineText

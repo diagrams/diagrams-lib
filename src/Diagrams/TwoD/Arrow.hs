@@ -73,9 +73,9 @@ module Diagrams.TwoD.Arrow
 
          -- * Attributes
        , HeadSize, headSize, headSizeA, getHeadSize
-       , hs, hsO, hsL, hsN, hsG
+       , headSizeO, headSizeL, headSizeN, headSizeG
        , TailSize, tailSize, tailSizeA, getTailSize
-       , ts, tsO, tsL, tsN, tsG
+       , tailSizeO, tailSizeL, tailSizeN, tailSizeG
 
          -- * Options
        , ArrowOpts(..)
@@ -269,25 +269,21 @@ headSizeA = applyGTAttr
 getHeadSize :: HeadSize -> Measure R2
 getHeadSize (HeadSize (Last s)) = s
 
--- | Synonym for 'headSize'.
-hs :: (HasStyle a, V a ~ R2) => Measure R2 -> a -> a
-hs = headSize
-
 -- | A convenient synonym for 'headSize (Global w)'.
-hsG :: (HasStyle a, V a ~ R2) => Double -> a -> a
-hsG w = headSize (Global w)
+headSizeG :: (HasStyle a, V a ~ R2) => Double -> a -> a
+headSizeG w = headSize (Global w)
 
 -- | A convenient synonym for 'headSize (Normalized w)'.
-hsN :: (HasStyle a, V a ~ R2) => Double -> a -> a
-hsN w = headSize (Normalized w)
+headSizeN :: (HasStyle a, V a ~ R2) => Double -> a -> a
+headSizeN w = headSize (Normalized w)
 
 -- | A convenient synonym for 'headSize (Output w)'.
-hsO :: (HasStyle a, V a ~ R2) => Double -> a -> a
-hsO w = headSize (Output w)
+headSizeO :: (HasStyle a, V a ~ R2) => Double -> a -> a
+headSizeO w = headSize (Output w)
 
 -- | A convenient sysnonym for 'headSize (Local w)'.
-hsL :: (HasStyle a, V a ~ R2) => Double -> a -> a
-hsL w = headSize (Local w)
+headSizeL :: (HasStyle a, V a ~ R2) => Double -> a -> a
+headSizeL w = headSize (Local w)
 
 newtype TailSize = TailSize (Last (Measure R2))
                  deriving (Typeable, Data, Semigroup)
@@ -311,25 +307,21 @@ tailSizeA = applyGTAttr
 getTailSize :: TailSize -> Measure R2
 getTailSize (TailSize (Last s)) = s
 
--- | Synonym for 'tailSize'
-ts :: (HasStyle a, V a ~ R2) => Measure R2 -> a -> a
-ts = tailSize
-
 -- | A convenient synonym for 'tailSize (Global w)'.
-tsG :: (HasStyle a, V a ~ R2) => Double -> a -> a
-tsG w = tailSize (Global w)
+tailSizeG :: (HasStyle a, V a ~ R2) => Double -> a -> a
+tailSizeG w = tailSize (Global w)
 
 -- | A convenient synonym for 'tailSize (Normalized w)'.
-tsN :: (HasStyle a, V a ~ R2) => Double -> a -> a
-tsN w = tailSize (Normalized w)
+tailSizeN :: (HasStyle a, V a ~ R2) => Double -> a -> a
+tailSizeN w = tailSize (Normalized w)
 
 -- | A convenient synonym for 'tailSize (Output w)'.
-tsO :: (HasStyle a, V a ~ R2) => Double -> a -> a
-tsO w = tailSize (Output w)
+tailSizeO :: (HasStyle a, V a ~ R2) => Double -> a -> a
+tailSizeO w = tailSize (Output w)
 
 -- | A convenient sysnonym for 'tailSize (Local w)'.
-tsL :: (HasStyle a, V a ~ R2) => Double -> a -> a
-tsL w = tailSize (Local w)
+tailSizeL :: (HasStyle a, V a ~ R2) => Double -> a -> a
+tailSizeL w = tailSize (Local w)
 
 fromMeasure :: Double -> Double -> Measure R2 -> Double
 fromMeasure g n m = u
