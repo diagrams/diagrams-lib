@@ -91,7 +91,7 @@ Library
   Build-depends:       base >= 4.2 && < 4.8,
                        containers >= 0.3 && < 0.6,
                        array >= 0.3 && < 0.6,
-                       semigroups >= 0.3.4 && < 0.13,
+                       semigroups >= 0.3.4 && < 0.14,
                        monoid-extras >= 0.3 && < 0.4,
                        diagrams-core >= 1.1 && < 1.2,
                        active >= 0.1 && < 0.2,
