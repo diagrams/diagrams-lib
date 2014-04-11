@@ -171,7 +171,7 @@ module Diagrams.TwoD
        , loadImageExt
        , uncheckedImageRef
        , raster
-       , fromRaster
+       , rasterDia
 
          -- * Transformations
          -- ** Rotation

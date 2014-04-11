@@ -26,7 +26,7 @@ module Diagrams.TwoD.Image
     , loadImageExt
     , uncheckedImageRef
     , raster
-    , fromRaster
+    , rasterDia
     ) where
 
 
@@ -114,9 +114,9 @@ uncheckedImageRef :: FilePath -> Int -> Int -> DImage External
 uncheckedImageRef path w h = DImage (ImageRef path) w h mempty
 
 -- | Crate a diagram from raw raster data.
-fromRaster :: Renderable (DImage Embedded) b
+rasterDia :: Renderable (DImage Embedded) b
           => (Int -> Int -> AlphaColour Double) -> Int -> Int -> Diagram b R2
-fromRaster f w h = image $ raster f w h
+rasterDia f w h = image $ raster f w h
 
 -- | Create an image "from scratch" by specifying the pixel data
 raster :: (Int -> Int -> AlphaColour Double) -> Int -> Int -> DImage Embedded
