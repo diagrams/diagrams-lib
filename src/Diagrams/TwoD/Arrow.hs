@@ -71,12 +71,6 @@ module Diagrams.TwoD.Arrow
        , arrow
        , arrow'
 
-         -- * Attributes
-       , HeadSize, headSize, headSizeA, getHeadSize
-       , headSizeO, headSizeL, headSizeN, headSizeG
-       , TailSize, tailSize, tailSizeA, getTailSize
-       , tailSizeO, tailSizeL, tailSizeN, tailSizeG
-
          -- * Options
        , ArrowOpts(..)
 
@@ -88,8 +82,10 @@ module Diagrams.TwoD.Arrow
        , gaps, gap
        , headColor
        , headStyle
+       , headSize
        , tailColor
        , tailStyle
+       , tailSize
        , shaftColor
        , shaftStyle
        , straightShaft
@@ -105,7 +101,6 @@ import           Control.Lens             (Lens', Setter', Traversal',
                                            makeLensesWith, (%~), (&), (.~),
                                            (^.))
 import           Data.AffineSpace
-import           Data.Data
 import           Data.Default.Class
 import           Data.Functor             ((<$>))
 import           Data.Maybe               (fromMaybe)
@@ -140,7 +135,9 @@ data ArrowOpts
     , _headGap    :: Double
     , _tailGap    :: Double
     , _headStyle  :: Style R2
+    , _headSize   :: Measure R2
     , _tailStyle  :: Style R2
+    , _tailSize   :: Measure R2
     , _shaftStyle :: Style R2
     }
 
@@ -158,7 +155,9 @@ instance Default ArrowOpts where
 
         -- See note [Default arrow style attributes]
         , _headStyle    = mempty
+        , _headSize     = Normalized 0.05
         , _tailStyle    = mempty
+        , _tailSize     = Normalized 0.05
         , _shaftStyle   = mempty
         }
 
@@ -198,6 +197,12 @@ tailStyle :: Lens' ArrowOpts (Style R2)
 
 -- | Style to apply to the shaft. See `headStyle`.
 shaftStyle :: Lens' ArrowOpts (Style R2)
+
+-- | The radius of the circumcircle around the head.
+headSize :: Lens' ArrowOpts (Measure R2)
+
+-- | The radius of the circumcircle around the tail.
+tailSize :: Lens' ArrowOpts (Measure R2)
 
 -- | A lens for setting or modifying the color of an arrowhead. For
 --   example, one may write @... (with & headColor .~ blue)@ to get an
@@ -244,84 +249,6 @@ headSty opts = fc black (opts^.headStyle)
 -- Set the default tail style. See `shaftSty`.
 tailSty :: ArrowOpts -> Style R2
 tailSty opts = fc black (opts^.tailStyle)
-
-
--- | Radius of a circumcircle around the head.
-newtype HeadSize = HeadSize (Last (Measure R2))
-                 deriving (Typeable, Data, Semigroup)
-instance AttributeClass HeadSize
-
-type instance V HeadSize = R2
-
-instance Transformable HeadSize where
-  transform t (HeadSize (Last w)) = HeadSize (Last (transform t w))
-
-instance Default HeadSize where
-    def = HeadSize (Last (Normalized 0.05))
-
--- | Set the radius of the circumcircle around the head.
-headSize :: (HasStyle a, V a ~ R2) => Measure R2 -> a -> a
-headSize = applyGTAttr . HeadSize . Last
-
-headSizeA :: (HasStyle a, V a ~ R2) => HeadSize -> a -> a
-headSizeA = applyGTAttr
-
-getHeadSize :: HeadSize -> Measure R2
-getHeadSize (HeadSize (Last s)) = s
-
--- | A convenient synonym for 'headSize (Global w)'.
-headSizeG :: (HasStyle a, V a ~ R2) => Double -> a -> a
-headSizeG w = headSize (Global w)
-
--- | A convenient synonym for 'headSize (Normalized w)'.
-headSizeN :: (HasStyle a, V a ~ R2) => Double -> a -> a
-headSizeN w = headSize (Normalized w)
-
--- | A convenient synonym for 'headSize (Output w)'.
-headSizeO :: (HasStyle a, V a ~ R2) => Double -> a -> a
-headSizeO w = headSize (Output w)
-
--- | A convenient sysnonym for 'headSize (Local w)'.
-headSizeL :: (HasStyle a, V a ~ R2) => Double -> a -> a
-headSizeL w = headSize (Local w)
-
-newtype TailSize = TailSize (Last (Measure R2))
-                 deriving (Typeable, Data, Semigroup)
-instance AttributeClass TailSize
-
-type instance V TailSize = R2
-
-instance Transformable TailSize where
-  transform t (TailSize (Last w)) = TailSize (Last (transform t w))
-
-instance Default TailSize where
-    def = TailSize (Last (Normalized 0.05))
-
--- | Set the radius of a circumcircle around the arrow tail.
-tailSize :: (HasStyle a, V a ~ R2) => Measure R2 -> a -> a
-tailSize = applyGTAttr . TailSize . Last
-
-tailSizeA :: (HasStyle a, V a ~ R2) => TailSize -> a -> a
-tailSizeA = applyGTAttr
-
-getTailSize :: TailSize -> Measure R2
-getTailSize (TailSize (Last s)) = s
-
--- | A convenient synonym for 'tailSize (Global w)'.
-tailSizeG :: (HasStyle a, V a ~ R2) => Double -> a -> a
-tailSizeG w = tailSize (Global w)
-
--- | A convenient synonym for 'tailSize (Normalized w)'.
-tailSizeN :: (HasStyle a, V a ~ R2) => Double -> a -> a
-tailSizeN w = tailSize (Normalized w)
-
--- | A convenient synonym for 'tailSize (Output w)'.
-tailSizeO :: (HasStyle a, V a ~ R2) => Double -> a -> a
-tailSizeO w = tailSize (Output w)
-
--- | A convenient sysnonym for 'tailSize (Local w)'.
-tailSizeL :: (HasStyle a, V a ~ R2) => Double -> a -> a
-tailSizeL w = tailSize (Local w)
 
 fromMeasure :: Double -> Double -> Measure R2 -> Double
 fromMeasure g n m = u
@@ -473,15 +400,11 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
 
         -- The head size is obtained from the style and converted to output
         -- units.
-        hSize = maybe (error "No head size.")
-                      (fromMeasure gToO nToO)
-                      (getHeadSize <$> getAttr sty)
+        hSize = fromMeasure gToO nToO (opts ^. headSize)
 
         -- The tail size is obtained from the style and converted to output
         -- units.
-        tSize = maybe (error "No tail size.")
-                      (fromMeasure gToO nToO)
-                      (getTailSize <$> getAttr sty)
+        tSize = fromMeasure gToO nToO (opts ^. tailSize)
 
         -- Make the head and tail and save their widths.
         (h, hWidth') = mkHead hSize opts' gToO nToO
