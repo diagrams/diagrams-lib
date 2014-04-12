@@ -75,7 +75,7 @@ instance Transformable LineWidth where
     LineWidth (Last (transform t w))
 
 instance Default LineWidth where
-    def = LineWidth (Last (Output 1))
+    def = LineWidth (Last medium)
 
 getLineWidth :: LineWidth -> Measure R2
 getLineWidth (LineWidth (Last w)) = w
