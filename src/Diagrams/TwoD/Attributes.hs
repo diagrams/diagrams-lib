@@ -41,7 +41,7 @@ import           Diagrams.Core
 import           Diagrams.TwoD.Types
 
 -- | Standard 'Measures'.
-none, ultraThin, veryThin, thin, medium, thick, veryThick,
+none, ultraThin, veryThin, thin, medium, thick, veryThick, ultraThick,
   tiny, verySmall, small, normal, large, veryLarge, huge :: Measure R2
 none       = Output 0
 ultraThin  = Normalized 0.0005 `atLeast` Output 0.5
