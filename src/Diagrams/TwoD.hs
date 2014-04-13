@@ -240,7 +240,7 @@ module Diagrams.TwoD
        -- ** Width
        , LineWidth, getLineWidth, lineWidth, lineWidthA
        , lw, lwN, lwO, lwL, lwG
-       , ultraThin, veryThin, thin, medium, thick, veryThick, none
+       , ultraThin, veryThin, thin, medium, thick, veryThick, ultraThick, none
        , tiny, verySmall, small, normal, large, veryLarge, huge
 
        -- ** Dashing
