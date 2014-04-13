@@ -24,7 +24,7 @@ module Diagrams.TwoD.Attributes (
   -- ** Width
       LineWidth, getLineWidth, lineWidth, lineWidthA
     , lw, lwN, lwO, lwL, lwG
-    , ultraThin, veryThin, thin, medium, thick, veryThick, none
+    , ultraThin, veryThin, thin, medium, thick, veryThick, ultraThick, none
     , tiny, verySmall, small, normal, large, veryLarge, huge
 
     -- ** Dashing
@@ -43,13 +43,15 @@ import           Diagrams.TwoD.Types
 -- | Standard 'Measures'.
 none, ultraThin, veryThin, thin, medium, thick, veryThick,
   tiny, verySmall, small, normal, large, veryLarge, huge :: Measure R2
-none      = Output 0
-ultraThin = Normalized 0.0005 `atLeast` Output 0.5
-veryThin  = Normalized 0.001  `atLeast` Output 0.5
-thin      = Normalized 0.002  `atLeast` Output 0.5
-medium    = Normalized 0.004  `atLeast` Output 0.5
-thick     = Normalized 0.0075 `atLeast` Output 0.5
-veryThick = Normalized 0.01   `atLeast` Output 0.5
+none       = Output 0
+ultraThin  = Normalized 0.0005 `atLeast` Output 0.5
+veryThin   = Normalized 0.001  `atLeast` Output 0.5
+thin       = Normalized 0.002  `atLeast` Output 0.5
+medium     = Normalized 0.004  `atLeast` Output 0.5
+thick      = Normalized 0.0075 `atLeast` Output 0.5
+veryThick  = Normalized 0.01   `atLeast` Output 0.5
+ultraThick = Normalized 0.02   `atLeast` Output 0.5
+
 tiny      = Normalized 0.01   `atLeast` Output 1
 verySmall = Normalized 0.02   `atLeast` Output 1
 small     = Normalized 0.0375 `atLeast` Output 1
