@@ -155,9 +155,9 @@ instance Default ArrowOpts where
 
         -- See note [Default arrow style attributes]
         , _headStyle    = mempty
-        , _headSize     = Normalized 0.05
+        , _headSize     = normal
         , _tailStyle    = mempty
-        , _tailSize     = Normalized 0.05
+        , _tailSize     = normal
         , _shaftStyle   = mempty
         }
 
