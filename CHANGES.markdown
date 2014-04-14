@@ -1,3 +1,218 @@
+1.1.0.5 (10 Aprile 2014)
+------------------------
+
+    - Allow `semigroups-0.13`
+
+1.1.0.4 (4 April 2014)
+----------------------
+
+  - Require `intervals-0.7`
+  - Give `connectOutside` a reasonable behavior even when one or both
+    endpoints has no trace
+
+1.1.0.3 (19 March 2014)
+----------------------
+
+  - Allow `lens-4.1`
+
+1.1.0.2 (18 March 2014)
+-----------------------
+
+  - Allow `optparse-applicative-0.8`
+
+1.1.0.1 (9 March 2014)
+----------------------
+
+  - Allow `vector-space-points-0.2`
+
+1.1 (8 March 2014)
+------------------
+
+* **New features**
+
+    - Support for `Deformation`s, arbitrary (non-affine)
+      transformations on objects such as points, paths, and located
+      trails (though not on diagrams).
+
+    - New functions `clipTo`, which clips a diagram's envelope and
+      trace along with its visual representation, and `clipped`, which
+      clips the diagram's visual representation but replaces its
+      envelope and trace with those of the clipping path.
+
+    - New `arrowV` function, for creating an arrow with the direction
+      and magnitude of a given vector.
+
+    - `gap` traversal, for setting the head and tail gaps of an arrow
+      simultaneously.
+
+    - Generalized types for `centerXY` and `snugXY`, based on new
+      `basis` function from `diagrams-core
+
+    - New 3D `Transform`s, alignment, and 3D-specific `Prelude`.
+
+    - New `frame` function similar to `pad`, but increases the envelope
+      of a diagram by an amount specified in local units in every direction
+      irrespective of the local origin.
+
+    - New `splitFills` function for pushing fill attributes down to
+      subtrees containing only loops (mostly of relevance only to
+      backend implementors).
+
+* **New instances**
+
+    - `Typeable` instances for all data types that are used as diagram
+      primitives.
+    - `Sectionable` instance for `FixedSegment`.
+
+* **API changes**
+
+    - `Angle` is now a type, rather than a class.  It uses a single
+      internal representation for angles, and lenses `turn`, `rad,`
+      and `deg` are supplied for constructing (using `@@`) and viewing
+      (using `^.`) `Angle`s in various units.  In addition, the `Num`
+      instance for `Angle` has been removed, eliminating a class of
+      errors where a bare number is interpreted in units other than
+      what you expect.
+
+    - Removed `Num` instance for angles.
+
+* **Dependency/version changes**
+
+    - Require `lens >= 4.0`.
+	- Allow `array-0.5`.
+	- Allow `hashable-1.1`.
+	- Remove `NumInstances` dependency.
+
+* **Bug fixes**
+
+    - Exclude joins in offsets on close segments (#160).
+    - Exclude extra segment when joining loops in offset (#155).
+
+* **Performance improvements**
+
+    - `colorToSRGBA` function now avoids expensive matrix operations,
+      offering dramatic speedups in rendering diagrams with many color
+      attributes.
+
+1.0.1 (26 January 2014)
+-----------------------
+
+    - Depend on `hashable` package, and add `Hashable` instance for
+      `SizeSpec2D`.
+
+      Technically, the PVP specifies that adding a new instance
+      requires a major version bump.  However, I highly doubt anyone
+      was making their own orphan `Hashable` instances before.  Feel
+      free to yell at Brent if this breaks your build.
+
+1.0.0.1 (28 November 2013)
+--------------------------
+
+    - Allow semigroups-0.12
+
+1.0 (25 November 2013)
+----------------------
+
+* **New features**
+
+    - New modules `Diagrams.TwoD.Arrow` and `Diagrams.TwoD.Arrowheads`
+      for creating arrows.
+    - New module `Diagrams.Backend.CmdLine`, providing a flexible
+      framework for creating command-line-driven diagram rendering executables.
+    - New functions in `Diagrams.Offset`: `offsetTrail` and
+      `offsetPath` for one-sided offsets of trails and paths;
+      `expandTrail` and `expandPath` for "stroking" trails and paths,
+      computing a path whose fill corresponds to the stroke of the
+      given trail or path.
+    - New module `Diagrams.Tangent` for computing tangent and normal
+      vectors of segments, trails, and paths.
+    - New functions in `Diagrams.Align` to allow diagrams to be aligned by `Trace`
+      called `snug`, `snugBy` and `snugCenter`
+      and the ability to define other boundary functions for alignment. Functions
+      `snugL`, `snugR`, etc. are included in `TwoD.Align`.
+    - Lenses from `Control.Lens` are now used consistently for record fields
+      throughout the library.
+    - New function `angleRatio` for calculating the ratio between two angles.
+    - Restricted identity functions `asTurn`, `asRad`, and `asDeg` for
+      resolving type ambiguity
+    - New miter limit attribute.
+    - New function `annularWedge` in `TwoD.Arc`
+    - New `avgScale` utility in `TwoD.Transform`, for backends which
+      cannot fully implement freezing of line width
+    - New function `heptagon`, a vast improvement over the linguistic
+      frankenstein `septagon`.
+    - New function `lookupName` (re-exported from `diagrams-core`) for
+      simple lookups of named subdiagrams
+    - New function `angleBetween` to calculate the angle between two
+      vectors.
+    - New function `arcBetween` to draw an arc between two given
+      points.
+    - A bunch of new modules containing types, primitives and
+      utilities for constructing 3D diagrams: `Diagrams.ThreeD.Align`,
+      `.Camera`, `.Light`, `.Shapes`, `.Transform`, `.Types`, and
+      `.Vector`.  This is still a "feature preview" (in particular,
+      appropriate 3D backends are still under construction).
+
+* **New instances**
+
+    - `AdditiveGroup` and `VectorSpace` instances for `Turn`, `Rad`, `Deg`
+    - `Alignable` instance for `(->) e`
+	- `Default` instances for `FillRule`, `FillRuleA`, `LineJoin`,
+      `LineCap`, `FillColor`
+	- `Show` instances for `FillRule`, `FillRuleA`
+
+* **API changes**
+
+    - `e` no longer exported from `Diagrams.Prelude`.
+    - `Diagrams.BoundingBox` is no longer exported from `Diagrams.Prelude`.
+    - Re-export `Diagrams.Core.pointDiagram` from `Diagrams.Prelude`.
+    - Added `fromAlphaColour` method to `Color` class.
+    - `&` renamed to `^&`
+    - Stop re-exporting `tan`, `over`, and `both` from `Data.Colour`.
+	- New coordinate lenses `_x`, `_y`, and `_z` for `R2`, `P2`, `R3`, `P3`
+    - Export `fullTurn` from `Diagrams.Prelude`.
+    - `Codomain (Located a)` is now `Point (Codomain a)` instead of
+      `Located (Codomain a)`.
+	- Export `domainBounds` from `Diagrams.Parametric`.
+	- Adjusting functionality moved from `Diagrams.Parametric` to its
+      own module, `Diagrams.Parametric.Adjust`.
+    - Rename `strokeT` (and primed variant) to `strokeTrail`; rename
+      `strokeLocT` to `strokeLocTrail`.
+    - `ScaleInv` is now in its own module, `Diagrams.TwoD.Transform.ScaleInv`.
+	- Re-export `Image` type (but not constructor) from `Diagrams.TwoD`
+    - Removed `Floating` and `RealFloat` instances for `Turn` and `Deg`
+    - `offsetSegment` now returns a `Located` instead of a tuple.
+    - Removed `Num` and `Fractional` instances for `R2`.
+
+* **Dependency/version changes**
+
+    - Remove `newtype` dependency
+    - New dependencies on `lens`, `tagged`, `optparse-applicative`,
+      `filepath`, `safe`, `vector-space-points`, `MemoTrie`
+    - Depend on `intervals >= 0.3 && < 0.5`.
+
+* **Bug fixes**
+
+    - Depend on `intervals 0.3`, which allows diagrams to build on
+      Windows, by evading a GHCi linker bug which affects the FFI use in
+      previous versions of intervals ([diagrams-contrib#14](https://github.com/diagrams/diagrams-contrib/issues/14))
+
+    - Use point envelope at the origin for text objects instead of an
+      empty envelope
+      ([#115](https://github.com/diagrams/diagrams-lib/issues/115),
+      [#116](https://github.com/diagrams/diagrams-lib/issues/116)).
+    - Adjusting the end of a trail now works correctly ([#95](https://github.com/diagrams/diagrams-lib/issues/95)).
+    - Only look for miter join on corners in `Diagrams.TwoD.Offset` ([#118](https://github.com/diagrams/diagrams-lib/issues/118)).
+    - `wedge` from `Diagrams.TwoD.Arc` is now a Loop ([#99](https://github.com/diagrams/diagrams-lib/issues/99))
+
+* **Performance improvements**
+
+    - `R2` is now strict and `UNPACK`ed
+    - Add strictness to `Offset`, `Segment`, `OffsetEnvelope`, and `SizeSpec2D`.
+	- Make `getEnvelope` calculation for `Segment` more efficient by
+      floating divisions out of the inner calculation.
+    - Use a specialized `HasTrie` instance for `R2`.
+
 0.7.1.1 (27 September 2013)
 ---------------------------
 

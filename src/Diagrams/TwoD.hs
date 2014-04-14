@@ -65,15 +65,10 @@ module Diagrams.TwoD
        , P2, p2, unp2, mkP2
        , T2
        , unitX, unitY, unit_X, unit_Y
-       , direction, angleBetween, fromDirection, e
+       , direction, fromDirection
 
          -- * Angles
        , tau
-       , Angle(..)
-       , Turn(..), asTurn, CircleFrac
-       , Rad(..), asRad
-       , Deg(..), asDeg
-       , fullTurn, fullCircle, convertAngle
 
          -- * Paths
          -- ** Stroking
@@ -84,7 +79,7 @@ module Diagrams.TwoD
        , StrokeOpts(..), vertexNames, queryFillRule
 
          -- ** Clipping
-       , clipBy
+       , clipBy, clipTo, clipped
 
          -- * Shapes
          -- ** Rules
@@ -134,12 +129,13 @@ module Diagrams.TwoD
        , RoundedRectOpts(..), radiusTL, radiusTR, radiusBL, radiusBR
 
          -- ** Arrows
-       , arrow, arrow'
+       , arrowV, arrowV'
        , arrowAt, arrowAt'
        , arrowBetween, arrowBetween'
        , connect, connect'
        , connectPerim, connectPerim'
        , connectOutside, connectOutside'
+       , arrow, arrow'
        , straightShaft
        , module Diagrams.TwoD.Arrowheads
 
@@ -148,20 +144,32 @@ module Diagrams.TwoD
        , arrowHead
        , arrowTail
        , arrowShaft
-       , headSize
-       , tailSize
        , headGap
        , tailGap
+       , gaps, gap
+       , headColor
        , headStyle
+       , tailColor
        , tailStyle
+       , shaftColor
        , shaftStyle
+       , headSize
+       , tailSize
 
          -- * Text
        , text, topLeftText, alignedText, baselineText
-       , font, fontSize, italic, oblique, bold
+       , font, italic, oblique, bold, fontSize
+       , fontSizeO, fontSizeL, fontSizeN, fontSizeG
 
          -- * Images
-       , Image, image
+       , DImage(..), ImageData(..)
+       , Embedded, External
+       , image
+       , loadImageEmb
+       , loadImageExt
+       , uncheckedImageRef
+       , raster
+       , rasterDia
 
          -- * Transformations
          -- ** Rotation
@@ -184,6 +192,10 @@ module Diagrams.TwoD
          -- ** Shears
        , shearingX, shearX
        , shearingY, shearY
+
+         -- * Deformations - non-affine transforms
+       , parallelX0, perspectiveX1, parallelY0, perspectiveY1
+       , facingX, facingY
 
          -- * Combinators
          -- ** Combining multiple diagrams
@@ -240,6 +252,15 @@ module Diagrams.TwoD
         -- ** Colors
       , fillColor, fc, fcA, recommendFillColor, getFillColor
       , lineColor, lc, lcA, lineColorA, getLineColor
+       -- ** Width
+       , LineWidth, getLineWidth, lineWidth, lineWidthA
+       , lw, lwN, lwO, lwL, lwG
+       , ultraThin, veryThin, thin, medium, thick, veryThick, ultraThick, none
+       , tiny, verySmall, small, normal, large, veryLarge, huge
+
+       -- ** Dashing
+       , Dashing(..), DashingA, getDashing
+       , dashing, dashingO, dashingL, dashingN, dashingG
 
          -- * Visual aids for understanding the internal model
        , showOrigin
@@ -255,6 +276,7 @@ import           Diagrams.TwoD.Arrow
 import           Diagrams.TwoD.Arrowheads
 import           Diagrams.TwoD.Attributes
 import           Diagrams.TwoD.Combinators
+import           Diagrams.TwoD.Deform
 import           Diagrams.TwoD.Ellipse
 import           Diagrams.TwoD.Image
 import           Diagrams.TwoD.Model

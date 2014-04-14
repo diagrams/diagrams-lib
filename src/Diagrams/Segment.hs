@@ -64,15 +64,15 @@ module Diagrams.Segment
 
        ) where
 
-import           Control.Lens (makeLenses, Wrapped(..), iso, op)
+import           Control.Lens (makeLenses, Wrapped(..), Rewrapped, iso, op)
 import           Control.Applicative (liftA2)
 import           Data.AffineSpace
 import           Data.FingerTree
 import           Data.Monoid.MList
 import           Data.Semigroup
 import           Data.VectorSpace    hiding (Sum (..))
-import           Numeric.Interval    (Interval (..))
-import qualified Numeric.Interval    as I
+import           Numeric.Interval.Kaucher    (Interval (..))
+import qualified Numeric.Interval.Kaucher    as I
 
 import           Diagrams.Core
 import           Diagrams.Located
@@ -375,6 +375,35 @@ instance VectorSpace v => Parametric (FixedSegment v) where
 
           p3  = alerp p21 p22 t
 
+instance Num (Scalar v) => DomainBounds (FixedSegment v)
+
+instance (VectorSpace v, Num (Scalar v)) => EndValues (FixedSegment v) where
+  atStart (FLinear p0 _)     = p0
+  atStart (FCubic  p0 _ _ _) = p0
+  atEnd   (FLinear _ p1)     = p1
+  atEnd   (FCubic _ _ _ p1 ) = p1
+
+instance (VectorSpace v, Fractional (Scalar v)) => Sectionable (FixedSegment v) where
+  splitAtParam (FLinear p0 p1) t = (left, right)
+    where left  = FLinear p0 p
+          right = FLinear p  p1
+          p = alerp p0 p1 t
+  splitAtParam (FCubic p0 c1 c2 p1) t = (left, right)
+    where left  = FCubic p0 a b cut
+          right = FCubic cut c d p1
+          -- first round
+          a   = alerp p0 c1 t
+          p   = alerp c1 c2 t
+          d   = alerp c2 p1 t
+          -- second round
+          b   = alerp a  p  t
+          c   = alerp p  d  t
+          -- final round
+          cut = alerp b  c  t
+
+  reverseDomain (FLinear p0 p1) = FLinear p1 p0
+  reverseDomain (FCubic p0 c1 c2 p1) = FCubic p1 c2 c1 p0
+
 ------------------------------------------------------------
 --  Segment measures  --------------------------------------
 ------------------------------------------------------------
@@ -387,8 +416,11 @@ instance VectorSpace v => Parametric (FixedSegment v) where
 newtype SegCount = SegCount (Sum Int)
   deriving (Semigroup, Monoid)
 
-instance Wrapped (Sum Int) (Sum Int) SegCount SegCount
-  where wrapped = iso SegCount $ \(SegCount x) -> x
+instance Wrapped SegCount where
+    type Unwrapped SegCount = Sum Int
+    _Wrapped' = iso (\(SegCount x) -> x) SegCount
+
+instance Rewrapped SegCount SegCount
 
 -- | A type to represent the total arc length of a chain of
 --   segments. The first component is a \"standard\" arc length,
@@ -399,12 +431,12 @@ instance Wrapped (Sum Int) (Sum Int) SegCount SegCount
 newtype ArcLength v
   = ArcLength (Sum (Interval (Scalar v)), Scalar v -> Sum (Interval (Scalar v)))
 
-instance (Scalar v ~ u, Scalar v' ~ u', u ~ u') => Wrapped
-    (Sum (Interval u), u  -> Sum (Interval u ))
-    (Sum (Interval u'), u' -> Sum (Interval u'))
-    (ArcLength v)
-    (ArcLength v')
-  where wrapped = iso ArcLength $ \(ArcLength x) -> x
+instance Wrapped (ArcLength v) where
+    type Unwrapped (ArcLength v) =
+        (Sum (Interval (Scalar v)), Scalar v -> Sum (Interval (Scalar v)))
+    _Wrapped' = iso (\(ArcLength x) -> x) ArcLength
+
+instance Rewrapped (ArcLength v) (ArcLength v')
 
 -- | Project out the cached arc length, stored together with error
 --   bounds.
@@ -433,8 +465,11 @@ deriving instance (Num (Scalar v), Ord (Scalar v)) => Monoid    (ArcLength v)
 --   segments.
 newtype TotalOffset v = TotalOffset v
 
-instance Wrapped v v (TotalOffset v) (TotalOffset v)
-  where wrapped = iso TotalOffset $ \(TotalOffset x) -> x
+instance Wrapped (TotalOffset v) where
+    type Unwrapped (TotalOffset v) = v
+    _Wrapped' = iso (\(TotalOffset x) -> x) TotalOffset
+
+instance Rewrapped (TotalOffset v) (TotalOffset v')
 
 instance AdditiveGroup v => Semigroup (TotalOffset v) where
   TotalOffset v1 <> TotalOffset v2 = TotalOffset (v1 ^+^ v2)
@@ -458,7 +493,7 @@ instance (InnerSpace v, OrderedField (Scalar v)) => Semigroup (OffsetEnvelope v)
   (OffsetEnvelope o1 e1) <> (OffsetEnvelope o2 e2)
     = let !negOff = negateV . op TotalOffset $ o1
           e2Off = moveOriginBy negOff e2
-          !() = maybe () (\f -> f `seq` ()) $ appEnvelope e2Off
+          !_unused = maybe () (\f -> f `seq` ()) $ appEnvelope e2Off
       in OffsetEnvelope
           (o1 <> o2)
           (e1 <> e2Off)

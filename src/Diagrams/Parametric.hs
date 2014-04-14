@@ -25,7 +25,7 @@ module Diagrams.Parametric
 import           Diagrams.Core
 
 import           Data.VectorSpace
-import qualified Numeric.Interval   as I
+import qualified Numeric.Interval.Kaucher   as I
 
 -- | Codomain of parametric classes.  This is usually either @(V p)@, for relative
 --   vector results, or @(Point (V p))@, for functions with absolute coordinates.

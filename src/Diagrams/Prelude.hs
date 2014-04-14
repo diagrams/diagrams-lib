@@ -61,9 +61,9 @@ module Diagrams.Prelude
          --   conjugation of transformations.
        , module Diagrams.Transform
 
-         -- | Convenient definitions and utilities for working with
-         --   good old-fashioned, axis-aligned bounding boxes.
-       , module Diagrams.BoundingBox
+         -- | Projective transformations and other deformations
+         -- lacking an inverse.
+       , module Diagrams.Deform
 
          -- | Giving names to subdiagrams and later retrieving
          --   subdiagrams by name.
@@ -84,8 +84,10 @@ module Diagrams.Prelude
          -- | Utilities for working with points.
        , module Diagrams.Points
 
+         -- | Angles
+       , module Diagrams.Angle
          -- | Convenience infix operators for working with coordinates.
-        , module Diagrams.Coordinates
+       , module Diagrams.Coordinates
 
          -- | A wide range of things (shapes, transformations,
          --   combinators) specific to creating two-dimensional
@@ -123,12 +125,13 @@ module Diagrams.Prelude
 import           Diagrams.Core
 
 import           Diagrams.Align
+import           Diagrams.Angle
 import           Diagrams.Animation
 import           Diagrams.Attributes
-import           Diagrams.BoundingBox
 import           Diagrams.Combinators
 import           Diagrams.Coordinates
 import           Diagrams.CubicSpline
+import           Diagrams.Deform
 import           Diagrams.Envelope
 import           Diagrams.Located
 import           Diagrams.Names

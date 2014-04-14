@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveGeneric    #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TypeFamilies     #-}
 
@@ -26,7 +27,7 @@ module Diagrams.TwoD.Size
        , requiredScaleT, requiredScale
 
          -- ** Changing the size of things
-       , sized, sizedAs
+       , sized, sizedAs, sizePair
        ) where
 
 import           Diagrams.Core
@@ -35,6 +36,8 @@ import           Diagrams.TwoD.Vector
 
 import           Control.Applicative  (liftA2, (<$>))
 import           Control.Arrow        ((&&&), (***))
+import           Data.Hashable        (Hashable)
+import           GHC.Generics         (Generic)
 
 ------------------------------------------------------------
 -- Computing diagram sizes
@@ -93,7 +96,9 @@ data SizeSpec2D = Width  !Double       -- ^ Specify an explicit
                 | Absolute            -- ^ Absolute size: use whatever
                                       -- size an object already has;
                                       -- do not rescale.
-  deriving (Eq, Ord, Show)
+  deriving (Eq, Ord, Show, Generic)
+
+instance Hashable SizeSpec2D
 
 -- | Create a size specification from a possibly-specified width and
 --   height.
@@ -143,3 +148,10 @@ sizedAs :: ( Transformable a, Enveloped a, V a ~ R2
            , Enveloped b, V b ~ R2)
         => b -> a -> a
 sizedAs other = sized (sizeSpec2D other)
+
+-- | Make width and height of `SizeSpec2D` into a tuple.
+sizePair :: SizeSpec2D -> (Double, Double)
+sizePair (Width w')   = (w',w')
+sizePair (Height h')  = (h',h')
+sizePair (Dims w' h') = (w',h')
+sizePair Absolute     = (100,100)

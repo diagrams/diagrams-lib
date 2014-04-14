@@ -1,5 +1,5 @@
 Name:                diagrams-lib
-Version:             0.7.2
+Version:             1.1.0.1
 Synopsis:            Embedded domain-specific language for declarative graphics
 Description:         Diagrams is a flexible, extensible EDSL for creating
                      graphics of many types.  Graphics can be created
@@ -15,20 +15,24 @@ Author:              Brent Yorgey
 Maintainer:          diagrams-discuss@googlegroups.com
 Bug-reports:         http://github.com/diagrams/diagrams-lib/issues
 Category:            Graphics
-Build-type:          Custom
+Build-type:          Simple
 Cabal-version:       >=1.10
 Extra-source-files:  CHANGES.markdown, README.markdown, diagrams/*.svg
-Tested-with:         GHC == 7.4.2, GHC == 7.6.1
+Extra-doc-files:     diagrams/*.svg
+Tested-with:         GHC == 7.4.2, GHC == 7.6.3, GHC == 7.8.1
 Source-repository head
   type:     git
   location: http://github.com/diagrams/diagrams-lib.git
 
 Library
   Exposed-modules:     Diagrams.Prelude,
+                       Diagrams.Prelude.ThreeD,
                        Diagrams.Align,
+                       Diagrams.Angle,
                        Diagrams.Combinators,
                        Diagrams.Coordinates,
                        Diagrams.Attributes,
+                       Diagrams.Attributes.Compile,
                        Diagrams.Points,
                        Diagrams.Located,
                        Diagrams.Parametric,
@@ -42,6 +46,7 @@ Library
                        Diagrams.Solve,
                        Diagrams.Tangent,
                        Diagrams.Transform,
+                       Diagrams.Deform
                        Diagrams.BoundingBox,
                        Diagrams.Names,
                        Diagrams.Envelope,
@@ -54,6 +59,7 @@ Library
                        Diagrams.TwoD.Arrowheads,
                        Diagrams.TwoD.Attributes,
                        Diagrams.TwoD.Combinators,
+                       Diagrams.TwoD.Deform,
                        Diagrams.TwoD.Transform,
                        Diagrams.TwoD.Transform.ScaleInv,
                        Diagrams.TwoD.Ellipse,
@@ -70,34 +76,44 @@ Library
                        Diagrams.TwoD.Text,
                        Diagrams.TwoD.Image,
                        Diagrams.TwoD.Adjust,
-                       Diagrams.ThreeD.Types,
-                       Diagrams.ThreeD.Shapes,
-                       Diagrams.ThreeD.Vector,
-                       Diagrams.ThreeD.Transform,
+                       Diagrams.ThreeD.Align,
+                       Diagrams.ThreeD.Attributes,
                        Diagrams.ThreeD.Camera,
+                       Diagrams.ThreeD.Deform,
                        Diagrams.ThreeD.Light,
-                       Diagrams.ThreeD
+                       Diagrams.ThreeD.Shapes,
+                       Diagrams.ThreeD.Transform,
+                       Diagrams.ThreeD.Types,
+                       Diagrams.ThreeD.Vector,
+                       Diagrams.ThreeD,
                        Diagrams.Animation,
                        Diagrams.Animation.Active,
                        Diagrams.Util,
-                       Diagrams.Backend.Show
+                       Diagrams.Backend.CmdLine
   Build-depends:       base >= 4.2 && < 4.8,
                        containers >= 0.3 && < 0.6,
-                       array >= 0.3 && < 0.5,
-                       semigroups >= 0.3.4 && < 0.12,
+                       array >= 0.3 && < 0.6,
+                       semigroups >= 0.3.4 && < 0.14,
                        monoid-extras >= 0.3 && < 0.4,
-                       diagrams-core >= 0.7 && < 0.8,
+                       dual-tree >= 0.2 && < 0.3,
+                       diagrams-core >= 1.1 && < 1.2,
                        active >= 0.1 && < 0.2,
                        vector-space >= 0.7.7 && < 0.9,
-                       vector-space-points >= 0.1.2 && < 0.2,
+                       vector-space-points >= 0.1.2 && < 0.3,
                        MemoTrie >= 0.6 && < 0.7,
-                       NumInstances >= 1.2 && < 1.4,
                        colour >= 2.3.2 && < 2.4,
                        data-default-class < 0.1,
                        pretty >= 1.0.1.2 && < 1.2,
                        fingertree >= 0.1 && < 0.2,
-                       intervals >= 0.3 && < 0.5,
-                       lens >= 3.9 && < 3.11,
-                       tagged >= 0.7
+                       intervals >= 0.7 && < 0.8,
+                       lens >= 4.0 && < 4.2,
+                       tagged >= 0.7,
+                       optparse-applicative >= 0.7 && < 0.9,
+                       filepath,
+                       safe >= 0.2 && < 0.4,
+                       JuicyPixels >= 3.1.5 && < 3.2,
+                       hashable >= 1.1 && < 1.3
+  if impl(ghc < 7.6)
+    Build-depends: ghc-prim
   Hs-source-dirs:      src
   default-language:    Haskell2010

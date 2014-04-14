@@ -2,7 +2,7 @@
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE TemplateHaskell            #-}
+{-# LANGUAGE RankNTypes                 #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE TypeOperators              #-}
 {-# LANGUAGE TypeSynonymInstances       #-}
@@ -25,28 +25,21 @@ module Diagrams.TwoD.Types
        , P2, p2, mkP2, unp2, p2Iso
        , T2
 
-         -- * Angles
-       , Angle(..)
-
-       , Turn(..), asTurn, CircleFrac
-       , Rad(..), asRad
-       , Deg(..), asDeg
-       , fullTurn, fullCircle, convertAngle, angleRatio
        ) where
 
-import           Control.Lens            (makeWrapped, Wrapped, wrapped, op, Iso', iso, _1, _2)
+import           Control.Lens           (Iso', Rewrapped, Wrapped (..), iso,
+                                         lens, (^.), _1, _2)
 
+import           Diagrams.Angle
 import           Diagrams.Coordinates
 import           Diagrams.Core
-import           Diagrams.Util           (tau)
 
 import           Data.AffineSpace.Point
 import           Data.Basis
-import           Data.NumInstances.Tuple ()
+import           Data.MemoTrie          (HasTrie (..))
 import           Data.VectorSpace
-import           Data.MemoTrie (HasTrie (..))
 
-import           Data.Typeable
+import           Data.Data
 ------------------------------------------------------------
 -- 2D Euclidean space
 
@@ -80,7 +73,7 @@ import           Data.Typeable
 
 data R2 = R2 {-# UNPACK #-} !Double
              {-# UNPACK #-} !Double
-  deriving (Eq, Ord, Typeable)
+  deriving (Eq, Ord, Typeable, Data)
 
 instance AdditiveGroup R2 where
   zeroV = R2 0 0
@@ -135,9 +128,12 @@ mkR2 :: Double -> Double -> R2
 mkR2 = curry r2
 
 -- | Lens wrapped isomorphisms for R2.
-instance Wrapped (Double, Double) (Double, Double) R2 R2 where
-  wrapped = iso r2 unr2
-  {-# INLINE wrapped #-}
+instance Wrapped R2 where
+    type Unwrapped R2 = (Double, Double)
+    _Wrapped' = iso unr2 r2
+    {-# INLINE _Wrapped' #-}
+
+instance Rewrapped R2 R2
 
 type instance V R2 = R2
 
@@ -183,6 +179,13 @@ instance HasX R2 where
 
 instance HasY R2 where
     _y = r2Iso . _2
+
+instance HasTheta R2 where
+    _theta = lens (\v -> atanA (v^._y / v^._x))
+      (\v θ -> let r = magnitude v in R2 (r * cosA θ) (r * sinA θ))
+
+instance HasR R2 where
+    _r = lens magnitude (\v r -> let s = r/magnitude v in s *^ v)
 
 -- | Points in R^2.  This type is intentionally abstract.
 --
@@ -235,89 +238,9 @@ instance HasX P2 where
 
 instance HasY P2 where
     _y = p2Iso . _2
-------------------------------------------------------------
--- Angles
 
--- | Newtype wrapper used to represent angles as fractions of a
---   circle.  For example, 1\/3 turn = tau\/3 radians = 120 degrees.
-newtype Turn = Turn Double
-  deriving (Read, Show, Eq, Ord, Enum, Fractional, Num, Real, RealFrac, AdditiveGroup)
+instance HasR P2 where
+    _r = _relative origin . _r
 
-makeWrapped ''Turn
-
--- | The identity function with a restricted type, for conveniently
--- declaring that some value should have type 'Turn'.  For example,
--- @rotation . asTurn . fromRational@ constructs a rotation from a
--- rational value considered as a @Turn@.  Without @asTurn@, the angle
--- type would be ambiguous.
-asTurn :: Turn -> Turn
-asTurn = id
-
--- | Deprecated synonym for 'Turn', retained for backwards compatibility.
-type CircleFrac = Turn
-
--- | Newtype wrapper for representing angles in radians.
-newtype Rad = Rad Double
-  deriving (Read, Show, Eq, Ord, Enum, Floating, Fractional, Num, Real, RealFloat, RealFrac, AdditiveGroup)
-
-makeWrapped ''Rad
-
--- | The identity function with a restricted type, for conveniently
--- declaring that some value should have type 'Rad'.  For example,
--- @rotation . asRad . fromRational@ constructs a rotation from a
--- rational value considered as a value in radians.  Without @asRad@,
--- the angle type would be ambiguous.
-asRad :: Rad -> Rad
-asRad = id
-
--- | Newtype wrapper for representing angles in degrees.
-newtype Deg = Deg Double
-  deriving (Read, Show, Eq, Ord, Enum, Fractional, Num, Real, RealFrac, AdditiveGroup)
-
-makeWrapped ''Deg
-
--- | The identity function with a restricted type, for conveniently
--- declaring that some value should have type 'Deg'.  For example,
--- @rotation . asDeg . fromIntegral@ constructs a rotation from an
--- integral value considered as a value in degrees.  Without @asDeg@,
--- the angle type would be ambiguous.
-asDeg :: Deg -> Deg
-asDeg = id
-
--- | Type class for types that measure angles.
-class Num a => Angle a where
-  -- | Convert to a turn, /i.e./ a fraction of a circle.
-  toTurn   :: a -> Turn
-
-  -- | Convert from a turn, /i.e./ a fraction of a circle.
-  fromTurn :: Turn -> a
-
-instance Angle Turn where
-  toTurn   = id
-  fromTurn = id
-
--- | tau radians = 1 full turn.
-instance Angle Rad where
-  toTurn   = Turn . (/tau) . op Rad
-  fromTurn = Rad . (*tau) . op Turn
-
--- | 360 degrees = 1 full turn.
-instance Angle Deg where
-  toTurn   = Turn . (/360) . op Deg
-  fromTurn = Deg . (*360) . op Turn
-
--- | An angle representing one full turn.
-fullTurn :: Angle a => a
-fullTurn = fromTurn 1
-
--- | Deprecated synonym for 'fullTurn', retained for backwards compatibility.
-fullCircle :: Angle a => a
-fullCircle = fullTurn
-
--- | Convert between two angle representations.
-convertAngle :: (Angle a, Angle b) => a -> b
-convertAngle = fromTurn . toTurn
-
--- | Calculate ratio between two angles
-angleRatio :: Angle a => a -> a -> Double
-angleRatio a b = op Turn (toTurn a) / op Turn (toTurn b)
+instance HasTheta P2 where
+    _theta = _relative origin . _theta

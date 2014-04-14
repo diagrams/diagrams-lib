@@ -45,8 +45,8 @@ import           Data.VectorSpace
 
 import           Diagrams.Core
 
-import           Diagrams.Attributes      (lw)
-import           Diagrams.TwoD.Attributes (fc)
+import           Diagrams.Angle
+import           Diagrams.Attributes      (fc)
 import           Diagrams.BoundingBox
 import           Diagrams.Combinators
 import           Diagrams.Coordinates
@@ -54,6 +54,7 @@ import           Diagrams.Path
 import           Diagrams.Segment
 import           Diagrams.TrailLike
 import           Diagrams.TwoD.Align
+import           Diagrams.TwoD.Attributes (lineWidth)
 import           Diagrams.TwoD.Path       ()
 import           Diagrams.TwoD.Shapes
 import           Diagrams.TwoD.Transform  (scaleX, scaleY)
@@ -85,7 +86,7 @@ infixl 6 |||
 -- | Place two diagrams (or other juxtaposable objects) horizontally
 --   adjacent to one another, with the first diagram to the left of
 --   the second.  The local origin of the resulting combined diagram
---   is the same as the local origin of the first.  @(===)@ is
+--   is the same as the local origin of the first.  @(|||)@ is
 --   associative and has 'mempty' as an identity.  See the
 --   documentation of 'beside' for more information.
 (|||) :: (Juxtaposable a, V a ~ R2, Semigroup a) => a -> a -> a
@@ -96,7 +97,7 @@ infixl 6 |||
 --   'th' from the first.  The local origin of the resulting combined
 --   diagram is the same as the local origin of the first.
 --   See the documentation of 'beside' for more information.
-atAngle :: (Juxtaposable a, V a ~ R2, Semigroup a, Angle b) => b -> a -> a -> a
+atAngle :: (Juxtaposable a, V a ~ R2, Semigroup a) => Angle -> a -> a -> a
 atAngle th = beside (fromDirection th)
 
 -- | Lay out a list of juxtaposable objects in a row from left to right,
@@ -248,4 +249,4 @@ boundingRect = (`boxFit` rect 1 1) . boundingBox
 -- | \"Set the background color\" of a diagram.  That is, place a
 --   diagram atop a bounding rectangle of the given color.
 bg :: (Renderable (Path R2) b) => Colour Double -> Diagram b R2 -> Diagram b R2
-bg c d = d <> boundingRect d # lw 0 # fc c
+bg c d = d <> boundingRect d # lineWidth (Output 0) # fc c

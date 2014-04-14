@@ -1,8 +1,9 @@
-{-# LANGUAGE TypeFamilies               #-}
-{-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE FlexibleContexts           #-}
-{-# LANGUAGE GADTs                      #-}
-{-# LANGUAGE TemplateHaskell            #-}
+{-# LANGUAGE DeriveDataTypeable    #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeFamilies          #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -28,32 +29,36 @@ module Diagrams.ThreeD.Camera
        )
        where
 
-import Control.Lens            (makeLenses)
-import Data.Monoid
-import Data.Cross
+import           Control.Lens           (makeLenses)
+import           Data.Cross
+import           Data.Monoid
+import           Data.Typeable
 
-import Diagrams.Core
-import Diagrams.ThreeD.Types
-import Diagrams.ThreeD.Vector
+import           Diagrams.Angle
+import           Diagrams.Core
+import           Diagrams.ThreeD.Types
+import           Diagrams.ThreeD.Vector
 
 -- Parameterize Camera on the lens type, so that Backends can express which
 -- lenses they handle.
 data Camera l = Camera
-    { camLoc   :: P3
-    , forward  :: R3
-    , up       :: R3
-    , lens     :: l
+    { camLoc  :: P3
+    , forward :: R3
+    , up      :: R3
+    , lens    :: l
     }
+  deriving Typeable
 
-class CameraLens l where
+class Typeable l => CameraLens l where
     -- | The natural aspect ratio of the projection.
     aspect :: l -> Double
 
 -- | A perspective projection
 data PerspectiveLens = PerspectiveLens
-                     { _horizontalFieldOfView :: Deg -- ^ Horizontal field of view.
-                     , _verticalFieldOfView   :: Deg -- ^ Vertical field of view.
+                     { _horizontalFieldOfView :: Angle -- ^ Horizontal field of view.
+                     , _verticalFieldOfView   :: Angle -- ^ Vertical field of view.
                      }
+  deriving Typeable
 
 makeLenses ''PerspectiveLens
 
@@ -65,6 +70,7 @@ data OrthoLens = OrthoLens
                { _orthoWidth  :: Double -- ^ Width
                , _orthoHeight :: Double -- ^ Height
                }
+  deriving Typeable
 
 makeLenses ''OrthoLens
 
@@ -79,8 +85,6 @@ instance Transformable (Camera l) where
              (transform t f)
              (transform t u)
              l
-
-instance IsPrim (Camera l)
 
 instance Renderable (Camera l) NullBackend where
     render _ _ = mempty
@@ -104,23 +108,23 @@ mm50, mm50Wide, mm50Narrow :: PerspectiveLens
 
 -- | mm50 has the field of view of a 50mm lens on standard 35mm film,
 -- hence an aspect ratio of 3:2.
-mm50 = PerspectiveLens 40.5 27
+mm50 = PerspectiveLens (40.5 @@ deg) (27 @@ deg)
 
--- | mm50Wide has the same vertical field of view as mm50, but an
+-- | mm50blWide has the same vertical field of view as mm50, but an
 -- aspect ratio of 1.6, suitable for wide screen computer monitors.
-mm50Wide = PerspectiveLens 43.2 27
+mm50Wide = PerspectiveLens (43.2 @@ deg)  (27 @@ deg)
 
 -- | mm50Narrow has the same vertical field of view as mm50, but an
 -- aspect ratio of 4:3, for VGA and similar computer resulotions.
-mm50Narrow = PerspectiveLens 36 27
+mm50Narrow = PerspectiveLens (36 @@ deg) (27 @@ deg)
 
-camForward :: Direction d => Camera l -> d
+camForward :: Camera l -> Direction
 camForward = direction . forward
 
-camUp :: Direction d => Camera l -> d
+camUp :: Camera l -> Direction
 camUp = direction . up
 
-camRight :: Direction d => Camera l -> d
+camRight :: Camera l -> Direction
 camRight c = direction right where
   right = cross3 (forward c) (up c)
 

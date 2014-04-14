@@ -11,6 +11,8 @@
 --
 -----------------------------------------------------------------------------
 
+{-# LANGUAGE TypeFamilies #-}
+
 module Diagrams.Transform
     ( -- * Transformations
       Transformation, inv, transl, apply, papply
@@ -41,7 +43,7 @@ conjugate t1 t2  = inv t1 <> t2 <> t1
 
 -- | Carry out some transformation \"under\" another one: @f ``under``
 --   t@ first applies @t@, then @f@, then the inverse of @t@.  For
---   example, @'scaleX' 2 ``under`` 'rotationBy' (-1/8 :: Turn)@
+--   example, @'scaleX' 2 ``under`` 'rotation' (-1/8 \@\@ Turn)@
 --   is the transformation which scales by a factor of 2 along the
 --   diagonal line y = x.
 --
@@ -52,5 +54,5 @@ conjugate t1 t2  = inv t1 <> t2 <> t1
 --   @
 --
 --   for all transformations @t1@ and @t2@.
-under :: Transformable a => (a -> a) -> Transformation (V a) -> a -> a
+under :: (Transformable a, Transformable b, V a ~ V b) => (a -> b) -> Transformation (V a) -> a -> b
 f `under` t = transform (inv t) . f . transform t

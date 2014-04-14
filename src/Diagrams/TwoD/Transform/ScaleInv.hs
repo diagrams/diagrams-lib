@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveDataTypeable    #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TemplateHaskell       #-}
@@ -20,8 +21,10 @@ module Diagrams.TwoD.Transform.ScaleInv
     where
 
 import           Control.Lens            (makeLenses, view)
+import           Data.AdditiveGroup
 import           Data.AffineSpace        ((.-.))
 import           Data.Semigroup
+import           Data.Typeable
 
 import           Diagrams.Core
 import           Diagrams.TwoD.Transform
@@ -61,11 +64,11 @@ import           Diagrams.TwoD.Vector
 
 data ScaleInv t =
   ScaleInv
-  { _scaleInvObj  :: t
+  { _scaleInvObj :: t
   , _scaleInvDir :: R2
   , _scaleInvLoc :: P2
   }
-  deriving (Show)
+  deriving (Show, Typeable)
 
 makeLenses ''ScaleInv
 
@@ -82,8 +85,7 @@ instance (V t ~ R2, HasOrigin t) => HasOrigin (ScaleInv t) where
 instance (V t ~ R2, Transformable t) => Transformable (ScaleInv t) where
   transform tr (ScaleInv t v l) = ScaleInv (trans . rot $ t) (rot v) l'
     where
-      angle :: Rad
-      angle = direction (transform tr v) - direction v
+      angle = direction (transform tr v) ^-^ direction v
       rot :: (Transformable t, V t ~ R2) => t -> t
       rot = rotateAbout l angle
       l'  = transform tr l
@@ -148,24 +150,6 @@ instance (V t ~ R2, Transformable t) => Transformable (ScaleInv t) where
 
 -}
 
--- This is how we handle freezing properly with ScaleInv wrappers.
--- Normal transformations are applied ignoring scaling; "frozen"
--- transformations (i.e. transformations applied after a freeze) are
--- applied directly to the underlying object, scales and all.  We must
--- take care to transform the reference point and direction vector
--- appropriately.
-instance (V t ~ R2, Transformable t) => IsPrim (ScaleInv t) where
-  transformWithFreeze t1 t2 s = ScaleInv t'' d'' origin''
-    where
-      -- first, apply t2 normally, i.e. ignoring scaling
-      s'@(ScaleInv t' _ _)      = transform t2 s
-
-      -- now apply t1 to get the new direction and origin
-      (ScaleInv _ d'' origin'') = transform t1 s'
-
-      -- but apply t1 directly to the underlying thing, scales and all.
-      t''                       = transform t1 t'
-
 instance (Renderable t b, V t ~ R2) => Renderable (ScaleInv t) b where
   render b = render b . view scaleInvObj
 
@@ -184,6 +168,6 @@ instance (Renderable t b, V t ~ R2) => Renderable (ScaleInv t) b where
 --   scale-invariant things will be used only as \"decorations\" (/e.g./
 --   arrowheads) which should not affect the envelope, trace, and
 --   query.
-scaleInvPrim :: (Transformable t, Renderable t b, V t ~ R2, Monoid m)
+scaleInvPrim :: (Transformable t, Typeable t, Renderable t b, V t ~ R2, Monoid m)
              => t -> R2 -> QDiagram b R2 m
 scaleInvPrim t d = mkQD (Prim $ scaleInv t d) mempty mempty mempty mempty

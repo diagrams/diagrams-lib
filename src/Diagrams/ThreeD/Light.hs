@@ -1,6 +1,7 @@
-{-# LANGUAGE TypeFamilies               #-}
-{-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE DeriveDataTypeable    #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeFamilies          #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -15,16 +16,18 @@
 
 module Diagrams.ThreeD.Light where
 
-import Data.Colour
-import Data.Monoid
+import           Data.Colour
+import           Data.Monoid
+import           Data.Typeable
 
-import Diagrams.Core
-import Diagrams.ThreeD.Types
-import Diagrams.ThreeD.Vector
+import           Diagrams.Core
+import           Diagrams.ThreeD.Types
 
 data PointLight = PointLight P3 (Colour Double)
+  deriving Typeable
 
 data ParallelLight = ParallelLight R3 (Colour Double)
+  deriving Typeable
 
 type instance V PointLight = R3
 type instance V ParallelLight = R3
@@ -35,9 +38,6 @@ instance Transformable PointLight where
 instance Transformable ParallelLight where
     transform t (ParallelLight v c) = ParallelLight (transform t v) c
 
-instance IsPrim PointLight
-instance IsPrim ParallelLight
-
 -- | Construct a Diagram with a single PointLight at the origin, which
 -- takes up no space.
 pointLight :: (Backend b R3, Renderable PointLight b)
@@ -47,8 +47,8 @@ pointLight c = mkQD (Prim $ PointLight origin c) mempty mempty mempty
                (Query . const . Any $ False)
 
 -- | Construct a Diagram with a single ParallelLight, which takes up no space.
-parallelLight :: (Direction d, Backend b R3, Renderable ParallelLight b)
-                 => d -- ^ The direction in which the light travels.
+parallelLight :: (Backend b R3, Renderable ParallelLight b)
+                 => Direction -- ^ The direction in which the light travels.
                  -> Colour Double -- ^ The color of the light.
                  -> Diagram b R3
 parallelLight d c = mkQD (Prim $ ParallelLight (fromDirection d) c)

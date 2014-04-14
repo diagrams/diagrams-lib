@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                   #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE Rank2Types            #-}
@@ -20,7 +21,7 @@ module Diagrams.Combinators
 
          withEnvelope, withTrace
        , phantom, strut
-       , pad
+       , pad, frame
        , extrudeEnvelope, intrudeEnvelope
 
          -- * Binary operations
@@ -37,20 +38,29 @@ module Diagrams.Combinators
 
        ) where
 
-import           Control.Lens       ( (&), (%~), (.~), Lens', makeLensesWith
-                                    , lensRules, lensField, generateSignatures, unwrapping)
+import           Data.Typeable
+
+import           Control.Lens          (Lens', generateSignatures, lensField,
+                                        lensRules, makeLensesWith, (%~), (&),
+                                        (.~), (^.), _Wrapping)
 import           Data.AdditiveGroup
-import           Data.AffineSpace   ((.+^))
+import           Data.AffineSpace      ((.+^))
 import           Data.Default.Class
+import           Data.Monoid.Deletable (toDeletable)
+import           Data.Monoid.MList     (inj)
+#if __GLASGOW_HASKELL__ < 707
 import           Data.Proxy
+#endif
 import           Data.Semigroup
+import qualified Data.Tree.DUAL        as D
 import           Data.VectorSpace
 
 import           Diagrams.Core
+import           Diagrams.Core.Types   (QDiagram (QD))
 import           Diagrams.Located
 import           Diagrams.Path
-import           Diagrams.Segment   (straight)
-import           Diagrams.Trail     (Trail, trailVertices)
+import           Diagrams.Segment      (straight)
+import           Diagrams.Trail        (Trail, trailVertices)
 import           Diagrams.Util
 
 ------------------------------------------------------------
@@ -82,8 +92,8 @@ withTrace = setTrace . getTrace
 
 -- | @phantom x@ produces a \"phantom\" diagram, which has the same
 --   envelope and trace as @x@ but produces no output.
-phantom :: (Backend b (V a), Enveloped a, Traced a, Monoid' m) => a -> QDiagram b (V a) m
-phantom a = mkQD nullPrim (getEnvelope a) (getTrace a) mempty mempty
+phantom :: (Backend b (V a), Typeable (V a), Enveloped a, Traced a, Monoid' m) => a -> QDiagram b (V a) m
+phantom a = QD $ D.leafU ((inj . toDeletable . getEnvelope $ a) <> (inj . toDeletable . getTrace $ a))
 
 -- | @pad s@ \"pads\" a diagram, expanding its envelope by a factor of
 --   @s@ (factors between 0 and 1 can be used to shrink the envelope).
@@ -97,6 +107,16 @@ pad :: ( Backend b v
     => Scalar v -> QDiagram b v m -> QDiagram b v m
 pad s d = withEnvelope (d # scale s) d
 
+-- | @frame s@ increases the envelope of a diagram by and absolute amount @s@,
+--   s is in the local units of the diagram. This function is similar to @pad@,
+--   only it takes an absolute quantity and pre-centering should not be
+--   necessary.
+frame :: ( Backend b v, InnerSpace v, OrderedField (Scalar v), Monoid' m)
+        => Scalar v -> QDiagram b v m -> QDiagram b v m
+frame s d = setEnvelope (onEnvelope t (d^.envelope)) d
+  where
+    t f = \x -> f x + s
+
 -- | @strut v@ is a diagram which produces no output, but with respect
 --   to alignment and envelope acts like a 1-dimensional segment
 --   oriented along the vector @v@, with local origin at its
@@ -108,12 +128,13 @@ pad s d = withEnvelope (d # scale s) d
 --   <<diagrams/src_Diagrams_Combinators_strutEx.svg#diagram=strutEx&width=300>>
 --
 --   > strutEx = (circle 1 ||| strut unitX ||| circle 1) # centerXY # pad 1.1
-strut :: ( Backend b v, InnerSpace v
+strut :: ( Backend b v, Typeable v
+         , InnerSpace v
          , OrderedField (Scalar v)
          , Monoid' m
          )
       => v -> QDiagram b v m
-strut v = mkQD nullPrim env mempty mempty mempty
+strut v = QD $ D.leafU (inj . toDeletable $ env)
   where env = translate ((-0.5) *^ v) . getEnvelope $ straight v
   -- note we can't use 'phantom' here because it tries to construct a
   -- trace as well, and segments do not have a trace in general (only
@@ -156,10 +177,10 @@ deformEnvelope
   :: ( Ord (Scalar v), Num (Scalar v), AdditiveGroup (Scalar v)
      , Floating (Scalar v), HasLinearMap v, InnerSpace v, Monoid' m )
   => (Scalar v) -> v -> QDiagram b v m -> QDiagram b v m
-deformEnvelope s v d = setEnvelope (getEnvelope d & unwrapping Envelope %~ deform) d
+deformEnvelope s v d = setEnvelope (getEnvelope d & _Wrapping Envelope %~ deformE) d
   where
-    deform = Option . fmap deform' . getOption
-    deform' env v'
+    deformE = Option . fmap deformE' . getOption
+    deformE' env v'
         | dot > 0 = Max $ getMax (env v') + (dot * s) / magnitude v'
         | otherwise = env v'
       where
@@ -360,9 +381,9 @@ cat v = cat' v def
 --     default is 0.
 --
 --   'CatOpts' is an instance of 'Default', so 'with' may be used for
---   the second argument, as in @cat' (1,2) with {sep = 2}@.
+--   the second argument, as in @cat' (1,2) (with & sep .~ 2)@.
 --
---   Note that @cat' v with {catMethod = Distrib} === mconcat@
+--   Note that @cat' v (with & catMethod .~ Distrib) === mconcat@
 --   (distributing with a separation of 0 is the same as
 --   superimposing).
 cat' :: ( Juxtaposable a, Monoid' a, HasOrigin a

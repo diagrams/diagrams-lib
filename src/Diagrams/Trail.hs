@@ -77,7 +77,7 @@ module Diagrams.Trail
        , trailOffsets, trailOffset
        , lineOffsets, lineOffset, loopOffsets
        , trailVertices, lineVertices, loopVertices
-       , fixTrail
+       , trailLocSegments, fixTrail
 
          -- * Modifying trails
 
@@ -103,7 +103,7 @@ module Diagrams.Trail
        ) where
 
 import           Control.Arrow       ((***))
-import           Control.Lens        (AnIso', iso, view, op, Wrapped(..))
+import           Control.Lens        (AnIso', iso, view, op, Wrapped(..), Rewrapped)
 import           Data.AffineSpace
 import           Data.FingerTree     (FingerTree, ViewL (..), ViewR (..), (<|),
                                       (|>))
@@ -112,7 +112,7 @@ import qualified Data.Foldable       as F
 import           Data.Monoid.MList
 import           Data.Semigroup
 import           Data.VectorSpace    hiding (Sum (..))
-import qualified Numeric.Interval    as I
+import qualified Numeric.Interval.Kaucher    as I
 
 import           Diagrams.Core       hiding ((|>))
 import           Diagrams.Located
@@ -151,11 +151,11 @@ instance ( HasLinearMap (V a), InnerSpace (V a), OrderedField (Scalar (V a))
 newtype SegTree v = SegTree (FingerTree (SegMeasure v) (Segment Closed v))
   deriving (Eq, Ord, Show)
 
-instance Wrapped (FingerTree (SegMeasure v) (Segment Closed v))
-                 (FingerTree (SegMeasure v) (Segment Closed v))
-                 (SegTree v)
-                 (SegTree v)
-  where wrapped = iso SegTree $ \(SegTree x) -> x
+instance Wrapped (SegTree v) where
+    type Unwrapped (SegTree v) = FingerTree (SegMeasure v) (Segment Closed v)
+    _Wrapped' = iso (\(SegTree x) -> x) SegTree
+
+instance Rewrapped (SegTree v) (SegTree v')
 
 type instance V (SegTree v) = v
 
@@ -163,10 +163,8 @@ deriving instance (OrderedField (Scalar v), InnerSpace v)
   => Monoid (SegTree v)
 deriving instance (OrderedField (Scalar v), InnerSpace v)
   => FT.Measured (SegMeasure v) (SegTree v)
-
-instance (HasLinearMap v, InnerSpace v, OrderedField (Scalar v))
-  => Transformable (SegTree v) where
-  transform t = SegTree . transform t . op SegTree
+deriving instance (HasLinearMap v, InnerSpace v, OrderedField (Scalar v))
+  => Transformable (SegTree v)
 
 type instance Codomain (SegTree v) = v
 
@@ -743,7 +741,7 @@ trailFromSegments = wrapTrail . lineFromSegments
 --   <<diagrams/src_Diagrams_Trail_lineFromOffsetsEx.svg#diagram=lineFromOffsetsEx&width=300>>
 --
 --   > import Diagrams.Coordinates
---   > lineFromOffsetsEx = strokeLine $ lineFromOffsets [ 2 & 1, 2 & (-1), 2 & 0.5 ]
+--   > lineFromOffsetsEx = strokeLine $ lineFromOffsets [ 2 ^& 1, 2 ^& (-1), 2 ^& 0.5 ]
 lineFromOffsets :: (InnerSpace v, OrderedField (Scalar v))
                   => [v] -> Trail' Line v
 lineFromOffsets = lineFromSegments . map straight
@@ -772,7 +770,7 @@ trailFromOffsets = wrapTrail . lineFromOffsets
 --
 --   > import Diagrams.Coordinates
 --   > lineFromVerticesEx = pad 1.1 . centerXY . strokeLine
---   >   $ lineFromVertices [origin, 0 & 1, 1 & 2, 5 & 1]
+--   >   $ lineFromVertices [origin, 0 ^& 1, 1 ^& 2, 5 ^& 1]
 lineFromVertices :: (InnerSpace v, OrderedField (Scalar v))
                    => [Point v] -> Trail' Line v
 lineFromVertices []  = emptyLine
@@ -993,8 +991,12 @@ segmentVertices p = scanl (.+^) p . map segOffset
 -- | Convert a concretely located trail into a list of fixed segments.
 fixTrail :: (InnerSpace v, OrderedField (Scalar v))
          => Located (Trail v) -> [FixedSegment v]
-fixTrail t = zipWith ((mkFixedSeg .) . at)
-               (trailSegments (unLoc t)) (trailVertices t)
+fixTrail t = map mkFixedSeg (trailLocSegments t)
+
+-- | Convert a concretely located trail into a list of located segments.
+trailLocSegments :: (InnerSpace v, OrderedField (Scalar v))
+                  => Located (Trail v) -> [Located (Segment Closed v)]
+trailLocSegments t = zipWith at (trailSegments (unLoc t)) (trailVertices t)
 
 ------------------------------------------------------------
 --  Modifying trails  --------------------------------------
