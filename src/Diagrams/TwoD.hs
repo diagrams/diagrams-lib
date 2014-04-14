@@ -252,6 +252,7 @@ module Diagrams.TwoD
         -- ** Colors
       , fillColor, fc, fcA, recommendFillColor, getFillColor
       , lineColor, lc, lcA, lineColorA, getLineColor
+
        -- ** Width
        , LineWidth, getLineWidth, lineWidth, lineWidthA
        , lw, lwN, lwO, lwL, lwG

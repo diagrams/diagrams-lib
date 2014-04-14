@@ -1,6 +1,8 @@
 {-# LANGUAGE DeriveDataTypeable         #-}
+{-# LANGUAGE ExistentialQuantification  #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE ScopedTypeVariables        #-}
 {-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeFamilies               #-}
 
@@ -51,25 +53,38 @@ module Diagrams.TwoD.Attributes (
 
   -- ** Line color
   , LineColor, lineColor, getLineColor, lc, lcA, lineColorA
+  , mkLineColor, styleLineColor
 
   -- ** Fill texture
   , FillTexture(..), getFillTexture, fillTexture
 
   -- ** Fill color
   , FillColor, fillColor, getFillColor, fc, fcA, recommendFillColor
+  , mkFillColor, styleFillColor
+
+  -- * Compilation utilities
+  , splitFills
 
   ) where
 
 import           Diagrams.Core
-import           Diagrams.Attributes (Color(..), SomeColor(..))
+import           Diagrams.Core.Style         (setAttr)
+import           Diagrams.Attributes
+import           Diagrams.Attributes.Compile
 import           Diagrams.TwoD.Types
 
+import           Diagrams.Core.Types         (RTree)
+import           Diagrams.Located            (unLoc)
+import           Diagrams.Path               (Path, pathTrails)
+import           Diagrams.Trail              (isLoop)
+
 import           Control.Lens ( makeLensesWith, generateSignatures, lensRules
-                              , makePrisms, Lens', (&), (%~), (.~))
+                              , makePrisms, Lens', (&), (%~), (.~), Setter, sets)
 
 import           Data.Colour hiding (AffineSpace)
 import           Data.Data
 import           Data.Default.Class
+import           Data.Maybe                  (fromMaybe)
 import           Data.Typeable
 
 import           Data.Monoid.Recommend
@@ -390,6 +405,21 @@ instance Color LineColor where
 getLineColor :: LineColor -> SomeColor
 getLineColor (LineColor (Last c)) = c
 
+mkLineColor :: Color c => c -> LineColor
+mkLineColor = LineColor . Last . SomeColor
+
+styleLineColor :: (Color c, Color c') => Setter (Style v) (Style v) c c'
+styleLineColor = sets modifyLineColor
+  where
+    modifyLineColor f s
+      = flip setAttr s
+      . mkLineColor
+      . f
+      . fromAlphaColour . someToAlpha
+      . getLineColor
+      . fromMaybe def . getAttr
+      $ s
+
 -- | Set the line (stroke) color.  This function is polymorphic in the
 --   color type (so it can be used with either 'Colour' or
 --   'AlphaColour'), but this can sometimes create problems for type
@@ -466,6 +496,24 @@ instance AttributeClass FillColor
 instance Color FillColor where
   toAlphaColour (FillColor c) = toAlphaColour . getLast . getRecommend $ c
 
+instance Default FillColor where
+  def = FillColor (Recommend (Last (SomeColor (transparent :: AlphaColour Double))))
+
+mkFillColor :: Color c => c -> FillColor
+mkFillColor = FillColor . Commit . Last . SomeColor
+
+styleFillColor :: (Color c, Color c') => Setter (Style v) (Style v) c c'
+styleFillColor = sets modifyFillColor
+  where
+    modifyFillColor f s
+      = flip setAttr s
+      . mkFillColor
+      . f
+      . fromAlphaColour . someToAlpha
+      . getFillColor
+      . fromMaybe def . getAttr
+      $ s
+
 -- | Set the fill color.  This function is polymorphic in the color
 --   type (so it can be used with either 'Colour' or 'AlphaColour'),
 --   but this can sometimes create problems for type inference, so the
@@ -501,3 +549,21 @@ fc = fillColor
 --   (i.e. colors with transparency). See comment after 'fillColor' about backends.
 fcA :: (HasStyle a, V a ~ R2) => AlphaColour Double -> a -> a
 fcA = fillColor
+------------------------------------------------------------
+
+data FillLoops v = FillLoops
+
+instance Typeable v => SplitAttribute (FillLoops v) where
+  type AttrType (FillLoops v) = FillColor
+  type PrimType (FillLoops v) = Path v
+
+  primOK _ = all (isLoop . unLoc) . pathTrails
+
+-- | Push fill attributes down until they are at the root of subtrees
+--   containing only loops. This makes life much easier for backends,
+--   which typically have a semantics where fill attributes are
+--   applied to lines/non-closed paths as well as loops/closed paths,
+--   whereas in the semantics of diagrams, fill attributes only apply
+--   to loops.
+splitFills :: forall b v a. Typeable v => RTree b v a -> RTree b v a
+splitFills = splitAttr (FillLoops :: FillLoops v)

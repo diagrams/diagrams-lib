@@ -19,10 +19,10 @@ module Diagrams.TwoD.Adjust
     , adjustDia2D
     ) where
 
-import           Diagrams.Attributes      (lineCap, lineColorA, lineJoin,
+import           Diagrams.Attributes      (lineCap, lineJoin,
                                            lineMiterLimitA)
 import           Diagrams.Core
-import           Diagrams.TwoD.Attributes (lineWidthA)
+import           Diagrams.TwoD.Attributes (lineWidthA, lineTextureA, lineColorA)
 import           Diagrams.TwoD.Size       (SizeSpec2D (..), center2D,
                                            requiredScale, size2D)
 import           Diagrams.TwoD.Text       (fontSizeA)
