@@ -33,7 +33,7 @@ module Diagrams.Attributes (
   , Opacity, getOpacity, opacity
 
   -- ** Converting colors
-  , colorToSRGBA, colorToRGBA, someToAlpha
+  , colorToSRGBA, colorToRGBA
 
   -- * Line stuff
   -- ** Cap style
@@ -52,16 +52,10 @@ import           Data.Colour.RGBSpace        (RGB (..))
 import           Data.Colour.SRGB            (toSRGB)
 import           Data.Default.Class
 
-import           Data.Monoid.Recommend
 import           Data.Semigroup
 import           Data.Typeable
 
-import           Diagrams.Attributes.Compile
 import           Diagrams.Core
-import           Diagrams.Core.Types         (RTree)
-import           Diagrams.Located            (unLoc)
-import           Diagrams.Path               (Path, pathTrails)
-import           Diagrams.Trail              (isLoop)
 
 ------------------------------------------------------------
 --  Color  -------------------------------------------------
@@ -216,4 +210,3 @@ lineMiterLimit = applyAttr . LineMiterLimit . Last
 -- | Apply a 'LineMiterLimit' attribute.
 lineMiterLimitA :: HasStyle a => LineMiterLimit -> a -> a
 lineMiterLimitA = applyAttr
-

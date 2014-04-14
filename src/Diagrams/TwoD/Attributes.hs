@@ -85,11 +85,8 @@ import           Data.Colour hiding (AffineSpace)
 import           Data.Data
 import           Data.Default.Class
 import           Data.Maybe                  (fromMaybe)
-import           Data.Typeable
 
 import           Data.Monoid.Recommend
-import           Data.Semigroup
-import           Data.Default.Class
 import           Data.Semigroup
 
 -- | Standard 'Measures'.
