@@ -398,6 +398,7 @@ instance Default LineColor where
 
 instance Color LineColor where
   toAlphaColour (LineColor (Last c)) = toAlphaColour c
+  fromAlphaColour c = LineColor (Last (fromAlphaColour c))
 
 getLineColor :: LineColor -> SomeColor
 getLineColor (LineColor (Last c)) = c
@@ -492,6 +493,7 @@ instance AttributeClass FillColor
 
 instance Color FillColor where
   toAlphaColour (FillColor c) = toAlphaColour . getLast . getRecommend $ c
+  fromAlphaColour c = FillColor (Recommend (Last (fromAlphaColour c)))
 
 instance Default FillColor where
   def = FillColor (Recommend (Last (SomeColor (transparent :: AlphaColour Double))))

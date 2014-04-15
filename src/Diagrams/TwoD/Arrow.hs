@@ -109,7 +109,6 @@ import           Data.Semigroup
 import           Data.VectorSpace
 
 import           Data.Colour              hiding (atop)
-import           Diagrams.Attributes
 import           Diagrams.Core
 import           Diagrams.Core.Types      (QDiaLeaf (..), mkQD')
 
@@ -120,7 +119,6 @@ import           Diagrams.Solve           (quadForm)
 import           Diagrams.Tangent         (tangentAtEnd, tangentAtStart)
 import           Diagrams.Trail
 import           Diagrams.Attributes
-import           Diagrams.TwoD.Attributes
 import           Diagrams.TwoD.Arrowheads
 import           Diagrams.TwoD.Attributes
 import           Diagrams.TwoD.Path       (stroke, strokeT)
