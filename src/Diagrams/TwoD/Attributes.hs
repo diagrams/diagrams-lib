@@ -345,7 +345,7 @@ mkLinearGradient stops  start end spreadMethod
   = LG (LGradient stops start end (scaling 1) spreadMethod)
 
 -- | Make a radial gradient texture from a stop list, radius, start point,
---   end point, and 'SpreadMethod'. The 'lGradTrans' field is set to the identity
+--   end point, and 'SpreadMethod'. The 'rGradTrans' field is set to the identity
 --   transfrom, to change it use the 'rGradTrans' lens.
 mkRadialGradient :: [GradientStop] -> P2 -> Double
                   -> P2 -> Double -> SpreadMethod -> Texture
