@@ -247,14 +247,12 @@ lGradStops :: Lens' LGradient [GradientStop]
 --   to the gradient.
 lGradTrans :: Lens' LGradient T2
 
--- | The starting point for the first gradient stop. Values for the coordinates
---   between 0 and 1 are inside of the object to which the gradient is applied.
---   The default is (0,0).
+-- | The starting point for the first gradient stop. The coordinates are in
+--   'Local' units and the default is (-0.5, 0).
 lGradStart :: Lens' LGradient P2
 
--- | The ending point for the last gradient stop. Values for the coordinates
---   between 0 and 1 are inside of the object to which the gradient is applied.
---   The default is (1,0), that is the gradient runs from left to right.
+-- | The ending point for the last gradient stop.The coordinates are in
+--   'Local' units and the default is (0.5, 0).
 lGradEnd :: Lens' LGradient P2
 
 -- | For setting the spread method.
@@ -278,10 +276,10 @@ rGradStops :: Lens' RGradient [GradientStop]
 -- | The center point of the inner circle.
 rGradCenter0 :: Lens' RGradient P2
 
--- | The radius of the inner cirlce.
+-- | The radius of the inner cirlce in 'Local' coordinates.
 rGradRadius0 :: Lens' RGradient Double
 
--- | The center of the outer circle.
+-- | The center of the outer circle in 'Local' coordinates.
 rGradCenter1  :: Lens' RGradient P2
 
 -- | The radius of the outer circle.
@@ -311,8 +309,8 @@ makePrisms ''Texture
 defaultLG :: Texture
 defaultLG = LG (LGradient
     { _lGradStops        = []
-    , _lGradStart        = mkP2 0 0
-    , _lGradEnd          = mkP2 1 0
+    , _lGradStart        = mkP2 (-0.5) 0
+    , _lGradEnd          = mkP2 (0.5)  0
     , _lGradTrans        = mempty
     , _lGradSpreadMethod = GradPad
     })
