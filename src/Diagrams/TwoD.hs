@@ -77,7 +77,6 @@ module Diagrams.TwoD
        , strokeLocTrail, strokeLocT, strokeLocLine, strokeLocLoop
        , FillRule(..), fillRule
        , StrokeOpts(..), vertexNames, queryFillRule
-       , splitFills
 
          -- ** Clipping
        , clipBy, clipTo, clipped

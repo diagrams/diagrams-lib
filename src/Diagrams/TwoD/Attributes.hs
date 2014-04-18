@@ -279,10 +279,10 @@ rGradCenter0 :: Lens' RGradient P2
 -- | The radius of the inner cirlce in 'Local' coordinates.
 rGradRadius0 :: Lens' RGradient Double
 
--- | The center of the outer circle in 'Local' coordinates.
+-- | The center of the outer circle.
 rGradCenter1  :: Lens' RGradient P2
 
--- | The radius of the outer circle.
+-- | The radius of the outer circle in 'Local' coordinates.
 rGradRadius1 :: Lens' RGradient Double
 
 -- | A transformation to be applied to the gradient. Usually this field will
@@ -295,8 +295,7 @@ rGradSpreadMethod :: Lens' RGradient SpreadMethod
 
 -- | A Texture is either a color 'SC', linear gradient 'LG', or radial gradient 'RG'.
 --   An object can have only one texture which is determined by the 'Last'
---   semigroup structure. The prisms '_SC', '_LG', '_RG' can be used as setters
---   for a texture.
+--   semigroup structure.
 data Texture = SC SomeColor | LG LGradient | RG RGradient
   deriving (Typeable)
 
@@ -333,14 +332,14 @@ defaultRG = RG (RGradient
 -- | A convenient function for making gradient stops from a list of triples.
 --   (An opaque color, a stop fraction, an opacity).
 mkStops :: [(Colour Double, Double, Double)] -> [GradientStop]
-mkStops s = map (\(x, y, z) -> GradientStop (SomeColor (withOpacity x z)) y) s
+mkStops = map (\(x, y, z) -> GradientStop (SomeColor (withOpacity x z)) y)
 
 -- | Make a linear gradient texture from a stop list, start point, end point,
 --   and 'SpreadMethod'. The 'lGradTrans' field is set to the identity
 --   transfrom, to change it use the 'lGradTrans' lens.
 mkLinearGradient :: [GradientStop]  -> P2 -> P2 -> SpreadMethod -> Texture
 mkLinearGradient stops  start end spreadMethod
-  = LG (LGradient stops start end (scaling 1) spreadMethod)
+  = LG (LGradient stops start end mempty spreadMethod)
 
 -- | Make a radial gradient texture from a stop list, radius, start point,
 --   end point, and 'SpreadMethod'. The 'rGradTrans' field is set to the identity
@@ -350,7 +349,7 @@ mkRadialGradient :: [GradientStop] -> P2 -> Double
 mkRadialGradient stops c0 r0 c1 r1 spreadMethod
   = RG (RGradient stops c0 r0 c1 r1 mempty spreadMethod)
 
--- | The texture which lines are drawn.  Note that child
+-- | The texture with which lines are drawn.  Note that child
 --   textures always override parent textures.
 --   More precisely, the semigroup structure on line texture attributes
 --   is that of 'Last'.
@@ -453,7 +452,7 @@ lineLGradient g = lineTexture (LG g)
 lineRGradient :: (HasStyle a, V a ~ R2) => RGradient -> a -> a
 lineRGradient g = lineTexture (RG g)
 
--- | The texture which objects are filled.
+-- | The texture with which objects are filled.
 --   The semigroup structure on fill texture attributes
 --   is that of 'Recommed . Last'.
 newtype FillTexture = FillTexture (Recommend (Last Texture))
