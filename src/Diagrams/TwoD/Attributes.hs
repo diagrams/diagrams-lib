@@ -63,7 +63,7 @@ module Diagrams.TwoD.Attributes (
   , mkFillColor, styleFillColor
 
   -- * Compilation utilities
-  , splitFills
+  , splitColorFills, splitTextureFills
 
   ) where
 
@@ -547,11 +547,11 @@ fcA :: (HasStyle a, V a ~ R2) => AlphaColour Double -> a -> a
 fcA = fillColor
 ------------------------------------------------------------
 
-data FillLoops v = FillLoops
+data FillColorLoops v = FillColorLoops
 
-instance Typeable v => SplitAttribute (FillLoops v) where
-  type AttrType (FillLoops v) = FillColor
-  type PrimType (FillLoops v) = Path v
+instance Typeable v => SplitAttribute (FillColorLoops v) where
+  type AttrType (FillColorLoops v) = FillColor
+  type PrimType (FillColorLoops v) = Path v
 
   primOK _ = all (isLoop . unLoc) . pathTrails
 
@@ -561,5 +561,22 @@ instance Typeable v => SplitAttribute (FillLoops v) where
 --   applied to lines/non-closed paths as well as loops/closed paths,
 --   whereas in the semantics of diagrams, fill attributes only apply
 --   to loops.
-splitFills :: forall b v a. Typeable v => RTree b v a -> RTree b v a
-splitFills = splitAttr (FillLoops :: FillLoops v)
+splitColorFills :: forall b v a. Typeable v => RTree b v a -> RTree b v a
+splitColorFills = splitAttr (FillColorLoops :: FillColorLoops v)
+
+data FillTextureLoops v = FillTextureLoops
+
+instance Typeable v => SplitAttribute (FillTextureLoops v) where
+  type AttrType (FillTextureLoops v) = FillTexture
+  type PrimType (FillTextureLoops v) = Path v
+
+  primOK _ = all (isLoop . unLoc) . pathTrails
+
+-- | Push fill attributes down until they are at the root of subtrees
+--   containing only loops. This makes life much easier for backends,
+--   which typically have a semantics where fill attributes are
+--   applied to lines/non-closed paths as well as loops/closed paths,
+--   whereas in the semantics of diagrams, fill attributes only apply
+--   to loops.
+splitTextureFills :: forall b v a. Typeable v => RTree b v a -> RTree b v a
+splitTextureFills = splitAttr (FillTextureLoops :: FillTextureLoops v)
