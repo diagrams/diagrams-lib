@@ -29,12 +29,6 @@ module Diagrams.Attributes (
 
     Color(..), SomeColor(..), someToAlpha
 
-  -- ** Line color
-  , LineColor, getLineColor, mkLineColor, styleLineColor, lineColor, lineColorA, lc, lcA
-
-  -- ** Fill color
-  , FillColor, getFillColor, mkFillColor, styleFillColor, recommendFillColor, fillColor, fc, fcA
-
   -- ** Opacity
   , Opacity, getOpacity, opacity
 
@@ -51,28 +45,17 @@ module Diagrams.Attributes (
   -- ** Miter limit
   , LineMiterLimit(..), getLineMiterLimit, lineMiterLimit, lineMiterLimitA
 
-  -- * Compilation utilities
-  , splitFills
-
   ) where
 
-import           Control.Lens                (Setter, sets)
 import           Data.Colour
 import           Data.Colour.RGBSpace        (RGB (..))
 import           Data.Colour.SRGB            (toSRGB)
 import           Data.Default.Class
-import           Data.Maybe                  (fromMaybe)
-import           Data.Monoid.Recommend
+
 import           Data.Semigroup
 import           Data.Typeable
 
-import           Diagrams.Attributes.Compile
 import           Diagrams.Core
-import           Diagrams.Core.Style         (setAttr)
-import           Diagrams.Core.Types         (RTree)
-import           Diagrams.Located            (unLoc)
-import           Diagrams.Path               (Path, pathTrails)
-import           Diagrams.Trail              (isLoop)
 
 ------------------------------------------------------------
 --  Color  -------------------------------------------------
@@ -106,110 +89,6 @@ data SomeColor = forall c. Color c => SomeColor c
 someToAlpha :: SomeColor -> AlphaColour Double
 someToAlpha (SomeColor c) = toAlphaColour c
 
--- | The color with which lines (strokes) are drawn.  Note that child
---   colors always override parent colors; that is, @'lineColor' c1
---   . 'lineColor' c2 $ d@ is equivalent to @'lineColor' c2 $ d@.
---   More precisely, the semigroup structure on line color attributes
---   is that of 'Last'.
-newtype LineColor = LineColor (Last SomeColor)
-  deriving (Typeable, Semigroup)
-instance AttributeClass LineColor
-
-instance Default LineColor where
-    def = LineColor (Last (SomeColor (black :: Colour Double)))
-
-getLineColor :: LineColor -> SomeColor
-getLineColor (LineColor (Last c)) = c
-
-mkLineColor :: Color c => c -> LineColor
-mkLineColor = LineColor . Last . SomeColor
-
-styleLineColor :: (Color c, Color c') => Setter (Style v) (Style v) c c'
-styleLineColor = sets modifyLineColor
-  where
-    modifyLineColor f s
-      = flip setAttr s
-      . mkLineColor
-      . f
-      . fromAlphaColour . someToAlpha
-      . getLineColor
-      . fromMaybe def . getAttr
-      $ s
-
--- | Set the line (stroke) color.  This function is polymorphic in the
---   color type (so it can be used with either 'Colour' or
---   'AlphaColour'), but this can sometimes create problems for type
---   inference, so the 'lc' and 'lcA' variants are provided with more
---   concrete types.
-lineColor :: (Color c, HasStyle a) => c -> a -> a
-lineColor = applyAttr . mkLineColor
-
--- | Apply a 'lineColor' attribute.
-lineColorA :: HasStyle a => LineColor -> a -> a
-lineColorA = applyAttr
-
--- | A synonym for 'lineColor', specialized to @'Colour' Double@
---   (i.e. opaque colors).
-lc :: HasStyle a => Colour Double -> a -> a
-lc = lineColor
-
--- | A synonym for 'lineColor', specialized to @'AlphaColour' Double@
---   (i.e. colors with transparency).
-lcA :: HasStyle a => AlphaColour Double -> a -> a
-lcA = lineColor
-
--- | The color with which shapes are filled. Note that child
---   colors always override parent colors; that is, @'fillColor' c1
---   . 'fillColor' c2 $ d@ is equivalent to @'lineColor' c2 $ d@.
---   More precisely, the semigroup structure on fill color attributes
---   is that of 'Last'.
-newtype FillColor = FillColor (Recommend (Last SomeColor))
-  deriving (Typeable, Semigroup)
-instance AttributeClass FillColor
-
-instance Default FillColor where
-  def = FillColor (Recommend (Last (SomeColor (transparent :: AlphaColour Double))))
-
-mkFillColor :: Color c => c -> FillColor
-mkFillColor = FillColor . Commit . Last . SomeColor
-
-styleFillColor :: (Color c, Color c') => Setter (Style v) (Style v) c c'
-styleFillColor = sets modifyFillColor
-  where
-    modifyFillColor f s
-      = flip setAttr s
-      . mkFillColor
-      . f
-      . fromAlphaColour . someToAlpha
-      . getFillColor
-      . fromMaybe def . getAttr
-      $ s
-
--- | Set the fill color.  This function is polymorphic in the color
---   type (so it can be used with either 'Colour' or 'AlphaColour'),
---   but this can sometimes create problems for type inference, so the
---   'fc' and 'fcA' variants are provided with more concrete types.
-fillColor :: (Color c, HasStyle a) => c -> a -> a
-fillColor = applyAttr . mkFillColor
-
--- | Set a \"recommended\" fill color, to be used only if no explicit
---   calls to 'fillColor' (or 'fc', or 'fcA') are used.
-recommendFillColor :: (Color c, HasStyle a) => c -> a -> a
-recommendFillColor = applyAttr . FillColor . Recommend . Last . SomeColor
-
-getFillColor :: FillColor -> SomeColor
-getFillColor (FillColor c) = getLast . getRecommend $ c
-
--- | A synonym for 'fillColor', specialized to @'Colour' Double@
---   (i.e. opaque colors).
-fc :: HasStyle a => Colour Double -> a -> a
-fc = fillColor
-
--- | A synonym for 'fillColor', specialized to @'AlphaColour' Double@
---   (i.e. colors with transparency).
-fcA :: HasStyle a => AlphaColour Double -> a -> a
-fcA = fillColor
-
 instance (Floating a, Real a) => Color (Colour a) where
   toAlphaColour   = opaque . colourConvert
   fromAlphaColour = colourConvert . (`over` black)
@@ -221,14 +100,6 @@ instance (Floating a, Real a) => Color (AlphaColour a) where
 instance Color SomeColor where
   toAlphaColour (SomeColor c) = toAlphaColour c
   fromAlphaColour c = SomeColor c
-
-instance Color LineColor where
-  toAlphaColour (LineColor c) = toAlphaColour . getLast $ c
-  fromAlphaColour = LineColor . Last . fromAlphaColour
-
-instance Color FillColor where
-  toAlphaColour (FillColor c) = toAlphaColour . getLast . getRecommend $ c
-  fromAlphaColour = FillColor . Commit . Last . fromAlphaColour
 
 -- | Convert to sRGBA.
 colorToSRGBA, colorToRGBA :: Color c => c -> (Double, Double, Double, Double)
@@ -339,21 +210,3 @@ lineMiterLimit = applyAttr . LineMiterLimit . Last
 -- | Apply a 'LineMiterLimit' attribute.
 lineMiterLimitA :: HasStyle a => LineMiterLimit -> a -> a
 lineMiterLimitA = applyAttr
-------------------------------------------------------------
-
-data FillLoops v = FillLoops
-
-instance Typeable v => SplitAttribute (FillLoops v) where
-  type AttrType (FillLoops v) = FillColor
-  type PrimType (FillLoops v) = Path v
-
-  primOK _ = all (isLoop . unLoc) . pathTrails
-
--- | Push fill attributes down until they are at the root of subtrees
---   containing only loops. This makes life much easier for backends,
---   which typically have a semantics where fill attributes are
---   applied to lines/non-closed paths as well as loops/closed paths,
---   whereas in the semantics of diagrams, fill attributes only apply
---   to loops.
-splitFills :: forall b v a. Typeable v => RTree b v a -> RTree b v a
-splitFills = splitAttr (FillLoops :: FillLoops v)

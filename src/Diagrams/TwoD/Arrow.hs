@@ -109,7 +109,6 @@ import           Data.Semigroup
 import           Data.VectorSpace
 
 import           Data.Colour              hiding (atop)
-import           Diagrams.Attributes
 import           Diagrams.Core
 import           Diagrams.Core.Types      (QDiaLeaf (..), mkQD')
 
@@ -119,6 +118,7 @@ import           Diagrams.Path
 import           Diagrams.Solve           (quadForm)
 import           Diagrams.Tangent         (tangentAtEnd, tangentAtStart)
 import           Diagrams.Trail
+import           Diagrams.Attributes
 import           Diagrams.TwoD.Arrowheads
 import           Diagrams.TwoD.Attributes
 import           Diagrams.TwoD.Path       (stroke, strokeT)
@@ -263,7 +263,7 @@ xWidth p = a + b
     b = fromMaybe 0 (magnitude <$> traceV origin unit_X p)
 
 -- | Get the line color from the shaft to use as the fill color for the joint.
-colorJoint :: Style v -> Style v
+colorJoint :: Style R2 -> Style R2
 colorJoint sStyle =
     let c = fmap getLineColor . getAttr $ sStyle in
     case c of

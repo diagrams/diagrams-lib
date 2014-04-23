@@ -237,6 +237,22 @@ module Diagrams.TwoD
          -- ** Adjusting size
        , sized, sizedAs
 
+        -- * Textures
+      , Texture(..), SpreadMethod(..), GradientStop(..), mkStops, getFillTexture
+      , fillTexture, getLineTexture, lineTexture, lineTextureA
+      , stopFraction, stopColor
+
+      , LGradient(..), lGradStops, lGradTrans, lGradStart, lGradEnd
+      , lGradSpreadMethod, defaultLG, _LG, mkLinearGradient
+
+      , RGradient(..)
+      , rGradStops, rGradCenter0, rGradRadius0, rGradCenter1, rGradRadius1
+      , rGradTrans, rGradSpreadMethod, defaultRG, _RG, mkRadialGradient
+
+        -- ** Colors
+      , fillColor, fc, fcA, recommendFillColor, getFillColor
+      , lineColor, lc, lcA, lineColorA, getLineColor
+
        -- ** Width
        , LineWidth, getLineWidth, lineWidth, lineWidthA
        , lw, lwN, lwO, lwL, lwG
