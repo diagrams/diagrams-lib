@@ -113,7 +113,6 @@ import           Diagrams.Core
 import           Diagrams.Core.Types      (QDiaLeaf (..), mkQD')
 
 import           Diagrams.Angle
-import           Diagrams.Combinators     (withEnvelope)
 import           Diagrams.Parametric
 import           Diagrams.Path
 import           Diagrams.Solve           (quadForm)
