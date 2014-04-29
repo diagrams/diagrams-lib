@@ -50,6 +50,7 @@ module Diagrams.TwoD.Attributes (
 
   -- ** Line texture
   ,  LineTexture(..), getLineTexture, lineTexture, lineTextureA
+  ,  mkLineTexture, styleLineTexture
 
   -- ** Line color
   , LineColor, lineColor, getLineColor, lc, lcA, lineColorA
@@ -57,6 +58,7 @@ module Diagrams.TwoD.Attributes (
 
   -- ** Fill texture
   , FillTexture(..), getFillTexture, fillTexture
+  , mkFillTexture, styleFillTexture
 
   -- ** Fill color
   , FillColor, fillColor, getFillColor, fc, fcA, recommendFillColor
@@ -381,6 +383,20 @@ lineTexture = applyTAttr . LineTexture . Last
 lineTextureA :: (HasStyle a, V a ~ R2) => LineTexture -> a -> a
 lineTextureA = applyTAttr
 
+mkLineTexture :: Texture  -> LineTexture
+mkLineTexture = LineTexture . Last
+
+styleLineTexture :: Setter (Style v) (Style v) Texture Texture
+styleLineTexture = sets modifyLineTexture
+  where
+    modifyLineTexture f s
+      = flip setAttr s
+      . mkLineTexture
+      . f
+      . getLineTexture
+      . fromMaybe def . getAttr
+      $ s
+
 -- | The color with which lines (strokes) are drawn.  Note that child
 --   colors always override parent colors; that is, @'lineColor' c1
 --   . 'lineColor' c2 $ d@ is equivalent to @'lineColor' c2 $ d@.
@@ -473,11 +489,29 @@ instance Transformable FillTexture where
       rgt = _RG . rGradTrans %~ f
       f = transform t
 
+instance Default FillTexture where
+    def = FillTexture (Recommend (Last (SC
+                      (SomeColor (transparent :: AlphaColour Double)))))
+
 getFillTexture :: FillTexture -> Texture
 getFillTexture (FillTexture tx) = getLast . getRecommend $ tx
 
 fillTexture :: (HasStyle a, V a ~ R2) => Texture -> a -> a
 fillTexture = applyTAttr . FillTexture . Commit . Last
+
+mkFillTexture :: Texture  -> FillTexture
+mkFillTexture = FillTexture . Commit . Last
+
+styleFillTexture :: Setter (Style v) (Style v) Texture Texture
+styleFillTexture = sets modifyFillTexture
+  where
+    modifyFillTexture f s
+      = flip setAttr s
+      . mkFillTexture
+      . f
+      . getFillTexture
+      . fromMaybe def . getAttr
+      $ s
 
 -- | The color with which shapes are filled. Note that child
 --   colors always override parent colors; that is, @'fillColor' c1

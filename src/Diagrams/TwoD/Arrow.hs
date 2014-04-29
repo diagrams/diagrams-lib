@@ -81,12 +81,15 @@ module Diagrams.TwoD.Arrow
        , tailGap
        , gaps, gap
        , headColor
+       , headTexture
        , headStyle
        , headSize
        , tailColor
+       , tailTexture
        , tailStyle
        , tailSize
        , shaftColor
+       , shaftTexture
        , shaftStyle
        , straightShaft
 
@@ -234,6 +237,21 @@ tailColor = tailStyle . styleFillColor
 --   shaft. See 'headColor'.
 shaftColor :: Color c => Setter' ArrowOpts c
 shaftColor = shaftStyle . styleLineColor
+
+-- | A lens for setting or modifying the texture of an arrow
+--   head.
+headTexture :: Setter' ArrowOpts Texture
+headTexture = headStyle . styleFillTexture
+
+-- | A lens for setting or modifying the texture of an arrow
+--   tail.
+tailTexture :: Setter' ArrowOpts Texture
+tailTexture = tailStyle . styleFillTexture
+
+-- | A lens for setting or modifying the texture of an arrow
+--   shaft.
+shaftTexture :: Setter' ArrowOpts Texture
+shaftTexture = shaftStyle . styleLineTexture
 
 -- Set the default shaft style of an `ArrowOpts` record by applying the
 -- default style after all other styles have been applied.
