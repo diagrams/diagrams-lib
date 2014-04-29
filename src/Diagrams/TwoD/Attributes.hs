@@ -50,12 +50,14 @@ module Diagrams.TwoD.Attributes (
 
   -- ** Line texture
   ,  LineTexture(..), getLineTexture, lineTexture, lineTextureA
+  ,  mkLineTexture, styleLineTexture
 
   -- ** Line color
   , lineColor, lc, lcA
 
   -- ** Fill texture
   , FillTexture(..), getFillTexture, fillTexture
+  , mkFillTexture, styleFillTexture
 
   -- ** Fill color
   , fillColor, fc, fcA, recommendFillColor
@@ -379,6 +381,20 @@ lineTexture = applyTAttr . LineTexture . Last
 lineTextureA :: (HasStyle a, V a ~ R2) => LineTexture -> a -> a
 lineTextureA = applyTAttr
 
+mkLineTexture :: Texture  -> LineTexture
+mkLineTexture = LineTexture . Last
+
+styleLineTexture :: Setter (Style v) (Style v) Texture Texture
+styleLineTexture = sets modifyLineTexture
+  where
+    modifyLineTexture f s
+      = flip setAttr s
+      . mkLineTexture
+      . f
+      . getLineTexture
+      . fromMaybe def . getAttr
+      $ s
+
 -- | Set the line (stroke) color.  This function is polymorphic in the
 --   color type (so it can be used with either 'Colour' or
 --   'AlphaColour'), but this can sometimes create problems for type
@@ -427,11 +443,29 @@ instance Transformable FillTexture where
       rgt = _RG . rGradTrans %~ f
       f = transform t
 
+instance Default FillTexture where
+    def = FillTexture (Recommend (Last (SC
+                      (SomeColor (transparent :: AlphaColour Double)))))
+
 getFillTexture :: FillTexture -> Texture
 getFillTexture (FillTexture tx) = getLast . getRecommend $ tx
 
 fillTexture :: (HasStyle a, V a ~ R2) => Texture -> a -> a
 fillTexture = applyTAttr . FillTexture . Commit . Last
+
+mkFillTexture :: Texture  -> FillTexture
+mkFillTexture = FillTexture . Commit . Last
+
+styleFillTexture :: Setter (Style v) (Style v) Texture Texture
+styleFillTexture = sets modifyFillTexture
+  where
+    modifyFillTexture f s
+      = flip setAttr s
+      . mkFillTexture
+      . f
+      . getFillTexture
+      . fromMaybe def . getAttr
+      $ s
 
 -- | Set the fill color.  This function is polymorphic in the color
 --   type (so it can be used with either 'Colour' or 'AlphaColour'),

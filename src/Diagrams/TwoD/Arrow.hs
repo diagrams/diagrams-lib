@@ -80,13 +80,16 @@ module Diagrams.TwoD.Arrow
        , headGap
        , tailGap
        , gaps, gap
-       , headColor
+       -- , headColor
+       , headTexture
        , headStyle
        , headSize
-       , tailColor
+       -- , tailColor
+       , tailTexture
        , tailStyle
        , tailSize
-       , shaftColor
+       -- , shaftColor
+       , shaftTexture
        , shaftStyle
        , straightShaft
 
@@ -180,7 +183,9 @@ tailGap :: Lens' ArrowOpts Double
 
 -- | Set both the @headGap@ and @tailGap@ simultaneously.
 gaps :: Traversal' ArrowOpts Double
-gaps f opts = (\h t -> opts & headGap .~ h & tailGap .~ t) <$> f (opts ^. headGap) <*> f (opts ^. tailGap)
+gaps f opts = (\h t -> opts & headGap .~ h & tailGap .~ t)
+        <$> f (opts ^. headGap)
+        <*> f (opts ^. tailGap)
 
 -- | Same as gaps, provided for backward compatiiblity.
 gap :: Traversal' ArrowOpts Double
@@ -222,18 +227,33 @@ tailSize :: Lens' ArrowOpts (Measure R2)
 --   opacity to a color, as in @... (with & headColor %~
 --   (\`withOpacity\` 0.5))@.  If you want the more general type, you
 --   can use @'headStyle' . 'styleFillColor'@ in place of @headColor@.
-headColor :: Color c => Setter' ArrowOpts c
-headColor = undefined --headStyle . styleFillColor
+--headColor :: Color c => Setter' ArrowOpts c
+--headColor = headStyle . styleFillColor
 
 -- | A lens for setting or modifying the color of an arrow
 --   tail. See 'headColor'.
-tailColor :: Color c => Setter' ArrowOpts c
-tailColor = undefined --tailStyle . styleFillColor
+--tailColor :: Color c => Setter' ArrowOpts c
+--tailColor = tailStyle . styleFillColor
 
 -- | A lens for setting or modifying the color of an arrow
 --   shaft. See 'headColor'.
-shaftColor :: Color c => Setter' ArrowOpts c
-shaftColor = undefined --shaftStyle . styleLineColor
+--shaftColor :: Color c => Setter' ArrowOpts c
+--shaftColor = shaftStyle . styleLineColor
+
+-- | A lens for setting or modifying the texture of an arrow
+--   head.
+headTexture :: Setter' ArrowOpts Texture
+headTexture = headStyle . styleFillTexture
+
+-- | A lens for setting or modifying the texture of an arrow
+--   tail.
+tailTexture :: Setter' ArrowOpts Texture
+tailTexture = tailStyle . styleFillTexture
+
+-- | A lens for setting or modifying the texture of an arrow
+--   shaft.
+shaftTexture :: Setter' ArrowOpts Texture
+shaftTexture = shaftStyle . styleLineTexture
 
 -- Set the default shaft style of an `ArrowOpts` record by applying the
 -- default style after all other styles have been applied.
@@ -348,6 +368,16 @@ scaleFactor tr tw hw t
     hv = hw *^ (tangentAtEnd   tr # normalized)
     v  = trailOffset tr
 
+-- Calculate the approximate envelope of a horizontal arrow
+-- as if the arrow were made only of a shaft.
+arrowEnv :: ArrowOpts -> Double -> Envelope R2
+arrowEnv opts len = getEnvelope horizShaft
+  where
+    horizShaft = shaft # rotate (negateV direction v) # scale (len / m)
+    m = magnitude v
+    v = trailOffset shaft
+    shaft = opts ^. arrowShaft
+
 -- | @arrow len@ creates an arrow of length @len@ with default
 --   parameters, starting at the origin and ending at the point
 --   @(len,0)@.
@@ -362,7 +392,7 @@ arrow' :: Renderable (Path R2) b => ArrowOpts -> Double -> Diagram b R2
 arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
 
       -- Currently arrows have an empty envelope and trace.
-      mempty mempty mempty mempty
+      (arrowEnv opts len) mempty mempty mempty
 
   where
 
@@ -466,7 +496,8 @@ arrowAt s v = arrowAt' def s v
 arrowAt'
   :: Renderable (Path R2) b =>
      ArrowOpts -> P2 -> R2 -> Diagram b R2
-arrowAt' opts s v = arrow' opts len # rotate dir # moveTo s
+arrowAt' opts s v = arrow' opts len
+                  # rotate dir # moveTo s
   where
     len = magnitude v
     dir = direction v

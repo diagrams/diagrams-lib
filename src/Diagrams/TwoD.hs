@@ -147,11 +147,11 @@ module Diagrams.TwoD
        , headGap
        , tailGap
        , gaps, gap
-       , headColor
+       , headTexture
        , headStyle
-       , tailColor
+       , tailTexture
        , tailStyle
-       , shaftColor
+       , shaftTexture
        , shaftStyle
        , headSize
        , tailSize
