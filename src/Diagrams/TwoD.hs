@@ -250,8 +250,8 @@ module Diagrams.TwoD
       , rGradTrans, rGradSpreadMethod, defaultRG, _RG, mkRadialGradient
 
         -- ** Colors
-      , fillColor, fc, fcA, recommendFillColor, getFillColor
-      , lineColor, lc, lcA, lineColorA, getLineColor
+      , fillColor, fc, fcA, recommendFillColor
+      , lineColor, lc, lcA
 
        -- ** Width
        , LineWidth, getLineWidth, lineWidth, lineWidthA

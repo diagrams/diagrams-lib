@@ -223,17 +223,17 @@ tailSize :: Lens' ArrowOpts (Measure R2)
 --   (\`withOpacity\` 0.5))@.  If you want the more general type, you
 --   can use @'headStyle' . 'styleFillColor'@ in place of @headColor@.
 headColor :: Color c => Setter' ArrowOpts c
-headColor = headStyle . styleFillColor
+headColor = undefined --headStyle . styleFillColor
 
 -- | A lens for setting or modifying the color of an arrow
 --   tail. See 'headColor'.
 tailColor :: Color c => Setter' ArrowOpts c
-tailColor = tailStyle . styleFillColor
+tailColor = undefined --tailStyle . styleFillColor
 
 -- | A lens for setting or modifying the color of an arrow
 --   shaft. See 'headColor'.
 shaftColor :: Color c => Setter' ArrowOpts c
-shaftColor = shaftStyle . styleLineColor
+shaftColor = undefined --shaftStyle . styleLineColor
 
 -- Set the default shaft style of an `ArrowOpts` record by applying the
 -- default style after all other styles have been applied.
@@ -265,11 +265,11 @@ xWidth p = a + b
 -- | Get the line color from the shaft to use as the fill color for the joint.
 colorJoint :: Style R2 -> Style R2
 colorJoint sStyle =
-    let c = fmap getLineColor . getAttr $ sStyle in
+    let c = fmap getLineTexture . getAttr $ sStyle in
     case c of
         Nothing -> fillColor (black :: Colour Double)   -- default color for joints
                    $ mempty
-        Just c' -> fillColor c' $ mempty
+        Just t -> fillTexture t $ mempty
 
 -- | Get line width from a style.
 widthOfJoint :: Style v -> Double -> Double  -> Double
@@ -392,11 +392,11 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
         -- Use the existing line color for head, tail, and shaft by
         -- default (can be overridden by explicitly setting headStyle,
         -- tailStyle, or shaftStyle).
-        globalLC = getLineColor <$> getAttr sty
+        globalLC = getLineTexture <$> getAttr sty
         opts' = opts
-          & headStyle  %~ maybe id fillColor globalLC
-          & tailStyle  %~ maybe id fillColor globalLC
-          & shaftStyle %~ maybe id lineColor globalLC
+          & headStyle  %~ maybe id fillTexture globalLC
+          & tailStyle  %~ maybe id fillTexture globalLC
+          & shaftStyle %~ maybe id lineTexture globalLC
 
         -- The head size is obtained from the style and converted to output
         -- units.

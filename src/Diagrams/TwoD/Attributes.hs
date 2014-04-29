@@ -52,18 +52,16 @@ module Diagrams.TwoD.Attributes (
   ,  LineTexture(..), getLineTexture, lineTexture, lineTextureA
 
   -- ** Line color
-  , LineColor, lineColor, getLineColor, lc, lcA, lineColorA
-  , mkLineColor, styleLineColor
+  , lineColor, lc, lcA
 
   -- ** Fill texture
   , FillTexture(..), getFillTexture, fillTexture
 
   -- ** Fill color
-  , FillColor, fillColor, getFillColor, fc, fcA, recommendFillColor
-  , mkFillColor, styleFillColor
+  , fillColor, fc, fcA, recommendFillColor
 
   -- * Compilation utilities
-  , splitColorFills, splitTextureFills
+  , splitTextureFills
 
   ) where
 
@@ -381,57 +379,13 @@ lineTexture = applyTAttr . LineTexture . Last
 lineTextureA :: (HasStyle a, V a ~ R2) => LineTexture -> a -> a
 lineTextureA = applyTAttr
 
--- | The color with which lines (strokes) are drawn.  Note that child
---   colors always override parent colors; that is, @'lineColor' c1
---   . 'lineColor' c2 $ d@ is equivalent to @'lineColor' c2 $ d@.
---   More precisely, the semigroup structure on line color attributes
---   is that of 'Last'.
-newtype LineColor = LineColor (Last SomeColor)
-  deriving (Typeable, Semigroup)
-instance AttributeClass LineColor
-
-instance Default LineColor where
-    def = LineColor (Last (SomeColor (black :: Colour Double)))
-
-instance Color LineColor where
-  toAlphaColour (LineColor (Last c)) = toAlphaColour c
-  fromAlphaColour c = LineColor (Last (fromAlphaColour c))
-
-getLineColor :: LineColor -> SomeColor
-getLineColor (LineColor (Last c)) = c
-
-mkLineColor :: Color c => c -> LineColor
-mkLineColor = LineColor . Last . SomeColor
-
-styleLineColor :: (Color c, Color c') => Setter (Style v) (Style v) c c'
-styleLineColor = sets modifyLineColor
-  where
-    modifyLineColor f s
-      = flip setAttr s
-      . mkLineColor
-      . f
-      . fromAlphaColour . someToAlpha
-      . getLineColor
-      . fromMaybe def . getAttr
-      $ s
-
 -- | Set the line (stroke) color.  This function is polymorphic in the
 --   color type (so it can be used with either 'Colour' or
 --   'AlphaColour'), but this can sometimes create problems for type
 --   inference, so the 'lc' and 'lcA' variants are provided with more
---   concrete types. 'lineColor' adds both a texture attribute and a
---   color attribute to the style so that backends that don't support gradients
---   don't need to worry about them. It is important that backends only implement
---   one or the other.
+--   concrete types.
 lineColor :: (Color c, HasStyle a, V a ~ R2) => c -> a -> a
-lineColor c = (lTx c) . (lCl c)
-  where
-    lTx x = lineTexture (SC (SomeColor x))
-    lCl = applyAttr . LineColor . Last . SomeColor
-
--- | Apply a 'lineColor' attribute. See comment in 'lineColor' about backends.
-lineColorA :: HasStyle a => LineColor -> a -> a
-lineColorA = applyAttr
+lineColor = lineTexture . SC . SomeColor
 
 -- | A synonym for 'lineColor', specialized to @'Colour' Double@
 --   (i.e. opaque colors).  See comment in 'lineColor' about backends.
@@ -479,62 +433,22 @@ getFillTexture (FillTexture tx) = getLast . getRecommend $ tx
 fillTexture :: (HasStyle a, V a ~ R2) => Texture -> a -> a
 fillTexture = applyTAttr . FillTexture . Commit . Last
 
--- | The color with which shapes are filled. Note that child
---   colors always override parent colors; that is, @'fillColor' c1
---   . 'fillColor' c2 $ d@ is equivalent to @'lineColor' c2 $ d@.
---   More precisely, the semigroup structure on fill color attributes
---   is that of 'Last'.
-newtype FillColor = FillColor (Recommend (Last SomeColor))
-  deriving (Typeable, Semigroup)
-instance AttributeClass FillColor
-
-instance Color FillColor where
-  toAlphaColour (FillColor c) = toAlphaColour . getLast . getRecommend $ c
-  fromAlphaColour c = FillColor (Recommend (Last (fromAlphaColour c)))
-
-instance Default FillColor where
-  def = FillColor (Recommend (Last (SomeColor (transparent :: AlphaColour Double))))
-
-mkFillColor :: Color c => c -> FillColor
-mkFillColor = FillColor . Commit . Last . SomeColor
-
-styleFillColor :: (Color c, Color c') => Setter (Style v) (Style v) c c'
-styleFillColor = sets modifyFillColor
-  where
-    modifyFillColor f s
-      = flip setAttr s
-      . mkFillColor
-      . f
-      . fromAlphaColour . someToAlpha
-      . getFillColor
-      . fromMaybe def . getAttr
-      $ s
-
 -- | Set the fill color.  This function is polymorphic in the color
 --   type (so it can be used with either 'Colour' or 'AlphaColour'),
 --   but this can sometimes create problems for type inference, so the
 --   'fc' and 'fcA' variants are provided with more concrete types.
---   'fillColor' adds both a texture attribute and a
---   color attribute to the style so that backends that don't support gradients
---   don't need to worry about them. It is important that backends only implement
---   one or the other.
 fillColor :: (Color c, HasStyle a, V a ~ R2) => c -> a -> a
-fillColor c = (fTx c) . (fCl c)
-  where
-    fTx x = fillTexture (SC (SomeColor x))
-    fCl  = applyAttr . FillColor . Commit . Last . SomeColor
+fillColor = fillTexture . SC . SomeColor
 
 -- | Set a \"recommended\" fill color, to be used only if no explicit
 --   calls to 'fillColor' (or 'fc', or 'fcA') are used.
 --   See comment after 'fillColor' about backends.
 recommendFillColor :: (Color c, HasStyle a, V a ~ R2) => c -> a -> a
-recommendFillColor c = (fT c) . (fC c)
-  where
-    fT = applyTAttr . FillTexture . Recommend . Last . SC . SomeColor
-    fC = applyAttr . FillColor . Recommend . Last . SomeColor
+recommendFillColor =
+  applyTAttr . FillTexture . Recommend . Last . SC . SomeColor
 
-getFillColor :: FillColor -> SomeColor
-getFillColor (FillColor c) = getLast . getRecommend $ c
+--getFillColor :: FillColor -> SomeColor
+--getFillColor (FillColor c) = getLast . getRecommend $ c
 
 -- | A synonym for 'fillColor', specialized to @'Colour' Double@
 --   (i.e. opaque colors). See comment after 'fillColor' about backends.
@@ -546,23 +460,6 @@ fc = fillColor
 fcA :: (HasStyle a, V a ~ R2) => AlphaColour Double -> a -> a
 fcA = fillColor
 ------------------------------------------------------------
-
-data FillColorLoops v = FillColorLoops
-
-instance Typeable v => SplitAttribute (FillColorLoops v) where
-  type AttrType (FillColorLoops v) = FillColor
-  type PrimType (FillColorLoops v) = Path v
-
-  primOK _ = all (isLoop . unLoc) . pathTrails
-
--- | Push fill attributes down until they are at the root of subtrees
---   containing only loops. This makes life much easier for backends,
---   which typically have a semantics where fill attributes are
---   applied to lines/non-closed paths as well as loops/closed paths,
---   whereas in the semantics of diagrams, fill attributes only apply
---   to loops.
-splitColorFills :: forall b v a. Typeable v => RTree b v a -> RTree b v a
-splitColorFills = splitAttr (FillColorLoops :: FillColorLoops v)
 
 data FillTextureLoops v = FillTextureLoops
 
