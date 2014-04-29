@@ -80,15 +80,12 @@ module Diagrams.TwoD.Arrow
        , headGap
        , tailGap
        , gaps, gap
-       -- , headColor
        , headTexture
        , headStyle
        , headSize
-       -- , tailColor
        , tailTexture
        , tailStyle
        , tailSize
-       -- , shaftColor
        , shaftTexture
        , shaftStyle
        , straightShaft
@@ -121,7 +118,6 @@ import           Diagrams.Path
 import           Diagrams.Solve           (quadForm)
 import           Diagrams.Tangent         (tangentAtEnd, tangentAtStart)
 import           Diagrams.Trail
-import           Diagrams.Attributes
 import           Diagrams.TwoD.Arrowheads
 import           Diagrams.TwoD.Attributes
 import           Diagrams.TwoD.Path       (stroke, strokeT)
@@ -240,8 +236,11 @@ tailSize :: Lens' ArrowOpts (Measure R2)
 --shaftColor :: Color c => Setter' ArrowOpts c
 --shaftColor = shaftStyle . styleLineColor
 
--- | A lens for setting or modifying the texture of an arrow
---   head.
+-- | A lens for setting or modifying the texture of an arrowhead. For
+--   example, one may write @... (with & headTexture .~ grad)@ to get an
+--   arrow with a head filled with a gradient, assuming grad has been
+--   defined. For more general control over the style of arrowheads,
+--   see 'headStyle'.
 headTexture :: Setter' ArrowOpts Texture
 headTexture = headStyle . styleFillTexture
 

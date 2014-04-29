@@ -79,7 +79,7 @@ import           Diagrams.Path               (Path, pathTrails)
 import           Diagrams.Trail              (isLoop)
 
 import           Control.Lens ( makeLensesWith, generateSignatures, lensRules
-                              , makePrisms, Lens', (&), (%~), (.~), Setter, sets)
+                              , makePrisms, Lens', (&), (%~), (.~), Setter', sets)
 
 import           Data.Colour hiding (AffineSpace)
 import           Data.Data
@@ -384,7 +384,7 @@ lineTextureA = applyTAttr
 mkLineTexture :: Texture  -> LineTexture
 mkLineTexture = LineTexture . Last
 
-styleLineTexture :: Setter (Style v) (Style v) Texture Texture
+styleLineTexture :: Setter' (Style v) Texture
 styleLineTexture = sets modifyLineTexture
   where
     modifyLineTexture f s
@@ -456,7 +456,7 @@ fillTexture = applyTAttr . FillTexture . Commit . Last
 mkFillTexture :: Texture  -> FillTexture
 mkFillTexture = FillTexture . Commit . Last
 
-styleFillTexture :: Setter (Style v) (Style v) Texture Texture
+styleFillTexture :: Setter' (Style v) Texture
 styleFillTexture = sets modifyFillTexture
   where
     modifyFillTexture f s
