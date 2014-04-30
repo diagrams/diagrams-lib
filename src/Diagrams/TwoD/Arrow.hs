@@ -131,8 +131,8 @@ data ArrowOpts
     { _arrowHead  :: ArrowHT
     , _arrowTail  :: ArrowHT
     , _arrowShaft :: Trail R2
-    , _headGap    :: Double
-    , _tailGap    :: Double
+    , _headGap    :: Measure R2
+    , _tailGap    :: Measure R2
     , _headStyle  :: Style R2
     , _headSize   :: Measure R2
     , _tailStyle  :: Style R2
@@ -149,8 +149,8 @@ instance Default ArrowOpts where
         { _arrowHead    = dart
         , _arrowTail    = noTail
         , _arrowShaft   = straightShaft
-        , _headGap      = 0
-        , _tailGap      = 0
+        , _headGap      = none
+        , _tailGap      = none
 
         -- See note [Default arrow style attributes]
         , _headStyle    = mempty
@@ -172,19 +172,17 @@ arrowTail :: Lens' ArrowOpts ArrowHT
 arrowShaft :: Lens' ArrowOpts (Trail R2)
 
 -- | Distance to leave between the head and the target point.
-headGap :: Lens' ArrowOpts Double
+headGap :: Lens' ArrowOpts (Measure R2)
 
 -- | Distance to leave between the starting point and the tail.
-tailGap :: Lens' ArrowOpts Double
+tailGap :: Lens' ArrowOpts (Measure R2)
 
 -- | Set both the @headGap@ and @tailGap@ simultaneously.
-gaps :: Traversal' ArrowOpts Double
-gaps f opts = (\h t -> opts & headGap .~ h & tailGap .~ t)
-        <$> f (opts ^. headGap)
-        <*> f (opts ^. tailGap)
+gaps :: Traversal' ArrowOpts (Measure R2)
+gaps f opts = (\h t -> opts & headGap .~ h & tailGap .~ t) <$> f (opts ^. headGap) <*> f (opts ^. tailGap)
 
 -- | Same as gaps, provided for backward compatiiblity.
-gap :: Traversal' ArrowOpts Double
+gap :: Traversal' ArrowOpts (Measure R2)
 gap = gaps
 
 -- | Style to apply to the head. @headStyle@ is modified by using the lens
@@ -427,13 +425,12 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
           & tailStyle  %~ maybe id fillTexture globalLC
           & shaftStyle %~ maybe id lineTexture globalLC
 
-        -- The head size is obtained from the style and converted to output
-        -- units.
+        -- The head size, tail size, head gap, and tail gap are obtained
+        -- from the style and converted to output units.
         hSize = fromMeasure gToO nToO (opts ^. headSize)
-
-        -- The tail size is obtained from the style and converted to output
-        -- units.
         tSize = fromMeasure gToO nToO (opts ^. tailSize)
+        hGap = fromMeasure gToO nToO (opts ^. headGap)
+        tGap = fromMeasure gToO nToO (opts ^. tailGap)
 
         -- Make the head and tail and save their widths.
         (h, hWidth') = mkHead hSize opts' gToO nToO
@@ -450,8 +447,8 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
           # transform tr
 
         -- Adjust the head width and tail width to take gaps into account
-        tWidth = tWidth' + opts^.tailGap
-        hWidth = hWidth' + opts^.headGap
+        tWidth = tWidth' + tGap
+        hWidth = hWidth' + hGap
 
         -- Calculate the angles that the head and tail should point.
         tAngle = direction . tangentAtStart $ shaftTrail
