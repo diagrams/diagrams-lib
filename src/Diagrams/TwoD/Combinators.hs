@@ -149,7 +149,7 @@ vcat' = cat' (negateV unitY)
 --   local origin at its center.  If you don't care about the trace
 --   then there's no difference between @strutR2@ and the more general
 --   'strut'.
-strutR2 :: (Backend b R2, Monoid' m) => R2 -> QDiagram R2 m
+strutR2 :: Monoid' m => R2 -> QDiagram R2 m
 strutR2 v = phantom seg
   where
     seg = FLinear (origin .+^ 0.5 *^ v) (origin .+^ (-0.5) *^ v)
@@ -157,13 +157,13 @@ strutR2 v = phantom seg
 -- | @strutX w@ is an empty diagram with width @w@, height 0, and a
 --   centered local origin.  Note that @strutX (-w)@ behaves the same as
 --   @strutX w@.
-strutX :: (Backend b R2, Monoid' m) => Double -> QDiagram R2 m
+strutX :: Monoid' m => Double -> QDiagram R2 m
 strutX d = strut (d ^& 0)
 
 -- | @strutY h@ is an empty diagram with height @h@, width 0, and a
 --   centered local origin. Note that @strutY (-h)@ behaves the same as
 --   @strutY h@.
-strutY :: (Backend b R2, Monoid' m) => Double -> QDiagram R2 m
+strutY :: Monoid' m => Double -> QDiagram R2 m
 strutY d = strut (0 ^& d)
 
 -- | @padX s@ \"pads\" a diagram in the x-direction, expanding its
@@ -173,8 +173,7 @@ strutY d = strut (0 ^& d)
 --   centered horizontally the padding may appear \"uneven\".  If this
 --   is not desired, the origin can be centered (using 'centerX')
 --   before applying @padX@.
-padX :: ( Backend b R2, Monoid' m )
-     => Double -> QDiagram R2 m -> QDiagram R2 m
+padX :: Monoid' m => Double -> QDiagram R2 m -> QDiagram R2 m
 padX s d = withEnvelope (d # scaleX s) d
 
 -- | @padY s@ \"pads\" a diagram in the y-direction, expanding its
@@ -184,8 +183,7 @@ padX s d = withEnvelope (d # scaleX s) d
 --   so if the origin is not centered vertically the padding may appear
 --   \"uneven\".  If this is not desired, the origin can be centered
 --   (using 'centerY') before applying @padY@.
-padY :: ( Backend b R2, Monoid' m )
-     => Double -> QDiagram R2 m -> QDiagram R2 m
+padY :: Monoid' m  => Double -> QDiagram R2 m -> QDiagram R2 m
 padY s d = withEnvelope (d # scaleY s) d
 
 -- | @extrudeLeft s@ \"extrudes\" a diagram in the negative x-direction,
