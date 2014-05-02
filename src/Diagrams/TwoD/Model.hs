@@ -24,7 +24,7 @@ import           Control.Lens          (makeLenses, (^.))
 
 import           Diagrams.Core
 import           Diagrams.TwoD.Attributes
-import           Diagrams.Path
+import           Diagrams.Path         ()
 import           Diagrams.TwoD.Ellipse
 import           Diagrams.TwoD.Path
 import           Diagrams.TwoD.Size    (size2D)

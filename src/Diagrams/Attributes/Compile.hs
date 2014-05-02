@@ -44,7 +44,7 @@ class (AttributeClass (AttrType code), Typeable (PrimType code)) => SplitAttribu
 --   containing only "safe" nodes.  In particular this is used to push
 --   fill attributes down until they are over only loops; see
 --   'splitFills'.
-splitAttr :: forall code b v a. SplitAttribute code => code -> RTree v a -> RTree v a
+splitAttr :: forall code v a. SplitAttribute code => code -> RTree v a -> RTree v a
 splitAttr code = fst . splitAttr' Nothing
   where
 

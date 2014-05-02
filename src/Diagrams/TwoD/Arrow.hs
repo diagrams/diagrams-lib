@@ -117,7 +117,6 @@ import           Diagrams.Core.Types      (QDiaLeaf (..), mkQD')
 
 import           Diagrams.Angle
 import           Diagrams.Parametric
-import           Diagrams.Path
 import           Diagrams.Solve           (quadForm)
 import           Diagrams.Tangent         (tangentAtEnd, tangentAtStart)
 import           Diagrams.Trail
