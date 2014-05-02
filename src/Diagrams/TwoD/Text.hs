@@ -63,13 +63,10 @@ instance Transformable Text where
 instance HasOrigin Text where
   moveOriginTo p = translate (origin .-. p)
 
-instance Renderable Text NullBackend where
-  render _ _ = mempty
-
 -- | @TextAlignment@ specifies the alignment of the text's origin.
 data TextAlignment = BaselineText | BoxAlignedText Double Double
 
-mkText :: Renderable Text b => TextAlignment -> String -> Diagram b R2
+mkText :: TextAlignment -> String -> Diagram R2
 mkText a t = recommendFillColor (black :: Colour Double)
              -- See Note [recommendFillColor]
 
@@ -106,7 +103,7 @@ mkText a t = recommendFillColor (black :: Colour Double)
 --
 --   Note that it /takes up no space/, as text size information is not
 --   available.
-text :: Renderable Text b => String -> Diagram b R2
+text :: String -> Diagram R2
 text = alignedText 0.5 0.5
 
 -- | Create a primitive text diagram from the given string, origin at
@@ -114,7 +111,7 @@ text = alignedText 0.5 0.5
 --   @'alignedText' 0 1@.
 --
 --   Note that it /takes up no space/.
-topLeftText :: Renderable Text b => String -> Diagram b R2
+topLeftText :: String -> Diagram R2
 topLeftText = alignedText 0 1
 
 -- | Create a primitive text diagram from the given string, with the
@@ -126,7 +123,7 @@ topLeftText = alignedText 0 1
 --   and descent, rather than the height of the particular string.
 --
 --   Note that it /takes up no space/.
-alignedText :: Renderable Text b => Double -> Double -> String -> Diagram b R2
+alignedText :: Double -> Double -> String -> Diagram R2
 alignedText w h = mkText (BoxAlignedText w h)
 
 -- | Create a primitive text diagram from the given string, with the
@@ -135,7 +132,7 @@ alignedText w h = mkText (BoxAlignedText w h)
 --   graphics library.
 --
 --   Note that it /takes up no space/.
-baselineText :: Renderable Text b => String -> Diagram b R2
+baselineText :: String -> Diagram R2
 baselineText = mkText BaselineText
 
 ------------------------------------------------------------

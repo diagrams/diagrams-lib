@@ -58,14 +58,12 @@ instance Default OriginOpts where
   def = OriginOpts red (1/50) 0.001
 
 -- | Mark the origin of a diagram by placing a red dot 1/50th its size.
-showOrigin :: (Renderable (Path R2) b, Backend b R2, Monoid' m)
-           => QDiagram b R2 m -> QDiagram b R2 m
+showOrigin :: Monoid' m => QDiagram R2 m -> QDiagram R2 m
 showOrigin = showOrigin' def
 
 -- | Mark the origin of a diagram, with control over colour and scale
 -- of marker dot.
-showOrigin' :: (Renderable (Path R2) b, Backend b R2, Monoid' m)
-           => OriginOpts -> QDiagram b R2 m -> QDiagram b R2 m
+showOrigin' :: Monoid' m => OriginOpts -> QDiagram R2 m -> QDiagram R2 m
 showOrigin' oo d = o <> d
   where o     = stroke (circle sz)
                 # fc (oo^.oColor)
@@ -78,8 +76,7 @@ showOrigin' oo d = o <> d
 -- Labeling named points
 ------------------------------------------------------------
 
-showLabels :: (Renderable Text b, Backend b R2, Semigroup m)
-           => QDiagram b R2 m -> QDiagram b R2 Any
+showLabels :: Semigroup m => QDiagram R2 m -> QDiagram R2 Any
 showLabels d =
              ( mconcat
              . map (\(n,p) -> text (show n) # translate (p .-. origin))

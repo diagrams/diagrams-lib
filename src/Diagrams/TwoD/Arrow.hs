@@ -299,8 +299,7 @@ widthOfJoint sStyle gToO nToO =
 -- | Combine the head and its joint into a single scale invariant diagram
 --   and move the origin to the attachment point. Return the diagram
 --   and its width.
-mkHead :: Renderable (Path R2) b =>
-          Double -> ArrowOpts -> Double -> Double -> (Diagram b R2, Double)
+mkHead :: Double -> ArrowOpts -> Double -> Double -> (Diagram R2, Double)
 mkHead size opts gToO nToO = ((j <> h) # moveOriginBy (jWidth *^ unit_X) # lwO 0
               , hWidth + jWidth)
   where
@@ -312,8 +311,7 @@ mkHead size opts gToO nToO = ((j <> h) # moveOriginBy (jWidth *^ unit_X) # lwO 0
     j = stroke j' # applyStyle (colorJoint (opts^.shaftStyle))
 
 -- | Just like mkHead only the attachment point is on the right.
-mkTail :: Renderable (Path R2) b =>
-          Double -> ArrowOpts -> Double -> Double -> (Diagram b R2, Double)
+mkTail :: Double -> ArrowOpts -> Double -> Double -> (Diagram R2, Double)
 mkTail size opts gToO nToO = ((t <> j) # moveOriginBy (jWidth *^ unitX) # lwO 0
               , tWidth + jWidth)
   where
@@ -379,14 +377,14 @@ arrowEnv opts len = getEnvelope horizShaft
 -- | @arrow len@ creates an arrow of length @len@ with default
 --   parameters, starting at the origin and ending at the point
 --   @(len,0)@.
-arrow :: Renderable (Path R2) b => Double -> Diagram b R2
+arrow :: Double -> Diagram R2
 arrow len = arrow' def len
 
 -- | @arrow' opts len@ creates an arrow of length @len@ using the
 --   given options, starting at the origin and ending at the point
 --   @(len,0)@.  In particular, it scales the given 'arrowShaft' so
 --   that the entire arrow has length @len@.
-arrow' :: Renderable (Path R2) b => ArrowOpts -> Double -> Diagram b R2
+arrow' :: ArrowOpts -> Double -> Diagram R2
 arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
 
       -- Currently arrows have an empty envelope and trace.
@@ -473,7 +471,7 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
 
 -- | @arrowBetween s e@ creates an arrow pointing from @s@ to @e@
 --   with default parameters.
-arrowBetween :: Renderable (Path R2) b => P2 -> P2 -> Diagram b R2
+arrowBetween :: P2 -> P2 -> Diagram R2
 arrowBetween = arrowBetween' def
 
 -- | @arrowBetween' opts s e@ creates an arrow pointing from @s@ to
@@ -481,18 +479,16 @@ arrowBetween = arrowBetween' def
 --   rotates @arrowShaft@ to go between @s@ and @e@, taking head,
 --   tail, and gaps into account.
 arrowBetween'
-  :: Renderable (Path R2) b =>
-     ArrowOpts -> P2 -> P2 -> Diagram b R2
+  :: ArrowOpts -> P2 -> P2 -> Diagram R2
 arrowBetween' opts s e = arrowAt' opts s (e .-. s)
 
 -- | Create an arrow starting at s with length and direction determined by
 --   the vector v.
-arrowAt :: Renderable (Path R2) b => P2 -> R2 -> Diagram b R2
+arrowAt :: P2 -> R2 -> Diagram R2
 arrowAt s v = arrowAt' def s v
 
 arrowAt'
-  :: Renderable (Path R2) b =>
-     ArrowOpts -> P2 -> R2 -> Diagram b R2
+  :: ArrowOpts -> P2 -> R2 -> Diagram R2
 arrowAt' opts s v = arrow' opts len
                   # rotate dir # moveTo s
   where
@@ -502,26 +498,25 @@ arrowAt' opts s v = arrow' opts len
 -- | @arrowV v@ creates an arrow with the direction and magnitude of
 --   the vector @v@ (with its tail at the origin), using default
 --   parameters.
-arrowV :: Renderable (Path R2) b => R2 -> Diagram b R2
+arrowV :: R2 -> Diagram R2
 arrowV = arrowV' def
 
 -- | @arrowV' v@ creates an arrow with the direction and magnitude of
 --   the vector @v@ (with its tail at the origin).
 arrowV'
-  :: Renderable (Path R2) b
-  => ArrowOpts -> R2 -> Diagram b R2
+  :: ArrowOpts -> R2 -> Diagram R2
 arrowV' opts = arrowAt' opts origin
 
 -- | Connect two diagrams with a straight arrow.
 connect
-  :: (Renderable (Path R2) b, IsName n1, IsName n2)
-  => n1 -> n2 -> (Diagram b R2 -> Diagram b R2)
+  :: (IsName n1, IsName n2)
+  => n1 -> n2 -> (Diagram R2 -> Diagram R2)
 connect = connect' def
 
 -- | Connect two diagrams with an arbitrary arrow.
 connect'
-  :: (Renderable (Path R2) b, IsName n1, IsName n2)
-  => ArrowOpts -> n1 -> n2 -> (Diagram b R2 -> Diagram b R2)
+  :: (IsName n1, IsName n2)
+  => ArrowOpts -> n1 -> n2 -> (Diagram R2 -> Diagram R2)
 connect' opts n1 n2 =
   withName n1 $ \sub1 ->
   withName n2 $ \sub2 ->
@@ -531,15 +526,15 @@ connect' opts n1 n2 =
 -- | Connect two diagrams at point on the perimeter of the diagrams, choosen
 --   by angle.
 connectPerim
-  :: (Renderable (Path R2) b, IsName n1, IsName n2)
+  :: (IsName n1, IsName n2)
  => n1 -> n2 -> Angle -> Angle
-  -> (Diagram b R2 -> Diagram b R2)
+  -> (Diagram R2 -> Diagram R2)
 connectPerim = connectPerim' def
 
 connectPerim'
-  :: (Renderable (Path R2) b, IsName n1, IsName n2)
+  :: (IsName n1, IsName n2)
   => ArrowOpts -> n1 -> n2 -> Angle -> Angle
-  -> (Diagram b R2 -> Diagram b R2)
+  -> (Diagram R2 -> Diagram R2)
 connectPerim' opts n1 n2 a1 a2 =
   withName n1 $ \sub1 ->
   withName n2 $ \sub2 ->
@@ -553,13 +548,13 @@ connectPerim' opts n1 n2 a1 a2 =
 --   drawn so that it stops at the boundaries of the diagrams, using traces
 --   to find the intersection points.
 connectOutside
-  :: (Renderable (Path R2) b, IsName n1, IsName n2)
-  => n1 -> n2 -> (Diagram b R2 -> Diagram b R2)
+  :: (IsName n1, IsName n2)
+  => n1 -> n2 -> (Diagram R2 -> Diagram R2)
 connectOutside = connectOutside' def
 
 connectOutside'
-  :: (Renderable (Path R2) b, IsName n1, IsName n2)
-  => ArrowOpts -> n1 -> n2 -> (Diagram b R2 -> Diagram b R2)
+  :: (IsName n1, IsName n2)
+  => ArrowOpts -> n1 -> n2 -> (Diagram R2 -> Diagram R2)
 connectOutside' opts n1 n2 =
   withName n1 $ \b1 ->
   withName n2 $ \b2 ->

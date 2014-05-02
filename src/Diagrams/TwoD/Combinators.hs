@@ -149,7 +149,7 @@ vcat' = cat' (negateV unitY)
 --   local origin at its center.  If you don't care about the trace
 --   then there's no difference between @strutR2@ and the more general
 --   'strut'.
-strutR2 :: (Backend b R2, Monoid' m) => R2 -> QDiagram b R2 m
+strutR2 :: (Backend b R2, Monoid' m) => R2 -> QDiagram R2 m
 strutR2 v = phantom seg
   where
     seg = FLinear (origin .+^ 0.5 *^ v) (origin .+^ (-0.5) *^ v)
@@ -157,13 +157,13 @@ strutR2 v = phantom seg
 -- | @strutX w@ is an empty diagram with width @w@, height 0, and a
 --   centered local origin.  Note that @strutX (-w)@ behaves the same as
 --   @strutX w@.
-strutX :: (Backend b R2, Monoid' m) => Double -> QDiagram b R2 m
+strutX :: (Backend b R2, Monoid' m) => Double -> QDiagram R2 m
 strutX d = strut (d ^& 0)
 
 -- | @strutY h@ is an empty diagram with height @h@, width 0, and a
 --   centered local origin. Note that @strutY (-h)@ behaves the same as
 --   @strutY h@.
-strutY :: (Backend b R2, Monoid' m) => Double -> QDiagram b R2 m
+strutY :: (Backend b R2, Monoid' m) => Double -> QDiagram R2 m
 strutY d = strut (0 ^& d)
 
 -- | @padX s@ \"pads\" a diagram in the x-direction, expanding its
@@ -174,7 +174,7 @@ strutY d = strut (0 ^& d)
 --   is not desired, the origin can be centered (using 'centerX')
 --   before applying @padX@.
 padX :: ( Backend b R2, Monoid' m )
-     => Double -> QDiagram b R2 m -> QDiagram b R2 m
+     => Double -> QDiagram R2 m -> QDiagram R2 m
 padX s d = withEnvelope (d # scaleX s) d
 
 -- | @padY s@ \"pads\" a diagram in the y-direction, expanding its
@@ -185,7 +185,7 @@ padX s d = withEnvelope (d # scaleX s) d
 --   \"uneven\".  If this is not desired, the origin can be centered
 --   (using 'centerY') before applying @padY@.
 padY :: ( Backend b R2, Monoid' m )
-     => Double -> QDiagram b R2 m -> QDiagram b R2 m
+     => Double -> QDiagram R2 m -> QDiagram R2 m
 padY s d = withEnvelope (d # scaleY s) d
 
 -- | @extrudeLeft s@ \"extrudes\" a diagram in the negative x-direction,
@@ -193,7 +193,7 @@ padY s d = withEnvelope (d # scaleY s) d
 --   the envelope is inset instead.
 --
 --   See the documentation for 'extrudeEnvelope' for more information.
-extrudeLeft :: Monoid' m => Double -> QDiagram b R2 m -> QDiagram b R2 m
+extrudeLeft :: Monoid' m => Double -> QDiagram R2 m -> QDiagram R2 m
 extrudeLeft s
   | s >= 0    = extrudeEnvelope $ unitX ^* negate s
   | otherwise = intrudeEnvelope $ unitX ^* negate s
@@ -203,7 +203,7 @@ extrudeLeft s
 --   the envelope is inset instead.
 --
 --   See the documentation for 'extrudeEnvelope' for more information.
-extrudeRight :: Monoid' m => Double -> QDiagram b R2 m -> QDiagram b R2 m
+extrudeRight :: Monoid' m => Double -> QDiagram R2 m -> QDiagram R2 m
 extrudeRight s
   | s >= 0    = extrudeEnvelope $ unitX ^* s
   | otherwise = intrudeEnvelope $ unitX ^* s
@@ -213,7 +213,7 @@ extrudeRight s
 --   the envelope is inset instead.
 --
 --   See the documentation for 'extrudeEnvelope' for more information.
-extrudeBottom :: Monoid' m => Double -> QDiagram b R2 m -> QDiagram b R2 m
+extrudeBottom :: Monoid' m => Double -> QDiagram R2 m -> QDiagram R2 m
 extrudeBottom s
   | s >= 0    = extrudeEnvelope $ unitY ^* negate s
   | otherwise = intrudeEnvelope $ unitY ^* negate s
@@ -223,7 +223,7 @@ extrudeBottom s
 --   the envelope is inset instead.
 --
 --   See the documentation for 'extrudeEnvelope' for more information.
-extrudeTop :: Monoid' m => Double -> QDiagram b R2 m -> QDiagram b R2 m
+extrudeTop :: Monoid' m => Double -> QDiagram R2 m -> QDiagram R2 m
 extrudeTop s
   | s >= 0    = extrudeEnvelope $ unitY ^* s
   | otherwise = intrudeEnvelope $ unitY ^* s
@@ -233,9 +233,9 @@ extrudeTop s
 --   .+^ v@.  Useful for selecting the rectangular portion of a
 --   diagram which should actually be \"viewed\" in the final render,
 --   if you don't want to see the entire diagram.
-view :: ( Backend b R2, Monoid' m )
-     => P2 -> R2 -> QDiagram b R2 m -> QDiagram b R2 m
-view p (coords -> w :& h) = withEnvelope (rect w h # alignBL # moveTo p :: D R2)
+view :: Monoid' m
+     => P2 -> R2 -> QDiagram R2 m -> QDiagram R2 m
+view p (coords -> w :& h) = withEnvelope (rect w h # alignBL # moveTo p :: Diagram R2)
 
 -- | Construct a bounding rectangle for an enveloped object, that is,
 --   the smallest axis-aligned rectangle which encloses the object.
@@ -247,5 +247,5 @@ boundingRect = (`boxFit` rect 1 1) . boundingBox
 
 -- | \"Set the background color\" of a diagram.  That is, place a
 --   diagram atop a bounding rectangle of the given color.
-bg :: (Renderable (Path R2) b) => Colour Double -> Diagram b R2 -> Diagram b R2
+bg :: Colour Double -> Diagram R2 -> Diagram R2
 bg c d = d <> boundingRect d # lineWidth (Output 0) # fc c

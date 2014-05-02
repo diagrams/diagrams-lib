@@ -142,10 +142,6 @@ instance (InnerSpace v, OrderedField (Scalar v)) => Juxtaposable (Path v) where
 instance (InnerSpace v, OrderedField (Scalar v)) => Alignable (Path v) where
   defaultBoundary = envelopeBoundary
 
-instance (HasLinearMap v, InnerSpace v, OrderedField (Scalar v))
-    => Renderable (Path v) NullBackend where
-  render _ _ = mempty
-
 ------------------------------------------------------------
 --  Constructing paths  ------------------------------------
 ------------------------------------------------------------

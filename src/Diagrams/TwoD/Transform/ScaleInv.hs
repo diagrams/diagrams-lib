@@ -150,9 +150,6 @@ instance (V t ~ R2, Transformable t) => Transformable (ScaleInv t) where
 
 -}
 
-instance (Renderable t b, V t ~ R2) => Renderable (ScaleInv t) b where
-  render b = render b . view scaleInvObj
-
 -- | Create a diagram from a single scale-invariant primitive.  The
 --   vector argument specifies the direction in which the primitive is
 --   \"pointing\" (for the purpose of keeping it rotated correctly
@@ -168,6 +165,6 @@ instance (Renderable t b, V t ~ R2) => Renderable (ScaleInv t) b where
 --   scale-invariant things will be used only as \"decorations\" (/e.g./
 --   arrowheads) which should not affect the envelope, trace, and
 --   query.
-scaleInvPrim :: (Transformable t, Typeable t, Renderable t b, V t ~ R2, Monoid m)
-             => t -> R2 -> QDiagram b R2 m
+scaleInvPrim :: (Transformable t, Typeable t, V t ~ R2, Monoid m)
+             => t -> R2 -> QDiagram R2 m
 scaleInvPrim t d = mkQD (Prim $ scaleInv t d) mempty mempty mempty mempty

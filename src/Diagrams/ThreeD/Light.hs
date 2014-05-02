@@ -40,16 +40,16 @@ instance Transformable ParallelLight where
 
 -- | Construct a Diagram with a single PointLight at the origin, which
 -- takes up no space.
-pointLight :: (Backend b R3, Renderable PointLight b)
+pointLight :: (Backend b R3)
               => Colour Double -- ^ The color of the light
-              -> Diagram b R3
+              -> Diagram R3
 pointLight c = mkQD (Prim $ PointLight origin c) mempty mempty mempty
                (Query . const . Any $ False)
 
 -- | Construct a Diagram with a single ParallelLight, which takes up no space.
-parallelLight :: (Backend b R3, Renderable ParallelLight b)
+parallelLight :: (Backend b R3)
                  => Direction -- ^ The direction in which the light travels.
                  -> Colour Double -- ^ The color of the light.
-                 -> Diagram b R3
+                 -> Diagram R3
 parallelLight d c = mkQD (Prim $ ParallelLight (fromDirection d) c)
                     mempty mempty mempty (Query . const . Any $ False)

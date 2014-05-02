@@ -44,7 +44,7 @@ class (AttributeClass (AttrType code), Typeable (PrimType code)) => SplitAttribu
 --   containing only "safe" nodes.  In particular this is used to push
 --   fill attributes down until they are over only loops; see
 --   'splitFills'.
-splitAttr :: forall code b v a. SplitAttribute code => code -> RTree b v a -> RTree b v a
+splitAttr :: forall code b v a. SplitAttribute code => code -> RTree v a -> RTree v a
 splitAttr code = fst . splitAttr' Nothing
   where
 
@@ -57,7 +57,7 @@ splitAttr code = fst . splitAttr' Nothing
   -- Output: tree with attributes pushed down appropriately, and
   -- a Bool indicating whether the tree contains only "safe" prims (True) or
   -- contains some unsafe ones (False).
-  splitAttr' :: Maybe (AttrType code) -> RTree b v a -> (RTree b v a, Bool)
+  splitAttr' :: Maybe (AttrType code) -> RTree v a -> (RTree v a, Bool)
 
   -- RStyle node: Check for the special attribute, and split it out of
   -- the style, combining it with the incoming attribute.  Recurse and
@@ -101,7 +101,7 @@ splitAttr code = fst . splitAttr' Nothing
   -- Recursively call splitAttr' on all subtrees, returning the
   -- logical AND of the Bool results returned (the whole forest is
   -- safe iff all subtrees are).
-  splitAttr'Forest :: Maybe (AttrType code) -> [RTree b v a] -> ([RTree b v a], Bool)
+  splitAttr'Forest :: Maybe (AttrType code) -> [RTree v a] -> ([RTree v a], Bool)
   splitAttr'Forest mattr cs = (cs', ok)
     where
       (cs', ok) = second and . unzip . map (splitAttr' mattr) $ cs
@@ -110,13 +110,13 @@ splitAttr code = fst . splitAttr' Nothing
   -- subforest contains only loops, a node, and a subforest, rebuild a
   -- tree, applying the fill attribute as appropriate (only if the
   -- Bool is true and the attribute is not Nothing).
-  rebuildNode :: Maybe (AttrType code) -> Bool -> RNode b v a -> [RTree b v a] -> RTree b v a
+  rebuildNode :: Maybe (AttrType code) -> Bool -> RNode v a -> [RTree v a] -> RTree v a
   rebuildNode mattr ok nd cs
     | ok        = applyMattr mattr (Node nd cs)
     | otherwise = Node nd cs
 
   -- Prepend a new fill color node if Just; the identity function if
   -- Nothing.
-  applyMattr :: Maybe (AttrType code) -> RTree b v a -> RTree b v a
+  applyMattr :: Maybe (AttrType code) -> RTree v a -> RTree v a
   applyMattr Nothing  t = t
   applyMattr (Just a) t = Node (RStyle $ attrToStyle a) [t]

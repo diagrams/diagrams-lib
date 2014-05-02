@@ -335,30 +335,30 @@ class ToResult d where
 
 -- | A diagram can always produce a diagram when given @()@ as an argument.
 --   This is our base case.
-instance ToResult (Diagram b v) where
-    type Args (Diagram b v) = ()
-    type ResultOf (Diagram b v) = Diagram b v
+instance ToResult (Diagram v) where
+    type Args (Diagram v) = ()
+    type ResultOf (Diagram v) = Diagram v
 
     toResult d _ = d
 
 -- | A list of diagrams can produce pages.
-instance ToResult [Diagram b v] where
-   type Args [Diagram b v] = ()
-   type ResultOf [Diagram b v] = [Diagram b v]
+instance ToResult [Diagram v] where
+   type Args [Diagram v] = ()
+   type ResultOf [Diagram v] = [Diagram v]
 
    toResult ds _ = ds
 
 -- | A list of named diagrams can give the multi-diagram interface.
-instance ToResult [(String,Diagram b v)] where
-   type Args [(String,Diagram b v)]  = ()
-   type ResultOf [(String,Diagram b v)] = [(String,Diagram b v)]
+instance ToResult [(String,Diagram v)] where
+   type Args [(String,Diagram v)]  = ()
+   type ResultOf [(String,Diagram v)] = [(String,Diagram v)]
 
    toResult ds _ = ds
 
 -- | An animation is another suitable base case.
-instance ToResult (Animation b v) where
-   type Args (Animation b v) = ()
-   type ResultOf (Animation b v) = Animation b v
+instance ToResult (Animation v) where
+   type Args (Animation v) = ()
+   type ResultOf (Animation v) = Animation v
 
    toResult a _ = a
 
@@ -449,7 +449,7 @@ instance (Parseable (Args (a -> d)), ToResult d, Mainable (ResultOf d))
 -- TODO: why can't we get away with: instance (Parseable (Args (a -> d)), Mainable (ResultOf d)) => ...
 --       Doesn't `Args (a -> d)` imply `ToResult (a -> d)` which implies `ToResult d` ?
 
--- | With this instance we can perform IO to produce something 
+-- | With this instance we can perform IO to produce something
 --   'Mainable' before rendering.
 instance Mainable d => Mainable (IO d) where
     type MainOpts (IO d) = MainOpts d
@@ -514,10 +514,10 @@ showDiaList ds = do
 --
 --   We do not provide this instance in general so that backends can choose to
 --   opt-in to this form or provide a different instance that makes more sense.
-defaultAnimMainRender :: (Mainable (Diagram b v))
-                      => (Lens' (MainOpts (Diagram b v)) FilePath) -- ^ A lens into the output path.
-                      -> (MainOpts (Diagram b v),DiagramAnimOpts)
-                      -> Animation b v
+defaultAnimMainRender :: (Mainable (Diagram v))
+                      => (Lens' (MainOpts (Diagram v)) FilePath) -- ^ A lens into the output path.
+                      -> (MainOpts (Diagram v),DiagramAnimOpts)
+                      -> Animation v
                       -> IO ()
 defaultAnimMainRender out (opts,animOpts) anim = do
     let frames  = simulate (toRational $ animOpts^.fpu) anim

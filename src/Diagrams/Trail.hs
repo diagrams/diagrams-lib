@@ -382,10 +382,6 @@ instance (InnerSpace v, OrderedField (Scalar v)) => Enveloped (Trail' l v) where
       ftEnv :: Trail' Line v -> Envelope v
       ftEnv (Line t) = trailMeasure mempty (view oeEnvelope) $ t
 
-instance (HasLinearMap v, InnerSpace v, OrderedField (Scalar v))
-    => Renderable (Trail' o v) NullBackend where
-  render _ _ = mempty
-
 instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
     => Parametric (Trail' l v) where
   atParam t p = withTrail'
