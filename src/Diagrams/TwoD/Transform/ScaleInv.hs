@@ -20,7 +20,7 @@ module Diagrams.TwoD.Transform.ScaleInv
     , scaleInv, scaleInvPrim )
     where
 
-import           Control.Lens            (makeLenses, view)
+import           Control.Lens            (makeLenses)
 import           Data.AdditiveGroup
 import           Data.AffineSpace        ((.-.))
 import           Data.Semigroup
