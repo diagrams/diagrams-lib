@@ -83,11 +83,11 @@ module Diagrams.TwoD.Arrow
        , headColor
        , headTexture
        , headStyle
-       , headWidth, headSize
+       , headWidth 
        , tailColor
        , tailTexture
        , tailStyle
-       , tailWidth, tailSize
+       , tailWidth
        , widths
        , shaftColor
        , shaftTexture
@@ -214,11 +214,6 @@ widths :: Traversal' ArrowOpts (Measure R2)
 widths f opts = (\h t -> opts & headWidth .~ h & tailWidth .~ t) <$> f (opts ^. headWidth)
              <*> f (opts ^. tailWidth)
 
--- | Deprecated, for backward compatiblity
-headSize, tailSize :: Lens' ArrowOpts (Measure R2)
-headSize = headWidth
-tailSize = tailWidth
-
 -- | A lens for setting or modifying the color of an arrowhead. For
 --   example, one may write @... (with & headColor .~ blue)@ to get an
 --   arrow with a blue head, or @... (with & headColor %~ blend 0.5
@@ -318,7 +313,7 @@ mkHead w opts gToO nToO = (j <> h) # moveOriginBy (jWidth *^ unit_X) # lwO 0
     (h1, j1) = (opts^.arrowHead) 100 (widthOfJoint (shaftSty opts) gToO nToO)
     (h', j') = (opts^.arrowHead) size (widthOfJoint (shaftSty opts) gToO nToO)
     size = 100 * w / ((xWidth h1) + (xWidth j1))
-    (hWidth, jWidth) = (xWidth h', xWidth j')
+    jWidth = xWidth j'
     h = stroke h' # applyStyle (headSty opts)
     j = stroke j' # applyStyle (colorJoint (opts^.shaftStyle))
 
@@ -330,7 +325,7 @@ mkTail w opts gToO nToO = (t <> j) # moveOriginBy (jWidth *^ unitX) # lwO 0
     (t1, j1) = (opts^.arrowTail) 100 (widthOfJoint (shaftSty opts) gToO nToO)
     (t', j') = (opts^.arrowTail) size (widthOfJoint (shaftSty opts) gToO nToO)
     size = 100 * w / ((xWidth t1) + (xWidth j1))
-    (tWidth, jWidth) = (xWidth t', xWidth j')
+    jWidth = xWidth j'
     t = stroke t' # applyStyle (tailSty opts)
     j = stroke j' # applyStyle (colorJoint (opts^.shaftStyle))
 

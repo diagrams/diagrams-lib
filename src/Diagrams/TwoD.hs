@@ -156,8 +156,8 @@ module Diagrams.TwoD
        , shaftColor
        , shaftTexture
        , shaftStyle
-       , headWidth, headSize
-       , tailWidth, tailSize
+       , headWidth
+       , tailWidth
        , widths
 
          -- * Text
