@@ -238,7 +238,8 @@ module Diagrams.TwoD
        , sized, sizedAs
 
         -- * Textures
-      , Texture(..), SpreadMethod(..), GradientStop(..), mkStops, getFillTexture
+      , Texture(..), solid 
+      , SpreadMethod(..), GradientStop(..), mkStops, getFillTexture
       , fillTexture, getLineTexture, lineTexture, lineTextureA
       , stopFraction, stopColor
 

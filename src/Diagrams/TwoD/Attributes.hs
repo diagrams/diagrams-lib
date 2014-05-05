@@ -35,7 +35,7 @@ module Diagrams.TwoD.Attributes (
   , dashing, dashingN, dashingO, dashingL, dashingG
 
   -- * Textures
-  , Texture(..), _SC, _LG, _RG, defaultLG, defaultRG
+  , Texture(..), solid, _SC, _LG, _RG, defaultLG, defaultRG
   , GradientStop(..), stopColor, stopFraction, mkStops
   , SpreadMethod(..), lineLGradient, lineRGradient
 
@@ -101,13 +101,13 @@ thick      = Normalized 0.0075 `atLeast` Output 0.5
 veryThick  = Normalized 0.01   `atLeast` Output 0.5
 ultraThick = Normalized 0.02   `atLeast` Output 0.5
 
-tiny      = Normalized 0.01
-verySmall = Normalized 0.015
-small     = Normalized 0.0225
-normal    = Normalized 0.035
-large     = Normalized 0.05
-veryLarge = Normalized 0.10
-huge      = Normalized 0.15
+tiny      = Normalized 0.01   `atLeast` Output 1
+verySmall = Normalized 0.02   `atLeast` Output 1
+small     = Normalized 0.0375 `atLeast` Output 1
+normal    = Normalized 0.05   `atLeast` Output 1
+large     = Normalized 0.075  `atLeast` Output 1
+veryLarge = Normalized 0.125  `atLeast` Output 1
+huge      = Normalized 0.2    `atLeast` Output 1
 
 -----------------------------------------------------------------
 --  Line Width  -------------------------------------------------
@@ -301,6 +301,10 @@ data Texture = SC SomeColor | LG LGradient | RG RGradient
 
 makePrisms ''Texture
 
+-- | Convert a solid colour into a texture.
+solid :: Color a => a -> Texture
+solid = SC . SomeColor
+
 -- | A default is provided so that linear gradients can easily be created using
 --   lenses. For example, @lg = defaultLG & lGradStart .~ (0.25 ^& 0.33)@. Note that
 --   no default value is provided for @lGradStops@, this must be set before
@@ -480,9 +484,6 @@ fillColor = fillTexture . SC . SomeColor
 recommendFillColor :: (Color c, HasStyle a, V a ~ R2) => c -> a -> a
 recommendFillColor =
   applyTAttr . FillTexture . Recommend . Last . SC . SomeColor
-
---getFillColor :: FillColor -> SomeColor
---getFillColor (FillColor c) = getLast . getRecommend $ c
 
 -- | A synonym for 'fillColor', specialized to @'Colour' Double@
 --   (i.e. opaque colors). See comment after 'fillColor' about backends.
