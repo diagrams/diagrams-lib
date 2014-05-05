@@ -312,8 +312,8 @@ widthOfJoint sStyle gToO nToO =
 --   and move the origin to the attachment point. Return the diagram
 --   and its width.
 mkHead :: Renderable (Path R2) b =>
-          Double -> ArrowOpts -> Double -> Double -> (Diagram b R2, Double)
-mkHead w opts gToO nToO = ((j <> h) # moveOriginBy (jWidth *^ unit_X) # lwO 0, w)
+          Double -> ArrowOpts -> Double -> Double -> Diagram b R2
+mkHead w opts gToO nToO = (j <> h) # moveOriginBy (jWidth *^ unit_X) # lwO 0
   where
     (h1, j1) = (opts^.arrowHead) 100 (widthOfJoint (shaftSty opts) gToO nToO)
     (h', j') = (opts^.arrowHead) size (widthOfJoint (shaftSty opts) gToO nToO)
@@ -324,8 +324,8 @@ mkHead w opts gToO nToO = ((j <> h) # moveOriginBy (jWidth *^ unit_X) # lwO 0, w
 
 -- | Just like mkHead only the attachment point is on the right.
 mkTail :: Renderable (Path R2) b =>
-          Double -> ArrowOpts -> Double -> Double -> (Diagram b R2, Double)
-mkTail w opts gToO nToO = ((t <> j) # moveOriginBy (jWidth *^ unitX) # lwO 0, w)
+          Double -> ArrowOpts -> Double -> Double -> Diagram b R2
+mkTail w opts gToO nToO = (t <> j) # moveOriginBy (jWidth *^ unitX) # lwO 0
   where
     (t1, j1) = (opts^.arrowTail) 100 (widthOfJoint (shaftSty opts) gToO nToO)
     (t', j') = (opts^.arrowTail) size (widthOfJoint (shaftSty opts) gToO nToO)
@@ -438,14 +438,14 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
 
         -- The head size, tail size, head gap, and tail gap are obtained
         -- from the style and converted to output units.
-        hSize = fromMeasure gToO nToO (opts ^. headWidth)
-        tSize = fromMeasure gToO nToO (opts ^. tailWidth)
+        hWidth' = fromMeasure gToO nToO (opts ^. headWidth)
+        tWidth' = fromMeasure gToO nToO (opts ^. tailWidth)
         hGap = fromMeasure gToO nToO (opts ^. headGap)
         tGap = fromMeasure gToO nToO (opts ^. tailGap)
 
         -- Make the head and tail and save their widths.
-        (h, hWidth') = mkHead hSize opts' gToO nToO
-        (t, tWidth') = mkTail tSize opts' gToO nToO
+        h = mkHead hWidth' opts' gToO nToO
+        t = mkTail tWidth' opts' gToO nToO
 
         rawShaftTrail = opts^.arrowShaft
         shaftTrail
