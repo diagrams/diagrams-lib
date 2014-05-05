@@ -83,11 +83,12 @@ module Diagrams.TwoD.Arrow
        , headColor
        , headTexture
        , headStyle
-       , headSize
+       , headWidth, headSize
        , tailColor
        , tailTexture
        , tailStyle
-       , tailSize
+       , tailWidth, tailSize
+       , widths
        , shaftColor
        , shaftTexture
        , shaftStyle
@@ -138,9 +139,9 @@ data ArrowOpts
     , _headGap    :: Measure R2
     , _tailGap    :: Measure R2
     , _headStyle  :: Style R2
-    , _headSize   :: Measure R2
+    , _headWidth  :: Measure R2
     , _tailStyle  :: Style R2
-    , _tailSize   :: Measure R2
+    , _tailWidth  :: Measure R2
     , _shaftStyle :: Style R2
     }
 
@@ -158,9 +159,9 @@ instance Default ArrowOpts where
 
         -- See note [Default arrow style attributes]
         , _headStyle    = mempty
-        , _headSize     = normal
+        , _headWidth    = normal
         , _tailStyle    = mempty
-        , _tailSize     = normal
+        , _tailWidth    = normal
         , _shaftStyle   = mempty
         }
 
@@ -183,7 +184,8 @@ tailGap :: Lens' ArrowOpts (Measure R2)
 
 -- | Set both the @headGap@ and @tailGap@ simultaneously.
 gaps :: Traversal' ArrowOpts (Measure R2)
-gaps f opts = (\h t -> opts & headGap .~ h & tailGap .~ t) <$> f (opts ^. headGap) <*> f (opts ^. tailGap)
+gaps f opts = (\h t -> opts & headGap .~ h & tailGap .~ t) <$> f (opts ^. headGap) 
+           <*> f (opts ^. tailGap)
 
 -- | Same as gaps, provided for backward compatiiblity.
 gap :: Traversal' ArrowOpts (Measure R2)
@@ -201,11 +203,21 @@ tailStyle :: Lens' ArrowOpts (Style R2)
 -- | Style to apply to the shaft. See `headStyle`.
 shaftStyle :: Lens' ArrowOpts (Style R2)
 
--- | The radius of the circumcircle around the head.
-headSize :: Lens' ArrowOpts (Measure R2)
+-- | The width of the arrow head
+headWidth :: Lens' ArrowOpts (Measure R2)
 
--- | The radius of the circumcircle around the tail.
-tailSize :: Lens' ArrowOpts (Measure R2)
+-- | The width of the arrow tail.
+tailWidth :: Lens' ArrowOpts (Measure R2)
+
+-- | Set both the @headWidth@ and @tailWidth@ simultaneously.
+widths :: Traversal' ArrowOpts (Measure R2)
+widths f opts = (\h t -> opts & headWidth .~ h & tailWidth .~ t) <$> f (opts ^. headWidth)
+             <*> f (opts ^. tailWidth)
+
+-- | Deprecated, for backward compatiblity
+headSize, tailSize :: Lens' ArrowOpts (Measure R2)
+headSize = headWidth
+tailSize = tailWidth
 
 -- | A lens for setting or modifying the color of an arrowhead. For
 --   example, one may write @... (with & headColor .~ blue)@ to get an
@@ -301,26 +313,24 @@ widthOfJoint sStyle gToO nToO =
 --   and its width.
 mkHead :: Renderable (Path R2) b =>
           Double -> ArrowOpts -> Double -> Double -> (Diagram b R2, Double)
-mkHead size opts gToO nToO = ((j <> h) # moveOriginBy (jWidth *^ unit_X) # lwO 0
-              , hWidth + jWidth)
+mkHead w opts gToO nToO = ((j <> h) # moveOriginBy (jWidth *^ unit_X) # lwO 0, w)
   where
-    (h', j') = (opts^.arrowHead) size
-               (widthOfJoint (shaftSty opts) gToO nToO)
-    hWidth = xWidth h'
-    jWidth = xWidth j'
+    (h1, j1) = (opts^.arrowHead) 100 (widthOfJoint (shaftSty opts) gToO nToO)
+    (h', j') = (opts^.arrowHead) size (widthOfJoint (shaftSty opts) gToO nToO)
+    size = 100 * w / ((xWidth h1) + (xWidth j1))
+    (hWidth, jWidth) = (xWidth h', xWidth j')
     h = stroke h' # applyStyle (headSty opts)
     j = stroke j' # applyStyle (colorJoint (opts^.shaftStyle))
 
 -- | Just like mkHead only the attachment point is on the right.
 mkTail :: Renderable (Path R2) b =>
           Double -> ArrowOpts -> Double -> Double -> (Diagram b R2, Double)
-mkTail size opts gToO nToO = ((t <> j) # moveOriginBy (jWidth *^ unitX) # lwO 0
-              , tWidth + jWidth)
+mkTail w opts gToO nToO = ((t <> j) # moveOriginBy (jWidth *^ unitX) # lwO 0, w)
   where
-    (t', j') = (opts^.arrowTail) size
-               (widthOfJoint (shaftSty opts) gToO nToO)
-    tWidth = xWidth t'
-    jWidth = xWidth j'
+    (t1, j1) = (opts^.arrowTail) 100 (widthOfJoint (shaftSty opts) gToO nToO)
+    (t', j') = (opts^.arrowTail) size (widthOfJoint (shaftSty opts) gToO nToO)
+    size = 100 * w / ((xWidth t1) + (xWidth j1))
+    (tWidth, jWidth) = (xWidth t', xWidth j')
     t = stroke t' # applyStyle (tailSty opts)
     j = stroke j' # applyStyle (colorJoint (opts^.shaftStyle))
 
@@ -428,8 +438,8 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
 
         -- The head size, tail size, head gap, and tail gap are obtained
         -- from the style and converted to output units.
-        hSize = fromMeasure gToO nToO (opts ^. headSize)
-        tSize = fromMeasure gToO nToO (opts ^. tailSize)
+        hSize = fromMeasure gToO nToO (opts ^. headWidth)
+        tSize = fromMeasure gToO nToO (opts ^. tailWidth)
         hGap = fromMeasure gToO nToO (opts ^. headGap)
         tGap = fromMeasure gToO nToO (opts ^. tailGap)
 
