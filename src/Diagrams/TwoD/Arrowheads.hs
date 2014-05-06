@@ -132,8 +132,8 @@ arrowheadDart theta = aHead
         dartVertices =  (concat . pathVertices) $ dartP
         m = magnitude (dartVertices !! 1 .-. dartVertices !! 3)
         s = 1 - shaftWidth / m
-        v1 = (dartVertices !! 1 .-. dartVertices !! 2) # scale s
-        v2 = (dartVertices !! 3 .-. dartVertices !! 2) # scale s
+        v1 = if s > 0 then (dartVertices !! 1 .-. dartVertices !! 2) # scale s else zeroV
+        v2 = if s > 0 then (dartVertices !! 3 .-. dartVertices !! 2) # scale s else zeroV
         joint = (closedPath $ trailFromVertices [ dartVertices !! 2
                              , dartVertices !! 1 .-^ v1
                              , dartVertices !! 3 .-^ v2
@@ -151,8 +151,9 @@ arrowheadSpike theta = aHead
         l2 = trailFromSegments [reverseSegment . straight $ (unit_X2 ^+^ a')]
         c  = reflectX $ arc' htRadius theta (negateV theta)
         barb = (closedPath $ (l1 <> c <> l2)) # scale size
-        m = xWidth barb --c `atParam` 0.5
-        b =  asin ((shaftWidth / 2) / (htRadius  * size)) @@ rad
+        m = xWidth barb 
+        sinb = (shaftWidth / 2) / (htRadius * size)
+        b =  if sinb < 1 then asin sinb @@ rad else pi/2 @@ rad
         c' = arc' htRadius (negateV b) b # scale size
         joint = (closedPath $ (c')) # centerY # alignR
         xWidth p = pa + pb
@@ -175,8 +176,8 @@ arrowheadThorn theta r = aHead
         thornVertices =  (concat . pathVertices) $ thornP
         m = magnitude (thornVertices !! 1 .-. thornVertices !! 3)
         s = 1 - shaftWidth / m
-        v1 = (thornVertices !! 1 .-. thornVertices !! 2) # scale s
-        v2 = (thornVertices !! 3 .-. thornVertices !! 2) # scale s
+        v1 = if s > 0 then (thornVertices !! 1 .-. thornVertices !! 2) # scale s else zeroV
+        v2 = if s > 0 then (thornVertices !! 3 .-. thornVertices !! 2) # scale s else zeroV
         joint = (closedPath $ trailFromVertices [ thornVertices !! 2
                              , thornVertices !! 1 .-^ v1
                              , thornVertices !! 3 .-^ v2
