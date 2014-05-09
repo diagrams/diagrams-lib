@@ -281,13 +281,17 @@ xWidth p = a + b
     b = fromMaybe 0 (magnitude <$> traceV origin unit_X p)
 
 -- | Get the line color from the shaft to use as the fill color for the joint.
+--   And set the opacity of the shaft to the current opacity.
 colorJoint :: Style R2 -> Style R2
 colorJoint sStyle =
-    let c = fmap getLineColor . getAttr $ sStyle in
-    case c of
-        Nothing -> fillColor (black :: Colour Double)   -- default color for joints
-                   $ mempty
-        Just c' -> fillColor c' $ mempty
+    let c = fmap getLineColor . getAttr $ sStyle
+        o = fmap getOpacity . getAttr $ sStyle
+    in
+    case (c, o) of
+        (Nothing, Nothing) -> fillColor (black :: Colour Double) $ mempty
+        (Just c', Nothing) -> fillColor c' $ mempty
+        (Nothing, Just o') -> opacity o' $ mempty
+        (Just c', Just o') -> opacity o' . fillColor c' $ mempty
 
 -- | Get line width from a style.
 widthOfJoint :: Style v -> Double -> Double  -> Double
