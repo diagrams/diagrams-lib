@@ -75,34 +75,28 @@ import           Diagrams.TwoD.Polygons
 import           Diagrams.TwoD.Shapes
 import           Diagrams.TwoD.Transform
 import           Diagrams.TwoD.Types
-import           Diagrams.TwoD.Vector    (fromDirection, direction, e, unit_X)
+import           Diagrams.TwoD.Vector    (fromDirection, direction, unit_X)
 import           Diagrams.Util           (( # ))
 
 -----------------------------------------------------------------------------
 
 type ArrowHT = Double -> Double -> (Path R2, Path R2)
 
-htRadius :: Double
-htRadius = 0.5
-
-scaleR :: (Transformable t, Scalar (V t) ~ Double) => t -> t
-scaleR = scale htRadius
-
 closedPath :: (Floating (Scalar v), Ord (Scalar v), InnerSpace v) => Trail v -> Path v
 closedPath = pathFromTrail . closeTrail
 
 -- Heads ------------------------------------------------------------------
---   > drawHead h = arrowAt' (with & arrowHead .~ h & shaftStyle %~ lw 0)
+--   > drawHead h = arrowAt' (with & arrowHead .~ h & shaftStyle %~ lw none)
 --   >         origin (r2 (0.001, 0))
---   >      <> square 0.5 # alignL # lw 0
+--   >      <> square 0.5 # alignL # lw none
 
 -- | Isoceles triangle style. The above example specifies an angle of `2/5 Turn`.
 
 -- | <<diagrams/src_Diagrams_TwoD_Arrowheads_tri25Ex.svg#diagram=tri25Ex&width=120>>
 
---   > tri25Ex = arrowAt' (with & arrowHead .~ arrowheadTriangle (2/5 \@\@ turn) & shaftStyle %~ lw 0)
+--   > tri25Ex = arrowAt' (with & arrowHead .~ arrowheadTriangle (2/5 \@\@ turn) & shaftStyle %~ lw none)
 --   >           origin (r2 (0.001, 0))
---   >        <> square 0.6 # alignL # lw 0
+--   >        <> square 0.6 # alignL # lw none
 arrowheadTriangle :: Angle -> ArrowHT
 arrowheadTriangle theta = aHead
   where
@@ -218,9 +212,9 @@ dart :: ArrowHT
 dart = arrowheadDart (2/5 @@ turn)
 
 -- Tails ------------------------------------------------------------------
---   > drawTail t = arrowAt' (with  & arrowTail .~ t & shaftStyle %~ lw 0 & arrowHead .~ noHead)
+--   > drawTail t = arrowAt' (with  & arrowTail .~ t & shaftStyle %~ lw none & arrowHead .~ noHead)
 --   >         origin (r2 (0.001, 0))
---   >      <> square 0.5 # alignL # lw 0
+--   >      <> square 0.5 # alignL # lw none
 
 -- | Utility function to convert any arrowhead to an arrowtail, i.e.
 --   attached at the start of the trail.
@@ -236,29 +230,28 @@ headToTail hd = tl
 arrowtailBlock :: Angle -> ArrowHT
 arrowtailBlock theta = aTail
   where
-   aTail size _ = (t, mempty)
+   aTail len _ = (t, mempty)
       where
-        t = square 1 # scaleX x # scaleY y # scale size # alignR
-        a'  = e theta # scaleR
+        t = rect len (len * x) # alignR
+        a'  = fromDirection theta
         a = a' ^-^ (reflectY a')
-        y = magnitude a
-        b = a' ^-^ (reflectX a')
-        x = magnitude b
+        x = magnitude a
 
 -- | The angle is where the top left corner intersects the circle.
 arrowtailQuill :: Angle -> ArrowHT
-arrowtailQuill theta =aTail
+arrowtailQuill theta = aTail
   where
-   aTail size shaftWidth = (t, j)
+   aTail len shaftWidth = (t, j)
       where
         t = ( closedPath $ trailFromVertices [v0, v1, v2, v3, v4, v5, v0] )
             # scale size # alignR
+        size = len / 0.6
         v0 = p2 (0.5, 0)
-        v2 = p2 (unr2 $ e theta # scaleR)
-        v1 = v2 # translateX (5/4 * htRadius)
+        v2 = p2 (unr2 $ fromDirection theta # scale 0.5)
+        v1 = v2 # translateX (5/8)
         v3 = p2 (-0.1, 0)
         v4 = v2 # reflectY
-        v5 = v4 # translateX (5/4 * htRadius)
+        v5 = v4 # translateX (5/8)
         s = 1 - shaftWidth / magnitude (v1 .-. v5)
         n1 = v0 # translateY (0.5 * shaftWidth)
         n2 = v1 .-^ ((v1 .-. v0) # scale s)
@@ -309,4 +302,4 @@ quill = arrowtailQuill (2/5 @@ turn)
 
 --   > blockEx = drawTail block
 block :: ArrowHT
-block = arrowtailBlock (2/5 @@ turn)
+block = arrowtailBlock (7/16 @@ turn)
