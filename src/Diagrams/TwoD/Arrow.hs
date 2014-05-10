@@ -83,11 +83,12 @@ module Diagrams.TwoD.Arrow
        , headColor
        , headTexture
        , headStyle
-       , headSize
+       , headLength
        , tailColor
        , tailTexture
        , tailStyle
-       , tailSize
+       , tailLength
+       , lengths
        , shaftColor
        , shaftTexture
        , shaftStyle
@@ -138,9 +139,9 @@ data ArrowOpts
     , _headGap    :: Measure R2
     , _tailGap    :: Measure R2
     , _headStyle  :: Style R2
-    , _headSize   :: Measure R2
+    , _headLength :: Measure R2
     , _tailStyle  :: Style R2
-    , _tailSize   :: Measure R2
+    , _tailLength :: Measure R2
     , _shaftStyle :: Style R2
     }
 
@@ -158,9 +159,9 @@ instance Default ArrowOpts where
 
         -- See note [Default arrow style attributes]
         , _headStyle    = mempty
-        , _headSize     = normal
+        , _headLength     = normal
         , _tailStyle    = mempty
-        , _tailSize     = normal
+        , _tailLength     = normal
         , _shaftStyle   = mempty
         }
 
@@ -202,10 +203,15 @@ tailStyle :: Lens' ArrowOpts (Style R2)
 shaftStyle :: Lens' ArrowOpts (Style R2)
 
 -- | The radius of the circumcircle around the head.
-headSize :: Lens' ArrowOpts (Measure R2)
+headLength :: Lens' ArrowOpts (Measure R2)
 
 -- | The radius of the circumcircle around the tail.
-tailSize :: Lens' ArrowOpts (Measure R2)
+tailLength :: Lens' ArrowOpts (Measure R2)
+
+-- | Set both the @headLength@ and @tailLength@ simultaneously.
+lengths :: Traversal' ArrowOpts (Measure R2)
+lengths f opts = (\h t -> opts & headLength .~ h & tailLength .~ t) <$> f (opts ^. headLength)
+             <*> f (opts ^. tailLength)
 
 -- | A lens for setting or modifying the color of an arrowhead. For
 --   example, one may write @... (with & headColor .~ blue)@ to get an
@@ -432,8 +438,8 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
 
         -- The head size, tail size, head gap, and tail gap are obtained
         -- from the style and converted to output units.
-        hSize = fromMeasure gToO nToO (opts ^. headSize)
-        tSize = fromMeasure gToO nToO (opts ^. tailSize)
+        hSize = fromMeasure gToO nToO (opts ^. headLength)
+        tSize = fromMeasure gToO nToO (opts ^. tailLength)
         hGap = fromMeasure gToO nToO (opts ^. headGap)
         tGap = fromMeasure gToO nToO (opts ^. tailGap)
 
