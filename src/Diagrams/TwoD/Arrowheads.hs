@@ -57,8 +57,6 @@ module Diagrams.TwoD.Arrowheads
 import           Control.Lens            ((&), (.~), (^.))
 import           Data.AffineSpace
 import           Data.Default.Class
-import           Data.Functor            ((<$>))
-import           Data.Maybe              (fromMaybe)
 import           Data.Monoid             (mempty, (<>))
 import           Data.VectorSpace
 
@@ -66,7 +64,6 @@ import           Diagrams.Angle
 import           Diagrams.Core
 
 import           Diagrams.Coordinates    ((^&))
-import           Diagrams.CubicSpline    (cubicSpline)
 import           Diagrams.Path
 import           Diagrams.Segment
 import           Diagrams.Trail
@@ -78,7 +75,7 @@ import           Diagrams.TwoD.Polygons
 import           Diagrams.TwoD.Shapes
 import           Diagrams.TwoD.Transform
 import           Diagrams.TwoD.Types
-import           Diagrams.TwoD.Vector    (fromDirection, direction, e, unitX, unit_X)
+import           Diagrams.TwoD.Vector    (fromDirection, direction, e, unit_X)
 import           Diagrams.Util           (( # ))
 
 -----------------------------------------------------------------------------
@@ -134,24 +131,31 @@ arrowheadDart theta len shaftWidth = (hd # scale size, jt)
     size = max 1 ((len - jLength) / (1.5))
 
 -- | Isoceles triangle with curved concave base. Inkscape type 2.
-arrowheadSpike :: ArrowHT
-arrowheadSpike len shaftWidth  = (hd # scale r, jt # scale r)
+arrowheadSpike :: Angle -> ArrowHT
+arrowheadSpike theta len shaftWidth  = (hd # scale r, jt # scale r)
   where
     hd = snugL . closedPath $ l1 <> c <> l2
     jt = alignR . centerY . pathFromTrail
                 . closeTrail $ arc' 1 (negateV phi) phi
     l1 = trailFromSegments [straight $ unit_X ^+^ v]
     l2 = trailFromSegments [reverseSegment . straight $ (unit_X ^+^ (reflectY v))]
-    c = reflectX $ arc' 1 (a @@ rad) (-a @@ rad)
-    v = fromDirection (a @@ rad)
-    a = 2 * pi / 3 
-    x = shaftWidth / 2
+    c = reflectX $ arc' 1 theta (negateV theta)
+    v = fromDirection theta
+
+    -- The length of the head without its joint is, -2r cos theta and
+    -- the length of the joint is r - sqrt (r^2 - y^2). So the total
+    -- length of the arrow head is given by r(1 - 2 cos theta)-sqrt (r^2-y^2).
+    -- Solving the quadratic gives two roots, we want the larger one.
+
+    -- 1/4 turn < theta < 2/3 turn.
+    a = 1 - 2 * cos (theta ^. rad)
+    y = shaftWidth / 2
 
     -- If the shaft is too wide for the head, we default the radius r to
     -- 2/3 * len by setting d=1 and phi=pi/2.
-    d = max 1 (len^2 - 3 * x^2)
-    r = 1/3 * (sqrt d + 2 * len)
-    phi = asin (min 1 (x/r)) @@ rad
+    d = max 1 (len**2 + (1 - a**2) * y**2)
+    r = (a * len + sqrt d) / (a**2 -1)
+    phi = asin (min 1 (y/r)) @@ rad
 
 -- | Curved sides, linear concave base. Illustrator CS5 #3
 arrowheadThorn :: Angle -> ArrowHT
@@ -199,7 +203,7 @@ tri = arrowheadTriangle (1/3 @@ turn)
 
 --   > spikeEx = drawHead spike
 spike :: ArrowHT
-spike = arrowheadSpike
+spike = arrowheadSpike (3/8 @@ turn)
 
 -- | <<diagrams/src_Diagrams_TwoD_Arrowheads_thornEx.svg#diagram=thornEx&width=100>>
 
