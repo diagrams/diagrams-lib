@@ -27,13 +27,13 @@ module Diagrams.TwoD.Arrow
 --
 --   > -- Connecting two diagrams at their origins.
 --   >
---   > sq = square 2 # showOrigin # lc darkgray # lw 0.07
+--   > sq = square 2 # showOrigin # lc darkgray # lw none.07
 --   > ds = (sq # named "left") ||| strutX 3 ||| (sq # named "right")
 --   >
 --   > shaft  = cubicSpline False ( map p2 [(0, 0), (1, 0), (1, 0.2), (2, 0.2)])
 --   >
 --   > example1 = ds # connect' (with & arrowHead .~ dart & arrowTail .~ quill
---   >                                & shaftStyle %~ lw 0.02 & arrowShaft .~ shaft)
+--   >                                & shaftStyle %~ lw none.02 & arrowShaft .~ shaft)
 --   >                                "left" "right" # pad 1.1
 
          -- ** Example 2
@@ -42,7 +42,7 @@ module Diagrams.TwoD.Arrow
 --
 --   > -- Comparing connect, connectPerim, and arrowAt.
 --   >
---   > oct  = octagon 1 # lc darkgray # lw 0.050 # showOrigin
+--   > oct  = octagon 1 # lc darkgray # lw none.050 # showOrigin
 --   > dias = oct # named "first" ||| strut 3 ||| oct # named "second"
 --   >
 --   > -- Connect two diagrams and two points on their trails.
