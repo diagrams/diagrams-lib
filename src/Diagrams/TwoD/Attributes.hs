@@ -35,7 +35,7 @@ module Diagrams.TwoD.Attributes (
   , dashing, dashingN, dashingO, dashingL, dashingG
 
   -- * Textures
-  , Texture(..), _SC, _LG, _RG, defaultLG, defaultRG
+  , Texture(..), solid, _SC, _LG, _RG, defaultLG, defaultRG
   , GradientStop(..), stopColor, stopFraction, mkStops
   , SpreadMethod(..), lineLGradient, lineRGradient
 
@@ -301,6 +301,10 @@ data Texture = SC SomeColor | LG LGradient | RG RGradient
 
 makePrisms ''Texture
 
+-- | Convert a solid colour into a texture.
+solid :: Color a => a -> Texture
+solid = SC . SomeColor
+
 -- | A default is provided so that linear gradients can easily be created using
 --   lenses. For example, @lg = defaultLG & lGradStart .~ (0.25 ^& 0.33)@. Note that
 --   no default value is provided for @lGradStops@, this must be set before
@@ -480,9 +484,6 @@ fillColor = fillTexture . SC . SomeColor
 recommendFillColor :: (Color c, HasStyle a, V a ~ R2) => c -> a -> a
 recommendFillColor =
   applyTAttr . FillTexture . Recommend . Last . SC . SomeColor
-
---getFillColor :: FillColor -> SomeColor
---getFillColor (FillColor c) = getLast . getRecommend $ c
 
 -- | A synonym for 'fillColor', specialized to @'Colour' Double@
 --   (i.e. opaque colors). See comment after 'fillColor' about backends.

@@ -178,8 +178,10 @@ headGap :: Lens' ArrowOpts (Measure R2)
 tailGap :: Lens' ArrowOpts (Measure R2)
 
 -- | Set both the @headGap@ and @tailGap@ simultaneously.
-gaps :: Traversal' ArrowOpts (Measure R2)
-gaps f opts = (\h t -> opts & headGap .~ h & tailGap .~ t) <$> f (opts ^. headGap) <*> f (opts ^. tailGap)
+gaps :: Traversal' ArrowOpts (Measure R2) 
+gaps f opts = (\h t -> opts & headGap .~ h & tailGap .~ t)
+        <$> f (opts ^. headGap)
+        <*> f (opts ^. tailGap)
 
 -- | Same as gaps, provided for backward compatiiblity.
 gap :: Traversal' ArrowOpts (Measure R2)
@@ -202,37 +204,6 @@ headSize :: Lens' ArrowOpts (Measure R2)
 
 -- | The radius of the circumcircle around the tail.
 tailSize :: Lens' ArrowOpts (Measure R2)
-
--- | A lens for setting or modifying the color of an arrowhead. For
---   example, one may write @... (with & headColor .~ blue)@ to get an
---   arrow with a blue head, or @... (with & headColor %~ blend 0.5
---   white)@ to make an arrow's head a lighter color.  For more general
---   control over the style of arrowheads, see 'headStyle'.
---
---   Note that the most general type of @headColor@ would be
---
--- @
---   (Color c, Color c') => Setter ArrowOpts ArrowOpts c c'
--- @
---
---   but that can cause problems for type inference when setting the
---   color.  However, using it at that more general type may
---   occasionally be useful, for example, if you want to apply some
---   opacity to a color, as in @... (with & headColor %~
---   (\`withOpacity\` 0.5))@.  If you want the more general type, you
---   can use @'headStyle' . 'styleFillColor'@ in place of @headColor@.
---headColor :: Color c => Setter' ArrowOpts c
---headColor = headStyle . styleFillColor
-
--- | A lens for setting or modifying the color of an arrow
---   tail. See 'headColor'.
---tailColor :: Color c => Setter' ArrowOpts c
---tailColor = tailStyle . styleFillColor
-
--- | A lens for setting or modifying the color of an arrow
---   shaft. See 'headColor'.
---shaftColor :: Color c => Setter' ArrowOpts c
---shaftColor = shaftStyle . styleLineColor
 
 -- | A lens for setting or modifying the texture of an arrowhead. For
 --   example, one may write @... (with & headTexture .~ grad)@ to get an
