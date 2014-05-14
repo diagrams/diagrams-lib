@@ -33,7 +33,8 @@ module Diagrams.TwoD.Arrow
 --   > shaft  = cubicSpline False ( map p2 [(0, 0), (1, 0), (1, 0.2), (2, 0.2)])
 --   >
 --   > example1 = ds # connect' (with & arrowHead .~ dart & arrowTail .~ quill
---   >                                & arrowShaft .~ shaft)
+--   >                                & arrowShaft .~ shaft
+--   >                                & headLength .~ huge & tailLength .~ veryLarge)
 --   >                                "left" "right" # pad 1.1
 
          -- ** Example 2
@@ -46,8 +47,9 @@ module Diagrams.TwoD.Arrow
 --   > dias = oct # named "first" ||| strut 3 ||| oct # named "second"
 --   >
 --   > -- Connect two diagrams and two points on their trails.
---   > ex12 = dias # connect "first" "second"
---   >             # connectPerim "first" "second" (15/16 \@\@ turn) (9/16 \@\@ turn)
+--   > ex12 = dias # connect' (with & lengths .~ veryLarge) "first" "second" 
+--   >             # connectPerim (with & lengths .~ veryLarge)
+--   >        "first" "second" (15/16 \@\@ turn) (9/16 \@\@ turn)
 --   >
 --   > -- Place an arrow at (0,0) the size and direction of (0,1).
 --   > ex3 = arrowAt origin unit_Y
