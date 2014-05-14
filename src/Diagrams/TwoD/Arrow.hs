@@ -27,13 +27,13 @@ module Diagrams.TwoD.Arrow
 --
 --   > -- Connecting two diagrams at their origins.
 --   >
---   > sq = square 2 # showOrigin # lc darkgray # lwG 0.07
+--   > sq = square 2 # showOrigin # lc darkgray # lw ultraThick
 --   > ds = (sq # named "left") ||| strutX 3 ||| (sq # named "right")
 --   >
 --   > shaft  = cubicSpline False ( map p2 [(0, 0), (1, 0), (1, 0.2), (2, 0.2)])
 --   >
 --   > example1 = ds # connect' (with & arrowHead .~ dart & arrowTail .~ quill
---   >                                & shaftStyle %~ lwG 0.02 & arrowShaft .~ shaft)
+--   >                                & arrowShaft .~ shaft)
 --   >                                "left" "right" # pad 1.1
 
          -- ** Example 2
@@ -42,7 +42,7 @@ module Diagrams.TwoD.Arrow
 --
 --   > -- Comparing connect, connectPerim, and arrowAt.
 --   >
---   > oct  = octagon 1 # lc darkgray # lwG 0.050 # showOrigin
+--   > oct  = octagon 1 # lc darkgray # lw ultraThick # showOrigin
 --   > dias = oct # named "first" ||| strut 3 ||| oct # named "second"
 --   >
 --   > -- Connect two diagrams and two points on their trails.
@@ -202,10 +202,10 @@ tailStyle :: Lens' ArrowOpts (Style R2)
 -- | Style to apply to the shaft. See `headStyle`.
 shaftStyle :: Lens' ArrowOpts (Style R2)
 
--- | The radius of the circumcircle around the head.
+-- | The length from the start of the joint to the tip of the head.
 headLength :: Lens' ArrowOpts (Measure R2)
 
--- | The radius of the circumcircle around the tail.
+-- | The length of the tail plus its joint. 
 tailLength :: Lens' ArrowOpts (Measure R2)
 
 -- | Set both the @headLength@ and @tailLength@ simultaneously.
