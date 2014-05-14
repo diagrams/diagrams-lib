@@ -156,8 +156,9 @@ module Diagrams.TwoD
        , shaftColor
        , shaftTexture
        , shaftStyle
-       , headSize
-       , tailSize
+       , headLength
+       , tailLength
+       , lengths
 
          -- * Text
        , text, topLeftText, alignedText, baselineText

@@ -27,13 +27,14 @@ module Diagrams.TwoD.Arrow
 --
 --   > -- Connecting two diagrams at their origins.
 --   >
---   > sq = square 2 # showOrigin # lc darkgray # lw 0.07
+--   > sq = square 2 # showOrigin # lc darkgray # lw ultraThick
 --   > ds = (sq # named "left") ||| strutX 3 ||| (sq # named "right")
 --   >
 --   > shaft  = cubicSpline False ( map p2 [(0, 0), (1, 0), (1, 0.2), (2, 0.2)])
 --   >
 --   > example1 = ds # connect' (with & arrowHead .~ dart & arrowTail .~ quill
---   >                                & shaftStyle %~ lw 0.02 & arrowShaft .~ shaft)
+--   >                                & arrowShaft .~ shaft
+--   >                                & headLength .~ huge & tailLength .~ veryLarge)
 --   >                                "left" "right" # pad 1.1
 
          -- ** Example 2
@@ -42,12 +43,13 @@ module Diagrams.TwoD.Arrow
 --
 --   > -- Comparing connect, connectPerim, and arrowAt.
 --   >
---   > oct  = octagon 1 # lc darkgray # lw 0.050 # showOrigin
+--   > oct  = octagon 1 # lc darkgray # lw ultraThick # showOrigin
 --   > dias = oct # named "first" ||| strut 3 ||| oct # named "second"
 --   >
 --   > -- Connect two diagrams and two points on their trails.
---   > ex12 = dias # connect "first" "second"
---   >             # connectPerim "first" "second" (15/16 \@\@ turn) (9/16 \@\@ turn)
+--   > ex12 = dias # connect' (with & lengths .~ veryLarge) "first" "second" 
+--   >             # connectPerim (with & lengths .~ veryLarge)
+--   >        "first" "second" (15/16 \@\@ turn) (9/16 \@\@ turn)
 --   >
 --   > -- Place an arrow at (0,0) the size and direction of (0,1).
 --   > ex3 = arrowAt origin unit_Y
@@ -83,11 +85,12 @@ module Diagrams.TwoD.Arrow
        , headColor
        , headTexture
        , headStyle
-       , headSize
+       , headLength
        , tailColor
        , tailTexture
        , tailStyle
-       , tailSize
+       , tailLength
+       , lengths
        , shaftColor
        , shaftTexture
        , shaftStyle
@@ -138,9 +141,9 @@ data ArrowOpts
     , _headGap    :: Measure R2
     , _tailGap    :: Measure R2
     , _headStyle  :: Style R2
-    , _headSize   :: Measure R2
+    , _headLength :: Measure R2
     , _tailStyle  :: Style R2
-    , _tailSize   :: Measure R2
+    , _tailLength :: Measure R2
     , _shaftStyle :: Style R2
     }
 
@@ -158,9 +161,9 @@ instance Default ArrowOpts where
 
         -- See note [Default arrow style attributes]
         , _headStyle    = mempty
-        , _headSize     = normal
+        , _headLength     = normal
         , _tailStyle    = mempty
-        , _tailSize     = normal
+        , _tailLength     = normal
         , _shaftStyle   = mempty
         }
 
@@ -201,11 +204,16 @@ tailStyle :: Lens' ArrowOpts (Style R2)
 -- | Style to apply to the shaft. See `headStyle`.
 shaftStyle :: Lens' ArrowOpts (Style R2)
 
--- | The radius of the circumcircle around the head.
-headSize :: Lens' ArrowOpts (Measure R2)
+-- | The length from the start of the joint to the tip of the head.
+headLength :: Lens' ArrowOpts (Measure R2)
 
--- | The radius of the circumcircle around the tail.
-tailSize :: Lens' ArrowOpts (Measure R2)
+-- | The length of the tail plus its joint. 
+tailLength :: Lens' ArrowOpts (Measure R2)
+
+-- | Set both the @headLength@ and @tailLength@ simultaneously.
+lengths :: Traversal' ArrowOpts (Measure R2)
+lengths f opts = (\h t -> opts & headLength .~ h & tailLength .~ t) <$> f (opts ^. headLength)
+             <*> f (opts ^. tailLength)
 
 -- | A lens for setting or modifying the color of an arrowhead. For
 --   example, one may write @... (with & headColor .~ blue)@ to get an
@@ -432,8 +440,8 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
 
         -- The head size, tail size, head gap, and tail gap are obtained
         -- from the style and converted to output units.
-        hSize = fromMeasure gToO nToO (opts ^. headSize)
-        tSize = fromMeasure gToO nToO (opts ^. tailSize)
+        hSize = fromMeasure gToO nToO (opts ^. headLength)
+        tSize = fromMeasure gToO nToO (opts ^. tailLength)
         hGap = fromMeasure gToO nToO (opts ^. headGap)
         tGap = fromMeasure gToO nToO (opts ^. tailGap)
 
