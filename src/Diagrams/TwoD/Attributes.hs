@@ -101,13 +101,13 @@ thick      = Normalized 0.0075 `atLeast` Output 0.5
 veryThick  = Normalized 0.01   `atLeast` Output 0.5
 ultraThick = Normalized 0.02   `atLeast` Output 0.5
 
-tiny      = Normalized 0.01   `atLeast` Output 1
-verySmall = Normalized 0.02   `atLeast` Output 1
-small     = Normalized 0.0375 `atLeast` Output 1
-normal    = Normalized 0.05   `atLeast` Output 1
-large     = Normalized 0.075  `atLeast` Output 1
-veryLarge = Normalized 0.125  `atLeast` Output 1
-huge      = Normalized 0.2    `atLeast` Output 1
+tiny      = Normalized 0.01
+verySmall = Normalized 0.015
+small     = Normalized 0.023
+normal    = Normalized 0.035
+large     = Normalized 0.05
+veryLarge = Normalized 0.07
+huge      = Normalized 0.10
 
 -----------------------------------------------------------------
 --  Line Width  -------------------------------------------------
