@@ -84,8 +84,6 @@ module Diagrams.TwoD.Arrow
        , gaps, gap
        , headTexture
        , headStyle
-       , tailTexture
-       , tailStyle
        , headLength
        , tailTexture
        , tailStyle
@@ -118,6 +116,7 @@ import           Diagrams.Core
 import           Diagrams.Core.Types      (QDiaLeaf (..), mkQD')
 
 import           Diagrams.Angle
+import           Diagrams.Attributes
 import           Diagrams.Parametric
 import           Diagrams.Path
 import           Diagrams.Solve           (quadForm)
@@ -264,14 +263,14 @@ xWidth p = a + b
 --   And set the opacity of the shaft to the current opacity.
 colorJoint :: Style R2 -> Style R2
 colorJoint sStyle =
-    let c = fmap getLineColor . getAttr $ sStyle
+    let c = fmap getLineTexture . getAttr $ sStyle
         o = fmap getOpacity . getAttr $ sStyle
     in
     case (c, o) of
         (Nothing, Nothing) -> fillColor (black :: Colour Double) $ mempty
-        (Just c', Nothing) -> fillColor c' $ mempty
-        (Nothing, Just o') -> opacity o' $ mempty
-        (Just c', Just o') -> opacity o' . fillColor c' $ mempty
+        (Just t, Nothing) -> fillTexture t $ mempty
+        (Nothing, Just o') -> opacity o' . fillColor (black :: Colour Double)  $ mempty
+        (Just t, Just o') -> opacity o' . fillTexture t $ mempty
 
 -- | Get line width from a style.
 widthOfJoint :: Style v -> Double -> Double  -> Double
