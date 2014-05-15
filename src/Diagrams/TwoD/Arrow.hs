@@ -82,16 +82,13 @@ module Diagrams.TwoD.Arrow
        , headGap
        , tailGap
        , gaps, gap
-       , headColor
        , headTexture
        , headStyle
        , headLength
-       , tailColor
        , tailTexture
        , tailStyle
        , tailLength
        , lengths
-       , shaftColor
        , shaftTexture
        , shaftStyle
        , straightShaft
@@ -119,12 +116,12 @@ import           Diagrams.Core
 import           Diagrams.Core.Types      (QDiaLeaf (..), mkQD')
 
 import           Diagrams.Angle
+import           Diagrams.Attributes
 import           Diagrams.Parametric
 import           Diagrams.Path
 import           Diagrams.Solve           (quadForm)
 import           Diagrams.Tangent         (tangentAtEnd, tangentAtStart)
 import           Diagrams.Trail
-import           Diagrams.Attributes
 import           Diagrams.TwoD.Arrowheads
 import           Diagrams.TwoD.Attributes
 import           Diagrams.TwoD.Path       (stroke, strokeT)
@@ -185,8 +182,10 @@ headGap :: Lens' ArrowOpts (Measure R2)
 tailGap :: Lens' ArrowOpts (Measure R2)
 
 -- | Set both the @headGap@ and @tailGap@ simultaneously.
-gaps :: Traversal' ArrowOpts (Measure R2)
-gaps f opts = (\h t -> opts & headGap .~ h & tailGap .~ t) <$> f (opts ^. headGap) <*> f (opts ^. tailGap)
+gaps :: Traversal' ArrowOpts (Measure R2) 
+gaps f opts = (\h t -> opts & headGap .~ h & tailGap .~ t)
+        <$> f (opts ^. headGap)
+        <*> f (opts ^. tailGap)
 
 -- | Same as gaps, provided for backward compatiiblity.
 gap :: Traversal' ArrowOpts (Measure R2)
@@ -215,39 +214,12 @@ lengths :: Traversal' ArrowOpts (Measure R2)
 lengths f opts = (\h t -> opts & headLength .~ h & tailLength .~ t) <$> f (opts ^. headLength)
              <*> f (opts ^. tailLength)
 
--- | A lens for setting or modifying the color of an arrowhead. For
---   example, one may write @... (with & headColor .~ blue)@ to get an
---   arrow with a blue head, or @... (with & headColor %~ blend 0.5
---   white)@ to make an arrow's head a lighter color.  For more general
---   control over the style of arrowheads, see 'headStyle'.
---
---   Note that the most general type of @headColor@ would be
---
--- @
---   (Color c, Color c') => Setter ArrowOpts ArrowOpts c c'
--- @
---
---   but that can cause problems for type inference when setting the
---   color.  However, using it at that more general type may
---   occasionally be useful, for example, if you want to apply some
---   opacity to a color, as in @... (with & headColor %~
---   (\`withOpacity\` 0.5))@.  If you want the more general type, you
---   can use @'headStyle' . 'styleFillColor'@ in place of @headColor@.
-headColor :: Color c => Setter' ArrowOpts c
-headColor = headStyle . styleFillColor
-
--- | A lens for setting or modifying the color of an arrow
---   tail. See 'headColor'.
-tailColor :: Color c => Setter' ArrowOpts c
-tailColor = tailStyle . styleFillColor
-
--- | A lens for setting or modifying the color of an arrow
---   shaft. See 'headColor'.
-shaftColor :: Color c => Setter' ArrowOpts c
-shaftColor = shaftStyle . styleLineColor
-
--- | A lens for setting or modifying the texture of an arrow
---   head.
+-- | A lens for setting or modifying the texture of an arrowhead. For
+--   example, one may write @... (with & headTexture .~ grad)@ to get an
+--   arrow with a head filled with a gradient, assuming grad has been
+--   defined. Or @... (with & headTexture .~ solid blue@ to set the head
+--   color to blue. For more general control over the style of arrowheads,
+--   see 'headStyle'.
 headTexture :: Setter' ArrowOpts Texture
 headTexture = headStyle . styleFillTexture
 
@@ -292,14 +264,14 @@ xWidth p = a + b
 --   And set the opacity of the shaft to the current opacity.
 colorJoint :: Style R2 -> Style R2
 colorJoint sStyle =
-    let c = fmap getLineColor . getAttr $ sStyle
+    let c = fmap getLineTexture . getAttr $ sStyle
         o = fmap getOpacity . getAttr $ sStyle
     in
     case (c, o) of
         (Nothing, Nothing) -> fillColor (black :: Colour Double) $ mempty
-        (Just c', Nothing) -> fillColor c' $ mempty
-        (Nothing, Just o') -> opacity o' $ mempty
-        (Just c', Just o') -> opacity o' . fillColor c' $ mempty
+        (Just t, Nothing) -> fillTexture t $ mempty
+        (Nothing, Just o') -> opacity o' . fillColor (black :: Colour Double)  $ mempty
+        (Just t, Just o') -> opacity o' . fillTexture t $ mempty
 
 -- | Get line width from a style.
 widthOfJoint :: Style v -> Double -> Double  -> Double
@@ -432,11 +404,11 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
         -- Use the existing line color for head, tail, and shaft by
         -- default (can be overridden by explicitly setting headStyle,
         -- tailStyle, or shaftStyle).
-        globalLC = getLineColor <$> getAttr sty
+        globalLC = getLineTexture <$> getAttr sty
         opts' = opts
-          & headStyle  %~ maybe id fillColor globalLC
-          & tailStyle  %~ maybe id fillColor globalLC
-          & shaftStyle %~ maybe id lineColor globalLC
+          & headStyle  %~ maybe id fillTexture globalLC
+          & tailStyle  %~ maybe id fillTexture globalLC
+          & shaftStyle %~ maybe id lineTexture globalLC
 
         -- The head size, tail size, head gap, and tail gap are obtained
         -- from the style and converted to output units.
