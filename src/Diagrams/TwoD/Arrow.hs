@@ -217,7 +217,8 @@ lengths f opts = (\h t -> opts & headLength .~ h & tailLength .~ t) <$> f (opts 
 -- | A lens for setting or modifying the texture of an arrowhead. For
 --   example, one may write @... (with & headTexture .~ grad)@ to get an
 --   arrow with a head filled with a gradient, assuming grad has been
---   defined. For more general control over the style of arrowheads,
+--   defined. Or @... (with & headTexture .~ solid blue@ to set the head
+--   color to blue. For more general control over the style of arrowheads,
 --   see 'headStyle'.
 headTexture :: Setter' ArrowOpts Texture
 headTexture = headStyle . styleFillTexture
