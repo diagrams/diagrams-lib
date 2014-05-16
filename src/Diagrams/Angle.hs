@@ -23,15 +23,23 @@ module Diagrams.Angle
        , HasTheta(..)
        ) where
 
-import           Control.Lens            (Iso', Lens', iso, review, (^.))
-                                         -- , review , (^.), _1, _2, Lens', lens)
+import Control.Lens            (Iso', Lens', iso, review, (^.))
 
-import           Data.VectorSpace
+import Data.Monoid      hiding ((<>))
+import Data.Semigroup
+import Data.VectorSpace
 
 -- | Angles can be expressed in a variety of units.  Internally,
 -- they are represented in radians.
 newtype Angle = Radians Double
               deriving (Read, Show, Eq, Ord, Enum, AdditiveGroup)
+
+instance Semigroup Angle where
+    (<>) = (^+^)
+
+instance Monoid Angle where
+    mappend = (<>)
+    mempty = Radians 0
 
 instance VectorSpace Angle where
   type Scalar Angle = Double
