@@ -65,7 +65,6 @@ module Diagrams.TwoD
        , P2, p2, unp2, mkP2
        , T2
        , unitX, unitY, unit_X, unit_Y
-       , direction, fromDirection
 
          -- * Angles
        , tau
