@@ -76,7 +76,7 @@ import           Diagrams.TwoD.Polygons
 import           Diagrams.TwoD.Shapes
 import           Diagrams.TwoD.Transform
 import           Diagrams.TwoD.Types
-import           Diagrams.TwoD.Vector    (e, unit_X, xDir)
+import           Diagrams.TwoD.Vector    (unitX, unit_X, xDir)
 import           Diagrams.Util           (( # ))
 
 -----------------------------------------------------------------------------
@@ -116,7 +116,7 @@ arrowheadDart theta len shaftWidth = (hd # scale size, jt)
     hd = snugL . pathFromTrail . glueTrail $ fromOffsets [t1, t2, b2, b1]
     jt = pathFromTrail . glueTrail $ j <> reflectY j
     j = closeTrail $ fromOffsets [(-jLength ^& 0), (0 ^& shaftWidth / 2)]
-    v = e theta
+    v = rotate theta unitX
     (t1, t2) = (unit_X ^+^ v, (-0.5 ^& 0) ^-^ v)
     [b1, b2] = map (reflectY . negateV) [t1, t2]
     psi = pi - (direction . negateV $ t2) ^. _theta.rad
@@ -135,7 +135,7 @@ arrowheadSpike theta len shaftWidth  = (hd # scale r, jt # scale r)
     l1 = trailFromSegments [straight $ unit_X ^+^ v]
     l2 = trailFromSegments [reverseSegment . straight $ (unit_X ^+^ (reflectY v))]
     c = reflectX $ arc' 1 (xDir .+^ theta) ((-2) *^ theta)
-    v = e theta
+    v = rotate theta unitX
 
     -- The length of the head without its joint is, -2r cos theta and
     -- the length of the joint is r - sqrt (r^2 - y^2). So the total
@@ -161,7 +161,7 @@ arrowheadThorn theta len shaftWidth = (hd # scale size, jt)
     jt = pathFromTrail . glueTrail $ j <> reflectY j
     j = closeTrail $ fromOffsets [(-jLength ^& 0), (0 ^& shaftWidth / 2)]
     c = curvedSide theta
-    v = e theta
+    v = rotate theta unitX
     l = reverseSegment . straight $ t
     t = v ^-^ (-0.5 ^& 0)
     psi = fullTurn ^/ 2 ^-^ (negateV t ^. _theta)
@@ -175,7 +175,7 @@ curvedSide :: Angle -> Segment Closed R2
 curvedSide theta = bezier3 ctrl1 ctrl2 end
   where
     v0    = unit_X
-    v1    = e theta
+    v1    = rotate theta unitX
     ctrl1 = v0
     ctrl2 = v0 ^+^ v1
     end   = v0 ^+^ v1
@@ -234,7 +234,7 @@ arrowtailBlock theta = aTail
    aTail len _ = (t, mempty)
       where
         t = rect len (len * x) # alignR
-        a'  = e theta
+        a'  = rotate theta unitX
         a = a' ^-^ (reflectY a')
         x = magnitude a
 
@@ -248,7 +248,7 @@ arrowtailQuill theta = aTail
             # scale size # alignR
         size = len / 0.6
         v0 = p2 (0.5, 0)
-        v2 = origin .+^ (e theta # scale 0.5)
+        v2 = origin .+^ (rotate theta unitX # scale 0.5)
         v1 = v2 # translateX (5/8)
         v3 = p2 (-0.1, 0)
         v4 = v2 # reflectY
