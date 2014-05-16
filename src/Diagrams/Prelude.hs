@@ -88,6 +88,8 @@ module Diagrams.Prelude
        , module Diagrams.Angle
          -- | Convenience infix operators for working with coordinates.
        , module Diagrams.Coordinates
+         -- | Directions, distinguished from angles or vectors
+       , module Diagrams.Direction
 
          -- | A wide range of things (shapes, transformations,
          --   combinators) specific to creating two-dimensional
@@ -132,6 +134,7 @@ import           Diagrams.Combinators
 import           Diagrams.Coordinates
 import           Diagrams.CubicSpline
 import           Diagrams.Deform
+import           Diagrams.Direction
 import           Diagrams.Envelope
 import           Diagrams.Located
 import           Diagrams.Names
