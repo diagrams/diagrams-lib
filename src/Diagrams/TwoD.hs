@@ -199,7 +199,7 @@ module Diagrams.TwoD
 
          -- * Combinators
          -- ** Combining multiple diagrams
-       , (===), (|||), atAngle
+       , (===), (|||), atDirection
        , hcat, hcat'
        , vcat, vcat'
 

@@ -57,10 +57,12 @@ import           Diagrams.TwoD.Arc
 import           Diagrams.TwoD.Polygons
 import           Diagrams.TwoD.Transform
 import           Diagrams.TwoD.Types
+import           Diagrams.TwoD.Vector
 
 import           Diagrams.Util
 
 import           Control.Lens            (makeLenses, op, (&), (.~), (^.))
+import           Data.AffineSpace
 import           Data.Default.Class
 import           Data.Semigroup
 
@@ -310,6 +312,8 @@ roundedRect' w h opts
                                 else r
         sign n = if n < 0 then -1 else 1
         mkCorner k r | r == 0    = mempty
-                     | r < 0     = doArc 3 2
+                     | r < 0     = doArc 3 (-1)
                      | otherwise = doArc 0 1
-                     where doArc d d' = arc' r ((k+d)/4 @@ turn) ((k+d')/4 @@ turn)
+                     where
+                       doArc d s =
+                           arc' r (xDir .+^ ((k+d)/4 @@ turn)) (s/4 @@ turn)

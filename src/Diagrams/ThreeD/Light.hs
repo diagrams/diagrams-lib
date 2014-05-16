@@ -21,6 +21,7 @@ import           Data.Monoid
 import           Data.Typeable
 
 import           Diagrams.Core
+import           Diagrams.Direction
 import           Diagrams.ThreeD.Types
 
 data PointLight = PointLight P3 (Colour Double)
@@ -48,7 +49,7 @@ pointLight c = mkQD (Prim $ PointLight origin c) mempty mempty mempty
 
 -- | Construct a Diagram with a single ParallelLight, which takes up no space.
 parallelLight :: (Backend b R3, Renderable ParallelLight b)
-                 => Direction -- ^ The direction in which the light travels.
+                 => Direction R3 -- ^ The direction in which the light travels.
                  -> Colour Double -- ^ The color of the light.
                  -> Diagram b R3
 parallelLight d c = mkQD (Prim $ ParallelLight (fromDirection d) c)

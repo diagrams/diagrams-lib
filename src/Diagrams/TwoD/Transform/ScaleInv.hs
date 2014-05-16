@@ -26,6 +26,7 @@ import           Data.AffineSpace        ((.-.))
 import           Data.Semigroup
 import           Data.Typeable
 
+import           Diagrams.Angle
 import           Diagrams.Core
 import           Diagrams.TwoD.Transform
 import           Diagrams.TwoD.Types
@@ -85,7 +86,7 @@ instance (V t ~ R2, HasOrigin t) => HasOrigin (ScaleInv t) where
 instance (V t ~ R2, Transformable t) => Transformable (ScaleInv t) where
   transform tr (ScaleInv t v l) = ScaleInv (trans . rot $ t) (rot v) l'
     where
-      angle = direction (transform tr v) ^-^ direction v
+      angle = angleBetween (transform tr v) v
       rot :: (Transformable t, V t ~ R2) => t -> t
       rot = rotateAbout l angle
       l'  = transform tr l

@@ -49,6 +49,7 @@ import           Diagrams.Angle
 import           Diagrams.BoundingBox
 import           Diagrams.Combinators
 import           Diagrams.Coordinates
+import           Diagrams.Direction
 import           Diagrams.Path
 import           Diagrams.Segment
 import           Diagrams.TrailLike
@@ -58,7 +59,7 @@ import           Diagrams.TwoD.Path       ()
 import           Diagrams.TwoD.Shapes
 import           Diagrams.TwoD.Transform  (scaleX, scaleY)
 import           Diagrams.TwoD.Types
-import           Diagrams.TwoD.Vector     (fromDirection, unitX, unitY)
+import           Diagrams.TwoD.Vector     (unitX, unitY)
 import           Diagrams.Util            (( # ))
 
 
@@ -91,13 +92,13 @@ infixl 6 |||
 (|||) :: (Juxtaposable a, V a ~ R2, Semigroup a) => a -> a -> a
 (|||) = beside unitX
 
--- | Place two diagrams (or other juxtaposable objects) adjacent to one
---   another, with the second diagram placed along a line at angle
---   'th' from the first.  The local origin of the resulting combined
---   diagram is the same as the local origin of the first.
---   See the documentation of 'beside' for more information.
-atAngle :: (Juxtaposable a, V a ~ R2, Semigroup a) => Angle -> a -> a -> a
-atAngle th = beside (fromDirection th)
+-- | Place two diagrams (or other juxtaposable objects) adjacent to
+--   one another, with the second diagram placed in the direction 'd'
+--   from the first.  The local origin of the resulting combined
+--   diagram is the same as the local origin of the first.  See the
+--   documentation of 'beside' for more information.
+atDirection :: (Juxtaposable a, V a ~ R2, Semigroup a) => Direction R2 -> a -> a -> a
+atDirection d = beside (fromDirection d)
 
 -- | Lay out a list of juxtaposable objects in a row from left to right,
 --   so that their local origins lie along a single horizontal line,

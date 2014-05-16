@@ -47,6 +47,7 @@ import           Diagrams.Core
 import qualified Diagrams.Core.Transform as T
 
 import           Diagrams.Angle
+import           Diagrams.Direction
 import           Diagrams.Transform
 import           Diagrams.ThreeD.Types
 import           Diagrams.Coordinates
@@ -104,7 +105,7 @@ aboutY ang = fromLinear r (linv r) where
 --   passing through @p@.
 rotationAbout ::
      P3        -- ^ origin of rotation
-  -> Direction -- ^ direction of rotation axis
+  -> Direction R3 -- ^ direction of rotation axis
   -> Angle     -- ^ angle of rotation
   -> T3
 rotationAbout p d a
@@ -127,7 +128,7 @@ rotationAbout p d a
 -- without tilting, it will be, otherwise if only tilting is
 -- necessary, no panning will occur.  The tilt will always be between
 -- ± 1/4 turn.
-pointAt :: Direction -> Direction -> Direction -> T3
+pointAt :: Direction R3 -> Direction R3 -> Direction R3 -> T3
 pointAt a i f = pointAt' (fromDirection a) (fromDirection i) (fromDirection f)
 
 -- | pointAt' has the same behavior as 'pointAt', but takes vectors

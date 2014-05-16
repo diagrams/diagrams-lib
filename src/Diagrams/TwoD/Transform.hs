@@ -56,7 +56,6 @@ import           Diagrams.Angle
 import           Diagrams.Transform
 import           Diagrams.TwoD.Size      (height, width)
 import           Diagrams.TwoD.Types
-import           Diagrams.TwoD.Vector    (direction)
 import           Diagrams.Coordinates
 
 import           Data.AdditiveGroup
@@ -205,7 +204,7 @@ reflectY = transform reflectionY
 --   the point @p@ and vector @v@.
 reflectionAbout :: P2 -> R2 -> T2
 reflectionAbout p v =
-  conjugate (rotation (negateV $ direction v) <> translation (origin .-. p))
+  conjugate (rotation (negateV $ v^._theta) <> translation (origin .-. p))
             reflectionY
 
 -- | @reflectAbout p v@ reflects a diagram in the line determined by
@@ -248,4 +247,4 @@ shearY = transform . shearingY
 --   is mostly useful for implementing backends.
 onBasis :: Transformation R2 -> ((R2, R2), R2)
 onBasis t = ((x, y), v)
-  where ((x:y:[]), v) = T.onBasis t
+  where (x:y:[], v) = T.onBasis t
