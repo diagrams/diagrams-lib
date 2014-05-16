@@ -23,9 +23,8 @@ module Diagrams.TwoD.Vector
        , perp, leftTurn
        ) where
 
-import           Control.Lens         ((^.), (&), (<>~))
-import           Data.VectorSpace
 import           Data.AffineSpace
+import           Data.VectorSpace
 
 import           Diagrams.Angle
 import           Diagrams.Direction
@@ -47,11 +46,6 @@ unit_X = (-1) ^& 0
 -- | The unit vector in the negative Y direction.
 unit_Y :: R2
 unit_Y = 0 ^& (-1)
-
-instance AffineSpace (Direction R2) where
-    type Diff (Direction R2) = Angle
-    a .-. b = a^._theta ^-^ b^._theta
-    a .+^ θ = a & _theta <>~ θ
 
 -- | The origin of the direction AffineSpace.  For all d, @d .-. xDir
 -- = d^._theta@.

@@ -28,13 +28,15 @@ module Diagrams.TwoD.Types
        ) where
 
 import           Control.Lens           (Iso', Rewrapped, Wrapped (..), iso,
-                                         lens, (^.), _1, _2)
+                                         (^.), (&), (<>~), _1, _2)
+
 
 import           Diagrams.Angle
 import           Diagrams.Direction
 import           Diagrams.Coordinates
 import           Diagrams.Core
 
+import           Data.AffineSpace
 import           Data.AffineSpace.Point
 import           Data.Basis
 import           Data.MemoTrie          (HasTrie (..))
@@ -182,11 +184,10 @@ instance HasY R2 where
     _y = r2Iso . _2
 
 instance HasTheta R2 where
-    _theta = lens (\v -> atanA (v^._y / v^._x))
-      (\v θ -> let r = magnitude v in R2 (r * cosA θ) (r * sinA θ))
+    _theta = polar._2
 
 instance HasR R2 where
-    _r = lens magnitude (\v r -> let s = r/magnitude v in s *^ v)
+    _r = polar._1
 
 instance HasTheta (Direction R2) where
     _theta = _Dir . _theta
@@ -252,3 +253,16 @@ instance HasTheta P2 where
 -- | Types which can be expressed in polar 2D coordinates, as a magnitude and an angle.
 class Polar t where
     polar :: Iso' t (Double, Angle)
+
+instance Polar R2 where
+    polar =
+        iso (\v -> ( magnitude v, atanA (v^._y / v^._x)))
+            (\(r,θ) -> R2 (r * cosA θ) (r * sinA θ))
+
+instance Polar P2 where
+    polar = _relative origin . polar
+
+instance AffineSpace (Direction R2) where
+    type Diff (Direction R2) = Angle
+    a .-. b = a^._theta ^-^ b^._theta
+    a .+^ θ = a & _theta <>~ θ

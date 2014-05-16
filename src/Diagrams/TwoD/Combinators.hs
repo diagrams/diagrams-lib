@@ -18,7 +18,7 @@ module Diagrams.TwoD.Combinators
     (
       -- * Binary combinators
 
-      (===), (|||), atAngle
+      (===), (|||), atDirection
 
       -- * n-ary combinators
     , hcat, hcat'
@@ -45,7 +45,6 @@ import           Data.VectorSpace
 
 import           Diagrams.Core
 
-import           Diagrams.Angle
 import           Diagrams.BoundingBox
 import           Diagrams.Combinators
 import           Diagrams.Coordinates

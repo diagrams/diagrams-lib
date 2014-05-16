@@ -22,8 +22,6 @@ module Diagrams.TwoD.Ellipse
     , ellipseXY
     ) where
 
-import           Data.AdditiveGroup
-
 import           Diagrams.Core
 
 import           Diagrams.Angle
@@ -32,7 +30,7 @@ import           Diagrams.TrailLike
 import           Diagrams.TwoD.Arc
 import           Diagrams.TwoD.Transform
 import           Diagrams.TwoD.Types
-import           Diagrams.TwoD.Vector
+import           Diagrams.TwoD.Vector    (xDir)
 import           Diagrams.Util
 
 -- | A circle of radius 1, with center at the origin.

@@ -16,10 +16,10 @@ module Diagrams.Direction
        ( Direction
        , _Dir
        , direction, fromDirection
+       , angleBetweenDirs
        ) where
 
 import Control.Lens
-import Data.AffineSpace
 import Data.VectorSpace
 
 import Diagrams.Angle

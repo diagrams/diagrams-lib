@@ -32,7 +32,7 @@ import           Diagrams.Trail
 import           Diagrams.TrailLike
 import           Diagrams.TwoD.Transform
 import           Diagrams.TwoD.Types
-import           Diagrams.TwoD.Vector    (e, unitX, unitY, unit_Y, xDir)
+import           Diagrams.TwoD.Vector    (unitX, unitY, unit_Y, xDir)
 import           Diagrams.Util           (( # ))
 
 import           Control.Lens            ((^.))
@@ -98,7 +98,7 @@ arcT start sweep
     | sweep < zeroV = arcT start (sweep ^-^ (fromIntegral d @@ turn))
     | otherwise     = (if sweep >= fullTurn then glueTrail else id)
                     $ trailFromSegments bs
-  where end = start .+^ sweep
+  where
         bs    = map (rotate $ start .-. xDir) . bezierFromSweep $ sweep
         d      = floor (sweep^.turn) :: Integer
 
@@ -175,7 +175,6 @@ arcBetween p q ht = trailLike (a # rotate (v^._theta) # moveTo p)
     mid | ht >= 0    = direction unitY
         | otherwise  = direction unit_Y
     st  = mid .-^ th
-    end = mid .+^ th
     a | isStraight
       = fromOffsets [d *^ unitX]
       | otherwise

@@ -54,7 +54,7 @@ module Diagrams.TwoD.Arrowheads
        , ArrowHT
        ) where
 
-import           Control.Lens            ((&), (.~), (^.), (%~), (-~), (+~))
+import           Control.Lens            ((&), (.~), (^.))
 import           Data.AffineSpace
 import           Data.Default.Class
 import           Data.Monoid             (mempty, (<>))
@@ -76,7 +76,7 @@ import           Diagrams.TwoD.Polygons
 import           Diagrams.TwoD.Shapes
 import           Diagrams.TwoD.Transform
 import           Diagrams.TwoD.Types
-import           Diagrams.TwoD.Vector    (e, unitX, unit_X, xDir)
+import           Diagrams.TwoD.Vector    (e, unit_X, xDir)
 import           Diagrams.Util           (( # ))
 
 -----------------------------------------------------------------------------

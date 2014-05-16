@@ -21,7 +21,6 @@ module Diagrams.TwoD.Transform.ScaleInv
     where
 
 import           Control.Lens            (makeLenses, view)
-import           Data.AdditiveGroup
 import           Data.AffineSpace        ((.-.))
 import           Data.Semigroup
 import           Data.Typeable
@@ -30,7 +29,6 @@ import           Diagrams.Angle
 import           Diagrams.Core
 import           Diagrams.TwoD.Transform
 import           Diagrams.TwoD.Types
-import           Diagrams.TwoD.Vector
 
 -- | The @ScaleInv@ wrapper creates two-dimensional /scale-invariant/
 --   objects.  Intuitively, a scale-invariant object is affected by
