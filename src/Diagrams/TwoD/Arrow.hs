@@ -101,8 +101,8 @@ module Diagrams.TwoD.Arrow
 import           Control.Applicative      ((<*>))
 import           Control.Lens             (Lens', Setter', Traversal',
                                            generateSignatures, lensRules,
-                                           makeLensesWith, (%~), (&), (.~),
-                                           (^.))
+                                           makeLensesWith, view, (%~), (&),
+                                           (.~), (^.))
 import           Data.AffineSpace
 import           Data.Default.Class
 import           Data.Functor             ((<$>))
@@ -117,6 +117,7 @@ import           Diagrams.Core.Types      (QDiaLeaf (..), mkQD')
 
 import           Diagrams.Angle
 import           Diagrams.Attributes
+import           Diagrams.Direction
 import           Diagrams.Parametric
 import           Diagrams.Path
 import           Diagrams.Solve           (quadForm)
@@ -127,7 +128,7 @@ import           Diagrams.TwoD.Attributes
 import           Diagrams.TwoD.Path       (stroke, strokeT)
 import           Diagrams.TwoD.Transform  (rotate, translateX)
 import           Diagrams.TwoD.Types
-import           Diagrams.TwoD.Vector     (direction, unitX, unit_X)
+import           Diagrams.TwoD.Vector     (unitX, unit_X)
 import           Diagrams.Util            (( # ))
 
 data ArrowOpts
@@ -355,7 +356,7 @@ scaleFactor tr tw hw t
 arrowEnv :: ArrowOpts -> Double -> Envelope R2
 arrowEnv opts len = getEnvelope horizShaft
   where
-    horizShaft = shaft # rotate (negateV direction v) # scale (len / m)
+    horizShaft = shaft # rotate (negateV v ^. _theta) # scale (len / m)
     m = magnitude v
     v = trailOffset shaft
     shaft = opts ^. arrowShaft
@@ -394,7 +395,7 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
     -- Build an arrow and set its endpoints to the image under tr of origin and (len,0).
     dArrow sty tr ln gToO nToO = (h' <> t' <> shaft)
                # moveOriginBy (tWidth *^ (unit_X # rotate tAngle))
-               # rotate (direction (q .-. p) ^-^ dir)
+               # rotate (angleBetween (q .-. p) (fromDirection dir))
                # moveTo p
       where
 
@@ -425,7 +426,7 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
         shaftTrail
           = rawShaftTrail
             -- rotate it so it is pointing in the positive X direction
-          # rotate (negateV direction (trailOffset rawShaftTrail))
+          # rotate (negateV . view _theta . trailOffset $ rawShaftTrail)
             -- apply the context transformation -- in case it includes
             -- things like flips and shears (the possibility of shears
             -- is why we must rotate it to a neutral position first)
@@ -436,8 +437,8 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
         hWidth = hWidth' + hGap
 
         -- Calculate the angles that the head and tail should point.
-        tAngle = direction . tangentAtStart $ shaftTrail
-        hAngle = direction . tangentAtEnd $ shaftTrail
+        tAngle = tangentAtStart shaftTrail ^. _theta
+        hAngle = tangentAtEnd shaftTrail ^. _theta
 
         -- Calculte the scaling factor to apply to the shaft shaftTrail so that the entire
         -- arrow will be of length len. Then apply it to the shaft and make the
@@ -481,7 +482,7 @@ arrowAt' opts s v = arrow' opts len
                   # rotate dir # moveTo s
   where
     len = magnitude v
-    dir = direction v
+    dir = v ^. _theta
 
 -- | @arrowV v@ creates an arrow with the direction and magnitude of
 --   the vector @v@ (with its tail at the origin), using default

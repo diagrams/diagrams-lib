@@ -54,7 +54,7 @@ module Diagrams.TwoD.Arrowheads
        , ArrowHT
        ) where
 
-import           Control.Lens            ((&), (.~), (^.))
+import           Control.Lens            ((&), (.~), (^.), (%~), (-~), (+~))
 import           Data.AffineSpace
 import           Data.Default.Class
 import           Data.Monoid             (mempty, (<>))
@@ -64,6 +64,7 @@ import           Diagrams.Angle
 import           Diagrams.Core
 
 import           Diagrams.Coordinates    ((^&))
+import           Diagrams.Direction
 import           Diagrams.Path
 import           Diagrams.Segment
 import           Diagrams.Trail
@@ -75,7 +76,7 @@ import           Diagrams.TwoD.Polygons
 import           Diagrams.TwoD.Shapes
 import           Diagrams.TwoD.Transform
 import           Diagrams.TwoD.Types
-import           Diagrams.TwoD.Vector    (fromDirection, direction, unit_X)
+import           Diagrams.TwoD.Vector    (e, unitX, unit_X, xDir)
 import           Diagrams.Util           (( # ))
 
 -----------------------------------------------------------------------------
@@ -115,10 +116,10 @@ arrowheadDart theta len shaftWidth = (hd # scale size, jt)
     hd = snugL . pathFromTrail . glueTrail $ fromOffsets [t1, t2, b2, b1]
     jt = pathFromTrail . glueTrail $ j <> reflectY j
     j = closeTrail $ fromOffsets [(-jLength ^& 0), (0 ^& shaftWidth / 2)]
-    v = fromDirection theta
+    v = e theta
     (t1, t2) = (unit_X ^+^ v, (-0.5 ^& 0) ^-^ v)
     [b1, b2] = map (reflectY . negateV) [t1, t2]
-    psi = pi - (direction . negateV $ t2) ^. rad
+    psi = pi - (direction . negateV $ t2) ^. _theta.rad
     jLength = shaftWidth / (2 * tan psi)
 
     -- If the shaft if too wide, set the size to a default value of 1.
@@ -130,11 +131,11 @@ arrowheadSpike theta len shaftWidth  = (hd # scale r, jt # scale r)
   where
     hd = snugL . closedPath $ l1 <> c <> l2
     jt = alignR . centerY . pathFromTrail
-                . closeTrail $ arc' 1 (negateV phi) phi
+                . closeTrail $ arc' 1 (xDir .-^ phi) (2 *^ phi)
     l1 = trailFromSegments [straight $ unit_X ^+^ v]
     l2 = trailFromSegments [reverseSegment . straight $ (unit_X ^+^ (reflectY v))]
-    c = reflectX $ arc' 1 theta (negateV theta)
-    v = fromDirection theta
+    c = reflectX $ arc' 1 (xDir .+^ theta) ((-2) *^ theta)
+    v = e theta
 
     -- The length of the head without its joint is, -2r cos theta and
     -- the length of the joint is r - sqrt (r^2 - y^2). So the total
@@ -149,7 +150,7 @@ arrowheadSpike theta len shaftWidth  = (hd # scale r, jt # scale r)
     -- 2/3 * len by setting d=1 and phi=pi/2.
     d = max 1 (len**2 + (1 - a**2) * y**2)
     r = (a * len + sqrt d) / (a**2 -1)
-    phi = asin (min 1 (y/r)) @@ rad
+    phi = asinA (min 1 (y/r))
 
 -- | Curved sides, linear concave base. Illustrator CS5 #3
 arrowheadThorn :: Angle -> ArrowHT
@@ -160,13 +161,13 @@ arrowheadThorn theta len shaftWidth = (hd # scale size, jt)
     jt = pathFromTrail . glueTrail $ j <> reflectY j
     j = closeTrail $ fromOffsets [(-jLength ^& 0), (0 ^& shaftWidth / 2)]
     c = curvedSide theta
-    v = fromDirection theta
+    v = e theta
     l = reverseSegment . straight $ t
     t = v ^-^ (-0.5 ^& 0)
-    psi = pi - (direction . negateV $ t) ^. rad
-    jLength = shaftWidth / (2 * tan psi)
+    psi = fullTurn ^/ 2 ^-^ (negateV t ^. _theta)
+    jLength = shaftWidth / (2 * tanA psi)
 
-    -- If the shaft if too wide, set the size to a default value of 1.    
+    -- If the shaft if too wide, set the size to a default value of 1.
     size = max 1 ((len - jLength) / (1.5))
 
 -- | Make a side for the thorn head.
@@ -174,7 +175,7 @@ curvedSide :: Angle -> Segment Closed R2
 curvedSide theta = bezier3 ctrl1 ctrl2 end
   where
     v0    = unit_X
-    v1    = fromDirection theta
+    v1    = e theta
     ctrl1 = v0
     ctrl2 = v0 ^+^ v1
     end   = v0 ^+^ v1
@@ -233,7 +234,7 @@ arrowtailBlock theta = aTail
    aTail len _ = (t, mempty)
       where
         t = rect len (len * x) # alignR
-        a'  = fromDirection theta
+        a'  = e theta
         a = a' ^-^ (reflectY a')
         x = magnitude a
 
@@ -247,7 +248,7 @@ arrowtailQuill theta = aTail
             # scale size # alignR
         size = len / 0.6
         v0 = p2 (0.5, 0)
-        v2 = p2 (unr2 $ fromDirection theta # scale 0.5)
+        v2 = origin .+^ (e theta # scale 0.5)
         v1 = v2 # translateX (5/8)
         v3 = p2 (-0.1, 0)
         v4 = v2 # reflectY
