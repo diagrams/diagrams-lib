@@ -49,7 +49,7 @@ import           Data.Semigroup
 --
 --       * Miter limit 10
 setDefault2DAttributes :: Semigroup m => QDiagram R2 m -> QDiagram R2 m
-setDefault2DAttributes d = d # lineWidthA def # lineColorA def # fontSizeA def
+setDefault2DAttributes d = d # lineWidthA def # lineTextureA def # fontSizeA def
                              # lineCap def # lineJoin def # lineMiterLimitA def
 
 
