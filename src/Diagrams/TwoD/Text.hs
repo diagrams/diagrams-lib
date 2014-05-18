@@ -23,7 +23,7 @@ module Diagrams.TwoD.Text (
   -- ** Font family
   , Font(..), getFont, font
   -- ** Font size
-  , FontSize(..), getFontSize, fontSizeA, fontSize
+  , FontSize(..), getFontSize, getFontSizeIsLocal, fontSizeA, fontSize
   , fontSizeN, fontSizeO, fontSizeL, fontSizeG
   -- ** Font slant
   , FontSlant(..), FontSlantA, getFontSlant, fontSlant, italic, oblique
@@ -31,12 +31,12 @@ module Diagrams.TwoD.Text (
   , FontWeight(..), FontWeightA, getFontWeight, fontWeight, bold
   ) where
 
-import           Diagrams.TwoD.Attributes (recommendFillColor)
 import           Diagrams.Core
-import           Diagrams.Core.Envelope (pointEnvelope)
+import           Diagrams.Core.Envelope   (pointEnvelope)
+import           Diagrams.TwoD.Attributes (recommendFillColor)
 import           Diagrams.TwoD.Types
 
-import           Data.AffineSpace       ((.-.))
+import           Data.AffineSpace         ((.-.))
 import           Data.Colour
 import           Data.Data
 import           Data.Default.Class
@@ -47,18 +47,23 @@ import           Data.Semigroup
 ------------------------------------------------------------
 
 -- | A text primitive consists of the string contents and alignment
---   specification, along with a transformation mapping from the local
---   vector space of the text to the vector space in which it is
---   embedded.
-data Text = Text T2 TextAlignment String
+--   specification, along with two transformations: the first
+--   accumulates all transformations which have been applied to the
+--   text; the second accumulates normalized, "anti-scaled" versions
+--   of the transformations which have had their average scaling
+--   component removed.
+data Text = Text T2 T2 TextAlignment String
   deriving Typeable
 
 type instance V Text = R2
 
 instance Transformable Text where
-  transform t (Text tt a s) = Text (t <> tt <> t') a s
+  transform t (Text tt tn a s) = Text (t <> tt) (t <> tn <> t') a s
     where
       t' = scaling (1 / avgScale t)
+      -- It's important that the anti-scaling is applied *first*,
+      -- followed by the old transformation tn and then the new
+      -- transformation t.  That way translation is handled properly.
 
 instance HasOrigin Text where
   moveOriginTo p = translate (origin .-. p)
@@ -70,7 +75,7 @@ mkText :: TextAlignment -> String -> Diagram R2
 mkText a t = recommendFillColor (black :: Colour Double)
              -- See Note [recommendFillColor]
 
-           $ mkQD (Prim (Text mempty a t))
+           $ mkQD (Prim (Text mempty mempty a t))
                        (pointEnvelope origin)
                        mempty
                        mempty
@@ -161,28 +166,43 @@ font = applyAttr . Font . Last
 
 -- | The @FontSize@ attribute specifies the size of a font's
 --   em-square.  Inner @FontSize@ attributes override outer ones.
-newtype FontSize = FontSize (Last (Measure R2))
+newtype FontSize = FontSize (Last (Measure R2, Bool))
   deriving (Typeable, Data, Semigroup)
 instance AttributeClass FontSize
+
+-- Note, the Bool stored in the FontSize indicates whether it started
+-- life as Local.  Typically, if the Bool is True, backends should use
+-- the first T2 value stored in a Text object; otherwise, the second
+-- (anti-scaled) T2 value should be used.
 
 type instance V FontSize = R2
 
 instance Default FontSize where
-    def = FontSize (Last (Local 1))
+    def = FontSize (Last (Local 1, True))
 
+-- FontSize has to be Transformable + also have an instance of Data,
+-- so the Measure inside it will be automatically converted to Output.
+-- However, we don't actually want the Transformable instance to do
+-- anything.  All the scaling of text happens not by manipulating the
+-- font size but by accumulating T2 values in Text objects.
 instance Transformable FontSize where
-  transform t (FontSize (Last s)) =
-    FontSize (Last (transform t s))
+  transform _ f = f
 
 -- | Extract the size from a @FontSize@ attribute.
 getFontSize :: FontSize -> Measure R2
-getFontSize (FontSize (Last s)) = s
+getFontSize (FontSize (Last (s,_))) = s
+
+-- | Determine whether a @FontSize@ attribute began its life measured
+--   in 'Local' units.
+getFontSizeIsLocal :: FontSize -> Bool
+getFontSizeIsLocal (FontSize (Last (_,b))) = b
 
 -- | Set the font size, that is, the size of the font's em-square as
 --   measured within the current local vector space.  The default size
 --   is @1@.
 fontSize :: (HasStyle a, V a ~ R2) => Measure R2 -> a -> a
-fontSize = applyGTAttr . FontSize . Last
+fontSize m@(Local {}) = applyGTAttr . FontSize . Last $ (m,True)
+fontSize m            = applyGTAttr . FontSize . Last $ (m,False)
 
 -- | A convenient synonym for 'fontSize (Global w)'.
 fontSizeG :: (HasStyle a, V a ~ R2) => Double -> a -> a

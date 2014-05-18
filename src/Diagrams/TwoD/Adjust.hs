@@ -22,7 +22,7 @@ module Diagrams.TwoD.Adjust
 import           Diagrams.Attributes      (lineCap, lineJoin,
                                            lineMiterLimitA)
 import           Diagrams.Core
-import           Diagrams.TwoD.Attributes (lineWidthA, lineTextureA, lineColorA)
+import           Diagrams.TwoD.Attributes (lineWidthA, lineTextureA)
 import           Diagrams.TwoD.Size       (SizeSpec2D (..), center2D,
                                            requiredScale, size2D)
 import           Diagrams.TwoD.Text       (fontSizeA)
@@ -51,7 +51,7 @@ import           Data.Semigroup
 setDefault2DAttributes :: Semigroup m => QDiagram R2 m -> QDiagram R2 m
 setDefault2DAttributes d = d # lineWidthA def # lineColorA def # fontSizeA def
                              # lineCap def # lineJoin def # lineMiterLimitA def
-                             # lineTextureA def
+
 
 -- | Adjust the size and position of a 2D diagram to fit within the
 --   requested size. The first argument is a lens into the output

@@ -147,17 +147,15 @@ module Diagrams.TwoD
        , headGap
        , tailGap
        , gaps, gap
-       , headColor
        , headTexture
        , headStyle
-       , tailColor
        , tailTexture
        , tailStyle
-       , shaftColor
        , shaftTexture
        , shaftStyle
-       , headSize
-       , tailSize
+       , headLength
+       , tailLength
+       , lengths
 
          -- * Text
        , text, topLeftText, alignedText, baselineText
@@ -241,7 +239,8 @@ module Diagrams.TwoD
        , sized, sizedAs
 
         -- * Textures
-      , Texture(..), SpreadMethod(..), GradientStop(..), mkStops, getFillTexture
+      , Texture(..), solid 
+      , SpreadMethod(..), GradientStop(..), mkStops, getFillTexture
       , fillTexture, getLineTexture, lineTexture, lineTextureA
       , stopFraction, stopColor
 
@@ -253,8 +252,8 @@ module Diagrams.TwoD
       , rGradTrans, rGradSpreadMethod, defaultRG, _RG, mkRadialGradient
 
         -- ** Colors
-      , fillColor, fc, fcA, recommendFillColor, getFillColor
-      , lineColor, lc, lcA, lineColorA, getLineColor
+      , fillColor, fc, fcA, recommendFillColor
+      , lineColor, lc, lcA, _SC
 
        -- ** Width
        , LineWidth, getLineWidth, lineWidth, lineWidthA
