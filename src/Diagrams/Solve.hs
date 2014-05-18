@@ -6,12 +6,13 @@
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
--- Exact solving of low-degree (n <= 3) polynomials.
+-- Exact solving of low-degree (n <= 4) polynomials.
 --
 -----------------------------------------------------------------------------
 module Diagrams.Solve
        ( quadForm
        , cubForm
+       , quartForm
        ) where
 
 import           Data.List     (maximumBy)
@@ -92,12 +93,10 @@ cubForm a b c d
        xx     = 2*b*b*b - 9*a*b*c + 27*a*a*d
        p      = disc/(3*a*a)
        q      = xx/(27*a*a*a)
-       trig k = 2 * sqrt(-p/3) * cos(1/3*acos(3*q/(2*p)*sqrt(-3/p)) - k*tau/3)
-                - b/(3*a)
-
+       phi = 1/3*acos(3*q/(2*p)*sqrt(-3/p))
+       trig k = 2 * sqrt(-p/3) * cos(phi - k*tau/3) - b/(3*a)
        cubert x | x < 0     = -((-x)**(1/3))
                 | otherwise = x**(1/3)
-
        aboutZero x = abs x < toler
        toler = 1e-10
 
@@ -116,3 +115,56 @@ cubForm_prop a b c d = all (aboutZero . eval) (cubForm a b c d)
            -- issue in practice we could, say, use the solutions
            -- generated here as very good guesses to a numerical
            -- solver which can give us a more precise answer?
+           
+------------------------------------------------------------
+-- Quartic formula
+------------------------------------------------------------
+
+-- Based on http://tog.acm.org/resources/GraphicsGems/gems/Roots3b/and4.c
+-- as of 5/12/14, with help from http://en.wikipedia.org/wiki/Quartic_function
+
+-- | Solve the quartic equation c4 x^4 + c3 x^3 + c2 x^2 + c1 x + c0 = 0, returning a
+--   list of all real roots.
+quartForm :: (Floating d, Ord d) => d -> d -> d -> d -> d -> [d]
+quartForm c4 c3 c2 c1 c0
+  -- obvious cubic
+  | aboutZero c4 = cubForm c3 c2 c1 c0
+  -- x(ax^3+bx^2+cx+d)
+  | aboutZero c0 = 0 : cubForm c4 c3 c2 c1
+  | otherwise = 
+      let -- eliminate c4: x^4+ax^3+bx^2+cx+d
+          a=c3/c4; b=c2/c4; c=c1/c4; d=c0/c4
+          -- substitute x = u - a/4 to eliminate cubic term:
+          -- u^4 + pu^2 + qu + r = 0
+          -- 
+          p = b - 3/8*a*a
+          q = 1/8*a*a*a-a*b/2+c
+          r = (-3/256)*a*a*a*a+a*a*b/16-a*c/4+d
+      in
+        map (\x->x-(a/4)) $ if aboutZero r then
+          -- no constant term: u(u^3 + pu + q) = 0
+          0 : cubForm 1 0 p q
+        else do
+          -- solve the resolvent cubic - should have exactly one solution, but cubic solver is inaccurate
+          let z:_ = cubForm 1 (-p/2) (-r) (p*r/2 - q*q/8)
+          -- quadratic equations
+          let u = z * z - r
+              v = 2 * z - p
+          if u < 0 || v < 0 then [] else
+            let u' = if aboutZero u then 0 else sqrt u
+                v' = if aboutZero v then 0 else sqrt v
+                s1 = quadForm 1 (if' (q<0) (-v') v') (z-u')
+                s2 = quadForm 1 (if' (q<0) v' (-v')) (z+u')
+            in
+              s1++s2
+ where
+   aboutZero x = abs x < toler
+   toler = 1e-10
+   if' a b c = if a then b else c
+
+quartForm_prop :: Double -> Double -> Double -> Double -> Double -> Bool
+quartForm_prop a b c d e = all (aboutZero . eval) (quartForm a b c d e)
+  where eval x = a*x*x*x*x + b*x*x*x + c*x*x + d*x + e
+        aboutZero x = abs x < tolerance
+        tolerance = 1e-5
+           -- Same note about tolerance as for cubic
