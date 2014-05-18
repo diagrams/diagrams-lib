@@ -12,6 +12,8 @@ module Diagrams.Solve
        ( quadForm
        , cubForm
        , quartForm
+       , cubForm'
+       , quartForm'
        ) where
 
 import           Data.List     (maximumBy)
