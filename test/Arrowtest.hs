@@ -20,31 +20,39 @@ import           Diagrams.Prelude
 
 -- | example 0 ------------------------------------------------------------
 example = d # connect' (with & arrowHead .~ dart & arrowTail .~ noTail
-                                  & tailSize .~ 40 & headSize .~ 40
+                                  & tailLength .~ (Output 40)
+                                  & headLength .~ (Output 40)
                                   & arrowShaft .~ s & shaftStyle %~ lwO 5
                                   & headStyle %~ fc black & tailStyle %~ fc black )
                             "1" "2"
-            # connect' (with & arrowHead .~ missile & headSize .~ 15 & arrowTail .~ missile'
-                                   & tailSize .~ 15 & shaftStyle %~ lw 0.05 & arrowShaft .~ s1
-                                   & headGap .~ 0 & tailGap .~ 0.1 )
+            # connect' (with & arrowHead .~ spike & headLength .~ (Output 15)
+                                   & arrowTail .~ spike'
+                                   & tailLength .~ (Output 15)
+                                   & shaftStyle %~ lw thin & arrowShaft .~ s1
+                                   & headGap .~ none & tailGap .~ tiny )
                             "4" "3"
             # connect' (with & arrowHead .~ thorn & arrowShaft .~ a1
-                                   & arrowTail .~ noTail & shaftStyle %~ lw 0.03 )
+                                   & arrowTail .~ noTail & shaftStyle %~ lw medium )
                             "1" "6"
-            # connect' (with & arrowHead .~ dart & tailSize .~ 35 & arrowTail .~ dart'
-                                  & headSize .~ 35 & shaftStyle %~ lw 0.1 & arrowShaft .~ s2
-                                  & headGap .~ 0.1 & tailGap .~ 0.1 )
+            # connect' (with & arrowHead .~ dart & tailLength .~ (Output 35)
+                                  & arrowTail .~ dart'
+                                  & headLength .~ (Output 35)
+                                  & shaftStyle %~ lw thick & arrowShaft .~ s2
+                                  & headGap .~ tiny & tailGap .~ tiny )
                             "4" "7"
-            # connect' (with & arrowTail .~ dart' & tailSize .~ 15 & arrowShaft .~ a
-                                  & arrowHead .~ spike & headSize .~ 15
+            # connect' (with & arrowTail .~ dart' & tailLength .~ (Output 15)
+                                  & arrowShaft .~ a
+                                  & arrowHead .~ spike
+                                  & headLength .~ (Output 15)
                                   & shaftStyle %~ lwO 2 )
                             "9" "5"
             # connect' (with & arrowHead .~ tri & arrowTail .~ block
-                             & headSize .~ 15 & tailSize .~ 15
-                             & shaftStyle  %~  dashing [1,2,3,1] 0) "8" "9"
+                             & headLength .~ (Output 15)
+                             & tailLength .~ (Output 15)
+                             & shaftStyle  %~  dashingO [1,2,3,1] 0) "8" "9"
             # connectOutside "5" "8"
   where
-    c = circle 1 # showOrigin # lw 0.02
+    c = circle 1 # showOrigin # lw thin
     a = arc (5/12 @@ turn) (11/12 @@ turn)
     a1 = arc (1/2 @@ turn) (3/4 @@ turn)
     t = bezier3 (r2 (1,1)) (r2 (1,1)) (r2 (0,2))
