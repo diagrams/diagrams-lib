@@ -115,4 +115,5 @@ Library
   if impl(ghc < 7.6)
     Build-depends: ghc-prim
   Hs-source-dirs:      src
+  ghc-options: -Wall
   default-language:    Haskell2010
