@@ -43,6 +43,7 @@ Library
                        Diagrams.Path,
                        Diagrams.CubicSpline,
                        Diagrams.CubicSpline.Internal,
+                       Diagrams.Direction,
                        Diagrams.Solve,
                        Diagrams.Tangent,
                        Diagrams.Transform,
