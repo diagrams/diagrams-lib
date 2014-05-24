@@ -73,7 +73,7 @@ import           Diagrams.TwoD.Vector    (leftTurn, unitX, unitY, unit_Y)
 import           Diagrams.Util           (tau, ( # ))
 
 -- | Method used to determine the vertices of a polygon.
-data PolyType = PolyPolar [Angle] [Double]
+data PolyType = PolyPolar [Angle Double] [Double]
                 -- ^ A \"polar\" polygon.
                 --
                 --   * The first argument is a list of /central/
@@ -90,7 +90,7 @@ data PolyType = PolyPolar [Angle] [Double]
                 --   circle) can be constructed using a second
                 --   argument of @(repeat r)@.
 
-              | PolySides [Angle] [Double]
+              | PolySides [Angle Double] [Double]
                 -- ^ A polygon determined by the distance between
                 --   successive vertices and the angles formed by
                 --   each three successive vertices.  In other
@@ -181,7 +181,7 @@ polygon = trailLike . polyTrail
 
 -- | Generate the located trail of a polygon specified by polar data
 --   (central angles and radii). See 'PolyPolar'.
-polyPolarTrail :: [Angle] -> [Double] -> Located (Trail R2)
+polyPolarTrail :: [Angle Double] -> [Double] -> Located (Trail R2)
 polyPolarTrail [] _ = emptyTrail `at` origin
 polyPolarTrail _ [] = emptyTrail `at` origin
 polyPolarTrail ans (r:rs) = tr `at` p1
@@ -196,7 +196,7 @@ polyPolarTrail ans (r:rs) = tr `at` p1
 -- | Generate the vertices of a polygon specified by side length and
 --   angles, and a starting point for the trail such that the origin
 --   is at the centroid of the vertices.  See 'PolySides'.
-polySidesTrail :: [Angle] -> [Double] -> Located (Trail R2)
+polySidesTrail :: [Angle Double] -> [Double] -> Located (Trail R2)
 polySidesTrail ans ls = tr `at` (centroid ps # scale (-1))
   where
     ans'    = scanl (^+^) zeroV ans
@@ -224,18 +224,18 @@ orientPoints v xs = rotation a
                   (zip3 (tail (cycle xs)) xs (last xs : init xs))
     distAlong w ((.-. origin) -> p) = signum (w <.> p) * magnitude (project w p)
     sndOf3 (_,b,_) = b
-    a :: Angle
+    a :: Angle Double
     a = minimumBy (comparing $ abs . view rad)
         . map (angleFromNormal . (.-. x)) $ [n1,n2]
     v' = normalized v
-    angleFromNormal :: R2 -> Angle
+    angleFromNormal :: R2 -> Angle Double
     angleFromNormal o
       | leftTurn o' v' = phi
       | otherwise      = negateV phi
       where
         o' = normalized o
         theta = acos (v' <.> o')
-        phi :: Angle
+        phi :: Angle Double
         phi
           | theta <= tau/4 = tau/4 - theta @@ rad
           | otherwise      = theta - tau/4 @@ rad

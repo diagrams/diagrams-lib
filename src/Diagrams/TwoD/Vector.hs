@@ -55,7 +55,7 @@ xDir = direction unitX
 
 -- | A unit vector at a specified angle counterclockwise from the
 -- positive X axis.
-e :: Angle -> R2
+e :: Angle Double -> R2
 e a = unitX & _theta .~ a
 
 -- | @perp v@ is perpendicular to and has the same magnitude as @v@.

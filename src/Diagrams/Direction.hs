@@ -33,6 +33,7 @@ import Diagrams.Core
 -- magnitude.  @Direction@s can be used with 'fromDirection' and the
 -- lenses provided by its instances.
 newtype Direction v = Direction v
+                 deriving (Read, Show, Eq, Ord) -- todo: special instances
 
 type instance V (Direction v) = v
 
@@ -55,6 +56,6 @@ fromDirection :: (InnerSpace v, Floating (Scalar v)) => Direction v -> v
 fromDirection (Direction v) = normalized v
 
 -- | compute the positive angle between the two directions in their common plane
-angleBetweenDirs  :: (InnerSpace v, Scalar v ~ Double) =>
-                     Direction v -> Direction v -> Angle
+angleBetweenDirs  :: (InnerSpace v, Floating (Scalar v)) =>
+                     Direction v -> Direction v -> Angle (Scalar v)
 angleBetweenDirs d1 d2 = angleBetween (fromDirection d1) (fromDirection d2)

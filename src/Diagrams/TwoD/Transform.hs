@@ -67,7 +67,7 @@ import           Control.Lens            (review, (^.))
 
 -- | Create a transformation which performs a rotation about the local
 --   origin by the given angle.  See also 'rotate'.
-rotation :: Angle -> T2
+rotation :: Angle Double -> T2
 rotation ang = fromLinear r (linv r)
   where
     r            = rot theta <-> rot (-theta)
@@ -87,7 +87,7 @@ rotation ang = fromLinear r (linv r)
 --   will yield an error since GHC cannot figure out which sort of
 --   angle you want to use.  In this common situation you can use
 --   'rotateBy', which interprets its argument as a number of turns.
-rotate :: (Transformable t, V t ~ R2) => Angle -> t -> t
+rotate :: (Transformable t, V t ~ R2) => Angle Double -> t -> t
 rotate = transform . rotation
 
 -- | A synonym for 'rotate', interpreting its argument in units of
@@ -98,12 +98,12 @@ rotateBy = transform . rotation . review turn
 
 -- | @rotationAbout p@ is a rotation about the point @p@ (instead of
 --   around the local origin).
-rotationAbout :: P2 -> Angle -> T2
+rotationAbout :: P2 -> Angle Double -> T2
 rotationAbout p angle = conjugate (translation (origin .-. p)) (rotation angle)
 
 -- | @rotateAbout p@ is like 'rotate', except it rotates around the
 --   point @p@ instead of around the local origin.
-rotateAbout :: (Transformable t, V t ~ R2) => P2 -> Angle -> t -> t
+rotateAbout :: (Transformable t, V t ~ R2) => P2 -> Angle Double -> t -> t
 rotateAbout p angle = rotate angle `under` translation (origin .-. p)
 
 -- Scaling -------------------------------------------------

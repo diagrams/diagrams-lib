@@ -142,11 +142,11 @@ instance HasZ P3 where
 -- triple (r,θ,φ), where θ is rotation about the Z axis, and φ is the
 -- angle from the Z axis.
 class Spherical t where
-    spherical :: Iso' t (Double, Angle, Angle)
+    spherical :: Iso' t (Scalar (V t), Angle (Scalar (V t)), Angle (Scalar (V t)))
 
 -- | Types which can be expressed in cylindrical 3D coordinates.
 class Cylindrical t where
-    cylindrical :: Iso' t (Double, Angle, Double) -- r, θ, z
+    cylindrical :: Iso' t (Scalar (V t), Angle (Scalar (V t)), Scalar (V t)) -- r, θ, z
 
 instance Cylindrical R3 where
     cylindrical = iso (\(R3 x y z) -> (sqrt (x^(2::Int)+y^(2::Int)), atanA (y/x), z))
@@ -175,7 +175,7 @@ instance HasTheta P3 where
 -- | The class of types with at least two angle coordinates, the
 -- second called _phi.
 class HasPhi t where
-    _phi :: Lens' t Angle
+    _phi :: Lens' t (Angle (Scalar (V t)))
 
 instance HasPhi R3 where
     _phi = spherical . _3

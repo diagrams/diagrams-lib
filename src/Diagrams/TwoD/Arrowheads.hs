@@ -98,7 +98,7 @@ closedPath = pathFromTrail . closeTrail
 --   > tri25Ex = arrowAt' (with & arrowHead .~ arrowheadTriangle (2/5 \@\@ turn) & shaftStyle %~ lw none)
 --   >           origin (r2 (0.001, 0))
 --   >        <> square 0.6 # alignL # lw none
-arrowheadTriangle :: Angle -> ArrowHT
+arrowheadTriangle :: Angle Double -> ArrowHT
 arrowheadTriangle theta = aHead
   where
     aHead len _ = (p, mempty)
@@ -110,7 +110,7 @@ arrowheadTriangle theta = aHead
 
 
 -- | Isoceles triangle with linear concave base. Inkscape type 1 - dart like.
-arrowheadDart :: Angle -> ArrowHT
+arrowheadDart :: Angle Double -> ArrowHT
 arrowheadDart theta len shaftWidth = (hd # scale size, jt)
   where
     hd = snugL . pathFromTrail . glueTrail $ fromOffsets [t1, t2, b2, b1]
@@ -126,7 +126,7 @@ arrowheadDart theta len shaftWidth = (hd # scale size, jt)
     size = max 1 ((len - jLength) / (1.5))
 
 -- | Isoceles triangle with curved concave base. Inkscape type 2.
-arrowheadSpike :: Angle -> ArrowHT
+arrowheadSpike :: Angle Double -> ArrowHT
 arrowheadSpike theta len shaftWidth  = (hd # scale r, jt # scale r)
   where
     hd = snugL . closedPath $ l1 <> c <> l2
@@ -153,7 +153,7 @@ arrowheadSpike theta len shaftWidth  = (hd # scale r, jt # scale r)
     phi = asinA (min 1 (y/r))
 
 -- | Curved sides, linear concave base. Illustrator CS5 #3
-arrowheadThorn :: Angle -> ArrowHT
+arrowheadThorn :: Angle Double -> ArrowHT
 arrowheadThorn theta len shaftWidth = (hd # scale size, jt)
   where
     hd = snugL . pathFromTrail . glueTrail $ hTop <> reflectY hTop
@@ -171,7 +171,7 @@ arrowheadThorn theta len shaftWidth = (hd # scale size, jt)
     size = max 1 ((len - jLength) / (1.5))
 
 -- | Make a side for the thorn head.
-curvedSide :: Angle -> Segment Closed R2
+curvedSide :: Angle Double -> Segment Closed R2
 curvedSide theta = bezier3 ctrl1 ctrl2 end
   where
     v0    = unit_X
@@ -228,7 +228,7 @@ headToTail hd = tl
         t = reflectX t'
         j = reflectX j'
 
-arrowtailBlock :: Angle -> ArrowHT
+arrowtailBlock :: Angle Double -> ArrowHT
 arrowtailBlock theta = aTail
   where
    aTail len _ = (t, mempty)
@@ -239,7 +239,7 @@ arrowtailBlock theta = aTail
         x = magnitude a
 
 -- | The angle is where the top left corner intersects the circle.
-arrowtailQuill :: Angle -> ArrowHT
+arrowtailQuill :: Angle Double -> ArrowHT
 arrowtailQuill theta = aTail
   where
    aTail len shaftWidth = (t, j)

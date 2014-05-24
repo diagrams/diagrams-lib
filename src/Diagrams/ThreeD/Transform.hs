@@ -73,7 +73,7 @@ import           Data.VectorSpace
 --   Note that writing @aboutZ (1\/4)@, with no type annotation, will
 --   yield an error since GHC cannot figure out which sort of angle
 --   you want to use.
-aboutZ :: Angle -> T3
+aboutZ :: Angle Double -> T3
 aboutZ ang = fromLinear r (linv r) where
   r = rot theta <-> rot (-theta)
   theta = view rad ang
@@ -83,7 +83,7 @@ aboutZ ang = fromLinear r (linv r) where
 
 -- | Like 'aboutZ', but rotates about the X axis, bringing positive y-values
 -- towards the positive z-axis.
-aboutX :: Angle -> T3
+aboutX :: Angle Double -> T3
 aboutX ang = fromLinear r (linv r) where
   r = rot theta <-> rot (-theta)
   theta = view rad ang
@@ -93,7 +93,7 @@ aboutX ang = fromLinear r (linv r) where
 
 -- | Like 'aboutZ', but rotates about the Y axis, bringing postive
 -- x-values towards the negative z-axis.
-aboutY :: Angle -> T3
+aboutY :: Angle Double -> T3
 aboutY ang = fromLinear r (linv r) where
   r = rot theta <-> rot (-theta)
   theta = view rad ang
@@ -106,7 +106,7 @@ aboutY ang = fromLinear r (linv r) where
 rotationAbout ::
      P3        -- ^ origin of rotation
   -> Direction R3 -- ^ direction of rotation axis
-  -> Angle     -- ^ angle of rotation
+  -> Angle Double     -- ^ angle of rotation
   -> T3
 rotationAbout p d a
   = mconcat [translation (negateV t),

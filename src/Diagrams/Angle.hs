@@ -1,5 +1,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE RankNTypes                 #-}
+{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE StandaloneDeriving         #-}
 {-# LANGUAGE TypeFamilies               #-}
 -----------------------------------------------------------------------------
 -- |
@@ -16,7 +18,7 @@ module Diagrams.Angle
        (
          Angle
        , rad, turn, deg
-       , fullTurn, fullCircle, angleRatio
+       , fullTurn, angleRatio
        , sinA, cosA, tanA, asinA, acosA, atanA, atan2A
        , (@@)
        , angleBetween
@@ -29,78 +31,80 @@ import Data.Monoid      hiding ((<>))
 import Data.Semigroup
 import Data.VectorSpace
 
+import Diagrams.Core.V
+
 -- | Angles can be expressed in a variety of units.  Internally,
 -- they are represented in radians.
-newtype Angle = Radians Double
-              deriving (Read, Show, Eq, Ord, Enum, AdditiveGroup)
+newtype Angle v = Radians v
+              deriving (Read, Show, Eq, Ord, AdditiveGroup)
 
-instance Semigroup Angle where
+instance AdditiveGroup v => Semigroup (Angle v) where
     (<>) = (^+^)
 
-instance Monoid Angle where
+instance AdditiveGroup v => Monoid (Angle v) where
     mappend = (<>)
-    mempty = Radians 0
+    mempty = Radians zeroV
 
-instance VectorSpace Angle where
-  type Scalar Angle = Double
-  s *^ Radians t = Radians (s*t)
+instance VectorSpace v => VectorSpace (Angle v) where
+  type Scalar (Angle v) = Scalar v
+  s *^ Radians t = Radians (s *^ t)
+
+deriving instance InnerSpace v => InnerSpace (Angle v)
+
+type instance V (Angle v) = V v
 
 -- | The radian measure of an @Angle@ @a@ can be accessed as @a
 -- ^. rad@.  A new @Angle@ can be defined in radians as @pi \@\@ rad@.
-rad :: Iso' Angle Double
+rad :: Iso' (Angle v) v
 rad = iso (\(Radians r) -> r) Radians
 
 -- | The measure of an @Angle@ @a@ in full circles can be accessed as
 -- @a ^. turn@.  A new @Angle@ of one-half circle can be defined in as
 -- @1/2 \@\@ turn@.
-turn :: Iso' Angle Double
-turn = iso (\(Radians r) -> r/2/pi) (Radians . (*(2*pi)))
+turn :: (VectorSpace v, Floating (Scalar v)) => Iso' (Angle v) v
+turn = iso (\(Radians r) -> r ^/ (2*pi)) (Radians . (^*(2*pi)))
 
 -- | The degree measure of an @Angle@ @a@ can be accessed as @a
 -- ^. deg@.  A new @Angle@ can be defined in degrees as @180 \@\@
 -- deg@.
-deg :: Iso' Angle Double
-deg = iso (\(Radians r) -> r/2/pi*360) (Radians . (*(2*pi/360)))
+deg :: (VectorSpace v, Floating (Scalar v)) => Iso' (Angle v) v
+deg = iso (\(Radians r) -> r ^/ (2*pi/360)) (Radians . (^*(2*pi/360)))
 
 -- | An angle representing one full turn.
-fullTurn :: Angle
+fullTurn :: (VectorSpace v, Floating (Scalar v), Num v) => Angle v
 fullTurn = 1 @@ turn
 
--- | Deprecated synonym for 'fullTurn', retained for backwards compatibility.
-fullCircle :: Angle
-fullCircle = fullTurn
-
 -- | Calculate ratio between two angles.
-angleRatio :: Angle -> Angle -> Double
-angleRatio a b = (a^.rad) / (b^.rad)
+angleRatio :: (InnerSpace v, Floating (Scalar v)) => Angle v -> Angle v -> Scalar v
+angleRatio a b = (magnitude a) / (magnitude b)
 
 -- | The sine of the given @Angle@.
-sinA :: Angle -> Double
+sinA :: (Floating v) => Angle v -> v
 sinA (Radians r) = sin r
 
 -- | The cosine of the given @Angle@.
-cosA :: Angle -> Double
+cosA :: (Floating v) => Angle v -> v
 cosA (Radians r) = cos r
 
 -- | The tangent function of the given @Angle@.
-tanA :: Angle -> Double
+tanA :: (Floating v) => Angle v -> v
 tanA (Radians r) = tan r
 
 -- | The @Angle@ with the given sine.
-asinA :: Double -> Angle
+asinA :: (Floating v) => v -> Angle v
 asinA = Radians . asin
 
 -- | The @Angle@ with the given cosine.
-acosA :: Double -> Angle
+acosA :: (Floating v) => v -> Angle v
 acosA = Radians . acos
 
 -- | The @Angle@ with the given tangent.
-atanA :: Double -> Angle
+atanA :: (Floating v) => v -> Angle v
 atanA = Radians . atan
 
 -- | @atan2A n d@ is the @Angle with tangent @n/d@, unless d is 0, in
 -- which case it is ±π/2.
-atan2A :: Double -> Double -> Angle
+atan2A :: (RealFloat v) => v -> v -> Angle v
 atan2A n d = Radians $ atan2 n d
 
 -- | @30 \@\@ deg@ is an @Angle@ of the given measure and units.
@@ -115,7 +119,8 @@ a @@ i = review i a
 infixl 5 @@
 
 -- | compute the positive angle between the two vectors in their common plane
-angleBetween  :: (InnerSpace v, Scalar v ~ Double) => v -> v -> Angle
+-- | N.B.: currently discards the common plane information
+angleBetween  :: (InnerSpace v, Floating (Scalar v)) => v -> v -> Angle (Scalar v)
 angleBetween v1 v2 = acos (normalized v1 <.> normalized v2) @@ rad
 
 ------------------------------------------------------------
@@ -123,4 +128,4 @@ angleBetween v1 v2 = acos (normalized v1 <.> normalized v2) @@ rad
 
 -- | The class of types with at least one angle coordinate, called _theta.
 class HasTheta t where
-    _theta :: Lens' t Angle
+    _theta :: Lens' t (Angle (Scalar (V t)))

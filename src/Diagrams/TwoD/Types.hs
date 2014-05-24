@@ -250,7 +250,7 @@ instance HasTheta P2 where
 
 -- | Types which can be expressed in polar 2D coordinates, as a magnitude and an angle.
 class Polar t where
-    polar :: Iso' t (Double, Angle)
+    polar :: Iso' t (Scalar (V t), Angle (Scalar (V t)))
 
 instance Polar R2 where
     polar =

@@ -56,8 +56,8 @@ class Typeable l => CameraLens l where
 
 -- | A perspective projection
 data PerspectiveLens = PerspectiveLens
-                     { _horizontalFieldOfView :: Angle -- ^ Horizontal field of view.
-                     , _verticalFieldOfView   :: Angle -- ^ Vertical field of view.
+                     { _horizontalFieldOfView :: Angle Double -- ^ Horizontal field of view.
+                     , _verticalFieldOfView   :: Angle Double -- ^ Vertical field of view.
                      }
   deriving Typeable
 

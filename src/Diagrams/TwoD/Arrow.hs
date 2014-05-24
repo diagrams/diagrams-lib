@@ -517,13 +517,13 @@ connect' opts n1 n2 =
 --   by angle.
 connectPerim
   :: (Renderable (Path R2) b, IsName n1, IsName n2)
- => n1 -> n2 -> Angle -> Angle
+ => n1 -> n2 -> Angle Double -> Angle Double
   -> (Diagram b R2 -> Diagram b R2)
 connectPerim = connectPerim' def
 
 connectPerim'
   :: (Renderable (Path R2) b, IsName n1, IsName n2)
-  => ArrowOpts -> n1 -> n2 -> Angle -> Angle
+  => ArrowOpts -> n1 -> n2 -> Angle Double -> Angle Double
   -> (Diagram b R2 -> Diagram b R2)
 connectPerim' opts n1 n2 a1 a2 =
   withName n1 $ \sub1 ->
