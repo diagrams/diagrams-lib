@@ -92,7 +92,6 @@ module Diagrams.TwoD
        , ellipseXY
        , arc
        , arc'
-       , arcCW
        , wedge
        , arcBetween
        , annularWedge
