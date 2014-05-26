@@ -17,7 +17,7 @@ module Diagrams.Angle
          Angle
        , rad, turn, deg
        , fullTurn, fullCircle, angleRatio
-       , sinA, cosA, tanA, asinA, acosA, atanA
+       , sinA, cosA, tanA, asinA, acosA, atanA, atan2A
        , (@@)
        , angleBetween
        , HasTheta(..)
@@ -97,6 +97,11 @@ acosA = Radians . acos
 -- | The @Angle@ with the given tangent.
 atanA :: Double -> Angle
 atanA = Radians . atan
+
+-- | @atan2A n d@ is the @Angle with tangent @n/d@, unless d is 0, in
+-- which case it is ±π/2.
+atan2A :: Double -> Double -> Angle
+atan2A n d = Radians $ atan2 n d
 
 -- | @30 \@\@ deg@ is an @Angle@ of the given measure and units.
 --

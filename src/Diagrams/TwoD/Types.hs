@@ -254,7 +254,7 @@ class Polar t where
 
 instance Polar R2 where
     polar =
-        iso (\v -> ( magnitude v, atan2 (v^._y) (v^._x) @@ rad))
+        iso (\v -> ( magnitude v, atan2A (v^._y) (v^._x)))
             (\(r,θ) -> R2 (r * cosA θ) (r * sinA θ))
 
 instance Polar P2 where
