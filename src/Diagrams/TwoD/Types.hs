@@ -27,8 +27,7 @@ module Diagrams.TwoD.Types
 
        ) where
 
-import           Control.Lens           (Iso', Rewrapped, Wrapped (..), iso,
-                                         (^.), (&), (<>~), _1, _2)
+import           Control.Lens           (Iso', Rewrapped, Wrapped (..), iso, (^.),  _1, _2)
 
 
 import           Diagrams.Angle
@@ -36,7 +35,6 @@ import           Diagrams.Direction
 import           Diagrams.Coordinates
 import           Diagrams.Core
 
-import           Data.AffineSpace
 import           Data.AffineSpace.Point
 import           Data.Basis
 import           Data.MemoTrie          (HasTrie (..))
@@ -261,8 +259,3 @@ instance Polar R2 where
 
 instance Polar P2 where
     polar = _relative origin . polar
-
-instance AffineSpace (Direction R2) where
-    type Diff (Direction R2) = Angle
-    a .-. b = a^._theta ^-^ b^._theta
-    a .+^ θ = a & _theta <>~ θ

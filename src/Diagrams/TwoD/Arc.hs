@@ -32,7 +32,7 @@ import           Diagrams.Trail
 import           Diagrams.TrailLike
 import           Diagrams.TwoD.Transform
 import           Diagrams.TwoD.Types
-import           Diagrams.TwoD.Vector    (unitX, unitY, unit_Y, xDir)
+import           Diagrams.TwoD.Vector    (unitX, unitY, unit_Y)
 import           Diagrams.Util           (( # ))
 
 import           Control.Lens            ((^.))

@@ -61,8 +61,7 @@ import           Diagrams.TwoD.Vector
 
 import           Diagrams.Util
 
-import           Control.Lens            (makeLenses, op, (&), (.~), (^.))
-import           Data.AffineSpace
+import           Control.Lens            (makeLenses, op, (&), (.~), (^.), (<>~))
 import           Data.Default.Class
 import           Data.Semigroup
 
@@ -316,4 +315,4 @@ roundedRect' w h opts
                      | otherwise = doArc 0 1
                      where
                        doArc d s =
-                           arc' r (xDir .+^ ((k+d)/4 @@ turn)) (s/4 @@ turn)
+                           arc' r (xDir & _theta <>~ ((k+d)/4 @@ turn)) (s/4 @@ turn)

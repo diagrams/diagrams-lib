@@ -50,6 +50,7 @@ import Data.Default.Class
 
 import Diagrams.Core
 
+import Diagrams.Angle
 import Diagrams.Attributes
 import Diagrams.Direction      (direction)
 import Diagrams.Located
@@ -463,10 +464,10 @@ capArc r c a b = trailLike . moveTo c $ fs
 
 -- Arc helpers
 arcV :: (TrailLike t, V t ~ R2) => R2 -> R2 -> t
-arcV u v = arc (direction u) (direction v .-. direction u)
+arcV u v = arc (direction u) (angleBetween v u)
 
 arcVCW :: (TrailLike t, V t ~ R2) => R2 -> R2 -> t
-arcVCW u v = arcCW (direction u) (direction v .-. direction u)
+arcVCW u v = arc (direction u) (negateV $ angleBetween v u)
 
 -- | Join together a list of located trails with the given join style.  The
 --   style is given as a function to compute the join given the local information

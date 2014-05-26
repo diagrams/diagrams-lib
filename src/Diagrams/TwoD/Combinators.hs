@@ -48,7 +48,6 @@ import           Diagrams.Core
 import           Diagrams.BoundingBox
 import           Diagrams.Combinators
 import           Diagrams.Coordinates
-import           Diagrams.Direction
 import           Diagrams.Path
 import           Diagrams.Segment
 import           Diagrams.TrailLike
