@@ -22,6 +22,7 @@ import Control.Lens
 import Data.VectorSpace
 
 import Diagrams.Angle
+import Diagrams.Core
 
 --------------------------------------------------------------------------------
 -- Direction
@@ -31,6 +32,8 @@ import Diagrams.Angle
 -- magnitude.  @Direction@s can be used with 'fromDirection' and the
 -- lenses provided by its instances.
 data Direction v = Direction v
+
+type instance V (Direction v) = v
 
 -- | _Dir is provided to allow efficient implementations of functions
 -- in particular vector-spaces, but should be used with care as it

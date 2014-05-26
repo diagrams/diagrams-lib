@@ -18,7 +18,7 @@ module Diagrams.TwoD.Combinators
     (
       -- * Binary combinators
 
-      (===), (|||), atDirection
+      (===), (|||)
 
       -- * n-ary combinators
     , hcat, hcat'
@@ -89,14 +89,6 @@ infixl 6 |||
 --   documentation of 'beside' for more information.
 (|||) :: (Juxtaposable a, V a ~ R2, Semigroup a) => a -> a -> a
 (|||) = beside unitX
-
--- | Place two diagrams (or other juxtaposable objects) adjacent to
---   one another, with the second diagram placed in the direction 'd'
---   from the first.  The local origin of the resulting combined
---   diagram is the same as the local origin of the first.  See the
---   documentation of 'beside' for more information.
-atDirection :: (Juxtaposable a, V a ~ R2, Semigroup a) => Direction R2 -> a -> a -> a
-atDirection d = beside (fromDirection d)
 
 -- | Lay out a list of juxtaposable objects in a row from left to right,
 --   so that their local origins lie along a single horizontal line,

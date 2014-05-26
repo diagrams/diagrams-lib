@@ -28,6 +28,7 @@ module Diagrams.Combinators
        , atop
        , beneath
        , beside
+       , atDirection
 
          -- * n-ary operations
        , appends
@@ -57,6 +58,7 @@ import           Data.VectorSpace
 
 import           Diagrams.Core
 import           Diagrams.Core.Types   (QDiagram (QD))
+import           Diagrams.Direction
 import           Diagrams.Located
 import           Diagrams.Path
 import           Diagrams.Segment      (straight)
@@ -236,6 +238,15 @@ infixl 6 `beneath`
 --   (negateV v) x2 x1@.
 beside :: (Juxtaposable a, Semigroup a) => V a -> a -> a -> a
 beside v d1 d2 = d1 <> juxtapose v d1 d2
+
+-- | Place two diagrams (or other juxtaposable objects) adjacent to
+--   one another, with the second diagram placed in the direction 'd'
+--   from the first.  The local origin of the resulting combined
+--   diagram is the same as the local origin of the first.  See the
+--   documentation of 'beside' for more information.
+atDirection :: (Juxtaposable a, Semigroup a, InnerSpace (V a), Floating (Scalar (V a))) =>
+               Direction (V a) -> a -> a -> a
+atDirection = beside . fromDirection
 
 ------------------------------------------------------------
 -- Combining multiple objects
