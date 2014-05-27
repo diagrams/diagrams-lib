@@ -1,3 +1,77 @@
+1.2 (27 May 2014)
+-----------------
+
+* **New features**
+
+    - Several attributes (such as line width, dashing size, arrowhead size, 
+      and font size) that formerly had a value of type `Double` now have
+      the more general type `Measure R2`. This allows the attriburtes to
+      be specified in one of four units: `Local`, `Global`, `Normalized`,
+      and `Output`.
+
+    - New DSL for specifying measurements.
+
+    - New synonymes for specifying measurements, e.g. `thin`, `thick`, and
+      `medium`, `large`.
+
+    - Support for radial and linear gradients for fills and strokes.
+
+    - New DImage type that supports both embedded and external images in
+      backends that support them.
+
+    - New `lengths` traversal for setting `headLength` and `tailLenght`
+      simultaneously.
+
+    - `Frustrum` and `Box` data types added to  added to `Diagrams.ThreeD.Shapes`.
+
+    - New function `quartForm` to find roots of quartic polynomials.
+
+    - New lenses for polar coordinates.
+
+    - New trig functions, `sinA`, `atanA`, etc.  using Angle.
+
+* **New instances**
+
+    - `Transformable` instances for `LineWidth`, `Dashing`,
+      `LineTexture`, and  `FillTexture`.
+
+* **API changes**
+
+    - `FillColor` and `LineColor` attributes have been replaced with
+      the more general `FillTexture` and `LineTexture`. Use the `solid`
+      function to convert a color to a texture.
+    
+    - Arrow heads and tails are now specified in terms of length instead of
+      size. The type of arrow gaps to Measure R2. `gap` travesal has been
+      replaced by `gaps`, but is still provided for compatability.
+
+    - Fix handling of text scaling, and change `fontSize` to take a 
+      value of type `Measure R2`.
+
+    - Get rid of bitrotted `Show` backend
+
+    - TwoD.Adjust returns transformation from adjustment functions in
+      addition to the resized `Diagram` and `Options` record.
+
+    - export pathLocSegments
+
+    - `avgScale` function moved to `Diagrams.Core`.
+
+    - `angleBetween` function moved to Diagrams.Angle 
+
+    - `Angle` definition has been moved to a separate module.
+
+    - A separate `TwdD.Attributes` module now conatains most of the attribures
+      that required 2d transformation instances.
+
+    - `splitColorFills` replaced with `splitTextureFills`.
+
+* ** Dependency/version changes**
+
+* ** Bug fixes**
+
+    - Text scaling ([#179](https://github.com/diagrams/diagrams-lib/issues/179))
+
 1.1.0.7 (15 May 2014)
 ------------------------
 
