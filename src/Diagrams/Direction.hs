@@ -18,7 +18,7 @@ module Diagrams.Direction
        , angleBetweenDirs
        ) where
 
-import Control.Lens
+import Control.Lens (Iso', iso)
 import Data.VectorSpace
 
 import Diagrams.Angle
@@ -31,9 +31,12 @@ import Diagrams.Core
 -- can think of a @Direction@ as a vector that has forgotten its
 -- magnitude.  @Direction@s can be used with 'fromDirection' and the
 -- lenses provided by its instances.
-data Direction v = Direction v
+newtype Direction v = Direction v
 
 type instance V (Direction v) = v
+
+instance (Transformable v, V (Direction v) ~ V v) => Transformable (Direction v) where
+    transform t (Direction v) = Direction (transform t v)
 
 -- | _Dir is provided to allow efficient implementations of functions
 -- in particular vector-spaces, but should be used with care as it
