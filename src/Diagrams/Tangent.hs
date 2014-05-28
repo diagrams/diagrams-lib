@@ -3,6 +3,7 @@
 {-# LANGUAGE GADTs                #-}
 {-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE ConstraintKinds      #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -22,6 +23,7 @@ module Diagrams.Tangent
     , normalAtStart
     , normalAtEnd
     , Tangent(..)
+    , MoreLikeR2
     )
     where
 
@@ -33,8 +35,7 @@ import           Diagrams.Located
 import           Diagrams.Parametric
 import           Diagrams.Segment
 import           Diagrams.Trail
-import           Diagrams.TwoD.Types  (R2)
-import           Diagrams.TwoD.Vector (perp)
+import           Diagrams.TwoD.Vector (perp, LikeR2)
 
 ------------------------------------------------------------
 -- Tangent
@@ -156,6 +157,8 @@ instance ( InnerSpace v
 -- Normal
 ------------------------------------------------------------
 
+type MoreLikeR2 v = (LikeR2 v, InnerSpace v, Floating (Scalar v))
+
 -- | Compute the (unit) normal vector to a segment or trail at a
 --   particular parameter.
 --
@@ -169,22 +172,22 @@ instance ( InnerSpace v
 --
 --   See the instances listed for the 'Tangent' newtype for more.
 normalAtParam
-  :: (Codomain (Tangent t) ~ R2, Parametric (Tangent t))
-  => t -> Scalar (V t) -> R2
+  :: (MoreLikeR2 (Codomain (Tangent t)), Parametric (Tangent t))
+  => t -> Scalar (V t) -> Codomain (Tangent t)
 normalAtParam t p = normize (t `tangentAtParam` p)
 
 -- | Compute the normal vector at the start of a segment or trail.
 normalAtStart
-  :: (Codomain (Tangent t) ~ R2, EndValues (Tangent t))
-  => t -> R2
+  :: (MoreLikeR2 (Codomain (Tangent t)), EndValues (Tangent t))
+  => t -> Codomain (Tangent t)
 normalAtStart = normize . tangentAtStart
 
 -- | Compute the normal vector at the end of a segment or trail.
 normalAtEnd
-  :: (Codomain (Tangent t) ~ R2, EndValues (Tangent t))
-  => t -> R2
+  :: (MoreLikeR2 (Codomain (Tangent t)), EndValues (Tangent t))
+  => t -> Codomain (Tangent t)
 normalAtEnd = normize . tangentAtEnd
 
 -- | Construct a normal vector from a tangent.
-normize :: R2 -> R2
+normize :: (MoreLikeR2 v) => v -> v
 normize = negateV . perp . normalized

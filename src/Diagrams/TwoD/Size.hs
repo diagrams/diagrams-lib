@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveGeneric    #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE TypeFamilies     #-}
+{-# LANGUAGE TypeFamilies, ConstraintKinds     #-}
 
 {-# OPTIONS_GHC -funbox-strict-fields #-}
 -----------------------------------------------------------------------------
@@ -37,43 +37,47 @@ import           Diagrams.TwoD.Vector
 import           Control.Applicative  (liftA2, (<$>))
 import           Control.Arrow        ((&&&), (***))
 import           Data.Hashable        (Hashable)
+import           Data.VectorSpace
 import           GHC.Generics         (Generic)
+
+type Numeric d = (Ord d, Num d, RealFloat d)
+type KindaLikeR2 v = (LikeR2 v, Numeric (Scalar v))
 
 ------------------------------------------------------------
 -- Computing diagram sizes
 ------------------------------------------------------------
 
 -- | Compute the width of an enveloped object.
-width :: (Enveloped a, V a ~ R2) => a -> Double
+width :: (Enveloped a, KindaLikeR2 (V a)) => a -> Scalar (V a)
 width = maybe 0 (negate . uncurry (-)) . extentX
 
 -- | Compute the height of an enveloped object.
-height :: (Enveloped a, V a ~ R2) => a -> Double
+height :: (Enveloped a, KindaLikeR2 (V a)) => a -> Scalar (V a)
 height = maybe 0 (negate . uncurry (-)) . extentY
 
 -- | Compute the width and height of an enveloped object.
-size2D :: (Enveloped a, V a ~ R2) => a -> (Double, Double)
+size2D :: (Enveloped a, KindaLikeR2 (V a)) => a -> (Scalar (V a), Scalar (V a))
 size2D = width &&& height
 
 -- | Compute the size of an enveloped object as a 'SizeSpec2D' value.
-sizeSpec2D :: (Enveloped a, V a ~ R2) => a -> SizeSpec2D
+sizeSpec2D :: (Enveloped a, KindaLikeR2 (V a)) => a -> SizeSpec2D (Scalar (V a))
 sizeSpec2D = uncurry Dims . size2D
 
 -- | Compute the absolute  x-coordinate range of an enveloped object in
 --   R2, in  the form (lo,hi).   Return @Nothing@ for objects  with an
 --   empty envelope.
-extentX :: (Enveloped a, V a ~ R2) => a -> Maybe (Double, Double)
+extentX :: (Enveloped a, KindaLikeR2 (V a)) => a -> Maybe (Scalar (V a), Scalar (V a))
 extentX d = (\f -> (-f unit_X, f unitX)) <$> (appEnvelope . getEnvelope $ d)
 
 -- | Compute the absolute y-coordinate range of an enveloped object in
 --   R2, in the form (lo,hi).
-extentY :: (Enveloped a, V a ~ R2) => a -> Maybe (Double, Double)
+extentY :: (Enveloped a, KindaLikeR2 (V a)) => a -> Maybe (Scalar (V a), Scalar (V a))
 extentY d = (\f -> (-f unit_Y, f unitY)) <$> (appEnvelope . getEnvelope $ d)
 
 -- | Compute the point at the center (in the x- and y-directions) of a
 --   enveloped object.  Return the origin for objects with an empty
 --   envelope.
-center2D :: (Enveloped a, V a ~ R2) => a -> P2
+center2D :: (Enveloped a, KindaLikeR2 (V a)) => a -> Point (V a)
 center2D = maybe origin (p2 . (mid *** mid)) . mm . (extentX &&& extentY)
   where mm = uncurry (liftA2 (,))
         mid = (/2) . uncurry (+)
@@ -83,26 +87,26 @@ center2D = maybe origin (p2 . (mid *** mid)) . mm . (extentX &&& extentY)
 ------------------------------------------------------------
 
 -- | A specification of a (requested) rectangular size.
-data SizeSpec2D = Width  !Double       -- ^ Specify an explicit
+data SizeSpec2D d = Width  !d       -- ^ Specify an explicit
                                       -- width. The height should be
                                       -- determined automatically (so
                                       -- as to preserve aspect ratio).
-                | Height !Double       -- ^ Specify an explicit
+                | Height !d       -- ^ Specify an explicit
                                       -- height. The width should be
                                       -- determined automatically (so
                                       -- as to preserve aspect ratio).
-                | Dims !Double !Double  -- ^ An explicit specification
+                | Dims !d !d  -- ^ An explicit specification
                                       -- of a width and height.
                 | Absolute            -- ^ Absolute size: use whatever
                                       -- size an object already has;
                                       -- do not rescale.
   deriving (Eq, Ord, Show, Generic)
 
-instance Hashable SizeSpec2D
+instance Hashable d => Hashable (SizeSpec2D d)
 
 -- | Create a size specification from a possibly-specified width and
 --   height.
-mkSizeSpec :: Maybe Double -> Maybe Double -> SizeSpec2D
+mkSizeSpec :: Maybe d -> Maybe d -> SizeSpec2D d
 mkSizeSpec Nothing  Nothing  = Absolute
 mkSizeSpec (Just w) Nothing  = Width w
 mkSizeSpec Nothing  (Just h) = Height h
@@ -111,7 +115,7 @@ mkSizeSpec (Just w) (Just h) = Dims w h
 -- | @requiredScaleT spec sz@ returns a transformation (a uniform scale)
 --   which can be applied to something of size @sz@ to make it fit the
 --   requested size @spec@, without changing the aspect ratio.
-requiredScaleT :: SizeSpec2D -> (Double, Double) -> Transformation R2
+requiredScaleT :: (KindaLikeR2 v, Scalar v ~ d) => SizeSpec2D d -> (d, d) -> Transformation v
 requiredScaleT spec size = scaling (requiredScale spec size)
 
 -- | @requiredScale spec sz@ returns a scaling factor necessary to
@@ -120,7 +124,7 @@ requiredScaleT spec size = scaling (requiredScale spec size)
 --   specification of both dimensions may not be honored if the aspect
 --   ratios do not match; in that case the scaling will be as large as
 --   possible so that the object still fits within the requested size.
-requiredScale :: SizeSpec2D -> (Double, Double) -> Double
+requiredScale :: (Numeric d) => SizeSpec2D d -> (d, d) -> d
 requiredScale Absolute _    = 1
 requiredScale (Width wSpec) (w,_)
   | wSpec == 0 || w == 0 = 1
@@ -137,20 +141,21 @@ requiredScale (Dims wSpec hSpec) (w,h) = s
 
 -- | Uniformly scale any enveloped object so that it fits within the
 --   given size.
-sized :: (Transformable a, Enveloped a, V a ~ R2)
-      => SizeSpec2D -> a -> a
+sized :: (Transformable a, Enveloped a, KindaLikeR2 (V a))
+      => SizeSpec2D (Scalar (V a)) -> a -> a
 sized spec a = transform (requiredScaleT spec (size2D a)) a
 
 -- | Uniformly scale an enveloped object so that it \"has the same
 --   size as\" (fits within the width and height of) some other
 --   object.
-sizedAs :: ( Transformable a, Enveloped a, V a ~ R2
-           , Enveloped b, V b ~ R2)
+sizedAs :: ( Transformable a, Enveloped a, Enveloped b
+           , KindaLikeR2 (V a), V a ~ V b
+           )
         => b -> a -> a
 sizedAs other = sized (sizeSpec2D other)
 
 -- | Make width and height of `SizeSpec2D` into a tuple.
-sizePair :: SizeSpec2D -> (Double, Double)
+sizePair :: (Num d) => SizeSpec2D d -> (d, d)
 sizePair (Width w')   = (w',w')
 sizePair (Height h')  = (h',h')
 sizePair (Dims w' h') = (w',h')

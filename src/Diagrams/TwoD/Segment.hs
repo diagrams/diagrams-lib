@@ -43,10 +43,10 @@ import           Diagrams.Util
    traces is sorted in increasing order.
 -}
 
-instance Traced (Segment Closed R2) where
+instance Traced (Segment Closed v) where
   getTrace = getTrace . mkFixedSeg . (`at` origin)
 
-instance Traced (FixedSegment R2) where
+instance Traced (FixedSegment v) where
 
 {- Given lines defined by p0 + t0 * v0 and p1 + t1 * v1, their point of
    intersection in 2D is given by

@@ -1,5 +1,5 @@
 {-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE ViewPatterns, ConstraintKinds, FlexibleContexts #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Arc
@@ -47,7 +47,7 @@ import           Diagrams.Coordinates
 --  the positive y direction and sweeps counterclockwise through an
 --  angle @s@.  The approximation is only valid for angles in the
 --  first quadrant.
-bezierFromSweepQ1 :: Angle Double -> Segment Closed R2
+bezierFromSweepQ1 :: (ExtraLikeR2 v) => Angle (Scalar v) -> Segment Closed v
 bezierFromSweepQ1 s = fmap (^-^ v) . rotate (s ^/ 2) $ bezier3 c2 c1 p0
   where p0@(coords -> x :& y) = rotate (s ^/ 2) v
         c1                    = ((4-x)/3)  ^&  ((1-x)*(3-x)/(3*y))
@@ -60,7 +60,7 @@ bezierFromSweepQ1 s = fmap (^-^ v) . rotate (s ^/ 2) $ bezier3 c2 c1 p0
 --   negative y direction and sweep clockwise.  When @s@ is less than
 --   0.0001 the empty list results.  If the sweep is greater than @fullTurn@
 --   later segments will overlap earlier segments.
-bezierFromSweep :: Angle Double -> [Segment Closed R2]
+bezierFromSweep :: (ExtraLikeR2 v) => Angle (Scalar v) -> [Segment Closed v]
 bezierFromSweep s
   | s < zeroV      = fmap reflectY . bezierFromSweep $ (negateV s)
   | s < 0.0001 @@ rad     = []
@@ -92,7 +92,7 @@ the approximation error.
 --   is the 'Trail' of a radius one arc starting at @d@ and sweeping out
 --   the angle @s@ counterclockwise (for positive s).  The resulting
 --   @Trail@ is allowed to wrap around and overlap itself.
-arcT :: Direction R2 -> Angle Double -> Trail R2
+arcT :: (ExtraLikeR2 v) => Direction v -> Angle (Scalar v) -> Trail v
 arcT start sweep = trailFromSegments bs
   where
         bs    = map (rotate $ start ^. _theta) . bezierFromSweep $ sweep
@@ -101,7 +101,7 @@ arcT start sweep = trailFromSegments bs
 --   path of a radius one arc starting at @d@ and sweeping out the angle
 --   @s@ counterclockwise (for positive s).  The resulting
 --   @Trail@ is allowed to wrap around and overlap itself.
-arc :: (TrailLike t, V t ~ R2) => Direction R2 -> Angle Double -> t
+arc :: (ExtraLikeR2 v, TrailLike t, V t ~ v) => Direction v -> Angle (Scalar v) -> t
 arc start sweep = trailLike $ arcT start sweep `at` (rotate (start ^. _theta) $ p2 (1,0))
 
 -- | Given a radus @r@, a start direction @d@ and an angle @s@,
@@ -113,7 +113,7 @@ arc start sweep = trailLike $ arcT start sweep `at` (rotate (start ^. _theta) $ 
 --
 --   > arc'Ex = mconcat [ arc' r 0 (1/4 \@\@ turn) | r <- [0.5,-1,1.5] ]
 --   >        # centerXY # pad 1.1
-arc' :: (TrailLike p, V p ~ R2) => Double -> Direction R2 -> Angle Double -> p
+arc' :: (ExtraLikeR2 v, TrailLike p, V p ~ v) => Scalar v -> Direction v -> Angle (Scalar v) -> p
 arc' r start sweep = trailLike $ scale (abs r) ts `at` (rotate (start ^. _theta) $ p2 (abs r,0))
   where ts = arcT start sweep
 
@@ -129,7 +129,7 @@ arc' r start sweep = trailLike $ scale (abs r) ts `at` (rotate (start ^. _theta)
 --   >   ]
 --   >   # fc blue
 --   >   # centerXY # pad 1.1
-wedge :: (TrailLike p, V p ~ R2) => Double -> Direction R2 -> Angle Double -> p
+wedge :: (ExtraLikeR2 v, TrailLike p, V p ~ v) => Scalar v -> Direction v -> Angle (Scalar v) -> p
 wedge r d s = trailLike . (`at` origin) . glueTrail . wrapLine
               $ fromOffsets [r *^ fromDirection d]
                 <> arc d s # scale r
@@ -146,7 +146,7 @@ wedge r d s = trailLike . (`at` origin) . glueTrail . wrapLine
 --   > arcBetweenEx = mconcat
 --   >   [ arcBetween origin (p2 (2,1)) ht | ht <- [-0.2, -0.1 .. 0.2] ]
 --   >   # centerXY # pad 1.1
-arcBetween :: (TrailLike t, V t ~ R2) => P2 -> P2 -> Double -> t
+arcBetween :: (ExtraLikeR2 v, TrailLike t, V t ~ v) => Point v -> Point v -> Scalar v -> t
 arcBetween p q ht = trailLike (a # rotate (v^._theta) # moveTo p)
   where
     h = abs ht
@@ -180,8 +180,8 @@ arcBetween p q ht = trailLike (a # rotate (v^._theta) # moveTo p)
 --   >   ]
 --   >   # fc blue
 --   >   # centerXY # pad 1.1
-annularWedge :: (TrailLike p, V p ~ R2) =>
-                Double -> Double -> Direction R2 -> Angle Double -> p
+annularWedge :: (ExtraLikeR2 v, TrailLike p, V p ~ v) =>
+                Scalar v -> Scalar v -> Direction v -> Angle (Scalar v) -> p
 annularWedge r1' r2' d1 s = trailLike . (`at` o) . glueTrail . wrapLine
               $ fromOffsets [(r1'-r2') *^ fromDirection d1]
                 <> arc d1 s # scale r1'
