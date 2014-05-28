@@ -119,7 +119,7 @@ arrowheadDart theta len shaftWidth = (hd # scale size, jt)
     v = rotate theta unitX
     (t1, t2) = (unit_X ^+^ v, (-0.5 ^& 0) ^-^ v)
     [b1, b2] = map (reflectY . negateV) [t1, t2]
-    psi = pi - (direction . negateV $ t2) ^. _theta.rad
+    psi = pi - (negateV t2) ^. _theta.rad
     jLength = shaftWidth / (2 * tan psi)
 
     -- If the shaft if too wide, set the size to a default value of 1.
@@ -164,7 +164,7 @@ arrowheadThorn theta len shaftWidth = (hd # scale size, jt)
     v = rotate theta unitX
     l = reverseSegment . straight $ t
     t = v ^-^ (-0.5 ^& 0)
-    psi = fullTurn ^/ 2 ^-^ (negateV t ^. _theta)
+    psi = fullTurn ^/ 2 ^-^ ((negateV t) ^. _theta)
     jLength = shaftWidth / (2 * tanA psi)
 
     -- If the shaft if too wide, set the size to a default value of 1.

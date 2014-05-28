@@ -356,7 +356,7 @@ scaleFactor tr tw hw t
 arrowEnv :: ArrowOpts -> Double -> Envelope R2
 arrowEnv opts len = getEnvelope horizShaft
   where
-    horizShaft = shaft # rotate (negateV v ^. _theta) # scale (len / m)
+    horizShaft = shaft # rotate (negateV (v ^. _theta)) # scale (len / m)
     m = magnitude v
     v = trailOffset shaft
     shaft = opts ^. arrowShaft
@@ -395,7 +395,7 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
     -- Build an arrow and set its endpoints to the image under tr of origin and (len,0).
     dArrow sty tr ln gToO nToO = (h' <> t' <> shaft)
                # moveOriginBy (tWidth *^ (unit_X # rotate tAngle))
-               # rotate (angleBetween (q .-. p) (fromDirection dir))
+               # rotate ((q .-. p)^._theta) ^-^ (dir^._theta)
                # moveTo p
       where
 
