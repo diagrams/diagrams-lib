@@ -21,8 +21,10 @@ module Diagrams.Coordinates
     where
 
 import           Control.Lens          (Lens')
+import           Data.VectorSpace
 
 import           Diagrams.Core.Points
+import           Diagrams.Core.V
 
 -- | A pair of values, with a convenient infix (left-associative)
 --   data constructor.
@@ -112,17 +114,17 @@ instance Coordinates v => Coordinates (Point v) where
 
 -- | The class of types with at least one coordinate, called _x.
 class HasX t where
-    _x :: Lens' t Double
+    _x :: Lens' t (Scalar (V t))
 
 -- | The class of types with at least two coordinates, the second called _y.
 class HasY t where
-    _y :: Lens' t Double
+    _y :: Lens' t (Scalar (V t))
 
 -- | The class of types with at least three coordinates, the third called _z.
 class HasZ t where
-    _z :: Lens' t Double
+    _z :: Lens' t (Scalar (V t))
 
 -- | The class of types with a single length coordinate _r.  _r is
 -- magnitude of a vector, or the distance from the origin of a point.
 class HasR t where
-    _r :: Lens' t Double
+    _r :: Lens' t (Scalar (V t))

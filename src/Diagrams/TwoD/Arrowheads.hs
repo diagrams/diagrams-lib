@@ -234,6 +234,7 @@ arrowtailBlock theta = aTail
    aTail len _ = (t, mempty)
       where
         t = rect len (len * x) # alignR
+        a' :: R2
         a'  = rotate theta unitX
         a = a' ^-^ (reflectY a')
         x = magnitude a

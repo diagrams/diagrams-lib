@@ -172,11 +172,6 @@ instance HasTheta R3 where
 instance HasTheta P3 where
     _theta = cylindrical . _2
 
--- | The class of types with at least two angle coordinates, the
--- second called _phi.
-class HasPhi t where
-    _phi :: Lens' t (Angle (Scalar (V t)))
-
 instance HasPhi R3 where
     _phi = spherical . _3
 
@@ -188,9 +183,3 @@ instance Cylindrical P3 where
 
 instance Spherical P3 where
     spherical = _relative origin . spherical
-
-instance HasTheta (Direction R3) where
-    _theta = _Dir . _theta
-
-instance HasPhi (Direction R3) where
-    _phi = _Dir . _phi

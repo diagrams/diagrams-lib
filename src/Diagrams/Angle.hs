@@ -1,8 +1,8 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE RankNTypes                 #-}
-{-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE StandaloneDeriving         #-}
 {-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE FlexibleContexts           #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Angle
@@ -23,6 +23,7 @@ module Diagrams.Angle
        , (@@)
        , angleBetween
        , HasTheta(..)
+       , HasPhi(..)
        ) where
 
 import Control.Lens            (Iso', Lens', iso, review, (^.))
@@ -129,3 +130,9 @@ angleBetween v1 v2 = acos (normalized v1 <.> normalized v2) @@ rad
 -- | The class of types with at least one angle coordinate, called _theta.
 class HasTheta t where
     _theta :: Lens' t (Angle (Scalar (V t)))
+
+-- | The class of types with at least two angle coordinates, the
+-- second called _phi.
+class HasPhi t where
+    _phi :: Lens' t (Angle (Scalar (V t)))
+

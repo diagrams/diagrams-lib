@@ -6,6 +6,7 @@
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE TypeOperators              #-}
 {-# LANGUAGE TypeSynonymInstances       #-}
+{-# LANGUAGE ConstraintKinds   #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 -----------------------------------------------------------------------------
@@ -24,7 +25,8 @@ module Diagrams.TwoD.Types
          R2(..), r2, unr2, mkR2, r2Iso
        , P2, p2, mkP2, unp2, p2Iso
        , T2
-
+       , R2Basis
+       , LikeR2
        ) where
 
 import           Control.Lens           (Iso', Rewrapped, Wrapped (..), iso, (^.),  _1, _2)
@@ -117,15 +119,15 @@ instance Read R2 where
       amp_prec = 7
 
 -- | Construct a 2D vector from a pair of components.  See also '&'.
-r2 :: (Double, Double) -> R2
-r2 (x,y) = R2 x y
+r2 :: (HasBasis v, Basis v ~ R2Basis) => (Scalar v, Scalar v) -> v
+r2 (x,y) = recompose [(XB,x),(YB,y)]
 
 -- | Convert a 2D vector back into a pair of components.  See also 'coords'.
-unr2 :: R2 -> (Double, Double)
-unr2 (R2 x y) = (x,y)
+unr2 :: (HasBasis v, Basis v ~ R2Basis) => v -> (Scalar v, Scalar v)
+unr2 v = (decompose' v XB, decompose' v YB)
 
 -- | Curried form of `r2`.
-mkR2 :: Double -> Double -> R2
+mkR2 :: (HasBasis v, Basis v ~ R2Basis) => Scalar v -> Scalar v -> v
 mkR2 = curry r2
 
 -- | Lens wrapped isomorphisms for R2.
@@ -172,9 +174,6 @@ instance Coordinates R2 where
   x ^& y           = R2 x y
   coords (R2 x y) = x :& y
 
-r2Iso :: Iso' R2 (Double, Double)
-r2Iso = iso unr2 r2
-
 instance HasX R2 where
     _x = r2Iso . _1
 
@@ -187,8 +186,8 @@ instance HasTheta R2 where
 instance HasR R2 where
     _r = polar._1
 
-instance HasTheta (Direction R2) where
-    _theta = _Dir . _theta
+r2Iso :: (HasBasis v, Basis v ~ R2Basis) => Iso' v (Scalar v, Scalar v)
+r2Iso = iso unr2 r2
 
 -- | Points in R^2.  This type is intentionally abstract.
 --
@@ -216,15 +215,15 @@ instance HasTheta (Direction R2) where
 type P2 = Point R2
 
 -- | Construct a 2D point from a pair of coordinates.  See also '^&'.
-p2 :: (Double, Double) -> P2
+p2 :: (HasBasis v, Basis v ~ R2Basis) => (Scalar v, Scalar v) -> Point v
 p2 = P . r2
 
 -- | Convert a 2D point back into a pair of coordinates.  See also 'coords'.
-unp2 :: P2 -> (Double, Double)
+unp2 :: (HasBasis v, Basis v ~ R2Basis) => Point v -> (Scalar v, Scalar v)
 unp2 (P v) = unr2 v
 
 -- | Curried form of `p2`.
-mkP2 :: Double -> Double -> P2
+mkP2 :: (HasBasis v, Basis v ~ R2Basis) => Scalar v -> Scalar v -> Point v
 mkP2 = curry p2
 
 -- | Transformations in R^2.
@@ -233,7 +232,7 @@ type T2 = Transformation R2
 instance Transformable R2 where
   transform = apply
 
-p2Iso :: Iso' P2 (Double, Double)
+p2Iso :: (HasBasis v, Basis v ~ R2Basis) => Iso' (Point v) (Scalar v, Scalar v)
 p2Iso = iso unp2 p2
 
 instance HasX P2 where
@@ -259,3 +258,6 @@ instance Polar R2 where
 
 instance Polar P2 where
     polar = _relative origin . polar
+
+type LikeR2 v = (HasBasis v, Num (Scalar v), Basis v ~ R2Basis)
+

@@ -40,6 +40,12 @@ type instance V (Direction v) = v
 instance (Transformable v, V (Direction v) ~ V v) => Transformable (Direction v) where
     transform t (Direction v) = Direction (transform t v)
 
+instance (HasTheta v, V (Direction v) ~ V v) => HasTheta (Direction v) where
+    _theta = _Dir . _theta
+
+instance (HasPhi v, V (Direction v) ~ V v) => HasPhi (Direction v) where
+    _phi = _Dir . _phi
+
 -- | _Dir is provided to allow efficient implementations of functions
 -- in particular vector-spaces, but should be used with care as it
 -- exposes too much information.
