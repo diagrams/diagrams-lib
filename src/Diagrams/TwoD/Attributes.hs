@@ -385,7 +385,7 @@ getLineTexture :: LineTexture -> Texture
 getLineTexture (LineTexture (Last t)) = t
 
 lineTexture :: (HasStyle a, V a ~ R2) => Texture -> a -> a
-lineTexture = applyTAttr . LineTexture . Last
+lineTexture = applyTAttr . mkLineTexture
 
 lineTextureA :: (HasStyle a, V a ~ R2) => LineTexture -> a -> a
 lineTextureA = applyTAttr
@@ -456,7 +456,7 @@ getFillTexture :: FillTexture -> Texture
 getFillTexture (FillTexture tx) = getLast . getRecommend $ tx
 
 fillTexture :: (HasStyle a, V a ~ R2) => Texture -> a -> a
-fillTexture = applyTAttr . FillTexture . Commit . Last
+fillTexture = applyTAttr . mkFillTexture
 
 mkFillTexture :: Texture  -> FillTexture
 mkFillTexture = FillTexture . Commit . Last
