@@ -80,7 +80,7 @@ import           Diagrams.Trail              (isLoop)
 
 import           Control.Lens ( makeLensesWith, generateSignatures, lensRules
                               , makePrisms, Lens', (&), (%~), (.~), Setter', sets
-                              , Wrapped(..), _Wrapping', iso)
+                              , Wrapped(..), _Wrapping', iso, traverse)
 
 import           Data.Colour hiding (AffineSpace)
 import           Data.Data
@@ -448,6 +448,10 @@ instance Default FillTexture where
     def = FillTexture (Recommend (Last (SC
                       (SomeColor (transparent :: AlphaColour Double)))))
 
+instance Wrapped FillTexture where
+  type Unwrapped FillTexture = Recommend (Last Texture)
+  _Wrapped' = iso (\(FillTexture t) -> t) FillTexture
+
 getFillTexture :: FillTexture -> Texture
 getFillTexture (FillTexture tx) = getLast . getRecommend $ tx
 
@@ -458,15 +462,7 @@ mkFillTexture :: Texture  -> FillTexture
 mkFillTexture = FillTexture . Commit . Last
 
 styleFillTexture :: Setter' (Style v) Texture
-styleFillTexture = sets modifyFillTexture
-  where
-    modifyFillTexture f s
-      = flip setAttr s
-      . mkFillTexture
-      . f
-      . getFillTexture
-      . fromMaybe def . getAttr
-      $ s
+styleFillTexture = attr'._Wrapping' FillTexture .traverse._Wrapped'
 
 -- | Set the fill color.  This function is polymorphic in the color
 --   type (so it can be used with either 'Colour' or 'AlphaColour'),
