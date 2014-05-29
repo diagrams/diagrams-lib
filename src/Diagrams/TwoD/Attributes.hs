@@ -68,7 +68,7 @@ module Diagrams.TwoD.Attributes (
   ) where
 
 import           Diagrams.Core
-import           Diagrams.Core.Style         (setAttr)
+import           Diagrams.Core.Style         (setAttr, attr')
 import           Diagrams.Attributes
 import           Diagrams.Attributes.Compile
 import           Diagrams.TwoD.Types
@@ -80,7 +80,7 @@ import           Diagrams.Trail              (isLoop)
 
 import           Control.Lens ( makeLensesWith, generateSignatures, lensRules
                               , makePrisms, Lens', (&), (%~), (.~), Setter', sets
-                              , Wrapped(..), iso)
+                              , Wrapped(..), _Wrapping', iso)
 
 import           Data.Colour hiding (AffineSpace)
 import           Data.Data
@@ -394,15 +394,7 @@ mkLineTexture :: Texture  -> LineTexture
 mkLineTexture = LineTexture . Last
 
 styleLineTexture :: Setter' (Style v) Texture
-styleLineTexture = sets modifyLineTexture
-  where
-    modifyLineTexture f s
-      = flip setAttr s
-      . mkLineTexture
-      . f
-      . getLineTexture
-      . fromMaybe def . getAttr
-      $ s
+styleLineTexture = attr'._Wrapping' mkLineTexture
 
 -- | Set the line (stroke) color.  This function is polymorphic in the
 --   color type (so it can be used with either 'Colour' or
