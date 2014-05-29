@@ -79,7 +79,8 @@ import           Diagrams.Path               (Path, pathTrails)
 import           Diagrams.Trail              (isLoop)
 
 import           Control.Lens ( makeLensesWith, generateSignatures, lensRules
-                              , makePrisms, Lens', (&), (%~), (.~), Setter', sets)
+                              , makePrisms, Lens', (&), (%~), (.~), Setter', sets
+                              , Wrapped(..), iso)
 
 import           Data.Colour hiding (AffineSpace)
 import           Data.Data
@@ -376,10 +377,14 @@ instance Transformable LineTexture where
 instance Default LineTexture where
     def = LineTexture (Last (SC (SomeColor (black :: Colour Double))))
 
+instance Wrapped LineTexture where
+  type Unwrapped LineTexture = Texture
+  _Wrapped' = iso getLineTexture mkLineTexture
+
 getLineTexture :: LineTexture -> Texture
 getLineTexture (LineTexture (Last t)) = t
 
-lineTexture :: (HasStyle a, V a ~ R2) => Texture-> a -> a
+lineTexture :: (HasStyle a, V a ~ R2) => Texture -> a -> a
 lineTexture = applyTAttr . LineTexture . Last
 
 lineTextureA :: (HasStyle a, V a ~ R2) => LineTexture -> a -> a
