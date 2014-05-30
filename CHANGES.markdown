@@ -71,6 +71,12 @@
 
     - The `splitColorFills` function has been replaced by `splitTextureFills`.
 
+* **Dependency/version changes**
+
+  - Allow `semigroups-0.15`
+
+  - Allow `opt-parse-applicative-0.9.0
+
 1.1.0.7 (15 May 2014)
 ------------------------
 
