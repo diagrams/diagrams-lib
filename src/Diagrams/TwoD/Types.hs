@@ -1,5 +1,5 @@
 {-# LANGUAGE DeriveDataTypeable         #-}
-{-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE FlexibleInstances, FlexibleContexts          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE RankNTypes                 #-}
@@ -24,15 +24,15 @@ module Diagrams.TwoD.Types
        ( -- * 2D Euclidean space
          r2, unr2, mkR2, r2Iso
        , p2, mkP2, unp2, p2Iso
-       , R2Basis
+       , R2Basis(..)
        , R2Ish
+       , Polar(..)
        ) where
 
-import           Control.Lens           (Iso', Rewrapped, Wrapped (..), iso, (^.),  _1, _2)
+import           Control.Lens           (Iso', iso)
 
 
 import           Diagrams.Angle
-import           Diagrams.Direction
 import           Diagrams.Coordinates
 import           Diagrams.Core
 
@@ -53,7 +53,8 @@ instance HasTrie R2Basis where
     untrie (R2Trie _x y) YB = y
     enumerate (R2Trie x y)  = [(XB,x),(YB,y)]
 
-type R2Ish v = (HasBasis v, Basis v ~ R2Basis)
+type ScalarR2Ish d = (RealFloat d, VectorSpace d, HasBasis d, Basis d ~ (), Transformable d, Scalar d ~ d, V d ~ d, Data d)
+type R2Ish v = (HasBasis v, Basis v ~ R2Basis, V v ~ v, Transformable v, InnerSpace v, Coordinates v, Decomposition v ~ (FinalCoord v :& FinalCoord v), PrevDim v ~ FinalCoord v, FinalCoord v ~ Scalar v, HasX v, HasY v, HasTheta v, Data v, ScalarR2Ish (Scalar v))
 
 -- | Construct a 2D vector from a pair of components.  See also '&'.
 r2 :: (R2Ish v) => (Scalar v, Scalar v) -> v

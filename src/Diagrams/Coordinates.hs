@@ -23,16 +23,9 @@ module Diagrams.Coordinates
 import           Control.Lens          (Lens')
 import           Data.VectorSpace
 
-import           Diagrams.Core.Points
+import           Diagrams.Points
+import           Data.AffineSpace.Point
 import           Diagrams.Core.V
-
--- | A pair of values, with a convenient infix (left-associative)
---   data constructor.
-data a :& b = a :& b
-  deriving (Eq, Ord, Show)
-
-infixl 7 :&
-
 
 -- | Types which are instances of the @Coordinates@ class can be
 --   constructed using '^&' (for example, a three-dimensional vector
@@ -78,6 +71,22 @@ class Coordinates c where
 
 infixl 7 ^&
 
+-- | A pair of values, with a convenient infix (left-associative)
+--   data constructor.
+data a :& b = a :& b
+  deriving (Eq, Ord, Show)
+
+infixl 7 :&
+
+-- Instance for :& (the buck stops here)
+instance Coordinates (a :& b) where
+  type FinalCoord (a :& b) = b
+  type PrevDim (a :& b) = a
+  type Decomposition (a :& b) = a :& b
+  x ^& y                    = x :& y
+  coords (x :& y)           = x :& y
+
+
 -- Some standard instances for plain old tuples
 
 instance Coordinates (a,b) where
@@ -85,7 +94,7 @@ instance Coordinates (a,b) where
   type PrevDim (a,b)       = a
   type Decomposition (a,b) = a :& b
 
-  x ^& y                    = (x,y)
+  x ^& y                   = (x,y)
   coords (x,y)             = x :& y
 
 instance Coordinates (a,b,c) where
@@ -128,3 +137,16 @@ class HasZ t where
 -- magnitude of a vector, or the distance from the origin of a point.
 class HasR t where
     _r :: Lens' t (Scalar (V t))
+
+instance (HasX v, v ~ V v) => HasX (Point v) where
+    _x = _pIso . _x
+
+instance (HasY v, v ~ V v) => HasY (Point v) where
+    _y = _pIso . _y
+
+instance (HasZ v, v ~ V v) => HasZ (Point v) where
+    _z = _pIso . _z
+
+instance (HasR v, v ~ V v) => HasR (Point v) where
+    _r = _pIso . _r
+

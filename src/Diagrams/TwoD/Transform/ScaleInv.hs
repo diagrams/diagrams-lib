@@ -17,7 +17,7 @@
 module Diagrams.TwoD.Transform.ScaleInv
     ( ScaleInv(..)
     , scaleInvObj, scaleInvDir, scaleInvLoc
-    , scaleInv, scaleInvPrim, ExtraLikeR2 )
+    , scaleInv, scaleInvPrim)
     where
 
 import           Control.Lens            (makeLenses, view)
@@ -85,7 +85,7 @@ type instance V (ScaleInv t) = V t
 instance (HasOrigin t) => HasOrigin (ScaleInv t) where
   moveOriginTo p (ScaleInv t v l) = ScaleInv (moveOriginTo p t) v (moveOriginTo p l)
 
-instance (ExtraLikeR2 (V t), Transformable t) => Transformable (ScaleInv t) where
+instance (R2Ish (V t), Transformable t) => Transformable (ScaleInv t) where
   transform :: Transformation (V (ScaleInv t)) -> ScaleInv t -> ScaleInv t
   transform tr (ScaleInv t v l) = ScaleInv (trans . rot $ t) (rot v) l'
     where
@@ -157,7 +157,7 @@ instance (ExtraLikeR2 (V t), Transformable t) => Transformable (ScaleInv t) wher
 
 -}
 
-instance (ExtraLikeR2 (V t), Renderable t b) => Renderable (ScaleInv t) b where
+instance (R2Ish (V t), Renderable t b) => Renderable (ScaleInv t) b where
   render b = render b . view scaleInvObj
 
 -- | Create a diagram from a single scale-invariant primitive.  The
@@ -175,6 +175,6 @@ instance (ExtraLikeR2 (V t), Renderable t b) => Renderable (ScaleInv t) b where
 --   scale-invariant things will be used only as \"decorations\" (/e.g./
 --   arrowheads) which should not affect the envelope, trace, and
 --   query.
-scaleInvPrim :: (Transformable t, Typeable t, ExtraLikeR2 (V t), Renderable t b, Monoid m)
+scaleInvPrim :: (Transformable t, Typeable t, R2Ish (V t), Renderable t b, Monoid m)
              => t -> V t -> QDiagram b (V t) m
 scaleInvPrim t d = mkQD (Prim $ scaleInv t d) mempty mempty mempty mempty

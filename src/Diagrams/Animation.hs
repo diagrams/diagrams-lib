@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE ConstraintKinds, TypeFamilies, FlexibleContexts #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Animation
@@ -109,18 +110,18 @@ animEnvelope' r a = withEnvelope (simulate r a) <$> a
 --
 --   Uses 30 samples per time unit by default; to adjust this number
 --   see 'animRect''.
-animRect :: (TrailLike t, Enveloped t, Transformable t, Monoid t, V t ~ R2
+animRect :: (TrailLike t, Enveloped t, Transformable t, Monoid t, V t ~ v, R2Ish v
             , Monoid' m)
-         => QAnimation b R2 m -> t
+         => QAnimation b v m -> t
 animRect = animRect' 30
 
 -- | Like 'animRect', but with an adjustible sample rate.  The first
 --   parameter is the number of samples per time unit to use.  Lower
 --   rates will be faster but less accurate; higher rates are more
 --   accurate but slower.
-animRect' :: (TrailLike t, Enveloped t, Transformable t, Monoid t, V t ~ R2
+animRect' :: (TrailLike t, Enveloped t, Transformable t, Monoid t, V t ~ v, R2Ish v
              , Monoid' m)
-          => Rational -> QAnimation b R2 m -> t
+          => Rational -> QAnimation b v m -> t
 animRect' r anim
     | null results = rect 1 1
     | otherwise    = boxFit (foldMap boundingBox results) (rect 1 1)

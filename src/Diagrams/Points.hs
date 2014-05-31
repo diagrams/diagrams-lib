@@ -20,16 +20,21 @@ module Diagrams.Points
          -- * Point-related utilities
        , centroid
        , pointDiagram
-
+       , _pIso
        ) where
 
 import           Diagrams.Core          (pointDiagram)
 import           Diagrams.Core.Points
 
 import           Control.Arrow          ((&&&))
+import           Control.Lens           (Iso', iso)
 
 import           Data.AffineSpace.Point
 import           Data.VectorSpace
+
+-- Point v <-> v
+_pIso :: Iso' (Point v) v
+_pIso = iso unPoint P
 
 -- | The centroid of a set of /n/ points is their sum divided by /n/.
 centroid :: (VectorSpace v, Fractional (Scalar v)) => [Point v] -> Point v

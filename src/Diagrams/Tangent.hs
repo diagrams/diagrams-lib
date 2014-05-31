@@ -23,7 +23,6 @@ module Diagrams.Tangent
     , normalAtStart
     , normalAtEnd
     , Tangent(..)
-    , MoreLikeR2
     )
     where
 
@@ -35,7 +34,8 @@ import           Diagrams.Located
 import           Diagrams.Parametric
 import           Diagrams.Segment
 import           Diagrams.Trail
-import           Diagrams.TwoD.Vector (perp, LikeR2)
+import           Diagrams.TwoD.Vector (perp)
+import           Diagrams.TwoD.Types  (R2Ish)
 
 ------------------------------------------------------------
 -- Tangent
@@ -157,8 +157,6 @@ instance ( InnerSpace v
 -- Normal
 ------------------------------------------------------------
 
-type MoreLikeR2 v = (LikeR2 v, InnerSpace v, Floating (Scalar v))
-
 -- | Compute the (unit) normal vector to a segment or trail at a
 --   particular parameter.
 --
@@ -172,22 +170,22 @@ type MoreLikeR2 v = (LikeR2 v, InnerSpace v, Floating (Scalar v))
 --
 --   See the instances listed for the 'Tangent' newtype for more.
 normalAtParam
-  :: (MoreLikeR2 (Codomain (Tangent t)), Parametric (Tangent t))
+  :: (R2Ish (Codomain (Tangent t)), Parametric (Tangent t))
   => t -> Scalar (V t) -> Codomain (Tangent t)
 normalAtParam t p = normize (t `tangentAtParam` p)
 
 -- | Compute the normal vector at the start of a segment or trail.
 normalAtStart
-  :: (MoreLikeR2 (Codomain (Tangent t)), EndValues (Tangent t))
+  :: (R2Ish (Codomain (Tangent t)), EndValues (Tangent t))
   => t -> Codomain (Tangent t)
 normalAtStart = normize . tangentAtStart
 
 -- | Compute the normal vector at the end of a segment or trail.
 normalAtEnd
-  :: (MoreLikeR2 (Codomain (Tangent t)), EndValues (Tangent t))
+  :: (R2Ish (Codomain (Tangent t)), EndValues (Tangent t))
   => t -> Codomain (Tangent t)
 normalAtEnd = normize . tangentAtEnd
 
 -- | Construct a normal vector from a tangent.
-normize :: (MoreLikeR2 v) => v -> v
+normize :: (R2Ish v) => v -> v
 normize = negateV . perp . normalized

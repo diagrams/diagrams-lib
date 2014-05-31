@@ -26,13 +26,14 @@ module Diagrams.Angle
        , HasPhi(..)
        ) where
 
-import Control.Lens            (Iso', Lens', iso, review, (^.))
+import Control.Lens            (Iso', Lens', iso, review)
 
 import Data.Monoid      hiding ((<>))
 import Data.Semigroup
 import Data.VectorSpace
 
 import Diagrams.Core.V
+import Diagrams.Points
 
 -- | Angles can be expressed in a variety of units.  Internally,
 -- they are represented in radians.
@@ -135,4 +136,11 @@ class HasTheta t where
 -- second called _phi.
 class HasPhi t where
     _phi :: Lens' t (Angle (Scalar (V t)))
+
+-- Point instances
+instance (HasTheta v, v ~ V v) => HasTheta (Point v) where
+    _theta = _pIso . _theta
+
+instance (HasPhi v, v ~ V v) => HasPhi (Point v) where
+    _phi = _pIso . _phi
 

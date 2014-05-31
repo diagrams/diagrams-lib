@@ -11,7 +11,7 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Diagrams.TwoD.Types
+-- Module      :  Diagrams.TwoD.Types.Double
 -- Copyright   :  (c) 2011 diagrams-lib team (see LICENSE)
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
@@ -21,26 +21,19 @@
 -----------------------------------------------------------------------------
 
 module Diagrams.TwoD.Types.Double
-       ( -- * 2D Euclidean space
-         R2(..), r2, unr2, mkR2, r2Iso
-       , P2, p2, mkP2, unp2, p2Iso
-       , T2
-       , R2Basis
-       , LikeR2
+       ( -- * 2D Euclidean space in Double precision
+         R2(..), P2, T2
        ) where
 
-import           Control.Lens           (Iso', Rewrapped, Wrapped (..), iso, (^.),  _1, _2)
+import           Control.Lens           (Rewrapped, Wrapped (..), iso, (^.),  _1, _2)
 
 
 import           Diagrams.Angle
-import           Diagrams.Direction
 import           Diagrams.Coordinates
 import           Diagrams.Core
 import           Diagrams.TwoD.Types
 
-import           Data.AffineSpace.Point
 import           Data.Basis
-import           Data.MemoTrie          (HasTrie (..))
 import           Data.VectorSpace
 
 import           Data.Data

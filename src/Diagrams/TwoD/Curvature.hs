@@ -17,7 +17,6 @@ module Diagrams.TwoD.Curvature
     , radiusOfCurvature
     , squaredCurvature
     , squaredRadiusOfCurvature
-    , YetMoreLikeR2
     ) where
 
 import           Data.Monoid.Inf
@@ -29,8 +28,6 @@ import           Control.Monad        (join)
 import           Diagrams.Segment
 import           Diagrams.Tangent
 import           Diagrams.TwoD.Types
-
-type YetMoreLikeR2 v = (MoreLikeR2 v, Scalar (Scalar v) ~ Scalar v, RealFloat (Scalar v), VectorSpace (Scalar v))
 
 -- | Curvature measures how curved the segment is at a point.  One intuition
 -- for the concept is how much you would turn the wheel when driving a car
@@ -106,7 +103,7 @@ type YetMoreLikeR2 v = (MoreLikeR2 v, Scalar (Scalar v) ~ Scalar v, RealFloat (S
 -- >         vpr = r2 (normalized vp ^* r)
 -- >
 --
-curvature :: (YetMoreLikeR2 v)
+curvature :: (R2Ish v)
           => Segment Closed v  -- ^ Segment to measure on.
           -> Scalar v          -- ^ Parameter to measure at.
           -> PosInf (Scalar v) -- ^ Result is a @PosInf@ value where @PosInfty@ represents
@@ -116,12 +113,12 @@ curvature s = toPosInf . second sqrt . curvaturePair (fmap unr2 s) -- TODO: Use 
 -- | With @squaredCurvature@ we can compute values in spaces that do not support
 -- 'sqrt' and it is just as useful for relative ordering of curvatures or looking
 -- for zeros.
-squaredCurvature :: (YetMoreLikeR2 v) => Segment Closed v -> Scalar v -> PosInf (Scalar v)
+squaredCurvature :: (R2Ish v) => Segment Closed v -> Scalar v -> PosInf (Scalar v)
 squaredCurvature s = toPosInf . first (join (*)) . curvaturePair (fmap unr2 s) -- TODO: Use the generalized unr2
 
 
 -- | Reciprocal of @curvature@.
-radiusOfCurvature :: (YetMoreLikeR2 v)
+radiusOfCurvature :: (R2Ish v)
                   => Segment Closed v     -- ^ Segment to measure on.
                   -> Scalar v             -- ^ Parameter to measure at.
                   -> PosInf (Scalar v)    -- ^ Result is a @PosInf@ value where @PosInfty@ represents
@@ -129,7 +126,7 @@ radiusOfCurvature :: (YetMoreLikeR2 v)
 radiusOfCurvature s = toPosInf . (\(p,q) -> (q,p)) . second sqrt . curvaturePair (fmap unr2 s)
 
 -- | Reciprocal of @squaredCurvature@
-squaredRadiusOfCurvature :: (YetMoreLikeR2 v) => Segment Closed v -> Scalar v -> PosInf (Scalar v)
+squaredRadiusOfCurvature :: (R2Ish v) => Segment Closed v -> Scalar v -> PosInf (Scalar v)
 squaredRadiusOfCurvature s = toPosInf . (\(p,q) -> (q,p)) . first (join (*)) . curvaturePair (fmap unr2 s)
 
 
