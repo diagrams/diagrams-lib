@@ -47,9 +47,9 @@ module Diagrams.TwoD.Arrow
 --   > dias = oct # named "first" ||| strut 3 ||| oct # named "second"
 --   >
 --   > -- Connect two diagrams and two points on their trails.
---   > ex12 = dias # connect' (with & lengths .~ veryLarge) "first" "second" 
---   >             # connectPerim (with & lengths .~ veryLarge)
---   >        "first" "second" (15/16 \@\@ turn) (9/16 \@\@ turn)
+--   > ex12 = dias # connect' (with & lengths .~ veryLarge) "first" "second"
+--   >             # connectPerim' (with & lengths .~ veryLarge)
+--   >        "first" "second" (15/16 @@ turn) (9/16 @@ turn)
 --   >
 --   > -- Place an arrow at (0,0) the size and direction of (0,1).
 --   > ex3 = arrowAt origin unit_Y
