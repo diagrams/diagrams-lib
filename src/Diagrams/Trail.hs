@@ -1036,8 +1036,8 @@ loopVertices (viewLoc -> (p,t))
   | length segs > 1 = if far > 10e-16  then init ps else init . (drop 1) $ ps
   | otherwise       = ps
   where
-    far = magnitudeSq ((tangentAtStart . head $ segs) ^-^
-                       (tangentAtEnd   . last $ segs))
+    far = magnitudeSq ((normalized . tangentAtStart . head $ segs) ^-^
+                       (normalized . tangentAtEnd   . last $ segs))
     segs = lineSegments . cutLoop $ t
     ps = segmentVertices p segs
 
@@ -1053,7 +1053,8 @@ segmentVertices p ts =
     _       -> ps
     where
       ds = zipWith far tans (drop 1 tans)
-      tans = [(tangentAtStart s, tangentAtEnd s) | s <- ts]
+      tans = [(normalized . tangentAtStart $ s
+              ,normalized . tangentAtEnd   $ s) | s <- ts]
       ps = scanl (.+^) p . map segOffset $ ts
       far p2 q2 = magnitudeSq ((snd p2) ^-^ (fst q2)) > 10e-16
 
