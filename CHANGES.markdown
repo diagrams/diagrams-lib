@@ -17,19 +17,19 @@
     - Support for radial and linear gradients for fills and strokes.
 
     - New `DImage` type that supports both embedded and external images in
-      backends that support them.
+      Backends that support them.
 
-    - New `lengths` traversal for setting `headLength` and `tailLength`
+    - New `lengths` Traversal for setting `headLength` and `tailLength`
       simultaneously.
 
     - `Frustrum` and `Box` shapes added to `Diagrams.ThreeD.Shapes`.
 
     - New function `quartForm` to find roots of quartic polynomials.
 
-    - New lenses for polar coordinates.
+    - New Lenses for polar coordinates.
 
     - New trig functions, `sinA`, `atanA`, etc. which take `Angle` as
-      input.
+      input or output.
 
 * **New instances**
 
@@ -48,7 +48,7 @@
     - Gaps at the ends of arrows are now specified using `Measure R2`.
 
     - The `gap` traversal has been replaced by `gaps` for consistency
-      in naming, though `gap` is still provided for backwards compatability.
+      in naming, though `gap` is still provided for backwards compatibility.
 
     - `fontSize` now takes a value of type `Measure R2`.
 
@@ -66,8 +66,8 @@
     - The `Angle` definition and related functions (*e.g.*
       `angleBetween`) have moved to a separate module, `Diagrams.Angle`.
 
-    - A separate `Diagrams.TwoD.Attributes` module now conatains most
-      of the attribures that require 2D transformation instances.
+    - A separate `Diagrams.TwoD.Attributes` module now contains most
+      of the attributes that require 2D transformation instances.
 
     - The `splitColorFills` function has been replaced by `splitTextureFills`.
 
