@@ -103,7 +103,8 @@ module Diagrams.Trail
        ) where
 
 import           Control.Arrow       ((***))
-import           Control.Lens        (AnIso', iso, view, op, Wrapped(..), Rewrapped)
+import           Control.Lens        (AnIso', iso, view, op, Wrapped(..), Rewrapped
+                                     , cloneIso, (^.))
 import           Data.AffineSpace
 import           Data.FingerTree     (FingerTree, ViewL (..), ViewR (..), (<|),
                                       (|>))
@@ -118,6 +119,7 @@ import           Diagrams.Core       hiding ((|>))
 import           Diagrams.Located
 import           Diagrams.Parametric
 import           Diagrams.Segment
+import           Diagrams.Tangent
 
 -- $internals
 --
@@ -392,6 +394,54 @@ instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
                   (\(Line segT) -> segT `atParam` p)
                   (\l -> cutLoop l `atParam` mod1 p)
                   t
+
+type instance Codomain (Tangent (Trail' c v)) = Codomain (Trail' c v)
+
+instance ( Parametric (GetSegment (Trail' c v))
+         , VectorSpace v
+         , Num (Scalar v)
+         )
+    => Parametric (Tangent (Trail' c v)) where
+  Tangent tr `atParam` p =
+    case GetSegment tr `atParam` p of
+      Nothing                -> zeroV
+      Just (_, seg, reparam) -> Tangent seg `atParam` (p ^. cloneIso reparam)
+
+instance ( Parametric (GetSegment (Trail' c v))
+         , EndValues (GetSegment (Trail' c v))
+         , VectorSpace v
+         , Num (Scalar v)
+         )
+    => EndValues (Tangent (Trail' c v)) where
+  atStart (Tangent tr) =
+    case atStart (GetSegment tr) of
+      Nothing          -> zeroV
+      Just (_, seg, _) -> atStart (Tangent seg)
+  atEnd (Tangent tr) =
+    case atEnd (GetSegment tr) of
+      Nothing          -> zeroV
+      Just (_, seg, _) -> atEnd (Tangent seg)
+
+type instance Codomain (Tangent (Trail v)) = Codomain (Trail v)
+
+instance ( InnerSpace v
+         , OrderedField (Scalar v)
+         , RealFrac (Scalar v)
+         )
+    => Parametric (Tangent (Trail v)) where
+  Tangent tr `atParam` p
+    = withTrail
+        ((`atParam` p) . Tangent)
+        ((`atParam` p) . Tangent)
+        tr
+
+instance ( InnerSpace v
+         , OrderedField (Scalar v)
+         , RealFrac (Scalar v)
+         )
+    => EndValues (Tangent (Trail v)) where
+  atStart (Tangent tr) = withTrail (atStart . Tangent) (atStart . Tangent) tr
+  atEnd   (Tangent tr) = withTrail (atEnd   . Tangent) (atEnd   . Tangent) tr
 
 -- | Compute the remainder mod 1.  Convenient for constructing loop
 --   parameterizations that wrap around.
@@ -983,10 +1033,32 @@ lineVertices (viewLoc -> (p,t))
 loopVertices :: (InnerSpace v, OrderedField (Scalar v))
              => Located (Trail' Loop v) -> [Point v]
 loopVertices (viewLoc -> (p,t))
-  = segmentVertices p . fst . loopSegments $ t
+  | length segs > 1 = if far > 10e-16  then init ps else init . (drop 1) $ ps
+  | otherwise       = ps
+  where
+    far = magnitudeSq ((tangentAtStart . head $ segs) ^-^
+                       (tangentAtEnd   . last $ segs))
+    segs = lineSegments . cutLoop $ t
+    ps = segmentVertices p segs
 
-segmentVertices :: AdditiveGroup v => Point v -> [Segment Closed v] -> [Point v]
-segmentVertices p = scanl (.+^) p . map segOffset
+-- The vertices of a list of segments laid end to end.
+-- The start and end points are always included in the list of vertices.
+-- The other points connecting segments are included if the slope at the
+-- end of a segment is not equal to the slope at the beginning of the next.
+segmentVertices :: (InnerSpace v, OrderedField (Scalar v))
+             => Point v -> [Segment Closed v] -> [Point v]
+segmentVertices p ts =
+  case ps of
+    (x:_:_) -> x : select (drop 1 ps) ds ++ [last ps]
+    _       -> ps
+    where
+      ds = zipWith far tans (drop 1 tans)
+      tans = [(tangentAtStart s, tangentAtEnd s) | s <- ts]
+      ps = scanl (.+^) p . map segOffset $ ts
+      far p2 q2 = magnitudeSq ((snd p2) ^-^ (fst q2)) > 10e-16
+
+select :: [a] -> [Bool] -> [a]
+select xs bs = map fst $ filter snd (zip xs bs)
 
 -- | Convert a concretely located trail into a list of fixed segments.
 fixTrail :: (InnerSpace v, OrderedField (Scalar v))
