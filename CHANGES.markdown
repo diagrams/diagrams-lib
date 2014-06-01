@@ -77,6 +77,8 @@
 
   - Allow `opt-parse-applicative-0.9.0
 
+  - Allow `lens-4.2`
+
 1.1.0.7 (15 May 2014)
 ------------------------
 
