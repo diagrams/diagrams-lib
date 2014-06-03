@@ -76,8 +76,9 @@ module Diagrams.Trail
        , onLineSegments
        , trailOffsets, trailOffset
        , lineOffsets, lineOffset, loopOffsets
-       , trailVertices, lineVertices, loopVertices
        , trailPoints, linePoints, loopPoints
+       , trailVertices', lineVertices', loopVertices'
+       , trailVertices, lineVertices, loopVertices
        , trailLocSegments, fixTrail
 
          -- * Modifying trails
@@ -1051,39 +1052,56 @@ segmentPoints p = scanl (.+^) p . map segOffset
 --   'Trail' by itself; if you want the vertices of a trail
 --   with the first vertex at, say, the origin, you can use
 --   @trailVertices . (\`at\` origin)@.
+trailVertices' :: (InnerSpace v, OrderedField (Scalar v))
+              => Scalar v ->  Located (Trail v) -> [Point v]
+trailVertices' toler (viewLoc -> (p,t)) 
+  = withTrail (lineVertices' toler . (`at` p)) (loopVertices' toler . (`at` p)) t
+
+-- : Like trailVertices' but the tolerance is set to 10e-16
 trailVertices :: (InnerSpace v, OrderedField (Scalar v))
               => Located (Trail v) -> [Point v]
-trailVertices (viewLoc -> (p,t))
-  = withTrail (lineVertices . (`at` p)) (loopVertices . (`at` p)) t
+trailVertices l = trailVertices' 10e-16 l
 
 -- | Extract the vertices of a concretely located line.  See
 --   'trailVertices' for more information.
+lineVertices' :: (InnerSpace v, OrderedField (Scalar v))
+             => Scalar v -> Located (Trail' Line v) -> [Point v]
+lineVertices' toler (viewLoc -> (p,t)) 
+  = segmentVertices' toler p . lineSegments $ t
+
+-- | Like lineVertices' with tolerance set to 10e-16.
 lineVertices :: (InnerSpace v, OrderedField (Scalar v))
              => Located (Trail' Line v) -> [Point v]
-lineVertices (viewLoc -> (p,t))
-  = segmentVertices p . lineSegments $ t
+lineVertices l = lineVertices' 10e-16 l 
 
 -- | Extract the vertices of a concretely located loop.  Note that the
 --   initial vertex is not repeated at the end.  See 'trailVertices' for
 --   more information.
-loopVertices :: (InnerSpace v, OrderedField (Scalar v))
-             => Located (Trail' Loop v) -> [Point v]
-loopVertices (viewLoc -> (p,t))
-  | length segs > 1 = if far > 10e-16  then init ps else init . (drop 1) $ ps
+loopVertices' :: (InnerSpace v, OrderedField (Scalar v))
+             => Scalar v -> Located (Trail' Loop v) -> [Point v]
+loopVertices' toler (viewLoc -> (p,t)) 
+  | length segs > 1 = if far > toler  then init ps else init . (drop 1) $ ps
   | otherwise       = ps
   where
     far = magnitudeSq ((normalized . tangentAtStart . head $ segs) ^-^
                        (normalized . tangentAtEnd   . last $ segs))
     segs = lineSegments . cutLoop $ t
-    ps = segmentVertices p segs
+    ps = segmentVertices' toler p segs
+
+-- | Same as loopVertices' with tolerance set to 10e-16.
+loopVertices :: (InnerSpace v, OrderedField (Scalar v))
+             => Located (Trail' Loop v) -> [Point v]
+loopVertices l = loopVertices' 10e-16 l
 
 -- The vertices of a list of segments laid end to end.
 -- The start and end points are always included in the list of vertices.
 -- The other points connecting segments are included if the slope at the
 -- end of a segment is not equal to the slope at the beginning of the next.
-segmentVertices :: (InnerSpace v, OrderedField (Scalar v))
-             => Point v -> [Segment Closed v] -> [Point v]
-segmentVertices p ts =
+-- The 'toler' parameter is used to control how close the slopes need to
+-- be in order to declatre them equal.
+segmentVertices' :: (InnerSpace v, OrderedField (Scalar v))
+             => Scalar v -> Point v -> [Segment Closed v] -> [Point v]
+segmentVertices' toler p ts  =
   case ps of
     (x:_:_) -> x : select (drop 1 ps) ds ++ [last ps]
     _       -> ps
@@ -1092,7 +1110,7 @@ segmentVertices p ts =
       tans = [(normalized . tangentAtStart $ s
               ,normalized . tangentAtEnd   $ s) | s <- ts]
       ps = scanl (.+^) p . map segOffset $ ts
-      far p2 q2 = magnitudeSq ((snd p2) ^-^ (fst q2)) > 10e-16
+      far p2 q2 = magnitudeSq ((snd p2) ^-^ (fst q2)) > toler
 
 select :: [a] -> [Bool] -> [a]
 select xs bs = map fst $ filter snd (zip xs bs)
