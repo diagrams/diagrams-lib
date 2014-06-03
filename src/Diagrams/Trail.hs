@@ -77,6 +77,7 @@ module Diagrams.Trail
        , trailOffsets, trailOffset
        , lineOffsets, lineOffset, loopOffsets
        , trailVertices, lineVertices, loopVertices
+       , trailPoints, linePoints, loopPoints
        , trailLocSegments, fixTrail
 
          -- * Modifying trails
@@ -1004,6 +1005,41 @@ loopOffsets = lineOffsets . cutLoop
 lineOffset :: (InnerSpace v, OrderedField (Scalar v)) => Trail' Line v -> v
 lineOffset (Line t) = trailMeasure zeroV (op TotalOffset . view oeOffset) t
 
+-- | Extract the points of a concretely located trail.  That is the points
+--   where one segment ends and the next begings. Note that
+--   for loops, the starting point will /not/ be repeated at the end.
+--   If you want this behavior, you can use 'cutTrail' to make the
+--   loop into a line first, which happens to repeat the same point
+--   at the start and end, /e.g./ with @turailPoints . mapLoc
+--   cutTrail@.
+--
+--   Note that it does not make sense to ask for the points of a
+--   'Trail' by itself; if you want the points of a trail
+--   with the first point at, say, the origin, you can use
+--   @trailPoints . (\`at\` origin)@.
+trailPoints :: (InnerSpace v, OrderedField (Scalar v))
+              => Located (Trail v) -> [Point v]
+trailPoints (viewLoc -> (p,t))
+  = withTrail (linePoints . (`at` p)) (loopPoints . (`at` p)) t
+
+-- | Extract the vertices of a concretely located line.  See
+--   'trailPoints' for more information.
+linePoints :: (InnerSpace v, OrderedField (Scalar v))
+             => Located (Trail' Line v) -> [Point v]
+linePoints (viewLoc -> (p,t))
+  = segmentPoints p . lineSegments $ t
+
+-- | Extract the vertices of a concretely located loop.  Note that the
+--   initial vertex is not repeated at the end.  See 'trailPoints' for
+--   more information.
+loopPoints :: (InnerSpace v, OrderedField (Scalar v))
+             => Located (Trail' Loop v) -> [Point v]
+loopPoints (viewLoc -> (p,t))
+  = segmentPoints p . fst . loopSegments $ t
+
+segmentPoints :: AdditiveGroup v => Point v -> [Segment Closed v] -> [Point v]
+segmentPoints p = scanl (.+^) p . map segOffset
+
 -- | Extract the vertices of a concretely located trail.  Note that
 --   for loops, the starting vertex will /not/ be repeated at the end.
 --   If you want this behavior, you can use 'cutTrail' to make the
@@ -1069,7 +1105,7 @@ fixTrail t = map mkFixedSeg (trailLocSegments t)
 -- | Convert a concretely located trail into a list of located segments.
 trailLocSegments :: (InnerSpace v, OrderedField (Scalar v))
                   => Located (Trail v) -> [Located (Segment Closed v)]
-trailLocSegments t = zipWith at (trailSegments (unLoc t)) (trailVertices t)
+trailLocSegments t = zipWith at (trailSegments (unLoc t)) (trailPoints t)
 
 ------------------------------------------------------------
 --  Modifying trails  --------------------------------------
