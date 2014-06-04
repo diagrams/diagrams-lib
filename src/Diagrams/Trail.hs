@@ -1041,6 +1041,9 @@ loopPoints (viewLoc -> (p,t))
 segmentPoints :: AdditiveGroup v => Point v -> [Segment Closed v] -> [Point v]
 segmentPoints p = scanl (.+^) p . map segOffset
 
+tolerance :: OrderedField a => a
+tolerance = 10e-16
+
 -- | Extract the vertices of a concretely located trail.  Note that
 --   for loops, the starting vertex will /not/ be repeated at the end.
 --   If you want this behavior, you can use 'cutTrail' to make the
@@ -1057,10 +1060,10 @@ trailVertices' :: (InnerSpace v, OrderedField (Scalar v))
 trailVertices' toler (viewLoc -> (p,t)) 
   = withTrail (lineVertices' toler . (`at` p)) (loopVertices' toler . (`at` p)) t
 
--- : Like trailVertices' but the tolerance is set to 10e-16
+-- : Like trailVertices' but the tolerance is set to tolerance
 trailVertices :: (InnerSpace v, OrderedField (Scalar v))
               => Located (Trail v) -> [Point v]
-trailVertices l = trailVertices' 10e-16 l
+trailVertices l = trailVertices' tolerance l
 
 -- | Extract the vertices of a concretely located line.  See
 --   'trailVertices' for more information.
@@ -1069,10 +1072,10 @@ lineVertices' :: (InnerSpace v, OrderedField (Scalar v))
 lineVertices' toler (viewLoc -> (p,t)) 
   = segmentVertices' toler p . lineSegments $ t
 
--- | Like lineVertices' with tolerance set to 10e-16.
+-- | Like lineVertices' with tolerance set to tolerance.
 lineVertices :: (InnerSpace v, OrderedField (Scalar v))
              => Located (Trail' Line v) -> [Point v]
-lineVertices l = lineVertices' 10e-16 l 
+lineVertices l = lineVertices' tolerance l 
 
 -- | Extract the vertices of a concretely located loop.  Note that the
 --   initial vertex is not repeated at the end.  See 'trailVertices' for
@@ -1088,10 +1091,10 @@ loopVertices' toler (viewLoc -> (p,t))
     segs = lineSegments . cutLoop $ t
     ps = segmentVertices' toler p segs
 
--- | Same as loopVertices' with tolerance set to 10e-16.
+-- | Same as loopVertices' with tolerance set to tolerance.
 loopVertices :: (InnerSpace v, OrderedField (Scalar v))
              => Located (Trail' Loop v) -> [Point v]
-loopVertices l = loopVertices' 10e-16 l
+loopVertices l = loopVertices' tolerance l
 
 -- The vertices of a list of segments laid end to end.
 -- The start and end points are always included in the list of vertices.
