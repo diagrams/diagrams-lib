@@ -88,7 +88,7 @@ import           Data.Colour
 import           Data.Colour.Names
 import           Data.Colour.SRGB
 import           Data.Data
-import           Data.List           (intercalate)
+import           Data.List           (intercalate, genericLength)
 import           Data.Monoid
 
 import           Numeric
@@ -426,10 +426,10 @@ class Mainable d where
     -- @
     -- import Diagrams.Prelude
     -- import Diagrams.Backend.TheBestBackend.CmdLine
-    -- 
+    --
     -- d :: Diagram B R2
     -- d = ...
-    -- 
+    --
     -- main = mainWith d
     -- @
     --
@@ -521,14 +521,20 @@ showDiaList ds = do
 --   We do not provide this instance in general so that backends can choose to
 --   opt-in to this form or provide a different instance that makes more sense.
 defaultAnimMainRender :: (Mainable (Diagram b v))
-                      => (Lens' (MainOpts (Diagram b v)) FilePath) -- ^ A lens into the output path.
+                      => (Lens' (MainOpts (Diagram b v)) FilePath)                   -- ^ A lens into the output path.
+                      -> (Maybe (ASetter' (MainOpts (Diagram b v)) DiagramLoopOpts)) -- ^ A setter for looping options, if any
                       -> (MainOpts (Diagram b v),DiagramAnimOpts)
                       -> Animation b v
                       -> IO ()
-defaultAnimMainRender out (opts,animOpts) anim = do
+defaultAnimMainRender out mlp (opts,animOpts) anim = do
     let frames  = simulate (toRational $ animOpts^.fpu) anim
-        nDigits = length . show . length $ frames
-    forM_ (zip [1..] frames) $ \(i,d) -> mainRender (indexize out nDigits i opts) d
+        nFrames = genericLength frames
+        nDigits = length . show $ nFrames
+    forM_ (zip [1..] frames) $ \(i,d) ->
+      let opts'
+            | i < nFrames, Just lp <- mlp  = opts & lp . loop .~ False
+            | otherwise                    = opts
+      in  mainRender (indexize out nDigits i opts') d
 
 -- | @indexize d n@ adds the integer index @n@ to the end of the
 --   output file name, padding with zeros if necessary so that it uses
