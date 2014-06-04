@@ -1,3 +1,9 @@
+1.2.0.1 (4 June 2014)
+---------------------
+
+- Bug fix: arrow head and tail length and gaps specified with `Local`
+  now work correctly ([#193](https://github.com/diagrams/diagrams-lib/issues/193)).
+
 1.2 (27 May 2014)
 -----------------
 
