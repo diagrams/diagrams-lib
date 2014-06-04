@@ -936,7 +936,7 @@ trailOffsets = withLine lineOffsets
 --
 --   > trailOffsetEx = (strokeLine almostClosed <> showOffset) # centerXY # pad 1.1
 --   >   where showOffset = fromOffsets [trailOffset (wrapLine almostClosed)]
---   >                    # stroke # lc red # lw 0.05
+--   >                    # stroke # lc red
 trailOffset :: (InnerSpace v, OrderedField (Scalar v)) => Trail v -> v
 trailOffset = withLine lineOffset
 

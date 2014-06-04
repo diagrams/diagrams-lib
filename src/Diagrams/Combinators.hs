@@ -77,7 +77,7 @@ import           Diagrams.Util
 --   > sqNewEnv =
 --   >     circle 1 # fc green
 --   >     |||
---   >     (    c # dashing [0.1,0.1] 0 # lc white
+--   >     (    c # dashingG [0.1,0.1] 0 # lc white
 --   >       <> square 2 # withEnvelope (c :: D R2) # fc blue
 --   >     )
 --   > c = circle 0.8

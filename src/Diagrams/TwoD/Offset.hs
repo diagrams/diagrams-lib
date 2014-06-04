@@ -210,7 +210,7 @@ offsetSegment epsilon r s@(Cubic a b (OffsetClosed c)) = t `at` origin .+^ va
 -- > import Diagrams.TwoD.Offset
 -- >
 -- > showExample :: Segment Closed R2 -> Diagram SVG R2
--- > showExample s = pad 1.1 . centerXY $ d # lc blue # lw 0.1 <> d' # lw 0.1
+-- > showExample s = pad 1.1 . centerXY $ d # lc blue # lw thick <> d' # lw thick
 -- >   where
 -- >       d  = stroke . fromSegments $ [s]
 -- >       d' = mconcat . zipWith lc colors . map stroke . explodeTrail
@@ -300,7 +300,7 @@ offsetPath = offsetPath' def
 -- > corner = fromVertices (map p2 [(0, 0), (10, 0), (5, 6)]) `at` origin
 -- >
 -- > offsetTrailExample :: Diagram SVG R2
--- > offsetTrailExample = pad 1.1 . centerXY . lw 0.2 . hcat' (def & sep .~ 1 )
+-- > offsetTrailExample = pad 1.1 . centerXY . lwO 3 . hcat' (def & sep .~ 1 )
 -- >                    . map (uncurry showStyle)
 -- >                    $ [ (LineJoinMiter, "LineJoinMiter")
 -- >                      , (LineJoinRound, "LineJoinRound")
@@ -312,7 +312,7 @@ offsetPath = offsetPath' def
 -- >            === (strutY 3 <> text s # font "Helvetica" # bold)
 -- >
 -- > offsetTrailLeftExample :: Diagram SVG R2
--- > offsetTrailLeftExample = pad 1.1 . centerXY . lw 0.2
+-- > offsetTrailLeftExample = pad 1.1 . centerXY . lwO 3
 -- >                        $ (trailLike c # lc blue)
 -- >                        <> (lc green . trailLike
 -- >                         . offsetTrail' (def & offsetJoin .~ LineJoinRound) (-2) $ c)
@@ -320,7 +320,7 @@ offsetPath = offsetPath' def
 -- >     c = reflectY corner
 -- >
 -- > offsetTrailOuterExample :: Diagram SVG R2
--- > offsetTrailOuterExample = pad 1.1 . centerXY . lw 0.2
+-- > offsetTrailOuterExample = pad 1.1 . centerXY . lwO 3
 -- >                         $ (trailLike c # lc blue)
 -- >                         <> (lc green . trailLike
 -- >                          . offsetTrail' (def & offsetJoin .~ LineJoinRound) 2 $ c)
@@ -403,17 +403,17 @@ expandPath = expandPath' def
 -- >                      , (LineCapSquare, "LineCapSquare")
 -- >                      ]
 -- >  where
--- >    showStyle c s = centerXY (trailLike corner # lc white # lw 0.2
+-- >    showStyle c s = centerXY (trailLike corner # lc white # lw veryThick
 -- >                               <> stroke (expandTrail'
 -- >                                              (def & expandJoin .~ LineJoinRound
 -- >                                                   & expandCap .~ c
 -- >                                                   ) 2 corner)
--- >                                      # lw 0 # fc green)
+-- >                                      # lw none # fc green)
 -- >               === (strutY 3 <> text s # font "Helvetica" # bold)
 -- >
 -- > expandLoopExample :: Diagram SVG R2
--- > expandLoopExample = pad 1.1 . centerXY $ ((strokeLocT t # lw 0.2 # lc white)
--- >                                        <> (stroke t' # lw 0 # fc green))
+-- > expandLoopExample = pad 1.1 . centerXY $ ((strokeLocT t # lw veryThick # lc white)
+-- >                                        <> (stroke t' # lw none # fc green))
 -- >   where
 -- >     t  = mapLoc glueTrail $ fromVertices (map p2 [(0, 0), (5, 0), (10, 5), (10, 10), (0, 0)])
 -- >     t' = expandTrail' (def & expandJoin .~ LineJoinRound) 1 t

@@ -111,7 +111,7 @@ arc start sweep = trailLike $ arcT start sweep `at` (rotate (start ^. _theta) $ 
 --
 --   <<diagrams/src_Diagrams_TwoD_Arc_arc'Ex.svg#diagram=arc'Ex&width=300>>
 --
---   > arc'Ex = mconcat [ arc' r 0 (1/4 \@\@ turn) | r <- [0.5,-1,1.5] ]
+--   > arc'Ex = mconcat [ arc' r (0 @@ turn) (1/4 @@ turn) | r <- [0.5,-1,1.5] ]
 --   >        # centerXY # pad 1.1
 arc' :: (TrailLike p, V p ~ R2) => Double -> Direction R2 -> Angle -> p
 arc' r start sweep = trailLike $ scale (abs r) ts `at` (rotate (start ^. _theta) $ p2 (abs r,0))
@@ -124,8 +124,8 @@ arc' r start sweep = trailLike $ scale (abs r) ts `at` (rotate (start ^. _theta)
 --
 --   > wedgeEx = hcat' (with & sep .~ 0.5)
 --   >   [ wedge 1 xDir (1/4 \@\@ turn)
---   >   , wedge 1 (rotate (7/30 \@\@ turn) xDir) (11/30 \@\@ turn)
---   >   , wedge 1 (rotate (1/8 \@\@ turn) xDir) (7/8 \@\@ turn)
+--   >   , wedge 1 (rotate (7/30 \@\@ turn) xDir) (4/30 \@\@ turn)
+--   >   , wedge 1 (rotate (1/8 \@\@ turn) xDir) (3/4 \@\@ turn)
 --   >   ]
 --   >   # fc blue
 --   >   # centerXY # pad 1.1
@@ -174,9 +174,9 @@ arcBetween p q ht = trailLike (a # rotate (v^._theta) # moveTo p)
 --   <<diagrams/src_Diagrams_TwoD_Arc_annularWedgeEx.svg#diagram=annularWedgeEx&width=400>>
 --
 --   > annularWedgeEx = hcat' (with & sep .~ 0.50)
---   >   [ annularWedge 1 0.5 xDir (1/4 \@\@ turn)
---   >   , annularWedge 1 0.3 (rotate (7/30 \@\@ turn) xDir)n (11/30 \@\@ turn)
---   >   , annularWedge 1 0.7 (rotate (1/8 \@\@ turn) xDir) (7/8 \@\@ turn)
+--   >   [ annularWedge 1 0.5 xDir (1/4 @@ turn)
+--   >   , annularWedge 1 0.3 (rotate (7/30 @@ turn) xDir)n (4/30 @@ turn)
+--   >   , annularWedge 1 0.7 (rotate (1/8 @@ turn) xDir) (3/4 @@ turn)
 --   >   ]
 --   >   # fc blue
 --   >   # centerXY # pad 1.1
