@@ -412,10 +412,10 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
 
         -- The head size, tail size, head gap, and tail gap are obtained
         -- from the style and converted to output units.
-        hSize = fromMeasure gToO nToO (opts ^. headLength)
-        tSize = fromMeasure gToO nToO (opts ^. tailLength)
-        hGap = fromMeasure gToO nToO (opts ^. headGap)
-        tGap = fromMeasure gToO nToO (opts ^. tailGap)
+        hSize = fromMeasure gToO nToO . transform tr $ opts ^. headLength
+        tSize = fromMeasure gToO nToO . transform tr $ opts ^. tailLength
+        hGap = fromMeasure gToO nToO . transform tr $ opts ^. headGap
+        tGap = fromMeasure gToO nToO . transform tr $ opts ^. tailGap
 
         -- Make the head and tail and save their widths.
         (h, hWidth') = mkHead hSize opts' gToO nToO
