@@ -395,7 +395,7 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
     -- Build an arrow and set its endpoints to the image under tr of origin and (len,0).
     dArrow sty tr ln gToO nToO = (h' <> t' <> shaft)
                # moveOriginBy (tWidth *^ (unit_X # rotate tAngle))
-               # rotate ((q .-. p)^._theta) ^-^ (dir^._theta)
+               # rotate (((q .-. p)^._theta) ^-^ (dir^._theta))
                # moveTo p
       where
 

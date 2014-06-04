@@ -20,7 +20,7 @@ module Diagrams.TwoD.Transform.ScaleInv
     , scaleInv, scaleInvPrim )
     where
 
-import           Control.Lens            (makeLenses, view)
+import           Control.Lens            (makeLenses, view,(^.))
 import           Data.AffineSpace        ((.-.))
 import           Data.Semigroup
 import           Data.Typeable
@@ -84,7 +84,7 @@ instance (V t ~ R2, HasOrigin t) => HasOrigin (ScaleInv t) where
 instance (V t ~ R2, Transformable t) => Transformable (ScaleInv t) where
   transform tr (ScaleInv t v l) = ScaleInv (trans . rot $ t) (rot v) l'
     where
-      angle = (transform tr v ^. _theta) (v^._theta)
+      angle = (transform tr v ^. _theta)
       rot :: (Transformable t, V t ~ R2) => t -> t
       rot = rotateAbout l angle
       l'  = transform tr l

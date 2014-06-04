@@ -64,7 +64,6 @@ import           Diagrams.Angle
 import           Diagrams.Core
 
 import           Diagrams.Coordinates    ((^&))
-import           Diagrams.Direction
 import           Diagrams.Path
 import           Diagrams.Segment
 import           Diagrams.Trail
