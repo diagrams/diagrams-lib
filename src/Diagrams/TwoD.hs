@@ -201,8 +201,8 @@ module Diagrams.TwoD
          -- * Combinators
          -- ** Combining multiple diagrams
        , (===), (|||), atAngle
-       , hcat, hcat'
-       , vcat, vcat'
+       , hcat, hcat', hsep
+       , vcat, vcat', vsep
 
          -- ** Spacing and envelopes
        , strutX, strutY
