@@ -33,7 +33,7 @@ module Diagrams.TwoD.Combinators
 
     , view
 
-    , boundingRect, bg
+    , boundingRect, bg, bg'
 
     ) where
 
@@ -264,3 +264,9 @@ boundingRect = (`boxFit` rect 1 1) . boundingBox
 --   diagram atop a bounding rectangle of the given color.
 bg :: (Renderable (Path R2) b) => Colour Double -> Diagram b R2 -> Diagram b R2
 bg c d = d <> boundingRect d # lineWidth (Output 0) # fc c
+
+-- Similar to 'bg' but make the colored background rectangle larger than
+-- the diagram.
+bg' :: (Renderable (Path R2) b, Backend b R2) 
+    => Colour Double -> Double -> Diagram b R2 -> Diagram b R2
+bg' c f d = d <> boundingRect (frame f d) # lineWidth (Output 0) # fc c

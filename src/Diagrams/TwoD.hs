@@ -214,7 +214,7 @@ module Diagrams.TwoD
 
          -- ** Background
 
-       , boundingRect, bg
+       , boundingRect, bg, bg'
 
          -- * Alignment
        , alignL, alignR, alignT, alignB, alignTL, alignTR, alignBL, alignBR
