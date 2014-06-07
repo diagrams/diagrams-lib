@@ -266,7 +266,7 @@ bg :: (Renderable (Path R2) b) => Colour Double -> Diagram b R2 -> Diagram b R2
 bg c d = d <> boundingRect d # lineWidth (Output 0) # fc c
 
 -- | Similar to 'bg' but makes the colored background rectangle larger than
---   the diagram. The first parameter is used to set how how far the background
+--   the diagram. The first parameter is used to set how far the background
 --   extends beyond the diagram.
 bg' :: (Renderable (Path R2) b, Backend b R2) 
     => Double -> Colour Double -> Diagram b R2 -> Diagram b R2
