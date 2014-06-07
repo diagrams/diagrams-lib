@@ -265,7 +265,7 @@ boundingRect = (`boxFit` rect 1 1) . boundingBox
 bg :: (Renderable (Path R2) b) => Colour Double -> Diagram b R2 -> Diagram b R2
 bg c d = d <> boundingRect d # lineWidth (Output 0) # fc c
 
--- | Similar to 'bgFrame but makes the colored background rectangle larger than
+-- | Similar to 'bg' but makes the colored background rectangle larger than
 --   the diagram. The first parameter is used to set how far the background
 --   extends beyond the diagram.
 bgFrame :: (Renderable (Path R2) b, Backend b R2) 
