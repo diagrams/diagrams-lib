@@ -268,5 +268,5 @@ bg c d = d <> boundingRect d # lineWidth (Output 0) # fc c
 -- Similar to 'bg' but make the colored background rectangle larger than
 -- the diagram.
 bg' :: (Renderable (Path R2) b, Backend b R2) 
-    => Colour Double -> Double -> Diagram b R2 -> Diagram b R2
-bg' c f d = d <> boundingRect (frame f d) # lineWidth (Output 0) # fc c
+    => Double -> Colour Double -> Diagram b R2 -> Diagram b R2
+bg' f c d = d <> boundingRect (frame f d) # lineWidth (Output 0) # fc c
