@@ -86,21 +86,18 @@ instance Transformable (Camera l) where
              (transform t u)
              l
 
-instance Renderable (Camera l) NullBackend where
-    render _ _ = mempty
-
 -- | A camera at the origin facing along the negative Z axis, with its
 -- up-axis coincident with the positive Y axis.  The field of view is
 -- chosen to match a 50mm camera on 35mm film. Note that Cameras take
 -- up no space in the Diagram.
-mm50Camera :: (Backend b R3, Renderable (Camera PerspectiveLens) b) => Diagram b R3
+mm50Camera :: Diagram R3
 mm50Camera = facing_ZCamera mm50
 
 -- | 'facing_ZCamera l' is a camera at the origin facing along the
 -- negative Z axis, with its up-axis coincident with the positive Y
 -- axis, with the projection defined by l.
-facing_ZCamera :: (CameraLens l, Backend b R3, Renderable (Camera l) b) =>
-                  l -> Diagram b R3
+facing_ZCamera :: (CameraLens l) =>
+                  l -> Diagram R3
 facing_ZCamera l = mkQD (Prim $ Camera origin unit_Z unitY l)
         mempty mempty mempty (Query . const . Any $ False)
 

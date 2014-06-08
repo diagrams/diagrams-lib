@@ -510,5 +510,5 @@ instance Typeable v => SplitAttribute (FillTextureLoops v) where
 --   applied to lines/non-closed paths as well as loops/closed paths,
 --   whereas in the semantics of diagrams, fill attributes only apply
 --   to loops.
-splitTextureFills :: forall b v a. Typeable v => RTree b v a -> RTree b v a
+splitTextureFills :: forall v a. Typeable v => RTree v a -> RTree v a
 splitTextureFills = splitAttr (FillTextureLoops :: FillTextureLoops v)

@@ -81,18 +81,18 @@ import           Diagrams.Util
 --   > c = circle 0.8
 --   > withEnvelopeEx = sqNewEnv # centerXY # pad 1.5
 withEnvelope :: (HasLinearMap (V a), Enveloped a, Monoid' m)
-           => a -> QDiagram b (V a) m -> QDiagram b (V a) m
+           => a -> QDiagram (V a) m -> QDiagram (V a) m
 withEnvelope = setEnvelope . getEnvelope
 
 -- | Use the trace from some object as the trace for a diagram, in
 --   place of the diagram's default trace.
 withTrace :: (HasLinearMap (V a), Traced a, OrderedField (Scalar (V a)), InnerSpace (V a), Monoid' m)
-          => a -> QDiagram b (V a) m -> QDiagram b (V a) m
+          => a -> QDiagram (V a) m -> QDiagram (V a) m
 withTrace = setTrace . getTrace
 
 -- | @phantom x@ produces a \"phantom\" diagram, which has the same
 --   envelope and trace as @x@ but produces no output.
-phantom :: (Backend b (V a), Typeable (V a), Enveloped a, Traced a, Monoid' m) => a -> QDiagram b (V a) m
+phantom :: (Typeable (V a), Enveloped a, Traced a, Monoid' m) => a -> QDiagram (V a) m
 phantom a = QD $ D.leafU ((inj . toDeletable . getEnvelope $ a) <> (inj . toDeletable . getTrace $ a))
 
 -- | @pad s@ \"pads\" a diagram, expanding its envelope by a factor of
@@ -101,18 +101,17 @@ phantom a = QD $ D.leafU ((inj . toDeletable . getEnvelope $ a) <> (inj . toDele
 --   origin, so if the origin is not centered the padding may appear
 --   \"uneven\".  If this is not desired, the origin can be centered
 --   (using, e.g., 'centerXY' for 2D diagrams) before applying @pad@.
-pad :: ( Backend b v
-       , InnerSpace v, OrderedField (Scalar v)
+pad :: ( HasLinearMap v, InnerSpace v, OrderedField (Scalar v)
        , Monoid' m )
-    => Scalar v -> QDiagram b v m -> QDiagram b v m
+    => Scalar v -> QDiagram v m -> QDiagram v m
 pad s d = withEnvelope (d # scale s) d
 
 -- | @frame s@ increases the envelope of a diagram by and absolute amount @s@,
 --   s is in the local units of the diagram. This function is similar to @pad@,
 --   only it takes an absolute quantity and pre-centering should not be
 --   necessary.
-frame :: ( Backend b v, InnerSpace v, OrderedField (Scalar v), Monoid' m)
-        => Scalar v -> QDiagram b v m -> QDiagram b v m
+frame :: (HasLinearMap v, InnerSpace v, OrderedField (Scalar v), Monoid' m)
+        => Scalar v -> QDiagram v m -> QDiagram v m
 frame s d = setEnvelope (onEnvelope t (d^.envelope)) d
   where
     t f = \x -> f x + s
@@ -128,12 +127,12 @@ frame s d = setEnvelope (onEnvelope t (d^.envelope)) d
 --   <<diagrams/src_Diagrams_Combinators_strutEx.svg#diagram=strutEx&width=300>>
 --
 --   > strutEx = (circle 1 ||| strut unitX ||| circle 1) # centerXY # pad 1.1
-strut :: ( Backend b v, Typeable v
+strut :: ( HasLinearMap v, Typeable v
          , InnerSpace v
          , OrderedField (Scalar v)
          , Monoid' m
          )
-      => v -> QDiagram b v m
+      => v -> QDiagram v m
 strut v = QD $ D.leafU (inj . toDeletable $ env)
   where env = translate ((-0.5) *^ v) . getEnvelope $ straight v
   -- note we can't use 'phantom' here because it tries to construct a
@@ -156,7 +155,7 @@ strut v = QD $ D.leafU (inj . toDeletable $ env)
 extrudeEnvelope
   :: ( Ord (Scalar v), Num (Scalar v), AdditiveGroup (Scalar v)
      , Floating (Scalar v), HasLinearMap v, InnerSpace v, Monoid' m )
-  => v -> QDiagram b v m -> QDiagram b v m
+  => v -> QDiagram v m -> QDiagram v m
 extrudeEnvelope = deformEnvelope 0.5
 
 -- | @intrudeEnvelope v d@ asymmetrically \"intrudes\" the envelope of
@@ -169,14 +168,14 @@ extrudeEnvelope = deformEnvelope 0.5
 intrudeEnvelope
   :: ( Ord (Scalar v), Num (Scalar v), AdditiveGroup (Scalar v)
      , Floating (Scalar v), HasLinearMap v, InnerSpace v, Monoid' m )
-  => v -> QDiagram b v m -> QDiagram b v m
+  => v -> QDiagram v m -> QDiagram v m
 intrudeEnvelope = deformEnvelope (-0.5)
 
 -- Utility for extrudeEnvelope / intrudeEnvelope
 deformEnvelope
   :: ( Ord (Scalar v), Num (Scalar v), AdditiveGroup (Scalar v)
      , Floating (Scalar v), HasLinearMap v, InnerSpace v, Monoid' m )
-  => (Scalar v) -> v -> QDiagram b v m -> QDiagram b v m
+  => (Scalar v) -> v -> QDiagram v m -> QDiagram v m
 deformEnvelope s v d = setEnvelope (getEnvelope d & _Wrapping Envelope %~ deformE) d
   where
     deformE = Option . fmap deformE' . getOption
@@ -194,7 +193,7 @@ deformEnvelope s v d = setEnvelope (getEnvelope d & _Wrapping Envelope %~ deform
 --   @d1 \`beneath\` d2@ is the diagram with @d2@ superimposed on top of
 --   @d1@.
 beneath :: (HasLinearMap v, OrderedField (Scalar v), InnerSpace v, Monoid' m)
-     => QDiagram b v m -> QDiagram b v m -> QDiagram b v m
+     => QDiagram v m -> QDiagram v m -> QDiagram v m
 beneath = flip atop
 
 infixl 6 `beneath`

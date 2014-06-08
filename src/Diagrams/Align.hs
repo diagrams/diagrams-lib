@@ -110,7 +110,7 @@ instance (InnerSpace (V b), Ord (Scalar (V b)), Alignable b)
 
 instance ( HasLinearMap v, InnerSpace v, OrderedField (Scalar v)
          , Monoid' m
-         ) => Alignable (QDiagram b v m) where
+         ) => Alignable (QDiagram v m) where
   defaultBoundary = envelopeBoundary
 
 -- | Although the 'alignBy' method for the @(b -> a)@ instance is

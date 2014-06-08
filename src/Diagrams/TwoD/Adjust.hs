@@ -48,7 +48,7 @@ import           Data.Semigroup
 --       * line join miter
 --
 --       * Miter limit 10
-setDefault2DAttributes :: Semigroup m => QDiagram b R2 m -> QDiagram b R2 m
+setDefault2DAttributes :: Semigroup m => QDiagram R2 m -> QDiagram R2 m
 setDefault2DAttributes d = d # lineWidthA def # lineTextureA def # fontSizeA def
                              # lineCap def # lineJoin def # lineMiterLimitA def
 
@@ -62,8 +62,8 @@ setDefault2DAttributes d = d # lineWidthA def # lineTextureA def # fontSizeA def
 --   modified diagram itself.
 adjustDiaSize2D :: Monoid' m
                 => Lens' (Options b R2) SizeSpec2D
-                -> b -> Options b R2 -> QDiagram b R2 m
-                -> (Options b R2, T2, QDiagram b R2 m)
+                -> b -> Options b R2 -> QDiagram R2 m
+                -> (Options b R2, T2, QDiagram R2 m)
 adjustDiaSize2D szL _ opts d =
   ( case spec of
      Dims _ _ -> opts
@@ -99,8 +99,8 @@ adjustDiaSize2D szL _ opts d =
 --   coordinates), and the modified diagram itself.
 adjustDia2D :: Monoid' m
             => Lens' (Options b R2) SizeSpec2D
-            -> b -> Options b R2 -> QDiagram b R2 m
-            -> (Options b R2, T2, QDiagram b R2 m)
+            -> b -> Options b R2 -> QDiagram R2 m
+            -> (Options b R2, T2, QDiagram R2 m)
 adjustDia2D szL b opts d
   = adjustDiaSize2D szL b opts (d # setDefault2DAttributes)
 

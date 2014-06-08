@@ -152,9 +152,6 @@ type instance V (Segment c v) = v
 instance HasLinearMap v => Transformable (Segment c v) where
   transform = fmap . apply
 
-instance HasLinearMap v => Renderable (Segment c v) NullBackend where
-  render _ _ = mempty
-
 -- | @'straight' v@ constructs a translationally invariant linear
 --   segment with direction and length given by the vector @v@.
 straight :: v -> Segment Closed v

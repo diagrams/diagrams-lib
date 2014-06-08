@@ -74,7 +74,7 @@ instance HasOrigin (DImage a) where
   moveOriginTo p = translate (origin .-. p)
 
 -- | Make a 'DImage' into a 'Diagram'.
-image :: (Typeable a, Renderable (DImage a) b) => DImage a -> Diagram b R2
+image :: Typeable a => DImage a -> Diagram R2
 image img = mkQD (Prim (img)) (getEnvelope r) (getTrace r) mempty
                   (Query $ \p -> Any (isInsideEvenOdd p r))
   where
@@ -114,8 +114,7 @@ uncheckedImageRef :: FilePath -> Int -> Int -> DImage External
 uncheckedImageRef path w h = DImage (ImageRef path) w h mempty
 
 -- | Crate a diagram from raw raster data.
-rasterDia :: Renderable (DImage Embedded) b
-          => (Int -> Int -> AlphaColour Double) -> Int -> Int -> Diagram b R2
+rasterDia :: (Int -> Int -> AlphaColour Double) -> Int -> Int -> Diagram R2
 rasterDia f w h = image $ raster f w h
 
 -- | Create an image "from scratch" by specifying the pixel data
@@ -131,6 +130,3 @@ fromAlphaColour c = PixelRGBA8 r g b a
     (r, g, b, a) = (int r', int g', int b', int a')
     (r', g', b', a') = colorToSRGBA c
     int x = round (255 * x)
-
-instance Renderable (DImage a) NullBackend where
-  render _ _ = mempty

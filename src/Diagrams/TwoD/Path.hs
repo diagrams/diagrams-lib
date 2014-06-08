@@ -157,11 +157,10 @@ instance Default (StrokeOpts a) where
 --   inferring the type of @stroke@.  The solution is to give a type
 --   signature to expressions involving @stroke@, or (recommended)
 --   upgrade GHC (the bug is fixed in 7.0.2 onwards).
-stroke :: Renderable (Path R2) b
-       => Path R2 -> Diagram b R2
+stroke :: Path R2 -> Diagram R2
 stroke = stroke' (def :: StrokeOpts ())
 
-instance Renderable (Path R2) b => TrailLike (QDiagram b R2 Any) where
+instance TrailLike (QDiagram R2 Any) where
   trailLike = stroke . trailLike
 
 -- | A variant of 'stroke' that takes an extra record of options to
@@ -171,7 +170,7 @@ instance Renderable (Path R2) b => TrailLike (QDiagram b R2 Any) where
 --
 --   'StrokeOpts' is an instance of 'Default', so @stroke' ('with' &
 --   ... )@ syntax may be used.
-stroke' :: (Renderable (Path R2) b, IsName a) => StrokeOpts a -> Path R2 -> Diagram b R2
+stroke' :: (IsName a) => StrokeOpts a -> Path R2 -> Diagram R2
 stroke' opts path
   | null (pLines ^. _Wrapped') =           mkP pLoops
   | null (pLoops ^. _Wrapped') = mkP pLines
@@ -196,51 +195,51 @@ stroke' opts path
 --   The solution is to give a type signature to expressions involving
 --   @strokeTrail@, or (recommended) upgrade GHC (the bug is fixed in 7.0.2
 --   onwards).
-strokeTrail :: (Renderable (Path R2) b) => Trail R2 -> Diagram b R2
+strokeTrail :: Trail R2 -> Diagram R2
 strokeTrail = stroke . pathFromTrail
 
 -- | Deprecated synonym for 'strokeTrail'.
-strokeT :: (Renderable (Path R2) b) => Trail R2 -> Diagram b R2
+strokeT :: Trail R2 -> Diagram R2
 strokeT = strokeTrail
 
 -- | A composition of 'stroke'' and 'pathFromTrail' for conveniently
 --   converting a trail directly into a diagram.
-strokeTrail' :: (Renderable (Path R2) b, IsName a)
-             => StrokeOpts a -> Trail R2 -> Diagram b R2
+strokeTrail' :: IsName a
+             => StrokeOpts a -> Trail R2 -> Diagram R2
 strokeTrail' opts = stroke' opts . pathFromTrail
 
 -- | Deprecated synonym for 'strokeTrail''.
-strokeT' :: (Renderable (Path R2) b, IsName a)
-         => StrokeOpts a -> Trail R2 -> Diagram b R2
+strokeT' :: IsName a
+         => StrokeOpts a -> Trail R2 -> Diagram R2
 strokeT' = strokeTrail'
 
 -- | A composition of 'strokeT' and 'wrapLine' for conveniently
 --   converting a line directly into a diagram.
-strokeLine :: (Renderable (Path R2) b) => Trail' Line R2 -> Diagram b R2
+strokeLine :: Trail' Line R2 -> Diagram  R2
 strokeLine = strokeT . wrapLine
 
 -- | A composition of 'strokeT' and 'wrapLoop' for conveniently
 --   converting a loop directly into a diagram.
-strokeLoop :: (Renderable (Path R2) b) => Trail' Loop R2 -> Diagram b R2
+strokeLoop :: Trail' Loop R2 -> Diagram R2
 strokeLoop = strokeT . wrapLoop
 
 -- | A convenience function for converting a @Located Trail@ directly
 --   into a diagram; @strokeLocTrail = stroke . trailLike@.
-strokeLocTrail :: (Renderable (Path R2) b) => Located (Trail R2) -> Diagram b R2
+strokeLocTrail :: Located (Trail R2) -> Diagram R2
 strokeLocTrail = stroke . trailLike
 
 -- | Deprecated synonym for 'strokeLocTrail'.
-strokeLocT :: (Renderable (Path R2) b) => Located (Trail R2) -> Diagram b R2
+strokeLocT :: Located (Trail R2) -> Diagram R2
 strokeLocT = strokeLocTrail
 
 -- | A convenience function for converting a @Located@ line directly
 --   into a diagram; @strokeLocLine = stroke . trailLike . mapLoc wrapLine@.
-strokeLocLine :: (Renderable (Path R2) b) => Located (Trail' Line R2) -> Diagram b R2
+strokeLocLine :: Located (Trail' Line R2) -> Diagram R2
 strokeLocLine = stroke . trailLike . mapLoc wrapLine
 
 -- | A convenience function for converting a @Located@ loop directly
 --   into a diagram; @strokeLocLoop = stroke . trailLike . mapLoc wrapLoop@.
-strokeLocLoop :: (Renderable (Path R2) b) => Located (Trail' Loop R2) -> Diagram b R2
+strokeLocLoop :: Located (Trail' Loop R2) -> Diagram R2
 strokeLocLoop = stroke . trailLike . mapLoc wrapLoop
 
 ------------------------------------------------------------
@@ -368,7 +367,7 @@ clipBy = applyTAttr . Clip . (:[])
 --   trace consists of those parts of the original diagram's trace
 --   which fall within the clipping path, or parts of the path's trace
 --   within the original diagram.
-clipTo :: (Renderable (Path R2) b) => Path R2 ->  Diagram b R2 ->  Diagram b R2
+clipTo :: Path R2 ->  Diagram R2 ->  Diagram R2
 clipTo p d = setTrace intersectionTrace . toEnvelope $ clipBy p d
   where
     envP = appEnvelope . getEnvelope $ p
@@ -388,5 +387,5 @@ clipTo p d = setTrace intersectionTrace . toEnvelope $ clipBy p d
 
 -- | Clip a diagram to the clip path taking the envelope and trace of the clip
 --   path.
-clipped :: (Renderable (Path R2) b) => Path R2 ->  Diagram b R2 ->  Diagram b R2
+clipped :: Path R2 ->  Diagram R2 ->  Diagram R2
 clipped p = (withTrace p) . (withEnvelope p) . (clipBy p)
