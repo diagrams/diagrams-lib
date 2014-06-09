@@ -57,10 +57,7 @@ import           Data.VectorSpace
 
 import           Diagrams.Core
 import           Diagrams.Core.Types   (QDiagram (QD))
-import           Diagrams.Located
-import           Diagrams.Path
 import           Diagrams.Segment      (straight)
-import           Diagrams.Trail        (Trail, trailVertices)
 import           Diagrams.Util
 
 ------------------------------------------------------------
@@ -266,12 +263,10 @@ appends d1 apps = d1 <> mconcat (map (\(v,d) -> juxtapose v d1 d) apps)
 position :: (HasOrigin a, Monoid' a) => [(Point (V a), a)] -> a
 position = mconcat . map (uncurry moveTo)
 
-infix 5 `atPoints`
-
--- | Similar to @position@ but takes a list of objects and a list of
---   points. Designed to be used infix e.g. @dias `atPoints` ps@
-atPoints :: (HasOrigin a, Monoid' a) => [a] -> [Point (V a)] -> a
-atPoints as ps = position $ zip ps as
+-- | Curried version of @position@, takes a list of points and a list of
+--   objects.
+atPoints :: (HasOrigin a, Monoid' a) => [Point (V a)] -> [a] -> a
+atPoints ps as = position $ zip ps as
 
 -- | Methods for concatenating diagrams.
 data CatMethod = Cat     -- ^ Normal catenation: simply put diagrams
