@@ -31,7 +31,7 @@ module Diagrams.Combinators
 
          -- * n-ary operations
        , appends
-       , position, decorateTrail, decorateLocatedTrail, decoratePath
+       , position, atPoints 
        , cat, cat'
        , CatOpts(_catMethod, _sep), catMethod, sep
        , CatMethod(..)
@@ -266,33 +266,12 @@ appends d1 apps = d1 <> mconcat (map (\(v,d) -> juxtapose v d1 d) apps)
 position :: (HasOrigin a, Monoid' a) => [(Point (V a), a)] -> a
 position = mconcat . map (uncurry moveTo)
 
--- | Combine a list of diagrams (or paths) by using them to
---   \"decorate\" a trail, placing the local origin of one object at
---   each successive vertex of the trail.  The first vertex of the
---   trail is placed at the origin.  If the trail and list of objects
---   have different lengths, the extra tail of the longer one is
---   ignored.
-decorateTrail :: (InnerSpace (V a), OrderedField (Scalar (V a)), HasOrigin a, Monoid' a)
-              => Trail (V a) -> [a] -> a
-decorateTrail = decorateLocatedTrail . (`at` origin)
+infix 5 `atPoints`
 
--- | Combine a list of diagrams (or paths) by using them to
---   \"decorate\" a concretely located trail, placing the local origin
---   of one object at each successive vertex of the trail. If the
---   trail and list of objects have different lengths, the extra tail
---   of the longer one is ignored.
-decorateLocatedTrail :: (InnerSpace (V a), OrderedField (Scalar (V a)), HasOrigin a, Monoid' a)
-              => Located (Trail (V a)) -> [a] -> a
-decorateLocatedTrail t = position . zip (trailVertices t)
-
--- | Combine a list of diagrams (or paths) by using them to
---   \"decorate\" a path, placing the local origin of one object at
---   each successive vertex of the path.  If the path and list of objects
---   have different lengths, the extra tail of the longer one is
---   ignored.
-decoratePath :: (InnerSpace (V a), OrderedField (Scalar (V a)), HasOrigin a, Monoid' a)
-             => Path (V a) -> [a] -> a
-decoratePath p = position . zip (concat $ pathVertices p)
+-- | Similar to @position@ but takes a list of objects and a list of
+--   points. Designed to be used infix e.g. @dias `atPoints` ps@
+atPoints :: (HasOrigin a, Monoid' a) => [a] -> [Point (V a)] -> a
+atPoints as ps = position $ zip ps as
 
 -- | Methods for concatenating diagrams.
 data CatMethod = Cat     -- ^ Normal catenation: simply put diagrams
