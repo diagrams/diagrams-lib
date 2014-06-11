@@ -25,14 +25,11 @@ module Diagrams.Tangent
     )
     where
 
-import           Control.Lens         (cloneIso, (^.))
-
 import           Data.VectorSpace
 import           Diagrams.Core
 import           Diagrams.Located
 import           Diagrams.Parametric
 import           Diagrams.Segment
-import           Diagrams.Trail
 import           Diagrams.TwoD.Types  (R2)
 import           Diagrams.TwoD.Vector (perp)
 
@@ -100,57 +97,6 @@ instance (VectorSpace v, Num (Scalar v))
   atStart (Tangent (Cubic c1 _ _))                 = c1
   atEnd   (Tangent (Linear (OffsetClosed v)))      = v
   atEnd   (Tangent (Cubic _ c2 (OffsetClosed x2))) = x2 ^-^ c2
-
---------------------------------------------------
--- Trail' and Trail
-
-type instance Codomain (Tangent (Trail' c v)) = Codomain (Trail' c v)
-
-instance ( Parametric (GetSegment (Trail' c v))
-         , VectorSpace v
-         , Num (Scalar v)
-         )
-    => Parametric (Tangent (Trail' c v)) where
-  Tangent tr `atParam` p =
-    case GetSegment tr `atParam` p of
-      Nothing                -> zeroV
-      Just (_, seg, reparam) -> Tangent seg `atParam` (p ^. cloneIso reparam)
-
-instance ( Parametric (GetSegment (Trail' c v))
-         , EndValues (GetSegment (Trail' c v))
-         , VectorSpace v
-         , Num (Scalar v)
-         )
-    => EndValues (Tangent (Trail' c v)) where
-  atStart (Tangent tr) =
-    case atStart (GetSegment tr) of
-      Nothing          -> zeroV
-      Just (_, seg, _) -> atStart (Tangent seg)
-  atEnd (Tangent tr) =
-    case atEnd (GetSegment tr) of
-      Nothing          -> zeroV
-      Just (_, seg, _) -> atEnd (Tangent seg)
-
-type instance Codomain (Tangent (Trail v)) = Codomain (Trail v)
-
-instance ( InnerSpace v
-         , OrderedField (Scalar v)
-         , RealFrac (Scalar v)
-         )
-    => Parametric (Tangent (Trail v)) where
-  Tangent tr `atParam` p
-    = withTrail
-        ((`atParam` p) . Tangent)
-        ((`atParam` p) . Tangent)
-        tr
-
-instance ( InnerSpace v
-         , OrderedField (Scalar v)
-         , RealFrac (Scalar v)
-         )
-    => EndValues (Tangent (Trail v)) where
-  atStart (Tangent tr) = withTrail (atStart . Tangent) (atStart . Tangent) tr
-  atEnd   (Tangent tr) = withTrail (atEnd   . Tangent) (atEnd   . Tangent) tr
 
 ------------------------------------------------------------
 -- Normal

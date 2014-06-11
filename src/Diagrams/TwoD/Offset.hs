@@ -240,7 +240,7 @@ bindLoc f = join' . mapLoc f
 -- and [Located (Trail R2)] intermediate representations.
 locatedTrailSegments :: (InnerSpace v, OrderedField (Scalar v))
                      => Located (Trail v) -> [Located (Segment Closed v)]
-locatedTrailSegments t = zipWith at (trailSegments (unLoc t)) (trailVertices t)
+locatedTrailSegments t = zipWith at (trailSegments (unLoc t)) (trailPoints t)
 
 -- | Offset a 'Trail' with options and by a given radius.  This generates a new
 --   trail that is always radius 'r' away from the given 'Trail' (depending on

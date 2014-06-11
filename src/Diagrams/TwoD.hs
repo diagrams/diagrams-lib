@@ -199,9 +199,10 @@ module Diagrams.TwoD
 
          -- * Combinators
          -- ** Combining multiple diagrams
+
        , (===), (|||)
-       , hcat, hcat'
-       , vcat, vcat'
+       , hcat, hcat', hsep
+       , vcat, vcat', vsep
 
          -- ** Spacing and envelopes
        , strutX, strutY
@@ -213,7 +214,7 @@ module Diagrams.TwoD
 
          -- ** Background
 
-       , boundingRect, bg
+       , boundingRect, bg, bgFrame
 
          -- * Alignment
        , alignL, alignR, alignT, alignB, alignTL, alignTR, alignBL, alignBR
