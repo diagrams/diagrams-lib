@@ -118,7 +118,7 @@ arc' r start sweep = trailLike $ scale (abs r) ts `at` (rotate (start ^. _theta)
   where ts = arcT start sweep
 
 -- | Create a circular wedge of the given radius, beginning at the
---   given directionand extending through the given angle.
+--   given direction and extending through the given angle.
 --
 --   <<diagrams/src_Diagrams_TwoD_Arc_wedgeEx.svg#diagram=wedgeEx&width=400>>
 --
