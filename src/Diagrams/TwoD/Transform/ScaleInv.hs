@@ -20,16 +20,15 @@ module Diagrams.TwoD.Transform.ScaleInv
     , scaleInv, scaleInvPrim )
     where
 
-import           Control.Lens            (makeLenses, view)
-import           Data.AdditiveGroup
+import           Control.Lens            (makeLenses, view,(^.))
 import           Data.AffineSpace        ((.-.))
 import           Data.Semigroup
 import           Data.Typeable
 
+import           Diagrams.Angle
 import           Diagrams.Core
 import           Diagrams.TwoD.Transform
 import           Diagrams.TwoD.Types
-import           Diagrams.TwoD.Vector
 
 -- | The @ScaleInv@ wrapper creates two-dimensional /scale-invariant/
 --   objects.  Intuitively, a scale-invariant object is affected by
@@ -85,7 +84,7 @@ instance (V t ~ R2, HasOrigin t) => HasOrigin (ScaleInv t) where
 instance (V t ~ R2, Transformable t) => Transformable (ScaleInv t) where
   transform tr (ScaleInv t v l) = ScaleInv (trans . rot $ t) (rot v) l'
     where
-      angle = direction (transform tr v) ^-^ direction v
+      angle = (transform tr v ^. _theta)
       rot :: (Transformable t, V t ~ R2) => t -> t
       rot = rotateAbout l angle
       l'  = transform tr l

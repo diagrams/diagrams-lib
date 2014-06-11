@@ -14,7 +14,6 @@
 module Diagrams.TwoD.Arc
     ( arc
     , arc'
-    , arcCW
     , arcT
     , bezierFromSweep
 
@@ -24,6 +23,7 @@ module Diagrams.TwoD.Arc
     ) where
 
 import           Diagrams.Angle
+import           Diagrams.Direction
 import           Diagrams.Core
 import           Diagrams.Located        (at)
 import           Diagrams.Segment
@@ -31,11 +31,11 @@ import           Diagrams.Trail
 import           Diagrams.TrailLike
 import           Diagrams.TwoD.Transform
 import           Diagrams.TwoD.Types
-import           Diagrams.TwoD.Vector    (direction, e, unitX)
+import           Diagrams.TwoD.Vector    (unitX, unitY, unit_Y)
 import           Diagrams.Util           (( # ))
 
-import           Control.Lens            ((^.))
-import           Data.AffineSpace        ((.-.))
+import           Control.Lens            ((^.), (&), (<>~))
+import           Data.AffineSpace
 import           Data.Semigroup          ((<>))
 import           Data.VectorSpace
 import           Diagrams.Coordinates
@@ -44,9 +44,9 @@ import           Diagrams.Coordinates
 --   http://www.tinaja.com/glib/bezcirc2.pdf
 
 -- | @bezierFromSweepQ1 s@ constructs a 'Cubic' segment that starts in
---   the positive y direction and sweeps counterclockwise through @s@
---   radians.  The approximation is only valid for angles in the first
---   quadrant.
+--  the positive y direction and sweeps counterclockwise through an
+--  angle @s@.  The approximation is only valid for angles in the
+--  first quadrant.
 bezierFromSweepQ1 :: Angle -> Segment Closed R2
 bezierFromSweepQ1 s = fmap (^-^ v) . rotate (s ^/ 2) $ bezier3 c2 c1 p0
   where p0@(coords -> x :& y) = rotate (s ^/ 2) v
@@ -58,11 +58,10 @@ bezierFromSweepQ1 s = fmap (^-^ v) . rotate (s ^/ 2) $ bezier3 c2 c1 p0
 --   start in the positive y direction and sweep counter clockwise
 --   through the angle @s@.  If @s@ is negative, it will start in the
 --   negative y direction and sweep clockwise.  When @s@ is less than
---   0.0001 the empty list results.  If the sweep is greater than tau
---   radians then it is truncated to one full revolution.
+--   0.0001 the empty list results.  If the sweep is greater than @fullTurn@
+--   later segments will overlap earlier segments.
 bezierFromSweep :: Angle -> [Segment Closed R2]
 bezierFromSweep s
-  | s > fullTurn = bezierFromSweep fullTurn
   | s < zeroV      = fmap reflectY . bezierFromSweep $ (negateV s)
   | s < 0.0001 @@ rad     = []
   | s < fullTurn^/4      = [bezierFromSweepQ1 s]
@@ -89,72 +88,52 @@ across a situation with large enough arcs that they can actually see
 the approximation error.
 -}
 
--- | Given a start angle @s@ and an end angle @e@, @'arcT' s e@ is the
---   'Trail' of a radius one arc counterclockwise between the two angles.
-arcT :: Angle -> Angle -> Trail R2
-arcT start end
-    | end' < start' = arcT start (end ^+^ (fromIntegral d @@ turn))
-    | otherwise     = (if sweep >= fullTurn then glueTrail else id)
-                    $ trailFromSegments bs
-  where sweep = end ^-^ start
-        bs    = map (rotate start) . bezierFromSweep $ sweep
+-- | Given a start direction @d@ and a sweep angle @s@, @'arcT' d s@
+--   is the 'Trail' of a radius one arc starting at @d@ and sweeping out
+--   the angle @s@ counterclockwise (for positive s).  The resulting
+--   @Trail@ is allowed to wrap around and overlap itself.
+arcT :: Direction R2 -> Angle -> Trail R2
+arcT start sweep = trailFromSegments bs
+  where
+        bs    = map (rotate $ start ^. _theta) . bezierFromSweep $ sweep
 
-        -- We want to compare the start and the end and in case
-        -- there isn't some law about 'Angle' ordering, we use a
-        -- known 'Angle' for that.
-        start' = start^.turn
-        end'   = end^.turn
-        d      = ceiling (start' - end') :: Integer
+-- | Given a start angle @d@ and a sweep angle @s@, @'arc' d s@ is the
+--   path of a radius one arc starting at @d@ and sweeping out the angle
+--   @s@ counterclockwise (for positive s).  The resulting
+--   @Trail@ is allowed to wrap around and overlap itself.
+arc :: (TrailLike t, V t ~ R2) => Direction R2 -> Angle -> t
+arc start sweep = trailLike $ arcT start sweep `at` (rotate (start ^. _theta) $ p2 (1,0))
 
--- | Given a start angle @s@ and an end angle @e@, @'arc' s e@ is the
---   path of a radius one arc counterclockwise between the two angles.
---   The origin of the arc is its center.
-arc :: (TrailLike t, V t ~ R2) => Angle -> Angle -> t
-arc start end = trailLike $ arcT start end `at` (rotate start $ p2 (1,0))
-
--- | Like 'arc' but clockwise.
-arcCW :: (TrailLike t, V t ~ R2) => Angle -> Angle -> t
-arcCW start end = trailLike $
-                            -- flipped arguments to get the path we want
-                            -- then reverse the trail to get the cw direction.
-                            (reverseTrail $ arcT end start)
-                            `at`
-                            (rotate start $ p2 (1,0))
-                   -- We could just have `arcCW = reversePath . flip arc`
-                   -- but that wouldn't be `TrailLike`.
-
--- | Given a radus @r@, a start angle @s@ and an end angle @e@,
---   @'arc'' r s e@ is the path of a radius @(abs r)@ arc between
---   the two angles.  If a negative radius is given, the arc will
---   be clockwise, otherwise it will be counterclockwise. The origin
---   of the arc is its center.
+-- | Given a radus @r@, a start direction @d@ and an angle @s@,
+--   @'arc'' r d s@ is the path of a radius @(abs r)@ arc starting at
+--   @d@ and sweeping out the angle @s@ counterclockwise (for positive
+--   s).  The origin of the arc is its center.
 --
 --   <<diagrams/src_Diagrams_TwoD_Arc_arc'Ex.svg#diagram=arc'Ex&width=300>>
 --
 --   > arc'Ex = mconcat [ arc' r (0 @@ turn) (1/4 @@ turn) | r <- [0.5,-1,1.5] ]
 --   >        # centerXY # pad 1.1
-arc' :: (TrailLike p, V p ~ R2) => Double -> Angle -> Angle -> p
-arc' r start end = trailLike $ scale (abs r) ts `at` (rotate start $ p2 (abs r,0))
-  where ts | r < 0     = reverseTrail $ arcT end start
-           | otherwise = arcT start end
+arc' :: (TrailLike p, V p ~ R2) => Double -> Direction R2 -> Angle -> p
+arc' r start sweep = trailLike $ scale (abs r) ts `at` (rotate (start ^. _theta) $ p2 (abs r,0))
+  where ts = arcT start sweep
 
 -- | Create a circular wedge of the given radius, beginning at the
---   first angle and extending counterclockwise to the second.
+--   given directionand extending through the given angle.
 --
 --   <<diagrams/src_Diagrams_TwoD_Arc_wedgeEx.svg#diagram=wedgeEx&width=400>>
 --
 --   > wedgeEx = hcat' (with & sep .~ 0.5)
---   >   [ wedge 1 (0 @@ turn) (1/4 @@ turn)
---   >   , wedge 1 (7/30 @@ turn) (11/30 @@ turn)
---   >   , wedge 1 (1/8 @@ turn) (7/8 @@ turn)
+--   >   [ wedge 1 xDir (1/4 \@\@ turn)
+--   >   , wedge 1 (rotate (7/30 \@\@ turn) xDir) (4/30 \@\@ turn)
+--   >   , wedge 1 (rotate (1/8 \@\@ turn) xDir) (3/4 \@\@ turn)
 --   >   ]
 --   >   # fc blue
 --   >   # centerXY # pad 1.1
-wedge :: (TrailLike p, V p ~ R2) => Double -> Angle -> Angle -> p
-wedge r a1 a2 = trailLike . (`at` origin) . glueTrail . wrapLine
-              $ fromOffsets [r *^ e a1]
-                <> arc a1 a2 # scale r
-                <> fromOffsets [r *^ negateV (e a2)]
+wedge :: (TrailLike p, V p ~ R2) => Double -> Direction R2 -> Angle -> p
+wedge r d s = trailLike . (`at` origin) . glueTrail . wrapLine
+              $ fromOffsets [r *^ fromDirection d]
+                <> arc d s # scale r
+                <> fromOffsets [r *^ negateV (rotate s $ fromDirection d)]
 
 -- | @arcBetween p q height@ creates an arc beginning at @p@ and
 --   ending at @q@, with its midpoint at a distance of @abs height@
@@ -168,44 +147,45 @@ wedge r a1 a2 = trailLike . (`at` origin) . glueTrail . wrapLine
 --   >   [ arcBetween origin (p2 (2,1)) ht | ht <- [-0.2, -0.1 .. 0.2] ]
 --   >   # centerXY # pad 1.1
 arcBetween :: (TrailLike t, V t ~ R2) => P2 -> P2 -> Double -> t
-arcBetween p q ht = trailLike (a # rotate (direction v) # moveTo p)
+arcBetween p q ht = trailLike (a # rotate (v^._theta) # moveTo p)
   where
     h = abs ht
     isStraight = h < 0.00001
     v = q .-. p
     d = magnitude (q .-. p)
-    th  = acos ((d*d - 4*h*h)/(d*d + 4*h*h))
-    r = d/(2*sin th)
-    mid | ht >= 0    = fullTurn ^/ 4
-        | otherwise = 3 *^ fullTurn ^/ 4
-    st  = mid ^-^ (th @@ rad)
-    end = mid ^+^ (th @@ rad)
+    th  = acosA ((d*d - 4*h*h)/(d*d + 4*h*h))
+    r = d/(2*sinA th)
+    mid | ht >= 0    = direction unitY
+        | otherwise  = direction unit_Y
+    st  = mid & _theta <>~ (negateV th)
     a | isStraight
       = fromOffsets [d *^ unitX]
       | otherwise
-      = arc st end
+      = arc st (2 *^ th)
         # scale r
         # translateY ((if ht > 0 then negate else id) (r-h))
         # translateX (d/2)
         # (if ht > 0 then reverseLocTrail else id)
 
 -- | Create an annular wedge of the given radii, beginning at the
---   first angle and extending counterclockwise to the second.
+--   first direction and extending through the given sweep angle.
 --   The radius of the outer circle is given first.
 --
 --   <<diagrams/src_Diagrams_TwoD_Arc_annularWedgeEx.svg#diagram=annularWedgeEx&width=400>>
 --
 --   > annularWedgeEx = hcat' (with & sep .~ 0.50)
---   >   [ annularWedge 1 0.5 (0 @@ turn) (1/4 @@ turn)
---   >   , annularWedge 1 0.3 (7/30 @@ turn) (11/30 @@ turn)
---   >   , annularWedge 1 0.7 (1/8 @@ turn) (7/8 @@ turn)
+--   >   [ annularWedge 1 0.5 xDir (1/4 @@ turn)
+--   >   , annularWedge 1 0.3 (rotate (7/30 @@ turn) xDir)n (4/30 @@ turn)
+--   >   , annularWedge 1 0.7 (rotate (1/8 @@ turn) xDir) (3/4 @@ turn)
 --   >   ]
 --   >   # fc blue
 --   >   # centerXY # pad 1.1
-annularWedge :: (TrailLike p, V p ~ R2) => Double -> Double -> Angle -> Angle -> p
-annularWedge r1' r2' a1 a2 = trailLike . (`at` o) . glueTrail . wrapLine
-              $ fromOffsets [(r1'-r2') *^ e a1]
-                <> arc a1 a2 # scale r1'
-                <> fromOffsets [(r1'-r2') *^ negateV (e a2)]
-                <> arcCW a2 a1 # scale r2'
-  where o = origin # translate (r2' *^ e a1)
+annularWedge :: (TrailLike p, V p ~ R2) =>
+                Double -> Double -> Direction R2 -> Angle -> p
+annularWedge r1' r2' d1 s = trailLike . (`at` o) . glueTrail . wrapLine
+              $ fromOffsets [(r1'-r2') *^ fromDirection d1]
+                <> arc d1 s # scale r1'
+                <> fromOffsets [(r1'-r2') *^ negateV (fromDirection d2)]
+                <> arc d2 (negateV s) # scale r2'
+  where o = origin # translate (r2' *^ fromDirection d1)
+        d2 = d1 & _theta <>~ s

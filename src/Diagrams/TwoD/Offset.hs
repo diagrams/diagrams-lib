@@ -50,7 +50,9 @@ import Data.Default.Class
 
 import Diagrams.Core
 
+import Diagrams.Angle
 import Diagrams.Attributes
+import Diagrams.Direction      (direction)
 import Diagrams.Located
 import Diagrams.Parametric
 import Diagrams.Path
@@ -61,7 +63,7 @@ import Diagrams.TwoD.Arc
 import Diagrams.TwoD.Curvature
 import Diagrams.TwoD.Path       ()
 import Diagrams.TwoD.Types
-import Diagrams.TwoD.Vector     (perp, direction)
+import Diagrams.TwoD.Vector     (perp)
 
 unitPerp :: R2 -> R2
 unitPerp = normalized . perp
@@ -461,12 +463,12 @@ capArc r c a b = trailLike . moveTo c $ fs
        | otherwise = scale r    $ arcV   (a .-. c) (b .-. c)
 
 -- Arc helpers
+-- always picks the shorter arc (< τ/2)
 arcV :: (TrailLike t, V t ~ R2) => R2 -> R2 -> t
-arcV u v = arc (direction u) (direction v)
+arcV u v = arc (direction u) (angleBetween v u)
 
 arcVCW :: (TrailLike t, V t ~ R2) => R2 -> R2 -> t
-arcVCW u v = arcCW (direction u) (direction v)
-
+arcVCW u v = arc (direction u) (negateV $ angleBetween v u)
 
 -- | Join together a list of located trails with the given join style.  The
 --   style is given as a function to compute the join given the local information

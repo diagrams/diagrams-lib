@@ -36,6 +36,7 @@ import           Data.Typeable
 
 import           Diagrams.Angle
 import           Diagrams.Core
+import           Diagrams.Direction
 import           Diagrams.ThreeD.Types
 import           Diagrams.ThreeD.Vector
 
@@ -118,13 +119,13 @@ mm50Wide = PerspectiveLens (43.2 @@ deg)  (27 @@ deg)
 -- aspect ratio of 4:3, for VGA and similar computer resulotions.
 mm50Narrow = PerspectiveLens (36 @@ deg) (27 @@ deg)
 
-camForward :: Camera l -> Direction
+camForward :: Camera l -> Direction R3
 camForward = direction . forward
 
-camUp :: Camera l -> Direction
+camUp :: Camera l -> Direction R3
 camUp = direction . up
 
-camRight :: Camera l -> Direction
+camRight :: Camera l -> Direction R3
 camRight c = direction right where
   right = cross3 (forward c) (up c)
 

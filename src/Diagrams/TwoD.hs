@@ -65,7 +65,7 @@ module Diagrams.TwoD
        , P2, p2, unp2, mkP2
        , T2
        , unitX, unitY, unit_X, unit_Y
-       , direction, fromDirection
+       , xDir
 
          -- * Angles
        , tau
@@ -92,7 +92,6 @@ module Diagrams.TwoD
        , ellipseXY
        , arc
        , arc'
-       , arcCW
        , wedge
        , arcBetween
        , annularWedge
@@ -200,7 +199,8 @@ module Diagrams.TwoD
 
          -- * Combinators
          -- ** Combining multiple diagrams
-       , (===), (|||), atAngle
+
+       , (===), (|||)
        , hcat, hcat', hsep
        , vcat, vcat', vsep
 

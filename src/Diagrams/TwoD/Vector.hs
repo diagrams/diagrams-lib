@@ -1,6 +1,7 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE TypeFamilies     #-}
-{-# LANGUAGE ViewPatterns     #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TypeFamilies      #-}
+{-# LANGUAGE ViewPatterns      #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Vector
@@ -16,18 +17,20 @@ module Diagrams.TwoD.Vector
          unitX, unitY, unit_X, unit_Y
 
          -- * Converting between vectors and angles
-       , direction, angleBetween, fromDirection, e
+       , e, xDir
 
          -- * 2D vector utilities
        , perp, leftTurn
        ) where
 
-import           Control.Lens         ((^.))
-import           Data.VectorSpace     ((<.>))
+import Control.Lens ((&), (.~))
 
-import           Diagrams.Angle
-import           Diagrams.TwoD.Types
-import           Diagrams.Coordinates
+import Data.VectorSpace
+
+import Diagrams.Angle
+import Diagrams.Direction
+import Diagrams.TwoD.Types
+import Diagrams.Coordinates
 
 -- | The unit vector in the positive X direction.
 unitX :: R2
@@ -45,20 +48,15 @@ unit_X = (-1) ^& 0
 unit_Y :: R2
 unit_Y = 0 ^& (-1)
 
--- | Compute the direction of a vector, measured counterclockwise from
---   the positive x-axis as a fraction of a full turn.  The zero
---   vector is arbitrarily assigned the direction 0.
-direction :: R2 -> Angle
-direction (coords -> x :& y) = atan2 y x @@ rad
+-- | The origin of the direction AffineSpace.  For all d, @d .-. xDir
+-- = d^._theta@.
+xDir :: Direction R2
+xDir = direction unitX
 
--- | Convert an angle into a unit vector pointing in that direction.
-fromDirection :: Angle -> R2
-fromDirection a = cos a' ^& sin a'
-  where a' = a^.rad
-
--- | A convenient synonym for 'fromDirection'.
+-- | A unit vector at a specified angle counterclockwise from the
+-- positive X axis.
 e :: Angle -> R2
-e = fromDirection
+e a = unitX & _theta .~ a
 
 -- | @perp v@ is perpendicular to and has the same magnitude as @v@.
 --   In particular @perp v == rotateBy (1/4) v@.

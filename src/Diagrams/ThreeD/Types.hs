@@ -1,5 +1,4 @@
 {-# LANGUAGE FlexibleInstances          #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE RankNTypes                 #-}
 {-# LANGUAGE TypeFamilies               #-}
@@ -26,8 +25,6 @@ module Diagrams.ThreeD.Types
        , T3
        , r3Iso, p3Iso
 
-         -- * Directions in 3D
-       , Direction, direction, fromDirection, angleBetweenDirs
        -- * other coördinate systems
        , Spherical(..), Cylindrical(..), HasPhi(..)
        ) where
@@ -37,6 +34,7 @@ import           Control.Lens           (Iso', Lens', iso, over
 
 import           Diagrams.Core
 import           Diagrams.Angle
+import           Diagrams.Direction
 import           Diagrams.TwoD.Types    (R2)
 import           Diagrams.Coordinates
 
@@ -122,18 +120,6 @@ instance Transformable R3 where
 instance HasCross3 R3 where
   cross3 u v = r3 $ cross3 (unr3 u) (unr3 v)
 
---------------------------------------------------------------------------------
--- Direction
-
--- | A @Direction@ represents directions in R3.  The constructor is
--- not exported; @Direction@s can be used with 'fromDirection' and the
--- lenses provided by its instances.
-data Direction = Direction R3
-
--- | Not exported
-_Dir :: Iso' Direction R3
-_Dir = iso (\(Direction v) -> v) Direction
-
 instance HasX R3 where
     _x = r3Iso . _1
 
@@ -203,21 +189,8 @@ instance Cylindrical P3 where
 instance Spherical P3 where
     spherical = _relative origin . spherical
 
-instance HasTheta Direction where
+instance HasTheta (Direction R3) where
     _theta = _Dir . _theta
 
-instance HasPhi Direction where
+instance HasPhi (Direction R3) where
     _phi = _Dir . _phi
-
--- | @direction v@ is the direction in which @v@ points.  Returns an
---   unspecified value when given the zero vector as input.
-direction :: R3 -> Direction
-direction = Direction
-
--- | @fromDirection d@ is the unit vector in the direction @d@.
-fromDirection :: Direction -> R3
-fromDirection (Direction v) = normalized v
-
--- | compute the positive angle between the two directions in their common plane
-angleBetweenDirs  :: Direction -> Direction -> Angle
-angleBetweenDirs d1 d2 = angleBetween (fromDirection d1) (fromDirection d2)

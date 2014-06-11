@@ -17,21 +17,29 @@ module Diagrams.Angle
          Angle
        , rad, turn, deg
        , fullTurn, fullCircle, angleRatio
-       , sinA, cosA, tanA, asinA, acosA, atanA
+       , sinA, cosA, tanA, asinA, acosA, atanA, atan2A
        , (@@)
        , angleBetween
        , HasTheta(..)
        ) where
 
-import           Control.Lens            (Iso', Lens', iso, review, (^.))
-                                         -- , review , (^.), _1, _2, Lens', lens)
+import Control.Lens            (Iso', Lens', iso, review, (^.))
 
-import           Data.VectorSpace
+import Data.Monoid      hiding ((<>))
+import Data.Semigroup
+import Data.VectorSpace
 
 -- | Angles can be expressed in a variety of units.  Internally,
 -- they are represented in radians.
 newtype Angle = Radians Double
               deriving (Read, Show, Eq, Ord, Enum, AdditiveGroup)
+
+instance Semigroup Angle where
+    (<>) = (^+^)
+
+instance Monoid Angle where
+    mappend = (<>)
+    mempty = Radians 0
 
 instance VectorSpace Angle where
   type Scalar Angle = Double
@@ -89,6 +97,11 @@ acosA = Radians . acos
 -- | The @Angle@ with the given tangent.
 atanA :: Double -> Angle
 atanA = Radians . atan
+
+-- | @atan2A n d@ is the @Angle with tangent @n/d@, unless d is 0, in
+-- which case it is ±π/2.
+atan2A :: Double -> Double -> Angle
+atan2A n d = Radians $ atan2 n d
 
 -- | @30 \@\@ deg@ is an @Angle@ of the given measure and units.
 --

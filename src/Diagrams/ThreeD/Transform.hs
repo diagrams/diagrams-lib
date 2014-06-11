@@ -47,6 +47,7 @@ import           Diagrams.Core
 import qualified Diagrams.Core.Transform as T
 
 import           Diagrams.Angle
+import           Diagrams.Direction
 import           Diagrams.Transform
 import           Diagrams.ThreeD.Types
 import           Diagrams.Coordinates
@@ -104,7 +105,7 @@ aboutY ang = fromLinear r (linv r) where
 --   passing through @p@.
 rotationAbout ::
      P3        -- ^ origin of rotation
-  -> Direction -- ^ direction of rotation axis
+  -> Direction R3 -- ^ direction of rotation axis
   -> Angle     -- ^ angle of rotation
   -> T3
 rotationAbout p d a
@@ -123,23 +124,30 @@ rotationAbout p d a
 -- | @pointAt about initial final@ produces a rotation which brings
 -- the direction @initial@ to point in the direction @final@ by first
 -- panning around @about@, then tilting about the axis perpendicular
--- to initial and final.  In particular, if this can be accomplished
+-- to @about@ and @final@.  In particular, if this can be accomplished
 -- without tilting, it will be, otherwise if only tilting is
 -- necessary, no panning will occur.  The tilt will always be between
 -- ± 1/4 turn.
-pointAt :: Direction -> Direction -> Direction -> T3
+pointAt :: Direction R3 -> Direction R3 -> Direction R3 -> T3
 pointAt a i f = pointAt' (fromDirection a) (fromDirection i) (fromDirection f)
 
 -- | pointAt' has the same behavior as 'pointAt', but takes vectors
 -- instead of directions.
 pointAt' :: R3 -> R3 -> R3 -> T3
-pointAt' about initial final = tilt <> pan where
-  inPanPlane    = final ^-^ project final initial
-  panAngle      = angleBetween initial inPanPlane
+pointAt' about initial final = pointAtUnit (normalized about) (normalized initial) (normalized final)
+
+-- | pointAtUnit has the same behavior as @pointAt@, but takes unit vectors.
+pointAtUnit :: R3 -> R3 -> R3 -> T3
+pointAtUnit about initial final = tilt <> pan where
+  -- rotating u by (signedAngle rel u v) about rel gives a vector in the direction of v
+  signedAngle rel u v = signum (cross3 u v <.> rel) *^ angleBetween u v
+  inPanPlaneF = final ^-^ project about final
+  inPanPlaneI = initial ^-^ project about initial
+  panAngle      = signedAngle about inPanPlaneI inPanPlaneF
   pan           = rotationAbout origin (direction about) panAngle
-  tiltAngle     = angleBetween initial inPanPlane
-  tiltDir       = direction $ cross3 inPanPlane about
-  tilt          = rotationAbout origin tiltDir tiltAngle
+  tiltAngle     = signedAngle tiltAxis (transform pan initial) final
+  tiltAxis       = cross3 final about
+  tilt          = rotationAbout origin (direction tiltAxis) tiltAngle
 
 -- Scaling -------------------------------------------------
 
