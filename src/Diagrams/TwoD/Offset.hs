@@ -472,7 +472,8 @@ capArc r c a b = trailLike . moveTo c $ fs
 
 -- Arc helpers
 -- always picks the shorter arc (< τ/2)
-arcV :: (R2Ish v) => (TrailLike t, V t ~ v) => v -> v -> tarcV u v = arc (direction u) (angleBetween v u)
+arcV :: (R2Ish v) => (TrailLike t, V t ~ v) => v -> v -> t
+arcV u v = arc (direction u) (angleBetween v u)
 
 arcVCW :: (R2Ish v) => (TrailLike t, V t ~ v) => v -> v -> t
 arcVCW u v = arc (direction u) (negateV $ angleBetween v u)

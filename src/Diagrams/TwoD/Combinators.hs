@@ -117,8 +117,8 @@ hcat' = cat' unitX
 
 -- | A convenient synonym for horizontal concatenation with
 --   separation: @hsep s === hcat' (with & sep .~ s)@.
-hsep :: (Juxtaposable a, HasOrigin a, Monoid' a, V a ~ R2)
-     => Scalar R2 -> [a] -> a
+hsep :: (Juxtaposable a, HasOrigin a, Monoid' a, V a ~ v, R2Ish v)
+     => Scalar v -> [a] -> a
 hsep s = hcat' (def & sep .~ s)
 
 -- | Lay out a list of juxtaposable objects in a column from top to
@@ -146,8 +146,8 @@ vcat' = cat' (negateV unitY)
 
 -- | A convenient synonym for vertical concatenation with
 --   separation: @vsep s === vcat' (with & sep .~ s)@.
-vsep :: (Juxtaposable a, HasOrigin a, Monoid' a, V a ~ R2)
-     => Scalar R2 -> [a] -> a
+vsep :: (Juxtaposable a, HasOrigin a, Monoid' a, V a ~ v, R2Ish v)
+     => Scalar v -> [a] -> a
 vsep s = vcat' (def & sep .~ s)
 
 -- | @strutR2 v@ is a two-dimensional diagram which produces no
@@ -260,6 +260,6 @@ bg c d = d <> boundingRect d # lineWidth (Output 0) # fc c
 -- | Similar to 'bg' but makes the colored background rectangle larger than
 --   the diagram. The first parameter is used to set how far the background
 --   extends beyond the diagram.
-bgFrame :: (Renderable (Path R2) b, Backend b R2) 
-    => Double -> Colour Double -> Diagram b R2 -> Diagram b R2
+bgFrame :: (R2Ish v, Renderable (Path v) b, Backend b v) 
+    => Scalar v -> Colour Double -> Diagram b v -> Diagram b v
 bgFrame f c d = d <> boundingRect (frame f d) # lineWidth (Output 0) # fc c

@@ -105,7 +105,6 @@ import           Control.Lens             (Lens', Setter', Traversal',
                                            makeLensesWith, view, (%~), (&),
                                            (.~), (^.))
 import           Data.AffineSpace
-import           Data.Data                (Data)
 import           Data.Default.Class
 import           Data.Functor             ((<$>))
 import           Data.Maybe               (fromMaybe)
@@ -251,7 +250,7 @@ headSty opts = fc black (opts^.headStyle)
 tailSty :: (R2Ish v) => ArrowOpts v -> Style v
 tailSty opts = fc black (opts^.tailStyle)
 
-fromMeasure :: (Data d, Ord d, Fractional d) => d -> d -> MeasureX d -> d
+fromMeasure :: (R2Ish v) => Scalar v -> Scalar v -> Measure v -> Scalar v
 fromMeasure g n m = u
   where Output u = toOutput g n m
 
@@ -278,7 +277,10 @@ colorJoint sStyle =
 
 -- | Get line width from a style.
 widthOfJoint :: forall v. (R2Ish v) => Style v -> Scalar v -> Scalar v  -> Scalar v
-widthOfJoint sStyle gToO nToO = maybe (fromMeasure gToO nToO (Output 1)) (fromMeasure gToO nToO) (fmap getLineWidth . (getAttr :: Style v -> Maybe (LineWidth v)) $ sStyle)
+widthOfJoint sStyle gToO nToO =
+  maybe (fromMeasure gToO nToO (Output 1 :: Measure v)) -- Should be same as default line width
+        (fromMeasure gToO nToO)
+        (fmap getLineWidth . getAttr $ sStyle :: Maybe (Measure v))
 
 -- | Combine the head and its joint into a single scale invariant diagram
 --   and move the origin to the attachment point. Return the diagram

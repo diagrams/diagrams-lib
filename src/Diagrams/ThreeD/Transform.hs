@@ -137,7 +137,7 @@ pointAt' :: (R3Ish v) => v -> v -> v -> Transformation v
 pointAt' about initial final = pointAtUnit (normalized about) (normalized initial) (normalized final)
 
 -- | pointAtUnit has the same behavior as @pointAt@, but takes unit vectors.
-pointAtUnit :: R3 -> R3 -> R3 -> T3
+pointAtUnit :: (R3Ish v) => v -> v -> v -> Transformation v
 pointAtUnit about initial final = tilt <> pan where
   -- rotating u by (signedAngle rel u v) about rel gives a vector in the direction of v
   signedAngle rel u v = signum (cross3 u v <.> rel) *^ angleBetween u v

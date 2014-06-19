@@ -93,7 +93,7 @@ import           Data.VectorSpace
 
 -- | Standard 'Measures'.
 none, ultraThin, veryThin, thin, medium, thick, veryThick, ultraThick,
-  tiny, verySmall, small, normal, large, veryLarge, huge :: (Floating d) => MeasureX d
+  tiny, verySmall, small, normal, large, veryLarge, huge :: (Floating (Scalar v)) => Measure v
 none       = Output 0
 ultraThin  = Normalized 0.0005 `atLeast` Output 0.5
 veryThin   = Normalized 0.001  `atLeast` Output 0.5

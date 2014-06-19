@@ -41,10 +41,9 @@ import           Data.Colour          (AlphaColour)
 import           Diagrams.Core
 
 import           Diagrams.Attributes  (colorToSRGBA)
-import           Diagrams.Path        (Path)
 import           Diagrams.TwoD.Path   (isInsideEvenOdd)
 import           Diagrams.TwoD.Shapes (rect)
-import           Diagrams.TwoD.Types  (R2, T2)
+import           Diagrams.TwoD.Types  (R2Ish)
 
 import           Data.AffineSpace     ((.-.))
 import           Data.Semigroup
