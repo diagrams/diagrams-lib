@@ -48,9 +48,9 @@ module Diagrams.TwoD.Arrow
 --   > dias = oct # named "first" ||| strut 3 ||| oct # named "second"
 --   >
 --   > -- Connect two diagrams and two points on their trails.
---   > ex12 = dias # connect' (with & lengths .~ veryLarge) "first" "second" 
---   >             # connectPerim (with & lengths .~ veryLarge)
---   >        "first" "second" (15/16 \@\@ turn) (9/16 \@\@ turn)
+--   > ex12 = dias # connect' (with & lengths .~ veryLarge) "first" "second"
+--   >             # connectPerim' (with & lengths .~ veryLarge)
+--   >        "first" "second" (15/16 @@ turn) (9/16 @@ turn)
 --   >
 --   > -- Place an arrow at (0,0) the size and direction of (0,1).
 --   > ex3 = arrowAt origin unit_Y
@@ -355,7 +355,7 @@ scaleFactor tr tw hw t
 arrowEnv :: (R2Ish v) => ArrowOpts v -> Scalar v -> Envelope v
 arrowEnv opts len = getEnvelope horizShaft
   where
-    horizShaft = shaft # rotate (negateV v ^. _theta) # scale (len / m)
+    horizShaft = shaft # rotate (negateV (v ^. _theta)) # scale (len / m)
     m = magnitude v
     v = trailOffset shaft
     shaft = opts ^. arrowShaft
@@ -394,7 +394,7 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
     -- Build an arrow and set its endpoints to the image under tr of origin and (len,0).
     dArrow sty tr ln gToO nToO = (h' <> t' <> shaft)
                # moveOriginBy (tWidth *^ (unit_X # rotate tAngle))
-               # rotate (angleBetween (q .-. p) (fromDirection dir))
+               # rotate (((q .-. p)^._theta) ^-^ (dir^._theta))
                # moveTo p
       where
 
@@ -412,10 +412,10 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
 
         -- The head size, tail size, head gap, and tail gap are obtained
         -- from the style and converted to output units.
-        hSize = fromMeasure gToO nToO (opts ^. headLength)
-        tSize = fromMeasure gToO nToO (opts ^. tailLength)
-        hGap = fromMeasure gToO nToO (opts ^. headGap)
-        tGap = fromMeasure gToO nToO (opts ^. tailGap)
+        hSize = fromMeasure gToO nToO . transform tr $ opts ^. headLength
+        tSize = fromMeasure gToO nToO . transform tr $ opts ^. tailLength
+        hGap = fromMeasure gToO nToO . transform tr $ opts ^. headGap
+        tGap = fromMeasure gToO nToO . transform tr $ opts ^. tailGap
 
         -- Make the head and tail and save their widths.
         (h, hWidth') = mkHead hSize opts' gToO nToO

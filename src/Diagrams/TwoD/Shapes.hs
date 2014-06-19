@@ -103,7 +103,7 @@ square :: (TrailLike t, Transformable t, V t ~ v, R2Ish v) => Scalar v -> t
 square d = rect d d
 
 -- > squareEx = hcat' (with & sep .~ 0.5) [square 1, square 2, square 3]
--- >          # centerXY # pad 1.1 # lw 0.03
+-- >          # centerXY # pad 1.1
 
 -- | @rect w h@ is an axis-aligned rectangle of width @w@ and height
 --   @h@, centered at the origin.

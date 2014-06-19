@@ -423,13 +423,15 @@ class Mainable d where
     -- that users will call from their program @main@.  For instance an expected
     -- user program would take the following form.
     --
-    -- > import Diagrams.Prelude
-    -- > import Diagrams.Backend.TheBestBackend.CmdLine
-    -- >
-    -- > d :: Diagram B R2
-    -- > d = ...
-    -- >
-    -- > main = mainWith d
+    -- @
+    -- import Diagrams.Prelude
+    -- import Diagrams.Backend.TheBestBackend.CmdLine
+    -- 
+    -- d :: Diagram B R2
+    -- d = ...
+    -- 
+    -- main = mainWith d
+    -- @
     --
     -- Most backends should be able to use the default implementation.  A different
     -- implementation should be used to handle more complex interactions with the user.
@@ -449,7 +451,7 @@ instance (Parseable (Args (a -> d)), ToResult d, Mainable (ResultOf d))
 -- TODO: why can't we get away with: instance (Parseable (Args (a -> d)), Mainable (ResultOf d)) => ...
 --       Doesn't `Args (a -> d)` imply `ToResult (a -> d)` which implies `ToResult d` ?
 
--- | With this instance we can perform IO to produce something 
+-- | With this instance we can perform IO to produce something
 --   'Mainable' before rendering.
 instance Mainable d => Mainable (IO d) where
     type MainOpts (IO d) = MainOpts d
@@ -464,9 +466,11 @@ instance Mainable d => Mainable (IO d) where
 --
 --   Typically a backend can write its @[(String,Diagram B V)]@ instance as
 --
---   > instance Mainable [(String,Diagram B V)] where
---   >     type MainOpts [(String,Diagram B V)] = (DiagramOpts, DiagramMultiOpts)
---   >     mainRender = defaultMultiMainRender
+--   @
+--   instance Mainable [(String,Diagram B V)] where
+--       type MainOpts [(String,Diagram B V)] = (DiagramOpts, DiagramMultiOpts)
+--       mainRender = defaultMultiMainRender
+--   @
 --
 --   We do not provide this instance in general so that backends can choose to
 --   opt-in to this form or provide a different instance that makes more sense.
@@ -508,9 +512,11 @@ showDiaList ds = do
 --   implementation works by modifying the output field and running the base @mainRender@.
 --   Typically a backend can write its @Animation B V@ instance as
 --
---   > instance Mainable (Animation B V) where
---   >     type MainOpts (Animation B V) = (DiagramOpts, DiagramAnimOpts)
---   >     mainRender = defaultAnimMainRender output
+--   @
+--   instance Mainable (Animation B V) where
+--       type MainOpts (Animation B V) = (DiagramOpts, DiagramAnimOpts)
+--       mainRender = defaultAnimMainRender output
+--   @
 --
 --   We do not provide this instance in general so that backends can choose to
 --   opt-in to this form or provide a different instance that makes more sense.

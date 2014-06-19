@@ -76,6 +76,8 @@ module Diagrams.Trail
        , onLineSegments
        , trailOffsets, trailOffset
        , lineOffsets, lineOffset, loopOffsets
+       , trailPoints, linePoints, loopPoints
+       , trailVertices', lineVertices', loopVertices'
        , trailVertices, lineVertices, loopVertices
        , trailLocSegments, fixTrail
 
@@ -103,7 +105,8 @@ module Diagrams.Trail
        ) where
 
 import           Control.Arrow       ((***))
-import           Control.Lens        (AnIso', iso, view, op, Wrapped(..), Rewrapped)
+import           Control.Lens        (AnIso', iso, view, op, Wrapped(..), Rewrapped
+                                     , cloneIso, (^.))
 import           Data.AffineSpace
 import           Data.FingerTree     (FingerTree, ViewL (..), ViewR (..), (<|),
                                       (|>))
@@ -118,6 +121,7 @@ import           Diagrams.Core       hiding ((|>))
 import           Diagrams.Located
 import           Diagrams.Parametric
 import           Diagrams.Segment
+import           Diagrams.Tangent
 
 -- $internals
 --
@@ -392,6 +396,54 @@ instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v))
                   (\(Line segT) -> segT `atParam` p)
                   (\l -> cutLoop l `atParam` mod1 p)
                   t
+
+type instance Codomain (Tangent (Trail' c v)) = Codomain (Trail' c v)
+
+instance ( Parametric (GetSegment (Trail' c v))
+         , VectorSpace v
+         , Num (Scalar v)
+         )
+    => Parametric (Tangent (Trail' c v)) where
+  Tangent tr `atParam` p =
+    case GetSegment tr `atParam` p of
+      Nothing                -> zeroV
+      Just (_, seg, reparam) -> Tangent seg `atParam` (p ^. cloneIso reparam)
+
+instance ( Parametric (GetSegment (Trail' c v))
+         , EndValues (GetSegment (Trail' c v))
+         , VectorSpace v
+         , Num (Scalar v)
+         )
+    => EndValues (Tangent (Trail' c v)) where
+  atStart (Tangent tr) =
+    case atStart (GetSegment tr) of
+      Nothing          -> zeroV
+      Just (_, seg, _) -> atStart (Tangent seg)
+  atEnd (Tangent tr) =
+    case atEnd (GetSegment tr) of
+      Nothing          -> zeroV
+      Just (_, seg, _) -> atEnd (Tangent seg)
+
+type instance Codomain (Tangent (Trail v)) = Codomain (Trail v)
+
+instance ( InnerSpace v
+         , OrderedField (Scalar v)
+         , RealFrac (Scalar v)
+         )
+    => Parametric (Tangent (Trail v)) where
+  Tangent tr `atParam` p
+    = withTrail
+        ((`atParam` p) . Tangent)
+        ((`atParam` p) . Tangent)
+        tr
+
+instance ( InnerSpace v
+         , OrderedField (Scalar v)
+         , RealFrac (Scalar v)
+         )
+    => EndValues (Tangent (Trail v)) where
+  atStart (Tangent tr) = withTrail (atStart . Tangent) (atStart . Tangent) tr
+  atEnd   (Tangent tr) = withTrail (atEnd   . Tangent) (atEnd   . Tangent) tr
 
 -- | Compute the remainder mod 1.  Convenient for constructing loop
 --   parameterizations that wrap around.
@@ -936,7 +988,7 @@ trailOffsets = withLine lineOffsets
 --
 --   > trailOffsetEx = (strokeLine almostClosed <> showOffset) # centerXY # pad 1.1
 --   >   where showOffset = fromOffsets [trailOffset (wrapLine almostClosed)]
---   >                    # stroke # lc red # lw 0.05
+--   >                    # stroke # lc red
 trailOffset :: (InnerSpace v, OrderedField (Scalar v)) => Trail v -> v
 trailOffset = withLine lineOffset
 
@@ -954,6 +1006,44 @@ loopOffsets = lineOffsets . cutLoop
 lineOffset :: (InnerSpace v, OrderedField (Scalar v)) => Trail' Line v -> v
 lineOffset (Line t) = trailMeasure zeroV (op TotalOffset . view oeOffset) t
 
+-- | Extract the points of a concretely located trail.  That is the points
+--   where one segment ends and the next begings. Note that
+--   for loops, the starting point will /not/ be repeated at the end.
+--   If you want this behavior, you can use 'cutTrail' to make the
+--   loop into a line first, which happens to repeat the same point
+--   at the start and end, /e.g./ with @turailPoints . mapLoc
+--   cutTrail@.
+--
+--   Note that it does not make sense to ask for the points of a
+--   'Trail' by itself; if you want the points of a trail
+--   with the first point at, say, the origin, you can use
+--   @trailPoints . (\`at\` origin)@.
+trailPoints :: (InnerSpace v, OrderedField (Scalar v))
+              => Located (Trail v) -> [Point v]
+trailPoints (viewLoc -> (p,t))
+  = withTrail (linePoints . (`at` p)) (loopPoints . (`at` p)) t
+
+-- | Extract the vertices of a concretely located line.  See
+--   'trailPoints' for more information.
+linePoints :: (InnerSpace v, OrderedField (Scalar v))
+             => Located (Trail' Line v) -> [Point v]
+linePoints (viewLoc -> (p,t))
+  = segmentPoints p . lineSegments $ t
+
+-- | Extract the vertices of a concretely located loop.  Note that the
+--   initial vertex is not repeated at the end.  See 'trailPoints' for
+--   more information.
+loopPoints :: (InnerSpace v, OrderedField (Scalar v))
+             => Located (Trail' Loop v) -> [Point v]
+loopPoints (viewLoc -> (p,t))
+  = segmentPoints p . fst . loopSegments $ t
+
+segmentPoints :: AdditiveGroup v => Point v -> [Segment Closed v] -> [Point v]
+segmentPoints p = scanl (.+^) p . map segOffset
+
+tolerance :: OrderedField a => a
+tolerance = 10e-16
+
 -- | Extract the vertices of a concretely located trail.  Note that
 --   for loops, the starting vertex will /not/ be repeated at the end.
 --   If you want this behavior, you can use 'cutTrail' to make the
@@ -965,28 +1055,68 @@ lineOffset (Line t) = trailMeasure zeroV (op TotalOffset . view oeOffset) t
 --   'Trail' by itself; if you want the vertices of a trail
 --   with the first vertex at, say, the origin, you can use
 --   @trailVertices . (\`at\` origin)@.
+trailVertices' :: (InnerSpace v, OrderedField (Scalar v))
+              => Scalar v ->  Located (Trail v) -> [Point v]
+trailVertices' toler (viewLoc -> (p,t)) 
+  = withTrail (lineVertices' toler . (`at` p)) (loopVertices' toler . (`at` p)) t
+
+-- : Like trailVertices' but the tolerance is set to tolerance
 trailVertices :: (InnerSpace v, OrderedField (Scalar v))
               => Located (Trail v) -> [Point v]
-trailVertices (viewLoc -> (p,t))
-  = withTrail (lineVertices . (`at` p)) (loopVertices . (`at` p)) t
+trailVertices l = trailVertices' tolerance l
 
 -- | Extract the vertices of a concretely located line.  See
 --   'trailVertices' for more information.
+lineVertices' :: (InnerSpace v, OrderedField (Scalar v))
+             => Scalar v -> Located (Trail' Line v) -> [Point v]
+lineVertices' toler (viewLoc -> (p,t)) 
+  = segmentVertices' toler p . lineSegments $ t
+
+-- | Like lineVertices' with tolerance set to tolerance.
 lineVertices :: (InnerSpace v, OrderedField (Scalar v))
              => Located (Trail' Line v) -> [Point v]
-lineVertices (viewLoc -> (p,t))
-  = segmentVertices p . lineSegments $ t
+lineVertices l = lineVertices' tolerance l 
 
 -- | Extract the vertices of a concretely located loop.  Note that the
 --   initial vertex is not repeated at the end.  See 'trailVertices' for
 --   more information.
+loopVertices' :: (InnerSpace v, OrderedField (Scalar v))
+             => Scalar v -> Located (Trail' Loop v) -> [Point v]
+loopVertices' toler (viewLoc -> (p,t)) 
+  | length segs > 1 = if far > toler  then init ps else init . (drop 1) $ ps
+  | otherwise       = ps
+  where
+    far = magnitudeSq ((normalized . tangentAtStart . head $ segs) ^-^
+                       (normalized . tangentAtEnd   . last $ segs))
+    segs = lineSegments . cutLoop $ t
+    ps = segmentVertices' toler p segs
+
+-- | Same as loopVertices' with tolerance set to tolerance.
 loopVertices :: (InnerSpace v, OrderedField (Scalar v))
              => Located (Trail' Loop v) -> [Point v]
-loopVertices (viewLoc -> (p,t))
-  = segmentVertices p . fst . loopSegments $ t
+loopVertices l = loopVertices' tolerance l
 
-segmentVertices :: AdditiveGroup v => Point v -> [Segment Closed v] -> [Point v]
-segmentVertices p = scanl (.+^) p . map segOffset
+-- The vertices of a list of segments laid end to end.
+-- The start and end points are always included in the list of vertices.
+-- The other points connecting segments are included if the slope at the
+-- end of a segment is not equal to the slope at the beginning of the next.
+-- The 'toler' parameter is used to control how close the slopes need to
+-- be in order to declatre them equal.
+segmentVertices' :: (InnerSpace v, OrderedField (Scalar v))
+             => Scalar v -> Point v -> [Segment Closed v] -> [Point v]
+segmentVertices' toler p ts  =
+  case ps of
+    (x:_:_) -> x : select (drop 1 ps) ds ++ [last ps]
+    _       -> ps
+    where
+      ds = zipWith far tans (drop 1 tans)
+      tans = [(normalized . tangentAtStart $ s
+              ,normalized . tangentAtEnd   $ s) | s <- ts]
+      ps = scanl (.+^) p . map segOffset $ ts
+      far p2 q2 = magnitudeSq ((snd p2) ^-^ (fst q2)) > toler
+
+select :: [a] -> [Bool] -> [a]
+select xs bs = map fst $ filter snd (zip xs bs)
 
 -- | Convert a concretely located trail into a list of fixed segments.
 fixTrail :: (InnerSpace v, OrderedField (Scalar v))
@@ -996,7 +1126,7 @@ fixTrail t = map mkFixedSeg (trailLocSegments t)
 -- | Convert a concretely located trail into a list of located segments.
 trailLocSegments :: (InnerSpace v, OrderedField (Scalar v))
                   => Located (Trail v) -> [Located (Segment Closed v)]
-trailLocSegments t = zipWith at (trailSegments (unLoc t)) (trailVertices t)
+trailLocSegments t = zipWith at (trailSegments (unLoc t)) (trailPoints t)
 
 ------------------------------------------------------------
 --  Modifying trails  --------------------------------------

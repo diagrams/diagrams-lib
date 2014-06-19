@@ -22,8 +22,8 @@ module Diagrams.TwoD.Combinators
       (===), (|||)
 
       -- * n-ary combinators
-    , hcat, hcat'
-    , vcat, vcat'
+    , hcat, hcat', hsep
+    , vcat, vcat', vsep
 
       -- * Spacing/envelopes
     , strutR2
@@ -34,10 +34,11 @@ module Diagrams.TwoD.Combinators
 
     , view
 
-    , boundingRect, bg
+    , boundingRect, bg, bgFrame
 
     ) where
 
+import           Control.Lens ((&), (.~))
 import           Data.AffineSpace
 import           Data.Colour
 import           Data.Default.Class
@@ -108,10 +109,17 @@ hcat = hcat' def
 
 -- | A variant of 'hcat' taking an extra 'CatOpts' record to control
 --   the spacing.  See the 'cat'' documentation for a description of
---   the possibilities.
+--   the possibilities. For the common case of setting just a
+--   separation amount, see 'hsep'.
 hcat' :: (Juxtaposable a, HasOrigin a, Monoid' a, V a ~ v, R2Ish v)
       => CatOpts v -> [a] -> a
 hcat' = cat' unitX
+
+-- | A convenient synonym for horizontal concatenation with
+--   separation: @hsep s === hcat' (with & sep .~ s)@.
+hsep :: (Juxtaposable a, HasOrigin a, Monoid' a, V a ~ R2)
+     => Scalar R2 -> [a] -> a
+hsep s = hcat' (def & sep .~ s)
 
 -- | Lay out a list of juxtaposable objects in a column from top to
 --   bottom, so that their local origins lie along a single vertical
@@ -129,11 +137,18 @@ vcat :: (Juxtaposable a, HasOrigin a, Monoid' a, V a ~ v, R2Ish v)
 vcat = vcat' def
 
 -- | A variant of 'vcat' taking an extra 'CatOpts' record to control
---   the spacing.  See the 'cat'' documentation for a description of the
---   possibilities.
+--   the spacing.  See the 'cat'' documentation for a description of
+--   the possibilities.  For the common case of setting just a
+--   separation amount, see 'vsep'.
 vcat' :: (Juxtaposable a, HasOrigin a, Monoid' a, V a ~ v, R2Ish v)
       => CatOpts v -> [a] -> a
 vcat' = cat' (negateV unitY)
+
+-- | A convenient synonym for vertical concatenation with
+--   separation: @vsep s === vcat' (with & sep .~ s)@.
+vsep :: (Juxtaposable a, HasOrigin a, Monoid' a, V a ~ R2)
+     => Scalar R2 -> [a] -> a
+vsep s = vcat' (def & sep .~ s)
 
 -- | @strutR2 v@ is a two-dimensional diagram which produces no
 --   output, but with respect to alignment, envelope, /and trace/ acts
@@ -241,3 +256,10 @@ boundingRect = (`boxFit` rect 1 1) . boundingBox
 --   diagram atop a bounding rectangle of the given color.
 bg :: (R2Ish v, Renderable (Path v) b) => Colour Double -> Diagram b v -> Diagram b v
 bg c d = d <> boundingRect d # lineWidth (Output 0) # fc c
+
+-- | Similar to 'bg' but makes the colored background rectangle larger than
+--   the diagram. The first parameter is used to set how far the background
+--   extends beyond the diagram.
+bgFrame :: (Renderable (Path R2) b, Backend b R2) 
+    => Double -> Colour Double -> Diagram b R2 -> Diagram b R2
+bgFrame f c d = d <> boundingRect (frame f d) # lineWidth (Output 0) # fc c

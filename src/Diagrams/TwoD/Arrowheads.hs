@@ -65,7 +65,6 @@ import           Diagrams.Angle
 import           Diagrams.Core
 
 import           Diagrams.Coordinates    ((^&))
-import           Diagrams.Direction
 import           Diagrams.Path
 import           Diagrams.Segment
 import           Diagrams.Trail
@@ -96,7 +95,7 @@ closedPath = pathFromTrail . closeTrail
 
 -- | <<diagrams/src_Diagrams_TwoD_Arrowheads_tri25Ex.svg#diagram=tri25Ex&width=120>>
 
---   > tri25Ex = arrowAt' (with & arrowHead .~ arrowheadTriangle (2/5 \@\@ turn) & shaftStyle %~ lw none)
+--   > tri25Ex = arrowAt' (with & arrowHead .~ arrowheadTriangle (2/5 @@ turn) & shaftStyle %~ lw none)
 --   >           origin (r2 (0.001, 0))
 --   >        <> square 0.6 # alignL # lw none
 arrowheadTriangle :: (R2Ish v) => Angle (Scalar v) -> ArrowHT v
@@ -120,7 +119,7 @@ arrowheadDart theta len shaftWidth = (hd # scale size, jt)
     v = rotate theta unitX
     (t1, t2) = (unit_X ^+^ v, ((-0.5) ^& 0) ^-^ v)
     [b1, b2] = map (reflectY . negateV) [t1, t2]
-    psi = pi - (direction . negateV $ t2) ^. _theta.rad
+    psi = pi - (negateV t2) ^. _theta.rad
     jLength = shaftWidth / (2 * tan psi)
 
     -- If the shaft if too wide, set the size to a default value of 1.
@@ -165,7 +164,7 @@ arrowheadThorn theta len shaftWidth = (hd # scale size, jt)
     v = rotate theta unitX
     l = reverseSegment . straight $ t
     t = v ^-^ ((-0.5) ^& 0)
-    psi = fullTurn ^/ 2 ^-^ (negateV t ^. _theta)
+    psi = fullTurn ^/ 2 ^-^ ((negateV t) ^. _theta)
     jLength = shaftWidth / (2 * tanA psi)
 
     -- If the shaft if too wide, set the size to a default value of 1.

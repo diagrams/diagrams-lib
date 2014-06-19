@@ -146,7 +146,7 @@ import           Diagrams.Query
 import           Diagrams.Segment
 import           Diagrams.Tangent
 import           Diagrams.Trace
-import           Diagrams.Trail
+import           Diagrams.Trail hiding (trailPoints, loopPoints, linePoints)
 import           Diagrams.TrailLike
 import           Diagrams.Transform
 import           Diagrams.TwoD

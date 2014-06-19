@@ -1,3 +1,90 @@
+1.2.0.1 (4 June 2014)
+---------------------
+
+- Bug fix: arrow head and tail length and gaps specified with `Local`
+  now work correctly ([#193](https://github.com/diagrams/diagrams-lib/issues/193)).
+
+1.2 (27 May 2014)
+-----------------
+
+* **New features**
+
+    - Several attributes (such as line width, dashing size, arrowhead
+      size, and font size) that formerly had a value of type `Double`
+      now have the more general type `Measure R2`. This allows the
+      attributes to be specified relative to one of four measurement
+      frames: `Local`, `Global`, `Normalized`, and `Output`.
+
+    - New DSL for specifying measurements.
+
+    - New synonyms for specifying measurements, *e.g.* `thin`,
+      `thick`, and `medium`, `large`.
+
+    - Support for radial and linear gradients for fills and strokes.
+
+    - New `DImage` type that supports both embedded and external images in
+      Backends that support them.
+
+    - New `lengths` Traversal for setting `headLength` and `tailLength`
+      simultaneously.
+
+    - `Frustrum` and `Box` shapes added to `Diagrams.ThreeD.Shapes`.
+
+    - New function `quartForm` to find roots of quartic polynomials.
+
+    - New Lenses for polar coordinates.
+
+    - New trig functions, `sinA`, `atanA`, etc. which take `Angle` as
+      input or output.
+
+* **New instances**
+
+    - `Transformable` instances for `LineWidth`, `Dashing`,
+      `LineTexture`, and  `FillTexture`.
+
+* **API changes**
+
+    - `FillColor` and `LineColor` attributes have been replaced with
+      the more general `FillTexture` and `LineTexture`. Use the `solid`
+      function to convert a color to a texture.
+
+    - The size of arrow heads and tails is now specified in terms of
+      length instead of the radius of their circumcircle.
+
+    - Gaps at the ends of arrows are now specified using `Measure R2`.
+
+    - The `gap` traversal has been replaced by `gaps` for consistency
+      in naming, though `gap` is still provided for backwards compatibility.
+
+    - `fontSize` now takes a value of type `Measure R2`.
+
+    - Get rid of (bitrotted) `Show` backend.
+
+    - Functions in `TwoD.Adjust` now return the adjustment
+      transformation itself in addition to the resized `Diagram` and
+      `Options` record; this can be used, *e.g.* to convert screen
+      coordinates back into diagram coordinates.
+
+    - Export `pathLocSegments`.
+
+    - The `avgScale` function has been moved to `Diagrams.Core`.
+
+    - The `Angle` definition and related functions (*e.g.*
+      `angleBetween`) have moved to a separate module, `Diagrams.Angle`.
+
+    - A separate `Diagrams.TwoD.Attributes` module now contains most
+      of the attributes that require 2D transformation instances.
+
+    - The `splitColorFills` function has been replaced by `splitTextureFills`.
+
+* **Dependency/version changes**
+
+  - Allow `semigroups-0.15`
+
+  - Allow `opt-parse-applicative-0.9.0
+
+  - Allow `lens-4.2`
+
 1.1.0.7 (15 May 2014)
 ------------------------
 

@@ -35,15 +35,16 @@ module Diagrams.TwoD.Image
 import           Codec.Picture
 import           Codec.Picture.Types  (dynamicMap)
 
-import           Data.Typeable
+import           Data.Typeable        (Typeable)
 import           Data.Colour          (AlphaColour)
 
 import           Diagrams.Core
 
 import           Diagrams.Attributes  (colorToSRGBA)
-import           Diagrams.TwoD.Path
-import           Diagrams.TwoD.Shapes
-import           Diagrams.TwoD.Types
+import           Diagrams.Path        (Path)
+import           Diagrams.TwoD.Path   (isInsideEvenOdd)
+import           Diagrams.TwoD.Shapes (rect)
+import           Diagrams.TwoD.Types  (R2, T2)
 
 import           Data.AffineSpace     ((.-.))
 import           Data.Semigroup

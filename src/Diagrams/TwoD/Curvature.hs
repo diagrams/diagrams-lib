@@ -70,7 +70,7 @@ import           Diagrams.TwoD.Types
 -- >
 -- > segmentA = Cubic (12 ^& 0) (8 ^& 10) (OffsetClosed (20 ^& 8))
 -- >
--- > curveA = lw 0.1 . stroke . fromSegments $ [segmentA]
+-- > curveA = lw thick . stroke . fromSegments $ [segmentA]
 -- >
 -- > diagramA = pad 1.1 . centerXY $ curveA
 -- >
@@ -84,11 +84,11 @@ import           Diagrams.TwoD.Types
 -- >          $ curveA
 -- >         <> showCurvature segmentA t
 -- >          # withEnvelope (curveA :: D R2)
--- >          # lw 0.05 # lc red
+-- >          # lc red
 -- >
 -- > showCurvature bez@(Cubic b c (OffsetClosed d)) t
--- >   | v == 0    = mempty
--- >   | otherwise = go (radiusOfCurvature bez t)
+-- >   | v == (0,0) = mempty
+-- >   | otherwise  = go (radiusOfCurvature bez t)
 -- >   where
 -- >     v@(x,y) = unr2 $ firstDerivative b c d t
 -- >     vp = (-y) ^& x

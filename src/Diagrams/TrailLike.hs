@@ -74,9 +74,9 @@ class (InnerSpace (V t), OrderedField (Scalar (V t))) => TrailLike t where
 --  Instances  ---------------------------------------------
 
 -- | A list of points is trail-like; this instance simply
---   computes the vertices of the trail, using 'trailVertices'.
+--   computes the vertices of the trail, using 'trailPoints'.
 instance (InnerSpace v, OrderedField (Scalar v)) => TrailLike [Point v] where
-  trailLike = trailVertices
+  trailLike = trailPoints
 
 -- | Lines are trail-like.  If given a 'Trail' which contains a loop,
 --   the loop will be cut with 'cutLoop'.  The location is ignored.
