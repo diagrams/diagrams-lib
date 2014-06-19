@@ -163,7 +163,7 @@ module Diagrams.TwoD
 
          -- * Images
        , DImage(..), ImageData(..)
-       , Embedded, External
+       , Embedded, External, Native
        , image
        , loadImageEmb
        , loadImageExt
