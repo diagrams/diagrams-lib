@@ -118,9 +118,10 @@ Library
   if impl(ghc < 7.6)
     Build-depends: ghc-prim
   Hs-source-dirs:      src
-  ghc-options: -Wall -Werror
+  ghc-options: -Wall
   default-language:    Haskell2010
-  -- default-extensions: FlexibleContexts, FlexibleInstances, MultiParamTypeClasses, TypeFamilies
-  other-extensions: BangPatterns, CPP, DefaultSignatures, DeriveDataTypeable, DeriveFunctor, DeriveGeneric, EmptyDataDecls, ExistentialQuantification, GADTs, 
-    GeneralizedNewtypeDeriving, NoMonomorphismRestriction, Rank2Types, RankNTypes, ScopedTypeVariables, StandaloneDeriving, TemplateHaskell, TypeOperators, 
-    TypeSynonymInstances, UndecidableInstances, ViewPatterns
+  other-extensions: BangPatterns, CPP, DefaultSignatures, DeriveDataTypeable,
+    DeriveFunctor, DeriveGeneric, EmptyDataDecls, ExistentialQuantification,
+    GADTs, GeneralizedNewtypeDeriving, NoMonomorphismRestriction, Rank2Types,
+    RankNTypes, ScopedTypeVariables, StandaloneDeriving, TemplateHaskell,
+    TypeOperators, TypeSynonymInstances, UndecidableInstances, ViewPatterns
