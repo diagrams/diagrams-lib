@@ -104,20 +104,19 @@ module Diagrams.Trail
 
        ) where
 
-import           Control.Arrow       ((***))
-import           Control.Lens        (AnIso', iso, view, op, Wrapped(..), Rewrapped
-                                     , cloneIso, (^.))
+import           Control.Arrow            ((***))
+import           Control.Lens             (AnIso', Rewrapped, Wrapped (..), cloneIso, iso, op, view,
+                                           (^.))
 import           Data.AffineSpace
-import           Data.FingerTree     (FingerTree, ViewL (..), ViewR (..), (<|),
-                                      (|>))
-import qualified Data.FingerTree     as FT
-import qualified Data.Foldable       as F
+import           Data.FingerTree          (FingerTree, ViewL (..), ViewR (..), (<|), (|>))
+import qualified Data.FingerTree          as FT
+import qualified Data.Foldable            as F
 import           Data.Monoid.MList
 import           Data.Semigroup
-import           Data.VectorSpace    hiding (Sum (..))
-import qualified Numeric.Interval.Kaucher    as I
+import           Data.VectorSpace         hiding (Sum (..))
+import qualified Numeric.Interval.Kaucher as I
 
-import           Diagrams.Core       hiding ((|>))
+import           Diagrams.Core            hiding ((|>))
 import           Diagrams.Located
 import           Diagrams.Parametric
 import           Diagrams.Segment
@@ -1057,7 +1056,7 @@ tolerance = 10e-16
 --   @trailVertices . (\`at\` origin)@.
 trailVertices' :: (InnerSpace v, OrderedField (Scalar v))
               => Scalar v ->  Located (Trail v) -> [Point v]
-trailVertices' toler (viewLoc -> (p,t)) 
+trailVertices' toler (viewLoc -> (p,t))
   = withTrail (lineVertices' toler . (`at` p)) (loopVertices' toler . (`at` p)) t
 
 -- : Like trailVertices' but the tolerance is set to tolerance
@@ -1069,20 +1068,20 @@ trailVertices l = trailVertices' tolerance l
 --   'trailVertices' for more information.
 lineVertices' :: (InnerSpace v, OrderedField (Scalar v))
              => Scalar v -> Located (Trail' Line v) -> [Point v]
-lineVertices' toler (viewLoc -> (p,t)) 
+lineVertices' toler (viewLoc -> (p,t))
   = segmentVertices' toler p . lineSegments $ t
 
 -- | Like lineVertices' with tolerance set to tolerance.
 lineVertices :: (InnerSpace v, OrderedField (Scalar v))
              => Located (Trail' Line v) -> [Point v]
-lineVertices l = lineVertices' tolerance l 
+lineVertices l = lineVertices' tolerance l
 
 -- | Extract the vertices of a concretely located loop.  Note that the
 --   initial vertex is not repeated at the end.  See 'trailVertices' for
 --   more information.
 loopVertices' :: (InnerSpace v, OrderedField (Scalar v))
              => Scalar v -> Located (Trail' Loop v) -> [Point v]
-loopVertices' toler (viewLoc -> (p,t)) 
+loopVertices' toler (viewLoc -> (p,t))
   | length segs > 1 = if far > toler  then init ps else init . (drop 1) $ ps
   | otherwise       = ps
   where

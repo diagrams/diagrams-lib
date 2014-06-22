@@ -1,5 +1,6 @@
+{-# LANGUAGE ConstraintKinds  #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE GADTs, ConstraintKinds            #-}
+{-# LANGUAGE GADTs            #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Curvature
@@ -22,8 +23,8 @@ module Diagrams.TwoD.Curvature
 import           Data.Monoid.Inf
 import           Data.VectorSpace
 
-import           Control.Arrow        (first, second)
-import           Control.Monad        (join)
+import           Control.Arrow       (first, second)
+import           Control.Monad       (join)
 
 import           Diagrams.Segment
 import           Diagrams.Tangent

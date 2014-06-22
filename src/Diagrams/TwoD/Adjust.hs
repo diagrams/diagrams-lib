@@ -1,5 +1,7 @@
-{-# LANGUAGE Rank2Types #-}
-{-# LANGUAGE ConstraintKinds, TypeFamilies, FlexibleContexts #-}
+{-# LANGUAGE ConstraintKinds  #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE Rank2Types       #-}
+{-# LANGUAGE TypeFamilies     #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -20,12 +22,10 @@ module Diagrams.TwoD.Adjust
     , adjustDia2D
     ) where
 
-import           Diagrams.Attributes      (lineCap, lineJoin,
-                                           lineMiterLimitA)
+import           Diagrams.Attributes      (lineCap, lineJoin, lineMiterLimitA)
 import           Diagrams.Core
-import           Diagrams.TwoD.Attributes (lineWidthA, lineTextureA)
-import           Diagrams.TwoD.Size       (SizeSpec2D (..), center2D,
-                                           requiredScale, size2D)
+import           Diagrams.TwoD.Attributes (lineTextureA, lineWidthA)
+import           Diagrams.TwoD.Size       (SizeSpec2D (..), center2D, requiredScale, size2D)
 import           Diagrams.TwoD.Text       (fontSizeA)
 import           Diagrams.TwoD.Types      (R2Ish, p2)
 import           Diagrams.Util            (( # ))

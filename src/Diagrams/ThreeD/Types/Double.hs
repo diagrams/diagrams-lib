@@ -1,11 +1,12 @@
-{-# LANGUAGE FlexibleInstances          #-}
-{-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE RankNTypes                 #-}
-{-# LANGUAGE TypeFamilies               #-}
-{-# LANGUAGE TypeOperators              #-}
-{-# LANGUAGE TypeSynonymInstances       #-}
-{-# LANGUAGE UndecidableInstances       #-}
-{-# LANGUAGE ViewPatterns, DeriveDataTypeable               #-}
+{-# LANGUAGE DeriveDataTypeable    #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE TypeSynonymInstances  #-}
+{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE ViewPatterns          #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -23,13 +24,13 @@ module Diagrams.ThreeD.Types.Double
          R3(..), P3, T3
        ) where
 
-import           Control.Lens           (iso, over, _1, _2, _3, (^.))
+import           Control.Lens               (iso, over, (^.), _1, _2, _3)
 
-import           Diagrams.Core
 import           Diagrams.Angle
-import           Diagrams.TwoD.Types.Double(R2)
-import           Diagrams.ThreeD.Types
 import           Diagrams.Coordinates
+import           Diagrams.Core
+import           Diagrams.ThreeD.Types
+import           Diagrams.TwoD.Types.Double (R2)
 
 import           Data.Basis
 import           Data.Cross

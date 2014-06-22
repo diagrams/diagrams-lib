@@ -1,7 +1,7 @@
-{-# LANGUAGE ConstraintKinds   #-}
-{-# LANGUAGE ViewPatterns      #-}
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE TypeFamilies      #-}
+{-# LANGUAGE ConstraintKinds  #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TypeFamilies     #-}
+{-# LANGUAGE ViewPatterns     #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Vector
@@ -24,14 +24,14 @@ module Diagrams.TwoD.Vector
          -- * Synonym for R2 things
        ) where
 
-import Control.Lens ((&), (.~))
+import           Control.Lens        ((&), (.~))
 
-import Data.VectorSpace
+import           Data.VectorSpace
 
-import Diagrams.Core.V
-import Diagrams.Angle
-import Diagrams.Direction
-import Diagrams.TwoD.Types
+import           Diagrams.Angle
+import           Diagrams.Core.V
+import           Diagrams.Direction
+import           Diagrams.TwoD.Types
 
 -- | The unit vector in the positive X direction.
 unitX :: (R2Ish v) => v

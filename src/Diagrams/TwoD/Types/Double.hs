@@ -1,3 +1,4 @@
+{-# LANGUAGE ConstraintKinds            #-}
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
@@ -6,7 +7,6 @@
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE TypeOperators              #-}
 {-# LANGUAGE TypeSynonymInstances       #-}
-{-# LANGUAGE ConstraintKinds            #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 -----------------------------------------------------------------------------
@@ -25,7 +25,7 @@ module Diagrams.TwoD.Types.Double
          R2(..), P2, T2
        ) where
 
-import           Control.Lens           (Rewrapped, Wrapped (..), iso, (^.),  _1, _2)
+import           Control.Lens         (Rewrapped, Wrapped (..), iso, (^.), _1, _2)
 
 
 import           Diagrams.Angle

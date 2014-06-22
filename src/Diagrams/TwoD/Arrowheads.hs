@@ -1,7 +1,8 @@
+{-# LANGUAGE ConstraintKinds           #-}
 {-# LANGUAGE FlexibleContexts          #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE ScopedTypeVariables       #-}
 {-# LANGUAGE TypeFamilies              #-}
-{-# LANGUAGE ConstraintKinds, TypeFamilies, FlexibleContexts, ScopedTypeVariables #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Arrowheads
@@ -55,7 +56,7 @@ module Diagrams.TwoD.Arrowheads
        , ArrowHT
        ) where
 
-import           Control.Lens            ((&), (.~), (^.), (<>~))
+import           Control.Lens            ((&), (.~), (<>~), (^.))
 import           Data.AffineSpace
 import           Data.Default.Class
 import           Data.Monoid             (mempty, (<>))
@@ -204,7 +205,7 @@ spike = arrowheadSpike (3/8 @@ turn)
 
 --   > thornEx = drawHead thorn
 thorn :: (R2Ish v) => ArrowHT v
-thorn = arrowheadThorn (3/8 @@ turn) 
+thorn = arrowheadThorn (3/8 @@ turn)
 
 -- | <<diagrams/src_Diagrams_TwoD_Arrowheads_dartEx.svg#diagram=dartEx&width=100>>
 

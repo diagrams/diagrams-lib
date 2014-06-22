@@ -1,7 +1,6 @@
-{-# LANGUAGE FlexibleContexts
-           , TypeFamilies
-           , ViewPatterns, ConstraintKinds
-  #-}
+{-# LANGUAGE ConstraintKinds  #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TypeFamilies     #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.ThreeD.Vector
@@ -17,8 +16,8 @@ module Diagrams.ThreeD.Vector
          unitX, unitY, unitZ, unit_X, unit_Y, unit_Z,
        ) where
 
-import Diagrams.Coordinates
-import Diagrams.ThreeD.Types
+import           Diagrams.Coordinates
+import           Diagrams.ThreeD.Types
 
 
 -- | The unit vector in the positive X direction.

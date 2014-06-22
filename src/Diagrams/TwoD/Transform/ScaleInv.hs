@@ -1,8 +1,14 @@
+{-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE DeriveDataTypeable    #-}
-{-# LANGUAGE FlexibleInstances, FlexibleContexts, UndecidableInstances     #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE InstanceSigs          #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE StandaloneDeriving    #-}
 {-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE TypeFamilies ,StandaloneDeriving       , ConstraintKinds , AllowAmbiguousTypes, ScopedTypeVariables, InstanceSigs  #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE UndecidableInstances  #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Transform.ScaleInv
@@ -20,12 +26,12 @@ module Diagrams.TwoD.Transform.ScaleInv
     , scaleInv, scaleInvPrim)
     where
 
-import           Control.Lens            (makeLenses, view,(^.))
+import           Control.Lens            (makeLenses, view, (^.))
 import           Data.AdditiveGroup
 import           Data.AffineSpace        ((.-.))
-import           Data.VectorSpace
 import           Data.Semigroup
 import           Data.Typeable
+import           Data.VectorSpace
 
 import           Diagrams.Angle
 import           Diagrams.Core
@@ -86,7 +92,6 @@ instance (HasOrigin t) => HasOrigin (ScaleInv t) where
   moveOriginTo p (ScaleInv t v l) = ScaleInv (moveOriginTo p t) v (moveOriginTo p l)
 
 instance (R2Ish (V t), Transformable t) => Transformable (ScaleInv t) where
-  transform :: Transformation (V (ScaleInv t)) -> ScaleInv t -> ScaleInv t
   transform tr (ScaleInv t v l) = ScaleInv (trans . rot $ t) (rot v) l'
     where
       angle :: Angle (Scalar (V (ScaleInv t)))

@@ -1,0 +1,29 @@
+# stylish-haskell configuration file
+# ==================================
+
+steps:
+  # Import cleanup
+  - imports:
+      # global produced the smallest diff
+      align: global
+
+  # Language pragmas
+  - language_pragmas:
+      style: vertical
+      remove_redundant: true
+
+  # Align the types in record declarations
+  - records: {}
+
+  # Remove trailing whitespace
+  - trailing_whitespace: {}
+
+  # unused steps - UnicodeSyntax, tabs to spaces
+
+# Wrap to 100 columns, because I feel like it
+columns: 100
+
+# No language extensions are enabled by default.
+# language_extensions:
+#  - TemplateHaskell
+#  - QuasiQuotes

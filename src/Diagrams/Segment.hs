@@ -11,7 +11,6 @@
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE TypeOperators              #-}
 {-# LANGUAGE UndecidableInstances       #-}
-{-# LANGUAGE ViewPatterns               #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -64,15 +63,15 @@ module Diagrams.Segment
 
        ) where
 
-import           Control.Lens (makeLenses, Wrapped(..), Rewrapped, iso, op)
-import           Control.Applicative (liftA2)
+import           Control.Applicative      (liftA2)
+import           Control.Lens             (Rewrapped, Wrapped (..), iso, makeLenses, op)
 import           Data.AffineSpace
 import           Data.FingerTree
 import           Data.Monoid.MList
 import           Data.Semigroup
-import           Data.VectorSpace    hiding (Sum (..))
-import           Numeric.Interval.Kaucher    (Interval (..))
-import qualified Numeric.Interval.Kaucher    as I
+import           Data.VectorSpace         hiding (Sum (..))
+import           Numeric.Interval.Kaucher (Interval (..))
+import qualified Numeric.Interval.Kaucher as I
 
 import           Diagrams.Core
 import           Diagrams.Located

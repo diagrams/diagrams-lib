@@ -1,5 +1,7 @@
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE ViewPatterns, ConstraintKinds, FlexibleContexts #-}
+{-# LANGUAGE ConstraintKinds  #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TypeFamilies     #-}
+{-# LANGUAGE ViewPatterns     #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Arc
@@ -23,8 +25,8 @@ module Diagrams.TwoD.Arc
     ) where
 
 import           Diagrams.Angle
-import           Diagrams.Direction
 import           Diagrams.Core
+import           Diagrams.Direction
 import           Diagrams.Located        (at)
 import           Diagrams.Segment
 import           Diagrams.Trail
@@ -34,7 +36,7 @@ import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector    (unitX, unitY, unit_Y)
 import           Diagrams.Util           (( # ))
 
-import           Control.Lens            ((^.), (&), (<>~))
+import           Control.Lens            ((&), (<>~), (^.))
 import           Data.AffineSpace
 import           Data.Semigroup          ((<>))
 import           Data.VectorSpace

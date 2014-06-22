@@ -1,6 +1,7 @@
+{-# LANGUAGE ConstraintKinds  #-}
 {-# LANGUAGE DeriveGeneric    #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE TypeFamilies, ConstraintKinds     #-}
+{-# LANGUAGE TypeFamilies     #-}
 
 {-# OPTIONS_GHC -funbox-strict-fields #-}
 -----------------------------------------------------------------------------

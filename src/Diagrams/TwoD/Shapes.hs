@@ -1,7 +1,7 @@
+{-# LANGUAGE ConstraintKinds  #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TemplateHaskell  #-}
 {-# LANGUAGE TypeFamilies     #-}
-{-# LANGUAGE ConstraintKinds, TypeFamilies, FlexibleContexts #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -62,7 +62,7 @@ import           Diagrams.TwoD.Vector
 
 import           Diagrams.Util
 
-import           Control.Lens            (makeLenses, op, (&), (.~), (^.), (<>~))
+import           Control.Lens            (makeLenses, op, (&), (.~), (<>~), (^.))
 import           Data.Default.Class
 import           Data.Semigroup
 import           Data.VectorSpace
@@ -237,9 +237,9 @@ dodecagon = regPoly 12
 --  Other shapes  ------------------------------------------
 ------------------------------------------------------------
 data RoundedRectOpts d = RoundedRectOpts { _radiusTL :: d
-                                       , _radiusTR :: d
-                                       , _radiusBL :: d
-                                       , _radiusBR :: d
+                                       , _radiusTR   :: d
+                                       , _radiusBL   :: d
+                                       , _radiusBR   :: d
                                        }
 
 makeLenses ''RoundedRectOpts

@@ -1,11 +1,13 @@
+{-# LANGUAGE ConstraintKinds            #-}
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE GADTs                      #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE ScopedTypeVariables        #-}
 {-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeFamilies               #-}
-{-# LANGUAGE ConstraintKinds, TypeFamilies, FlexibleContexts, UndecidableInstances, ScopedTypeVariables #-}
+{-# LANGUAGE UndecidableInstances       #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -100,10 +102,8 @@ module Diagrams.TwoD.Arrow
        ) where
 
 import           Control.Applicative      ((<*>))
-import           Control.Lens             (Lens', Setter', Traversal',
-                                           generateSignatures, lensRules,
-                                           makeLensesWith, view, (%~), (&),
-                                           (.~), (^.))
+import           Control.Lens             (Lens', Setter', Traversal', generateSignatures,
+                                           lensRules, makeLensesWith, view, (%~), (&), (.~), (^.))
 import           Data.AffineSpace
 import           Data.Default.Class
 import           Data.Functor             ((<$>))
@@ -184,7 +184,7 @@ headGap :: Lens' (ArrowOpts v) (Measure v)
 tailGap :: Lens' (ArrowOpts v) (Measure v)
 
 -- | Set both the @headGap@ and @tailGap@ simultaneously.
-gaps :: Traversal' (ArrowOpts v) (Measure v) 
+gaps :: Traversal' (ArrowOpts v) (Measure v)
 gaps f opts = (\h t -> opts & headGap .~ h & tailGap .~ t)
         <$> f (opts ^. headGap)
         <*> f (opts ^. tailGap)
@@ -208,7 +208,7 @@ shaftStyle :: Lens' (ArrowOpts v) (Style v)
 -- | The length from the start of the joint to the tip of the head.
 headLength :: Lens' (ArrowOpts v) (Measure v)
 
--- | The length of the tail plus its joint. 
+-- | The length of the tail plus its joint.
 tailLength :: Lens' (ArrowOpts v) (Measure v)
 
 -- | Set both the @headLength@ and @tailLength@ simultaneously.

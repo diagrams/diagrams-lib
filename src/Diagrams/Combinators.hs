@@ -32,7 +32,7 @@ module Diagrams.Combinators
 
          -- * n-ary operations
        , appends
-       , position, atPoints 
+       , position, atPoints
        , cat, cat'
        , CatOpts(_catMethod, _sep), catMethod, sep
        , CatMethod(..)
@@ -41,9 +41,8 @@ module Diagrams.Combinators
 
 import           Data.Typeable
 
-import           Control.Lens          (Lens', generateSignatures, lensField,
-                                        lensRules, makeLensesWith, (%~), (&),
-                                        (.~), (^.), _Wrapping)
+import           Control.Lens          (Lens', generateSignatures, lensField, lensRules,
+                                        makeLensesWith, (%~), (&), (.~), (^.), _Wrapping)
 import           Data.AdditiveGroup
 import           Data.AffineSpace      ((.+^))
 import           Data.Default.Class

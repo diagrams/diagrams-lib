@@ -1,9 +1,9 @@
 {-# LANGUAGE FlexibleContexts #-}
 module DiamBench where
-import Criterion.Main
-import Diagrams.Prelude
-import Diagrams.ThreeD.Shapes
-import Diagrams.ThreeD.Types
+import           Criterion.Main
+import           Diagrams.Prelude
+import           Diagrams.ThreeD.Shapes
+import           Diagrams.ThreeD.Types
 
 -- Comparing the performance of two different diameter implementations
 

@@ -1,6 +1,6 @@
-{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE TypeFamilies               #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Direction
@@ -19,11 +19,11 @@ module Diagrams.Direction
        , angleBetweenDirs
        ) where
 
-import Control.Lens (Iso', iso)
-import Data.VectorSpace
+import           Control.Lens     (Iso', iso)
+import           Data.VectorSpace
 
-import Diagrams.Angle
-import Diagrams.Core
+import           Diagrams.Angle
+import           Diagrams.Core
 
 --------------------------------------------------------------------------------
 -- Direction

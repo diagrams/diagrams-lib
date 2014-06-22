@@ -1,7 +1,8 @@
+{-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE TypeSynonymInstances, ConstraintKinds  #-}
+{-# LANGUAGE TypeSynonymInstances  #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Ellipse
@@ -24,16 +25,16 @@ module Diagrams.TwoD.Ellipse
 
 import           Diagrams.Core
 
+import           Data.VectorSpace
 import           Diagrams.Angle
 import           Diagrams.Located        (at)
+import           Diagrams.Trail          (glueTrail)
 import           Diagrams.TrailLike
-import           Diagrams.Trail (glueTrail)
 import           Diagrams.TwoD.Arc
 import           Diagrams.TwoD.Transform
 import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector    (xDir)
 import           Diagrams.Util
-import           Data.VectorSpace
 
 -- | A circle of radius 1, with center at the origin.
 unitCircle :: (TrailLike t, R2Ish (V t)) => t

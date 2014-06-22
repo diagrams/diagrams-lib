@@ -1,12 +1,13 @@
-{-# LANGUAGE FlexibleInstances, FlexibleContexts          #-}
-{-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE RankNTypes                 #-}
-{-# LANGUAGE TypeFamilies               #-}
-{-# LANGUAGE TypeOperators              #-}
-{-# LANGUAGE TypeSynonymInstances       #-}
-{-# LANGUAGE UndecidableInstances       #-}
-{-# LANGUAGE ViewPatterns               #-}
-{-# LANGUAGE ConstraintKinds               #-}
+{-# LANGUAGE ConstraintKinds       #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE TypeSynonymInstances  #-}
+{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE ViewPatterns          #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -31,16 +32,16 @@ module Diagrams.ThreeD.Types
 
 import           Control.Lens           (Iso', iso)
 
-import           Diagrams.Core
 import           Diagrams.Angle
 import           Diagrams.Coordinates
+import           Diagrams.Core
 import           Diagrams.Points
 
 import           Data.AffineSpace.Point
 import           Data.Basis
 import           Data.Cross
-import           Data.VectorSpace
 import           Data.Typeable
+import           Data.VectorSpace
 
 ------------------------------------------------------------
 -- 3D Euclidean space

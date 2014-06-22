@@ -146,17 +146,17 @@ import           Diagrams.Query
 import           Diagrams.Segment
 import           Diagrams.Tangent
 import           Diagrams.Trace
-import           Diagrams.Trail hiding (trailPoints, loopPoints, linePoints)
+import           Diagrams.Trail             hiding (linePoints, loopPoints, trailPoints)
 import           Diagrams.TrailLike
 import           Diagrams.Transform
 import           Diagrams.TwoD
 import           Diagrams.Util
 
 import           Control.Applicative
+import           Control.Lens               ((%~), (&), (.~))
 import           Data.Active
 import           Data.AffineSpace
 import           Data.Colour                hiding (AffineSpace (..), atop, over)
 import           Data.Colour.Names          hiding (tan)
 import           Data.Semigroup
 import           Data.VectorSpace           hiding (Sum (..))
-import           Control.Lens               ((&), (.~), (%~))

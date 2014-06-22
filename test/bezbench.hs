@@ -1,8 +1,11 @@
-{-# LANGUAGE FlexibleInstances, TypeSynonymInstances, TypeFamilies, NoMonomorphismRestriction #-}
-import Data.VectorSpace
-import Data.NumInstances
-import Criterion.Main
-import Diagrams.Segment
+{-# LANGUAGE FlexibleInstances         #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE TypeFamilies              #-}
+{-# LANGUAGE TypeSynonymInstances      #-}
+import           Criterion.Main
+import           Data.NumInstances
+import           Data.VectorSpace
+import           Diagrams.Segment
 
 type Q2 = (Rational,Rational)
 type R2 = (Double,Double)

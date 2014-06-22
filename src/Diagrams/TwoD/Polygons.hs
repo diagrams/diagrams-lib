@@ -1,10 +1,13 @@
+{-# LANGUAGE ConstraintKinds           #-}
 {-# LANGUAGE DeriveFunctor             #-}
 {-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE FlexibleContexts          #-}
 {-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE StandaloneDeriving        #-}
 {-# LANGUAGE TemplateHaskell           #-}
 {-# LANGUAGE TypeFamilies              #-}
+{-# LANGUAGE UndecidableInstances      #-}
 {-# LANGUAGE ViewPatterns              #-}
-{-# LANGUAGE ConstraintKinds, TypeFamilies, FlexibleContexts, StandaloneDeriving, UndecidableInstances #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -46,12 +49,11 @@ module Diagrams.TwoD.Polygons(
 
     ) where
 
-import           Control.Lens            (Lens', generateSignatures, lensRules,
-                                          makeLensesWith, (.~), (^.), view)
+import           Control.Lens            (Lens', generateSignatures, lensRules, makeLensesWith,
+                                          view, (.~), (^.))
 import           Control.Monad           (forM, liftM)
 import           Control.Monad.ST        (ST, runST)
-import           Data.Array.ST           (STUArray, newArray, readArray,
-                                          writeArray)
+import           Data.Array.ST           (STUArray, newArray, readArray, writeArray)
 import           Data.List               (maximumBy, minimumBy)
 import           Data.Maybe              (catMaybes)
 import           Data.Monoid             (mconcat, mempty)

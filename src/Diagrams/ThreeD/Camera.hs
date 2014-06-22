@@ -1,9 +1,11 @@
-{-# LANGUAGE DeriveDataTypeable, ConstraintKinds, UndecidableInstances    #-}
+{-# LANGUAGE ConstraintKinds       #-}
+{-# LANGUAGE DeriveDataTypeable    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE UndecidableInstances  #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -121,7 +123,7 @@ mm50 = PerspectiveLens (40.5 @@ deg) (27 @@ deg)
 mm50Wide = PerspectiveLens (43.2 @@ deg)  (27 @@ deg)
 
 -- | mm50Narrow has the same vertical field of view as mm50, but an
--- aspect ratio of 4:3, for VGA and similar computer resulotions.
+-- aspect ratio of 4:3, for VGA and similar computer resolutions.
 mm50Narrow = PerspectiveLens (36 @@ deg) (27 @@ deg)
 
 camForward :: (R3Ish v, v ~ V l) => Camera l -> Direction v
@@ -137,5 +139,5 @@ camRight c = direction right where
 camLens :: (R3Ish v, v ~ V l) => Camera l -> l
 camLens = lens
 
-camAspect :: (R3Ish v, v ~ V l) => CameraLens l => Camera l -> Scalar v
+camAspect :: (R3Ish v, v ~ V l, CameraLens l) => Camera l -> Scalar v
 camAspect = aspect . camLens

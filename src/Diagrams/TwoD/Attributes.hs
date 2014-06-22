@@ -1,11 +1,14 @@
+{-# LANGUAGE ConstraintKinds            #-}
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE ExistentialQuantification  #-}
+{-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
+{-# LANGUAGE StandaloneDeriving         #-}
 {-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeFamilies               #-}
-{-# LANGUAGE ConstraintKinds, TypeFamilies, FlexibleContexts, StandaloneDeriving, UndecidableInstances #-}
+{-# LANGUAGE UndecidableInstances       #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -68,10 +71,10 @@ module Diagrams.TwoD.Attributes (
 
   ) where
 
-import           Diagrams.Core
-import           Diagrams.Core.Style         (setAttr)
 import           Diagrams.Attributes
 import           Diagrams.Attributes.Compile
+import           Diagrams.Core
+import           Diagrams.Core.Style         (setAttr)
 import           Diagrams.TwoD.Types
 
 import           Diagrams.Core.Types         (RTree)
@@ -79,10 +82,10 @@ import           Diagrams.Located            (unLoc)
 import           Diagrams.Path               (Path, pathTrails)
 import           Diagrams.Trail              (isLoop)
 
-import           Control.Lens ( makeLensesWith, generateSignatures, lensRules
-                              , makePrisms, Lens', (&), (%~), (.~), Setter', sets)
+import           Control.Lens                (Lens', Setter', generateSignatures, lensRules,
+                                              makeLensesWith, makePrisms, sets, (%~), (&), (.~))
 
-import           Data.Colour hiding (AffineSpace)
+import           Data.Colour                 hiding (AffineSpace)
 import           Data.Data
 import           Data.Default.Class
 import           Data.Maybe                  (fromMaybe)

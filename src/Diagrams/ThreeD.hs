@@ -44,13 +44,13 @@ module Diagrams.ThreeD
        , module Diagrams.ThreeD.Vector
        ) where
 
-import Diagrams.ThreeD.Align
-import Diagrams.ThreeD.Attributes
-import Diagrams.ThreeD.Camera
-import Diagrams.ThreeD.Deform
-import Diagrams.ThreeD.Light
-import Diagrams.ThreeD.Shapes
-import Diagrams.ThreeD.Transform
-import Diagrams.ThreeD.Types
-import Diagrams.ThreeD.Types.Double
-import Diagrams.ThreeD.Vector
+import           Diagrams.ThreeD.Align
+import           Diagrams.ThreeD.Attributes
+import           Diagrams.ThreeD.Camera
+import           Diagrams.ThreeD.Deform
+import           Diagrams.ThreeD.Light
+import           Diagrams.ThreeD.Shapes
+import           Diagrams.ThreeD.Transform
+import           Diagrams.ThreeD.Types
+import           Diagrams.ThreeD.Types.Double
+import           Diagrams.ThreeD.Vector

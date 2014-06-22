@@ -239,7 +239,7 @@ module Diagrams.TwoD
        , sized, sizedAs
 
         -- * Textures
-      , Texture(..), solid 
+      , Texture(..), solid
       , SpreadMethod(..), GradientStop(..), mkStops, getFillTexture
       , fillTexture, getLineTexture, lineTexture, lineTextureA
       , stopFraction, stopColor
@@ -293,4 +293,4 @@ import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Types.Double
 import           Diagrams.TwoD.Vector
 
-import           Diagrams.Util             (tau)
+import           Diagrams.Util              (tau)

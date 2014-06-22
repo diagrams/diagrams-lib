@@ -1,8 +1,10 @@
+{-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE ViewPatterns         , ConstraintKinds, ScopedTypeVariables #-}
+{-# LANGUAGE ViewPatterns          #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.ThreeD.Transform
@@ -47,12 +49,12 @@ import           Diagrams.Core
 import qualified Diagrams.Core.Transform as T
 
 import           Diagrams.Angle
-import           Diagrams.Direction
-import           Diagrams.Transform
-import           Diagrams.ThreeD.Types
 import           Diagrams.Coordinates
+import           Diagrams.Direction
+import           Diagrams.ThreeD.Types
+import           Diagrams.Transform
 
-import           Control.Lens                   (view, (*~), (//~))
+import           Control.Lens            (view, (*~), (//~))
 import           Data.Semigroup
 
 import           Data.AffineSpace

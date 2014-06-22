@@ -1,9 +1,11 @@
-{-# LANGUAGE GADTs            #-}
-{-# LANGUAGE TemplateHaskell  #-}
-{-# LANGUAGE TypeFamilies     #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE ViewPatterns     #-}
-{-# LANGUAGE ConstraintKinds, TypeFamilies, FlexibleContexts, StandaloneDeriving, UndecidableInstances #-}
+{-# LANGUAGE ConstraintKinds      #-}
+{-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE GADTs                #-}
+{-# LANGUAGE StandaloneDeriving   #-}
+{-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE TypeFamilies         #-}
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE ViewPatterns         #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -12,15 +14,15 @@
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
--- Compute offsets to segments in two dimensions.  More details can be 
--- found in the manual at 
+-- Compute offsets to segments in two dimensions.  More details can be
+-- found in the manual at
 -- <http://projects.haskell.org/diagrams/doc/manual.html#offsets-of-segments-trails-and-paths>.
 --
 -----------------------------------------------------------------------------
 module Diagrams.TwoD.Offset
-    ( 
+    (
       -- * Offsets
-      
+
       offsetSegment
 
     , OffsetOpts(..), offsetJoin, offsetMiterLimit, offsetEpsilon
@@ -39,33 +41,33 @@ module Diagrams.TwoD.Offset
 
     ) where
 
-import Control.Applicative
-import Control.Lens            hiding (at)
+import           Control.Applicative
+import           Control.Lens            hiding (at)
 
-import Data.AffineSpace
-import Data.Maybe              (catMaybes)
-import Data.Monoid
-import Data.Monoid.Inf
-import Data.VectorSpace
+import           Data.AffineSpace
+import           Data.Maybe              (catMaybes)
+import           Data.Monoid
+import           Data.Monoid.Inf
+import           Data.VectorSpace
 
-import Data.Default.Class
+import           Data.Default.Class
 
-import Diagrams.Core
+import           Diagrams.Core
 
-import Diagrams.Angle
-import Diagrams.Attributes
-import Diagrams.Direction      (direction)
-import Diagrams.Located
-import Diagrams.Parametric
-import Diagrams.Path
-import Diagrams.Segment
-import Diagrams.Trail           hiding (offset, isLoop)
-import Diagrams.TrailLike
-import Diagrams.TwoD.Arc
-import Diagrams.TwoD.Curvature
-import Diagrams.TwoD.Path       ()
-import Diagrams.TwoD.Types
-import Diagrams.TwoD.Vector     (perp)
+import           Diagrams.Angle
+import           Diagrams.Attributes
+import           Diagrams.Direction      (direction)
+import           Diagrams.Located
+import           Diagrams.Parametric
+import           Diagrams.Path
+import           Diagrams.Segment
+import           Diagrams.Trail          hiding (isLoop, offset)
+import           Diagrams.TrailLike
+import           Diagrams.TwoD.Arc
+import           Diagrams.TwoD.Curvature
+import           Diagrams.TwoD.Path      ()
+import           Diagrams.TwoD.Types
+import           Diagrams.TwoD.Vector    (perp)
 
 unitPerp :: (R2Ish v) => v -> v
 unitPerp = normalized . perp
@@ -106,11 +108,11 @@ perpAtParam s@(Cubic _ _ _)              t = negateV $ unitPerp a
 -- | Options for specifying line join and segment epsilon for an offset
 --   involving multiple segments.
 data OffsetOpts d = OffsetOpts
-    { _offsetJoin :: LineJoin
+    { _offsetJoin       :: LineJoin
     , _offsetMiterLimit :: d
-    , _offsetEpsilon :: d
+    , _offsetEpsilon    :: d
     }
-    
+
 deriving instance Eq d => Eq (OffsetOpts d)
 deriving instance Show d => Show (OffsetOpts d)
 
@@ -132,10 +134,10 @@ instance (Fractional d) => Default (OffsetOpts d) where
 
 -- | Options for specifying how a 'Trail' should be expanded.
 data ExpandOpts d = ExpandOpts
-    { _expandJoin :: LineJoin
+    { _expandJoin       :: LineJoin
     , _expandMiterLimit :: d
-    , _expandCap  :: LineCap
-    , _expandEpsilon :: d
+    , _expandCap        :: LineCap
+    , _expandEpsilon    :: d
     } deriving (Eq, Show)
 
 makeLensesWith (lensRules & generateSignatures .~ False) ''ExpandOpts
@@ -370,7 +372,7 @@ expandLine opts r (mapLoc wrapLine -> t) = caps cap r s e (f r) (f $ -r)
     where
       eps = opts^.expandEpsilon
       offset r' = map (bindLoc (offsetSegment eps r')) . locatedTrailSegments
-      f r' = joinSegments eps (fromLineJoin (opts^.expandJoin)) False (opts^.expandMiterLimit) r' ends 
+      f r' = joinSegments eps (fromLineJoin (opts^.expandJoin)) False (opts^.expandMiterLimit) r' ends
            . offset r' $ t
       ends = tail . trailVertices $ t
       s = atStart t
@@ -382,7 +384,7 @@ expandLoop opts r (mapLoc wrapLoop -> t) = (trailLike $ f r) <> (trailLike . rev
     where
       eps = opts^.expandEpsilon
       offset r' = map (bindLoc (offsetSegment eps r')) . locatedTrailSegments
-      f r' = joinSegments eps (fromLineJoin (opts^.expandJoin)) True (opts^.expandMiterLimit) r' ends 
+      f r' = joinSegments eps (fromLineJoin (opts^.expandJoin)) True (opts^.expandMiterLimit) r' ends
            . offset r' $ t
       ends = (\(a:as) -> as ++ [a]) . trailVertices $ t
 
@@ -472,10 +474,10 @@ capArc r c a b = trailLike . moveTo c $ fs
 
 -- Arc helpers
 -- always picks the shorter arc (< τ/2)
-arcV :: (R2Ish v) => (TrailLike t, V t ~ v) => v -> v -> t
+arcV :: (R2Ish v, TrailLike t, V t ~ v) => v -> v -> t
 arcV u v = arc (direction u) (angleBetween v u)
 
-arcVCW :: (R2Ish v) => (TrailLike t, V t ~ v) => v -> v -> t
+arcVCW :: (R2Ish v, TrailLike t, V t ~ v) => v -> v -> t
 arcVCW u v = arc (direction u) (negateV $ angleBetween v u)
 
 -- | Join together a list of located trails with the given join style.  The
@@ -541,7 +543,7 @@ joinSegmentArc _ r e a b = capArc r e (atEnd a) (atStart b)
 --   If the intersection is beyond the miter limit times the radius, stop at the limit.
 joinSegmentIntersect
     :: (R2Ish v) => Scalar v -> Scalar v -> Point v -> Located (Trail v) -> Located (Trail v) -> Trail v
-joinSegmentIntersect miterLimit r e a b = 
+joinSegmentIntersect miterLimit r e a b =
     if cross < 0.000001
       then clip
       else case traceP pa va t of

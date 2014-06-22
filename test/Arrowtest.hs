@@ -1,8 +1,8 @@
 {-# LANGUAGE NoMonomorphismRestriction #-}
 
-import Diagrams.Prelude
-import Diagrams.Backend.SVG.CmdLine
-import Data.List.Split (chunksOf)
+import           Data.List.Split              (chunksOf)
+import           Diagrams.Backend.SVG.CmdLine
+import           Diagrams.Prelude
 
 -- Create a 3 x 3 grid of circles named "1" to "9"
 c = circle 1.5 # fc lightgray # lw none # showOrigin

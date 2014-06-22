@@ -1,8 +1,10 @@
+{-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE ViewPatterns, ConstraintKinds, TypeOperators          #-}
+{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE ViewPatterns          #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Transform
@@ -57,11 +59,11 @@ import           Diagrams.Transform
 import           Diagrams.TwoD.Size      (height, width)
 import           Diagrams.TwoD.Types
 
+import           Control.Lens            (review, (^.))
 import           Data.AdditiveGroup
 import           Data.AffineSpace
 import           Data.Semigroup
 import           Data.VectorSpace
-import           Control.Lens            (review, (^.))
 
 type T = Transformation
 type P = Point

@@ -1,8 +1,9 @@
+{-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE ViewPatterns          #-}
-{-# LANGUAGE ConstraintKinds, ScopedTypeVariables #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Combinators
@@ -38,7 +39,7 @@ module Diagrams.TwoD.Combinators
 
     ) where
 
-import           Control.Lens ((&), (.~))
+import           Control.Lens             ((&), (.~))
 import           Data.AffineSpace
 import           Data.Colour
 import           Data.Default.Class
@@ -54,7 +55,7 @@ import           Diagrams.Path
 import           Diagrams.Segment
 import           Diagrams.TrailLike
 import           Diagrams.TwoD.Align
-import           Diagrams.TwoD.Attributes (lineWidth, fc)
+import           Diagrams.TwoD.Attributes (fc, lineWidth)
 import           Diagrams.TwoD.Path       ()
 import           Diagrams.TwoD.Shapes
 import           Diagrams.TwoD.Transform  (scaleX, scaleY)
@@ -260,6 +261,6 @@ bg c d = d <> boundingRect d # lineWidth (Output 0) # fc c
 -- | Similar to 'bg' but makes the colored background rectangle larger than
 --   the diagram. The first parameter is used to set how far the background
 --   extends beyond the diagram.
-bgFrame :: (R2Ish v, Renderable (Path v) b, Backend b v) 
+bgFrame :: (R2Ish v, Renderable (Path v) b, Backend b v)
     => Scalar v -> Colour Double -> Diagram b v -> Diagram b v
 bgFrame f c d = d <> boundingRect (frame f d) # lineWidth (Output 0) # fc c

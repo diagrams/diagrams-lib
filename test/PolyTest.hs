@@ -1,9 +1,9 @@
 {-# LANGUAGE NoMonomorphismRestriction #-}
 
-import Diagrams.Prelude
-import Diagrams.Backend.Cairo.CmdLine
+import           Diagrams.Backend.Cairo.CmdLine
+import           Diagrams.Prelude
 
-import Diagrams.TwoD.Polygons
+import           Diagrams.TwoD.Polygons
 
 -- d = stroke . close $ fromVertices (polyPoints with { polyStar = StarFun succ })
 
@@ -19,7 +19,7 @@ mkR v = (mconcat . mconcat $ p)
 d = hcat' with {sep = 0.5} (map mkR vs)
   # lw 0.05
 
-s = stroke $ starPoly (StarSkip 5) 
+s = stroke $ starPoly (StarSkip 5)
                (polygon (with & polyType .~ PolyPolar
                                             (repeat (tau/15 :: Rad))
                                             (take 15 (cycle [6,7,8]))

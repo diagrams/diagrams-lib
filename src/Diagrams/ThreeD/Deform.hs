@@ -1,12 +1,14 @@
-{-# LANGUAGE ConstraintKinds, TypeFamilies, FlexibleContexts #-}
+{-# LANGUAGE ConstraintKinds  #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TypeFamilies     #-}
 module Diagrams.ThreeD.Deform where
 
-import Control.Lens
+import           Control.Lens
 
-import Diagrams.Deform
+import           Diagrams.Deform
 
-import Diagrams.Coordinates
-import Diagrams.ThreeD.Types
+import           Diagrams.Coordinates
+import           Diagrams.ThreeD.Types
 
 -- | The parallel projection onto the plane x=0
 parallelX0 :: (R3Ish v) => Deformation v

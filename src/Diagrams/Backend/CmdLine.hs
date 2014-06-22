@@ -426,10 +426,10 @@ class Mainable d where
     -- @
     -- import Diagrams.Prelude
     -- import Diagrams.Backend.TheBestBackend.CmdLine
-    -- 
+    --
     -- d :: Diagram B R2
     -- d = ...
-    -- 
+    --
     -- main = mainWith d
     -- @
     --

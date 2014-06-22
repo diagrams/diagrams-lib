@@ -1,13 +1,15 @@
+{-# LANGUAGE ConstraintKinds            #-}
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE Rank2Types                 #-}
+{-# LANGUAGE StandaloneDeriving         #-}
 {-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE UndecidableInstances       #-}
 {-# LANGUAGE ViewPatterns               #-}
-{-# LANGUAGE ConstraintKinds, TypeFamilies, FlexibleContexts, StandaloneDeriving, UndecidableInstances #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 -----------------------------------------------------------------------------
 -- |
@@ -46,9 +48,8 @@ module Diagrams.TwoD.Path
        ) where
 
 import           Control.Applicative   (liftA2)
-import           Control.Lens          (Lens, Lens', generateSignatures,
-                                        lensRules, makeLensesWith, makeWrapped,
-                                        op, (.~), (^.), _Wrapped')
+import           Control.Lens          (Lens, Lens', generateSignatures, lensRules, makeLensesWith,
+                                        makeWrapped, op, (.~), (^.), _Wrapped')
 import qualified Data.Foldable         as F
 import           Data.Semigroup
 import           Data.Typeable

@@ -1,10 +1,10 @@
+{-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE DeriveDataTypeable    #-}
 {-# LANGUAGE EmptyDataDecls        #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE ConstraintKinds, TypeFamilies, FlexibleContexts #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -35,8 +35,8 @@ module Diagrams.TwoD.Image
 import           Codec.Picture
 import           Codec.Picture.Types  (dynamicMap)
 
-import           Data.Typeable        (Typeable)
 import           Data.Colour          (AlphaColour)
+import           Data.Typeable        (Typeable)
 
 import           Diagrams.Core
 

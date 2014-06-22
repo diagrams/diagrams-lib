@@ -1,8 +1,8 @@
+{-# LANGUAGE ConstraintKinds      #-}
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE ConstraintKinds #-}
-{-# LANGUAGE TypeFamilies #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 -- Orphan Traced instances for Segment Closed R2 and FixedSegment R2.
@@ -24,7 +24,7 @@
 module Diagrams.TwoD.Segment where
 
 import           Control.Applicative     (liftA2)
-import           Control.Lens ((^.))
+import           Control.Lens            ((^.))
 
 import           Data.AffineSpace
 import           Data.VectorSpace

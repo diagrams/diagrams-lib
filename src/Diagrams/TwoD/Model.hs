@@ -1,6 +1,8 @@
+{-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TemplateHaskell, ConstraintKinds, TypeFamilies       #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeFamilies          #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Model
@@ -20,34 +22,34 @@ module Diagrams.TwoD.Model
        , showLabels
        ) where
 
-import           Control.Lens          (makeLenses, (^.))
+import           Control.Lens             (makeLenses, (^.))
 
 import           Diagrams.Core
-import           Diagrams.TwoD.Attributes
 import           Diagrams.Path
+import           Diagrams.TwoD.Attributes
 import           Diagrams.TwoD.Ellipse
 import           Diagrams.TwoD.Path
-import           Diagrams.TwoD.Size    (size2D)
+import           Diagrams.TwoD.Size       (size2D)
 import           Diagrams.TwoD.Text
 import           Diagrams.TwoD.Types
 import           Diagrams.Util
 
-import           Control.Arrow         (second)
-import           Data.AffineSpace      ((.-.))
+import           Control.Arrow            (second)
+import           Data.AffineSpace         ((.-.))
 import           Data.Default.Class
 import           Data.Semigroup
-import           Data.VectorSpace      ((^*),Scalar)
+import           Data.VectorSpace         (Scalar, (^*))
 
-import qualified Data.Map              as M
+import qualified Data.Map                 as M
 
-import           Data.Colour           (Colour)
+import           Data.Colour              (Colour)
 import           Data.Colour.Names
 
 ------------------------------------------------------------
 -- Marking the origin
 ------------------------------------------------------------
 
-data OriginOpts d = OriginOpts { _oColor   :: Colour Double
+data OriginOpts d = OriginOpts { _oColor :: Colour Double
                              , _oScale   :: d
                              , _oMinSize :: d
                              }

@@ -1,9 +1,9 @@
+{-# LANGUAGE ConstraintKinds      #-}
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE GADTs                #-}
 {-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE ConstraintKinds      #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -31,8 +31,8 @@ import           Diagrams.Core
 import           Diagrams.Located
 import           Diagrams.Parametric
 import           Diagrams.Segment
-import           Diagrams.TwoD.Vector (perp)
 import           Diagrams.TwoD.Types  (R2Ish)
+import           Diagrams.TwoD.Vector (perp)
 
 ------------------------------------------------------------
 -- Tangent

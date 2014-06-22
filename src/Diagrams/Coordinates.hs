@@ -20,12 +20,12 @@ module Diagrams.Coordinates
     )
     where
 
-import           Control.Lens          (Lens')
+import           Control.Lens           (Lens')
 import           Data.VectorSpace
 
-import           Diagrams.Points
 import           Data.AffineSpace.Point
 import           Diagrams.Core.V
+import           Diagrams.Points
 
 -- | Types which are instances of the @Coordinates@ class can be
 --   constructed using '^&' (for example, a three-dimensional vector
