@@ -52,7 +52,8 @@ data External deriving Typeable
 data Native (t :: *) deriving Typeable
 
 -- | 'ImageData' is either a JuicyPixels @DynamicImage@ tagged as 'Embedded' or
---   a reference tagged as 'External'.
+--   a reference tagged as 'External'. Additionally 'Native' is provided for
+--   external libraries to hook into.
 data ImageData :: * -> * where
   ImageRaster :: DynamicImage -> ImageData Embedded
   ImageRef :: FilePath -> ImageData External
