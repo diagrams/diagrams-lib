@@ -159,16 +159,16 @@ diagramOpts = DiagramOpts
        <> help "OUTPUT file")
 
 -- | Command line parser for 'DiagramMultiOpts'.
---   Selection is option @--selection@ or @-s@.
---   List is @--list@ or @-l@.
+--   Selection is option @--selection@ or @-S@.
+--   List is @--list@ or @-L@.
 diagramMultiOpts :: Parser DiagramMultiOpts
 diagramMultiOpts = DiagramMultiOpts
     <$> (optional . strOption)
-        ( long "selection" <> short 's'
+        ( long "selection" <> short 'S'
        <> metavar "NAME"
        <> help "NAME of the diagram to render")
     <*> switch
-        ( long "list" <> short 'l'
+        ( long "list" <> short 'L'
        <> help "List all available diagrams")
 
 -- | Command line parser for 'DiagramAnimOpts'
