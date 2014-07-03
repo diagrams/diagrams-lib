@@ -1011,7 +1011,7 @@ lineOffset (Line t) = trailMeasure zeroV (op TotalOffset . view oeOffset) t
 --   for loops, the starting point will /not/ be repeated at the end.
 --   If you want this behavior, you can use 'cutTrail' to make the
 --   loop into a line first, which happens to repeat the same point
---   at the start and end, /e.g./ with @turailPoints . mapLoc
+--   at the start and end, /e.g./ with @trailPoints . mapLoc
 --   cutTrail@.
 --
 --   Note that it does not make sense to ask for the points of a
