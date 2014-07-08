@@ -23,8 +23,6 @@ module Diagrams.TwoD.Vector
        , perp, leftTurn
        ) where
 
-import Control.Lens ((&), (.~))
-
 import Data.VectorSpace
 
 import Diagrams.Angle

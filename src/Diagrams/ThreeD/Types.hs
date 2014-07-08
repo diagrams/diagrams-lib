@@ -26,8 +26,8 @@ module Diagrams.ThreeD.Types
        , r3Iso, p3Iso
        ) where
 
-import           Control.Lens           (Iso', Lens', iso, lens, over, to
-                                        , _1, _2, _3, (^.))
+import           Control.Lens           (Iso', iso, lens, over, to
+                                        , _1, _2, _3)
 
 import           Diagrams.Core
 import           Diagrams.Angle

@@ -34,7 +34,7 @@ import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector    (unitX, unitY, unit_Y)
 import           Diagrams.Util           (( # ))
 
-import           Control.Lens            ((^.), (&), (<>~))
+import           Control.Lens            ((^.))
 import           Data.AffineSpace
 import           Data.Semigroup          ((<>))
 import           Data.VectorSpace
