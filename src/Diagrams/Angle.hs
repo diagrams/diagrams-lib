@@ -23,7 +23,7 @@ module Diagrams.Angle
        , HasTheta(..)
        ) where
 
-import Control.Lens            (Iso', Lens', iso, review, (^.))
+import Control.Lens            (Iso', Getter, iso, review, (^.))
 
 import Data.Monoid      hiding ((<>))
 import Data.Semigroup
@@ -123,4 +123,4 @@ angleBetween v1 v2 = acos (normalized v1 <.> normalized v2) @@ rad
 
 -- | The class of types with at least one angle coordinate, called _theta.
 class HasTheta t where
-    _theta :: Lens' t Angle
+    _theta :: Getter t Angle

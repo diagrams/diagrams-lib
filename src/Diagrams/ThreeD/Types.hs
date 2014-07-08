@@ -24,12 +24,9 @@ module Diagrams.ThreeD.Types
        , P3, p3, unp3, mkP3
        , T3
        , r3Iso, p3Iso
-
-       -- * other coördinate systems
-       , Spherical(..), Cylindrical(..), HasPhi(..)
        ) where
 
-import           Control.Lens           (Iso', Lens', iso, over
+import           Control.Lens           (Iso', Lens', iso, lens, over, to
                                         , _1, _2, _3, (^.))
 
 import           Diagrams.Core
@@ -138,59 +135,17 @@ instance HasZ R3 where
 instance HasZ P3 where
     _z = p3Iso . _3
 
--- | Types which can be expressed in spherical 3D coordinates, as a
--- triple (r,θ,φ), where θ is rotation about the Z axis, and φ is the
--- angle from the Z axis.
-class Spherical t where
-    spherical :: Iso' t (Double, Angle, Angle)
-
--- | Types which can be expressed in cylindrical 3D coordinates.
-class Cylindrical t where
-    cylindrical :: Iso' t (Double, Angle, Double) -- r, θ, z
-
-instance Cylindrical R3 where
-    cylindrical = iso (\(R3 x y z) -> (sqrt (x^(2::Int)+y^(2::Int)), atanA (y/x), z))
-                      (\(r,θ,z) -> R3 (r*cosA θ) (r*sinA θ) z)
-
-instance Spherical R3 where
-    spherical = iso
-      (\v@(R3 x y z) -> (magnitude v, atanA (y/x), atanA (v^._r/z)))
-      (\(r,θ,φ) -> R3 (r*cosA θ*sinA φ) (r*sinA θ*sinA φ) (r*cosA φ))
-
--- We'd like to write: instance Spherical t => HasR t
--- But GHC can't work out that the instance won't overlap.  Just write them explicitly:
-
 instance HasR R3 where
-    _r = spherical . _1
+    _r = lens magnitude (\v r -> v ^* (r / magnitude v))
 
 instance HasR P3 where
-    _r = spherical . _1
+    _r = _relative origin . _r
 
 instance HasTheta R3 where
-    _theta = cylindrical . _2
+    _theta = to $ \(R3 x y _) -> atan2A y x
 
 instance HasTheta P3 where
-    _theta = cylindrical . _2
-
--- | The class of types with at least two angle coordinates, the
--- second called _phi.
-class HasPhi t where
-    _phi :: Lens' t Angle
-
-instance HasPhi R3 where
-    _phi = spherical . _3
-
-instance HasPhi P3 where
-    _phi = spherical . _3
-
-instance Cylindrical P3 where
-    cylindrical = _relative origin . cylindrical
-
-instance Spherical P3 where
-    spherical = _relative origin . spherical
+    _theta = _relative origin . _theta
 
 instance HasTheta (Direction R3) where
     _theta = _Dir . _theta
-
-instance HasPhi (Direction R3) where
-    _phi = _Dir . _phi
