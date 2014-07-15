@@ -23,8 +23,6 @@ module Diagrams.TwoD.Vector
        , perp, leftTurn
        ) where
 
-import Control.Lens ((&), (.~))
-
 import Data.VectorSpace
 
 import Diagrams.Angle
@@ -56,7 +54,7 @@ xDir = direction unitX
 -- | A unit vector at a specified angle counterclockwise from the
 -- positive X axis.
 e :: Angle -> R2
-e a = unitX & _theta .~ a
+e a = R2 (cosA a) (sinA a)
 
 -- | @perp v@ is perpendicular to and has the same magnitude as @v@.
 --   In particular @perp v == rotateBy (1/4) v@.

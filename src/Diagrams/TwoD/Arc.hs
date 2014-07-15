@@ -34,7 +34,7 @@ import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector    (unitX, unitY, unit_Y)
 import           Diagrams.Util           (( # ))
 
-import           Control.Lens            ((^.), (&), (<>~))
+import           Control.Lens            ((^.))
 import           Data.AffineSpace
 import           Data.Semigroup          ((<>))
 import           Data.VectorSpace
@@ -157,7 +157,7 @@ arcBetween p q ht = trailLike (a # rotate (v^._theta) # moveTo p)
     r = d/(2*sinA th)
     mid | ht >= 0    = direction unitY
         | otherwise  = direction unit_Y
-    st  = mid & _theta <>~ (negateV th)
+    st  = rotate (negateV th) mid
     a | isStraight
       = fromOffsets [d *^ unitX]
       | otherwise
@@ -188,4 +188,4 @@ annularWedge r1' r2' d1 s = trailLike . (`at` o) . glueTrail . wrapLine
                 <> fromOffsets [(r1'-r2') *^ negateV (fromDirection d2)]
                 <> arc d2 (negateV s) # scale r2'
   where o = origin # translate (r2' *^ fromDirection d1)
-        d2 = d1 & _theta <>~ s
+        d2 = rotate s d1

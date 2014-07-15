@@ -21,7 +21,7 @@ module Diagrams.ThreeD.Shapes
        ) where
 
 import           Control.Applicative
-import           Control.Lens           (review, (^.), _1)
+import           Control.Lens           ((^.))
 import           Data.Typeable
 
 import           Data.AffineSpace
@@ -31,6 +31,7 @@ import           Diagrams.Angle
 import           Diagrams.Coordinates
 import           Diagrams.Core
 import           Diagrams.Solve
+import           Diagrams.ThreeD.Transform
 import           Diagrams.ThreeD.Types
 import           Diagrams.ThreeD.Vector
 
@@ -125,9 +126,10 @@ frustum r0 r1 = mkQD (Prim $ Frustum r0 r1 mempty)
       a = magnitude $ projectXY v
     -- The plane containing v and the z axis intersects the frustum in a trapezoid
     -- Test the four corners of this trapezoid; one must determine the Envelope
-    frEnv v = maximum . map (magnitude . project v . review cylindrical) $ corners
+    frEnv v = maximum . map (magnitude . project v . fromCylindrical) $ corners
       where
         θ = v^._theta
+        fromCylindrical (r,th,z) = (z *^ unitZ) ^+^ (r *^ (transform (aboutZ th) unitX))
         corners = [(r1,θ,1), (-r1,θ,1), (r0,θ,0), (-r0,θ,0)]
     -- The trace can intersect the sides of the cone or one of the end
     -- caps The sides are described by a quadric equation; substitute
@@ -145,7 +147,9 @@ frustum r0 r1 = mkQD (Prim $ Frustum r0 r1 mempty)
         c = px**2 + py**2 - (r0 + dr*pz)**2
         zbounds t = (ray t)^._z >= 0 && (ray t)^._z <= 1
         ends = concatMap cap [0,1]
-        cap z = if (ray t)^.cylindrical._1 < r0 + z*dr
+        fromZAxis q = let u = q .-. origin
+                      in magnitude $ u ^-^ project unitZ u
+        cap z = if (fromZAxis $ ray t) < r0 + z*dr
                 then [t]
                 else []
           where

@@ -54,7 +54,7 @@ module Diagrams.TwoD.Arrowheads
        , ArrowHT
        ) where
 
-import           Control.Lens            ((&), (.~), (^.), (<>~))
+import           Control.Lens            ((&), (.~), (^.))
 import           Data.AffineSpace
 import           Data.Default.Class
 import           Data.Monoid             (mempty, (<>))
@@ -130,10 +130,10 @@ arrowheadSpike theta len shaftWidth  = (hd # scale r, jt # scale r)
   where
     hd = snugL . closedPath $ l1 <> c <> l2
     jt = alignR . centerY . pathFromTrail
-                . closeTrail $ arc' 1 (xDir & _theta <>~ (negateV phi)) (2 *^ phi)
+                . closeTrail $ arc' 1 (rotate (negateV phi) xDir) (2 *^ phi)
     l1 = trailFromSegments [straight $ unit_X ^+^ v]
     l2 = trailFromSegments [reverseSegment . straight $ (unit_X ^+^ (reflectY v))]
-    c = reflectX $ arc' 1 (xDir & _theta <>~ theta) ((-2) *^ theta)
+    c = reflectX $ arc' 1 (rotate theta xDir) ((-2) *^ theta)
     v = rotate theta unitX
 
     -- The length of the head without its joint is, -2r cos theta and
