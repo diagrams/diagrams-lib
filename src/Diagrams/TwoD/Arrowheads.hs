@@ -133,7 +133,7 @@ arrowheadSpike theta len shaftWidth  = (hd # scale r, jt # scale r)
                 . closeTrail $ arc' 1 (xDir & _theta <>~ (negateV phi)) (2 *^ phi)
     l1 = trailFromSegments [straight $ unit_X ^+^ v]
     l2 = trailFromSegments [reverseSegment . straight $ (unit_X ^+^ (reflectY v))]
-    c = arc' 1 (rotate φ xDir) ((-2) *^ α)
+    c = arc' 1 (rotate α xDir) ((-2) *^ α)
     α = (1/2 @@ turn) ^-^ theta
     v = rotate theta unitX
 
