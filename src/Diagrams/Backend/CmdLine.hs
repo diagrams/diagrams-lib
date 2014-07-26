@@ -321,6 +321,10 @@ instance Parseable () where
 instance (Parseable a, Parseable b) => Parseable (a,b) where
     parser = (,) <$> parser <*> parser
 
+-- | Triples of Parsebales should also be Parseable.
+instance (Parseable a, Parseable b, Parseable c) => Parseable (a, b, c)
+   where
+     parser = (,,) <$> parser <*> parser <*> parser
 
 -- | This class allows us to abstract over functions that take some arguments
 --   and produce a final value.  When some @d@ is an instance of
