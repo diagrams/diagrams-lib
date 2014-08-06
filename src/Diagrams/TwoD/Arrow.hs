@@ -114,10 +114,10 @@ import           Data.VectorSpace
 import           Data.Colour              hiding (atop)
 import           Diagrams.Core
 import           Diagrams.Core.Types      (QDiaLeaf (..), mkQD')
-
 import           Diagrams.Angle
 import           Diagrams.Attributes
 import           Diagrams.Direction
+import           Diagrams.Located         (Located(..), unLoc)
 import           Diagrams.Parametric
 import           Diagrams.Path
 import           Diagrams.Solve           (quadForm)
