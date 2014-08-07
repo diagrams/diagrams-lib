@@ -61,6 +61,10 @@ module Diagrams.Prelude.ThreeD
          --   conjugation of transformations.
        , module Diagrams.Transform
 
+         -- | Projective transformations and other deformations
+         -- lacking an inverse.
+       , module Diagrams.Deform
+
          -- | Giving names to subdiagrams and later retrieving
          --   subdiagrams by name.
        , module Diagrams.Names
