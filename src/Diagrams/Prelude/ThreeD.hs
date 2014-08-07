@@ -86,6 +86,9 @@ module Diagrams.Prelude.ThreeD
          -- | Convenience infix operators for working with coordinates.
        , module Diagrams.Coordinates
 
+       -- | Directions, distinguished from angles or vectors
+       , module Diagrams.Direction
+
          -- | things (shapes, transformations, combinators) specific
          -- to creating three-dimensional diagrams.
        , module Diagrams.ThreeD
@@ -127,6 +130,8 @@ import           Diagrams.Attributes
 import           Diagrams.Combinators
 import           Diagrams.Coordinates
 import           Diagrams.CubicSpline
+import           Diagrams.Deform
+import           Diagrams.Direction
 import           Diagrams.Envelope
 import           Diagrams.Located
 import           Diagrams.Names
@@ -138,7 +143,7 @@ import           Diagrams.Query
 import           Diagrams.Segment
 import           Diagrams.Tangent
 import           Diagrams.Trace
-import           Diagrams.Trail
+import           Diagrams.Trail hiding (trailPoints, loopPoints, linePoints)
 import           Diagrams.TrailLike
 import           Diagrams.Transform
 import           Diagrams.ThreeD
