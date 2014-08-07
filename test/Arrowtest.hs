@@ -12,8 +12,8 @@ cGrid = (vcat' $ with & sep .~ 4)
       . chunksOf 3 $ cs
 
 -- For the Shafts.
-semicircle = arc (5/12 @@ turn) (11/12 @@ turn)
-quartercircle = arc (1/2 @@ turn) (3/4 @@ turn)
+semicircle = arc xDir (2/5 @@ turn)
+quartercircle = arc xDir (1/4 @@ turn)
 
 parab = bezier3 (1 ^& 1) (1 ^& 1) (0 ^& 2)
 parab' = reflectX parab
@@ -40,10 +40,10 @@ example = connect'        arrow1 "1" "2"
     arrow1 = with & arrowHead .~ dart
                   & arrowTail .~ quill & shaftStyle %~ lw thick . lc black
                   & arrowShaft .~ shaft0 & headStyle %~ fc blue
-                  & tailStyle %~ fc red
+                  & tailStyle %~ fc red & tailLength .~ large
 
-    arrow2 = with & arrowHead .~ dart
-                  & arrowTail .~ dart'
+    arrow2 = with & arrowHead .~ dart & headLength .~ large
+                  & arrowTail .~ dart' & tailLength .~ large
                   & shaftStyle %~ lw thin & arrowShaft .~ shaft1
 
     arrow3 = with & arrowHead .~ thorn & headLength .~ large
@@ -68,4 +68,4 @@ example = connect'        arrow1 "1" "2"
 
     arrow7 = arrow6 & arrowHead .~ tri & arrowTail .~ tri'
 
-main = mainWith $ example # frame 0.25
+main = mainWith $ example # frame 0.2

@@ -61,6 +61,10 @@ module Diagrams.Prelude.ThreeD
          --   conjugation of transformations.
        , module Diagrams.Transform
 
+         -- | Projective transformations and other deformations
+         -- lacking an inverse.
+       , module Diagrams.Deform
+
          -- | Giving names to subdiagrams and later retrieving
          --   subdiagrams by name.
        , module Diagrams.Names
@@ -85,6 +89,9 @@ module Diagrams.Prelude.ThreeD
 
          -- | Convenience infix operators for working with coordinates.
        , module Diagrams.Coordinates
+
+       -- | Directions, distinguished from angles or vectors
+       , module Diagrams.Direction
 
          -- | things (shapes, transformations, combinators) specific
          -- to creating three-dimensional diagrams.
@@ -127,6 +134,8 @@ import           Diagrams.Attributes
 import           Diagrams.Combinators
 import           Diagrams.Coordinates
 import           Diagrams.CubicSpline
+import           Diagrams.Deform
+import           Diagrams.Direction
 import           Diagrams.Envelope
 import           Diagrams.Located
 import           Diagrams.Names
@@ -139,7 +148,7 @@ import           Diagrams.Segment
 import           Diagrams.Tangent
 import           Diagrams.ThreeD
 import           Diagrams.Trace
-import           Diagrams.Trail
+import           Diagrams.Trail hiding (trailPoints, loopPoints, linePoints)
 import           Diagrams.TrailLike
 import           Diagrams.Transform
 import           Diagrams.Util

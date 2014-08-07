@@ -126,7 +126,7 @@ instance Read v => Read (BoundingBox v) where
 -}
 
 -- | An empty bounding box.  This is the same thing as @mempty@, but it doesn't
---   require the same type constraints that the @Monoid@
+--   require the same type constraints that the @Monoid@ instance does.
 emptyBox :: BoundingBox v
 emptyBox = BoundingBox $ Option Nothing
 

@@ -23,7 +23,7 @@
 module Diagrams.TwoD.Image
     (
       DImage(..), ImageData(..)
-    , Embedded, External
+    , Embedded, External, Native
     , image
     , loadImageEmb
     , loadImageExt
@@ -51,12 +51,15 @@ import           Data.Semigroup
 
 data Embedded deriving Typeable
 data External deriving Typeable
+data Native (t :: *) deriving Typeable
 
 -- | 'ImageData' is either a JuicyPixels @DynamicImage@ tagged as 'Embedded' or
---   a reference tagged as 'External'.
+--   a reference tagged as 'External'. Additionally 'Native' is provided for
+--   external libraries to hook into.
 data ImageData :: * -> * where
   ImageRaster :: DynamicImage -> ImageData Embedded
   ImageRef :: FilePath -> ImageData External
+  ImageNative :: t -> ImageData (Native t)
 
 -------------------------------------------------------------------------------
 -- | An image primitive, the two ints are width followed by height.
