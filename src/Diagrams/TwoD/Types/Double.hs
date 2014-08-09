@@ -159,6 +159,14 @@ instance HasTheta R2 where
 instance HasR R2 where
     _r = polar._1
 
+instance Polar R2 where
+    polar =
+        iso (\v -> ( magnitude v, atan2A (v^._y) (v^._x)))
+            (\(r,θ) -> R2 (r * cosA θ) (r * sinA θ))
+
+instance Transformable R2 where
+  transform = apply
+
 -- | Points in R^2.  This type is intentionally abstract.
 --
 --   * To construct a point, use 'p2', or '^&' (see
@@ -186,26 +194,3 @@ type P2 = Point R2
 
 -- | Transformations in R^2.
 type T2 = Transformation R2
-
-instance Transformable R2 where
-  transform = apply
-
-instance HasX P2 where
-    _x = p2Iso . _1
-
-instance HasY P2 where
-    _y = p2Iso . _2
-
-instance HasR P2 where
-    _r = _relative origin . _r
-
-instance HasTheta P2 where
-    _theta = _relative origin . _theta
-
-instance Polar R2 where
-    polar =
-        iso (\v -> ( magnitude v, atan2A (v^._y) (v^._x)))
-            (\(r,θ) -> R2 (r * cosA θ) (r * sinA θ))
-
-instance Polar P2 where
-    polar = _relative origin . polar
