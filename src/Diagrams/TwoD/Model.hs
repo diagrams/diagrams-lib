@@ -60,13 +60,13 @@ instance (Fractional d) => Default (OriginOpts d) where
   def = OriginOpts red (1/50) 0.001
 
 -- | Mark the origin of a diagram by placing a red dot 1/50th its size.
-showOrigin :: (Renderable (Path v) b, R2Ish v, Backend b v, Monoid' m)
+showOrigin :: (Renderable (Path v) b, R2D v, Backend b v, Monoid' m)
            => QDiagram b v m -> QDiagram b v m
 showOrigin = showOrigin' def
 
 -- | Mark the origin of a diagram, with control over colour and scale
 -- of marker dot.
-showOrigin' :: (Renderable (Path v) b, R2Ish v, Backend b v, Monoid' m)
+showOrigin' :: (Renderable (Path v) b, R2D v, Backend b v, Monoid' m)
            => OriginOpts (Scalar v) -> QDiagram b v m -> QDiagram b v m
 showOrigin' oo d = o <> d
   where o     = stroke (circle sz)

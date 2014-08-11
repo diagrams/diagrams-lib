@@ -255,12 +255,12 @@ boundingRect = (`boxFit` rect 1 1) . boundingBox
 
 -- | \"Set the background color\" of a diagram.  That is, place a
 --   diagram atop a bounding rectangle of the given color.
-bg :: (R2Ish v, Renderable (Path v) b) => Colour Double -> Diagram b v -> Diagram b v
+bg :: (R2D v, Renderable (Path v) b) => Colour Double -> Diagram b v -> Diagram b v
 bg c d = d <> boundingRect d # lineWidth (Output 0) # fc c
 
 -- | Similar to 'bg' but makes the colored background rectangle larger than
 --   the diagram. The first parameter is used to set how far the background
 --   extends beyond the diagram.
-bgFrame :: (R2Ish v, Renderable (Path v) b, Backend b v)
+bgFrame :: (R2D v, Renderable (Path v) b, Backend b v)
     => Scalar v -> Colour Double -> Diagram b v -> Diagram b v
 bgFrame f c d = d <> boundingRect (frame f d) # lineWidth (Output 0) # fc c

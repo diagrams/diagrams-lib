@@ -209,28 +209,28 @@ getFontSizeIsLocal (FontSize (Last (_,b))) = b
 -- | Set the font size, that is, the size of the font's em-square as
 --   measured within the current local vector space.  The default size
 --   is @1@.
-fontSize :: (R2Ish v, HasStyle a, V a ~ v) => Measure v -> a -> a
+fontSize :: (R2D v, HasStyle a, V a ~ v) => Measure v -> a -> a
 fontSize m@(Local {}) = applyGTAttr . FontSize . Last $ (m,True)
 fontSize m            = applyGTAttr . FontSize . Last $ (m,False)
 
 -- | A convenient synonym for 'fontSize (Global w)'.
-fontSizeG :: (R2Ish v, HasStyle a, V a ~ v) => Scalar v -> a -> a
+fontSizeG :: (R2D v, HasStyle a, V a ~ v) => Scalar v -> a -> a
 fontSizeG w = fontSize (Global w)
 
 -- | A convenient synonym for 'fontSize (Normalized w)'.
-fontSizeN :: (R2Ish v, HasStyle a, V a ~ v) => Scalar v -> a -> a
+fontSizeN :: (R2D v, HasStyle a, V a ~ v) => Scalar v -> a -> a
 fontSizeN w = fontSize (Normalized w)
 
 -- | A convenient synonym for 'fontSize (Output w)'.
-fontSizeO :: (R2Ish v, HasStyle a, V a ~ v) => Scalar v -> a -> a
+fontSizeO :: (R2D v, HasStyle a, V a ~ v) => Scalar v -> a -> a
 fontSizeO w = fontSize (Output w)
 
 -- | A convenient sysnonym for 'fontSize (Local w)'.
-fontSizeL :: (R2Ish v, HasStyle a, V a ~ v) => Scalar v -> a -> a
+fontSizeL :: (R2D v, HasStyle a, V a ~ v) => Scalar v -> a -> a
 fontSizeL w = fontSize (Local w)
 
 -- | Apply a 'FontSize' attribute.
-fontSizeA :: (R2Ish v, HasStyle a, V a ~ v) => FontSize v -> a -> a
+fontSizeA :: (R2D v, HasStyle a, V a ~ v) => FontSize v -> a -> a
 fontSizeA = applyGTAttr
 
 --------------------------------------------------

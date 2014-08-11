@@ -27,7 +27,7 @@ import           Diagrams.Core
 import           Diagrams.TwoD.Attributes (lineTextureA, lineWidthA)
 import           Diagrams.TwoD.Size       (SizeSpec2D (..), center2D, requiredScale, size2D)
 import           Diagrams.TwoD.Text       (fontSizeA)
-import           Diagrams.TwoD.Types      (R2Ish, p2)
+import           Diagrams.TwoD.Types      (R2Ish, R2D, p2)
 import           Diagrams.Util            (( # ))
 
 import           Control.Lens             (Lens', (&), (.~), (^.))
@@ -50,7 +50,7 @@ import           Data.VectorSpace         (Scalar)
 --       * line join miter
 --
 --       * Miter limit 10
-setDefault2DAttributes :: (Semigroup m, R2Ish v) => QDiagram b v m -> QDiagram b v m
+setDefault2DAttributes :: (Semigroup m, R2D v) => QDiagram b v m -> QDiagram b v m
 setDefault2DAttributes d = d # lineWidthA def # lineTextureA def # fontSizeA def
                              # lineCap def # lineJoin def # lineMiterLimitA def
 
@@ -99,7 +99,7 @@ adjustDiaSize2D szL _ opts d =
 --   to the diagram (the inverse of which can be used, say, to
 --   translate output/device coordinates back into local diagram
 --   coordinates), and the modified diagram itself.
-adjustDia2D :: (Monoid' m, R2Ish v)
+adjustDia2D :: (Monoid' m, R2D v)
             => Lens' (Options b v) (SizeSpec2D (Scalar v))
             -> b -> Options b v -> QDiagram b v m
             -> (Options b v, Transformation v, QDiagram b v m)

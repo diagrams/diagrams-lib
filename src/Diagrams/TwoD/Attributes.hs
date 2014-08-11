@@ -139,31 +139,31 @@ getLineWidth :: (R2Ish v) => LineWidth v -> Measure v
 getLineWidth (LineWidth (Last w)) = w
 
 -- | Set the line (stroke) width.
-lineWidth :: (R2Ish v, HasStyle a, V a ~ v) => Measure v -> a -> a
+lineWidth :: (R2D v, HasStyle a, V a ~ v) => Measure v -> a -> a
 lineWidth = applyGTAttr . LineWidth . Last
 
 -- | Apply a 'LineWidth' attribute.
-lineWidthA :: (R2Ish v, HasStyle a, V a ~ v) => LineWidth v -> a -> a
+lineWidthA :: (R2D v, HasStyle a, V a ~ v) => LineWidth v -> a -> a
 lineWidthA = applyGTAttr
 
 -- | Default for 'lineWidth'.
-lw :: (R2Ish v, HasStyle a, V a ~ v) => Measure v -> a -> a
+lw :: (R2D v, HasStyle a, V a ~ v) => Measure v -> a -> a
 lw = lineWidth
 
 -- | A convenient synonym for 'lineWidth (Global w)'.
-lwG :: (R2Ish v, HasStyle a, V a ~ v) => Scalar v -> a -> a
+lwG :: (R2D v, HasStyle a, V a ~ v) => Scalar v -> a -> a
 lwG w = lineWidth (Global w)
 
 -- | A convenient synonym for 'lineWidth (Normalized w)'.
-lwN :: (R2Ish v, HasStyle a, V a ~ v) => Scalar v -> a -> a
+lwN :: (R2D v, HasStyle a, V a ~ v) => Scalar v -> a -> a
 lwN w = lineWidth (Normalized w)
 
 -- | A convenient synonym for 'lineWidth (Output w)'.
-lwO :: (R2Ish v, HasStyle a, V a ~ v) => Scalar v -> a -> a
+lwO :: (R2D v, HasStyle a, V a ~ v) => Scalar v -> a -> a
 lwO w = lineWidth (Output w)
 
 -- | A convenient sysnonym for 'lineWidth (Local w)'.
-lwL :: (R2Ish v, HasStyle a, V a ~ v) => Scalar v -> a -> a
+lwL :: (R2D v, HasStyle a, V a ~ v) => Scalar v -> a -> a
 lwL w = lineWidth (Local w)
 
 -----------------------------------------------------------------
@@ -199,7 +199,7 @@ getDashing :: (R2Ish v) => DashingA v -> Dashing v
 getDashing (DashingA (Last d)) = d
 
 -- | Set the line dashing style.
-dashing :: (R2Ish v, HasStyle a, V a ~ v) =>
+dashing :: (R2D v, HasStyle a, V a ~ v) =>
            [Measure v]  -- ^ A list specifying alternate lengths of on
                          --   and off portions of the stroke.  The empty
                          --   list indicates no dashing.
@@ -209,19 +209,19 @@ dashing :: (R2Ish v, HasStyle a, V a ~ v) =>
 dashing ds offs = applyGTAttr (DashingA (Last (Dashing ds offs)))
 
 -- | A convenient synonym for 'dashing (Global w)'.
-dashingG :: (R2Ish v, HasStyle a, V a ~ v) => [Scalar v] -> Scalar v -> a -> a
+dashingG :: (R2D v, HasStyle a, V a ~ v) => [Scalar v] -> Scalar v -> a -> a
 dashingG w v = dashing (map Global w) (Global v)
 
 -- | A convenient synonym for 'dashing (Normalized w)'.
-dashingN :: (R2Ish v, HasStyle a, V a ~ v) => [Scalar v] -> Scalar v -> a -> a
+dashingN :: (R2D v, HasStyle a, V a ~ v) => [Scalar v] -> Scalar v -> a -> a
 dashingN w v = dashing (map Normalized w) (Normalized v)
 
 -- | A convenient synonym for 'dashing (Output w)'.
-dashingO :: (R2Ish v, HasStyle a, V a ~ v) => [Scalar v] -> Scalar v -> a -> a
+dashingO :: (R2D v, HasStyle a, V a ~ v) => [Scalar v] -> Scalar v -> a -> a
 dashingO w v = dashing (map Output w) (Output v)
 
 -- | A convenient sysnonym for 'dashing (Local w)'.
-dashingL :: (R2Ish v, HasStyle a, V a ~ v) => [Scalar v] -> Scalar v -> a -> a
+dashingL :: (R2D v, HasStyle a, V a ~ v) => [Scalar v] -> Scalar v -> a -> a
 dashingL w v = dashing (map Local w) (Local v)
 
 -- | A gradient stop contains a color and fraction (usually between 0 and 1)
