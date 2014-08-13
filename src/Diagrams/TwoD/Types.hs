@@ -47,7 +47,7 @@ import           Data.VectorSpace
 import           Data.Data
 
 -- | Basis for 2D Euclidean space
-data R2Basis = XB | YB deriving (Eq, Ord, Enum)
+data R2Basis = XB | YB deriving (Eq, Ord, Enum, Typeable, Show)
 
 instance HasTrie R2Basis where
     data R2Basis :->: x = R2Trie x x
