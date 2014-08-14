@@ -2,18 +2,20 @@
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE TypeOperators              #-}
+
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Diagrams.TwoD.Types.Double
+-- Module      :  Diagrams.TwoD.Types.Float
 -- Copyright   :  (c) 2014 diagrams-lib team (see LICENSE)
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
--- 2D Euclidean space in Double precision
+-- 2D Euclidean space in Float precision
 --
 -----------------------------------------------------------------------------
 
-module Diagrams.TwoD.Types.Double where
+module Diagrams.TwoD.Types.Float where
 
 import           Control.Lens         (Rewrapped, Wrapped (..), iso, (^.), _1, _2)
 
@@ -27,11 +29,19 @@ import           Data.Basis
 import           Data.VectorSpace
 
 import           Data.Data
+
+
+-- Orphan instances that should be in diagrams-core
+type instance V Float = Float
+
+instance Transformable Float where
+  transform = apply
+
 ------------------------------------------------------------
 -- 2D Euclidean space
 
 -- | The two-dimensional Euclidean vector space R^2.  This type is
---   intentionally abstract, but uses Doubles as the scalar type.
+--   intentionally abstract, but uses Floats as the scalar type.
 --
 --   * To construct a vector, use 'r2', or '^&' (from "Diagrams.Coordinates"):
 --
@@ -57,9 +67,8 @@ import           Data.Data
 -- foo (unr2 -> (x,y)) = ...
 -- foo (coords -> x :& y) = ...
 -- @
-
-data R2 = R2 {-# UNPACK #-} !Double
-             {-# UNPACK #-} !Double
+data R2 = R2 {-# UNPACK #-} !Float
+             {-# UNPACK #-} !Float
   deriving (Eq, Ord, Typeable, Data)
 
 instance AdditiveGroup R2 where
@@ -104,7 +113,7 @@ instance Read R2 where
 
 -- | Lens wrapped isomorphisms for R2.
 instance Wrapped R2 where
-    type Unwrapped R2 = (Double, Double)
+    type Unwrapped R2 = (Float, Float)
     _Wrapped' = iso unr2 r2
     {-# INLINE _Wrapped' #-}
 
@@ -113,7 +122,7 @@ instance Rewrapped R2 R2
 type instance V R2 = R2
 
 instance VectorSpace R2 where
-  type Scalar R2 = Double
+  type Scalar R2 = Float
   s *^ R2 x y = R2 (s*x) (s*y)
 
 instance HasBasis R2 where
@@ -130,9 +139,9 @@ instance InnerSpace R2 where
   (R2 x1 y1) <.> (R2 x2 y2) = x1*x2 + y1*y2
 
 instance Coordinates R2 where
-  type FinalCoord R2     = Double
-  type PrevDim R2        = Double
-  type Decomposition R2  = Double :& Double
+  type FinalCoord R2     = Float
+  type PrevDim R2        = Float
+  type Decomposition R2  = Float :& Float
 
   x ^& y           = R2 x y
   coords (R2 x y) = x :& y

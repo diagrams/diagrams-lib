@@ -61,9 +61,8 @@
 -----------------------------------------------------------------------------
 module Diagrams.TwoD
        ( -- * R^2
-         R2, r2, unr2, mkR2
-       , P2, p2, unp2, mkP2
-       , T2
+         r2, unr2, mkR2
+       , p2, unp2, mkP2
        , unitX, unitY, unit_X, unit_Y
        , xDir
 
@@ -290,7 +289,6 @@ import           Diagrams.TwoD.Size
 import           Diagrams.TwoD.Text
 import           Diagrams.TwoD.Transform
 import           Diagrams.TwoD.Types
-import           Diagrams.TwoD.Types.Double
 import           Diagrams.TwoD.Vector
 
 import           Diagrams.Util              (tau)

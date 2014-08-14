@@ -40,7 +40,6 @@ module Diagrams.ThreeD
        , module Diagrams.ThreeD.Shapes
        , module Diagrams.ThreeD.Transform
        , module Diagrams.ThreeD.Types
-       , module Diagrams.ThreeD.Types.Double
        , module Diagrams.ThreeD.Vector
        ) where
 
@@ -52,5 +51,4 @@ import           Diagrams.ThreeD.Light
 import           Diagrams.ThreeD.Shapes
 import           Diagrams.ThreeD.Transform
 import           Diagrams.ThreeD.Types
-import           Diagrams.ThreeD.Types.Double
 import           Diagrams.ThreeD.Vector

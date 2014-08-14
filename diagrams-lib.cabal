@@ -56,6 +56,8 @@ Library
                        Diagrams.TwoD,
                        Diagrams.TwoD.Types,
                        Diagrams.TwoD.Types.Double,
+                       Diagrams.TwoD.Types.Float,
+                       Diagrams.TwoD.Types.Generic,
                        Diagrams.TwoD.Align,
                        Diagrams.TwoD.Arrow,
                        Diagrams.TwoD.Arrowheads,
