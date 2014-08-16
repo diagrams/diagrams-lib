@@ -225,17 +225,17 @@ dashingL :: (R2D v, HasStyle a, V a ~ v) => [Scalar v] -> Scalar v -> a -> a
 dashingL w v = dashing (map Local w) (Local v)
 
 -- | A gradient stop contains a color and fraction (usually between 0 and 1)
-data GradientStop = GradientStop
+data GradientStop d = GradientStop
      { _stopColor    :: SomeColor
-     , _stopFraction :: Double}
+     , _stopFraction :: d}
 
 makeLensesWith (lensRules & generateSignatures .~ False) ''GradientStop
 
 -- | A color for the stop.
-stopColor :: Lens' GradientStop SomeColor
+stopColor :: Lens' (GradientStop d) SomeColor
 
 -- | The fraction for stop.
-stopFraction :: Lens' GradientStop Double
+stopFraction :: Lens' (GradientStop d) d
 
 -- | The 'SpreadMethod' determines what happens before 'lGradStart' and after
 --   'lGradEnd'. 'GradPad' fills the space before the start of the gradient
@@ -246,7 +246,7 @@ data SpreadMethod = GradPad | GradReflect | GradRepeat
 
 -- | Linear Gradient
 data LGradient v = LGradient
-    { _lGradStops        :: [GradientStop]
+    { _lGradStops        :: [GradientStop (Scalar v)]
     , _lGradStart        :: Point v
     , _lGradEnd          :: Point v
     , _lGradTrans        :: Transformation v
@@ -255,7 +255,7 @@ data LGradient v = LGradient
 makeLensesWith (lensRules & generateSignatures .~ False) ''LGradient
 
 -- | A list of stops (colors and fractions).
-lGradStops :: (R2Ish v) => Lens' (LGradient v) [GradientStop]
+lGradStops :: (R2Ish v) => Lens' (LGradient v) [GradientStop (Scalar v)]
 
 -- | A transformation to be applied to the gradient. Usually this field will
 --   start as the identity transform and capture the transforms that are applied
@@ -275,7 +275,7 @@ lGradSpreadMethod :: (R2Ish v) => Lens' (LGradient v) SpreadMethod
 
 -- | Radial Gradient
 data RGradient v = RGradient
-    { _rGradStops        :: [GradientStop]
+    { _rGradStops        :: [GradientStop (Scalar v)]
     , _rGradCenter0      :: Point v
     , _rGradRadius0      :: Scalar v
     , _rGradCenter1      :: Point v
@@ -286,7 +286,7 @@ data RGradient v = RGradient
 makeLensesWith (lensRules & generateSignatures .~ False) ''RGradient
 
 -- | A list of stops (colors and fractions).
-rGradStops :: (R2Ish v) => Lens' (RGradient v) [GradientStop]
+rGradStops :: (R2Ish v) => Lens' (RGradient v) [GradientStop (Scalar v)]
 
 -- | The center point of the inner circle.
 rGradCenter0 :: (R2Ish v) => Lens' (RGradient v) (Point v)
@@ -350,20 +350,20 @@ defaultRG = RG (RGradient
 
 -- | A convenient function for making gradient stops from a list of triples.
 --   (An opaque color, a stop fraction, an opacity).
-mkStops :: [(Colour Double, Double, Double)] -> [GradientStop]
+mkStops :: [(Colour Double, d, Double)] -> [GradientStop d]
 mkStops = map (\(x, y, z) -> GradientStop (SomeColor (withOpacity x z)) y)
 
 -- | Make a linear gradient texture from a stop list, start point, end point,
 --   and 'SpreadMethod'. The 'lGradTrans' field is set to the identity
 --   transfrom, to change it use the 'lGradTrans' lens.
-mkLinearGradient :: (R2Ish v) => [GradientStop]  -> Point v -> Point v -> SpreadMethod -> Texture v
+mkLinearGradient :: (R2Ish v) => [GradientStop (Scalar v)]  -> Point v -> Point v -> SpreadMethod -> Texture v
 mkLinearGradient stops  start end spreadMethod
   = LG (LGradient stops start end mempty spreadMethod)
 
 -- | Make a radial gradient texture from a stop list, radius, start point,
 --   end point, and 'SpreadMethod'. The 'rGradTrans' field is set to the identity
 --   transfrom, to change it use the 'rGradTrans' lens.
-mkRadialGradient :: (R2Ish v) => [GradientStop] -> Point v -> Scalar v
+mkRadialGradient :: (R2Ish v) => [GradientStop (Scalar v)] -> Point v -> Scalar v
                   -> Point v -> Scalar v -> SpreadMethod -> Texture v
 mkRadialGradient stops c0 r0 c1 r1 spreadMethod
   = RG (RGradient stops c0 r0 c1 r1 mempty spreadMethod)

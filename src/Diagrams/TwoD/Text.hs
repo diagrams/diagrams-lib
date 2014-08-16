@@ -57,7 +57,7 @@ import           Data.VectorSpace
 --   text; the second accumulates normalized, "anti-scaled" versions
 --   of the transformations which have had their average scaling
 --   component removed.
-data Text v = Text (Transformation v) (Transformation v) TextAlignment String
+data Text v = Text (Transformation v) (Transformation v) (TextAlignment (Scalar v)) String
   deriving Typeable
 
 type instance V (Text v) = v
@@ -77,9 +77,9 @@ instance (R2Ish v) => Renderable (Text v) NullBackend where
   render _ _ = mempty
 
 -- | @TextAlignment@ specifies the alignment of the text's origin.
-data TextAlignment = BaselineText | BoxAlignedText Double Double
+data TextAlignment d = BaselineText | BoxAlignedText d d
 
-mkText :: (R2Ish v, Renderable (Text v) b) => TextAlignment -> String -> Diagram b v
+mkText :: (R2Ish v, Renderable (Text v) b) => TextAlignment (Scalar v) -> String -> Diagram b v
 mkText a t = recommendFillColor (black :: Colour Double)
              -- See Note [recommendFillColor]
 
@@ -136,7 +136,7 @@ topLeftText = alignedText 0 1
 --   and descent, rather than the height of the particular string.
 --
 --   Note that it /takes up no space/.
-alignedText :: (R2Ish v, Renderable (Text v) b) => Double -> Double -> String -> Diagram b v
+alignedText :: (R2Ish v, Renderable (Text v) b) => Scalar v -> Scalar v -> String -> Diagram b v
 alignedText w h = mkText (BoxAlignedText w h)
 
 -- | Create a primitive text diagram from the given string, with the
