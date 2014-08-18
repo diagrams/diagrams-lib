@@ -20,22 +20,27 @@ module Diagrams.Points
          -- * Point-related utilities
        , centroid
        , pointDiagram
-       , _pIso
+       , _pIso, lensP
        ) where
 
 import           Diagrams.Core          (pointDiagram)
 import           Diagrams.Core.Points
 
-import           Control.Arrow          ((&&&))
 import           Control.Lens           (Iso', iso)
 
-import           Data.AffineSpace.Point
-import           Data.VectorSpace
+import Linear.Affine
+import Linear.Vector
+import Data.Foldable as F
 
 -- Point v <-> v
-_pIso :: Iso' (Point v) v
-_pIso = iso unPoint P
+_pIso :: Iso' (Point v n) (v n)
+_pIso = iso (\(P a) -> a) P
 
 -- | The centroid of a set of /n/ points is their sum divided by /n/.
-centroid :: (VectorSpace v, Fractional (Scalar v)) => [Point v] -> Point v
-centroid = P . uncurry (^/) . (sumV &&& (fromIntegral . length)) . map unPoint
+centroid :: (Additive v, Fractional n) => [Point v n] -> Point v n
+centroid = meanV
+
+meanV :: (Foldable f, Additive v, Fractional a) => f (v a) -> v a
+meanV = uncurry (^/) . F.foldl' (\(s,c) e -> (e ^+^ s,c+1)) (zero,0)
+{-# INLINE meanV #-}
+

@@ -24,11 +24,14 @@ module Diagrams.Located
     where
 
 import           Control.Lens            (Lens)
-import           Data.AffineSpace
+-- import           Data.AffineSpace
 import           Data.Functor            ((<$>))
-import           Data.VectorSpace
+
+import Linear.Vector
+import Linear.Affine
 
 import           Diagrams.Core
+import           Diagrams.Core.V
 import           Diagrams.Core.Points    ()
 import           Diagrams.Core.Transform
 import           Diagrams.Parametric
@@ -49,27 +52,28 @@ import           Diagrams.Parametric
 --   'HasOrigin', 'Transformable', 'Enveloped', 'Traced', and
 --   'TrailLike' instances are particularly useful; see the documented
 --   instances below for more information.
-data Located a = Loc { loc   :: Point (V a)   -- ^ Project out the
-                                              --   location of a @Located@
-                                              --   value.
-                     , unLoc :: a             -- ^ Project the value
-                                              --   of type @a@ out of
-                                              --   a @Located a@,
-                                              --   discarding the
-                                              --   location.
-                     }
+data Located a =
+  Loc { loc   :: Point (V a) (N a)  -- ^ Project out the
+                                --   location of a @Located@
+                                --   value.
+      , unLoc :: a              -- ^ Project the value
+                                --   of type @a@ out of
+                                --   a @Located a@,
+                                --   discarding the
+                                --   location.
+      }
 
 infix 5 `at`
 
 -- | Construct a @Located a@ from a value of type @a@ and a location.
 --   @at@ is intended to be used infix, like @x \`at\` origin@.
-at :: a -> Point (V a) -> Located a
+at :: a -> Point (V a) (N a) -> Located a
 at a p = Loc p a
 
 -- | Deconstruct a @Located a@ into a location and a value of type
 --   @a@.  @viewLoc@ can be especially useful in conjunction with the
 --   @ViewPatterns@ extension.
-viewLoc :: Located a -> (Point (V a), a)
+viewLoc :: Located a -> (Point (V a) (N a), a)
 viewLoc (Loc p a) = (p,a)
 
 -- | 'Located' is not a @Functor@, since changing the type could
@@ -82,32 +86,33 @@ viewLoc (Loc p a) = (p,a)
 --   @Located@ is a little-f (endo)functor on the category of types
 --   with associated vector space @v@; but that is not covered by the
 --   standard @Functor@ class.)
-mapLoc :: (V a ~ V b) => (a -> b) -> Located a -> Located b
+mapLoc :: (V a ~ V b, N a ~ N b) => (a -> b) -> Located a -> Located b
 mapLoc f (Loc p a) = Loc p (f a)
 
 -- | A lens giving access to the object within a 'Located' wrapper.
-located :: (V a ~ V a') => Lens (Located a) (Located a') a a'
+located :: (V a ~ V a', N a ~ N a') => Lens (Located a) (Located a') a a'
 located f (Loc p a) = Loc p <$> f a
 
-deriving instance (Eq   (V a), Eq a  ) => Eq   (Located a)
-deriving instance (Ord  (V a), Ord a ) => Ord  (Located a)
-deriving instance (Show (V a), Show a) => Show (Located a)
+deriving instance (Eq   (V a (N a)), Eq a  ) => Eq   (Located a)
+deriving instance (Ord  (V a (N a)), Ord a ) => Ord  (Located a)
+deriving instance (Show (V a (N a)), Show a) => Show (Located a)
 
 type instance V (Located a) = V a
+type instance N (Located a) = N a
 
 -- | @Located a@ is an instance of @HasOrigin@ whether @a@ is or not.
 --   In particular, translating a @Located a@ simply translates the
 --   associated point (and does /not/ affect the value of type @a@).
-instance VectorSpace (V a) => HasOrigin (Located a) where
+instance (Num (N a), Additive (V a)) => HasOrigin (Located a) where
   moveOriginTo o (Loc p a) = Loc (moveOriginTo o p) a
 
 -- | Applying a transformation @t@ to a @Located a@ results in the
 --   transformation being applied to the location, and the /linear/
 --   /portion/ of @t@ being applied to the value of type @a@ (/i.e./
 --   it is not translated).
-instance Transformable a => Transformable (Located a) where
+instance (Additive (V a), Num (N a), Transformable a) => Transformable (Located a) where
   transform t@(Transformation t1 t2 _) (Loc p a)
-    = Loc (transform t p) (transform (Transformation t1 t2 zeroV) a)
+    = Loc (transform t p) (transform (Transformation t1 t2 zero) a)
 
 -- | The envelope of a @Located a@ is the envelope of the @a@,
 --   translated to the location.
@@ -119,7 +124,7 @@ instance Enveloped a => Juxtaposable (Located a) where
 
 -- | The trace of a @Located a@ is the trace of the @a@,
 --   translated to the location.
-instance Traced a => Traced (Located a) where
+instance (Traced a, Num (N a)) => Traced (Located a) where
   getTrace (Loc p a) = moveTo p (getTrace a)
 
 instance Qualifiable a => Qualifiable (Located a) where
@@ -127,7 +132,7 @@ instance Qualifiable a => Qualifiable (Located a) where
 
 type instance Codomain (Located a) = Point (Codomain a)
 
-instance (Codomain a ~ V a, AdditiveGroup (V a), Parametric a)
+instance (Codomain a ~ V a, Additive (V a), Num (N a), Parametric a) -- , Diff (Point (V a) (N a)) ~ V a (N a))
     => Parametric (Located a) where
   (Loc x a) `atParam` p = x .+^ (a `atParam` p)
 
@@ -135,10 +140,10 @@ instance DomainBounds a => DomainBounds (Located a) where
   domainLower (Loc _ a) = domainLower a
   domainUpper (Loc _ a) = domainUpper a
 
-instance (Codomain a ~ V a, AdditiveGroup (V a), EndValues a)
+instance (Codomain a ~ V a, Additive (V a), Num (N a), EndValues a)
     => EndValues (Located a)
 
-instance ( Codomain a ~ V a, Fractional (Scalar (V a)), AdditiveGroup (V a)
+instance ( Codomain a ~ V a, Fractional (N a), Additive (V a)
          , Sectionable a, Parametric a
          )
     => Sectionable (Located a) where
@@ -146,11 +151,11 @@ instance ( Codomain a ~ V a, Fractional (Scalar (V a)), AdditiveGroup (V a)
     where (a1,a2) = splitAtParam a p
 
   reverseDomain (Loc x a) = Loc (x .+^ y) (reverseDomain a)
-    where y = a `atParam` (domainUpper a)
+    where y = a `atParam` domainUpper a
 
-instance ( Codomain a ~ V a, AdditiveGroup (V a), Fractional (Scalar (V a))
+instance ( Codomain a ~ V a, Additive (V a), Fractional (N a)
          , HasArcLength a
          )
     => HasArcLength (Located a) where
-  arcLengthBounded eps (Loc _ a)   = arcLengthBounded eps a
-  arcLengthToParam eps (Loc _ a) l = arcLengthToParam eps a l
+  arcLengthBounded eps (Loc _ a) = arcLengthBounded eps a
+  arcLengthToParam eps (Loc _ a) = arcLengthToParam eps a
