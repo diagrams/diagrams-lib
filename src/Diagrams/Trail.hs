@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveFunctor              #-}
 {-# LANGUAGE EmptyDataDecls             #-}
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE FlexibleInstances          #-}
@@ -7,7 +6,6 @@
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
 {-# LANGUAGE StandaloneDeriving         #-}
-{-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE TypeOperators              #-}
 {-# LANGUAGE UndecidableInstances       #-}
@@ -107,13 +105,13 @@ module Diagrams.Trail
 import           Control.Arrow            ((***))
 import           Control.Lens             (AnIso', Rewrapped, Wrapped (..), cloneIso, iso, op, view,
                                            (^.))
-import           Data.AffineSpace
+-- import           Data.AffineSpace
 import           Data.FingerTree          (FingerTree, ViewL (..), ViewR (..), (<|), (|>))
 import qualified Data.FingerTree          as FT
 import qualified Data.Foldable            as F
 import           Data.Monoid.MList
 import           Data.Semigroup
--- import           Data.VectorSpace         hiding (Sum (..))
+-- import           Data.Additive         hiding (Sum (..))
 import qualified Numeric.Interval.Kaucher as I
 
 import           Diagrams.Core            hiding ((|>))
@@ -123,8 +121,10 @@ import           Diagrams.Parametric
 import           Diagrams.Segment
 import           Diagrams.Tangent
 
+import Linear.Affine
 import Linear.Vector
 import Linear.Metric
+import Linear.Epsilon
 
 -- $internals
 --
@@ -139,7 +139,7 @@ import Linear.Metric
 type instance V (FingerTree m a) = V a
 type instance N (FingerTree m a) = N a
 
-instance ( Metric (V a), OrderedField (Scalar (V a))
+instance ( Metric (V a), OrderedField (N a)
          , FT.Measured m a, Transformable a
          )
     => Transformable (FingerTree m a) where
@@ -186,7 +186,7 @@ instance Num n => DomainBounds (SegTree v n)
 instance (Metric v, OrderedField n, RealFrac n, Num n)
     => EndValues (SegTree v n)
 
-instance (Metric v, RealFrac n, Floating n)
+instance (Metric v, RealFrac n, Floating n, Epsilon n)
     => Sectionable (SegTree v n) where
   splitAtParam (SegTree t) p
     | p < 0     = case FT.viewl t of
@@ -230,7 +230,7 @@ instance (Metric v, OrderedField n, RealFrac n)
     | otherwise        = fun (eps / numSegs t)
     where
       i   = trailMeasure (I.singleton 0)
-              (getArcLengthCached :: ArcLength v -> I.Interval n)
+              (getArcLengthCached :: ArcLength (v n) -> I.Interval n)
               t
       fun = trailMeasure (const 0)
               (getArcLengthFun :: ArcLength v -> n -> I.Interval n)
@@ -255,8 +255,13 @@ instance (Metric v, OrderedField n, RealFrac n)
     where
       totalAL         = arcLength eps st
       tSegs           = numSegs t
-      before, after :: FingerTree (SegMeasure v) (Segment Closed v)
-      (before, after) = FT.split ((>= l) . trailMeasure 0 (I.midpoint . (getArcLengthBounded eps :: ArcLength v -> I.Interval n))) t
+      before, after :: FingerTree (SegMeasure v n) (Segment Closed v n)
+      (before, after) =
+        FT.split ((>= l)
+                 . trailMeasure
+                 0
+                 (I.midpoint . (getArcLengthBounded eps :: ArcLength (v n) -> I.Interval n)))
+                 t
 
 -- | Given a default result (to be used in the case of an empty
 --   trail), and a function to map a single measure to a result,
@@ -264,7 +269,7 @@ instance (Metric v, OrderedField n, RealFrac n)
 --   result.  Put another way, lift a function on a single measure
 --   (along with a default value) to a function on an entire trail.
 trailMeasure :: ( Metric v, OrderedField n
-                , SegMeasure v :>: m, FT.Measured (SegMeasure v n) t
+                , SegMeasure v n :>: m, FT.Measured (SegMeasure v n) t
                 )
              => a -> (m -> a) -> t -> a
 trailMeasure d f = option d f . get . FT.measure
@@ -272,17 +277,17 @@ trailMeasure d f = option d f . get . FT.measure
 -- | Compute the number of segments of anything measured by
 --   'SegMeasure' (/e.g./ @SegMeasure@ itself, @Segment@, @SegTree@,
 --   @Trail@s...)
-numSegs :: ( Floating n, Num c, Ord n, Metric v,
+numSegs :: ( OrderedField n, Num c, Metric v,
              FT.Measured (SegMeasure v n) a
            )
         => a -> c
 numSegs = fromIntegral . trailMeasure 0 (getSum . op SegCount)
 
 -- | Compute the total offset of anything measured by 'SegMeasure'.
-offset :: ( Floating n, Ord n, Metric v,
+offset :: ( OrderedField n, Metric v,
             FT.Measured (SegMeasure v n) t
           )
-       => t -> v
+       => t -> v n
 offset = trailMeasure zero (op TotalOffset . view oeOffset)
 
 ------------------------------------------------------------
@@ -351,9 +356,9 @@ data Loop
 --   To extract information from trails, see 'withLine', 'isLoop',
 --   'trailSegments', 'trailOffsets', 'trailVertices', and friends.
 
-data Trail' l v where
-  Line :: SegTree v                   -> Trail' Line v
-  Loop :: SegTree v -> Segment Open v -> Trail' Loop v
+data Trail' l v n where
+  Line :: SegTree v n                     -> Trail' Line v n
+  Loop :: SegTree v n -> Segment Open v n -> Trail' Loop v n
 
 -- | A generic eliminator for 'Trail'', taking functions specifying
 --   what to do in the case of a line or a loop.
@@ -361,13 +366,14 @@ withTrail' :: (Trail' Line v n -> r) -> (Trail' Loop v n -> r) -> Trail' l v n -
 withTrail' line _    t@(Line{}) = line t
 withTrail' _    loop t@(Loop{}) = loop t
 
-deriving instance Show (v n) => Show (Trail' l v)
-deriving instance Eq   (v n) => Eq   (Trail' l v)
-deriving instance Ord  (v n) => Ord  (Trail' l v)
+deriving instance Show (v n) => Show (Trail' l v n)
+deriving instance Eq   (v n) => Eq   (Trail' l v n)
+deriving instance Ord  (v n) => Ord  (Trail' l v n)
 
-type instance V (Trail' l v) = v
+type instance V (Trail' l v n) = v
+type instance N (Trail' l v n) = n
 
-type instance Codomain (Trail' l v) = v
+type instance Codomain (Trail' l v n) = v
 
 instance (OrderedField n, Metric v) => Semigroup (Trail' Line v n) where
   (Line t1) <> (Line t2) = Line (t1 `mappend` t2)
@@ -375,7 +381,7 @@ instance (OrderedField n, Metric v) => Semigroup (Trail' Line v n) where
 -- | The empty trail is constantly the zero vector.  Trails are
 --   composed via concatenation.  Note that only lines have a monoid
 --   instance (and not loops).
-instance (OrderedField n, Metric v) => Monoid (Trail' Line v) where
+instance (OrderedField n, Metric v) => Monoid (Trail' Line v n) where
   mempty  = emptyLine
   mappend = (<>)
 
@@ -388,8 +394,8 @@ instance (HasLinearMap v, Metric v, OrderedField n)
 instance (Metric v, OrderedField n) => Enveloped (Trail' l v n) where
   getEnvelope = withTrail' ftEnv (ftEnv . cutLoop)
     where
-      ftEnv :: Trail' Line v -> Envelope v
-      ftEnv (Line t) = trailMeasure mempty (view oeEnvelope) $ t
+      ftEnv :: Trail' Line v n -> Envelope v n
+      ftEnv (Line t) = trailMeasure mempty (view oeEnvelope) t
 
 instance (HasLinearMap v, Metric v, OrderedField n)
     => Renderable (Trail' o v n) NullBackend where
@@ -405,7 +411,7 @@ instance (Metric v, OrderedField n, RealFrac n)
 type instance Codomain (Tangent (Trail' c v n)) = Codomain (Trail' c v n)
 
 instance ( Parametric (GetSegment (Trail' c v n))
-         , VectorSpace v
+         , Additive v
          , Num n
          )
     => Parametric (Tangent (Trail' c v n)) where
@@ -416,7 +422,7 @@ instance ( Parametric (GetSegment (Trail' c v n))
 
 instance ( Parametric (GetSegment (Trail' c v n))
          , EndValues (GetSegment (Trail' c v n))
-         , VectorSpace v
+         , Additive v
          , Num n
          )
     => EndValues (Tangent (Trail' c v n)) where
@@ -442,10 +448,7 @@ instance ( Metric v
         ((`atParam` p) . Tangent)
         tr
 
-instance ( Metric v
-         , OrderedField n
-         , RealFrac n
-         )
+instance (Metric v, OrderedField n, RealFrac n)
     => EndValues (Tangent (Trail v n)) where
   atStart (Tangent tr) = withTrail (atStart . Tangent) (atStart . Tangent) tr
   atEnd   (Tangent tr) = withTrail (atEnd   . Tangent) (atEnd   . Tangent) tr
@@ -466,9 +469,9 @@ propFrac = properFraction
 instance Num n => DomainBounds (Trail' l v n)
 
 instance (Metric v, OrderedField n, RealFrac n)
-  => EndValues (Trail' l v)
+  => EndValues (Trail' l v n)
 
-instance (Metric v, RealFrac n, Floating n)
+instance (Metric v, RealFrac n, Floating n, Epsilon n)
     => Sectionable (Trail' Line v n) where
   splitAtParam (Line t) p = (Line t1, Line t2)
     where
@@ -533,11 +536,12 @@ getSegment = GetSegment
 
 type instance V (GetSegment t) = V t
 type instance N (GetSegment t) = N t
-type instance Codomain (GetSegment t)
+type instance Codomain (GetSegment t) (N t)
+  -- = V t
   = Maybe
-    ( V t                                   -- offset from trail start to segment start
-    , Segment Closed (V t)                  -- the segment
-    , AnIso' (N t) (N t)  -- reparameterization, trail <-> segment
+    ( V t (N t)                  -- offset from trail start to segment start
+    , Segment Closed (V t) (N t) -- the segment
+    , AnIso' (N t) (N t)         -- reparameterization, trail <-> segment
     )
 
 -- | Parameters less than 0 yield the first segment; parameters
@@ -545,7 +549,7 @@ type instance Codomain (GetSegment t)
 --   junction of two segments yields the second segment (/i.e./ the
 --   one with higher parameter values).
 instance (Metric v, OrderedField n)
-    => Parametric (GetSegment (Trail' Line v)) where
+    => Parametric (GetSegment (Trail' Line v n)) where
   atParam (GetSegment (Line (SegTree ft))) p
     | p <= 0
     = case FT.viewl ft of
@@ -586,7 +590,7 @@ instance DomainBounds t => DomainBounds (GetSegment t) where
   domainUpper (GetSegment t) = domainUpper t
 
 instance (Metric v, OrderedField n)
-    => EndValues (GetSegment (Trail' Line v)) where
+    => EndValues (GetSegment (Trail' Line v n)) where
   atStart (GetSegment (Line (SegTree ft)))
     = case FT.viewl ft of
         EmptyL   -> Nothing
@@ -612,13 +616,13 @@ instance (Metric v, OrderedField n, RealFrac n)
     => EndValues (GetSegment (Trail v n)) where
   atStart (GetSegment t)
     = withTrail
-      (\l -> atStart (GetSegment l))
-      (\l -> atStart (GetSegment l))
+      (atStart . GetSegment)
+      (atStart . GetSegment)
       t
   atEnd (GetSegment t)
     = withTrail
-      (\l -> atEnd (GetSegment l))
-      (\l -> atEnd (GetSegment l))
+      (atEnd . GetSegment)
+      (atEnd . GetSegment)
       t
 
 --------------------------------------------------
@@ -639,11 +643,11 @@ instance Eq (v n) => Eq (Trail v n) where
       (\lp1 -> withTrail (const False) (\lp2 -> lp1 == lp2) t2)
       t1
 
-instance Ord v => Ord (Trail v n) where
+instance Ord (v n) => Ord (Trail v n) where
   compare t1 t2 =
     withTrail
-      (\ln1 -> withTrail (\ln2 -> compare ln1 ln2) (const LT) t2)
-      (\lp1 -> withTrail (const GT) (\lp2 -> compare lp1 lp2) t2)
+      (\ln1 -> withTrail (compare ln1) (const LT) t2)
+      (\lp1 -> withTrail (const GT) (compare lp1) t2)
       t1
 
 -- | Two @Trail@s are combined by first ensuring they are both lines
@@ -700,7 +704,7 @@ instance (Metric v, OrderedField n, RealFrac n)
 --   semantically a bit silly, so please don't rely on it. (*E.g.* if
 --   this is really the behavior you want, consider first calling
 --   'cutLoop' yourself.)
-instance (Metric v, RealFrac n, Floating n)
+instance (Metric v, RealFrac n, Floating n, Epsilon n)
     => Sectionable (Trail v n) where
   splitAtParam t p = withLine ((wrapLine *** wrapLine) . (`splitAtParam` p)) t
 
@@ -721,8 +725,8 @@ withTrail line loop (Trail t) = withTrail' line loop t
 
 -- | Modify a @Trail@, specifying two separate transformations for the
 --   cases of a line or a loop.
-onTrail :: (Trail' Line v n -> Trail' l1 v) -> (Trail' Loop v n -> Trail' l2 v n)
-        -> (Trail v -> Trail v)
+onTrail :: (Trail' Line v n -> Trail' l1 v n) -> (Trail' Loop v n -> Trail' l2 v n)
+        -> Trail v n -> Trail v n
 onTrail o c = withTrail (wrapTrail . o) (wrapTrail . c)
 
 -- | An eliminator for @Trail@ based on eliminating lines: if the
@@ -870,9 +874,9 @@ trailFromVertices = wrapTrail . lineFromVertices
 glueLine :: (Metric v, OrderedField n) => Trail' Line v n -> Trail' Loop v n
 glueLine (Line (SegTree t)) =
   case FT.viewr t of
-    FT.EmptyR             -> Loop mempty (Linear OffsetOpen)
-    t' :> (Linear _)      -> Loop (SegTree t') (Linear OffsetOpen)
-    t' :> (Cubic c1 c2 _) -> Loop (SegTree t') (Cubic c1 c2 OffsetOpen)
+    FT.EmptyR           -> Loop mempty (Linear OffsetOpen)
+    t' :> Linear _      -> Loop (SegTree t') (Linear OffsetOpen)
+    t' :> Cubic c1 c2 _ -> Loop (SegTree t') (Cubic c1 c2 OffsetOpen)
 
 -- | @glueTrail@ is a variant of 'glueLine' which works on 'Trail's.
 --   It performs 'glueLine' on lines and is the identity on loops.
@@ -927,7 +931,7 @@ cutLoop (Loop (SegTree t) c) =
     (_   , Linear OffsetOpen)      -> Line (SegTree (t |> Linear off))
     (_   , Cubic c1 c2 OffsetOpen) -> Line (SegTree (t |> Cubic c1 c2 off))
   where
-    offV :: v
+    offV :: v n
     offV = negated . trailMeasure zero (op TotalOffset .view oeOffset) $ t
     off = OffsetClosed offV
 
@@ -1045,7 +1049,7 @@ loopPoints :: (Metric v, OrderedField n)
 loopPoints (viewLoc -> (p,t))
   = segmentPoints p . fst . loopSegments $ t
 
-segmentPoints :: Additive v => Point v n -> [Segment Closed v n] -> [Point v n]
+segmentPoints :: (Additive v, Num n) => Point v n -> [Segment Closed v n] -> [Point v n]
 segmentPoints p = scanl (.+^) p . map segOffset
 
 tolerance :: OrderedField a => a
@@ -1070,7 +1074,7 @@ trailVertices' toler (viewLoc -> (p,t))
 -- : Like trailVertices' but the tolerance is set to tolerance
 trailVertices :: (Metric v, OrderedField n)
               => Located (Trail v n) -> [Point v n]
-trailVertices l = trailVertices' tolerance l
+trailVertices = trailVertices' tolerance
 
 -- | Extract the vertices of a concretely located line.  See
 --   'trailVertices' for more information.
@@ -1082,7 +1086,7 @@ lineVertices' toler (viewLoc -> (p,t))
 -- | Like lineVertices' with tolerance set to tolerance.
 lineVertices :: (Metric v, OrderedField n)
              => Located (Trail' Line v n) -> [Point v n]
-lineVertices l = lineVertices' tolerance l
+lineVertices = lineVertices' tolerance
 
 -- | Extract the vertices of a concretely located loop.  Note that the
 --   initial vertex is not repeated at the end.  See 'trailVertices' for
@@ -1101,7 +1105,7 @@ loopVertices' toler (viewLoc -> (p,t))
 -- | Same as loopVertices' with tolerance set to tolerance.
 loopVertices :: (Metric v, OrderedField n)
              => Located (Trail' Loop v n) -> [Point v n]
-loopVertices l = loopVertices' tolerance l
+loopVertices = loopVertices' tolerance
 
 -- The vertices of a list of segments laid end to end.
 -- The start and end points are always included in the list of vertices.
@@ -1110,7 +1114,7 @@ loopVertices l = loopVertices' tolerance l
 -- The 'toler' parameter is used to control how close the slopes need to
 -- be in order to declatre them equal.
 segmentVertices' :: (Metric v, OrderedField n)
-             => n -> Point v -> [Segment Closed v n] -> [Point v n]
+             => n -> Point v n -> [Segment Closed v n] -> [Point v n]
 segmentVertices' toler p ts  =
   case ps of
     (x:_:_) -> x : select (drop 1 ps) ds ++ [last ps]
@@ -1120,7 +1124,7 @@ segmentVertices' toler p ts  =
       tans = [(normalize . tangentAtStart $ s
               ,normalize . tangentAtEnd   $ s) | s <- ts]
       ps = scanl (.+^) p . map segOffset $ ts
-      far p2 q2 = quadrance ((snd p2) ^-^ (fst q2)) > toler
+      far p2 q2 = quadrance (snd p2 ^-^ fst q2) > toler
 
 select :: [a] -> [Bool] -> [a]
 select xs bs = map fst $ filter snd (zip xs bs)

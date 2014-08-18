@@ -27,7 +27,7 @@ import qualified Numeric.Interval.Kaucher as I
 
 -- | Codomain of parametric classes.  This is usually either @(V p)@, for relative
 --   vector results, or @(Point (V p))@, for functions with absolute coordinates.
-type family Codomain p :: * -> *
+type family Codomain p n :: *
 
 -- | Type class for parametric functions.
 class Parametric p where

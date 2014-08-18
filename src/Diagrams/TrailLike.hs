@@ -29,8 +29,8 @@ module Diagrams.TrailLike
        ) where
 
 import           Control.Lens     (view, _Unwrapped')
-import           Data.AffineSpace ((.-.))
-import           Data.VectorSpace
+-- import           Data.AffineSpace ((.-.))
+-- import           Data.VectorSpace
 
 import           Diagrams.Core
 import           Diagrams.Located
