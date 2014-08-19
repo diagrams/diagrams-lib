@@ -161,11 +161,11 @@ polyCenter :: Lens' (PolygonOpts v) (Point v)
 
 -- | The default polygon is a regular pentagon of radius 1, centered
 --   at the origin, aligned to the x-axis.
-instance (R2Ish v) => Default (PolygonOpts v) where
+instance (TwoD v) => Default (PolygonOpts v) where
     def = PolygonOpts (PolyRegular 5 1) OrientH origin
 
 -- | Generate a polygon.  See 'PolygonOpts' for more information.
-polyTrail :: (R2Ish v) =>  PolygonOpts v -> Located (Trail v)
+polyTrail :: (TwoD v) =>  PolygonOpts v -> Located (Trail v)
 polyTrail po = transform ori tr
     where
         tr = case po^.polyType of
@@ -179,12 +179,12 @@ polyTrail po = transform ori tr
             NoOrient     -> mempty
 
 -- | Generate the polygon described by the given options.
-polygon :: (R2Ish v, TrailLike t, V t ~ v) => PolygonOpts v -> t
+polygon :: (TwoD v, TrailLike t, V t ~ v) => PolygonOpts v -> t
 polygon = trailLike . polyTrail
 
 -- | Generate the located trail of a polygon specified by polar data
 --   (central angles and radii). See 'PolyPolar'.
-polyPolarTrail :: (R2Ish v) =>  [Angle (Scalar v)] -> [Scalar v] -> Located (Trail v)
+polyPolarTrail :: (TwoD v) =>  [Angle (Scalar v)] -> [Scalar v] -> Located (Trail v)
 polyPolarTrail [] _ = emptyTrail `at` origin
 polyPolarTrail _ [] = emptyTrail `at` origin
 polyPolarTrail ans (r:rs) = tr `at` p1
@@ -199,7 +199,7 @@ polyPolarTrail ans (r:rs) = tr `at` p1
 -- | Generate the vertices of a polygon specified by side length and
 --   angles, and a starting point for the trail such that the origin
 --   is at the centroid of the vertices.  See 'PolySides'.
-polySidesTrail :: (R2Ish v) =>  [Angle (Scalar v)] -> [Scalar v] -> Located (Trail v)
+polySidesTrail :: (TwoD v) =>  [Angle (Scalar v)] -> [Scalar v] -> Located (Trail v)
 polySidesTrail ans ls = tr `at` (centroid ps # scale (-1))
   where
     ans'    = scanl (^+^) zeroV ans
@@ -208,7 +208,7 @@ polySidesTrail ans ls = tr `at` (centroid ps # scale (-1))
     tr      = closeTrail . trailFromOffsets $ offsets
 
 -- | Generate the vertices of a regular polygon.  See 'PolyRegular'.
-polyRegularTrail :: (R2Ish v) =>  Int -> Scalar v -> Located (Trail v)
+polyRegularTrail :: (TwoD v) =>  Int -> Scalar v -> Located (Trail v)
 polyRegularTrail n r = polyPolarTrail
                          (take (n-1) . repeat $ fullTurn ^/ fromIntegral n)
                          (repeat r)
@@ -217,10 +217,10 @@ polyRegularTrail n r = polyPolarTrail
 --   generates the smallest rotation such that one of the segments
 --   adjacent to the vertex furthest in the direction of @v@ is
 --   perpendicular to @v@.
-orient :: (R2Ish v) =>  v -> Located (Trail v) -> Transformation v
+orient :: (TwoD v) =>  v -> Located (Trail v) -> Transformation v
 orient v = orientPoints v . trailVertices
 
-orientPoints :: (R2Ish v) =>  v -> [Point v] -> Transformation v
+orientPoints :: (TwoD v) =>  v -> [Point v] -> Transformation v
 orientPoints v xs = rotation a
   where
     (n1,x,n2) = maximumBy (comparing (distAlong v . sndOf3))
@@ -326,7 +326,7 @@ data StarOpts = StarFun (Int -> Int)
 --   returned (instead of any 'TrailLike') because the resulting path
 --   may have more than one component, for example if the vertices are
 --   to be connected in several disjoint cycles.
-star :: (R2Ish v) =>  StarOpts -> [Point v] -> Path v
+star :: (TwoD v) =>  StarOpts -> [Point v] -> Path v
 star sOpts vs = graphToPath $ mkGraph f vs
   where f = case sOpts of
               StarFun g  -> g

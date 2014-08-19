@@ -81,14 +81,14 @@ import           Diagrams.Util         (tau)
 
 -- XXX can the efficiency of this be improved?  See the comment in
 -- Diagrams.Path on the Enveloped instance for Trail.
-instance (R2Ish v) => Traced (Trail v) where
+instance (TwoD v) => Traced (Trail v) where
   getTrace = withLine $
       foldr
         (\seg bds -> moveOriginBy (negateV . atEnd $ seg) bds <> getTrace seg)
         mempty
     . lineSegments
 
-instance (R2Ish v) => Traced (Path v) where
+instance (TwoD v) => Traced (Path v) where
   getTrace = F.foldMap getTrace . op Path
 
 ------------------------------------------------------------
@@ -159,11 +159,11 @@ instance Default (StrokeOpts a) where
 --   inferring the type of @stroke@.  The solution is to give a type
 --   signature to expressions involving @stroke@, or (recommended)
 --   upgrade GHC (the bug is fixed in 7.0.2 onwards).
-stroke :: (R2Ish v, Renderable (Path v) b)
+stroke :: (TwoD v, Renderable (Path v) b)
        => Path v -> Diagram b v
 stroke = stroke' (def :: StrokeOpts ())
 
-instance (R2Ish v, Renderable (Path v) b) => TrailLike (QDiagram b v Any) where
+instance (TwoD v, Renderable (Path v) b) => TrailLike (QDiagram b v Any) where
   trailLike = stroke . trailLike
 
 -- | A variant of 'stroke' that takes an extra record of options to
@@ -173,7 +173,7 @@ instance (R2Ish v, Renderable (Path v) b) => TrailLike (QDiagram b v Any) where
 --
 --   'StrokeOpts' is an instance of 'Default', so @stroke' ('with' &
 --   ... )@ syntax may be used.
-stroke' :: (R2Ish v, Renderable (Path v) b, IsName a) => StrokeOpts a -> Path v -> Diagram b v
+stroke' :: (TwoD v, Renderable (Path v) b, IsName a) => StrokeOpts a -> Path v -> Diagram b v
 stroke' opts path
   | null (pLines ^. _Wrapped') =           mkP pLoops
   | null (pLoops ^. _Wrapped') = mkP pLines
@@ -198,51 +198,51 @@ stroke' opts path
 --   The solution is to give a type signature to expressions involving
 --   @strokeTrail@, or (recommended) upgrade GHC (the bug is fixed in 7.0.2
 --   onwards).
-strokeTrail :: (R2Ish v, Renderable (Path v) b) => Trail v -> Diagram b v
+strokeTrail :: (TwoD v, Renderable (Path v) b) => Trail v -> Diagram b v
 strokeTrail = stroke . pathFromTrail
 
 -- | Deprecated synonym for 'strokeTrail'.
-strokeT :: (R2Ish v, Renderable (Path v) b) => Trail v -> Diagram b v
+strokeT :: (TwoD v, Renderable (Path v) b) => Trail v -> Diagram b v
 strokeT = strokeTrail
 
 -- | A composition of 'stroke'' and 'pathFromTrail' for conveniently
 --   converting a trail directly into a diagram.
-strokeTrail' :: (R2Ish v, Renderable (Path v) b, IsName a)
+strokeTrail' :: (TwoD v, Renderable (Path v) b, IsName a)
              => StrokeOpts a -> Trail v -> Diagram b v
 strokeTrail' opts = stroke' opts . pathFromTrail
 
 -- | Deprecated synonym for 'strokeTrail''.
-strokeT' :: (R2Ish v, Renderable (Path v) b, IsName a)
+strokeT' :: (TwoD v, Renderable (Path v) b, IsName a)
          => StrokeOpts a -> Trail v -> Diagram b v
 strokeT' = strokeTrail'
 
 -- | A composition of 'strokeT' and 'wrapLine' for conveniently
 --   converting a line directly into a diagram.
-strokeLine :: (R2Ish v, Renderable (Path v) b) => Trail' Line v -> Diagram b v
+strokeLine :: (TwoD v, Renderable (Path v) b) => Trail' Line v -> Diagram b v
 strokeLine = strokeT . wrapLine
 
 -- | A composition of 'strokeT' and 'wrapLoop' for conveniently
 --   converting a loop directly into a diagram.
-strokeLoop :: (R2Ish v, Renderable (Path v) b) => Trail' Loop v -> Diagram b v
+strokeLoop :: (TwoD v, Renderable (Path v) b) => Trail' Loop v -> Diagram b v
 strokeLoop = strokeT . wrapLoop
 
 -- | A convenience function for converting a @Located Trail@ directly
 --   into a diagram; @strokeLocTrail = stroke . trailLike@.
-strokeLocTrail :: (R2Ish v, Renderable (Path v) b) => Located (Trail v) -> Diagram b v
+strokeLocTrail :: (TwoD v, Renderable (Path v) b) => Located (Trail v) -> Diagram b v
 strokeLocTrail = stroke . trailLike
 
 -- | Deprecated synonym for 'strokeLocTrail'.
-strokeLocT :: (R2Ish v, Renderable (Path v) b) => Located (Trail v) -> Diagram b v
+strokeLocT :: (TwoD v, Renderable (Path v) b) => Located (Trail v) -> Diagram b v
 strokeLocT = strokeLocTrail
 
 -- | A convenience function for converting a @Located@ line directly
 --   into a diagram; @strokeLocLine = stroke . trailLike . mapLoc wrapLine@.
-strokeLocLine :: (R2Ish v, Renderable (Path v) b) => Located (Trail' Line v) -> Diagram b v
+strokeLocLine :: (TwoD v, Renderable (Path v) b) => Located (Trail' Line v) -> Diagram b v
 strokeLocLine = stroke . trailLike . mapLoc wrapLine
 
 -- | A convenience function for converting a @Located@ loop directly
 --   into a diagram; @strokeLocLoop = stroke . trailLike . mapLoc wrapLoop@.
-strokeLocLoop :: (R2Ish v, Renderable (Path v) b) => Located (Trail' Loop v) -> Diagram b v
+strokeLocLoop :: (TwoD v, Renderable (Path v) b) => Located (Trail' Loop v) -> Diagram b v
 strokeLocLoop = stroke . trailLike . mapLoc wrapLoop
 
 ------------------------------------------------------------
@@ -251,7 +251,7 @@ strokeLocLoop = stroke . trailLike . mapLoc wrapLoop
 
 
 
-runFillRule :: (R2Ish v) => FillRule -> Point v -> Path v -> Bool
+runFillRule :: (TwoD v) => FillRule -> Point v -> Path v -> Bool
 runFillRule Winding = isInsideWinding
 runFillRule EvenOdd = isInsideEvenOdd
 
@@ -271,7 +271,7 @@ getFillRule (FillRuleA (Last r)) = r
 fillRule :: HasStyle a => FillRule -> a -> a
 fillRule = applyAttr . FillRuleA . Last
 
-cross :: (R2Ish v) => v -> v -> Scalar v
+cross :: (TwoD v) => v -> v -> Scalar v
 cross (coords -> x :& y) (coords -> x' :& y') = x * y' - y * x'
 
 -- XXX link to more info on this
@@ -280,7 +280,7 @@ cross (coords -> x :& y) (coords -> x' :& y') = x * y' - y * x'
 --   by testing whether the point's /winding number/ is nonzero. Note
 --   that @False@ is /always/ returned for /open/ paths, regardless of
 --   the winding number.
-isInsideWinding :: (R2Ish v) => Point v -> Path v -> Bool
+isInsideWinding :: (TwoD v) => Point v -> Path v -> Bool
 isInsideWinding p = (/= 0) . crossings p
 
 -- | Test whether the given point is inside the given (closed) path,
@@ -288,17 +288,17 @@ isInsideWinding p = (/= 0) . crossings p
 --   x direction crosses the path an even (outside) or odd (inside)
 --   number of times.  Note that @False@ is /always/ returned for
 --   /open/ paths, regardless of the number of crossings.
-isInsideEvenOdd :: (R2Ish v) => Point v -> Path v -> Bool
+isInsideEvenOdd :: (TwoD v) => Point v -> Path v -> Bool
 isInsideEvenOdd p = odd . crossings p
 
 -- | Compute the sum of /signed/ crossings of a path as we travel in the
 --   positive x direction from a given point.
-crossings :: (R2Ish v) => Point v -> Path v -> Int
+crossings :: (TwoD v) => Point v -> Path v -> Int
 crossings p = F.sum . map (trailCrossings p) . op Path
 
 -- | Compute the sum of signed crossings of a trail starting from the
 --   given point in the positive x direction.
-trailCrossings :: (R2Ish v) => Point v -> Located (Trail v) -> Int
+trailCrossings :: (TwoD v) => Point v -> Located (Trail v) -> Int
 
   -- non-loop trails have no inside or outside, so don't contribute crossings
 trailCrossings _ t | not (isLoop (unLoc t)) = 0
@@ -353,7 +353,7 @@ instance (Typeable v) => AttributeClass (Clip v)
 
 type instance V (Clip v) = v
 
-instance (R2Ish v) => Transformable (Clip v) where
+instance (TwoD v) => Transformable (Clip v) where
   transform t (Clip ps) = Clip (transform t ps)
 
 -- | Clip a diagram by the given path:
@@ -362,7 +362,7 @@ instance (R2Ish v) => Transformable (Clip v) where
 --     path will be drawn.
 --
 --   * The envelope of the diagram is unaffected.
-clipBy :: (R2Ish v, HasStyle a, V a ~ v) => Path v -> a -> a
+clipBy :: (TwoD v, HasStyle a, V a ~ v) => Path v -> a -> a
 clipBy = applyTAttr . Clip . (:[])
 
 -- | Clip a diagram to the given path setting its envelope to the
@@ -370,7 +370,7 @@ clipBy = applyTAttr . Clip . (:[])
 --   trace consists of those parts of the original diagram's trace
 --   which fall within the clipping path, or parts of the path's trace
 --   within the original diagram.
-clipTo :: (R2Ish v, Renderable (Path v) b) => Path v ->  Diagram b v ->  Diagram b v
+clipTo :: (TwoD v, Renderable (Path v) b) => Path v ->  Diagram b v ->  Diagram b v
 clipTo p d = setTrace intersectionTrace . toEnvelope $ clipBy p d
   where
     envP = appEnvelope . getEnvelope $ p
@@ -390,5 +390,5 @@ clipTo p d = setTrace intersectionTrace . toEnvelope $ clipBy p d
 
 -- | Clip a diagram to the clip path taking the envelope and trace of the clip
 --   path.
-clipped :: (R2Ish v, Renderable (Path v) b) => Path v ->  Diagram b v ->  Diagram b v
+clipped :: (TwoD v, Renderable (Path v) b) => Path v ->  Diagram b v ->  Diagram b v
 clipped p = (withTrace p) . (withEnvelope p) . (clipBy p)

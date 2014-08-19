@@ -81,7 +81,7 @@ infixl 6 |||
 --   combined diagram is the same as the local origin of the first.
 --   @(===)@ is associative and has 'mempty' as an identity.  See the
 --   documentation of 'beside' for more information.
-(===) :: (Juxtaposable a, V a ~ v, R2Ish v, Semigroup a) => a -> a -> a
+(===) :: (Juxtaposable a, V a ~ v, TwoD v, Semigroup a) => a -> a -> a
 (===) = beside (negateV unitY)
 
 -- | Place two diagrams (or other juxtaposable objects) horizontally
@@ -90,7 +90,7 @@ infixl 6 |||
 --   is the same as the local origin of the first.  @(|||)@ is
 --   associative and has 'mempty' as an identity.  See the
 --   documentation of 'beside' for more information.
-(|||) :: (Juxtaposable a, V a ~ v, R2Ish v, Semigroup a) => a -> a -> a
+(|||) :: (Juxtaposable a, V a ~ v, TwoD v, Semigroup a) => a -> a -> a
 (|||) = beside unitX
 
 -- | Lay out a list of juxtaposable objects in a row from left to right,
@@ -104,7 +104,7 @@ infixl 6 |||
 --     "Diagrams.TwoD.Align" before applying 'hcat'.
 --
 --   * For non-axis-aligned layout, see 'cat'.
-hcat :: (Juxtaposable a, HasOrigin a, Monoid' a, V a ~ v, R2Ish v)
+hcat :: (Juxtaposable a, HasOrigin a, Monoid' a, V a ~ v, TwoD v)
      => [a] -> a
 hcat = hcat' def
 
@@ -112,13 +112,13 @@ hcat = hcat' def
 --   the spacing.  See the 'cat'' documentation for a description of
 --   the possibilities. For the common case of setting just a
 --   separation amount, see 'hsep'.
-hcat' :: (Juxtaposable a, HasOrigin a, Monoid' a, V a ~ v, R2Ish v)
+hcat' :: (Juxtaposable a, HasOrigin a, Monoid' a, V a ~ v, TwoD v)
       => CatOpts v -> [a] -> a
 hcat' = cat' unitX
 
 -- | A convenient synonym for horizontal concatenation with
 --   separation: @hsep s === hcat' (with & sep .~ s)@.
-hsep :: (Juxtaposable a, HasOrigin a, Monoid' a, V a ~ v, R2Ish v)
+hsep :: (Juxtaposable a, HasOrigin a, Monoid' a, V a ~ v, TwoD v)
      => Scalar v -> [a] -> a
 hsep s = hcat' (def & sep .~ s)
 
@@ -133,7 +133,7 @@ hsep s = hcat' (def & sep .~ s)
 --     "Diagrams.TwoD.Align" before applying 'vcat'.
 --
 --   * For non-axis-aligned layout, see 'cat'.
-vcat :: (Juxtaposable a, HasOrigin a, Monoid' a, V a ~ v, R2Ish v)
+vcat :: (Juxtaposable a, HasOrigin a, Monoid' a, V a ~ v, TwoD v)
      => [a] -> a
 vcat = vcat' def
 
@@ -141,13 +141,13 @@ vcat = vcat' def
 --   the spacing.  See the 'cat'' documentation for a description of
 --   the possibilities.  For the common case of setting just a
 --   separation amount, see 'vsep'.
-vcat' :: (Juxtaposable a, HasOrigin a, Monoid' a, V a ~ v, R2Ish v)
+vcat' :: (Juxtaposable a, HasOrigin a, Monoid' a, V a ~ v, TwoD v)
       => CatOpts v -> [a] -> a
 vcat' = cat' (negateV unitY)
 
 -- | A convenient synonym for vertical concatenation with
 --   separation: @vsep s === vcat' (with & sep .~ s)@.
-vsep :: (Juxtaposable a, HasOrigin a, Monoid' a, V a ~ v, R2Ish v)
+vsep :: (Juxtaposable a, HasOrigin a, Monoid' a, V a ~ v, TwoD v)
      => Scalar v -> [a] -> a
 vsep s = vcat' (def & sep .~ s)
 
@@ -157,7 +157,7 @@ vsep s = vcat' (def & sep .~ s)
 --   local origin at its center.  If you don't care about the trace
 --   then there's no difference between @strutR2@ and the more general
 --   'strut'.
-strutR2 :: (Backend b v, Monoid' m, R2Ish v) => v -> QDiagram b v m
+strutR2 :: (Backend b v, Monoid' m, TwoD v) => v -> QDiagram b v m
 strutR2 v = phantom seg
   where
     seg = FLinear (origin .+^ 0.5 *^ v) (origin .+^ (-0.5) *^ v)
@@ -165,13 +165,13 @@ strutR2 v = phantom seg
 -- | @strutX w@ is an empty diagram with width @w@, height 0, and a
 --   centered local origin.  Note that @strutX (-w)@ behaves the same as
 --   @strutX w@.
-strutX :: (Backend b v, Monoid' m, R2Ish v) => Scalar v -> QDiagram b v m
+strutX :: (Backend b v, Monoid' m, TwoD v) => Scalar v -> QDiagram b v m
 strutX d = strut (d ^& 0)
 
 -- | @strutY h@ is an empty diagram with height @h@, width 0, and a
 --   centered local origin. Note that @strutY (-h)@ behaves the same as
 --   @strutY h@.
-strutY :: (Backend b v, Monoid' m, R2Ish v) => Scalar v -> QDiagram b v m
+strutY :: (Backend b v, Monoid' m, TwoD v) => Scalar v -> QDiagram b v m
 strutY d = strut (0 ^& d)
 
 -- | @padX s@ \"pads\" a diagram in the x-direction, expanding its
@@ -181,7 +181,7 @@ strutY d = strut (0 ^& d)
 --   centered horizontally the padding may appear \"uneven\".  If this
 --   is not desired, the origin can be centered (using 'centerX')
 --   before applying @padX@.
-padX :: ( Backend b v, Monoid' m, R2Ish v )
+padX :: ( Backend b v, Monoid' m, TwoD v )
      => Scalar v -> QDiagram b v m -> QDiagram b v m
 padX s d = withEnvelope (d # scaleX s) d
 
@@ -192,7 +192,7 @@ padX s d = withEnvelope (d # scaleX s) d
 --   so if the origin is not centered vertically the padding may appear
 --   \"uneven\".  If this is not desired, the origin can be centered
 --   (using 'centerY') before applying @padY@.
-padY :: ( Backend b v, Monoid' m, R2Ish v )
+padY :: ( Backend b v, Monoid' m, TwoD v )
      => Scalar v -> QDiagram b v m -> QDiagram b v m
 padY s d = withEnvelope (d # scaleY s) d
 
@@ -201,7 +201,7 @@ padY s d = withEnvelope (d # scaleY s) d
 --   the envelope is inset instead.
 --
 --   See the documentation for 'extrudeEnvelope' for more information.
-extrudeLeft :: (Monoid' m, R2Ish v) => Scalar v -> QDiagram b v m -> QDiagram b v m
+extrudeLeft :: (Monoid' m, TwoD v) => Scalar v -> QDiagram b v m -> QDiagram b v m
 extrudeLeft s
   | s >= 0    = extrudeEnvelope $ unitX ^* negate s
   | otherwise = intrudeEnvelope $ unitX ^* negate s
@@ -211,7 +211,7 @@ extrudeLeft s
 --   the envelope is inset instead.
 --
 --   See the documentation for 'extrudeEnvelope' for more information.
-extrudeRight :: (Monoid' m, R2Ish v) => Scalar v -> QDiagram b v m -> QDiagram b v m
+extrudeRight :: (Monoid' m, TwoD v) => Scalar v -> QDiagram b v m -> QDiagram b v m
 extrudeRight s
   | s >= 0    = extrudeEnvelope $ unitX ^* s
   | otherwise = intrudeEnvelope $ unitX ^* s
@@ -221,7 +221,7 @@ extrudeRight s
 --   the envelope is inset instead.
 --
 --   See the documentation for 'extrudeEnvelope' for more information.
-extrudeBottom :: (Monoid' m, R2Ish v) => Scalar v -> QDiagram b v m -> QDiagram b v m
+extrudeBottom :: (Monoid' m, TwoD v) => Scalar v -> QDiagram b v m -> QDiagram b v m
 extrudeBottom s
   | s >= 0    = extrudeEnvelope $ unitY ^* negate s
   | otherwise = intrudeEnvelope $ unitY ^* negate s
@@ -231,7 +231,7 @@ extrudeBottom s
 --   the envelope is inset instead.
 --
 --   See the documentation for 'extrudeEnvelope' for more information.
-extrudeTop :: (Monoid' m, R2Ish v) => Scalar v -> QDiagram b v m -> QDiagram b v m
+extrudeTop :: (Monoid' m, TwoD v) => Scalar v -> QDiagram b v m -> QDiagram b v m
 extrudeTop s
   | s >= 0    = extrudeEnvelope $ unitY ^* s
   | otherwise = intrudeEnvelope $ unitY ^* s
@@ -241,14 +241,14 @@ extrudeTop s
 --   .+^ v@.  Useful for selecting the rectangular portion of a
 --   diagram which should actually be \"viewed\" in the final render,
 --   if you don't want to see the entire diagram.
-view :: forall v b m. ( Backend b v, Monoid' m, R2Ish v )
+view :: forall v b m. ( Backend b v, Monoid' m, TwoD v )
      => Point v -> v -> QDiagram b v m -> QDiagram b v m
 view p (coords -> w :& h) = withEnvelope (rect w h # alignBL # moveTo p :: D v)
 
 -- | Construct a bounding rectangle for an enveloped object, that is,
 --   the smallest axis-aligned rectangle which encloses the object.
 boundingRect :: ( Enveloped t, Transformable t, TrailLike t, Monoid t, V t ~ v
-                , Enveloped a, V a ~ v, R2Ish v
+                , Enveloped a, V a ~ v, TwoD v
                 )
              => a -> t
 boundingRect = (`boxFit` rect 1 1) . boundingBox

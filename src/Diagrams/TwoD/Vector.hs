@@ -34,38 +34,38 @@ import           Diagrams.Direction
 import           Diagrams.TwoD.Types
 
 -- | The unit vector in the positive X direction.
-unitX :: (R2Ish v) => v
+unitX :: (TwoD v) => v
 unitX = mkR2 1 0
 
 -- | The unit vector in the positive Y direction.
-unitY :: (R2Ish v) => v
+unitY :: (TwoD v) => v
 unitY = mkR2 0 1
 
 -- | The unit vector in the negative X direction.
-unit_X :: (R2Ish v) => v
+unit_X :: (TwoD v) => v
 unit_X = mkR2 (-1) 0
 
 -- | The unit vector in the negative Y direction.
-unit_Y :: (R2Ish v) => v
+unit_Y :: (TwoD v) => v
 unit_Y = mkR2 0 (-1)
 
 -- | The origin of the direction AffineSpace.  For all d, @d .-. xDir
 -- = d^._theta@.
-xDir :: (R2Ish v) => Direction v
+xDir :: (TwoD v) => Direction v
 xDir = direction unitX
 
 -- | A unit vector at a specified angle counterclockwise from the
 -- positive X axis.
-e :: (R2Ish v) => Angle (Scalar (V v)) -> v
+e :: (TwoD v) => Angle (Scalar (V v)) -> v
 e a = unitX & _theta .~ a
 
 -- | @perp v@ is perpendicular to and has the same magnitude as @v@.
 --   In particular @perp v == rotateBy (1/4) v@.
-perp :: (R2Ish v) => v -> v
+perp :: (TwoD v) => v -> v
 perp (unr2 -> (x,y)) = mkR2 (-y) x
 
 -- | @leftTurn v1 v2@ tests whether the direction of @v2@ is a left
 --   turn from @v1@ (that is, if the direction of @v2@ can be obtained
 --   from that of @v1@ by adding an angle 0 <= theta <= tau/2).
-leftTurn :: (R2Ish v, Ord (Scalar v), InnerSpace v) => v -> v -> Bool
+leftTurn :: (TwoD v, Ord (Scalar v), InnerSpace v) => v -> v -> Bool
 leftTurn v1 v2 = (v1 <.> perp v2) < 0

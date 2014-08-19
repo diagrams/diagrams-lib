@@ -80,7 +80,7 @@ showOrigin' oo d = o <> d
 -- Labeling named points
 ------------------------------------------------------------
 
-showLabels :: (Renderable (Text v) b, R2Ish v, Backend b v, Semigroup m)
+showLabels :: (Renderable (Text v) b, TwoD v, Backend b v, Semigroup m)
            => QDiagram b v m -> QDiagram b v Any
 showLabels d =
              ( mconcat

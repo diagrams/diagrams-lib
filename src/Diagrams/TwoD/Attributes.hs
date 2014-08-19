@@ -128,14 +128,14 @@ instance (Typeable v) => AttributeClass (LineWidth v)
 
 type instance V (LineWidth v) = v
 
-instance (R2Ish v) => Transformable (LineWidth v) where
+instance (TwoD v) => Transformable (LineWidth v) where
   transform t (LineWidth (Last w)) =
     LineWidth (Last (transform (scaling (avgScale t)) w))
 
-instance (R2Ish v) => Default (LineWidth v) where
+instance (TwoD v) => Default (LineWidth v) where
     def = LineWidth (Last medium)
 
-getLineWidth :: (R2Ish v) => LineWidth v -> Measure v
+getLineWidth :: (TwoD v) => LineWidth v -> Measure v
 getLineWidth (LineWidth (Last w)) = w
 
 -- | Set the line (stroke) width.
@@ -187,7 +187,7 @@ instance (Typeable v) => AttributeClass (DashingA v)
 
 type instance V (DashingA v) = v
 
-instance (R2Ish v) => Transformable (DashingA v) where
+instance (TwoD v) => Transformable (DashingA v) where
   transform t (DashingA (Last (Dashing w v))) =
     DashingA (Last (Dashing r s))
     where
@@ -195,7 +195,7 @@ instance (R2Ish v) => Transformable (DashingA v) where
       r = map (transform t') w
       s = transform t' v
 
-getDashing :: (R2Ish v) => DashingA v -> Dashing v
+getDashing :: (TwoD v) => DashingA v -> Dashing v
 getDashing (DashingA (Last d)) = d
 
 -- | Set the line dashing style.
@@ -255,23 +255,23 @@ data LGradient v = LGradient
 makeLensesWith (lensRules & generateSignatures .~ False) ''LGradient
 
 -- | A list of stops (colors and fractions).
-lGradStops :: (R2Ish v) => Lens' (LGradient v) [GradientStop (Scalar v)]
+lGradStops :: (TwoD v) => Lens' (LGradient v) [GradientStop (Scalar v)]
 
 -- | A transformation to be applied to the gradient. Usually this field will
 --   start as the identity transform and capture the transforms that are applied
 --   to the gradient.
-lGradTrans :: (R2Ish v) => Lens' (LGradient v) (Transformation v)
+lGradTrans :: (TwoD v) => Lens' (LGradient v) (Transformation v)
 
 -- | The starting point for the first gradient stop. The coordinates are in
 --   'Local' units and the default is (-0.5, 0).
-lGradStart :: (R2Ish v) => Lens' (LGradient v) (Point v)
+lGradStart :: (TwoD v) => Lens' (LGradient v) (Point v)
 
 -- | The ending point for the last gradient stop.The coordinates are in
 --   'Local' units and the default is (0.5, 0).
-lGradEnd :: (R2Ish v) => Lens' (LGradient v) (Point v)
+lGradEnd :: (TwoD v) => Lens' (LGradient v) (Point v)
 
 -- | For setting the spread method.
-lGradSpreadMethod :: (R2Ish v) => Lens' (LGradient v) SpreadMethod
+lGradSpreadMethod :: (TwoD v) => Lens' (LGradient v) SpreadMethod
 
 -- | Radial Gradient
 data RGradient v = RGradient
@@ -286,27 +286,27 @@ data RGradient v = RGradient
 makeLensesWith (lensRules & generateSignatures .~ False) ''RGradient
 
 -- | A list of stops (colors and fractions).
-rGradStops :: (R2Ish v) => Lens' (RGradient v) [GradientStop (Scalar v)]
+rGradStops :: (TwoD v) => Lens' (RGradient v) [GradientStop (Scalar v)]
 
 -- | The center point of the inner circle.
-rGradCenter0 :: (R2Ish v) => Lens' (RGradient v) (Point v)
+rGradCenter0 :: (TwoD v) => Lens' (RGradient v) (Point v)
 
 -- | The radius of the inner cirlce in 'Local' coordinates.
-rGradRadius0 :: (R2Ish v) => Lens' (RGradient v) (Scalar v)
+rGradRadius0 :: (TwoD v) => Lens' (RGradient v) (Scalar v)
 
 -- | The center of the outer circle.
-rGradCenter1  :: (R2Ish v) => Lens' (RGradient v) (Point v)
+rGradCenter1  :: (TwoD v) => Lens' (RGradient v) (Point v)
 
 -- | The radius of the outer circle in 'Local' coordinates.
-rGradRadius1 :: (R2Ish v) => Lens' (RGradient v) (Scalar v)
+rGradRadius1 :: (TwoD v) => Lens' (RGradient v) (Scalar v)
 
 -- | A transformation to be applied to the gradient. Usually this field will
 --   start as the identity transform and capture the transforms that are applied
 --   to the gradient.
-rGradTrans :: (R2Ish v) => Lens' (RGradient v) (Transformation v)
+rGradTrans :: (TwoD v) => Lens' (RGradient v) (Transformation v)
 
 -- | For setting the spread method.
-rGradSpreadMethod :: (R2Ish v) => Lens' (RGradient v) SpreadMethod
+rGradSpreadMethod :: (TwoD v) => Lens' (RGradient v) SpreadMethod
 
 -- | A Texture is either a color 'SC', linear gradient 'LG', or radial gradient 'RG'.
 --   An object can have only one texture which is determined by the 'Last'
@@ -317,14 +317,14 @@ data Texture v = SC SomeColor | LG (LGradient v) | RG (RGradient v)
 makePrisms ''Texture
 
 -- | Convert a solid colour into a texture.
-solid :: (R2Ish v) => Color a => a -> Texture v
+solid :: (TwoD v) => Color a => a -> Texture v
 solid = SC . SomeColor
 
 -- | A default is provided so that linear gradients can easily be created using
 --   lenses. For example, @lg = defaultLG & lGradStart .~ (0.25 ^& 0.33)@. Note that
 --   no default value is provided for @lGradStops@, this must be set before
 --   the gradient value is used, otherwise the object will appear transparent.
-defaultLG :: (R2Ish v) => Texture v
+defaultLG :: (TwoD v) => Texture v
 defaultLG = LG (LGradient
     { _lGradStops        = []
     , _lGradStart        = mkP2 (-0.5) 0
@@ -337,7 +337,7 @@ defaultLG = LG (LGradient
 --   lenses. For example, @rg = defaultRG & rGradRadius1 .~ 0.25@. Note that
 --   no default value is provided for @rGradStops@, this must be set before
 --   the gradient value is used, otherwise the object will appear transparent.
-defaultRG :: (R2Ish v) => Texture v
+defaultRG :: (TwoD v) => Texture v
 defaultRG = RG (RGradient
     { _rGradStops        = []
     , _rGradCenter0      = mkP2 0 0
@@ -356,14 +356,14 @@ mkStops = map (\(x, y, z) -> GradientStop (SomeColor (withOpacity x z)) y)
 -- | Make a linear gradient texture from a stop list, start point, end point,
 --   and 'SpreadMethod'. The 'lGradTrans' field is set to the identity
 --   transfrom, to change it use the 'lGradTrans' lens.
-mkLinearGradient :: (R2Ish v) => [GradientStop (Scalar v)]  -> Point v -> Point v -> SpreadMethod -> Texture v
+mkLinearGradient :: (TwoD v) => [GradientStop (Scalar v)]  -> Point v -> Point v -> SpreadMethod -> Texture v
 mkLinearGradient stops  start end spreadMethod
   = LG (LGradient stops start end mempty spreadMethod)
 
 -- | Make a radial gradient texture from a stop list, radius, start point,
 --   end point, and 'SpreadMethod'. The 'rGradTrans' field is set to the identity
 --   transfrom, to change it use the 'rGradTrans' lens.
-mkRadialGradient :: (R2Ish v) => [GradientStop (Scalar v)] -> Point v -> Scalar v
+mkRadialGradient :: (TwoD v) => [GradientStop (Scalar v)] -> Point v -> Scalar v
                   -> Point v -> Scalar v -> SpreadMethod -> Texture v
 mkRadialGradient stops c0 r0 c1 r1 spreadMethod
   = RG (RGradient stops c0 r0 c1 r1 mempty spreadMethod)
@@ -380,7 +380,7 @@ type instance V (LineTexture v) = v
 
 -- Only gradients get transformed. The transform is applied to the gradients
 -- transform field. Colors are left unchanged.
-instance (R2Ish v) => Transformable (LineTexture v) where
+instance (TwoD v) => Transformable (LineTexture v) where
   transform t (LineTexture (Last texture)) = LineTexture (Last tx)
     where
       tx = texture & lgt . rgt
@@ -391,19 +391,19 @@ instance (R2Ish v) => Transformable (LineTexture v) where
 instance Default (LineTexture v) where
     def = LineTexture (Last (SC (SomeColor (black :: Colour Double))))
 
-getLineTexture :: (R2Ish v) => LineTexture v -> Texture v
+getLineTexture :: (TwoD v) => LineTexture v -> Texture v
 getLineTexture (LineTexture (Last t)) = t
 
-lineTexture :: (R2Ish v, HasStyle a, V a ~ v) => Texture v -> a -> a
+lineTexture :: (TwoD v, HasStyle a, V a ~ v) => Texture v -> a -> a
 lineTexture = applyTAttr . LineTexture . Last
 
-lineTextureA :: (R2Ish v, HasStyle a, V a ~ v) => LineTexture v -> a -> a
+lineTextureA :: (TwoD v, HasStyle a, V a ~ v) => LineTexture v -> a -> a
 lineTextureA = applyTAttr
 
-mkLineTexture :: (R2Ish v) => Texture v -> LineTexture v
+mkLineTexture :: (TwoD v) => Texture v -> LineTexture v
 mkLineTexture = LineTexture . Last
 
-styleLineTexture :: (R2Ish v) => Setter' (Style v) (Texture v)
+styleLineTexture :: (TwoD v) => Setter' (Style v) (Texture v)
 styleLineTexture = sets modifyLineTexture
   where
     modifyLineTexture f s
@@ -419,26 +419,26 @@ styleLineTexture = sets modifyLineTexture
 --   'AlphaColour'), but this can sometimes create problems for type
 --   inference, so the 'lc' and 'lcA' variants are provided with more
 --   concrete types.
-lineColor :: (R2Ish v, Color c, HasStyle a, V a ~ v) => c -> a -> a
+lineColor :: (TwoD v, Color c, HasStyle a, V a ~ v) => c -> a -> a
 lineColor = lineTexture . SC . SomeColor
 
 -- | A synonym for 'lineColor', specialized to @'Colour' Double@
 --   (i.e. opaque colors).  See comment in 'lineColor' about backends.
-lc :: (R2Ish v, HasStyle a, V a ~ v) => Colour Double -> a -> a
+lc :: (TwoD v, HasStyle a, V a ~ v) => Colour Double -> a -> a
 lc = lineColor
 
 -- | A synonym for 'lineColor', specialized to @'AlphaColour' Double@
 --   (i.e. colors with transparency).  See comment in 'lineColor'
 --   about backends.
-lcA :: (R2Ish v, HasStyle a, V a ~ v) => AlphaColour Double -> a -> a
+lcA :: (TwoD v, HasStyle a, V a ~ v) => AlphaColour Double -> a -> a
 lcA = lineColor
 
 -- | Apply a linear gradient.
-lineLGradient :: (R2Ish v, HasStyle a, V a ~ v) => LGradient v -> a -> a
+lineLGradient :: (TwoD v, HasStyle a, V a ~ v) => LGradient v -> a -> a
 lineLGradient g = lineTexture (LG g)
 
 -- | Apply a radial gradient.
-lineRGradient :: (R2Ish v, HasStyle a, V a ~ v) => RGradient v -> a -> a
+lineRGradient :: (TwoD v, HasStyle a, V a ~ v) => RGradient v -> a -> a
 lineRGradient g = lineTexture (RG g)
 
 -- | The texture with which objects are filled.
@@ -453,7 +453,7 @@ type instance V (FillTexture v) = v
 
 -- Only gradients get transformed. The transform is applied to the gradients
 -- transform field. Colors are left unchanged.
-instance (R2Ish v) => Transformable (FillTexture v) where
+instance (TwoD v) => Transformable (FillTexture v) where
   transform _ tx@(FillTexture (Recommend _)) = tx
   transform t (FillTexture (Commit (Last texture))) = FillTexture (Commit (Last tx))
     where
@@ -462,20 +462,20 @@ instance (R2Ish v) => Transformable (FillTexture v) where
       rgt = _RG . rGradTrans %~ f
       f = transform t
 
-instance (R2Ish v) => Default (FillTexture v) where
+instance (TwoD v) => Default (FillTexture v) where
     def = FillTexture (Recommend (Last (SC
                       (SomeColor (transparent :: AlphaColour Double)))))
 
-getFillTexture :: (R2Ish v) => FillTexture v -> Texture v
+getFillTexture :: (TwoD v) => FillTexture v -> Texture v
 getFillTexture (FillTexture tx) = getLast . getRecommend $ tx
 
-fillTexture :: (R2Ish v, HasStyle a, V a ~ v) => Texture v -> a -> a
+fillTexture :: (TwoD v, HasStyle a, V a ~ v) => Texture v -> a -> a
 fillTexture = applyTAttr . FillTexture . Commit . Last
 
-mkFillTexture :: (R2Ish v) => Texture v  -> FillTexture v
+mkFillTexture :: (TwoD v) => Texture v  -> FillTexture v
 mkFillTexture = FillTexture . Commit . Last
 
-styleFillTexture :: (R2Ish v) => Setter' (Style v) (Texture v)
+styleFillTexture :: (TwoD v) => Setter' (Style v) (Texture v)
 styleFillTexture = sets modifyFillTexture
   where
     modifyFillTexture f s
@@ -490,24 +490,24 @@ styleFillTexture = sets modifyFillTexture
 --   type (so it can be used with either 'Colour' or 'AlphaColour'),
 --   but this can sometimes create problems for type inference, so the
 --   'fc' and 'fcA' variants are provided with more concrete types.
-fillColor :: (R2Ish v, Color c, HasStyle a, V a ~ v) => c -> a -> a
+fillColor :: (TwoD v, Color c, HasStyle a, V a ~ v) => c -> a -> a
 fillColor = fillTexture . SC . SomeColor
 
 -- | Set a \"recommended\" fill color, to be used only if no explicit
 --   calls to 'fillColor' (or 'fc', or 'fcA') are used.
 --   See comment after 'fillColor' about backends.
-recommendFillColor :: (R2Ish v, Color c, HasStyle a, V a ~ v) => c -> a -> a
+recommendFillColor :: (TwoD v, Color c, HasStyle a, V a ~ v) => c -> a -> a
 recommendFillColor =
   applyTAttr . FillTexture . Recommend . Last . SC . SomeColor
 
 -- | A synonym for 'fillColor', specialized to @'Colour' Double@
 --   (i.e. opaque colors). See comment after 'fillColor' about backends.
-fc :: (R2Ish v, HasStyle a, V a ~ v) => Colour Double -> a -> a
+fc :: (TwoD v, HasStyle a, V a ~ v) => Colour Double -> a -> a
 fc = fillColor
 
 -- | A synonym for 'fillColor', specialized to @'AlphaColour' Double@
 --   (i.e. colors with transparency). See comment after 'fillColor' about backends.
-fcA :: (R2Ish v, HasStyle a, V a ~ v) => AlphaColour Double -> a -> a
+fcA :: (TwoD v, HasStyle a, V a ~ v) => AlphaColour Double -> a -> a
 fcA = fillColor
 ------------------------------------------------------------
 

@@ -62,7 +62,7 @@ data Text v = Text (Transformation v) (Transformation v) (TextAlignment (Scalar 
 
 type instance V (Text v) = v
 
-instance (R2Ish v) => Transformable (Text v) where
+instance (TwoD v) => Transformable (Text v) where
   transform t (Text tt tn a s) = Text (t <> tt) (t <> tn <> t') a s
     where
       t' = scaling (1 / avgScale t)
@@ -70,16 +70,16 @@ instance (R2Ish v) => Transformable (Text v) where
       -- followed by the old transformation tn and then the new
       -- transformation t.  That way translation is handled properly.
 
-instance (R2Ish v) => HasOrigin (Text v) where
+instance (TwoD v) => HasOrigin (Text v) where
   moveOriginTo p = translate (origin .-. p)
 
-instance (R2Ish v) => Renderable (Text v) NullBackend where
+instance (TwoD v) => Renderable (Text v) NullBackend where
   render _ _ = mempty
 
 -- | @TextAlignment@ specifies the alignment of the text's origin.
 data TextAlignment d = BaselineText | BoxAlignedText d d
 
-mkText :: (R2Ish v, Renderable (Text v) b) => TextAlignment (Scalar v) -> String -> Diagram b v
+mkText :: (TwoD v, Renderable (Text v) b) => TextAlignment (Scalar v) -> String -> Diagram b v
 mkText a t = recommendFillColor (black :: Colour Double)
              -- See Note [recommendFillColor]
 
@@ -116,7 +116,7 @@ mkText a t = recommendFillColor (black :: Colour Double)
 --
 --   Note that it /takes up no space/, as text size information is not
 --   available.
-text :: (R2Ish v, Renderable (Text v) b) => String -> Diagram b v
+text :: (TwoD v, Renderable (Text v) b) => String -> Diagram b v
 text = alignedText 0.5 0.5
 
 -- | Create a primitive text diagram from the given string, origin at
@@ -124,7 +124,7 @@ text = alignedText 0.5 0.5
 --   @'alignedText' 0 1@.
 --
 --   Note that it /takes up no space/.
-topLeftText :: (R2Ish v, Renderable (Text v) b) => String -> Diagram b v
+topLeftText :: (TwoD v, Renderable (Text v) b) => String -> Diagram b v
 topLeftText = alignedText 0 1
 
 -- | Create a primitive text diagram from the given string, with the
@@ -136,7 +136,7 @@ topLeftText = alignedText 0 1
 --   and descent, rather than the height of the particular string.
 --
 --   Note that it /takes up no space/.
-alignedText :: (R2Ish v, Renderable (Text v) b) => Scalar v -> Scalar v -> String -> Diagram b v
+alignedText :: (TwoD v, Renderable (Text v) b) => Scalar v -> Scalar v -> String -> Diagram b v
 alignedText w h = mkText (BoxAlignedText w h)
 
 -- | Create a primitive text diagram from the given string, with the
@@ -145,7 +145,7 @@ alignedText w h = mkText (BoxAlignedText w h)
 --   graphics library.
 --
 --   Note that it /takes up no space/.
-baselineText :: (R2Ish v, Renderable (Text v) b) => String -> Diagram b v
+baselineText :: (TwoD v, Renderable (Text v) b) => String -> Diagram b v
 baselineText = mkText BaselineText
 
 ------------------------------------------------------------
@@ -186,7 +186,7 @@ instance (Typeable v) => AttributeClass (FontSize v)
 
 type instance V (FontSize v) = v
 
-instance (R2Ish v) => Default (FontSize v) where
+instance (TwoD v) => Default (FontSize v) where
     def = FontSize (Last (Local 1, True))
 
 -- FontSize has to be Transformable + also have an instance of Data,
@@ -194,7 +194,7 @@ instance (R2Ish v) => Default (FontSize v) where
 -- However, we don't actually want the Transformable instance to do
 -- anything.  All the scaling of text happens not by manipulating the
 -- font size but by accumulating (Transformation v) values in Text objects.
-instance (R2Ish v) => Transformable (FontSize v) where
+instance (TwoD v) => Transformable (FontSize v) where
   transform _ f = f
 
 -- | Extract the size from a @FontSize@ attribute.

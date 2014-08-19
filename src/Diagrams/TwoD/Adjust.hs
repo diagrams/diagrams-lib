@@ -27,7 +27,7 @@ import           Diagrams.Core
 import           Diagrams.TwoD.Attributes (lineTextureA, lineWidthA)
 import           Diagrams.TwoD.Size       (SizeSpec2D (..), center2D, requiredScale, size2D)
 import           Diagrams.TwoD.Text       (fontSizeA)
-import           Diagrams.TwoD.Types      (R2Ish, R2D, p2)
+import           Diagrams.TwoD.Types      (TwoD, R2D, p2)
 import           Diagrams.Util            (( # ))
 
 import           Control.Lens             (Lens', (&), (.~), (^.))
@@ -62,7 +62,7 @@ setDefault2DAttributes d = d # lineWidthA def # lineTextureA def # fontSizeA def
 --   inverse of which can be used, say, to translate output/device
 --   coordinates back into local diagram coordinates), and the
 --   modified diagram itself.
-adjustDiaSize2D :: (Monoid' m, R2Ish v)
+adjustDiaSize2D :: (Monoid' m, TwoD v)
                 => Lens' (Options b v) (SizeSpec2D (Scalar v))
                 -> b -> Options b v -> QDiagram b v m
                 -> (Options b v, Transformation v, QDiagram b v m)

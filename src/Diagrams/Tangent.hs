@@ -31,7 +31,7 @@ import           Diagrams.Core
 import           Diagrams.Located
 import           Diagrams.Parametric
 import           Diagrams.Segment
-import           Diagrams.TwoD.Types  (R2Ish)
+import           Diagrams.TwoD.Types  (TwoD)
 import           Diagrams.TwoD.Vector (perp)
 
 ------------------------------------------------------------
@@ -116,22 +116,22 @@ instance (VectorSpace v, Num (Scalar v))
 --
 --   See the instances listed for the 'Tangent' newtype for more.
 normalAtParam
-  :: (R2Ish (Codomain (Tangent t)), Parametric (Tangent t))
+  :: (TwoD (Codomain (Tangent t)), Parametric (Tangent t))
   => t -> Scalar (V t) -> Codomain (Tangent t)
 normalAtParam t p = normize (t `tangentAtParam` p)
 
 -- | Compute the normal vector at the start of a segment or trail.
 normalAtStart
-  :: (R2Ish (Codomain (Tangent t)), EndValues (Tangent t))
+  :: (TwoD (Codomain (Tangent t)), EndValues (Tangent t))
   => t -> Codomain (Tangent t)
 normalAtStart = normize . tangentAtStart
 
 -- | Compute the normal vector at the end of a segment or trail.
 normalAtEnd
-  :: (R2Ish (Codomain (Tangent t)), EndValues (Tangent t))
+  :: (TwoD (Codomain (Tangent t)), EndValues (Tangent t))
   => t -> Codomain (Tangent t)
 normalAtEnd = normize . tangentAtEnd
 
 -- | Construct a normal vector from a tangent.
-normize :: (R2Ish v) => v -> v
+normize :: (TwoD v) => v -> v
 normize = negateV . perp . normalized

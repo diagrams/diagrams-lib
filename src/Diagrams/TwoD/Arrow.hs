@@ -147,10 +147,10 @@ data ArrowOpts v
     }
 
 -- | Straight line arrow shaft.
-straightShaft :: (R2Ish v) => Trail v
+straightShaft :: (TwoD v) => Trail v
 straightShaft = trailFromOffsets [unitX]
 
-instance (R2Ish v) => Default (ArrowOpts v) where
+instance (TwoD v) => Default (ArrowOpts v) where
   def = ArrowOpts
         { _arrowHead    = dart
         , _arrowTail    = noTail
@@ -222,41 +222,41 @@ lengths f opts = (\h t -> opts & headLength .~ h & tailLength .~ t) <$> f (opts 
 --   defined. Or @... (with & headTexture .~ solid blue@ to set the head
 --   color to blue. For more general control over the style of arrowheads,
 --   see 'headStyle'.
-headTexture :: (R2Ish v) => Setter' (ArrowOpts v) (Texture v)
+headTexture :: (TwoD v) => Setter' (ArrowOpts v) (Texture v)
 headTexture = headStyle . styleFillTexture
 
 -- | A lens for setting or modifying the texture of an arrow
 --   tail.
-tailTexture :: (R2Ish v) => Setter' (ArrowOpts v) (Texture v)
+tailTexture :: (TwoD v) => Setter' (ArrowOpts v) (Texture v)
 tailTexture = tailStyle . styleFillTexture
 
 -- | A lens for setting or modifying the texture of an arrow
 --   shaft.
-shaftTexture :: (R2Ish v) => Setter' (ArrowOpts v) (Texture v)
+shaftTexture :: (TwoD v) => Setter' (ArrowOpts v) (Texture v)
 shaftTexture = shaftStyle . styleLineTexture
 
 -- Set the default shaft style of an `ArrowOpts` record by applying the
 -- default style after all other styles have been applied.
 -- The semigroup stucture of the lw attribute will insure that the default
 -- is only used if it has not been set in @opts@.
-shaftSty :: (R2Ish v) => ArrowOpts v -> Style v
+shaftSty :: (TwoD v) => ArrowOpts v -> Style v
 shaftSty opts = opts^.shaftStyle
 
 -- Set the default head style. See `shaftSty`.
-headSty :: (R2Ish v) => ArrowOpts v -> Style v
+headSty :: (TwoD v) => ArrowOpts v -> Style v
 headSty opts = fc black (opts^.headStyle)
 
 -- Set the default tail style. See `shaftSty`.
-tailSty :: (R2Ish v) => ArrowOpts v -> Style v
+tailSty :: (TwoD v) => ArrowOpts v -> Style v
 tailSty opts = fc black (opts^.tailStyle)
 
-fromMeasure :: (R2Ish v) => Scalar v -> Scalar v -> Measure v -> Scalar v
+fromMeasure :: (TwoD v) => Scalar v -> Scalar v -> Measure v -> Scalar v
 fromMeasure g n m = u
   where Output u = toOutput g n m
 
 -- | Calculate the length of the portion of the horizontal line that passes
 --   through the origin and is inside of p.
-xWidth :: (R2Ish v) => (Traced t, V t ~ v) => t -> Scalar v
+xWidth :: (TwoD v) => (Traced t, V t ~ v) => t -> Scalar v
 xWidth p = a + b
   where
     a = fromMaybe 0 (magnitude <$> traceV origin unitX p)
@@ -264,7 +264,7 @@ xWidth p = a + b
 
 -- | Get the line color from the shaft to use as the fill color for the joint.
 --   And set the opacity of the shaft to the current opacity.
-colorJoint :: (R2Ish v) => Style v -> Style v
+colorJoint :: (TwoD v) => Style v -> Style v
 colorJoint sStyle =
     let c = fmap getLineTexture . getAttr $ sStyle
         o = fmap getOpacity . getAttr $ sStyle
@@ -276,7 +276,7 @@ colorJoint sStyle =
         (Just t, Just o') -> opacity o' . fillTexture t $ mempty
 
 -- | Get line width from a style.
-widthOfJoint :: forall v. (R2Ish v) => Style v -> Scalar v -> Scalar v  -> Scalar v
+widthOfJoint :: forall v. (TwoD v) => Style v -> Scalar v -> Scalar v  -> Scalar v
 widthOfJoint sStyle gToO nToO =
   maybe (fromMeasure gToO nToO (Output 1 :: Measure v)) -- Should be same as default line width
         (fromMeasure gToO nToO)
@@ -313,7 +313,7 @@ mkTail size opts gToO nToO = ((t <> j) # moveOriginBy (jWidth *^ unitX) # lwO 0
 -- | Make a trail with the same angles and offset as an arrow with tail width
 --   tw, head width hw and shaft of tr, such that the magnituted of the shaft
 --   offset is size. Used for calculating the offset of an arrow.
-spine :: (R2Ish v) => Trail v -> Scalar v -> Scalar v -> Scalar v -> Trail v
+spine :: (TwoD v) => Trail v -> Scalar v -> Scalar v -> Scalar v -> Trail v
 spine tr tw hw size = tS <> tr # scale size <> hS
   where
     tSpine = trailFromOffsets [(normalized . tangentAtStart) $ tr] # scale tw
@@ -323,7 +323,7 @@ spine tr tw hw size = tS <> tr # scale size <> hS
 
 --  | Calculate the amount required to scale a shaft trail so that an arrow with
 --    head width hw and tail width tw has offset t.
-scaleFactor :: (R2Ish v) => Trail v -> Scalar v -> Scalar v -> Scalar v -> Scalar v
+scaleFactor :: (TwoD v) => Trail v -> Scalar v -> Scalar v -> Scalar v -> Scalar v
 scaleFactor tr tw hw t
 
   -- Let tv be a vector representing the tail width, i.e. a vector
@@ -354,7 +354,7 @@ scaleFactor tr tw hw t
 
 -- Calculate the approximate envelope of a horizontal arrow
 -- as if the arrow were made only of a shaft.
-arrowEnv :: (R2Ish v) => ArrowOpts v -> Scalar v -> Envelope v
+arrowEnv :: (TwoD v) => ArrowOpts v -> Scalar v -> Envelope v
 arrowEnv opts len = getEnvelope horizShaft
   where
     horizShaft = shaft # rotate (negateV (v ^. _theta)) # scale (len / m)
