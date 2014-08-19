@@ -68,7 +68,7 @@ makeLenses ''PerspectiveLens
 
 type instance V (PerspectiveLens v) = v
 
-instance (R3Ish v) => CameraLens (PerspectiveLens v) where
+instance (ThreeD v) => CameraLens (PerspectiveLens v) where
     aspect (PerspectiveLens h v) = angleRatio h v
 
 -- | An orthographic projection
@@ -82,37 +82,37 @@ makeLenses ''OrthoLens
 
 type instance V (OrthoLens v) = v
 
-instance (R3Ish v) => CameraLens (OrthoLens v) where
+instance (ThreeD v) => CameraLens (OrthoLens v) where
     aspect (OrthoLens h v) = h / v
 
 type instance V (Camera l) = V l
 
-instance (R3Ish (V l)) => Transformable (Camera l) where
+instance (ThreeD (V l)) => Transformable (Camera l) where
   transform t (Camera p f u l) =
       Camera (transform t p)
              (transform t f)
              (transform t u)
              l
 
-instance (R3Ish (V l)) => Renderable (Camera l) NullBackend where
+instance (ThreeD (V l)) => Renderable (Camera l) NullBackend where
     render _ _ = mempty
 
 -- | A camera at the origin facing along the negative Z axis, with its
 -- up-axis coincident with the positive Y axis.  The field of view is
 -- chosen to match a 50mm camera on 35mm film. Note that Cameras take
 -- up no space in the Diagram.
-mm50Camera :: (R3Ish v, Backend b v, Renderable (Camera (PerspectiveLens v)) b) => Diagram b v
+mm50Camera :: (ThreeD v, Backend b v, Renderable (Camera (PerspectiveLens v)) b) => Diagram b v
 mm50Camera = facing_ZCamera mm50
 
 -- | 'facing_ZCamera l' is a camera at the origin facing along the
 -- negative Z axis, with its up-axis coincident with the positive Y
 -- axis, with the projection defined by l.
-facing_ZCamera :: (R3Ish v, V l ~ v, CameraLens l, Backend b v, Renderable (Camera l) b) =>
+facing_ZCamera :: (ThreeD v, V l ~ v, CameraLens l, Backend b v, Renderable (Camera l) b) =>
                   l -> Diagram b v
 facing_ZCamera l = mkQD (Prim $ Camera origin unit_Z unitY l)
         mempty mempty mempty (Query . const . Any $ False)
 
-mm50, mm50Wide, mm50Narrow :: (R3Ish v) => PerspectiveLens v
+mm50, mm50Wide, mm50Narrow :: (ThreeD v) => PerspectiveLens v
 
 -- | mm50 has the field of view of a 50mm lens on standard 35mm film,
 -- hence an aspect ratio of 3:2.
@@ -126,18 +126,18 @@ mm50Wide = PerspectiveLens (43.2 @@ deg)  (27 @@ deg)
 -- aspect ratio of 4:3, for VGA and similar computer resolutions.
 mm50Narrow = PerspectiveLens (36 @@ deg) (27 @@ deg)
 
-camForward :: (R3Ish v, v ~ V l) => Camera l -> Direction v
+camForward :: (ThreeD v, v ~ V l) => Camera l -> Direction v
 camForward = direction . forward
 
-camUp :: (R3Ish v, v ~ V l) => Camera l -> Direction v
+camUp :: (ThreeD v, v ~ V l) => Camera l -> Direction v
 camUp = direction . up
 
-camRight :: (R3Ish v, v ~ V l) => Camera l -> Direction v
+camRight :: (ThreeD v, v ~ V l) => Camera l -> Direction v
 camRight c = direction right where
   right = cross3 (forward c) (up c)
 
-camLens :: (R3Ish v, v ~ V l) => Camera l -> l
+camLens :: (ThreeD v, v ~ V l) => Camera l -> l
 camLens = lens
 
-camAspect :: (R3Ish v, v ~ V l, CameraLens l) => Camera l -> Scalar v
+camAspect :: (ThreeD v, v ~ V l, CameraLens l) => Camera l -> Scalar v
 camAspect = aspect . camLens

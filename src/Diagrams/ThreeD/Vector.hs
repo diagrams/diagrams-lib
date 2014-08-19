@@ -21,25 +21,25 @@ import           Diagrams.ThreeD.Types
 
 
 -- | The unit vector in the positive X direction.
-unitX :: (R3Ish v) => v
+unitX :: (ThreeD v) => v
 unitX = 1 ^& 0 ^& 0
 
 -- | The unit vector in the positive Y direction.
-unitY :: (R3Ish v) => v
+unitY :: (ThreeD v) => v
 unitY = 0 ^& 1 ^& 0
 
 -- | The unit vector in the positive Z direction.
-unitZ :: (R3Ish v) => v
+unitZ :: (ThreeD v) => v
 unitZ = 0 ^& 0 ^& 1
 
 -- | The unit vector in the negative X direction.
-unit_X :: (R3Ish v) => v
+unit_X :: (ThreeD v) => v
 unit_X = (-1) ^& 0 ^& 0
 
 -- | The unit vector in the negative Y direction.
-unit_Y :: (R3Ish v) => v
+unit_Y :: (ThreeD v) => v
 unit_Y = 0 ^& (-1) ^& 0
 
 -- | The unit vector in the negative Z direction.
-unit_Z :: (R3Ish v) => v
+unit_Z :: (ThreeD v) => v
 unit_Z = 0 ^& 0 ^& (-1)

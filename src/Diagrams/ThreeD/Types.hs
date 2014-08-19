@@ -25,7 +25,7 @@ module Diagrams.ThreeD.Types
          r3, unr3, mkR3
        , p3, unp3, mkP3
        , r3Iso, p3Iso
-        , R3Ish
+        , ThreeD
        -- * other coördinate systems
        , Spherical(..), Cylindrical(..), HasPhi(..)
        ) where
@@ -50,37 +50,37 @@ type R3Basis = Either () (Either () ())
 
 -- Basic R3 types
 
-type ScalarR3Ish d = (Ord d, Scalar d ~ d, InnerSpace d, RealFloat d)
-type R3Ish v = (HasBasis v, Basis v ~ R3Basis, Coordinates v, Coordinates (PrevDim v), PrevDim (PrevDim v) ~ Scalar v, FinalCoord (PrevDim v) ~ Scalar v, FinalCoord v ~ Scalar v, Decomposition v ~ (Scalar v :& Scalar v :& Scalar v), v ~ V v, Typeable v, ScalarR3Ish (Scalar v), Transformable v, InnerSpace v, HasCross3 v, HasX v, HasY v, HasZ v, HasTheta v, Cylindrical v)
+type ScalarThreeD d = (Ord d, Scalar d ~ d, InnerSpace d, RealFloat d)
+type ThreeD v = (HasBasis v, Basis v ~ R3Basis, Coordinates v, Coordinates (PrevDim v), PrevDim (PrevDim v) ~ Scalar v, FinalCoord (PrevDim v) ~ Scalar v, FinalCoord v ~ Scalar v, Decomposition v ~ (Scalar v :& Scalar v :& Scalar v), v ~ V v, Typeable v, ScalarR3Ish (Scalar v), Transformable v, InnerSpace v, HasCross3 v, HasX v, HasY v, HasZ v, HasTheta v, Cylindrical v)
 
-r3Iso :: (R3Ish v) => Iso' v (Scalar v, Scalar v, Scalar v)
+r3Iso :: (ThreeD v) => Iso' v (Scalar v, Scalar v, Scalar v)
 r3Iso = iso unr3 r3
 
 -- | Construct a 3D vector from a triple of components.
-r3 :: (R3Ish v) => (Scalar v, Scalar v, Scalar v) -> v
+r3 :: (ThreeD v) => (Scalar v, Scalar v, Scalar v) -> v
 r3 (x,y,z) = x ^& y ^& z
 
 -- | Curried version of `r3`.
-mkR3 :: (R3Ish v) => Scalar v -> Scalar v -> Scalar v -> v
+mkR3 :: (ThreeD v) => Scalar v -> Scalar v -> Scalar v -> v
 mkR3 x y z = x ^& y ^& z
 
 -- | Convert a 3D vector back into a triple of components.
-unr3 :: (R3Ish v) => v -> (Scalar v, Scalar v, Scalar v)
+unr3 :: (ThreeD v) => v -> (Scalar v, Scalar v, Scalar v)
 unr3 (coords -> (coords -> x :& y) :& z) = (x,y,z)
 
 -- | Construct a 3D point from a triple of coordinates.
-p3 :: (R3Ish v) => (Scalar v, Scalar v, Scalar v) -> Point v
+p3 :: (ThreeD v) => (Scalar v, Scalar v, Scalar v) -> Point v
 p3 = P . r3
 
 -- | Convert a 3D point back into a triple of coordinates.
-unp3 :: (R3Ish v) => Point v -> (Scalar v, Scalar v, Scalar v)
+unp3 :: (ThreeD v) => Point v -> (Scalar v, Scalar v, Scalar v)
 unp3 = unr3 . unPoint
 
-p3Iso :: (R3Ish v) => Iso' (Point v) (Scalar v, Scalar v, Scalar v)
+p3Iso :: (ThreeD v) => Iso' (Point v) (Scalar v, Scalar v, Scalar v)
 p3Iso = iso unp3 p3
 
 -- | Curried version of `r3`.
-mkP3 :: (R3Ish v) => Scalar v -> Scalar v -> Scalar v -> Point v
+mkP3 :: (ThreeD v) => Scalar v -> Scalar v -> Scalar v -> Point v
 mkP3 x y z = p3 (x, y, z)
 
 -- | Types which can be expressed in spherical 3D coordinates, as a
