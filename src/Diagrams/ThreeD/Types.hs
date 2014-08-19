@@ -51,7 +51,7 @@ type R3Basis = Either () (Either () ())
 -- Basic R3 types
 
 type ScalarThreeD d = (Ord d, Scalar d ~ d, InnerSpace d, RealFloat d)
-type ThreeD v = (HasBasis v, Basis v ~ R3Basis, Coordinates v, Coordinates (PrevDim v), PrevDim (PrevDim v) ~ Scalar v, FinalCoord (PrevDim v) ~ Scalar v, FinalCoord v ~ Scalar v, Decomposition v ~ (Scalar v :& Scalar v :& Scalar v), v ~ V v, Typeable v, ScalarR3Ish (Scalar v), Transformable v, InnerSpace v, HasCross3 v, HasX v, HasY v, HasZ v, HasTheta v, Cylindrical v)
+type ThreeD v = (HasBasis v, Basis v ~ R3Basis, Coordinates v, Coordinates (PrevDim v), PrevDim (PrevDim v) ~ Scalar v, FinalCoord (PrevDim v) ~ Scalar v, FinalCoord v ~ Scalar v, Decomposition v ~ (Scalar v :& Scalar v :& Scalar v), v ~ V v, Typeable v, ScalarThreeD (Scalar v), Transformable v, InnerSpace v, HasCross3 v, HasX v, HasY v, HasZ v, HasTheta v, Cylindrical v)
 
 r3Iso :: (ThreeD v) => Iso' v (Scalar v, Scalar v, Scalar v)
 r3Iso = iso unr3 r3
@@ -98,4 +98,3 @@ instance (Cylindrical v, v ~ V v) => Cylindrical (Point v) where
 
 instance (Spherical v, v ~ V v) => Spherical (Point v) where
     spherical = _pIso . spherical
-

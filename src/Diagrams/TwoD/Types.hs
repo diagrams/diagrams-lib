@@ -57,7 +57,7 @@ instance HasTrie R2Basis where
     enumerate (R2Trie x y)  = [(XB,x),(YB,y)]
 
 type ScalarTwoD d = (RealFloat d, VectorSpace d, HasBasis d, Basis d ~ (), Transformable d, Scalar d ~ d, V d ~ d, Typeable d)
-type TwoD v = (HasBasis v, Basis v ~ R2Basis, V v ~ v, Transformable v, InnerSpace v, Coordinates v, Decomposition v ~ (FinalCoord v :& FinalCoord v), PrevDim v ~ FinalCoord v, FinalCoord v ~ Scalar v, HasX v, HasY v, ScalarR2Ish (Scalar v), HasTheta v, Typeable v)
+type TwoD v = (HasBasis v, Basis v ~ R2Basis, V v ~ v, Transformable v, InnerSpace v, Coordinates v, Decomposition v ~ (FinalCoord v :& FinalCoord v), PrevDim v ~ FinalCoord v, FinalCoord v ~ Scalar v, HasX v, HasY v, ScalarTwoD (Scalar v), HasTheta v, Typeable v)
 
 type R2D v = (TwoD v, Data v, Data (Scalar v))
 
