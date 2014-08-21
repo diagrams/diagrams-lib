@@ -47,13 +47,13 @@ import Linear.V3
 -- lenses they handle.
 data Camera l = Camera
     { camLoc  :: Point (V l) (N l)
-    , forward :: VN l
-    , up      :: VN l
+    , forward :: Vn l
+    , up      :: Vn l
     , lens    :: l
     }
   deriving Typeable
 
-class (Typeable l, Typeable (VN l)) => CameraLens l where
+class (Typeable l, Typeable (Vn l)) => CameraLens l where
     -- | The natural aspect ratio of the projection.
     aspect :: l -> N l
 
@@ -90,14 +90,14 @@ instance (Typeable n, Fractional n) => CameraLens (OrthoLens n) where
 type instance V (Camera l) = V l
 type instance N (Camera l) = N l
 
-instance (VN l ~ V3 n, Num n) => Transformable (Camera l) where
+instance (Vn l ~ V3 n, Num n) => Transformable (Camera l) where
   transform t (Camera p f u l) =
       Camera (transform t p)
              (transform t f)
              (transform t u)
              l
 
-instance (VN l ~ V3 n, Num n) => Renderable (Camera l) NullBackend where
+instance (Vn l ~ V3 n, Num n) => Renderable (Camera l) NullBackend where
     render _ _ = mempty
 
 -- | A camera at the origin facing along the negative Z axis, with its
@@ -111,7 +111,7 @@ mm50Camera = facing_ZCamera mm50
 -- | 'facing_ZCamera l' is a camera at the origin facing along the
 -- negative Z axis, with its up-axis coincident with the positive Y
 -- axis, with the projection defined by l.
-facing_ZCamera :: (VN l ~ V3 n, Floating n, Ord n, CameraLens l, Backend b V3 n, Renderable (Camera l) b) =>
+facing_ZCamera :: (Vn l ~ V3 n, Floating n, Ord n, CameraLens l, Backend b V3 n, Renderable (Camera l) b) =>
                   l -> Diagram b V3 n
 facing_ZCamera l = mkQD (Prim $ Camera origin unit_Z unitY l)
         mempty mempty mempty (Query . const . Any $ False)
@@ -130,20 +130,20 @@ mm50Wide = PerspectiveLens (43.2 @@ deg)  (27 @@ deg)
 -- aspect ratio of 4:3, for VGA and similar computer resolutions.
 mm50Narrow = PerspectiveLens (36 @@ deg) (27 @@ deg)
 
-camForward :: (VN l ~ V3 n, Fractional n) => Camera l -> Direction V3 n
+camForward :: (Vn l ~ V3 n, Fractional n) => Camera l -> Direction V3 n
 camForward = direction . forward
 
-camUp :: (VN l ~ V3 n, Fractional n) => Camera l -> Direction V3 n
+camUp :: (Vn l ~ V3 n, Fractional n) => Camera l -> Direction V3 n
 camUp = direction . up
 
-camRight :: (VN l ~ V3 n, Fractional n) => Camera l -> Direction V3 n
+camRight :: (Vn l ~ V3 n, Fractional n) => Camera l -> Direction V3 n
 camRight c = direction right where
   right = cross (forward c) (up c)
 
 camLens :: (V3 ~ V l) => Camera l -> l
 camLens = lens
 
-camAspect :: (VN l ~ V3 n, CameraLens l) => Camera l -> n
+camAspect :: (Vn l ~ V3 n, CameraLens l) => Camera l -> n
 camAspect = aspect . camLens
 
 {-# ANN module ("HLint: ignore Use camelCase" :: String) #-}

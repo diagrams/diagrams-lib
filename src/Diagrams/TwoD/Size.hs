@@ -49,36 +49,36 @@ import Control.Lens (Iso', iso)
 ------------------------------------------------------------
 
 -- | Compute the width of an enveloped object.
-width :: (VN a ~ V2 n, Enveloped a) => a -> n
+width :: (Vn a ~ V2 n, Enveloped a) => a -> n
 width = maybe 0 (negate . uncurry (-)) . extentX
 
 -- | Compute the height of an enveloped object.
-height :: (VN a ~ V2 n, Enveloped a) => a -> n
+height :: (Vn a ~ V2 n, Enveloped a) => a -> n
 height = maybe 0 (negate . uncurry (-)) . extentY
 
 -- | Compute the width and height of an enveloped object.
-size2D :: (VN a ~ V2 n, Enveloped a) => a -> (n, n)
+size2D :: (Vn a ~ V2 n, Enveloped a) => a -> (n, n)
 size2D = width &&& height
 
 -- | Compute the size of an enveloped object as a 'SizeSpec2D' value.
-sizeSpec2D :: (VN a ~ V2 n, Enveloped a) => a -> SizeSpec2D n
+sizeSpec2D :: (Vn a ~ V2 n, Enveloped a) => a -> SizeSpec2D n
 sizeSpec2D = uncurry Dims . size2D
 
 -- | Compute the absolute  x-coordinate range of an enveloped object in
 --   R2, in  the form (lo,hi).   Return @Nothing@ for objects  with an
 --   empty envelope.
-extentX :: (VN a ~ V2 n, Enveloped a) => a -> Maybe (n, n)
+extentX :: (Vn a ~ V2 n, Enveloped a) => a -> Maybe (n, n)
 extentX d = (\f -> (-f unit_X, f unitX)) <$> (appEnvelope . getEnvelope $ d)
 
 -- | Compute the absolute y-coordinate range of an enveloped object in
 --   R2, in the form (lo,hi).
-extentY :: (VN a ~ V2 n, Enveloped a) => a -> Maybe (n, n)
+extentY :: (Vn a ~ V2 n, Enveloped a) => a -> Maybe (n, n)
 extentY d = (\f -> (-f unit_Y, f unitY)) <$> (appEnvelope . getEnvelope $ d)
 
 -- | Compute the point at the center (in the x- and y-directions) of a
 --   enveloped object.  Return the origin for objects with an empty
 --   envelope.
-center2D :: (VN a ~ V2 n, Enveloped a) => a -> Point V2 n
+center2D :: (Vn a ~ V2 n, Enveloped a) => a -> Point V2 n
 center2D = maybe origin (p2 . (mid *** mid)) . mm . (extentX &&& extentY)
   where mm = uncurry (liftA2 (,))
         mid = (/2) . uncurry (+)
@@ -153,14 +153,14 @@ requiredScale (Dims wSpec hSpec) (w,h) = s
 
 -- | Uniformly scale any enveloped object so that it fits within the
 --   given size.
-sized :: (VN a ~ V2 n, Transformable a, Enveloped a, RealFloat n)
+sized :: (Vn a ~ V2 n, Transformable a, Enveloped a, RealFloat n)
       => SizeSpec2D n -> a -> a
 sized spec a = transform (requiredScaleT spec (size2D a)) a
 
 -- | Uniformly scale an enveloped object so that it \"has the same
 --   size as\" (fits within the width and height of) some other
 --   object.
-sizedAs :: (VN a ~ V2 n, VN a ~ VN b, Transformable a,
+sizedAs :: (Vn a ~ V2 n, Vn a ~ Vn b, Transformable a,
             Enveloped a, Enveloped b, RealFloat n)
         => b -> a -> a
 sizedAs other = sized (sizeSpec2D other)

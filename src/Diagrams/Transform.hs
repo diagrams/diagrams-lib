@@ -55,6 +55,6 @@ conjugate t1 t2  = inv t1 <> t2 <> t1
 --   @
 --
 --   for all transformations @t1@ and @t2@.
-under :: (Transformable a, Transformable b, VN a ~ VN b, VN a ~ v n, Num n, Functor v)
+under :: (Transformable a, Transformable b, Vn a ~ Vn b, Vn a ~ v n, Num n, Functor v)
       => (a -> b) -> Transformation v n -> a -> b
 f `under` t = transform (inv t) . f . transform t

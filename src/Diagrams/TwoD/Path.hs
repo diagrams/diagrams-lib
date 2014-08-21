@@ -392,3 +392,4 @@ clipTo p d = setTrace intersectionTrace . toEnvelope $ clipBy p d
 --   path.
 clipped :: (R2Ish v, Renderable (Path v) b) => Path v ->  Diagram b v ->  Diagram b v
 clipped p = (withTrace p) . (withEnvelope p) . (clipBy p)
+

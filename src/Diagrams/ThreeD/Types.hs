@@ -23,7 +23,7 @@ module Diagrams.ThreeD.Types
        , Spherical(..), Cylindrical(..), HasPhi(..)
        ) where
 
-import           Control.Lens           (Iso', iso)
+import           Control.Lens           (Iso', iso, _2)
 
 import           Diagrams.Angle
 import           Diagrams.Core
@@ -33,7 +33,6 @@ import Linear.V3 as V
 import Linear.Affine
 import Linear.Metric
 import Diagrams.Coordinates
-import Control.Lens (_1, _2)
 
 ------------------------------------------------------------
 -- 3D Euclidean space
@@ -84,10 +83,10 @@ class Cylindrical v where
   cylindrical :: Floating n => Iso' (v n) (n, Angle n, n) -- r, θ, z
 
 instance Cylindrical v => Cylindrical (Point v) where
-    cylindrical = _pIso . cylindrical
+  cylindrical = _pIso . cylindrical
 
 instance Spherical v => Spherical (Point v) where
-    spherical = _pIso . spherical
+  spherical = _pIso . spherical
 
 instance HasX V3 where
   _x = V._x

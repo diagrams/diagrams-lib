@@ -85,7 +85,7 @@ instance Fractional n => Default (AdjustOpts v n) where
 -- | Adjust the length of a parametric object such as a segment or
 --   trail.  The second parameter is an option record which controls how
 --   the adjustment should be performed; see 'AdjustOpts'.
-adjust :: (VN a ~ v n, DomainBounds a, Sectionable a, HasArcLength a, Fractional n)
+adjust :: (Vn a ~ v n, DomainBounds a, Sectionable a, HasArcLength a, Fractional n)
        => a -> AdjustOpts v n -> a
 adjust s opts = section s
   (if opts^.adjSide == End   then domainLower s else getParam s)

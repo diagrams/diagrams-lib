@@ -66,8 +66,6 @@ instance Num n => Monoid (Angle n) where
   mappend = (<>)
   mempty  = Radians 0
 
--- deriving instance InnerSpace v => InnerSpace (Angle v)
-
 type instance N (Angle n) = n
 
 -- | The radian measure of an @Angle@ @a@ can be accessed as @a

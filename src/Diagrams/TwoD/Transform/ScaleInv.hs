@@ -71,39 +71,39 @@ import Linear.Affine
 data ScaleInv t =
   ScaleInv
   { _scaleInvObj :: t
-  , _scaleInvDir :: VN t
+  , _scaleInvDir :: Vn t
   , _scaleInvLoc :: Point (V t) (N t)
   }
   deriving Typeable
 
-deriving instance (Show t, Show (VN t)) => Show (ScaleInv t)
+deriving instance (Show t, Show (Vn t)) => Show (ScaleInv t)
 
 makeLenses ''ScaleInv
 
 -- | Create a scale-invariant object pointing in the given direction,
 --   located at the origin.
-scaleInv :: (VN t ~ v n, Additive v, Num n) => t -> v n -> ScaleInv t
+scaleInv :: (Vn t ~ v n, Additive v, Num n) => t -> v n -> ScaleInv t
 scaleInv t d = ScaleInv t d origin
 
 type instance V (ScaleInv t) = V t
 type instance N (ScaleInv t) = N t
 
-instance (VN t ~ v n, Additive v, Num n, HasOrigin t) => HasOrigin (ScaleInv t) where
+instance (Vn t ~ v n, Additive v, Num n, HasOrigin t) => HasOrigin (ScaleInv t) where
   moveOriginTo p (ScaleInv t v l) = ScaleInv (moveOriginTo p t) v (moveOriginTo p l)
 
-instance (VN t ~ V2 n, RealFloat n, Transformable t) => Transformable (ScaleInv t) where
+instance (Vn t ~ V2 n, RealFloat n, Transformable t) => Transformable (ScaleInv t) where
   transform tr (ScaleInv t v l) = ScaleInv (trans . rot $ t) (rot v) l'
     where
       -- angle :: Angle n
       angle = transform tr v ^. _theta
 
-      rot :: (VN k ~ VN t, Transformable k) => k -> k
+      rot :: (Vn k ~ Vn t, Transformable k) => k -> k
       rot = rotateAbout l angle
 
       -- l' :: Point V2 n
       l'  = transform tr l
 
-      -- trans :: (VN k ~ VN t, Transformable k) => k -> k
+      -- trans :: (Vn k ~ Vn t, Transformable k) => k -> k
       trans = translate (l' .-. l)
 
 {- Proof that the above satisfies the monoid action laws.
@@ -165,7 +165,7 @@ instance (VN t ~ V2 n, RealFloat n, Transformable t) => Transformable (ScaleInv 
 
 -}
 
-instance (VN t ~ V2 n, RealFloat n, Renderable t b) => Renderable (ScaleInv t) b where
+instance (Vn t ~ V2 n, RealFloat n, Renderable t b) => Renderable (ScaleInv t) b where
   render b = render b . view scaleInvObj
 
 -- | Create a diagram from a single scale-invariant primitive.  The
@@ -183,6 +183,6 @@ instance (VN t ~ V2 n, RealFloat n, Renderable t b) => Renderable (ScaleInv t) b
 --   scale-invariant things will be used only as \"decorations\" (/e.g./
 --   arrowheads) which should not affect the envelope, trace, and
 --   query.
-scaleInvPrim :: (VN t ~ V2 n, RealFloat n, Transformable t, Typeable t, Renderable t b, Monoid m)
+scaleInvPrim :: (Vn t ~ V2 n, RealFloat n, Transformable t, Typeable t, Renderable t b, Monoid m)
              => t -> V2 n -> QDiagram b (V t) (N t) m
 scaleInvPrim t d = mkQD (Prim $ scaleInv t d) mempty mempty mempty mempty
