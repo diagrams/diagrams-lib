@@ -33,7 +33,7 @@ module Diagrams.BoundingBox
          -- * Queries on bounding boxes
        , isEmptyBox
        , getCorners, getAllCorners
-       , boxExtents , boxTransform, boxFit
+       , boxExtents, boxTransform, boxFit
        , contains, contains'
        , inside, inside', outside, outside'
 
@@ -94,7 +94,6 @@ type instance N (BoundingBox v n) = n
 -- Map a function on a homogenous 2-tuple. (unexported utility)
 mapT :: (a -> b) -> (a, a) -> (b, b)
 mapT f (x, y) = (f x, f y)
-{-# NOINLINE mapT #-}
 
 instance (Additive v, Num n, Ord n) => HasOrigin (BoundingBox v n) where
   moveOriginTo p b

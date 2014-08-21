@@ -4,6 +4,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE RankNTypes  #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.ThreeD.Shapes
@@ -26,9 +27,7 @@ import           Control.Applicative
 import           Control.Lens           (review, (^.), _1)
 import           Data.Typeable
 
-import           Data.AffineSpace
 import           Data.Semigroup
-import           Data.VectorSpace
 import           Diagrams.Angle
 import           Diagrams.Coordinates
 import           Diagrams.Core
@@ -36,46 +35,53 @@ import           Diagrams.Solve
 import           Diagrams.ThreeD.Types
 import           Diagrams.ThreeD.Vector
 
-data Ellipsoid v = Ellipsoid (Transformation v)
+import Linear.Affine
+import Linear.Vector
+import Linear.Metric
+
+data Ellipsoid n = Ellipsoid (Transformation V3 n)
   deriving Typeable
 
-type instance V (Ellipsoid v) = v
+type instance V (Ellipsoid n) = V3
+type instance N (Ellipsoid n) = n
 
-instance (R3Ish v) => Transformable (Ellipsoid v) where
+instance Fractional n => Transformable (Ellipsoid n) where
   transform t1 (Ellipsoid t2) = Ellipsoid (t1 <> t2)
 
-instance (R3Ish v) => Renderable (Ellipsoid v) NullBackend where
+instance Fractional n => Renderable (Ellipsoid n) NullBackend where
   render _ _ = mempty
 
 -- | A sphere of radius 1 with its center at the origin.
-sphere :: (R3Ish v, Backend b v, Renderable (Ellipsoid v) b) => Diagram b v
+sphere :: (Typeable n, OrderedField n, Backend b V3 n, Renderable (Ellipsoid n) b) => Diagram b V3 n
 sphere = mkQD (Prim $ Ellipsoid mempty)
               (mkEnvelope sphereEnv)
               (mkTrace sphereTrace)
               mempty
               (Query sphereQuery)
-  where sphereEnv v = 1 / magnitude v
-        sphereTrace p v = mkSortedList $ quadForm a b c
-          where a = v <.> v
-                b = 2 *^ p' <.> v
-                c = p' <.> p' - 1
-                p' = p .-. origin
-        sphereQuery v = Any $ magnitudeSq (v .-. origin) <= 1
+  where
+    sphereEnv v     = 1 / norm v
+    sphereTrace (P p) v = mkSortedList $ quadForm a b c
+      where
+        a  =      v `dot` v
+        b  = 2 * (p `dot` v)
+        c  =      p `dot` (p - 1)
+    sphereQuery v = Any $ quadrance (v .-. origin) <= 1
 
-data Box v = Box (Transformation v)
+data Box n = Box (Transformation V3 n)
          deriving (Typeable)
 
-type instance V (Box v) = v
+type instance V (Box n) = V3
+type instance N (Box n) = n
 
-instance (R3Ish v) => Transformable (Box v) where
+instance Fractional n => Transformable (Box n) where
     transform t1 (Box t2) = Box (t1 <> t2)
 
-instance (R3Ish v) => Renderable (Box v) NullBackend where
-    render _ _ = mempty
+instance Fractional n => Renderable (Box n) NullBackend where
+  render _ _ = mempty
 
 -- | A cube with side length 1, in the positive octant, with one
 -- vertex at the origin.
-cube :: (R3Ish v, Backend b v, Renderable (Box v) b) => Diagram b v
+cube :: (Typeable n, OrderedField n, Backend b V3 n, Renderable (Box n) b) => Diagram b V3 n
 cube = mkQD (Prim $ Box mempty)
             (mkEnvelope boxEnv)
             (mkTrace boxTrace)
@@ -83,7 +89,7 @@ cube = mkQD (Prim $ Box mempty)
             (Query boxQuery)
   where
     corners = mkR3 <$> [0,1] <*> [0,1] <*> [0,1]
-    boxEnv v = maximum (map (v <.>) corners) / magnitudeSq v
+    boxEnv v = maximum (map (v `dot`) corners) / quadrance v
     -- ts gives all intersections with the planes forming the box
     -- filter keeps only those actually on the box surface
     boxTrace p v = mkSortedList . filter (range . atT) $ ts where
@@ -98,21 +104,27 @@ cube = mkQD (Prim $ Box mempty)
       (x, y, z) = unp3 u
     boxQuery = Any . range
 
-data Frustum v = Frustum (Scalar v) (Scalar v) (Transformation v)
-         deriving (Typeable)
+data Frustum n = Frustum n n (Transformation V3 n)
+         deriving Typeable
 
-type instance V (Frustum v) = v
+type instance V (Frustum n) = V3
+type instance N (Frustum n) = n
 
-instance (R3Ish v) => Transformable (Frustum v) where
+instance Fractional n => Transformable (Frustum n) where
     transform t1 (Frustum r0 r1 t2) = Frustum r0 r1 (t1 <> t2)
 
-instance (R3Ish v) => Renderable (Frustum v) NullBackend where
+instance Fractional n => Renderable (Frustum n) NullBackend where
     render _ _ = mempty
+
+-- | @project u v@ computes the projection of @v@ onto @u@.
+project :: (Metric v, Fractional n) => v n -> v n -> v n
+project u v = ((v `dot` u) / quadrance u) *^ u
+
 
 -- | A frustum of a right circular cone.  It has height 1 oriented
 -- along the positive z axis, and radii r0 and r1 at Z=0 and Z=1.
 -- 'cone' and 'cylinder' are special cases.
-frustum :: (R3Ish v, Backend b v, Renderable (Frustum v) b) => (Scalar v) -> (Scalar v) -> Diagram b v
+frustum :: (Typeable n, OrderedField n, RealFloat n, Backend b V3 n, Renderable (Frustum n) b) => n -> n -> Diagram b V3 n
 frustum r0 r1 = mkQD (Prim $ Frustum r0 r1 mempty)
                  (mkEnvelope frEnv)
                  (mkTrace frTrace)
@@ -122,14 +134,14 @@ frustum r0 r1 = mkQD (Prim $ Frustum r0 r1 mempty)
     projectXY u = u ^-^ project unitZ u
     frQuery p = Any $ x >= 0 && x <= 1 && a <= r where
       (x, _, z) = unp3 p
-      r = r0 + (r1-r0)*z
+      r = r0 + (r1 - r0)*z
       v = p .-. origin
-      a = magnitude $ projectXY v
+      a = norm $ projectXY v
     -- The plane containing v and the z axis intersects the frustum in a trapezoid
     -- Test the four corners of this trapezoid; one must determine the Envelope
-    frEnv v = maximum . map (magnitude . project v . review cylindrical) $ corners
+    frEnv v = maximum . map (norm . project v . review cylindrical) $ corners
       where
-        θ = v^._theta
+        θ = v ^. _theta
         corners = [(r1,θ,1), (-r1,θ,1), (r0,θ,0), (-r0,θ,0)]
     -- The trace can intersect the sides of the cone or one of the end
     -- caps The sides are described by a quadric equation; substitute
@@ -140,25 +152,25 @@ frustum r0 r1 = mkQD (Prim $ Frustum r0 r1 mempty)
       where
         (px, py, pz) = unp3 p
         (vx, vy, vz) = unr3 v
-        ray t = p .+^ t*^v
-        dr = r1-r0
+        ray t = p .+^ t *^ v
+        dr = r1 - r0
         a = vx**2 + vy**2 - vz**2 * dr**2
         b = 2 * (px * vx + py * vy - (r0+pz*dr) * dr  * vz)
         c = px**2 + py**2 - (r0 + dr*pz)**2
-        zbounds t = (ray t)^._z >= 0 && (ray t)^._z <= 1
+        zbounds t = ray t ^. _z >= 0
+                 && ray t ^. _z <= 1
         ends = concatMap cap [0,1]
-        cap z = if (ray t)^.cylindrical._1 < r0 + z*dr
-                then [t]
-                else []
+        cap z = [ t | ray t ^. cylindrical . _1 < r0 + z * dr ]
           where
             t = (z - pz) / vz
 
 -- | A cone with its base centered on the origin, with radius 1 at the
 -- base, height 1, and it's apex on the positive Z axis.
-cone :: (R3Ish v, Backend b v, Renderable (Frustum v) b) => Diagram b v
+cone :: (Typeable n, OrderedField n, RealFloat n, Backend b V3 n, Renderable (Frustum n) b) => Diagram b V3 n
 cone = frustum 1 0
 
 -- | A circular cylinder of radius 1 with one end cap centered on the
 -- origin, and extending to Z=1.
-cylinder :: (R3Ish v, Backend b v, Renderable (Frustum v) b) => Diagram b v
+cylinder :: (Typeable n, OrderedField n, RealFloat n, Backend b V3 n, Renderable (Frustum n) b) => Diagram b V3 n
 cylinder = frustum 1 1
+

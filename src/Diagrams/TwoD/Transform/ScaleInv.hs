@@ -26,16 +26,16 @@ module Diagrams.TwoD.Transform.ScaleInv
     where
 
 import           Control.Lens            (makeLenses, view, (^.))
-import           Data.AdditiveGroup
-import           Data.AffineSpace        ((.-.))
 import           Data.Semigroup
 import           Data.Typeable
-import           Data.VectorSpace
 
 import           Diagrams.Angle
 import           Diagrams.Core
 import           Diagrams.TwoD.Transform
 import           Diagrams.TwoD.Types
+
+import Linear.Vector
+import Linear.Affine
 
 -- | The @ScaleInv@ wrapper creates two-dimensional /scale-invariant/
 --   objects.  Intuitively, a scale-invariant object is affected by
@@ -71,35 +71,39 @@ import           Diagrams.TwoD.Types
 data ScaleInv t =
   ScaleInv
   { _scaleInvObj :: t
-  , _scaleInvDir :: V t
-  , _scaleInvLoc :: Point (V t)
+  , _scaleInvDir :: VN t
+  , _scaleInvLoc :: Point (V t) (N t)
   }
-  deriving (Typeable)
+  deriving Typeable
 
-deriving instance (Show t, Show (V t)) => Show (ScaleInv t)
+deriving instance (Show t, Show (VN t)) => Show (ScaleInv t)
 
 makeLenses ''ScaleInv
 
 -- | Create a scale-invariant object pointing in the given direction,
 --   located at the origin.
-scaleInv :: (AdditiveGroup (V t)) => t -> V t -> ScaleInv t
+scaleInv :: (VN t ~ v n, Additive v, Num n) => t -> v n -> ScaleInv t
 scaleInv t d = ScaleInv t d origin
 
 type instance V (ScaleInv t) = V t
+type instance N (ScaleInv t) = N t
 
-instance (HasOrigin t) => HasOrigin (ScaleInv t) where
+instance (VN t ~ v n, Additive v, Num n, HasOrigin t) => HasOrigin (ScaleInv t) where
   moveOriginTo p (ScaleInv t v l) = ScaleInv (moveOriginTo p t) v (moveOriginTo p l)
 
-instance (R2Ish (V t), Transformable t) => Transformable (ScaleInv t) where
+instance (VN t ~ V2 n, RealFloat n, Transformable t) => Transformable (ScaleInv t) where
   transform tr (ScaleInv t v l) = ScaleInv (trans . rot $ t) (rot v) l'
     where
-      angle :: Angle (Scalar (V (ScaleInv t)))
+      -- angle :: Angle n
       angle = transform tr v ^. _theta
-      rot :: (V k ~ V t, Transformable k) => k -> k
+
+      rot :: (VN k ~ VN t, Transformable k) => k -> k
       rot = rotateAbout l angle
-      l' :: Point (V (ScaleInv t))
+
+      -- l' :: Point V2 n
       l'  = transform tr l
-      trans :: (V k ~ V t, Transformable k) => k -> k
+
+      -- trans :: (VN k ~ VN t, Transformable k) => k -> k
       trans = translate (l' .-. l)
 
 {- Proof that the above satisfies the monoid action laws.
@@ -161,7 +165,7 @@ instance (R2Ish (V t), Transformable t) => Transformable (ScaleInv t) where
 
 -}
 
-instance (R2Ish (V t), Renderable t b) => Renderable (ScaleInv t) b where
+instance (VN t ~ V2 n, RealFloat n, Renderable t b) => Renderable (ScaleInv t) b where
   render b = render b . view scaleInvObj
 
 -- | Create a diagram from a single scale-invariant primitive.  The
@@ -179,6 +183,6 @@ instance (R2Ish (V t), Renderable t b) => Renderable (ScaleInv t) b where
 --   scale-invariant things will be used only as \"decorations\" (/e.g./
 --   arrowheads) which should not affect the envelope, trace, and
 --   query.
-scaleInvPrim :: (Transformable t, Typeable t, R2Ish (V t), Renderable t b, Monoid m)
-             => t -> V t -> QDiagram b (V t) m
+scaleInvPrim :: (VN t ~ V2 n, RealFloat n, Transformable t, Typeable t, Renderable t b, Monoid m)
+             => t -> V2 n -> QDiagram b (V t) (N t) m
 scaleInvPrim t d = mkQD (Prim $ scaleInv t d) mempty mempty mempty mempty

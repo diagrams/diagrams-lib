@@ -381,7 +381,7 @@ instance (OrderedField n, Metric v) => Semigroup (Trail' Line v n) where
 -- | The empty trail is constantly the zero vector.  Trails are
 --   composed via concatenation.  Note that only lines have a monoid
 --   instance (and not loops).
-instance (OrderedField n, Metric v) => Monoid (Trail' Line v n) where
+instance (Metric v, OrderedField n) => Monoid (Trail' Line v n) where
   mempty  = emptyLine
   mappend = (<>)
 
@@ -1185,3 +1185,4 @@ reverseLoop = glueLine . reverseLine . cutLoop
 reverseLocLoop :: (Metric v, OrderedField n)
                => Located (Trail' Loop v n) -> Located (Trail' Loop v n)
 reverseLocLoop = mapLoc reverseLoop
+

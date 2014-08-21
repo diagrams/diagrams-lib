@@ -26,33 +26,38 @@ import           Diagrams.Core
 import           Diagrams.Direction
 import           Diagrams.ThreeD.Types
 
-data PointLight v = PointLight (Point v) (Colour Double)
+import Linear.Affine
+
+data PointLight n = PointLight (Point V3 n) (Colour Double)
   deriving Typeable
 
-data ParallelLight v = ParallelLight v (Colour Double)
+type instance V (PointLight n) = V3
+type instance N (PointLight n) = n
+
+data ParallelLight n = ParallelLight (Point V3 n) (Colour Double)
   deriving Typeable
 
-type instance V (PointLight v) = v
-type instance V (ParallelLight v) = v
+type instance V (ParallelLight n) = V3
+type instance N (ParallelLight n) = n
 
-instance (R3Ish v) => Transformable (PointLight v) where
-    transform t (PointLight p c) = PointLight (transform t p) c
+instance Fractional n => Transformable (PointLight n) where
+  transform t (PointLight p c) = PointLight (transform t p) c
 
-instance (R3Ish v) => Transformable (ParallelLight v) where
-    transform t (ParallelLight v c) = ParallelLight (transform t v) c
+instance Fractional n => Transformable (ParallelLight n) where
+  transform t (ParallelLight v c) = ParallelLight (transform t v) c
 
 -- | Construct a Diagram with a single PointLight at the origin, which
 -- takes up no space.
-pointLight :: (Backend b v, Renderable (PointLight v) b, R3Ish v)
+pointLight :: (Typeable n, Num n, Ord n, Backend b V3 n, Renderable (PointLight n) b)
               => Colour Double -- ^ The color of the light
-              -> Diagram b v
+              -> Diagram b V3 n
 pointLight c = mkQD (Prim $ PointLight origin c) mempty mempty mempty
                (Query . const . Any $ False)
 
 -- | Construct a Diagram with a single ParallelLight, which takes up no space.
-parallelLight :: (Backend b v, Renderable (ParallelLight v) b, R3Ish v)
-                 => Direction v -- ^ The direction in which the light travels.
-                 -> Colour Double -- ^ The color of the light.
-                 -> Diagram b v
-parallelLight d c = mkQD (Prim $ ParallelLight (fromDirection d) c)
+parallelLight :: (Typeable n, OrderedField n, Backend b V3 n, Renderable (ParallelLight n) b)
+                 => Direction V3 n -- ^ The direction in which the light travels.
+                 -> Colour Double  -- ^ The color of the light.
+                 -> Diagram b V3 n
+parallelLight d c = mkQD (Prim $ ParallelLight (P $ fromDirection d) c)
                     mempty mempty mempty (Query . const . Any $ False)

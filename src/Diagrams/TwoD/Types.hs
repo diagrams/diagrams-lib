@@ -1,15 +1,7 @@
-{-# LANGUAGE ConstraintKinds            #-}
-{-# LANGUAGE DeriveDataTypeable         #-}
-{-# LANGUAGE FlexibleContexts           #-}
-{-# LANGUAGE FlexibleInstances          #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE RankNTypes                 #-}
-{-# LANGUAGE TypeFamilies               #-}
-{-# LANGUAGE TypeOperators              #-}
-{-# LANGUAGE TypeSynonymInstances       #-}
-{-# LANGUAGE UndecidableInstances       #-}
+{-# LANGUAGE TypeFamilies #-}
+
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Types
@@ -23,77 +15,88 @@
 
 module Diagrams.TwoD.Types
        ( -- * 2D Euclidean space
-         r2, unr2, mkR2, r2Iso
+         V2 (..), R2, P2, r2, unr2, mkR2, r2Iso
        , p2, mkP2, unp2, p2Iso
-       , R2Basis(..)
-       , R2Ish, R2D
-       , ScalarR2Ish
        , Polar(..)
        ) where
 
-import           Control.Lens           (Iso', iso)
-
+import           Control.Lens           (Iso', iso, _2)
 
 import           Diagrams.Angle
-import           Diagrams.Coordinates
+-- import           Diagrams.Coordinates
 import           Diagrams.Points
-import           Diagrams.Core
 
-import           Data.AffineSpace.Point
-import           Data.Basis
-import           Data.MemoTrie          (HasTrie (..))
-import           Data.VectorSpace
+import Linear.Affine
+import Linear.Metric
+import Linear.V2 hiding (R2)
+import qualified Linear.V2 as V
+import Diagrams.Coordinates
+import Diagrams.Core.V
+import Diagrams.Core.Transform
 
-import           Data.Data
+type R2 = V2
+type P2 = Point V2
 
--- | Basis for 2D Euclidean space
-data R2Basis = XB | YB deriving (Eq, Ord, Enum, Typeable, Show)
+type instance V (V2 n) = V2
+type instance N (V2 n) = n
 
-instance HasTrie R2Basis where
-    data R2Basis :->: x = R2Trie x x
-    trie f = R2Trie (f XB) (f YB)
-    untrie (R2Trie x _y) XB = x
-    untrie (R2Trie _x y) YB = y
-    enumerate (R2Trie x y)  = [(XB,x),(YB,y)]
+-- type ScalarR2Ish d = (RealFloat d, VectorSpace d, HasBasis d, Basis d ~ (), Transformable d, Scalar d ~ d, V d ~ d, Typeable d)
+-- type R2Ish v = (HasBasis v, Basis v ~ R2Basis, V v ~ v, Transformable v, InnerSpace v, Coordinates v, Decomposition v ~ (FinalCoord v :& FinalCoord v), PrevDim v ~ FinalCoord v, FinalCoord v ~ Scalar v, HasX v, HasY v, ScalarR2Ish (Scalar v), HasTheta v, Typeable v)
 
-type ScalarR2Ish d = (RealFloat d, VectorSpace d, HasBasis d, Basis d ~ (), Transformable d, Scalar d ~ d, V d ~ d, Typeable d)
-type R2Ish v = (HasBasis v, Basis v ~ R2Basis, V v ~ v, Transformable v, InnerSpace v, Coordinates v, Decomposition v ~ (FinalCoord v :& FinalCoord v), PrevDim v ~ FinalCoord v, FinalCoord v ~ Scalar v, HasX v, HasY v, ScalarR2Ish (Scalar v), HasTheta v, Typeable v)
-
-type R2D v = (R2Ish v, Data v, Data (Scalar v))
+-- type R2D v = (R2Ish v, Data v, Data (Scalar v))
 
 -- | Construct a 2D vector from a pair of components.  See also '&'.
-r2 :: (R2Ish v) => (Scalar v, Scalar v) -> v
-r2 (x,y) = recompose [(XB,x),(YB,y)]
+r2 :: (n, n) -> V2 n
+r2 = uncurry V2
 
 -- | Convert a 2D vector back into a pair of components.  See also 'coords'.
-unr2 :: (R2Ish v) => v -> (Scalar v, Scalar v)
-unr2 v = (decompose' v XB, decompose' v YB)
+unr2 :: V2 n -> (n, n)
+unr2 (V2 x y) = (x, y)
 
 -- | Curried form of `r2`.
-mkR2 :: (R2Ish v) => Scalar v -> Scalar v -> v
-mkR2 = curry r2
+mkR2 :: n -> n -> V2 n
+mkR2 = V2
 
-r2Iso :: (R2Ish v) => Iso' v (Scalar v, Scalar v)
+r2Iso :: Iso' (V2 n) (n, n)
 r2Iso = iso unr2 r2
 
 -- | Construct a 2D point from a pair of coordinates.  See also '^&'.
-p2 :: (R2Ish v) => (Scalar v, Scalar v) -> Point v
-p2 = P . r2
+p2 :: (n, n) -> P2 n
+p2 = P . uncurry V2
 
 -- | Convert a 2D point back into a pair of coordinates.  See also 'coords'.
-unp2 :: (R2Ish v) => Point v -> (Scalar v, Scalar v)
-unp2 (P v) = unr2 v
+unp2 :: P2 n -> (n,n)
+unp2 (P (V2 x y)) = (x,y)
 
 -- | Curried form of `p2`.
-mkP2 :: (R2Ish v) => Scalar v -> Scalar v -> Point v
-mkP2 = curry p2
+mkP2 :: n -> n -> P2 n
+mkP2 x = P . V2 x
 
-p2Iso :: (R2Ish v) => Iso' (Point v) (Scalar v, Scalar v)
+p2Iso :: Iso' (Point V2 n) (n, n)
 p2Iso = iso unp2 p2
 
 -- | Types which can be expressed in polar 2D coordinates, as a magnitude and an angle.
 class Polar t where
-    polar :: Iso' t (Scalar (V t), Angle (Scalar (V t)))
+  polar :: RealFloat n => Iso' (t n) (n, Angle n)
 
-instance (Polar v, v ~ V v) => Polar (Point v) where
-    polar = _pIso . polar
+instance Polar v => Polar (Point v) where
+  polar = _pIso . polar
+
+-- TODO: coordinate instance for V2
+
+instance Transformable (V2 n) where
+  transform = apply
+
+instance HasX V2 where
+  _x = V._x
+
+instance HasY V2 where
+  _y = V._y
+
+instance Polar V2 where
+  polar = iso (\v@(V2 x y) -> (norm v, atan2A y x))
+              (\(r,θ)      -> V2 (r * cosA θ) (r * sinA θ))
+
+instance HasTheta V2 where
+  _theta = polar . _2
+

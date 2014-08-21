@@ -61,13 +61,13 @@ import           Diagrams.Trail
 --   course call 'trailLike' directly; more typically, one would use
 --   one of the provided functions like 'fromOffsets', 'fromVertices',
 --   'fromSegments', or '~~'.
-class (InnerSpace (V t), OrderedField (Scalar (V t))) => TrailLike t where
+class (Metric (V t), OrderedField (N t)) => TrailLike t where
 
   trailLike
-    :: Located (Trail (V t))  -- ^ The concretely located trail.  Note
-                              --   that some trail-like things
-                              --   (e.g. 'Trail's) may ignore the
-                              --   location.
+    :: Located (Trail (V t) (N t)) -- ^ The concretely located trail.  Note
+                                   --   that some trail-like things
+                                   --   (e.g. 'Trail's) may ignore the
+                                   --   location.
     -> t
 
 ------------------------------------------------------------
@@ -75,22 +75,22 @@ class (InnerSpace (V t), OrderedField (Scalar (V t))) => TrailLike t where
 
 -- | A list of points is trail-like; this instance simply
 --   computes the vertices of the trail, using 'trailPoints'.
-instance (InnerSpace v, OrderedField (Scalar v)) => TrailLike [Point v] where
+instance (Metric v, OrderedField n) => TrailLike [Point v n] where
   trailLike = trailPoints
 
 -- | Lines are trail-like.  If given a 'Trail' which contains a loop,
 --   the loop will be cut with 'cutLoop'.  The location is ignored.
-instance (InnerSpace v, OrderedField (Scalar v)) => TrailLike (Trail' Line v) where
+instance (Metric v, OrderedField n) => TrailLike (Trail' Line v n) where
   trailLike = withTrail id cutLoop . unLoc
 
 -- | Loops are trail-like.  If given a 'Trail' containing a line, the
 --   line will be turned into a loop using 'glueLine'.  The location
 --   is ignored.
-instance (InnerSpace v, OrderedField (Scalar v)) => TrailLike (Trail' Loop v) where
+instance (Metric v, OrderedField n) => TrailLike (Trail' Loop v n) where
   trailLike = withTrail glueLine id . unLoc
 
 -- | 'Trail's are trail-like; the location is simply ignored.
-instance (InnerSpace v, OrderedField (Scalar v)) => TrailLike (Trail v) where
+instance (Metric v, OrderedField n) => TrailLike (Trail v n) where
   trailLike = unLoc
 
 -- | Translationally invariant things are trail-like as long as the
@@ -119,11 +119,11 @@ instance TrailLike t => TrailLike (Located t) where
 --   >   , straight unit_X
 --   >   ]
 --   >   # centerXY # pad 1.1
-fromSegments :: TrailLike t => [Segment Closed (V t)] -> t
+fromSegments :: TrailLike t => [Segment Closed (V t) (N t)] -> t
 fromSegments = fromLocSegments . (`at` origin)
 
 -- | Construct a trail-like thing from a located list of segments.
-fromLocSegments :: TrailLike t => Located [Segment Closed (V t)] -> t
+fromLocSegments :: TrailLike t => Located [Segment Closed (V t) (N t)] -> t
 fromLocSegments = trailLike . mapLoc trailFromSegments
 
 -- | Construct a trail-like thing of linear segments from a list
@@ -138,12 +138,12 @@ fromLocSegments = trailLike . mapLoc trailFromSegments
 --   >   , unitX
 --   >   ]
 --   >   # centerXY # pad 1.1
-fromOffsets :: TrailLike t => [V t] -> t
+fromOffsets :: TrailLike t => [VN t] -> t
 fromOffsets = trailLike . (`at` origin) . trailFromOffsets
 
 -- | Construct a trail-like thing of linear segments from a located
 --   list of offsets.
-fromLocOffsets :: (V (V t) ~ V t, TrailLike t) => Located [V t] -> t
+fromLocOffsets :: (V (V t) ~ V t, TrailLike t) => Located [VN t] -> t
 fromLocOffsets = trailLike . mapLoc trailFromOffsets
 
 -- | Construct a trail-like thing connecting the given vertices with
@@ -166,7 +166,7 @@ fromLocOffsets = trailLike . mapLoc trailFromOffsets
 --   >   # fromVertices
 --   >   # closeTrail # strokeTrail
 --   >   # centerXY # pad 1.1
-fromVertices :: TrailLike t => [Point (V t)] -> t
+fromVertices :: TrailLike t => [Point (V t) (N t)] -> t
 fromVertices []       = trailLike (emptyTrail `at` origin)
 fromVertices ps@(p:_) = trailLike (trailFromSegments (segmentsFromVertices ps) `at` p)
 
@@ -181,7 +181,7 @@ segmentsFromVertices vvs@(_:vs) = map straight (zipWith (flip (.-.)) vvs vs)
 --   > twiddleEx
 --   >   = mconcat ((~~) <$> hexagon 1 <*> hexagon 1)
 --   >   # centerXY # pad 1.1
-(~~) :: TrailLike t => Point (V t) -> Point (V t) -> t
+(~~) :: TrailLike t => Point (V t) (N t) -> Point (V t) (N t) -> t
 p1 ~~ p2 = fromVertices [p1, p2]
 
 -- | Given a concretely located trail, \"explode\" it by turning each
@@ -195,7 +195,7 @@ p1 ~~ p2 = fromVertices [p1, p2]
 --   >   # explodeTrail  -- generate a list of diagrams
 --   >   # zipWith lc [orange, green, yellow, red, blue]
 --   >   # mconcat # centerXY # pad 1.1
-explodeTrail :: (VectorSpace (V t), TrailLike t) => Located (Trail (V t)) -> [t]
+explodeTrail :: (VN ~ v n, Additive v, TrailLike t) => Located (Trail v n) -> [t]
 explodeTrail = map (mkTrail . fromFixedSeg) . fixTrail
   where
     mkTrail = trailLike . mapLoc (trailFromSegments . (:[]))

@@ -130,7 +130,7 @@ instance (Traced a, Num (N a)) => Traced (Located a) where
 instance Qualifiable a => Qualifiable (Located a) where
   n |> (Loc p a) = Loc p (n |> a)
 
-type instance Codomain (Located a) = Point (Codomain a)
+type instance Codomain (Located a) (N a) = Point (Codomain a) (N a)
 
 instance (Codomain a ~ V a, Additive (V a), Num (N a), Parametric a) -- , Diff (Point (V a) (N a)) ~ V a (N a))
     => Parametric (Located a) where

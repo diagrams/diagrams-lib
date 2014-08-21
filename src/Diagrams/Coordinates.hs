@@ -21,12 +21,9 @@ module Diagrams.Coordinates
     )
     where
 
-import           Control.Lens           (Lens')
-import           Data.VectorSpace
-
-import           Data.AffineSpace.Point
-import           Diagrams.Core.V
-import           Diagrams.Points
+import Control.Lens           (Lens')
+import Diagrams.Points
+import Linear.Affine
 
 -- | Types which are instances of the @Coordinates@ class can be
 --   constructed using '^&' (for example, a three-dimensional vector
@@ -114,40 +111,40 @@ instance Coordinates (a,b,c,d) where
   (w,x,y)  ^& z                  = (w,x,y,z)
   coords (w,x,y,z)             = coords (w,x,y) :& z
 
-instance Coordinates v => Coordinates (Point v) where
-  type FinalCoord (Point v)    = FinalCoord v
-  type PrevDim (Point v)       = PrevDim v
-  type Decomposition (Point v) = Decomposition v
+instance Coordinates (v n) => Coordinates (Point v n) where
+  type FinalCoord (Point v n)    = FinalCoord (v n)
+  type PrevDim (Point v n)       = PrevDim (v n)
+  type Decomposition (Point v n) = Decomposition (v n)
 
   x ^& y        = P (x ^& y)
   coords (P v) = coords v
 
 -- | The class of types with at least one coordinate, called _x.
 class HasX t where
-    _x :: Lens' t (Scalar (V t))
+    _x :: Floating n => Lens' (t n) n
 
 -- | The class of types with at least two coordinates, the second called _y.
-class HasY t where
-    _y :: Lens' t (Scalar (V t))
+class HasX t => HasY t where
+    _y :: Floating n => Lens' (t n) n
 
 -- | The class of types with at least three coordinates, the third called _z.
-class HasZ t where
-    _z :: Lens' t (Scalar (V t))
+class HasY t => HasZ t where
+    _z :: Floating n => Lens' (t n) n
 
 -- | The class of types with a single length coordinate _r.  _r is
 -- magnitude of a vector, or the distance from the origin of a point.
 class HasR t where
-    _r :: Lens' t (Scalar (V t))
+    _r :: Lens' (t n) n
 
-instance (HasX v, v ~ V v) => HasX (Point v) where
+instance HasX v => HasX (Point v) where
     _x = _pIso . _x
 
-instance (HasY v, v ~ V v) => HasY (Point v) where
+instance HasY v => HasY (Point v) where
     _y = _pIso . _y
 
-instance (HasZ v, v ~ V v) => HasZ (Point v) where
+instance HasZ v => HasZ (Point v) where
     _z = _pIso . _z
 
-instance (HasR v, v ~ V v) => HasR (Point v) where
+instance HasR v => HasR (Point v) where
     _r = _pIso . _r
 

@@ -32,13 +32,14 @@ module Diagrams.Transform
 
     ) where
 
-import           Data.Semigroup
-import           Diagrams.Core
+import Data.Semigroup
+import Diagrams.Core
 
 -- | Conjugate one transformation by another. @conjugate t1 t2@ is the
 --   transformation which performs first @t1@, then @t2@, then the
 --   inverse of @t1@.
-conjugate :: HasLinearMap v => Transformation v -> Transformation v -> Transformation v
+conjugate :: (HasLinearMap v, Num n, Functor v)
+          => Transformation v n -> Transformation v n -> Transformation v n
 conjugate t1 t2  = inv t1 <> t2 <> t1
 
 -- | Carry out some transformation \"under\" another one: @f ``under``
@@ -54,5 +55,6 @@ conjugate t1 t2  = inv t1 <> t2 <> t1
 --   @
 --
 --   for all transformations @t1@ and @t2@.
-under :: (Transformable a, Transformable b, V a ~ V b) => (a -> b) -> Transformation (V a) -> a -> b
+under :: (Transformable a, Transformable b, VN a ~ VN b, VN a ~ v n, Num n, Functor v)
+      => (a -> b) -> Transformation v n -> a -> b
 f `under` t = transform (inv t) . f . transform t
