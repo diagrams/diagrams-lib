@@ -21,7 +21,7 @@ module Diagrams.Parametric.Adjust
 
     ) where
 
-import           Control.Lens (makeLensesWith, lensRules, lensField, generateSignatures, (^.), (&), (.~), Lens')
+import           Control.Lens (makeLensesWith, lensRules, generateSignatures, (^.), (&), (.~), Lens')
 import           Data.Proxy
 
 import           Data.Default.Class
@@ -49,19 +49,11 @@ data AdjustSide = Start  -- ^ Adjust only the beginning
 data AdjustOpts v = AO { _adjMethod       :: AdjustMethod v
                        , _adjSide         :: AdjustSide
                        , _adjEps          :: Scalar v
-                       , _adjOptsvProxy__ :: Proxy v
+                       , adjOptsvProxy__ :: Proxy v
                        }
 
 makeLensesWith
-  ( lensRules
-    -- don't make a lens for the proxy field
-    & lensField .~ (\label ->
-        case label of
-          "_adjOptsvProxy__" -> Nothing
-          _ -> Just (drop 1 label)
-        )
-    & generateSignatures .~ False
-  )
+  ( lensRules & generateSignatures .~ False)
   ''AdjustOpts
 
 -- | Which method should be used for adjusting?
@@ -80,7 +72,11 @@ instance Default AdjustSide where
   def = Both
 
 instance Fractional (Scalar v) => Default (AdjustOpts v) where
-  def = AO def def stdTolerance Proxy
+  def = AO { _adjMethod = def
+           , _adjSide = def
+           , _adjEps = stdTolerance
+           , adjOptsvProxy__ = Proxy
+           }
 
 -- | Adjust the length of a parametric object such as a segment or
 --   trail.  The second parameter is an option record which controls how
