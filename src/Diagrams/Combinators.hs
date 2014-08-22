@@ -40,7 +40,7 @@ module Diagrams.Combinators
 
 import           Data.Typeable
 
-import           Control.Lens          (Lens', generateSignatures, lensField,
+import           Control.Lens          (Lens', generateSignatures,
                                         lensRules, makeLensesWith, (%~), (&),
                                         (.~), (^.), _Wrapping)
 import           Data.AdditiveGroup
