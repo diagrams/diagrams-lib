@@ -1,7 +1,6 @@
-{-# LANGUAGE FlexibleContexts
-           , TypeFamilies
-           , ViewPatterns
-  #-}
+{-# LANGUAGE ConstraintKinds  #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TypeFamilies     #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.ThreeD.Vector
@@ -17,30 +16,30 @@ module Diagrams.ThreeD.Vector
          unitX, unitY, unitZ, unit_X, unit_Y, unit_Z,
        ) where
 
-import Diagrams.Coordinates
-import Diagrams.ThreeD.Types
+import           Diagrams.Coordinates
+import           Diagrams.ThreeD.Types
 
 
 -- | The unit vector in the positive X direction.
-unitX :: R3
+unitX :: (ThreeD v) => v
 unitX = 1 ^& 0 ^& 0
 
 -- | The unit vector in the positive Y direction.
-unitY :: R3
+unitY :: (ThreeD v) => v
 unitY = 0 ^& 1 ^& 0
 
 -- | The unit vector in the positive Z direction.
-unitZ :: R3
+unitZ :: (ThreeD v) => v
 unitZ = 0 ^& 0 ^& 1
 
 -- | The unit vector in the negative X direction.
-unit_X :: R3
+unit_X :: (ThreeD v) => v
 unit_X = (-1) ^& 0 ^& 0
 
 -- | The unit vector in the negative Y direction.
-unit_Y :: R3
+unit_Y :: (ThreeD v) => v
 unit_Y = 0 ^& (-1) ^& 0
 
 -- | The unit vector in the negative Z direction.
-unit_Z :: R3
+unit_Z :: (ThreeD v) => v
 unit_Z = 0 ^& 0 ^& (-1)

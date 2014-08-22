@@ -27,14 +27,13 @@ module Diagrams.Trace
 
     ) where
 
-import           Diagrams.Core        (HasLinearMap, Point, Subdiagram
-                                      , location, origin, setTrace, trace
-                                      , OrderedField)
+import           Diagrams.Core        (HasLinearMap, OrderedField, Point, Subdiagram, location,
+                                       origin, setTrace, trace)
 import           Diagrams.Core.Trace
 
 import           Data.Maybe
 import           Data.Semigroup
-import           Data.VectorSpace     (Scalar, negateV, InnerSpace)
+import           Data.VectorSpace     (InnerSpace, Scalar, negateV)
 import           Diagrams.Combinators (withTrace)
 
 -- | Compute the furthest point on the boundary of a subdiagram,

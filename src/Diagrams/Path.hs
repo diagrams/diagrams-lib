@@ -71,8 +71,8 @@ import           Diagrams.TrailLike
 import           Diagrams.Transform
 
 import           Control.Arrow        ((***))
-import           Control.Lens         (Rewrapped, Wrapped (..), iso, mapped, op,
-                                       over, view, (%~), _Unwrapped', _Wrapped)
+import           Control.Lens         (Rewrapped, Wrapped (..), iso, mapped, op, over, view, (%~),
+                                       _Unwrapped', _Wrapped)
 import           Data.AffineSpace
 import qualified Data.Foldable        as F
 import           Data.List            (partition)

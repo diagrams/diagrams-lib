@@ -1,3 +1,4 @@
+{-# LANGUAGE ConstraintKinds  #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GADTs            #-}
 -----------------------------------------------------------------------------
@@ -22,8 +23,8 @@ module Diagrams.TwoD.Curvature
 import           Data.Monoid.Inf
 import           Data.VectorSpace
 
-import           Control.Arrow        (first, second)
-import           Control.Monad        (join)
+import           Control.Arrow       (first, second)
+import           Control.Monad       (join)
 
 import           Diagrams.Segment
 import           Diagrams.Tangent
@@ -103,28 +104,30 @@ import           Diagrams.TwoD.Types
 -- >         vpr = r2 (normalized vp ^* r)
 -- >
 --
-curvature :: Segment Closed R2  -- ^ Segment to measure on.
-          -> Double           -- ^ Parameter to measure at.
-          -> PosInf Double    -- ^ Result is a @PosInf@ value where @PosInfty@ represents
-                              -- infinite curvature or zero radius of curvature.
+curvature :: (TwoD v)
+          => Segment Closed v  -- ^ Segment to measure on.
+          -> Scalar v          -- ^ Parameter to measure at.
+          -> PosInf (Scalar v) -- ^ Result is a @PosInf@ value where @PosInfty@ represents
+                               -- infinite curvature or zero radius of curvature.
 curvature s = toPosInf . second sqrt . curvaturePair (fmap unr2 s) -- TODO: Use the generalized unr2
 
 -- | With @squaredCurvature@ we can compute values in spaces that do not support
 -- 'sqrt' and it is just as useful for relative ordering of curvatures or looking
 -- for zeros.
-squaredCurvature :: Segment Closed R2 -> Double -> PosInf Double
+squaredCurvature :: (TwoD v) => Segment Closed v -> Scalar v -> PosInf (Scalar v)
 squaredCurvature s = toPosInf . first (join (*)) . curvaturePair (fmap unr2 s) -- TODO: Use the generalized unr2
 
 
 -- | Reciprocal of @curvature@.
-radiusOfCurvature :: Segment Closed R2  -- ^ Segment to measure on.
-                  -> Double           -- ^ Parameter to measure at.
-                  -> PosInf Double    -- ^ Result is a @PosInf@ value where @PosInfty@ represents
-                                      -- infinite radius of curvature or zero curvature.
+radiusOfCurvature :: (TwoD v)
+                  => Segment Closed v     -- ^ Segment to measure on.
+                  -> Scalar v             -- ^ Parameter to measure at.
+                  -> PosInf (Scalar v)    -- ^ Result is a @PosInf@ value where @PosInfty@ represents
+                                          -- infinite radius of curvature or zero curvature.
 radiusOfCurvature s = toPosInf . (\(p,q) -> (q,p)) . second sqrt . curvaturePair (fmap unr2 s)
 
 -- | Reciprocal of @squaredCurvature@
-squaredRadiusOfCurvature :: Segment Closed R2 -> Double -> PosInf Double
+squaredRadiusOfCurvature :: (TwoD v) => Segment Closed v -> Scalar v -> PosInf (Scalar v)
 squaredRadiusOfCurvature s = toPosInf . (\(p,q) -> (q,p)) . first (join (*)) . curvaturePair (fmap unr2 s)
 
 

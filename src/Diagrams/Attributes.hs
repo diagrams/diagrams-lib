@@ -48,8 +48,8 @@ module Diagrams.Attributes (
   ) where
 
 import           Data.Colour
-import           Data.Colour.RGBSpace        (RGB (..))
-import           Data.Colour.SRGB            (toSRGB)
+import           Data.Colour.RGBSpace (RGB (..))
+import           Data.Colour.SRGB     (toSRGB)
 import           Data.Default.Class
 
 import           Data.Semigroup

@@ -1,7 +1,9 @@
+{-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE DeriveDataTypeable    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE UndecidableInstances  #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.ThreeD.Shapes
@@ -34,19 +36,19 @@ import           Diagrams.Solve
 import           Diagrams.ThreeD.Types
 import           Diagrams.ThreeD.Vector
 
-data Ellipsoid = Ellipsoid T3
+data Ellipsoid v = Ellipsoid (Transformation v)
   deriving Typeable
 
-type instance V Ellipsoid = R3
+type instance V (Ellipsoid v) = v
 
-instance Transformable Ellipsoid where
+instance (ThreeD v) => Transformable (Ellipsoid v) where
   transform t1 (Ellipsoid t2) = Ellipsoid (t1 <> t2)
 
-instance Renderable Ellipsoid NullBackend where
+instance (ThreeD v) => Renderable (Ellipsoid v) NullBackend where
   render _ _ = mempty
 
 -- | A sphere of radius 1 with its center at the origin.
-sphere :: (Backend b R3, Renderable Ellipsoid b) => Diagram b R3
+sphere :: (ThreeD v, Backend b v, Renderable (Ellipsoid v) b) => Diagram b v
 sphere = mkQD (Prim $ Ellipsoid mempty)
               (mkEnvelope sphereEnv)
               (mkTrace sphereTrace)
@@ -60,20 +62,20 @@ sphere = mkQD (Prim $ Ellipsoid mempty)
                 p' = p .-. origin
         sphereQuery v = Any $ magnitudeSq (v .-. origin) <= 1
 
-data Box = Box T3
+data Box v = Box (Transformation v)
          deriving (Typeable)
 
-type instance V Box = R3
+type instance V (Box v) = v
 
-instance Transformable Box where
+instance (ThreeD v) => Transformable (Box v) where
     transform t1 (Box t2) = Box (t1 <> t2)
 
-instance Renderable Box NullBackend where
+instance (ThreeD v) => Renderable (Box v) NullBackend where
     render _ _ = mempty
 
 -- | A cube with side length 1, in the positive octant, with one
 -- vertex at the origin.
-cube :: (Backend b R3, Renderable Box b) => Diagram b R3
+cube :: (ThreeD v, Backend b v, Renderable (Box v) b) => Diagram b v
 cube = mkQD (Prim $ Box mempty)
             (mkEnvelope boxEnv)
             (mkTrace boxTrace)
@@ -96,21 +98,21 @@ cube = mkQD (Prim $ Box mempty)
       (x, y, z) = unp3 u
     boxQuery = Any . range
 
-data Frustum = Frustum Double Double T3
+data Frustum v = Frustum (Scalar v) (Scalar v) (Transformation v)
          deriving (Typeable)
 
-type instance V Frustum = R3
+type instance V (Frustum v) = v
 
-instance Transformable Frustum where
+instance (ThreeD v) => Transformable (Frustum v) where
     transform t1 (Frustum r0 r1 t2) = Frustum r0 r1 (t1 <> t2)
 
-instance Renderable Frustum NullBackend where
+instance (ThreeD v) => Renderable (Frustum v) NullBackend where
     render _ _ = mempty
 
 -- | A frustum of a right circular cone.  It has height 1 oriented
 -- along the positive z axis, and radii r0 and r1 at Z=0 and Z=1.
 -- 'cone' and 'cylinder' are special cases.
-frustum :: (Backend b R3, Renderable Frustum b) => Double -> Double -> Diagram b R3
+frustum :: (ThreeD v, Backend b v, Renderable (Frustum v) b) => (Scalar v) -> (Scalar v) -> Diagram b v
 frustum r0 r1 = mkQD (Prim $ Frustum r0 r1 mempty)
                  (mkEnvelope frEnv)
                  (mkTrace frTrace)
@@ -153,10 +155,10 @@ frustum r0 r1 = mkQD (Prim $ Frustum r0 r1 mempty)
 
 -- | A cone with its base centered on the origin, with radius 1 at the
 -- base, height 1, and it's apex on the positive Z axis.
-cone :: (Backend b R3, Renderable Frustum b) => Diagram b R3
+cone :: (ThreeD v, Backend b v, Renderable (Frustum v) b) => Diagram b v
 cone = frustum 1 0
 
 -- | A circular cylinder of radius 1 with one end cap centered on the
 -- origin, and extending to Z=1.
-cylinder :: (Backend b R3, Renderable Frustum b) => Diagram b R3
+cylinder :: (ThreeD v, Backend b v, Renderable (Frustum v) b) => Diagram b v
 cylinder = frustum 1 1

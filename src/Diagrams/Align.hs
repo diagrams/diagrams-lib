@@ -39,13 +39,13 @@ import           Diagrams.Core
 import           Diagrams.Util    (applyAll)
 
 import           Data.AffineSpace (alerp, (.-.))
-import           Data.VectorSpace
 import           Data.Maybe       (fromMaybe)
 import           Data.Ord         (comparing)
+import           Data.VectorSpace
 
+import qualified Data.Foldable    as F
 import qualified Data.Map         as M
 import qualified Data.Set         as S
-import qualified Data.Foldable    as F
 
 -- | Class of things which can be aligned.
 class Alignable a where

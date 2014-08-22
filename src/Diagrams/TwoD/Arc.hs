@@ -1,5 +1,7 @@
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE ConstraintKinds  #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TypeFamilies     #-}
+{-# LANGUAGE ViewPatterns     #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Arc
@@ -23,8 +25,8 @@ module Diagrams.TwoD.Arc
     ) where
 
 import           Diagrams.Angle
-import           Diagrams.Direction
 import           Diagrams.Core
+import           Diagrams.Direction
 import           Diagrams.Located        (at)
 import           Diagrams.Segment
 import           Diagrams.Trail
@@ -34,7 +36,7 @@ import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector    (unitX, unitY, unit_Y)
 import           Diagrams.Util           (( # ))
 
-import           Control.Lens            ((^.), (&), (<>~))
+import           Control.Lens            ((&), (<>~), (^.))
 import           Data.AffineSpace
 import           Data.Semigroup          ((<>))
 import           Data.VectorSpace
@@ -47,7 +49,7 @@ import           Diagrams.Coordinates
 --  the positive y direction and sweeps counterclockwise through an
 --  angle @s@.  The approximation is only valid for angles in the
 --  first quadrant.
-bezierFromSweepQ1 :: Angle -> Segment Closed R2
+bezierFromSweepQ1 :: (TwoD v) => Angle (Scalar v) -> Segment Closed v
 bezierFromSweepQ1 s = fmap (^-^ v) . rotate (s ^/ 2) $ bezier3 c2 c1 p0
   where p0@(coords -> x :& y) = rotate (s ^/ 2) v
         c1                    = ((4-x)/3)  ^&  ((1-x)*(3-x)/(3*y))
@@ -60,7 +62,7 @@ bezierFromSweepQ1 s = fmap (^-^ v) . rotate (s ^/ 2) $ bezier3 c2 c1 p0
 --   negative y direction and sweep clockwise.  When @s@ is less than
 --   0.0001 the empty list results.  If the sweep is greater than @fullTurn@
 --   later segments will overlap earlier segments.
-bezierFromSweep :: Angle -> [Segment Closed R2]
+bezierFromSweep :: (TwoD v) => Angle (Scalar v) -> [Segment Closed v]
 bezierFromSweep s
   | s < zeroV      = fmap reflectY . bezierFromSweep $ (negateV s)
   | s < 0.0001 @@ rad     = []
@@ -92,7 +94,7 @@ the approximation error.
 --   is the 'Trail' of a radius one arc starting at @d@ and sweeping out
 --   the angle @s@ counterclockwise (for positive s).  The resulting
 --   @Trail@ is allowed to wrap around and overlap itself.
-arcT :: Direction R2 -> Angle -> Trail R2
+arcT :: (TwoD v) => Direction v -> Angle (Scalar v) -> Trail v
 arcT start sweep = trailFromSegments bs
   where
         bs    = map (rotate $ start ^. _theta) . bezierFromSweep $ sweep
@@ -101,7 +103,7 @@ arcT start sweep = trailFromSegments bs
 --   path of a radius one arc starting at @d@ and sweeping out the angle
 --   @s@ counterclockwise (for positive s).  The resulting
 --   @Trail@ is allowed to wrap around and overlap itself.
-arc :: (TrailLike t, V t ~ R2) => Direction R2 -> Angle -> t
+arc :: (TwoD v, TrailLike t, V t ~ v) => Direction v -> Angle (Scalar v) -> t
 arc start sweep = trailLike $ arcT start sweep `at` (rotate (start ^. _theta) $ p2 (1,0))
 
 -- | Given a radus @r@, a start direction @d@ and an angle @s@,
@@ -113,7 +115,7 @@ arc start sweep = trailLike $ arcT start sweep `at` (rotate (start ^. _theta) $ 
 --
 --   > arc'Ex = mconcat [ arc' r (0 @@ turn) (1/4 @@ turn) | r <- [0.5,-1,1.5] ]
 --   >        # centerXY # pad 1.1
-arc' :: (TrailLike p, V p ~ R2) => Double -> Direction R2 -> Angle -> p
+arc' :: (TwoD v, TrailLike p, V p ~ v) => Scalar v -> Direction v -> Angle (Scalar v) -> p
 arc' r start sweep = trailLike $ scale (abs r) ts `at` (rotate (start ^. _theta) $ p2 (abs r,0))
   where ts = arcT start sweep
 
@@ -129,7 +131,7 @@ arc' r start sweep = trailLike $ scale (abs r) ts `at` (rotate (start ^. _theta)
 --   >   ]
 --   >   # fc blue
 --   >   # centerXY # pad 1.1
-wedge :: (TrailLike p, V p ~ R2) => Double -> Direction R2 -> Angle -> p
+wedge :: (TwoD v, TrailLike p, V p ~ v) => Scalar v -> Direction v -> Angle (Scalar v) -> p
 wedge r d s = trailLike . (`at` origin) . glueTrail . wrapLine
               $ fromOffsets [r *^ fromDirection d]
                 <> arc d s # scale r
@@ -146,7 +148,7 @@ wedge r d s = trailLike . (`at` origin) . glueTrail . wrapLine
 --   > arcBetweenEx = mconcat
 --   >   [ arcBetween origin (p2 (2,1)) ht | ht <- [-0.2, -0.1 .. 0.2] ]
 --   >   # centerXY # pad 1.1
-arcBetween :: (TrailLike t, V t ~ R2) => P2 -> P2 -> Double -> t
+arcBetween :: (TwoD v, TrailLike t, V t ~ v) => Point v -> Point v -> Scalar v -> t
 arcBetween p q ht = trailLike (a # rotate (v^._theta) # moveTo p)
   where
     h = abs ht
@@ -180,8 +182,8 @@ arcBetween p q ht = trailLike (a # rotate (v^._theta) # moveTo p)
 --   >   ]
 --   >   # fc blue
 --   >   # centerXY # pad 1.1
-annularWedge :: (TrailLike p, V p ~ R2) =>
-                Double -> Double -> Direction R2 -> Angle -> p
+annularWedge :: (TwoD v, TrailLike p, V p ~ v) =>
+                Scalar v -> Scalar v -> Direction v -> Angle (Scalar v) -> p
 annularWedge r1' r2' d1 s = trailLike . (`at` o) . glueTrail . wrapLine
               $ fromOffsets [(r1'-r2') *^ fromDirection d1]
                 <> arc d1 s # scale r1'

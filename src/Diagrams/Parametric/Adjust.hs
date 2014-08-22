@@ -21,7 +21,8 @@ module Diagrams.Parametric.Adjust
 
     ) where
 
-import           Control.Lens (makeLensesWith, lensRules, lensField, generateSignatures, (^.), (&), (.~), Lens')
+import           Control.Lens        (Lens', generateSignatures, lensField, lensRules,
+                                      makeLensesWith, (&), (.~), (^.))
 import           Data.Proxy
 
 import           Data.Default.Class

@@ -1,7 +1,10 @@
+{-# LANGUAGE ConstraintKinds            #-}
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE ExistentialQuantification  #-}
+{-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE TemplateHaskell            #-}
+{-# LANGUAGE TypeFamilies               #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.ThreeD.Attributes
@@ -25,13 +28,13 @@
 
 module Diagrams.ThreeD.Attributes where
 
-import Control.Lens
-import Data.Semigroup
-import Data.Typeable
+import           Control.Lens
+import           Data.Semigroup
+import           Data.Typeable
 
-import Data.Colour
+import           Data.Colour
 
-import Diagrams.Core
+import           Diagrams.Core
 
 -- | @SurfaceColor@ is the inherent pigment of an object, assumed to
 -- be opaque.
@@ -87,7 +90,7 @@ ambient = applyAttr . review _Ambient
 -- Physically, the intensity and the value of @Diffuse@ must add up to
 -- less than 1; this is not enforced.
 data Specular = Specular { _specularIntensity :: Double
-                         , _specularSize :: Double
+                         , _specularSize      :: Double
                          }
 
 makeLenses ''Specular

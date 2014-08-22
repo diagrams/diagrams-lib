@@ -61,9 +61,8 @@
 -----------------------------------------------------------------------------
 module Diagrams.TwoD
        ( -- * R^2
-         R2, r2, unr2, mkR2
-       , P2, p2, unp2, mkP2
-       , T2
+         r2, unr2, mkR2
+       , p2, unp2, mkP2
        , unitX, unitY, unit_X, unit_Y
        , xDir
 
@@ -239,7 +238,7 @@ module Diagrams.TwoD
        , sized, sizedAs
 
         -- * Textures
-      , Texture(..), solid 
+      , Texture(..), solid
       , SpreadMethod(..), GradientStop(..), mkStops, getFillTexture
       , fillTexture, getLineTexture, lineTexture, lineTextureA
       , stopFraction, stopColor
@@ -292,4 +291,4 @@ import           Diagrams.TwoD.Transform
 import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector
 
-import           Diagrams.Util             (tau)
+import           Diagrams.Util              (tau)

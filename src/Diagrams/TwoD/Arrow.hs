@@ -1,10 +1,13 @@
+{-# LANGUAGE ConstraintKinds            #-}
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE GADTs                      #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE ScopedTypeVariables        #-}
 {-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE UndecidableInstances       #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -99,10 +102,8 @@ module Diagrams.TwoD.Arrow
        ) where
 
 import           Control.Applicative      ((<*>))
-import           Control.Lens             (Lens', Setter', Traversal',
-                                           generateSignatures, lensRules,
-                                           makeLensesWith, view, (%~), (&),
-                                           (.~), (^.))
+import           Control.Lens             (Lens', Setter', Traversal', generateSignatures,
+                                           lensRules, makeLensesWith, view, (%~), (&), (.~), (^.))
 import           Data.AffineSpace
 import           Data.Default.Class
 import           Data.Functor             ((<$>))
@@ -131,25 +132,25 @@ import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector     (unitX, unit_X)
 import           Diagrams.Util            (( # ))
 
-data ArrowOpts
+data ArrowOpts v
   = ArrowOpts
-    { _arrowHead  :: ArrowHT
-    , _arrowTail  :: ArrowHT
-    , _arrowShaft :: Trail R2
-    , _headGap    :: Measure R2
-    , _tailGap    :: Measure R2
-    , _headStyle  :: Style R2
-    , _headLength :: Measure R2
-    , _tailStyle  :: Style R2
-    , _tailLength :: Measure R2
-    , _shaftStyle :: Style R2
+    { _arrowHead  :: ArrowHT v
+    , _arrowTail  :: ArrowHT v
+    , _arrowShaft :: Trail v
+    , _headGap    :: Measure v
+    , _tailGap    :: Measure v
+    , _headStyle  :: Style v
+    , _headLength :: Measure v
+    , _tailStyle  :: Style v
+    , _tailLength :: Measure v
+    , _shaftStyle :: Style v
     }
 
 -- | Straight line arrow shaft.
-straightShaft :: Trail R2
+straightShaft :: (TwoD v) => Trail v
 straightShaft = trailFromOffsets [unitX]
 
-instance Default ArrowOpts where
+instance (TwoD v) => Default (ArrowOpts v) where
   def = ArrowOpts
         { _arrowHead    = dart
         , _arrowTail    = noTail
@@ -168,50 +169,50 @@ instance Default ArrowOpts where
 makeLensesWith (lensRules & generateSignatures .~ False) ''ArrowOpts
 
 -- | A shape to place at the head of the arrow.
-arrowHead :: Lens' ArrowOpts ArrowHT
+arrowHead :: Lens' (ArrowOpts v) (ArrowHT v)
 
 -- | A shape to place at the tail of the arrow.
-arrowTail :: Lens' ArrowOpts ArrowHT
+arrowTail :: Lens' (ArrowOpts v) (ArrowHT v)
 
 -- | The trail to use for the arrow shaft.
-arrowShaft :: Lens' ArrowOpts (Trail R2)
+arrowShaft :: Lens' (ArrowOpts v) (Trail v)
 
 -- | Distance to leave between the head and the target point.
-headGap :: Lens' ArrowOpts (Measure R2)
+headGap :: Lens' (ArrowOpts v) (Measure v)
 
 -- | Distance to leave between the starting point and the tail.
-tailGap :: Lens' ArrowOpts (Measure R2)
+tailGap :: Lens' (ArrowOpts v) (Measure v)
 
 -- | Set both the @headGap@ and @tailGap@ simultaneously.
-gaps :: Traversal' ArrowOpts (Measure R2) 
+gaps :: Traversal' (ArrowOpts v) (Measure v)
 gaps f opts = (\h t -> opts & headGap .~ h & tailGap .~ t)
         <$> f (opts ^. headGap)
         <*> f (opts ^. tailGap)
 
 -- | Same as gaps, provided for backward compatiiblity.
-gap :: Traversal' ArrowOpts (Measure R2)
+gap :: Traversal' (ArrowOpts v) (Measure v)
 gap = gaps
 
 -- | Style to apply to the head. @headStyle@ is modified by using the lens
 --   combinator @%~@ to change the current style. For example, to change
 --   an opaque black arrowhead to translucent orange:
 --   @(with & headStyle %~ fc orange .  opacity 0.75)@.
-headStyle :: Lens' ArrowOpts (Style R2)
+headStyle :: Lens' (ArrowOpts v) (Style v)
 
 -- | Style to apply to the tail. See `headStyle`.
-tailStyle :: Lens' ArrowOpts (Style R2)
+tailStyle :: Lens' (ArrowOpts v) (Style v)
 
 -- | Style to apply to the shaft. See `headStyle`.
-shaftStyle :: Lens' ArrowOpts (Style R2)
+shaftStyle :: Lens' (ArrowOpts v) (Style v)
 
 -- | The length from the start of the joint to the tip of the head.
-headLength :: Lens' ArrowOpts (Measure R2)
+headLength :: Lens' (ArrowOpts v) (Measure v)
 
--- | The length of the tail plus its joint. 
-tailLength :: Lens' ArrowOpts (Measure R2)
+-- | The length of the tail plus its joint.
+tailLength :: Lens' (ArrowOpts v) (Measure v)
 
 -- | Set both the @headLength@ and @tailLength@ simultaneously.
-lengths :: Traversal' ArrowOpts (Measure R2)
+lengths :: Traversal' (ArrowOpts v) (Measure v)
 lengths f opts = (\h t -> opts & headLength .~ h & tailLength .~ t) <$> f (opts ^. headLength)
              <*> f (opts ^. tailLength)
 
@@ -221,41 +222,41 @@ lengths f opts = (\h t -> opts & headLength .~ h & tailLength .~ t) <$> f (opts 
 --   defined. Or @... (with & headTexture .~ solid blue@ to set the head
 --   color to blue. For more general control over the style of arrowheads,
 --   see 'headStyle'.
-headTexture :: Setter' ArrowOpts Texture
+headTexture :: (TwoD v) => Setter' (ArrowOpts v) (Texture v)
 headTexture = headStyle . styleFillTexture
 
 -- | A lens for setting or modifying the texture of an arrow
 --   tail.
-tailTexture :: Setter' ArrowOpts Texture
+tailTexture :: (TwoD v) => Setter' (ArrowOpts v) (Texture v)
 tailTexture = tailStyle . styleFillTexture
 
 -- | A lens for setting or modifying the texture of an arrow
 --   shaft.
-shaftTexture :: Setter' ArrowOpts Texture
+shaftTexture :: (TwoD v) => Setter' (ArrowOpts v) (Texture v)
 shaftTexture = shaftStyle . styleLineTexture
 
 -- Set the default shaft style of an `ArrowOpts` record by applying the
 -- default style after all other styles have been applied.
 -- The semigroup stucture of the lw attribute will insure that the default
 -- is only used if it has not been set in @opts@.
-shaftSty :: ArrowOpts -> Style R2
+shaftSty :: (TwoD v) => ArrowOpts v -> Style v
 shaftSty opts = opts^.shaftStyle
 
 -- Set the default head style. See `shaftSty`.
-headSty :: ArrowOpts -> Style R2
+headSty :: (TwoD v) => ArrowOpts v -> Style v
 headSty opts = fc black (opts^.headStyle)
 
 -- Set the default tail style. See `shaftSty`.
-tailSty :: ArrowOpts -> Style R2
+tailSty :: (TwoD v) => ArrowOpts v -> Style v
 tailSty opts = fc black (opts^.tailStyle)
 
-fromMeasure :: Double -> Double -> Measure R2 -> Double
+fromMeasure :: (TwoD v) => Scalar v -> Scalar v -> Measure v -> Scalar v
 fromMeasure g n m = u
   where Output u = toOutput g n m
 
 -- | Calculate the length of the portion of the horizontal line that passes
 --   through the origin and is inside of p.
-xWidth :: (Traced t, V t ~ R2) => t -> Double
+xWidth :: (TwoD v) => (Traced t, V t ~ v) => t -> Scalar v
 xWidth p = a + b
   where
     a = fromMaybe 0 (magnitude <$> traceV origin unitX p)
@@ -263,7 +264,7 @@ xWidth p = a + b
 
 -- | Get the line color from the shaft to use as the fill color for the joint.
 --   And set the opacity of the shaft to the current opacity.
-colorJoint :: Style R2 -> Style R2
+colorJoint :: (TwoD v) => Style v -> Style v
 colorJoint sStyle =
     let c = fmap getLineTexture . getAttr $ sStyle
         o = fmap getOpacity . getAttr $ sStyle
@@ -275,17 +276,17 @@ colorJoint sStyle =
         (Just t, Just o') -> opacity o' . fillTexture t $ mempty
 
 -- | Get line width from a style.
-widthOfJoint :: Style v -> Double -> Double  -> Double
+widthOfJoint :: forall v. (TwoD v) => Style v -> Scalar v -> Scalar v  -> Scalar v
 widthOfJoint sStyle gToO nToO =
-  maybe (fromMeasure gToO nToO (Output 1)) -- Should be same as default line width
+  maybe (fromMeasure gToO nToO (Output 1 :: Measure v)) -- Should be same as default line width
         (fromMeasure gToO nToO)
-        (fmap getLineWidth . getAttr $ sStyle)
+        (fmap getLineWidth . getAttr $ sStyle :: Maybe (Measure v))
 
 -- | Combine the head and its joint into a single scale invariant diagram
 --   and move the origin to the attachment point. Return the diagram
 --   and its width.
-mkHead :: Renderable (Path R2) b =>
-          Double -> ArrowOpts -> Double -> Double -> (Diagram b R2, Double)
+mkHead :: (R2D v, Renderable (Path v) b) =>
+          Scalar v -> ArrowOpts v -> Scalar v -> Scalar v -> (Diagram b v, Scalar v)
 mkHead size opts gToO nToO = ((j <> h) # moveOriginBy (jWidth *^ unit_X) # lwO 0
               , hWidth + jWidth)
   where
@@ -297,8 +298,8 @@ mkHead size opts gToO nToO = ((j <> h) # moveOriginBy (jWidth *^ unit_X) # lwO 0
     j = stroke j' # applyStyle (colorJoint (opts^.shaftStyle))
 
 -- | Just like mkHead only the attachment point is on the right.
-mkTail :: Renderable (Path R2) b =>
-          Double -> ArrowOpts -> Double -> Double -> (Diagram b R2, Double)
+mkTail :: (R2D v, Renderable (Path v) b) =>
+          Scalar v -> ArrowOpts v -> Scalar v -> Scalar v -> (Diagram b v, Scalar v)
 mkTail size opts gToO nToO = ((t <> j) # moveOriginBy (jWidth *^ unitX) # lwO 0
               , tWidth + jWidth)
   where
@@ -312,7 +313,7 @@ mkTail size opts gToO nToO = ((t <> j) # moveOriginBy (jWidth *^ unitX) # lwO 0
 -- | Make a trail with the same angles and offset as an arrow with tail width
 --   tw, head width hw and shaft of tr, such that the magnituted of the shaft
 --   offset is size. Used for calculating the offset of an arrow.
-spine :: Trail R2 -> Double -> Double -> Double -> Trail R2
+spine :: (TwoD v) => Trail v -> Scalar v -> Scalar v -> Scalar v -> Trail v
 spine tr tw hw size = tS <> tr # scale size <> hS
   where
     tSpine = trailFromOffsets [(normalized . tangentAtStart) $ tr] # scale tw
@@ -322,7 +323,7 @@ spine tr tw hw size = tS <> tr # scale size <> hS
 
 --  | Calculate the amount required to scale a shaft trail so that an arrow with
 --    head width hw and tail width tw has offset t.
-scaleFactor :: Trail R2 -> Double -> Double -> Double -> Double
+scaleFactor :: (TwoD v) => Trail v -> Scalar v -> Scalar v -> Scalar v -> Scalar v
 scaleFactor tr tw hw t
 
   -- Let tv be a vector representing the tail width, i.e. a vector
@@ -353,7 +354,7 @@ scaleFactor tr tw hw t
 
 -- Calculate the approximate envelope of a horizontal arrow
 -- as if the arrow were made only of a shaft.
-arrowEnv :: ArrowOpts -> Double -> Envelope R2
+arrowEnv :: (TwoD v) => ArrowOpts v -> Scalar v -> Envelope v
 arrowEnv opts len = getEnvelope horizShaft
   where
     horizShaft = shaft # rotate (negateV (v ^. _theta)) # scale (len / m)
@@ -364,14 +365,14 @@ arrowEnv opts len = getEnvelope horizShaft
 -- | @arrow len@ creates an arrow of length @len@ with default
 --   parameters, starting at the origin and ending at the point
 --   @(len,0)@.
-arrow :: Renderable (Path R2) b => Double -> Diagram b R2
+arrow :: (R2D v, Renderable (Path v) b) => Scalar v -> Diagram b v
 arrow len = arrow' def len
 
 -- | @arrow' opts len@ creates an arrow of length @len@ using the
 --   given options, starting at the origin and ending at the point
 --   @(len,0)@.  In particular, it scales the given 'arrowShaft' so
 --   that the entire arrow has length @len@.
-arrow' :: Renderable (Path R2) b => ArrowOpts -> Double -> Diagram b R2
+arrow' :: (R2D v, Renderable (Path v) b) => ArrowOpts v -> Scalar v -> Diagram b v
 arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
 
       -- Currently arrows have an empty envelope and trace.
@@ -458,7 +459,7 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
 
 -- | @arrowBetween s e@ creates an arrow pointing from @s@ to @e@
 --   with default parameters.
-arrowBetween :: Renderable (Path R2) b => P2 -> P2 -> Diagram b R2
+arrowBetween :: (R2D v, Renderable (Path v) b) => Point v -> Point v -> Diagram b v
 arrowBetween = arrowBetween' def
 
 -- | @arrowBetween' opts s e@ creates an arrow pointing from @s@ to
@@ -466,18 +467,18 @@ arrowBetween = arrowBetween' def
 --   rotates @arrowShaft@ to go between @s@ and @e@, taking head,
 --   tail, and gaps into account.
 arrowBetween'
-  :: Renderable (Path R2) b =>
-     ArrowOpts -> P2 -> P2 -> Diagram b R2
+  :: (R2D v, Renderable (Path v) b) =>
+     ArrowOpts v -> Point v -> Point v -> Diagram b v
 arrowBetween' opts s e = arrowAt' opts s (e .-. s)
 
 -- | Create an arrow starting at s with length and direction determined by
 --   the vector v.
-arrowAt :: Renderable (Path R2) b => P2 -> R2 -> Diagram b R2
+arrowAt :: (R2D v, Renderable (Path v) b) => Point v -> v -> Diagram b v
 arrowAt s v = arrowAt' def s v
 
 arrowAt'
-  :: Renderable (Path R2) b =>
-     ArrowOpts -> P2 -> R2 -> Diagram b R2
+  :: (R2D v, Renderable (Path v) b) =>
+     ArrowOpts v -> Point v -> v -> Diagram b v
 arrowAt' opts s v = arrow' opts len
                   # rotate dir # moveTo s
   where
@@ -487,26 +488,26 @@ arrowAt' opts s v = arrow' opts len
 -- | @arrowV v@ creates an arrow with the direction and magnitude of
 --   the vector @v@ (with its tail at the origin), using default
 --   parameters.
-arrowV :: Renderable (Path R2) b => R2 -> Diagram b R2
+arrowV :: (R2D v, Renderable (Path v) b) => v -> Diagram b v
 arrowV = arrowV' def
 
 -- | @arrowV' v@ creates an arrow with the direction and magnitude of
 --   the vector @v@ (with its tail at the origin).
 arrowV'
-  :: Renderable (Path R2) b
-  => ArrowOpts -> R2 -> Diagram b R2
+  :: (R2D v, Renderable (Path v) b)
+  => ArrowOpts v -> v -> Diagram b v
 arrowV' opts = arrowAt' opts origin
 
 -- | Connect two diagrams with a straight arrow.
 connect
-  :: (Renderable (Path R2) b, IsName n1, IsName n2)
-  => n1 -> n2 -> (Diagram b R2 -> Diagram b R2)
+  :: (R2D v, Renderable (Path v) b, IsName n1, IsName n2)
+  => n1 -> n2 -> (Diagram b v -> Diagram b v)
 connect = connect' def
 
 -- | Connect two diagrams with an arbitrary arrow.
 connect'
-  :: (Renderable (Path R2) b, IsName n1, IsName n2)
-  => ArrowOpts -> n1 -> n2 -> (Diagram b R2 -> Diagram b R2)
+  :: (R2D v, Renderable (Path v) b, IsName n1, IsName n2)
+  => ArrowOpts v -> n1 -> n2 -> (Diagram b v -> Diagram b v)
 connect' opts n1 n2 =
   withName n1 $ \sub1 ->
   withName n2 $ \sub2 ->
@@ -516,15 +517,15 @@ connect' opts n1 n2 =
 -- | Connect two diagrams at point on the perimeter of the diagrams, choosen
 --   by angle.
 connectPerim
-  :: (Renderable (Path R2) b, IsName n1, IsName n2)
- => n1 -> n2 -> Angle -> Angle
-  -> (Diagram b R2 -> Diagram b R2)
+  :: (R2D v, Renderable (Path v) b, IsName n1, IsName n2)
+ => n1 -> n2 -> Angle (Scalar v) -> Angle (Scalar v)
+  -> (Diagram b v -> Diagram b v)
 connectPerim = connectPerim' def
 
 connectPerim'
-  :: (Renderable (Path R2) b, IsName n1, IsName n2)
-  => ArrowOpts -> n1 -> n2 -> Angle -> Angle
-  -> (Diagram b R2 -> Diagram b R2)
+  :: (R2D v, Renderable (Path v) b, IsName n1, IsName n2)
+  => ArrowOpts v -> n1 -> n2 -> Angle (Scalar v) -> Angle (Scalar v)
+  -> (Diagram b v -> Diagram b v)
 connectPerim' opts n1 n2 a1 a2 =
   withName n1 $ \sub1 ->
   withName n2 $ \sub2 ->
@@ -538,19 +539,19 @@ connectPerim' opts n1 n2 a1 a2 =
 --   drawn so that it stops at the boundaries of the diagrams, using traces
 --   to find the intersection points.
 connectOutside
-  :: (Renderable (Path R2) b, IsName n1, IsName n2)
-  => n1 -> n2 -> (Diagram b R2 -> Diagram b R2)
+  :: (R2D v, Renderable (Path v) b, IsName n1, IsName n2)
+  => n1 -> n2 -> (Diagram b v -> Diagram b v)
 connectOutside = connectOutside' def
 
 connectOutside'
-  :: (Renderable (Path R2) b, IsName n1, IsName n2)
-  => ArrowOpts -> n1 -> n2 -> (Diagram b R2 -> Diagram b R2)
+  :: (R2D v, Renderable (Path v) b, IsName n1, IsName n2)
+  => ArrowOpts v -> n1 -> n2 -> (Diagram b v -> Diagram b v)
 connectOutside' opts n1 n2 =
   withName n1 $ \b1 ->
   withName n2 $ \b2 ->
     let v = location b2 .-. location b1
-        midpoint = location b1 .+^ (v/2)
-        s' = fromMaybe (location b1) $ traceP midpoint (-v) b1
+        midpoint = location b1 .+^ (v ^/ 2)
+        s' = fromMaybe (location b1) $ traceP midpoint (negateV v) b1
         e' = fromMaybe (location b2) $ traceP midpoint v b2
     in
       atop (arrowBetween' opts s' e')

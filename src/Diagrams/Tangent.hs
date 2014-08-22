@@ -1,3 +1,4 @@
+{-# LANGUAGE ConstraintKinds      #-}
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE GADTs                #-}
@@ -30,7 +31,7 @@ import           Diagrams.Core
 import           Diagrams.Located
 import           Diagrams.Parametric
 import           Diagrams.Segment
-import           Diagrams.TwoD.Types  (R2)
+import           Diagrams.TwoD.Types  (TwoD)
 import           Diagrams.TwoD.Vector (perp)
 
 ------------------------------------------------------------
@@ -115,22 +116,22 @@ instance (VectorSpace v, Num (Scalar v))
 --
 --   See the instances listed for the 'Tangent' newtype for more.
 normalAtParam
-  :: (Codomain (Tangent t) ~ R2, Parametric (Tangent t))
-  => t -> Scalar (V t) -> R2
+  :: (TwoD (Codomain (Tangent t)), Parametric (Tangent t))
+  => t -> Scalar (V t) -> Codomain (Tangent t)
 normalAtParam t p = normize (t `tangentAtParam` p)
 
 -- | Compute the normal vector at the start of a segment or trail.
 normalAtStart
-  :: (Codomain (Tangent t) ~ R2, EndValues (Tangent t))
-  => t -> R2
+  :: (TwoD (Codomain (Tangent t)), EndValues (Tangent t))
+  => t -> Codomain (Tangent t)
 normalAtStart = normize . tangentAtStart
 
 -- | Compute the normal vector at the end of a segment or trail.
 normalAtEnd
-  :: (Codomain (Tangent t) ~ R2, EndValues (Tangent t))
-  => t -> R2
+  :: (TwoD (Codomain (Tangent t)), EndValues (Tangent t))
+  => t -> Codomain (Tangent t)
 normalAtEnd = normize . tangentAtEnd
 
 -- | Construct a normal vector from a tangent.
-normize :: R2 -> R2
+normize :: (TwoD v) => v -> v
 normize = negateV . perp . normalized

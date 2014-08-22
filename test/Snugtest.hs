@@ -12,12 +12,12 @@
 
 module Main where
 
-import Diagrams.Prelude hiding (centerXY, alignR, alignL)
-import Diagrams.Backend.SVG
-import Diagrams.Backend.SVG.CmdLine
+import           Diagrams.Backend.SVG
+import           Diagrams.Backend.SVG.CmdLine
+import           Diagrams.Prelude             hiding (alignL, alignR, centerXY)
 
-import Diagrams.Align
-import Diagrams.TwoD.Align
+import           Diagrams.Align
+import           Diagrams.TwoD.Align
 
 concave :: Diagram SVG R2
 concave = polygon (with & polyType .~ PolyPolar [a, b, b, b]

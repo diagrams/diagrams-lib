@@ -1,5 +1,6 @@
-{-# LANGUAGE TypeFamilies  #-}
-{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE TypeFamilies         #-}
+{-# LANGUAGE TypeOperators        #-}
+{-# LANGUAGE UndecidableInstances #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Coordinates
@@ -20,17 +21,12 @@ module Diagrams.Coordinates
     )
     where
 
-import           Control.Lens          (Lens')
+import           Control.Lens           (Lens')
+import           Data.VectorSpace
 
-import           Diagrams.Core.Points
-
--- | A pair of values, with a convenient infix (left-associative)
---   data constructor.
-data a :& b = a :& b
-  deriving (Eq, Ord, Show)
-
-infixl 7 :&
-
+import           Data.AffineSpace.Point
+import           Diagrams.Core.V
+import           Diagrams.Points
 
 -- | Types which are instances of the @Coordinates@ class can be
 --   constructed using '^&' (for example, a three-dimensional vector
@@ -76,6 +72,22 @@ class Coordinates c where
 
 infixl 7 ^&
 
+-- | A pair of values, with a convenient infix (left-associative)
+--   data constructor.
+data a :& b = a :& b
+  deriving (Eq, Ord, Show)
+
+infixl 7 :&
+
+-- Instance for :& (the buck stops here)
+instance Coordinates (a :& b) where
+  type FinalCoord (a :& b) = b
+  type PrevDim (a :& b) = a
+  type Decomposition (a :& b) = a :& b
+  x ^& y                    = x :& y
+  coords (x :& y)           = x :& y
+
+
 -- Some standard instances for plain old tuples
 
 instance Coordinates (a,b) where
@@ -83,7 +95,7 @@ instance Coordinates (a,b) where
   type PrevDim (a,b)       = a
   type Decomposition (a,b) = a :& b
 
-  x ^& y                    = (x,y)
+  x ^& y                   = (x,y)
   coords (x,y)             = x :& y
 
 instance Coordinates (a,b,c) where
@@ -112,17 +124,30 @@ instance Coordinates v => Coordinates (Point v) where
 
 -- | The class of types with at least one coordinate, called _x.
 class HasX t where
-    _x :: Lens' t Double
+    _x :: Lens' t (Scalar (V t))
 
 -- | The class of types with at least two coordinates, the second called _y.
 class HasY t where
-    _y :: Lens' t Double
+    _y :: Lens' t (Scalar (V t))
 
 -- | The class of types with at least three coordinates, the third called _z.
 class HasZ t where
-    _z :: Lens' t Double
+    _z :: Lens' t (Scalar (V t))
 
 -- | The class of types with a single length coordinate _r.  _r is
 -- magnitude of a vector, or the distance from the origin of a point.
 class HasR t where
-    _r :: Lens' t Double
+    _r :: Lens' t (Scalar (V t))
+
+instance (HasX v, v ~ V v) => HasX (Point v) where
+    _x = _pIso . _x
+
+instance (HasY v, v ~ V v) => HasY (Point v) where
+    _y = _pIso . _y
+
+instance (HasZ v, v ~ V v) => HasZ (Point v) where
+    _z = _pIso . _z
+
+instance (HasR v, v ~ V v) => HasR (Point v) where
+    _r = _pIso . _r
+

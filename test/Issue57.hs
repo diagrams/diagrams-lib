@@ -19,10 +19,10 @@ Concatenating one thousand unit squares shouldn't take more than 20 seconds =). 
 -}
 
 -- from diagrams-lib
-import Diagrams.Prelude
+import           Diagrams.Prelude
 
 -- from diagrams-cairo
-import Diagrams.Backend.Cairo.CmdLine (Cairo, multiMain)
+import           Diagrams.Backend.Cairo.CmdLine (Cairo, multiMain)
 
 main :: IO ()
 main = multiMain [ ("hcat",     hcat (dias n))

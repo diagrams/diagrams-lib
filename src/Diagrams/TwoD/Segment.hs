@@ -1,5 +1,7 @@
+{-# LANGUAGE ConstraintKinds      #-}
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
@@ -22,7 +24,7 @@
 module Diagrams.TwoD.Segment where
 
 import           Control.Applicative     (liftA2)
-import           Control.Lens ((^.))
+import           Control.Lens            ((^.))
 
 import           Data.AffineSpace
 import           Data.VectorSpace
@@ -43,10 +45,10 @@ import           Diagrams.Util
    traces is sorted in increasing order.
 -}
 
-instance Traced (Segment Closed R2) where
+instance (TwoD v) => Traced (Segment Closed v) where
   getTrace = getTrace . mkFixedSeg . (`at` origin)
 
-instance Traced (FixedSegment R2) where
+instance (TwoD v) => Traced (FixedSegment v) where
 
 {- Given lines defined by p0 + t0 * v0 and p1 + t1 * v1, their point of
    intersection in 2D is given by

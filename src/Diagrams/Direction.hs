@@ -1,6 +1,6 @@
-{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE TypeFamilies               #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Direction
@@ -19,11 +19,11 @@ module Diagrams.Direction
        , angleBetweenDirs
        ) where
 
-import Control.Lens (Iso', iso)
-import Data.VectorSpace
+import           Control.Lens     (Iso', iso)
+import           Data.VectorSpace
 
-import Diagrams.Angle
-import Diagrams.Core
+import           Diagrams.Angle
+import           Diagrams.Core
 
 --------------------------------------------------------------------------------
 -- Direction
@@ -33,11 +33,18 @@ import Diagrams.Core
 -- magnitude.  @Direction@s can be used with 'fromDirection' and the
 -- lenses provided by its instances.
 newtype Direction v = Direction v
+                 deriving (Read, Show, Eq, Ord) -- todo: special instances
 
 type instance V (Direction v) = v
 
 instance (Transformable v, V (Direction v) ~ V v) => Transformable (Direction v) where
     transform t (Direction v) = Direction (transform t v)
+
+instance (HasTheta v, V (Direction v) ~ V v) => HasTheta (Direction v) where
+    _theta = _Dir . _theta
+
+instance (HasPhi v, V (Direction v) ~ V v) => HasPhi (Direction v) where
+    _phi = _Dir . _phi
 
 -- | _Dir is provided to allow efficient implementations of functions
 -- in particular vector-spaces, but should be used with care as it
@@ -55,6 +62,6 @@ fromDirection :: (InnerSpace v, Floating (Scalar v)) => Direction v -> v
 fromDirection (Direction v) = normalized v
 
 -- | compute the positive angle between the two directions in their common plane
-angleBetweenDirs  :: (InnerSpace v, Scalar v ~ Double) =>
-                     Direction v -> Direction v -> Angle
+angleBetweenDirs  :: (InnerSpace v, Floating (Scalar v)) =>
+                     Direction v -> Direction v -> Angle (Scalar v)
 angleBetweenDirs d1 d2 = angleBetween (fromDirection d1) (fromDirection d2)

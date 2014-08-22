@@ -1,3 +1,4 @@
+{-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies          #-}
@@ -24,10 +25,11 @@ module Diagrams.TwoD.Ellipse
 
 import           Diagrams.Core
 
+import           Data.VectorSpace
 import           Diagrams.Angle
 import           Diagrams.Located        (at)
+import           Diagrams.Trail          (glueTrail)
 import           Diagrams.TrailLike
-import           Diagrams.Trail (glueTrail)
 import           Diagrams.TwoD.Arc
 import           Diagrams.TwoD.Transform
 import           Diagrams.TwoD.Types
@@ -35,18 +37,18 @@ import           Diagrams.TwoD.Vector    (xDir)
 import           Diagrams.Util
 
 -- | A circle of radius 1, with center at the origin.
-unitCircle :: (TrailLike t, V t ~ R2) => t
+unitCircle :: (TrailLike t, TwoD (V t)) => t
 unitCircle = trailLike $ glueTrail (arcT xDir fullTurn) `at` (p2 (1,0))
 
 -- | A circle of the given radius, centered at the origin.  As a path,
 --   it begins at (r,0).
-circle :: (TrailLike t, V t ~ R2, Transformable t) => Double -> t
+circle :: (TrailLike t, TwoD (V t), Transformable t) => Scalar (V t) -> t
 circle d = unitCircle # scale d
 
 -- | @ellipse e@ constructs an ellipse with eccentricity @e@ by
 --   scaling the unit circle in the X direction.  The eccentricity must
 --   be within the interval [0,1).
-ellipse :: (TrailLike t, V t ~ R2, Transformable t) => Double -> t
+ellipse :: (TrailLike t, TwoD (V t), Transformable t) => Scalar (V t) -> t
 ellipse e
     | e >= 0 && e < 1  = scaleX (sqrt (1 - e*e)) unitCircle
     | otherwise        = error "Eccentricity of ellipse must be >= 0 and < 1."
@@ -54,5 +56,5 @@ ellipse e
 -- | @ellipseXY x y@ creates an axis-aligned ellipse, centered at the
 --   origin, with radius @x@ along the x-axis and radius @y@ along the
 --   y-axis.
-ellipseXY :: (TrailLike t, V t ~ R2, Transformable t) => Double -> Double -> t
+ellipseXY :: (TrailLike t, TwoD (V t), Transformable t) => Scalar (V t) -> Scalar (V t) -> t
 ellipseXY x y = unitCircle # scaleX x # scaleY y

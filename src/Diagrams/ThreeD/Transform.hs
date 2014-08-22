@@ -1,6 +1,8 @@
+{-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE ViewPatterns          #-}
 -----------------------------------------------------------------------------
@@ -47,12 +49,12 @@ import           Diagrams.Core
 import qualified Diagrams.Core.Transform as T
 
 import           Diagrams.Angle
-import           Diagrams.Direction
-import           Diagrams.Transform
-import           Diagrams.ThreeD.Types
 import           Diagrams.Coordinates
+import           Diagrams.Direction
+import           Diagrams.ThreeD.Types
+import           Diagrams.Transform
 
-import           Control.Lens                   (view, (*~), (//~))
+import           Control.Lens            (view, (*~), (//~))
 import           Data.Semigroup
 
 import           Data.AffineSpace
@@ -73,7 +75,7 @@ import           Data.VectorSpace
 --   Note that writing @aboutZ (1\/4)@, with no type annotation, will
 --   yield an error since GHC cannot figure out which sort of angle
 --   you want to use.
-aboutZ :: Angle -> T3
+aboutZ :: (ThreeD v) => Angle (Scalar v) -> Transformation v
 aboutZ ang = fromLinear r (linv r) where
   r = rot theta <-> rot (-theta)
   theta = view rad ang
@@ -83,7 +85,7 @@ aboutZ ang = fromLinear r (linv r) where
 
 -- | Like 'aboutZ', but rotates about the X axis, bringing positive y-values
 -- towards the positive z-axis.
-aboutX :: Angle -> T3
+aboutX :: (ThreeD v) => Angle (Scalar v) -> Transformation v
 aboutX ang = fromLinear r (linv r) where
   r = rot theta <-> rot (-theta)
   theta = view rad ang
@@ -93,7 +95,7 @@ aboutX ang = fromLinear r (linv r) where
 
 -- | Like 'aboutZ', but rotates about the Y axis, bringing postive
 -- x-values towards the negative z-axis.
-aboutY :: Angle -> T3
+aboutY :: (ThreeD v) => Angle (Scalar v) -> Transformation v
 aboutY ang = fromLinear r (linv r) where
   r = rot theta <-> rot (-theta)
   theta = view rad ang
@@ -103,11 +105,11 @@ aboutY ang = fromLinear r (linv r) where
 
 -- | @rotationAbout p d a@ is a rotation about a line parallel to @d@
 --   passing through @p@.
-rotationAbout ::
-     P3        -- ^ origin of rotation
-  -> Direction R3 -- ^ direction of rotation axis
-  -> Angle     -- ^ angle of rotation
-  -> T3
+rotationAbout :: (ThreeD v) =>
+     Point v        -- ^ origin of rotation
+  -> Direction v -- ^ direction of rotation axis
+  -> Angle (Scalar v)     -- ^ angle of rotation
+  -> Transformation v
 rotationAbout p d a
   = mconcat [translation (negateV t),
              fromLinear r (linv r),
@@ -115,7 +117,7 @@ rotationAbout p d a
     r = rot theta <-> rot (-theta)
     theta = view rad a
     w = fromDirection d
-    rot :: Double -> R3 -> R3
+    -- rot :: Scalar v -> v -> v
     rot th v = v ^* cos th ^+^
                cross3 w v ^* sin th ^+^
                w ^* ((w <.> v) * (1 - cos th))
@@ -128,16 +130,16 @@ rotationAbout p d a
 -- without tilting, it will be, otherwise if only tilting is
 -- necessary, no panning will occur.  The tilt will always be between
 -- ± 1/4 turn.
-pointAt :: Direction R3 -> Direction R3 -> Direction R3 -> T3
+pointAt :: (ThreeD v) => Direction v -> Direction v -> Direction v -> Transformation v
 pointAt a i f = pointAt' (fromDirection a) (fromDirection i) (fromDirection f)
 
 -- | pointAt' has the same behavior as 'pointAt', but takes vectors
 -- instead of directions.
-pointAt' :: R3 -> R3 -> R3 -> T3
+pointAt' :: (ThreeD v) => v -> v -> v -> Transformation v
 pointAt' about initial final = pointAtUnit (normalized about) (normalized initial) (normalized final)
 
 -- | pointAtUnit has the same behavior as @pointAt@, but takes unit vectors.
-pointAtUnit :: R3 -> R3 -> R3 -> T3
+pointAtUnit :: (ThreeD v) => v -> v -> v -> Transformation v
 pointAtUnit about initial final = tilt <> pan where
   -- rotating u by (signedAngle rel u v) about rel gives a vector in the direction of v
   signedAngle rel u v = signum (cross3 u v <.> rel) *^ angleBetween u v
@@ -153,103 +155,103 @@ pointAtUnit about initial final = tilt <> pan where
 
 -- | Construct a transformation which scales by the given factor in
 --   the x direction.
-scalingX :: Double -> T3
+scalingX :: (ThreeD v) => Scalar v -> Transformation v
 scalingX c = fromLinear s s
   where s = (_x *~ c) <-> (_x //~ c)
 
 -- | Scale a diagram by the given factor in the x (horizontal)
 --   direction.  To scale uniformly, use 'scale'.
-scaleX :: (Transformable t, V t ~ R3) => Double -> t -> t
+scaleX :: (ThreeD v, Transformable t, V t ~ v) => Scalar v -> t -> t
 scaleX = transform . scalingX
 
 -- | Construct a transformation which scales by the given factor in
 --   the y direction.
-scalingY :: Double -> T3
+scalingY :: (ThreeD v) => Scalar v -> Transformation v
 scalingY c = fromLinear s s
   where s = (_y *~ c) <-> (_y //~ c)
 
 -- | Scale a diagram by the given factor in the y (vertical)
 --   direction.  To scale uniformly, use 'scale'.
-scaleY :: (Transformable t, V t ~ R3) => Double -> t -> t
+scaleY :: (ThreeD v, Transformable t, V t ~ v) => Scalar v -> t -> t
 scaleY = transform . scalingY
 
 -- | Construct a transformation which scales by the given factor in
 --   the z direction.
-scalingZ :: Double -> T3
+scalingZ :: (ThreeD v) => Scalar v -> Transformation v
 scalingZ c = fromLinear s s
   where s = (_z *~ c) <-> (_z //~ c)
 
 -- | Scale a diagram by the given factor in the z direction.  To scale
 -- uniformly, use 'scale'.
-scaleZ :: (Transformable t, V t ~ R3) => Double -> t -> t
+scaleZ :: (ThreeD v, Transformable t, V t ~ v) => Scalar v -> t -> t
 scaleZ = transform . scalingZ
 
 -- Translation ----------------------------------------
 
 -- | Construct a transformation which translates by the given distance
 --   in the x direction.
-translationX :: Double -> T3
+translationX :: (ThreeD v) => Scalar v -> Transformation v
 translationX x = translation (x ^& 0 ^& 0)
 
 -- | Translate a diagram by the given distance in the x
 --   direction.
-translateX :: (Transformable t, V t ~ R3) => Double -> t -> t
+translateX :: (ThreeD v, Transformable t, V t ~ v) => Scalar v -> t -> t
 translateX = transform . translationX
 
 -- | Construct a transformation which translates by the given distance
 --   in the y direction.
-translationY :: Double -> T3
+translationY :: (ThreeD v) => Scalar v -> Transformation v
 translationY y = translation (0 ^& y ^& 0)
 
 -- | Translate a diagram by the given distance in the y
 --   direction.
-translateY :: (Transformable t, V t ~ R3) => Double -> t -> t
+translateY :: (ThreeD v, Transformable t, V t ~ v) => Scalar v -> t -> t
 translateY = transform . translationY
 
 -- | Construct a transformation which translates by the given distance
 --   in the z direction.
-translationZ :: Double -> T3
+translationZ :: (ThreeD v) => Scalar v -> Transformation v
 translationZ z = translation (0 ^& 0 ^& z)
 
 -- | Translate a diagram by the given distance in the y
 --   direction.
-translateZ :: (Transformable t, V t ~ R3) => Double -> t -> t
+translateZ :: (ThreeD v, Transformable t, V t ~ v) => Scalar v -> t -> t
 translateZ = transform . translationZ
 
 -- Reflection ----------------------------------------------
 
 -- | Construct a transformation which flips a diagram across x=0,
 -- i.e. sends the point (x,y,z) to (-x,y,z).
-reflectionX :: T3
+reflectionX :: (ThreeD v) => Transformation v
 reflectionX = scalingX (-1)
 
 -- | Flip a diagram across x=0, i.e. send the point (x,y,z) to (-x,y,z).
-reflectX :: (Transformable t, V t ~ R3) => t -> t
+reflectX :: (ThreeD v, Transformable t, V t ~ v) => t -> t
 reflectX = transform reflectionX
 
 -- | Construct a transformation which flips a diagram across y=0,
 -- i.e. sends the point (x,y,z) to (x,-y,z).
-reflectionY :: T3
+reflectionY :: (ThreeD v) => Transformation v
 reflectionY = scalingY (-1)
 
 -- | Flip a diagram across y=0, i.e. send the point (x,y,z) to
 -- (x,-y,z).
-reflectY :: (Transformable t, V t ~ R3) => t -> t
+reflectY :: (ThreeD v, Transformable t, V t ~ v) => t -> t
 reflectY = transform reflectionY
 
 -- | Construct a transformation which flips a diagram across z=0,
 -- i.e. sends the point (x,y,z) to (x,y,-z).
-reflectionZ :: T3
+reflectionZ :: (ThreeD v) => Transformation v
 reflectionZ = scalingZ (-1)
 
 -- | Flip a diagram across z=0, i.e. send the point (x,y,z) to
 -- (x,y,-z).
-reflectZ :: (Transformable t, V t ~ R3) => t -> t
+reflectZ :: (ThreeD v, Transformable t, V t ~ v) => t -> t
 reflectZ = transform reflectionZ
 
 -- | @reflectionAbout p v@ is a reflection across the plane through
 --   the point @p@ and normal to vector @v@.
-reflectionAbout :: P3 -> R3 -> T3
+reflectionAbout :: (ThreeD v) => Point v -> v -> Transformation v
 reflectionAbout p v =
   conjugate (translation (origin .-. p)) reflect where
     reflect = fromLinear t (linv t)
@@ -258,7 +260,7 @@ reflectionAbout p v =
 
 -- | @reflectAbout p v@ reflects a diagram in the line determined by
 --   the point @p@ and the vector @v@.
-reflectAbout :: (Transformable t, V t ~ R3) => P3 -> R3 -> t -> t
+reflectAbout :: (ThreeD v, Transformable t, V t ~ v) => Point v -> v -> t -> t
 reflectAbout p v = transform (reflectionAbout p v)
 
 -- Utilities ----------------------------------------
@@ -266,6 +268,6 @@ reflectAbout p v = transform (reflectionAbout p v)
 -- | Get the matrix equivalent of an affine transform, as a triple of
 --   columns paired with the translation vector.  This is mostly
 --   useful for implementing backends.
-onBasis :: T3 -> ((R3, R3, R3), R3)
+onBasis :: (ThreeD v) => Transformation v -> ((v, v, v), v)
 onBasis t = ((x, y, z), v)
   where (x:y:z:[], v) = T.onBasis t

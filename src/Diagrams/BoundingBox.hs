@@ -43,15 +43,13 @@ module Diagrams.BoundingBox
 
 import           Control.Applicative     ((<$>))
 import qualified Data.Foldable           as F
-import           Data.Map                (Map, fromDistinctAscList, fromList,
-                                          toAscList, toList)
+import           Data.Map                (Map, fromDistinctAscList, fromList, toAscList, toList)
 
 import           Data.Maybe              (fromMaybe)
 
 import           Data.VectorSpace
 -- (VectorSpace, Scalar, AdditiveGroup, zeroV, negateV, (^+^), (^-^))
-import           Data.Basis              (Basis, HasBasis, basisValue,
-                                          decompose, recompose)
+import           Data.Basis              (Basis, HasBasis, basisValue, decompose, recompose)
 import           Data.Monoid             (Monoid (..))
 import           Data.Semigroup          (Option (..), Semigroup (..))
 
@@ -61,8 +59,8 @@ import           Data.Typeable           (Typeable)
 import           Diagrams.Core.Envelope  (Enveloped (..), appEnvelope)
 import           Diagrams.Core.HasOrigin (HasOrigin (..))
 import           Diagrams.Core.Points    (Point (..))
-import           Diagrams.Core.Transform (HasLinearMap, Transformable (..),
-                                          Transformation (..), (<->))
+import           Diagrams.Core.Transform (HasLinearMap, Transformable (..), Transformation (..),
+                                          (<->))
 import           Diagrams.Core.V         (V)
 
 -- Unexported utility newtype

@@ -1,7 +1,7 @@
-import Data.Maybe
+import           Data.Maybe
 
-import Diagrams.Prelude
-import Diagrams.Backend.SVG.CmdLine
+import           Diagrams.Backend.SVG.CmdLine
+import           Diagrams.Prelude
 
 clipPath :: Path R2
 clipPath = square 2 # alignR
