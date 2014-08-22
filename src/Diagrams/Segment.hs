@@ -45,7 +45,7 @@ module Diagrams.Segment
 
          -- * Constructing and modifying segments
 
-       , Segment(..), straight, bezier3, bézier3, reverseSegment
+       , Segment(..), straight, bezier3, bézier3, reverseSegment, mapSegmentVectors
 
          -- * Fixed (absolutely located) segments
        , FixedSegment(..)
@@ -63,8 +63,7 @@ module Diagrams.Segment
 
        ) where
 
-import           Control.Applicative      (liftA2)
-import           Control.Lens             (Rewrapped, Wrapped (..), iso, makeLenses, op)
+import           Control.Lens             (Rewrapped, Wrapped (..), iso, makeLenses, op, Traversal, over)
 import           Data.FingerTree
 import           Data.Monoid.MList
 import           Data.Semigroup
@@ -76,10 +75,10 @@ import Linear.Vector
 import Linear.Metric
 
 import           Diagrams.Core
-import           Diagrams.Core.V
 import           Diagrams.Located
 import           Diagrams.Parametric
 import           Diagrams.Solve
+import Control.Applicative
 
 
 ------------------------------------------------------------
@@ -117,6 +116,10 @@ instance Functor v => Functor (Offset c v) where
   fmap _ OffsetOpen       = OffsetOpen
   fmap f (OffsetClosed v) = OffsetClosed (fmap f v)
 
+offsetVector :: Traversal (Offset c v n) (Offset c v' n') (v n) (v' n')
+offsetVector f (OffsetClosed v) = OffsetClosed <$> f v
+offsetVector _ OffsetOpen       = pure OffsetOpen
+
 type instance V (Offset c v n) = v
 type instance N (Offset c v n) = n
 
@@ -148,6 +151,22 @@ data Segment c v n
 
   deriving (Show, Functor, Eq, Ord)
 
+-- this is provided as a replacement of the previous fmap functionality. (Now 
+-- fmap is only over the number type)
+
+-- Prehaps a traversal is overkill. Only really need to map over segment vectors.
+
+-- | A traversal of the vectors that make up a segment.
+segmentVectors :: Traversal (Segment c v n) (Segment c v' n') (v n) (v' n')
+segmentVectors f (Linear offset)      = Linear <$> offsetVector f offset
+segmentVectors f (Cubic v1 v2 offset) = Cubic <$> f v1 <*> f v2 <*> offsetVector f offset
+
+-- | Map over the vectors of each segment.
+mapSegmentVectors :: (v n -> v' n') -> Segment c v n -> Segment c v' n'
+mapSegmentVectors = over segmentVectors
+-- mapSegmentVectors f (Linear offset) = Linear $ over offsetVector f offset
+-- mapSegmentVectors f (Cubic v1 v2 offset) = Cubic (f v1) (f v2) (over offsetVector f offset)
+
 -- Note, can't yet have Haddock comments on GADT constructors; see
 -- http://trac.haskell.org/haddock/ticket/43. For now we don't need
 -- Segment to be a GADT but we might in the future. (?)
@@ -156,8 +175,7 @@ type instance V (Segment c v n) = v
 type instance N (Segment c v n) = n
 
 instance Transformable (Segment c v n) where
-  transform t (Linear v)       = Linear (transform t v)
-  transform t (Cubic v1 v2 v3) = Cubic (apply t v1) (apply t v2) (transform t v3)
+	transform = mapSegmentVectors . apply
 
 instance Renderable (Segment c v n) NullBackend where
   render _ _ = mempty
@@ -183,7 +201,7 @@ bezier3 c1 c2 x = Cubic c1 c2 (OffsetClosed x)
 bézier3 :: v n -> v n -> v n -> Segment Closed v n
 bézier3 = bezier3
 
-type instance Codomain (Segment Closed v n) = v
+type instance Codomain (Segment Closed v n) n = v n
 
 -- | 'atParam' yields a parametrized view of segments as continuous
 --   functions @[0,1] -> v@, which give the offset from the start of
@@ -369,7 +387,7 @@ fromFixedSeg :: (Num n, Additive v) => FixedSegment v n -> Located (Segment Clos
 fromFixedSeg (FLinear p1 p2)      = straight (p2 .-. p1) `at` p1
 fromFixedSeg (FCubic x1 c1 c2 x2) = bezier3 (c1 .-. x1) (c2 .-. x1) (x2 .-. x1) `at` x1
 
-type instance Codomain (FixedSegment v n) = Point v
+type instance Codomain (FixedSegment v n) n = Point v n
 
 instance (Additive v, Num n) => Parametric (FixedSegment v n) where
   atParam (FLinear p1 p2) t = lerp t p1 p2

@@ -26,16 +26,12 @@ module Diagrams.Tangent
     )
     where
 
-
-import Linear.Vector
--- import Linear.Metric
 import           Diagrams.Core
-import           Diagrams.Core.V
 import           Diagrams.Located
 import           Diagrams.Parametric
 import           Diagrams.Segment
--- import           Diagrams.TwoD.Types  (R2Ish)
--- import           Diagrams.TwoD.Vector (perp)
+
+import Linear.Vector
 
 ------------------------------------------------------------
 -- Tangent
@@ -52,7 +48,7 @@ instance DomainBounds t => DomainBounds (Tangent t) where
   domainLower (Tangent t) = domainLower t
   domainUpper (Tangent t) = domainUpper t
 
-type instance Codomain (Tangent (Located t)) = Codomain (Tangent t)
+type instance Codomain (Tangent (Located t)) n = Codomain (Tangent t) n
 
 instance Parametric (Tangent t) => Parametric (Tangent (Located t)) where
   Tangent l `atParam` p = Tangent (unLoc l) `atParam` p
@@ -88,7 +84,7 @@ tangentAtEnd = atEnd . Tangent
 --------------------------------------------------
 -- Segment
 
-type instance Codomain (Tangent (Segment Closed v n)) = Codomain (Segment Closed v n)
+type instance Codomain (Tangent (Segment Closed v n)) n = Codomain (Segment Closed v n) n
 
 instance (Additive v, Num n)
     => Parametric (Tangent (Segment Closed v n)) where

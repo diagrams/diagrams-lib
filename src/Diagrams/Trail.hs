@@ -115,7 +115,6 @@ import           Data.Semigroup
 import qualified Numeric.Interval.Kaucher as I
 
 import           Diagrams.Core            hiding ((|>))
-import           Diagrams.Core.V
 import           Diagrams.Located
 import           Diagrams.Parametric
 import           Diagrams.Segment
@@ -175,7 +174,7 @@ deriving instance (OrderedField n, Metric v)
 deriving instance (Metric v, OrderedField n)
   => Transformable (SegTree v n)
 
-type instance Codomain (SegTree v n) = v
+type instance Codomain (SegTree v n) n = v n
 
 instance (Metric v, OrderedField n, RealFrac n)
     => Parametric (SegTree v n) where
@@ -230,10 +229,10 @@ instance (Metric v, OrderedField n, RealFrac n)
     | otherwise        = fun (eps / numSegs t)
     where
       i   = trailMeasure (I.singleton 0)
-              (getArcLengthCached :: ArcLength (v n) -> I.Interval n)
+              getArcLengthCached
               t
       fun = trailMeasure (const 0)
-              (getArcLengthFun :: ArcLength v -> n -> I.Interval n)
+              getArcLengthFun
               t
 
   arcLengthToParam eps st@(SegTree t) l
@@ -260,7 +259,7 @@ instance (Metric v, OrderedField n, RealFrac n)
         FT.split ((>= l)
                  . trailMeasure
                  0
-                 (I.midpoint . (getArcLengthBounded eps :: ArcLength (v n) -> I.Interval n)))
+                 (I.midpoint . getArcLengthBounded eps))
                  t
 
 -- | Given a default result (to be used in the case of an empty
@@ -373,7 +372,7 @@ deriving instance Ord  (v n) => Ord  (Trail' l v n)
 type instance V (Trail' l v n) = v
 type instance N (Trail' l v n) = n
 
-type instance Codomain (Trail' l v n) = v
+type instance Codomain (Trail' l v n) n = v n
 
 instance (OrderedField n, Metric v) => Semigroup (Trail' Line v n) where
   (Line t1) <> (Line t2) = Line (t1 `mappend` t2)
@@ -408,7 +407,7 @@ instance (Metric v, OrderedField n, RealFrac n)
                   (\l -> cutLoop l `atParam` mod1 p)
                   t
 
-type instance Codomain (Tangent (Trail' c v n)) = Codomain (Trail' c v n)
+type instance Codomain (Tangent (Trail' c v n)) n = Codomain (Trail' c v n) n
 
 instance ( Parametric (GetSegment (Trail' c v n))
          , Additive v
@@ -435,7 +434,7 @@ instance ( Parametric (GetSegment (Trail' c v n))
       Nothing          -> zero
       Just (_, seg, _) -> atEnd (Tangent seg)
 
-type instance Codomain (Tangent (Trail v n)) = Codomain (Trail v n)
+type instance Codomain (Tangent (Trail v n)) n = Codomain (Trail v n) n
 
 instance ( Metric v
          , OrderedField n
@@ -536,12 +535,12 @@ getSegment = GetSegment
 
 type instance V (GetSegment t) = V t
 type instance N (GetSegment t) = N t
-type instance Codomain (GetSegment t) (N t)
+type instance Codomain (GetSegment t) n
   -- = V t
   = Maybe
-    ( V t (N t)                  -- offset from trail start to segment start
-    , Segment Closed (V t) (N t) -- the segment
-    , AnIso' (N t) (N t)         -- reparameterization, trail <-> segment
+    ( V t n                  -- offset from trail start to segment start
+    , Segment Closed (V t) n -- the segment
+    , AnIso' n n             -- reparameterization, trail <-> segment
     )
 
 -- | Parameters less than 0 yield the first segment; parameters
@@ -677,7 +676,7 @@ instance (OrderedField n, Metric v) => Monoid (Trail v n) where
 type instance V (Trail v n) = v
 type instance N (Trail v n) = n
 
-type instance Codomain (Trail v n) = v
+type instance Codomain (Trail v n) n = v n
 
 instance (HasLinearMap v, Metric v, OrderedField n)
     => Transformable (Trail v n) where

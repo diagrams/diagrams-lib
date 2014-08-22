@@ -45,6 +45,7 @@ import           Diagrams.TrailLike
 import           Data.Active
 
 type instance V (Active a) = V a
+type instance N (Active a) = N a
 
 -- Yes, these are all orphan instances. Get over it.  We don't want to
 -- put them in the 'active' package because 'active' is supposed to be

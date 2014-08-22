@@ -116,11 +116,6 @@ instance Fractional n => Transformable (Frustum n) where
 instance Fractional n => Renderable (Frustum n) NullBackend where
     render _ _ = mempty
 
--- | @project u v@ computes the projection of @v@ onto @u@.
-project :: (Metric v, Fractional n) => v n -> v n -> v n
-project u v = ((v `dot` u) / quadrance u) *^ u
-
-
 -- | A frustum of a right circular cone.  It has height 1 oriented
 -- along the positive z axis, and radii r0 and r1 at Z=0 and Z=1.
 -- 'cone' and 'cylinder' are special cases.

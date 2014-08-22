@@ -57,15 +57,12 @@ module Diagrams.TwoD.Arrowheads
        ) where
 
 import           Control.Lens            ((&), (.~), (<>~), (^.))
-import           Data.AffineSpace
 import           Data.Default.Class
 import           Data.Monoid             (mempty, (<>))
-import           Data.VectorSpace
 
 import           Diagrams.Angle
 import           Diagrams.Core
 
-import           Diagrams.Coordinates    ((^&))
 import           Diagrams.Path
 import           Diagrams.Segment
 import           Diagrams.Trail
@@ -80,11 +77,16 @@ import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector    (unitX, unit_X, xDir)
 import           Diagrams.Util           (( # ))
 
+import Linear.Affine
+import Linear.Epsilon
+import Linear.Vector
+import Linear.Metric
+
 -----------------------------------------------------------------------------
 
-type ArrowHT v = Scalar v -> Scalar v -> (Path v, Path v)
+type ArrowHT n = n -> n -> (Path V2 n, Path V2 n)
 
-closedPath :: (R2Ish v) => (Floating (Scalar v), Ord (Scalar v), InnerSpace v) => Trail v -> Path v
+closedPath :: OrderedField n => Trail V2 n -> Path V2 n
 closedPath = pathFromTrail . closeTrail
 
 -- Heads ------------------------------------------------------------------
@@ -99,42 +101,42 @@ closedPath = pathFromTrail . closeTrail
 --   > tri25Ex = arrowAt' (with & arrowHead .~ arrowheadTriangle (2/5 @@ turn) & shaftStyle %~ lw none)
 --   >           origin (r2 (0.001, 0))
 --   >        <> square 0.6 # alignL # lw none
-arrowheadTriangle :: (R2Ish v) => Angle (Scalar v) -> ArrowHT v
+arrowheadTriangle :: (Epsilon n, RealFloat n) => Angle n -> ArrowHT n
 arrowheadTriangle theta = aHead
   where
     aHead len _ = (p, mempty)
       where
         psi = pi - (theta ^. rad)
         r = len / (1 + cos psi)
-        p = polygon (def & polyType .~ PolyPolar [theta, (negateV 2 *^ theta)]
+        p = polygon (def & polyType .~ PolyPolar [theta, (-2) *^ theta]
             (repeat r) & polyOrient .~ NoOrient)  # alignL
 
 
 -- | Isoceles triangle with linear concave base. Inkscape type 1 - dart like.
-arrowheadDart :: (R2Ish v) => Angle (Scalar v) -> ArrowHT v
+arrowheadDart :: (Epsilon n, RealFloat n) => Angle n -> ArrowHT n
 arrowheadDart theta len shaftWidth = (hd # scale size, jt)
   where
     hd = snugL . pathFromTrail . glueTrail $ fromOffsets [t1, t2, b2, b1]
     jt = pathFromTrail . glueTrail $ j <> reflectY j
-    j = closeTrail $ fromOffsets [((-jLength) ^& 0), (0 ^& (shaftWidth / 2))]
+    j = closeTrail $ fromOffsets [V2 (-jLength) 0, V2 0 (shaftWidth / 2)]
     v = rotate theta unitX
-    (t1, t2) = (unit_X ^+^ v, ((-0.5) ^& 0) ^-^ v)
-    [b1, b2] = map (reflectY . negateV) [t1, t2]
-    psi = pi - (negateV t2) ^. _theta.rad
+    (t1, t2) = (unit_X ^+^ v, V2 (-0.5) 0 ^-^ v)
+    [b1, b2] = map (reflectY . negated) [t1, t2]
+    psi = pi - negated t2 ^. _theta . rad
     jLength = shaftWidth / (2 * tan psi)
 
     -- If the shaft if too wide, set the size to a default value of 1.
-    size = max 1 ((len - jLength) / (1.5))
+    size = max 1 ((len - jLength) / 1.5)
 
 -- | Isoceles triangle with curved concave base. Inkscape type 2.
-arrowheadSpike :: (R2Ish v) => Angle (Scalar v) -> ArrowHT v
+arrowheadSpike :: (RealFloat n, Epsilon n) => Angle n -> ArrowHT n
 arrowheadSpike theta len shaftWidth  = (hd # scale r, jt # scale r)
   where
     hd = snugL . closedPath $ l1 <> c <> l2
     jt = alignR . centerY . pathFromTrail
-                . closeTrail $ arc' 1 (xDir & _theta <>~ (negateV phi)) (2 *^ phi)
+                . closeTrail $ arc' 1 (xDir & _theta <>~ negated phi) (2 *^ phi)
     l1 = trailFromSegments [straight $ unit_X ^+^ v]
-    l2 = trailFromSegments [reverseSegment . straight $ (unit_X ^+^ (reflectY v))]
+    l2 = trailFromSegments [reverseSegment . straight $ (unit_X ^+^ reflectY v)]
     c = arc' 1 (rotate α xDir) ((-2) *^ α)
     α = (1/2 @@ turn) ^-^ theta
     v = rotate theta unitX
@@ -155,25 +157,25 @@ arrowheadSpike theta len shaftWidth  = (hd # scale r, jt # scale r)
     phi = asinA (min 1 (y/r))
 
 -- | Curved sides, linear concave base. Illustrator CS5 #3
-arrowheadThorn :: (R2Ish v) => Angle (Scalar v) -> ArrowHT v
+arrowheadThorn :: (Epsilon n, RealFloat n) => Angle n -> ArrowHT n
 arrowheadThorn theta len shaftWidth = (hd # scale size, jt)
   where
     hd = snugL . pathFromTrail . glueTrail $ hTop <> reflectY hTop
     hTop = closeTrail . trailFromSegments $ [c, l]
     jt = pathFromTrail . glueTrail $ j <> reflectY j
-    j = closeTrail $ fromOffsets [((-jLength) ^& 0), (0 ^& (shaftWidth / 2))]
+    j = closeTrail $ fromOffsets [V2 (-jLength) 0, V2 0 (shaftWidth / 2)]
     c = curvedSide theta
     v = rotate theta unitX
     l = reverseSegment . straight $ t
-    t = v ^-^ ((-0.5) ^& 0)
-    psi = fullTurn ^/ 2 ^-^ ((negateV t) ^. _theta)
+    t = v ^-^ V2 (-0.5) 0
+    psi = fullTurn ^/ 2 ^-^ (negated t ^. _theta)
     jLength = shaftWidth / (2 * tanA psi)
 
     -- If the shaft if too wide, set the size to a default value of 1.
-    size = max 1 ((len - jLength) / (1.5))
+    size = max 1 ((len - jLength) / 1.5)
 
 -- | Make a side for the thorn head.
-curvedSide :: (R2Ish v) => Angle (Scalar v) -> Segment Closed v
+curvedSide :: (Floating n, Ord n) => Angle n -> Segment Closed V2 n
 curvedSide theta = bezier3 ctrl1 ctrl2 end
   where
     v0    = unit_X
@@ -184,34 +186,34 @@ curvedSide theta = bezier3 ctrl1 ctrl2 end
 
 -- Standard heads ---------------------------------------------------------
 -- | A line the same width as the shaft.
-lineHead :: (R2Ish v) => ArrowHT v
+lineHead :: (Epsilon n, RealFloat n) => ArrowHT n
 lineHead s w = (square 1 # scaleX s # scaleY w # alignL, mempty)
 
-noHead :: (R2Ish v) => ArrowHT v
+noHead :: (Floating n, Ord n) => ArrowHT n
 noHead _ _ = (mempty, mempty)
 
 -- | <<diagrams/src_Diagrams_TwoD_Arrowheads_triEx.svg#diagram=triEx&width=100>>
 
 --   > triEx = drawHead tri
-tri :: (R2Ish v) => ArrowHT v
+tri :: (Epsilon n, RealFloat n) => ArrowHT n
 tri = arrowheadTriangle (1/3 @@ turn)
 
 -- | <<diagrams/src_Diagrams_TwoD_Arrowheads_spikeEx.svg#diagram=spikeEx&width=100>>
 
 --   > spikeEx = drawHead spike
-spike :: (R2Ish v) => ArrowHT v
+spike :: (Epsilon n, RealFloat n) => ArrowHT n
 spike = arrowheadSpike (3/8 @@ turn)
 
 -- | <<diagrams/src_Diagrams_TwoD_Arrowheads_thornEx.svg#diagram=thornEx&width=100>>
 
 --   > thornEx = drawHead thorn
-thorn :: (R2Ish v) => ArrowHT v
+thorn :: (Epsilon n, RealFloat n) => ArrowHT n
 thorn = arrowheadThorn (3/8 @@ turn)
 
 -- | <<diagrams/src_Diagrams_TwoD_Arrowheads_dartEx.svg#diagram=dartEx&width=100>>
 
 --   > dartEx = drawHead dart
-dart :: (R2Ish v) => ArrowHT v
+dart :: (Epsilon n, RealFloat n) => ArrowHT n
 dart = arrowheadDart (2/5 @@ turn)
 
 -- Tails ------------------------------------------------------------------
@@ -221,7 +223,7 @@ dart = arrowheadDart (2/5 @@ turn)
 
 -- | Utility function to convert any arrowhead to an arrowtail, i.e.
 --   attached at the start of the trail.
-headToTail :: (R2Ish v) => ArrowHT v -> ArrowHT v
+headToTail :: (OrderedField n) => ArrowHT n -> ArrowHT n
 headToTail hd = tl
   where
     tl size shaftWidth = (t, j)
@@ -230,25 +232,25 @@ headToTail hd = tl
         t = reflectX t'
         j = reflectX j'
 
-arrowtailBlock :: forall v. (R2Ish v) => Angle (Scalar v) -> ArrowHT v
+arrowtailBlock :: forall n. (Epsilon n, RealFloat n) => Angle n -> ArrowHT n
 arrowtailBlock theta = aTail
   where
    aTail len _ = (t, mempty)
       where
-        t = rect len (len * x) # alignR
-        a' :: v
-        a'  = rotate theta unitX
-        a = a' ^-^ (reflectY a')
-        x = magnitude a
+        t  = rect len (len * x) # alignR
+        a' :: V2 n
+        a' = rotate theta unitX
+        a  = a' ^-^ reflectY a'
+        x  = norm a
 
 -- | The angle is where the top left corner intersects the circle.
-arrowtailQuill :: (R2Ish v) => Angle (Scalar v) -> ArrowHT v
+arrowtailQuill :: (Floating n, Ord n, Epsilon n) => Angle n -> ArrowHT n
 arrowtailQuill theta = aTail
   where
    aTail len shaftWidth = (t, j)
       where
-        t = ( closedPath $ trailFromVertices [v0, v1, v2, v3, v4, v5, v0] )
-            # scale size # alignR
+        t = closedPath (trailFromVertices [v0, v1, v2, v3, v4, v5, v0])
+              # scale size # alignR
         size = len / 0.6
         v0 = p2 (0.5, 0)
         v2 = origin .+^ (rotate theta unitX # scale 0.5)
@@ -256,54 +258,54 @@ arrowtailQuill theta = aTail
         v3 = p2 (-0.1, 0)
         v4 = v2 # reflectY
         v5 = v4 # translateX (5/8)
-        s = 1 - shaftWidth / magnitude (v1 .-. v5)
+        s = 1 - shaftWidth / norm (v1 .-. v5)
         n1 = v0 # translateY (0.5 * shaftWidth)
         n2 = v1 .-^ ((v1 .-. v0) # scale s)
         n3 = v5 .-^ ((v5 .-. v0) # scale s)
         n4 = n1 # reflectY
-        j = ( closedPath $ trailFromVertices
-                [ v0, n1, n2, v0, n3, n4, v0 ])
+        j  = closedPath $ trailFromVertices [v0, n1, n2, v0, n3, n4, v0]
 
 -- Standard tails ---------------------------------------------------------
 -- | A line the same width as the shaft.
-lineTail :: (R2Ish v) => ArrowHT v
+lineTail :: (RealFloat n, Epsilon n) => ArrowHT n
 lineTail s w = (square 1 # scaleY w # scaleX s # alignR, mempty)
 
-noTail :: (R2Ish v) => ArrowHT v
+noTail :: (Floating n, Ord n) => ArrowHT n
 noTail _ _ = (mempty, mempty)
 
 -- | <<diagrams/src_Diagrams_TwoD_Arrowheads_tri'Ex.svg#diagram=tri'Ex&width=100>>
 
 --   > tri'Ex = drawTail tri'
-tri' :: (R2Ish v) => ArrowHT v
+tri' :: (RealFloat n, Epsilon n) => ArrowHT n
 tri' = headToTail tri
 
 -- | <<diagrams/src_Diagrams_TwoD_Arrowheads_spike'Ex.svg#diagram=spike'Ex&width=100>>
 
 --   > spike'Ex = drawTail spike'
-spike' :: (R2Ish v) => ArrowHT v
+spike' :: (Epsilon n, RealFloat n) => ArrowHT n
 spike' = headToTail spike
 
 -- | <<diagrams/src_Diagrams_TwoD_Arrowheads_thorn'Ex.svg#diagram=thorn'Ex&width=100>>
 
 --   > thorn'Ex = drawTail thorn'
-thorn' :: (R2Ish v) => ArrowHT v
+thorn' :: (Epsilon n, RealFloat n) => ArrowHT n
 thorn' = headToTail thorn
 
 -- | <<diagrams/src_Diagrams_TwoD_Arrowheads_dart'Ex.svg#diagram=dart'Ex&width=100>>
 
 --   > dart'Ex = drawTail dart'
-dart' :: (R2Ish v) => ArrowHT v
+dart' :: (Epsilon n, RealFloat n) => ArrowHT n
 dart' = headToTail dart
 
 -- | <<diagrams/src_Diagrams_TwoD_Arrowheads_quillEx.svg#diagram=quillEx&width=100>>
 
 --   > quillEx = drawTail quill
-quill :: (R2Ish v) => ArrowHT v
+quill :: (Floating n, Ord n, Epsilon n) => ArrowHT n
 quill = arrowtailQuill (2/5 @@ turn)
 
 -- | <<diagrams/src_Diagrams_TwoD_Arrowheads_blockEx.svg#diagram=blockEx&width=100>>
 
 --   > blockEx = drawTail block
-block :: (R2Ish v) => ArrowHT v
+block :: (RealFloat n, Epsilon n) => ArrowHT n
 block = arrowtailBlock (7/16 @@ turn)
+

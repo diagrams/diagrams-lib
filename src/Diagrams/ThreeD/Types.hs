@@ -16,7 +16,7 @@ module Diagrams.ThreeD.Types
        ( -- * 3D Euclidean space
          r3, unr3, mkR3
        , p3, unp3, mkP3
-       , r3Iso, p3Iso
+       , r3Iso, p3Iso, project
        , V3 (..)
 
        -- * other coördinate systems
@@ -32,6 +32,7 @@ import           Diagrams.Points
 import Linear.V3 as V
 import Linear.Affine
 import Linear.Metric
+import Linear.Vector
 import Diagrams.Coordinates
 
 ------------------------------------------------------------
@@ -71,6 +72,11 @@ p3Iso = iso unp3 p3
 -- | Curried version of `r3`.
 mkP3 :: n -> n -> n -> P3 n
 mkP3 x y z = p3 (x, y, z)
+
+
+-- | @project u v@ computes the projection of @v@ onto @u@.
+project :: (Metric v, Fractional n) => v n -> v n -> v n
+project u v = ((v `dot` u) / quadrance u) *^ u
 
 -- | Types which can be expressed in spherical 3D coordinates, as a
 -- triple (r,θ,φ), where θ is rotation about the Z axis, and φ is the

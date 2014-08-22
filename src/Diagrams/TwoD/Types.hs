@@ -16,7 +16,7 @@
 module Diagrams.TwoD.Types
        ( -- * 2D Euclidean space
          V2 (..), R2, P2, r2, unr2, mkR2, r2Iso
-       , p2, mkP2, unp2, p2Iso
+       , p2, mkP2, unp2, p2Iso, project
        , Polar(..)
        ) where
 
@@ -27,12 +27,14 @@ import           Diagrams.Angle
 import           Diagrams.Points
 
 import Linear.Affine
+import Linear.Vector
 import Linear.Metric
 import Linear.V2 hiding (R2)
 import qualified Linear.V2 as V
 import Diagrams.Coordinates
 import Diagrams.Core.V
 import Diagrams.Core.Transform
+
 
 type R2 = V2
 type P2 = Point V2
@@ -81,6 +83,11 @@ class Polar t where
 
 instance Polar v => Polar (Point v) where
   polar = _pIso . polar
+
+-- | @project u v@ computes the projection of @v@ onto @u@.
+project :: (Metric v, Fractional n) => v n -> v n -> v n
+project u v = ((v `dot` u) / quadrance u) *^ u
+-- find somewhere better for this
 
 -- TODO: coordinate instance for V2
 

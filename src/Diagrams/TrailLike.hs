@@ -37,6 +37,10 @@ import           Diagrams.Located
 import           Diagrams.Segment
 import           Diagrams.Trail
 
+import Linear.Affine
+import Linear.Metric
+import Linear.Vector
+
 ------------------------------------------------------------
 --  TrailLike class
 ------------------------------------------------------------
@@ -143,7 +147,7 @@ fromOffsets = trailLike . (`at` origin) . trailFromOffsets
 
 -- | Construct a trail-like thing of linear segments from a located
 --   list of offsets.
-fromLocOffsets :: (V (V t) ~ V t, TrailLike t) => Located [Vn t] -> t
+fromLocOffsets :: (Vn (Vn t) ~ Vn t, TrailLike t) => Located [Vn t] -> t
 fromLocOffsets = trailLike . mapLoc trailFromOffsets
 
 -- | Construct a trail-like thing connecting the given vertices with
@@ -170,7 +174,7 @@ fromVertices :: TrailLike t => [Point (V t) (N t)] -> t
 fromVertices []       = trailLike (emptyTrail `at` origin)
 fromVertices ps@(p:_) = trailLike (trailFromSegments (segmentsFromVertices ps) `at` p)
 
-segmentsFromVertices :: AdditiveGroup v => [Point v] -> [Segment Closed v]
+segmentsFromVertices :: (Additive v, Num n) => [Point v n] -> [Segment Closed v n]
 segmentsFromVertices []         = []
 segmentsFromVertices vvs@(_:vs) = map straight (zipWith (flip (.-.)) vvs vs)
 
@@ -181,7 +185,7 @@ segmentsFromVertices vvs@(_:vs) = map straight (zipWith (flip (.-.)) vvs vs)
 --   > twiddleEx
 --   >   = mconcat ((~~) <$> hexagon 1 <*> hexagon 1)
 --   >   # centerXY # pad 1.1
-(~~) :: TrailLike t => Point (V t) (N t) -> Point (V t) (N t) -> t
+(~~) :: (Vn t ~ v n, TrailLike t) => Point v n -> Point v n -> t
 p1 ~~ p2 = fromVertices [p1, p2]
 
 -- | Given a concretely located trail, \"explode\" it by turning each
@@ -195,7 +199,8 @@ p1 ~~ p2 = fromVertices [p1, p2]
 --   >   # explodeTrail  -- generate a list of diagrams
 --   >   # zipWith lc [orange, green, yellow, red, blue]
 --   >   # mconcat # centerXY # pad 1.1
-explodeTrail :: (Vn ~ v n, Additive v, TrailLike t) => Located (Trail v n) -> [t]
+explodeTrail :: (Vn t ~ v n, Additive v, TrailLike t) => Located (Trail v n) -> [t]
 explodeTrail = map (mkTrail . fromFixedSeg) . fixTrail
   where
     mkTrail = trailLike . mapLoc (trailFromSegments . (:[]))
+

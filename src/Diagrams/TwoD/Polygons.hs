@@ -59,9 +59,7 @@ import           Data.Maybe              (catMaybes)
 import           Data.Monoid             (mconcat, mempty)
 import           Data.Ord                (comparing)
 
-import           Data.AffineSpace        ((.+^), (.-.))
 import           Data.Default.Class
-import           Data.VectorSpace
 
 import           Diagrams.Angle
 import           Diagrams.Core
@@ -75,8 +73,13 @@ import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector    (leftTurn, unitX, unitY, unit_Y)
 import           Diagrams.Util           (tau, ( # ))
 
+import Linear.Affine
+import Linear.Vector
+import Linear.Metric
+import Linear.Epsilon
+
 -- | Method used to determine the vertices of a polygon.
-data PolyType d = PolyPolar [Angle d] [d]
+data PolyType n = PolyPolar [Angle n] [n]
                 -- ^ A \"polar\" polygon.
                 --
                 --   * The first argument is a list of /central/
@@ -93,7 +96,7 @@ data PolyType d = PolyPolar [Angle d] [d]
                 --   circle) can be constructed using a second
                 --   argument of @(repeat r)@.
 
-              | PolySides [Angle d] [d]
+              | PolySides [Angle n] [n]
                 -- ^ A polygon determined by the distance between
                 --   successive vertices and the angles formed by
                 --   each three successive vertices.  In other
@@ -118,54 +121,54 @@ data PolyType d = PolyPolar [Angle d] [d]
                 --   angles and /n-1/ edge lengths.  Extra angles or
                 --   lengths are ignored.
 
-              | PolyRegular Int d
+              | PolyRegular Int n
                 -- ^ A regular polygon with the given number of
                 --   sides (first argument) and the given radius
                 --   (second argument).
 
 -- | Determine how a polygon should be oriented.
-data PolyOrientation v = NoOrient     -- ^ No special orientation; the first
-                                    --   vertex will be at (1,0).
-                                    --   This is the default.
-                     | OrientH      -- ^ Orient /horizontally/, so the
-                                    --   bottommost edge is parallel to
-                                    --   the x-axis.
-                     | OrientV      -- ^ Orient /vertically/, so the
-                                    --   leftmost edge is parallel to the
-                                    --   y-axis.
-                     | OrientTo v  -- ^ Orient so some edge is
-                                    --   /facing/ /in/ /the/ /direction/
-                                    --   /of/, that is, perpendicular
-                                    --   to, the given vector.
+data PolyOrientation n = NoOrient        -- ^ No special orientation; the first
+                                         --   vertex will be at (1,0).
+                                         --   This is the default.
+                       | OrientH         -- ^ Orient /horizontally/, so the
+                                         --   bottommost edge is parallel to
+                                         --   the x-axis.
+                       | OrientV         -- ^ Orient /vertically/, so the
+                                         --   leftmost edge is parallel to the
+                                         --   y-axis.
+                       | OrientTo (V2 n) -- ^ Orient so some edge is
+                                         --   /facing/ /in/ /the/ /direction/
+                                         --   /of/, that is, perpendicular
+                                         --   to, the given vector.
   deriving (Eq, Ord, Show, Read)
 
 -- | Options for specifying a polygon.
-data PolygonOpts v = PolygonOpts
-                   { _polyType   :: PolyType (Scalar v)
-                   , _polyOrient :: PolyOrientation v
-                   , _polyCenter :: Point v
+data PolygonOpts n = PolygonOpts
+                   { _polyType   :: PolyType n
+                   , _polyOrient :: PolyOrientation n
+                   , _polyCenter :: Point V2 n
                    }
 
 makeLensesWith (generateSignatures .~ False $ lensRules) ''PolygonOpts
 
 -- | Specification for the polygon's vertices.
-polyType :: Lens' (PolygonOpts v) (PolyType (Scalar v))
+polyType :: Lens' (PolygonOpts n) (PolyType n)
 
 -- | Should a rotation be applied to the polygon in order to orient it in a
 --   particular way?
-polyOrient :: Lens' (PolygonOpts v) (PolyOrientation v)
+polyOrient :: Lens' (PolygonOpts n) (PolyOrientation n)
 
 -- | Should a translation be applied to the polygon in order to place the center
 --   at a particular location?
-polyCenter :: Lens' (PolygonOpts v) (Point v)
+polyCenter :: Lens' (PolygonOpts n) (Point V2 n)
 
 -- | The default polygon is a regular pentagon of radius 1, centered
 --   at the origin, aligned to the x-axis.
-instance (R2Ish v) => Default (PolygonOpts v) where
+instance Num n => Default (PolygonOpts n) where
     def = PolygonOpts (PolyRegular 5 1) OrientH origin
 
 -- | Generate a polygon.  See 'PolygonOpts' for more information.
-polyTrail :: (R2Ish v) =>  PolygonOpts v -> Located (Trail v)
+polyTrail :: (RealFloat n, Epsilon n) =>  PolygonOpts n -> Located (Trail V2 n)
 polyTrail po = transform ori tr
     where
         tr = case po^.polyType of
@@ -179,12 +182,12 @@ polyTrail po = transform ori tr
             NoOrient     -> mempty
 
 -- | Generate the polygon described by the given options.
-polygon :: (R2Ish v, TrailLike t, V t ~ v) => PolygonOpts v -> t
+polygon :: (TrailLike t, Vn t ~ V2 n, RealFloat n) => PolygonOpts n -> t
 polygon = trailLike . polyTrail
 
 -- | Generate the located trail of a polygon specified by polar data
 --   (central angles and radii). See 'PolyPolar'.
-polyPolarTrail :: (R2Ish v) =>  [Angle (Scalar v)] -> [Scalar v] -> Located (Trail v)
+polyPolarTrail :: (RealFloat n, Epsilon n) =>  [Angle n] -> [n] -> Located (Trail V2 n)
 polyPolarTrail [] _ = emptyTrail `at` origin
 polyPolarTrail _ [] = emptyTrail `at` origin
 polyPolarTrail ans (r:rs) = tr `at` p1
@@ -193,51 +196,51 @@ polyPolarTrail ans (r:rs) = tr `at` p1
     tr = closeTrail . trailFromVertices $
            zipWith
              (\a l -> rotate a . scale l $ p2 (1,0))
-             (scanl (^+^) zeroV ans)
+             (scanl (^+^) zero ans)
              (r:rs)
 
 -- | Generate the vertices of a polygon specified by side length and
 --   angles, and a starting point for the trail such that the origin
 --   is at the centroid of the vertices.  See 'PolySides'.
-polySidesTrail :: (R2Ish v) =>  [Angle (Scalar v)] -> [Scalar v] -> Located (Trail v)
+polySidesTrail :: (RealFloat n, Epsilon n) =>  [Angle n] -> [n] -> Located (Trail V2 n)
 polySidesTrail ans ls = tr `at` (centroid ps # scale (-1))
   where
-    ans'    = scanl (^+^) zeroV ans
+    ans'    = scanl (^+^) zero ans
     offsets = zipWith rotate ans' (map (unitY ^*) ls)
     ps      = scanl (.+^) origin offsets
     tr      = closeTrail . trailFromOffsets $ offsets
 
 -- | Generate the vertices of a regular polygon.  See 'PolyRegular'.
-polyRegularTrail :: (R2Ish v) =>  Int -> Scalar v -> Located (Trail v)
+polyRegularTrail :: (RealFloat n, Epsilon n) =>  Int -> n -> Located (Trail V2 n)
 polyRegularTrail n r = polyPolarTrail
-                         (take (n-1) . repeat $ fullTurn ^/ fromIntegral n)
+                         (replicate (n - 1) $ fullTurn ^/ fromIntegral n)
                          (repeat r)
 
 -- | Generate a transformation to orient a trail.  @orient v t@
 --   generates the smallest rotation such that one of the segments
 --   adjacent to the vertex furthest in the direction of @v@ is
 --   perpendicular to @v@.
-orient :: (R2Ish v) =>  v -> Located (Trail v) -> Transformation v
+orient :: (RealFloat n, Epsilon n) => V2 n -> Located (Trail V2 n) -> Transformation V2 n
 orient v = orientPoints v . trailVertices
 
-orientPoints :: (R2Ish v) =>  v -> [Point v] -> Transformation v
+orientPoints :: (Floating n, Ord n) => V2 n -> [Point V2 n] -> Transformation V2 n
 orientPoints v xs = rotation a
   where
     (n1,x,n2) = maximumBy (comparing (distAlong v . sndOf3))
                   (zip3 (tail (cycle xs)) xs (last xs : init xs))
-    distAlong w ((.-. origin) -> p) = signum (w <.> p) * magnitude (project w p)
+    distAlong w ((.-. origin) -> p) = signum (w `dot` p) * norm (project w p)
     sndOf3 (_,b,_) = b
     -- a :: Angle (Scalar v)
     a = minimumBy (comparing $ abs . view rad)
         . map (angleFromNormal . (.-. x)) $ [n1,n2]
-    v' = normalized v
+    v' = signorm v
     -- angleFromNormal :: v -> Angle (Scalar v)
     angleFromNormal o
       | leftTurn o' v' = phi
-      | otherwise      = negateV phi
+      | otherwise      = negated phi
       where
-        o' = normalized o
-        theta = acos (v' <.> o')
+        o' = signorm o
+        theta = acos (v' `dot` o')
         -- phi :: Angle (Scalar v)
         phi
           | theta <= tau/4 = tau/4 - theta @@ rad
@@ -278,10 +281,10 @@ orbits f n = runST genOrbits
     markRho :: Int -> STUArray s Int Bool -> ST s [Int]
     markRho i marks = do
       isMarked <- readArray marks i
-      case isMarked of
-        True  -> return []
-        False -> writeArray marks i True >>
-                 liftM (i:) (markRho (f_n i) marks)
+      if isMarked
+        then return []
+        else writeArray marks i True >>
+               liftM (i:) (markRho (f_n i) marks)
 
     splitParts :: [Int] -> [GraphPart Int]
     splitParts tr = hair ++ cyc
@@ -326,7 +329,7 @@ data StarOpts = StarFun (Int -> Int)
 --   returned (instead of any 'TrailLike') because the resulting path
 --   may have more than one component, for example if the vertices are
 --   to be connected in several disjoint cycles.
-star :: (R2Ish v) =>  StarOpts -> [Point v] -> Path v
+star :: OrderedField n => StarOpts -> [Point V2 n] -> Path V2 n
 star sOpts vs = graphToPath $ mkGraph f vs
   where f = case sOpts of
               StarFun g  -> g
@@ -339,3 +342,4 @@ star sOpts vs = graphToPath $ mkGraph f vs
                               $ ps
 
         partToPath (Hair ps)  = fromVertices ps
+

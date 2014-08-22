@@ -54,12 +54,10 @@ import qualified Data.Foldable         as F
 import           Data.Semigroup
 import           Data.Typeable
 
-import           Data.AffineSpace
 import           Data.Default.Class
-import           Data.VectorSpace
 
+import           Diagrams.Angle
 import           Diagrams.Combinators  (withEnvelope, withTrace)
-import           Diagrams.Coordinates
 import           Diagrams.Core
 import           Diagrams.Core.Trace
 import           Diagrams.Located      (Located, mapLoc, unLoc)
@@ -73,6 +71,12 @@ import           Diagrams.TwoD.Segment ()
 import           Diagrams.TwoD.Types
 import           Diagrams.Util         (tau)
 
+import Linear.Vector
+import Linear.Affine
+import Linear.Epsilon
+
+type TypeableReal n = (Epsilon n, RealFloat n, Typeable n)
+
 ------------------------------------------------------------
 --  Trail and path traces  ---------------------------------
 ------------------------------------------------------------
@@ -81,14 +85,14 @@ import           Diagrams.Util         (tau)
 
 -- XXX can the efficiency of this be improved?  See the comment in
 -- Diagrams.Path on the Enveloped instance for Trail.
-instance (R2Ish v) => Traced (Trail v) where
+instance (OrderedField n, RealFloat n) => Traced (Trail V2 n) where
   getTrace = withLine $
       foldr
-        (\seg bds -> moveOriginBy (negateV . atEnd $ seg) bds <> getTrace seg)
+        (\seg bds -> moveOriginBy (negated . atEnd $ seg) bds <> getTrace seg)
         mempty
     . lineSegments
 
-instance (R2Ish v) => Traced (Path v) where
+instance (OrderedField n, RealFloat n) => Traced (Path V2 n) where
   getTrace = F.foldMap getTrace . op Path
 
 ------------------------------------------------------------
@@ -159,11 +163,11 @@ instance Default (StrokeOpts a) where
 --   inferring the type of @stroke@.  The solution is to give a type
 --   signature to expressions involving @stroke@, or (recommended)
 --   upgrade GHC (the bug is fixed in 7.0.2 onwards).
-stroke :: (R2Ish v, Renderable (Path v) b)
-       => Path v -> Diagram b v
+stroke :: (TypeableReal n, Renderable (Path V2 n) b)
+       => Path V2 n -> Diagram b V2 n
 stroke = stroke' (def :: StrokeOpts ())
 
-instance (R2Ish v, Renderable (Path v) b) => TrailLike (QDiagram b v Any) where
+instance (OrderedField n, Typeable n, RealFloat n, Renderable (Path V2 n) b) => TrailLike (Diagram b V2 n) where
   trailLike = stroke . trailLike
 
 -- | A variant of 'stroke' that takes an extra record of options to
@@ -173,7 +177,7 @@ instance (R2Ish v, Renderable (Path v) b) => TrailLike (QDiagram b v Any) where
 --
 --   'StrokeOpts' is an instance of 'Default', so @stroke' ('with' &
 --   ... )@ syntax may be used.
-stroke' :: (R2Ish v, Renderable (Path v) b, IsName a) => StrokeOpts a -> Path v -> Diagram b v
+stroke' :: (TypeableReal n, Renderable (Path V2 n) b, IsName a) => StrokeOpts a -> Path V2 n -> Diagram b V2 n
 stroke' opts path
   | null (pLines ^. _Wrapped') =           mkP pLoops
   | null (pLoops ^. _Wrapped') = mkP pLines
@@ -198,51 +202,51 @@ stroke' opts path
 --   The solution is to give a type signature to expressions involving
 --   @strokeTrail@, or (recommended) upgrade GHC (the bug is fixed in 7.0.2
 --   onwards).
-strokeTrail :: (R2Ish v, Renderable (Path v) b) => Trail v -> Diagram b v
+strokeTrail :: (TypeableReal n, Renderable (Path V2 n) b) => Trail V2 n -> Diagram b V2 n
 strokeTrail = stroke . pathFromTrail
 
 -- | Deprecated synonym for 'strokeTrail'.
-strokeT :: (R2Ish v, Renderable (Path v) b) => Trail v -> Diagram b v
+strokeT :: (TypeableReal n, Renderable (Path V2 n) b) => Trail V2 n -> Diagram b V2 n
 strokeT = strokeTrail
 
 -- | A composition of 'stroke'' and 'pathFromTrail' for conveniently
 --   converting a trail directly into a diagram.
-strokeTrail' :: (R2Ish v, Renderable (Path v) b, IsName a)
-             => StrokeOpts a -> Trail v -> Diagram b v
+strokeTrail' :: (TypeableReal n, Renderable (Path V2 n) b, IsName a)
+             => StrokeOpts a -> Trail V2 n -> Diagram b V2 n
 strokeTrail' opts = stroke' opts . pathFromTrail
 
 -- | Deprecated synonym for 'strokeTrail''.
-strokeT' :: (R2Ish v, Renderable (Path v) b, IsName a)
-         => StrokeOpts a -> Trail v -> Diagram b v
+strokeT' :: (TypeableReal n, Renderable (Path V2 n) b, IsName a)
+         => StrokeOpts a -> Trail V2 n -> Diagram b V2 n
 strokeT' = strokeTrail'
 
 -- | A composition of 'strokeT' and 'wrapLine' for conveniently
 --   converting a line directly into a diagram.
-strokeLine :: (R2Ish v, Renderable (Path v) b) => Trail' Line v -> Diagram b v
+strokeLine :: (TypeableReal n, Renderable (Path V2 n) b) => Trail' Line V2 n -> Diagram b V2 n
 strokeLine = strokeT . wrapLine
 
 -- | A composition of 'strokeT' and 'wrapLoop' for conveniently
 --   converting a loop directly into a diagram.
-strokeLoop :: (R2Ish v, Renderable (Path v) b) => Trail' Loop v -> Diagram b v
+strokeLoop :: (TypeableReal n, Renderable (Path V2 n) b) => Trail' Loop V2 n -> Diagram b V2 n
 strokeLoop = strokeT . wrapLoop
 
 -- | A convenience function for converting a @Located Trail@ directly
 --   into a diagram; @strokeLocTrail = stroke . trailLike@.
-strokeLocTrail :: (R2Ish v, Renderable (Path v) b) => Located (Trail v) -> Diagram b v
+strokeLocTrail :: (TypeableReal n, Renderable (Path V2 n) b) => Located (Trail V2 n) -> Diagram b V2 n
 strokeLocTrail = stroke . trailLike
 
 -- | Deprecated synonym for 'strokeLocTrail'.
-strokeLocT :: (R2Ish v, Renderable (Path v) b) => Located (Trail v) -> Diagram b v
+strokeLocT :: (TypeableReal n, Renderable (Path V2 n) b) => Located (Trail V2 n) -> Diagram b V2 n
 strokeLocT = strokeLocTrail
 
 -- | A convenience function for converting a @Located@ line directly
 --   into a diagram; @strokeLocLine = stroke . trailLike . mapLoc wrapLine@.
-strokeLocLine :: (R2Ish v, Renderable (Path v) b) => Located (Trail' Line v) -> Diagram b v
+strokeLocLine :: (TypeableReal n, Renderable (Path V2 n) b) => Located (Trail' Line V2 n) -> Diagram b V2 n
 strokeLocLine = stroke . trailLike . mapLoc wrapLine
 
 -- | A convenience function for converting a @Located@ loop directly
 --   into a diagram; @strokeLocLoop = stroke . trailLike . mapLoc wrapLoop@.
-strokeLocLoop :: (R2Ish v, Renderable (Path v) b) => Located (Trail' Loop v) -> Diagram b v
+strokeLocLoop :: (TypeableReal n, Renderable (Path V2 n) b) => Located (Trail' Loop V2 n) -> Diagram b V2 n
 strokeLocLoop = stroke . trailLike . mapLoc wrapLoop
 
 ------------------------------------------------------------
@@ -251,7 +255,7 @@ strokeLocLoop = stroke . trailLike . mapLoc wrapLoop
 
 
 
-runFillRule :: (R2Ish v) => FillRule -> Point v -> Path v -> Bool
+runFillRule :: (Epsilon n, RealFloat n) => FillRule -> Point V2 n -> Path V2 n -> Bool
 runFillRule Winding = isInsideWinding
 runFillRule EvenOdd = isInsideEvenOdd
 
@@ -260,7 +264,7 @@ newtype FillRuleA = FillRuleA (Last FillRule)
 instance AttributeClass FillRuleA
 
 instance Default FillRuleA where
-  def = FillRuleA $ Last $ def
+  def = FillRuleA $ Last def
 
 -- | Extract the fill rule from a 'FillRuleA' attribute.
 getFillRule :: FillRuleA -> FillRule
@@ -271,8 +275,8 @@ getFillRule (FillRuleA (Last r)) = r
 fillRule :: HasStyle a => FillRule -> a -> a
 fillRule = applyAttr . FillRuleA . Last
 
-cross :: (R2Ish v) => v -> v -> Scalar v
-cross (coords -> x :& y) (coords -> x' :& y') = x * y' - y * x'
+cross2 :: Num n => V2 n -> V2 n -> n
+cross2 (V2 x y) (V2 x' y') = x * y' - y * x'
 
 -- XXX link to more info on this
 
@@ -280,7 +284,7 @@ cross (coords -> x :& y) (coords -> x' :& y') = x * y' - y * x'
 --   by testing whether the point's /winding number/ is nonzero. Note
 --   that @False@ is /always/ returned for /open/ paths, regardless of
 --   the winding number.
-isInsideWinding :: (R2Ish v) => Point v -> Path v -> Bool
+isInsideWinding :: (Epsilon n, RealFloat n) => Point V2 n -> Path V2 n -> Bool
 isInsideWinding p = (/= 0) . crossings p
 
 -- | Test whether the given point is inside the given (closed) path,
@@ -288,17 +292,17 @@ isInsideWinding p = (/= 0) . crossings p
 --   x direction crosses the path an even (outside) or odd (inside)
 --   number of times.  Note that @False@ is /always/ returned for
 --   /open/ paths, regardless of the number of crossings.
-isInsideEvenOdd :: (R2Ish v) => Point v -> Path v -> Bool
+isInsideEvenOdd :: (Epsilon n, RealFloat n) => Point V2 n -> Path V2 n -> Bool
 isInsideEvenOdd p = odd . crossings p
 
 -- | Compute the sum of /signed/ crossings of a path as we travel in the
 --   positive x direction from a given point.
-crossings :: (R2Ish v) => Point v -> Path v -> Int
+crossings :: (Epsilon n, RealFloat n) => Point V2 n -> Path V2 n -> Int
 crossings p = F.sum . map (trailCrossings p) . op Path
 
 -- | Compute the sum of signed crossings of a trail starting from the
 --   given point in the positive x direction.
-trailCrossings :: (R2Ish v) => Point v -> Located (Trail v) -> Int
+trailCrossings :: (RealFloat n, Epsilon n) => Point V2 n -> Located (Trail V2 n) -> Int
 
   -- non-loop trails have no inside or outside, so don't contribute crossings
 trailCrossings _ t | not (isLoop (unLoc t)) = 0
@@ -311,10 +315,15 @@ trailCrossings p@(unp2 -> (x,y)) tr
       | by <= y && ay > y && isLeft a b < 0 = -1
       | otherwise                           =  0
 
-    test c@(FCubic (unp2 -> x1@(_,x1y))
-                   (unp2 -> c1@(_,c1y))
-                   (unp2 -> c2@(_,c2y))
-                   (unp2 -> x2@(_,x2y))
+    -- test c@(FCubic (unp2 -> x1@(_,x1y))
+    --                (unp2 -> c1@(_,c1y))
+    --                (unp2 -> c2@(_,c2y))
+    --                (unp2 -> x2@(_,x2y))
+    --        ) =
+    test c@(FCubic (P x1@(V2 _ x1y))
+                   (P c1@(V2 _ c1y))
+                   (P c2@(V2 _ c2y))
+                   (P x2@(V2 _ x2y))
            ) =
         sum . map testT $ ts
       where ts = filter (liftA2 (&&) (>=0) (<=1))
@@ -325,15 +334,15 @@ trailCrossings p@(unp2 -> (x,y)) tr
             testT t = let (unp2 -> (px,_)) = c `atParam` t
                       in  if px > x then signFromDerivAt t else 0
             signFromDerivAt t =
-              let (dx,dy) = (3*t*t) *^ ((-1)*^x1 ^+^ 3*^c1 ^-^ 3*^c2 ^+^ x2)
-                        ^+^ (2*t)   *^ (3*^x1 ^-^ 6*^c1 ^+^ 3*^c2)
-                        ^+^            ((-3)*^x1 ^+^ 3*^c1)
-                  ang = atan2 dy dx
+              let v =  (3*t*t) *^ ((-1)*^x1 ^+^ 3*^c1 ^-^ 3*^c2 ^+^ x2)
+                   ^+^ (2*t)   *^ (3*^x1 ^-^ 6*^c1 ^+^ 3*^c2)
+                   ^+^            ((-3)*^x1 ^+^ 3*^c1)
+                  ang = v ^. _theta . rad
               in  case () of _ | 0      < ang && ang < tau/2 && t < 1 ->  1
                                | -tau/2 < ang && ang < 0     && t > 0 -> -1
                                | otherwise                            ->  0
 
-    isLeft a b = cross (b .-. a) (p .-. a)
+    isLeft a b = cross2 (b .-. a) (p .-. a)
 
 ------------------------------------------------------------
 --  Clipping  ----------------------------------------------
@@ -344,16 +353,17 @@ trailCrossings p@(unp2 -> (x,y)) tr
 --   concatenation, so applying multiple clipping paths is sensible.
 --   The clipping region is the intersection of all the applied
 --   clipping paths.
-newtype Clip v = Clip [Path v]
+newtype Clip n = Clip [Path V2 n]
   deriving (Typeable, Semigroup)
 
 makeWrapped ''Clip
 
-instance (Typeable v) => AttributeClass (Clip v)
+instance (Typeable n) => AttributeClass (Clip n)
 
-type instance V (Clip v) = v
+type instance V (Clip n) = V2
+type instance N (Clip n) = n
 
-instance (R2Ish v) => Transformable (Clip v) where
+instance (OrderedField n) => Transformable (Clip n) where
   transform t (Clip ps) = Clip (transform t ps)
 
 -- | Clip a diagram by the given path:
@@ -362,7 +372,7 @@ instance (R2Ish v) => Transformable (Clip v) where
 --     path will be drawn.
 --
 --   * The envelope of the diagram is unaffected.
-clipBy :: (R2Ish v, HasStyle a, V a ~ v) => Path v -> a -> a
+clipBy :: (HasStyle a, Vn a ~ V2 n, Epsilon n, RealFloat n, Typeable n) => Path V2 n -> a -> a
 clipBy = applyTAttr . Clip . (:[])
 
 -- | Clip a diagram to the given path setting its envelope to the
@@ -370,7 +380,7 @@ clipBy = applyTAttr . Clip . (:[])
 --   trace consists of those parts of the original diagram's trace
 --   which fall within the clipping path, or parts of the path's trace
 --   within the original diagram.
-clipTo :: (R2Ish v, Renderable (Path v) b) => Path v ->  Diagram b v ->  Diagram b v
+clipTo :: (Typeable n, Epsilon n, RealFloat n, Renderable (Path V2 n) b) => Path V2 n -> Diagram b V2 n -> Diagram b V2 n
 clipTo p d = setTrace intersectionTrace . toEnvelope $ clipBy p d
   where
     envP = appEnvelope . getEnvelope $ p
@@ -390,6 +400,6 @@ clipTo p d = setTrace intersectionTrace . toEnvelope $ clipBy p d
 
 -- | Clip a diagram to the clip path taking the envelope and trace of the clip
 --   path.
-clipped :: (R2Ish v, Renderable (Path v) b) => Path v ->  Diagram b v ->  Diagram b v
-clipped p = (withTrace p) . (withEnvelope p) . (clipBy p)
+clipped :: (Typeable n, Epsilon n, RealFloat n, Renderable (Path V2 n) b) => Path V2 n -> Diagram b V2 n -> Diagram b V2 n
+clipped p = withTrace p . withEnvelope p . clipBy p
 

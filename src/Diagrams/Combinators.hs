@@ -43,8 +43,6 @@ import           Data.Typeable
 
 import           Control.Lens          (Lens', generateSignatures, lensField, lensRules,
                                         makeLensesWith, (%~), (&), (.~), (^.), _Wrapping)
-import           Data.AdditiveGroup
-import           Data.AffineSpace      ((.+^))
 import           Data.Default.Class
 import           Data.Monoid.Deletable (toDeletable)
 import           Data.Monoid.MList     (inj)
@@ -53,13 +51,17 @@ import           Data.Proxy
 #endif
 import           Data.Semigroup
 import qualified Data.Tree.DUAL        as D
-import           Data.VectorSpace
 
 import           Diagrams.Core
 import           Diagrams.Core.Types   (QDiagram (QD))
 import           Diagrams.Direction
 import           Diagrams.Segment      (straight)
 import           Diagrams.Util
+
+import Linear.Affine
+import Linear.Epsilon
+import Linear.Metric
+import Linear.Vector
 
 ------------------------------------------------------------
 -- Working with envelopes
@@ -78,19 +80,19 @@ import           Diagrams.Util
 --   >     )
 --   > c = circle 0.8
 --   > withEnvelopeEx = sqNewEnv # centerXY # pad 1.5
-withEnvelope :: (HasLinearMap (V a), Enveloped a, Monoid' m)
-           => a -> QDiagram b (V a) m -> QDiagram b (V a) m
+withEnvelope :: (Vn a ~ v n, HasLinearMap v, Enveloped a, Monoid' m)
+           => a -> QDiagram b v n m -> QDiagram b v n m
 withEnvelope = setEnvelope . getEnvelope
 
 -- | Use the trace from some object as the trace for a diagram, in
 --   place of the diagram's default trace.
-withTrace :: (HasLinearMap (V a), Traced a, OrderedField (Scalar (V a)), InnerSpace (V a), Monoid' m)
-          => a -> QDiagram b (V a) m -> QDiagram b (V a) m
+withTrace :: (Vn a ~ v n, HasLinearMap v, Traced a, OrderedField n, Metric v, Monoid' m)
+          => a -> QDiagram b v n m -> QDiagram b v n m
 withTrace = setTrace . getTrace
 
 -- | @phantom x@ produces a \"phantom\" diagram, which has the same
 --   envelope and trace as @x@ but produces no output.
-phantom :: (Backend b (V a), Typeable (V a), Enveloped a, Traced a, Monoid' m) => a -> QDiagram b (V a) m
+phantom :: (Enveloped a, Traced a, Vn a ~ v n, Monoid' m) => a -> QDiagram b v n m
 phantom a = QD $ D.leafU ((inj . toDeletable . getEnvelope $ a) <> (inj . toDeletable . getTrace $ a))
 
 -- | @pad s@ \"pads\" a diagram, expanding its envelope by a factor of
@@ -99,21 +101,19 @@ phantom a = QD $ D.leafU ((inj . toDeletable . getEnvelope $ a) <> (inj . toDele
 --   origin, so if the origin is not centered the padding may appear
 --   \"uneven\".  If this is not desired, the origin can be centered
 --   (using, e.g., 'centerXY' for 2D diagrams) before applying @pad@.
-pad :: ( Backend b v
-       , InnerSpace v, OrderedField (Scalar v)
-       , Monoid' m )
-    => Scalar v -> QDiagram b v m -> QDiagram b v m
+pad :: (HasLinearMap v, Metric v, OrderedField n, Monoid' m)
+    => n -> QDiagram b v n m -> QDiagram b v n m
 pad s d = withEnvelope (d # scale s) d
 
 -- | @frame s@ increases the envelope of a diagram by and absolute amount @s@,
 --   s is in the local units of the diagram. This function is similar to @pad@,
 --   only it takes an absolute quantity and pre-centering should not be
 --   necessary.
-frame :: ( Backend b v, InnerSpace v, OrderedField (Scalar v), Monoid' m)
-        => Scalar v -> QDiagram b v m -> QDiagram b v m
+frame :: (HasLinearMap v, Metric v, OrderedField n, Monoid' m)
+        => n -> QDiagram b v n m -> QDiagram b v n m
 frame s d = setEnvelope (onEnvelope t (d^.envelope)) d
   where
-    t f = \x -> f x + s
+    t f x = f x + s
 
 -- | @strut v@ is a diagram which produces no output, but with respect
 --   to alignment and envelope acts like a 1-dimensional segment
@@ -126,12 +126,8 @@ frame s d = setEnvelope (onEnvelope t (d^.envelope)) d
 --   <<diagrams/src_Diagrams_Combinators_strutEx.svg#diagram=strutEx&width=300>>
 --
 --   > strutEx = (circle 1 ||| strut unitX ||| circle 1) # centerXY # pad 1.1
-strut :: ( Backend b v, Typeable v
-         , InnerSpace v
-         , OrderedField (Scalar v)
-         , Monoid' m
-         )
-      => v -> QDiagram b v m
+strut :: (Metric v, OrderedField n, Monoid' m)
+      => v n -> QDiagram b v n m
 strut v = QD $ D.leafU (inj . toDeletable $ env)
   where env = translate ((-0.5) *^ v) . getEnvelope $ straight v
   -- note we can't use 'phantom' here because it tries to construct a
@@ -152,9 +148,8 @@ strut v = QD $ D.leafU (inj . toDeletable $ env)
 --   the cosine of the difference in angle, and leaving it unchanged
 --   when this factor is negative.
 extrudeEnvelope
-  :: ( Ord (Scalar v), Num (Scalar v), AdditiveGroup (Scalar v)
-     , Floating (Scalar v), HasLinearMap v, InnerSpace v, Monoid' m )
-  => v -> QDiagram b v m -> QDiagram b v m
+  :: (HasLinearMap v, Ord n, Floating n, Epsilon n, Metric v, Monoid' m)
+  => v n -> QDiagram b v n m -> QDiagram b v n m
 extrudeEnvelope = deformEnvelope 0.5
 
 -- | @intrudeEnvelope v d@ asymmetrically \"intrudes\" the envelope of
@@ -165,24 +160,22 @@ extrudeEnvelope = deformEnvelope 0.5
 --   Note that this could create strange inverted envelopes, where
 --   @ diameter v d < 0 @.
 intrudeEnvelope
-  :: ( Ord (Scalar v), Num (Scalar v), AdditiveGroup (Scalar v)
-     , Floating (Scalar v), HasLinearMap v, InnerSpace v, Monoid' m )
-  => v -> QDiagram b v m -> QDiagram b v m
+  :: (HasLinearMap v, Ord n, Floating n, Epsilon n, Metric v, Monoid' m)
+  => v n -> QDiagram b v n m -> QDiagram b v n m
 intrudeEnvelope = deformEnvelope (-0.5)
 
 -- Utility for extrudeEnvelope / intrudeEnvelope
 deformEnvelope
-  :: ( Ord (Scalar v), Num (Scalar v), AdditiveGroup (Scalar v)
-     , Floating (Scalar v), HasLinearMap v, InnerSpace v, Monoid' m )
-  => (Scalar v) -> v -> QDiagram b v m -> QDiagram b v m
+  :: (HasLinearMap v, Ord n, Epsilon n, Floating n, Metric v, Monoid' m)
+  => n -> v n -> QDiagram b v n m -> QDiagram b v n m
 deformEnvelope s v d = setEnvelope (getEnvelope d & _Wrapping Envelope %~ deformE) d
   where
     deformE = Option . fmap deformE' . getOption
     deformE' env v'
-        | dot > 0 = Max $ getMax (env v') + (dot * s) / magnitude v'
+        | dp > 0 = Max $ getMax (env v') + (dp * s) / norm v'
         | otherwise = env v'
       where
-        dot = v' <.> v
+        dp = v' `dot` v
 
 ------------------------------------------------------------
 -- Combining two objects
@@ -191,8 +184,8 @@ deformEnvelope s v d = setEnvelope (getEnvelope d & _Wrapping Envelope %~ deform
 -- | @beneath@ is just a convenient synonym for @'flip' 'atop'@; that is,
 --   @d1 \`beneath\` d2@ is the diagram with @d2@ superimposed on top of
 --   @d1@.
-beneath :: (HasLinearMap v, OrderedField (Scalar v), InnerSpace v, Monoid' m)
-     => QDiagram b v m -> QDiagram b v m -> QDiagram b v m
+beneath :: (HasLinearMap v, OrderedField n, Metric v, Monoid' m)
+     => QDiagram b v n m -> QDiagram b v n m -> QDiagram b v n m
 beneath = flip atop
 
 infixl 6 `beneath`
@@ -232,7 +225,7 @@ infixl 6 `beneath`
 --   To get something like @beside v x1 x2@ whose local origin is
 --   identified with that of @x2@ instead of @x1@, use @beside
 --   (negateV v) x2 x1@.
-beside :: (Juxtaposable a, Semigroup a) => V a -> a -> a -> a
+beside :: (Juxtaposable a, Semigroup a) => Vn a -> a -> a -> a
 beside v d1 d2 = d1 <> juxtapose v d1 d2
 
 -- | Place two diagrams (or other juxtaposable objects) adjacent to
@@ -240,8 +233,8 @@ beside v d1 d2 = d1 <> juxtapose v d1 d2
 --   from the first.  The local origin of the resulting combined
 --   diagram is the same as the local origin of the first.  See the
 --   documentation of 'beside' for more information.
-atDirection :: (Juxtaposable a, Semigroup a, InnerSpace (V a), Floating (Scalar (V a))) =>
-               Direction (V a) -> a -> a -> a
+atDirection :: (Juxtaposable a, Semigroup a, Vn a ~ v n, Metric v, Floating n, Epsilon n)
+            => Direction v n -> a -> a -> a
 atDirection = beside . fromDirection
 
 ------------------------------------------------------------
@@ -258,7 +251,7 @@ atDirection = beside . fromDirection
 --   > appendsEx = appends c (zip (iterateN 6 (rotateBy (1/6)) unitX) (repeat c))
 --   >             # centerXY # pad 1.1
 --   >   where c = circle 1
-appends :: (Juxtaposable a, Monoid' a) => a -> [(V a,a)] -> a
+appends :: (Juxtaposable a, Monoid' a) => a -> [(Vn a,a)] -> a
 appends d1 apps = d1 <> mconcat (map (\(v,d) -> juxtapose v d1 d) apps)
 
 -- | Position things absolutely: combine a list of objects
@@ -270,12 +263,12 @@ appends d1 apps = d1 <> mconcat (map (\(v,d) -> juxtapose v d1 d) apps)
 --   > positionEx = position (zip (map mkPoint [-3, -2.8 .. 3]) (repeat dot))
 --   >   where dot       = circle 0.2 # fc black
 --   >         mkPoint x = p2 (x,x^2)
-position :: (HasOrigin a, Monoid' a) => [(Point (V a), a)] -> a
+position :: (Vn a ~ v n, Additive v, Num n, HasOrigin a, Monoid' a) => [(Point v n, a)] -> a
 position = mconcat . map (uncurry moveTo)
 
 -- | Curried version of @position@, takes a list of points and a list of
 --   objects.
-atPoints :: (HasOrigin a, Monoid' a) => [Point (V a)] -> [a] -> a
+atPoints :: (Vn a ~ v n, Additive v, Num n, HasOrigin a, Monoid' a) => [Point v n] -> [a] -> a
 atPoints ps as = position $ zip ps as
 
 -- | Methods for concatenating diagrams.
@@ -295,9 +288,9 @@ data CatMethod = Cat     -- ^ Normal catenation: simply put diagrams
                          --   of separation, diagrams may overlap.
 
 -- | Options for 'cat''.
-data CatOpts v = CatOpts { _catMethod       :: CatMethod
-                         , _sep             :: Scalar v
-                         , _catOptsvProxy__ :: Proxy v
+data CatOpts n = CatOpts { _catMethod       :: CatMethod
+                         , _sep             :: n
+                         , _catOptsvProxy__ :: Proxy n
                          }
 
 -- The reason the proxy field is necessary is that without it,
@@ -325,15 +318,15 @@ makeLensesWith
 
 -- | Which 'CatMethod' should be used:
 --   normal catenation (default), or distribution?
-catMethod :: forall v. Lens' (CatOpts v) CatMethod
+catMethod :: forall n. Lens' (CatOpts n) CatMethod
 
 -- | How much separation should be used between successive diagrams
 --   (default: 0)?  When @catMethod = Cat@, this is the distance between
 --   /envelopes/; when @catMethod = Distrib@, this is the distance
 --   between /origins/.
-sep :: forall v. Lens' (CatOpts v) (Scalar v)
+sep :: forall n. Lens' (CatOpts n) n
 
-instance Num (Scalar v) => Default (CatOpts v) where
+instance Num n => Default (CatOpts n) where
   def = CatOpts { _catMethod       = Cat
                 , _sep             = 0
                 , _catOptsvProxy__ = Proxy
@@ -347,10 +340,8 @@ instance Num (Scalar v) => Default (CatOpts v) where
 --
 --   See also 'cat'', which takes an extra options record allowing
 --   certain aspects of the operation to be tweaked.
-cat :: ( Juxtaposable a, Monoid' a, HasOrigin a
-       , InnerSpace (V a), OrderedField (Scalar (V a))
-       )
-       => V a -> [a] -> a
+cat :: (Juxtaposable a, Monoid' a, HasOrigin a , Vn a ~ v n, Metric v, OrderedField n)
+		=> v n -> [a] -> a
 cat v = cat' v def
 
 -- | Like 'cat', but taking an extra 'CatOpts' arguments allowing the
@@ -370,13 +361,12 @@ cat v = cat' v def
 --   Note that @cat' v (with & catMethod .~ Distrib) === mconcat@
 --   (distributing with a separation of 0 is the same as
 --   superimposing).
-cat' :: ( Juxtaposable a, Monoid' a, HasOrigin a
-        , InnerSpace (V a), OrderedField (Scalar (V a))
-        )
-     => V a -> CatOpts (V a) -> [a] -> a
+cat' :: ( Juxtaposable a, Monoid' a, HasOrigin a, Vn a ~ v n, Metric v, OrderedField n)
+     => v n -> CatOpts n -> [a] -> a
 cat' v (CatOpts { _catMethod = Cat, _sep = s }) = foldB comb mempty
   where comb d1 d2 = d1 <> (juxtapose v d1 d2 # moveOriginBy vs)
-        vs = s *^ normalized (negateV v)
+        vs = s *^ signorm (negated v)
 
 cat' v (CatOpts { _catMethod = Distrib, _sep = s }) =
-  position . zip (iterate (.+^ (s *^ normalized v)) origin)
+  position . zip (iterate (.+^ (s *^ signorm v)) origin)
+

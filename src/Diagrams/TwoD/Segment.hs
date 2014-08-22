@@ -26,9 +26,6 @@ module Diagrams.TwoD.Segment where
 import           Control.Applicative     (liftA2)
 import           Control.Lens            ((^.))
 
-import           Data.AffineSpace
-import           Data.VectorSpace
-
 import           Diagrams.Core
 
 import           Diagrams.Angle
@@ -41,14 +38,18 @@ import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector
 import           Diagrams.Util
 
+import Linear.Affine
+import Linear.Vector
+import Linear.Metric
+
 {- All instances of Traced should maintain the invariant that the list of
    traces is sorted in increasing order.
 -}
 
-instance (R2Ish v) => Traced (Segment Closed v) where
+instance RealFloat n => Traced (Segment Closed V2 n) where
   getTrace = getTrace . mkFixedSeg . (`at` origin)
 
-instance (R2Ish v) => Traced (FixedSegment v) where
+instance RealFloat n => Traced (FixedSegment V2 n) where
 
 {- Given lines defined by p0 + t0 * v0 and p1 + t1 * v1, their point of
    intersection in 2D is given by
@@ -74,14 +75,15 @@ instance (R2Ish v) => Traced (FixedSegment v) where
   getTrace (FLinear p0 p0') = mkTrace $ \p1 v1 ->
     let
       v0     = p0' .-. p0
-      det    = perp v1 <.> v0
+      det    = perp v1 `dot` v0
       p      = p1 .-. p0
-      t0     = (perp v1 <.> p) / det
-      t1     = (perp v0 <.> p) / det
+      t0     = (perp v1 `dot` p) / det
+      t1     = (perp v0 `dot` p) / det
     in
-      if det == 0 || t0 < 0 || t0 > 1
-        then mkSortedList []
-        else mkSortedList [t1]
+      mkSortedList $
+        if det == 0 || t0 < 0 || t0 > 1
+          then []
+          else [t1]
 
 {- To do intersection of a line with a cubic Bezier, we first rotate
    and scale everything so that the line has parameters (origin, unitX);
@@ -97,8 +99,8 @@ instance (R2Ish v) => Traced (FixedSegment v) where
     let
       bez'@(FCubic x1 c1 c2 x2) =
         bez # moveOriginTo p1
-            # rotate (negateV (v1^._theta))
-            # scale (1/magnitude v1)
+            # rotate (negated (v1^._theta))
+            # scale (1/norm v1)
       [y0,y1,y2,y3] = map (snd . unp2) [x1,c1,c2,x2]
       a  = -y0 + 3*y1 - 3*y2 + y3
       b  = 3*y0 - 6*y1 + 3*y2

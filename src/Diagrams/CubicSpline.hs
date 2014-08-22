@@ -24,15 +24,15 @@ module Diagrams.CubicSpline
        ) where
 
 import           Diagrams.Core
-import           Diagrams.Core.Points
 import           Diagrams.CubicSpline.Internal
 import           Diagrams.Located              (Located, at, mapLoc)
 import           Diagrams.Segment
 import           Diagrams.Trail
 import           Diagrams.TrailLike            (TrailLike (..))
 
-import           Data.AffineSpace.Point
-import           Data.VectorSpace
+import Linear.Affine
+import Control.Lens (view)
+import Linear.Metric
 
 -- | Construct a spline path-like thing of cubic segments from a list of
 --   vertices, with the first vertex as the starting point.  The first
@@ -48,15 +48,15 @@ import           Data.VectorSpace
 --   >               # centerXY # pad 1.1
 --
 --   For more information, see <http://mathworld.wolfram.com/CubicSpline.html>.
-cubicSpline :: (TrailLike t, Fractional (V t)) => Bool -> [Point (V t)] -> t
+cubicSpline :: (Vn t ~ v n, TrailLike t, Fractional (v n)) => Bool -> [Point v n] -> t
 cubicSpline closed [] = trailLike . closeIf closed $ emptyLine `at` origin
-cubicSpline closed ps = flattenBeziers . map f . solveCubicSplineCoefficients closed . map unPoint $ ps
+cubicSpline closed ps = flattenBeziers . map f . solveCubicSplineCoefficients closed . map (view lensP) $ ps
   where
     f [a,b,c,d] = [a, (3*a+b)/3, (3*a+2*b+c)/3, a+b+c+d]
     flattenBeziers bs@((b:_):_)
       = trailLike . closeIf closed $ lineFromSegments (map bez bs) `at` P b
     bez [a,b,c,d] = bezier3 (b - a) (c - a) (d - a)
 
-closeIf :: (InnerSpace v, OrderedField (Scalar v))
-        => Bool -> Located (Trail' Line v) -> Located (Trail v)
+closeIf :: (Metric v, OrderedField n)
+        => Bool -> Located (Trail' Line v n) -> Located (Trail v n)
 closeIf c = mapLoc (if c then wrapLoop . glueLine else wrapLine)

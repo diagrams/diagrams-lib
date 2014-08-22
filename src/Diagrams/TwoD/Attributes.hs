@@ -4,6 +4,7 @@
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
 {-# LANGUAGE StandaloneDeriving         #-}
 {-# LANGUAGE TemplateHaskell            #-}
@@ -83,20 +84,20 @@ import           Diagrams.Path               (Path, pathTrails)
 import           Diagrams.Trail              (isLoop)
 
 import           Control.Lens                (Lens', Setter', generateSignatures, lensRules,
-                                              makeLensesWith, makePrisms, sets, (%~), (&), (.~))
+                                              makeLensesWith, makePrisms, sets, (&), (.~), over)
 
-import           Data.Colour                 hiding (AffineSpace)
+import           Data.Colour                 hiding (AffineSpace, over)
 import           Data.Data
 import           Data.Default.Class
 import           Data.Maybe                  (fromMaybe)
 
 import           Data.Monoid.Recommend
 import           Data.Semigroup
-import           Data.VectorSpace
+
 
 -- | Standard 'Measures'.
 none, ultraThin, veryThin, thin, medium, thick, veryThick, ultraThick,
-  tiny, verySmall, small, normal, large, veryLarge, huge :: (Floating (Scalar v)) => Measure v
+  tiny, verySmall, small, normal, large, veryLarge, huge :: Floating n => Measure n
 none       = Output 0
 ultraThin  = Normalized 0.0005 `atLeast` Output 0.5
 veryThin   = Normalized 0.001  `atLeast` Output 0.5
@@ -120,50 +121,50 @@ huge      = Normalized 0.10
 
 -- | Line widths specified on child nodes always override line widths
 --   specified at parent nodes.
-newtype LineWidth v = LineWidth (Last (Measure v))
- deriving (Typeable, Semigroup)
+newtype LineWidth n = LineWidth (Last (Measure n))
+ deriving (Typeable, Semigroup, Functor)
 
-deriving instance (Data (Scalar v), Data v) => Data (LineWidth v)
-instance (Typeable v) => AttributeClass (LineWidth v)
+deriving instance (Data n) => Data (LineWidth n)
+instance (Typeable n)      => AttributeClass (LineWidth n)
 
-type instance V (LineWidth v) = v
+type instance V (LineWidth n) = V2
+type instance N (LineWidth n) = n
 
-instance (R2Ish v) => Transformable (LineWidth v) where
-  transform t (LineWidth (Last w)) =
-    LineWidth (Last (transform (scaling (avgScale t)) w))
+instance Floating n => Transformable (LineWidth n) where
+  transform = scaleFromTransform
 
-instance (R2Ish v) => Default (LineWidth v) where
+instance Floating n => Default (LineWidth n) where
     def = LineWidth (Last medium)
 
-getLineWidth :: (R2Ish v) => LineWidth v -> Measure v
+getLineWidth :: LineWidth n -> Measure n
 getLineWidth (LineWidth (Last w)) = w
 
 -- | Set the line (stroke) width.
-lineWidth :: (R2D v, HasStyle a, V a ~ v) => Measure v -> a -> a
+lineWidth :: (Data n, HasStyle a, Vn a ~ V2 n, Floating n) => Measure n -> a -> a
 lineWidth = applyGTAttr . LineWidth . Last
 
 -- | Apply a 'LineWidth' attribute.
-lineWidthA :: (R2D v, HasStyle a, V a ~ v) => LineWidth v -> a -> a
+lineWidthA :: (Data n, HasStyle a, Vn a ~ V2 n, Floating n) => LineWidth n -> a -> a
 lineWidthA = applyGTAttr
 
 -- | Default for 'lineWidth'.
-lw :: (R2D v, HasStyle a, V a ~ v) => Measure v -> a -> a
+lw :: (Data n, Floating n, HasStyle a, Vn a ~ V2 n) => Measure n -> a -> a
 lw = lineWidth
 
 -- | A convenient synonym for 'lineWidth (Global w)'.
-lwG :: (R2D v, HasStyle a, V a ~ v) => Scalar v -> a -> a
+lwG :: (Data n, Floating n, HasStyle a, Vn a ~ V2 n) => n -> a -> a
 lwG w = lineWidth (Global w)
 
 -- | A convenient synonym for 'lineWidth (Normalized w)'.
-lwN :: (R2D v, HasStyle a, V a ~ v) => Scalar v -> a -> a
+lwN :: (Data n, Floating n, HasStyle a, Vn a ~ V2 n) => n -> a -> a
 lwN w = lineWidth (Normalized w)
 
 -- | A convenient synonym for 'lineWidth (Output w)'.
-lwO :: (R2D v, HasStyle a, V a ~ v) => Scalar v -> a -> a
+lwO :: (Data n, Floating n, HasStyle a, Vn a ~ V2 n) => n -> a -> a
 lwO w = lineWidth (Output w)
 
 -- | A convenient sysnonym for 'lineWidth (Local w)'.
-lwL :: (R2D v, HasStyle a, V a ~ v) => Scalar v -> a -> a
+lwL :: (Data n, Floating n, HasStyle a, Vn a ~ V2 n) => n -> a -> a
 lwL w = lineWidth (Local w)
 
 -----------------------------------------------------------------
@@ -171,71 +172,68 @@ lwL w = lineWidth (Local w)
 -----------------------------------------------------------------
 
 -- | Create lines that are dashing... er, dashed.
-data Dashing v = Dashing [Measure v] (Measure v)
-  deriving (Typeable)
+data Dashing n = Dashing [Measure n] (Measure n)
+  deriving (Typeable, Functor)
 
-deriving instance (Data (Scalar v), Data v) => Data (Dashing v)
-deriving instance Eq (Scalar v) => Eq (Dashing v)
+deriving instance Data n => Data (Dashing n)
+deriving instance Eq n   => Eq (Dashing n)
 
-newtype DashingA v = DashingA (Last (Dashing v))
-  deriving (Typeable, Semigroup)
+newtype DashingA n = DashingA (Last (Dashing n))
+  deriving (Typeable, Semigroup, Functor)
 
-deriving instance (Data (Scalar v), Data v) => Data (DashingA v)
-deriving instance Eq (Scalar v) => Eq (DashingA v)
+deriving instance Data n => Data (DashingA n)
+deriving instance Eq n   => Eq (DashingA n)
 
-instance (Typeable v) => AttributeClass (DashingA v)
+instance Typeable n => AttributeClass (DashingA n)
 
-type instance V (DashingA v) = v
+type instance V (DashingA n) = V2
+type instance N (DashingA n) = n
 
-instance (R2Ish v) => Transformable (DashingA v) where
-  transform t (DashingA (Last (Dashing w v))) =
-    DashingA (Last (Dashing r s))
-    where
-      t' = scaling (avgScale t)
-      r = map (transform t') w
-      s = transform t' v
+instance Floating n => Transformable (DashingA n) where
+  transform = scaleFromTransform
 
-getDashing :: (R2Ish v) => DashingA v -> Dashing v
+getDashing :: DashingA n -> Dashing n
 getDashing (DashingA (Last d)) = d
 
 -- | Set the line dashing style.
-dashing :: (R2D v, HasStyle a, V a ~ v) =>
-           [Measure v]  -- ^ A list specifying alternate lengths of on
+dashing :: (Floating n, Data n, HasStyle a, Vn a ~ V2 n) =>
+           [Measure n]  -- ^ A list specifying alternate lengths of on
                          --   and off portions of the stroke.  The empty
                          --   list indicates no dashing.
-        -> Measure v    -- ^ An offset into the dash pattern at which the
+        -> Measure n    -- ^ An offset into the dash pattern at which the
                          --   stroke should start.
         -> a -> a
 dashing ds offs = applyGTAttr (DashingA (Last (Dashing ds offs)))
 
 -- | A convenient synonym for 'dashing (Global w)'.
-dashingG :: (R2D v, HasStyle a, V a ~ v) => [Scalar v] -> Scalar v -> a -> a
+dashingG :: (Data n, Floating n, HasStyle a, Vn a ~ V2 n) => [n] -> n -> a -> a
 dashingG w v = dashing (map Global w) (Global v)
 
 -- | A convenient synonym for 'dashing (Normalized w)'.
-dashingN :: (R2D v, HasStyle a, V a ~ v) => [Scalar v] -> Scalar v -> a -> a
+dashingN :: (Data n, Floating n, HasStyle a, Vn a ~ V2 n) => [n] -> n -> a -> a
 dashingN w v = dashing (map Normalized w) (Normalized v)
 
 -- | A convenient synonym for 'dashing (Output w)'.
-dashingO :: (R2D v, HasStyle a, V a ~ v) => [Scalar v] -> Scalar v -> a -> a
+dashingO :: (Data n, Floating n, HasStyle a, Vn a ~ V2 n) => [n] -> n -> a -> a
 dashingO w v = dashing (map Output w) (Output v)
 
 -- | A convenient sysnonym for 'dashing (Local w)'.
-dashingL :: (R2D v, HasStyle a, V a ~ v) => [Scalar v] -> Scalar v -> a -> a
+dashingL :: (Data n, Floating n, HasStyle a, Vn a ~ V2 n) => [n] -> n -> a -> a
 dashingL w v = dashing (map Local w) (Local v)
 
 -- | A gradient stop contains a color and fraction (usually between 0 and 1)
 data GradientStop d = GradientStop
      { _stopColor    :: SomeColor
      , _stopFraction :: d}
+  deriving Functor
 
 makeLensesWith (lensRules & generateSignatures .~ False) ''GradientStop
 
 -- | A color for the stop.
-stopColor :: Lens' (GradientStop d) SomeColor
+stopColor :: Lens' (GradientStop n) SomeColor
 
 -- | The fraction for stop.
-stopFraction :: Lens' (GradientStop d) d
+stopFraction :: Lens' (GradientStop n) n
 
 -- | The 'SpreadMethod' determines what happens before 'lGradStart' and after
 --   'lGradEnd'. 'GradPad' fills the space before the start of the gradient
@@ -245,108 +243,128 @@ stopFraction :: Lens' (GradientStop d) d
 data SpreadMethod = GradPad | GradReflect | GradRepeat
 
 -- | Linear Gradient
-data LGradient v = LGradient
-    { _lGradStops        :: [GradientStop (Scalar v)]
-    , _lGradStart        :: Point v
-    , _lGradEnd          :: Point v
-    , _lGradTrans        :: Transformation v
+data LGradient n = LGradient
+    { _lGradStops        :: [GradientStop n]
+    , _lGradStart        :: Point V2 n
+    , _lGradEnd          :: Point V2 n
+    , _lGradTrans        :: Transformation V2 n
     , _lGradSpreadMethod :: SpreadMethod }
+
+type instance V (LGradient n) = V2
+type instance N (LGradient n) = n
 
 makeLensesWith (lensRules & generateSignatures .~ False) ''LGradient
 
+instance Fractional n => Transformable (LGradient n) where
+	transform = over lGradTrans . transform
+
 -- | A list of stops (colors and fractions).
-lGradStops :: (R2Ish v) => Lens' (LGradient v) [GradientStop (Scalar v)]
+lGradStops :: Lens' (LGradient n) [GradientStop n]
 
 -- | A transformation to be applied to the gradient. Usually this field will
 --   start as the identity transform and capture the transforms that are applied
 --   to the gradient.
-lGradTrans :: (R2Ish v) => Lens' (LGradient v) (Transformation v)
+lGradTrans :: Lens' (LGradient n) (Transformation V2 n)
 
 -- | The starting point for the first gradient stop. The coordinates are in
 --   'Local' units and the default is (-0.5, 0).
-lGradStart :: (R2Ish v) => Lens' (LGradient v) (Point v)
+lGradStart :: Lens' (LGradient n) (Point V2 n)
 
 -- | The ending point for the last gradient stop.The coordinates are in
 --   'Local' units and the default is (0.5, 0).
-lGradEnd :: (R2Ish v) => Lens' (LGradient v) (Point v)
+lGradEnd :: Lens' (LGradient n) (Point V2 n)
 
 -- | For setting the spread method.
-lGradSpreadMethod :: (R2Ish v) => Lens' (LGradient v) SpreadMethod
+lGradSpreadMethod :: Lens' (LGradient n) SpreadMethod
 
 -- | Radial Gradient
-data RGradient v = RGradient
-    { _rGradStops        :: [GradientStop (Scalar v)]
-    , _rGradCenter0      :: Point v
-    , _rGradRadius0      :: Scalar v
-    , _rGradCenter1      :: Point v
-    , _rGradRadius1      :: Scalar v
-    , _rGradTrans        :: Transformation v
+data RGradient n = RGradient
+    { _rGradStops        :: [GradientStop n]
+    , _rGradCenter0      :: Point V2 n
+    , _rGradRadius0      :: n
+    , _rGradCenter1      :: Point V2 n
+    , _rGradRadius1      :: n
+    , _rGradTrans        :: Transformation V2 n
     , _rGradSpreadMethod :: SpreadMethod }
 
 makeLensesWith (lensRules & generateSignatures .~ False) ''RGradient
 
+type instance V (RGradient n) = V2
+type instance N (RGradient n) = n
+
+instance Fractional n => Transformable (RGradient n) where
+  transform = over rGradTrans . transform
+
 -- | A list of stops (colors and fractions).
-rGradStops :: (R2Ish v) => Lens' (RGradient v) [GradientStop (Scalar v)]
+rGradStops :: Lens' (RGradient n) [GradientStop n]
 
 -- | The center point of the inner circle.
-rGradCenter0 :: (R2Ish v) => Lens' (RGradient v) (Point v)
+rGradCenter0 :: Lens' (RGradient n) (Point V2 n)
 
 -- | The radius of the inner cirlce in 'Local' coordinates.
-rGradRadius0 :: (R2Ish v) => Lens' (RGradient v) (Scalar v)
+rGradRadius0 :: Lens' (RGradient n) n
 
 -- | The center of the outer circle.
-rGradCenter1  :: (R2Ish v) => Lens' (RGradient v) (Point v)
+rGradCenter1  :: Lens' (RGradient n) (Point V2 n)
 
 -- | The radius of the outer circle in 'Local' coordinates.
-rGradRadius1 :: (R2Ish v) => Lens' (RGradient v) (Scalar v)
+rGradRadius1 :: Lens' (RGradient n) n
 
 -- | A transformation to be applied to the gradient. Usually this field will
 --   start as the identity transform and capture the transforms that are applied
 --   to the gradient.
-rGradTrans :: (R2Ish v) => Lens' (RGradient v) (Transformation v)
+rGradTrans :: Lens' (RGradient n) (Transformation V2 n)
 
 -- | For setting the spread method.
-rGradSpreadMethod :: (R2Ish v) => Lens' (RGradient v) SpreadMethod
+rGradSpreadMethod :: Lens' (RGradient n) SpreadMethod
 
 -- | A Texture is either a color 'SC', linear gradient 'LG', or radial gradient 'RG'.
 --   An object can have only one texture which is determined by the 'Last'
 --   semigroup structure.
-data Texture v = SC SomeColor | LG (LGradient v) | RG (RGradient v)
-  deriving (Typeable)
+data Texture n = SC SomeColor | LG (LGradient n) | RG (RGradient n)
+  deriving Typeable
+
+type instance V (Texture n) = V2
+type instance N (Texture n) = n
 
 makePrisms ''Texture
 
+instance Floating n => Transformable (Texture n) where
+  transform t (LG lg) = LG $ transform t lg
+  transform t (RG rg) = RG $ transform t rg
+  transform _ sc      = sc
+
 -- | Convert a solid colour into a texture.
-solid :: (R2Ish v) => Color a => a -> Texture v
+solid :: Color a => a -> Texture n
 solid = SC . SomeColor
 
 -- | A default is provided so that linear gradients can easily be created using
 --   lenses. For example, @lg = defaultLG & lGradStart .~ (0.25 ^& 0.33)@. Note that
 --   no default value is provided for @lGradStops@, this must be set before
 --   the gradient value is used, otherwise the object will appear transparent.
-defaultLG :: (R2Ish v) => Texture v
-defaultLG = LG (LGradient
-    { _lGradStops        = []
-    , _lGradStart        = mkP2 (-0.5) 0
-    , _lGradEnd          = mkP2 (0.5)  0
-    , _lGradTrans        = mempty
-    , _lGradSpreadMethod = GradPad
-    })
+defaultLG :: Fractional n => Texture n
+defaultLG = LG LGradient
+  { _lGradStops        = []
+  , _lGradStart        = mkP2 (-0.5) 0
+  , _lGradEnd          = mkP2 0.5 0
+  , _lGradTrans        = mempty
+  , _lGradSpreadMethod = GradPad
+  }
 
 -- | A default is provided so that radial gradients can easily be created using
 --   lenses. For example, @rg = defaultRG & rGradRadius1 .~ 0.25@. Note that
 --   no default value is provided for @rGradStops@, this must be set before
 --   the gradient value is used, otherwise the object will appear transparent.
-defaultRG :: (R2Ish v) => Texture v
-defaultRG = RG (RGradient
-    { _rGradStops        = []
-    , _rGradCenter0      = mkP2 0 0
-    , _rGradRadius0      = 0.0
-    , _rGradCenter1      = mkP2 0 0
-    , _rGradRadius1      = 0.5
-    , _rGradTrans        = mempty
-    , _rGradSpreadMethod = GradPad
-    })
+defaultRG :: Fractional n => Texture n
+defaultRG = RG RGradient
+  { _rGradStops        = []
+  , _rGradCenter0      = mkP2 0 0
+  , _rGradRadius0      = 0.0
+  , _rGradCenter1      = mkP2 0 0
+  , _rGradRadius1      = 0.5
+  , _rGradTrans        = mempty
+  , _rGradSpreadMethod = GradPad
+}
 
 -- | A convenient function for making gradient stops from a list of triples.
 --   (An opaque color, a stop fraction, an opacity).
@@ -356,15 +374,15 @@ mkStops = map (\(x, y, z) -> GradientStop (SomeColor (withOpacity x z)) y)
 -- | Make a linear gradient texture from a stop list, start point, end point,
 --   and 'SpreadMethod'. The 'lGradTrans' field is set to the identity
 --   transfrom, to change it use the 'lGradTrans' lens.
-mkLinearGradient :: (R2Ish v) => [GradientStop (Scalar v)]  -> Point v -> Point v -> SpreadMethod -> Texture v
+mkLinearGradient :: Num n => [GradientStop n] -> Point V2 n -> Point V2 n -> SpreadMethod -> Texture n
 mkLinearGradient stops  start end spreadMethod
   = LG (LGradient stops start end mempty spreadMethod)
 
 -- | Make a radial gradient texture from a stop list, radius, start point,
 --   end point, and 'SpreadMethod'. The 'rGradTrans' field is set to the identity
 --   transfrom, to change it use the 'rGradTrans' lens.
-mkRadialGradient :: (R2Ish v) => [GradientStop (Scalar v)] -> Point v -> Scalar v
-                  -> Point v -> Scalar v -> SpreadMethod -> Texture v
+mkRadialGradient :: Num n => [GradientStop n] -> Point V2 n -> n
+                  -> Point V2 n -> n -> SpreadMethod -> Texture n
 mkRadialGradient stops c0 r0 c1 r1 spreadMethod
   = RG (RGradient stops c0 r0 c1 r1 mempty spreadMethod)
 
@@ -372,38 +390,34 @@ mkRadialGradient stops c0 r0 c1 r1 spreadMethod
 --   textures always override parent textures.
 --   More precisely, the semigroup structure on line texture attributes
 --   is that of 'Last'.
-newtype LineTexture v = LineTexture (Last (Texture v))
+newtype LineTexture n = LineTexture (Last (Texture n))
   deriving (Typeable, Semigroup)
-instance (Typeable v) => AttributeClass (LineTexture v)
+instance (Typeable n) => AttributeClass (LineTexture n)
 
-type instance V (LineTexture v) = v
+type instance V (LineTexture n) = V2
+type instance N (LineTexture n) = n
 
 -- Only gradients get transformed. The transform is applied to the gradients
 -- transform field. Colors are left unchanged.
-instance (R2Ish v) => Transformable (LineTexture v) where
-  transform t (LineTexture (Last texture)) = LineTexture (Last tx)
-    where
-      tx = texture & lgt . rgt
-      lgt = _LG . lGradTrans %~ f
-      rgt = _RG . rGradTrans %~ f
-      f = transform t
+instance Floating n => Transformable (LineTexture n) where
+  transform t (LineTexture (Last tx)) = LineTexture (Last $ transform t tx)
 
-instance Default (LineTexture v) where
+instance Default (LineTexture n) where
     def = LineTexture (Last (SC (SomeColor (black :: Colour Double))))
 
-getLineTexture :: (R2Ish v) => LineTexture v -> Texture v
+getLineTexture :: LineTexture n -> Texture n
 getLineTexture (LineTexture (Last t)) = t
 
-lineTexture :: (R2Ish v, HasStyle a, V a ~ v) => Texture v -> a -> a
+lineTexture :: (Typeable n, Floating n, HasStyle a, Vn a ~ V2 n) => Texture n -> a -> a
 lineTexture = applyTAttr . LineTexture . Last
 
-lineTextureA :: (R2Ish v, HasStyle a, V a ~ v) => LineTexture v -> a -> a
+lineTextureA :: (Typeable n, Floating n, HasStyle a, Vn a ~ V2 n) => LineTexture n -> a -> a
 lineTextureA = applyTAttr
 
-mkLineTexture :: (R2Ish v) => Texture v -> LineTexture v
+mkLineTexture :: Texture v -> LineTexture v
 mkLineTexture = LineTexture . Last
 
-styleLineTexture :: (R2Ish v) => Setter' (Style v) (Texture v)
+styleLineTexture :: Typeable n => Setter' (Style V2 n) (Texture n)
 styleLineTexture = sets modifyLineTexture
   where
     modifyLineTexture f s
@@ -419,63 +433,59 @@ styleLineTexture = sets modifyLineTexture
 --   'AlphaColour'), but this can sometimes create problems for type
 --   inference, so the 'lc' and 'lcA' variants are provided with more
 --   concrete types.
-lineColor :: (R2Ish v, Color c, HasStyle a, V a ~ v) => c -> a -> a
+lineColor :: (Typeable n, Floating n, Color c, HasStyle a, Vn a ~ V2 n) => c -> a -> a
 lineColor = lineTexture . SC . SomeColor
 
 -- | A synonym for 'lineColor', specialized to @'Colour' Double@
 --   (i.e. opaque colors).  See comment in 'lineColor' about backends.
-lc :: (R2Ish v, HasStyle a, V a ~ v) => Colour Double -> a -> a
+lc :: (Typeable n, Floating n, HasStyle a, Vn a ~ V2 n) => Colour Double -> a -> a
 lc = lineColor
 
 -- | A synonym for 'lineColor', specialized to @'AlphaColour' Double@
 --   (i.e. colors with transparency).  See comment in 'lineColor'
 --   about backends.
-lcA :: (R2Ish v, HasStyle a, V a ~ v) => AlphaColour Double -> a -> a
+lcA :: (Typeable n, Floating n, HasStyle a, Vn a ~ V2 n) => AlphaColour Double -> a -> a
 lcA = lineColor
 
 -- | Apply a linear gradient.
-lineLGradient :: (R2Ish v, HasStyle a, V a ~ v) => LGradient v -> a -> a
+lineLGradient :: (Typeable n, Floating n, HasStyle a, Vn a ~ V2 n) => LGradient n -> a -> a
 lineLGradient g = lineTexture (LG g)
 
 -- | Apply a radial gradient.
-lineRGradient :: (R2Ish v, HasStyle a, V a ~ v) => RGradient v -> a -> a
+lineRGradient :: (Typeable n, Floating n, HasStyle a, Vn a ~ V2 n) => RGradient n -> a -> a
 lineRGradient g = lineTexture (RG g)
 
 -- | The texture with which objects are filled.
 --   The semigroup structure on fill texture attributes
 --   is that of 'Recommed . Last'.
-newtype FillTexture v = FillTexture (Recommend (Last (Texture v)))
+newtype FillTexture n = FillTexture (Recommend (Last (Texture n)))
   deriving (Typeable, Semigroup)
 
-instance (Typeable v) => AttributeClass (FillTexture v)
+instance Typeable n => AttributeClass (FillTexture n)
 
-type instance V (FillTexture v) = v
+type instance V (FillTexture n) = V2
+type instance N (FillTexture n) = n
 
 -- Only gradients get transformed. The transform is applied to the gradients
 -- transform field. Colors are left unchanged.
-instance (R2Ish v) => Transformable (FillTexture v) where
-  transform _ tx@(FillTexture (Recommend _)) = tx
-  transform t (FillTexture (Commit (Last texture))) = FillTexture (Commit (Last tx))
-    where
-      tx = texture & lgt . rgt
-      lgt = _LG . lGradTrans %~ f
-      rgt = _RG . rGradTrans %~ f
-      f = transform t
+instance Floating n => Transformable (FillTexture n) where
+  transform _ tx@(FillTexture (Recommend _))   = tx
+  transform t (FillTexture (Commit (Last tx))) = FillTexture (Commit (Last $ transform t tx))
 
-instance (R2Ish v) => Default (FillTexture v) where
+instance Default (FillTexture n) where
     def = FillTexture (Recommend (Last (SC
                       (SomeColor (transparent :: AlphaColour Double)))))
 
-getFillTexture :: (R2Ish v) => FillTexture v -> Texture v
+getFillTexture :: FillTexture n -> Texture n
 getFillTexture (FillTexture tx) = getLast . getRecommend $ tx
 
-fillTexture :: (R2Ish v, HasStyle a, V a ~ v) => Texture v -> a -> a
+fillTexture :: (HasStyle a, Vn a ~ V2 n, Typeable n, Floating n) => Texture n -> a -> a
 fillTexture = applyTAttr . FillTexture . Commit . Last
 
-mkFillTexture :: (R2Ish v) => Texture v  -> FillTexture v
+mkFillTexture :: Texture n -> FillTexture n
 mkFillTexture = FillTexture . Commit . Last
 
-styleFillTexture :: (R2Ish v) => Setter' (Style v) (Texture v)
+styleFillTexture :: (Typeable n) => Setter' (Style V2 n) (Texture n)
 styleFillTexture = sets modifyFillTexture
   where
     modifyFillTexture f s
@@ -490,32 +500,32 @@ styleFillTexture = sets modifyFillTexture
 --   type (so it can be used with either 'Colour' or 'AlphaColour'),
 --   but this can sometimes create problems for type inference, so the
 --   'fc' and 'fcA' variants are provided with more concrete types.
-fillColor :: (R2Ish v, Color c, HasStyle a, V a ~ v) => c -> a -> a
+fillColor :: (Color c, HasStyle a, Vn a ~ V2 n, Typeable n, Floating n) => c -> a -> a
 fillColor = fillTexture . SC . SomeColor
 
 -- | Set a \"recommended\" fill color, to be used only if no explicit
 --   calls to 'fillColor' (or 'fc', or 'fcA') are used.
 --   See comment after 'fillColor' about backends.
-recommendFillColor :: (R2Ish v, Color c, HasStyle a, V a ~ v) => c -> a -> a
+recommendFillColor :: (Color c, HasStyle a, Vn a ~ V2 n, Typeable n, Floating n) => c -> a -> a
 recommendFillColor =
   applyTAttr . FillTexture . Recommend . Last . SC . SomeColor
 
 -- | A synonym for 'fillColor', specialized to @'Colour' Double@
 --   (i.e. opaque colors). See comment after 'fillColor' about backends.
-fc :: (R2Ish v, HasStyle a, V a ~ v) => Colour Double -> a -> a
+fc :: (HasStyle a, Vn a ~ V2 n, Floating n, Typeable n) => Colour Double -> a -> a
 fc = fillColor
 
 -- | A synonym for 'fillColor', specialized to @'AlphaColour' Double@
 --   (i.e. colors with transparency). See comment after 'fillColor' about backends.
-fcA :: (R2Ish v, HasStyle a, V a ~ v) => AlphaColour Double -> a -> a
+fcA :: (HasStyle a, Vn a ~ V2 n, Floating n, Typeable n) => AlphaColour Double -> a -> a
 fcA = fillColor
 ------------------------------------------------------------
 
-data FillTextureLoops v = FillTextureLoops
+data FillTextureLoops n = FillTextureLoops
 
-instance Typeable v => SplitAttribute (FillTextureLoops v) where
-  type AttrType (FillTextureLoops v) = FillTexture v
-  type PrimType (FillTextureLoops v) = Path v
+instance Typeable n => SplitAttribute (FillTextureLoops n) where
+  type AttrType (FillTextureLoops n) = FillTexture n
+  type PrimType (FillTextureLoops n) = Path V2 n
 
   primOK _ = all (isLoop . unLoc) . pathTrails
 
@@ -525,5 +535,6 @@ instance Typeable v => SplitAttribute (FillTextureLoops v) where
 --   applied to lines/non-closed paths as well as loops/closed paths,
 --   whereas in the semantics of diagrams, fill attributes only apply
 --   to loops.
-splitTextureFills :: forall b v a. Typeable v => RTree b v a -> RTree b v a
-splitTextureFills = splitAttr (FillTextureLoops :: FillTextureLoops v)
+splitTextureFills :: forall b v n a. (Typeable v, Typeable n) => RTree b v n a -> RTree b v n a
+splitTextureFills = splitAttr (FillTextureLoops :: FillTextureLoops n)
+

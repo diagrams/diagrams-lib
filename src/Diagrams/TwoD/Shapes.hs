@@ -65,7 +65,6 @@ import           Diagrams.Util
 import           Control.Lens            (makeLenses, op, (&), (.~), (<>~), (^.))
 import           Data.Default.Class
 import           Data.Semigroup
-import           Data.VectorSpace
 
 -- | Create a centered horizontal (L-R) line of the given length.
 --
@@ -73,8 +72,8 @@ import           Data.VectorSpace
 --
 --   > hruleEx = vcat' (with & sep .~ 0.2) (map hrule [1..5])
 --   >         # centerXY # pad 1.1
-hrule :: (TrailLike t, V t ~ v, R2Ish v) => Scalar v -> t
-hrule d = trailLike $ trailFromSegments [straight $ r2 (d, 0)] `at` (p2 (-d/2,0))
+hrule :: (TrailLike t, Vn t ~ V2 n) => n -> t
+hrule d = trailLike $ trailFromSegments [straight $ r2 (d, 0)] `at` p2 (-d/2,0)
 
 -- | Create a centered vertical (T-B) line of the given length.
 --
@@ -82,14 +81,14 @@ hrule d = trailLike $ trailFromSegments [straight $ r2 (d, 0)] `at` (p2 (-d/2,0)
 --
 --   > vruleEx = hcat' (with & sep .~ 0.2) (map vrule [1, 1.2 .. 2])
 --   >         # centerXY # pad 1.1
-vrule :: (TrailLike t, V t ~ v, R2Ish v) => Scalar v -> t
-vrule d = trailLike $ trailFromSegments [straight $ r2 (0, (-d))] `at` (p2 (0,d/2))
+vrule :: (TrailLike t, Vn t ~ V2 n) => n -> t
+vrule d = trailLike $ trailFromSegments [straight $ r2 (0, -d)] `at` p2 (0,d/2)
 
 -- | A square with its center at the origin and sides of length 1,
 --   oriented parallel to the axes.
 --
 --   <<diagrams/src_Diagrams_TwoD_Shapes_unitSquareEx.svg#diagram=unitSquareEx&width=100>>
-unitSquare :: (TrailLike t, V t ~ v, R2Ish v) => t
+unitSquare :: (TrailLike t, Vn t ~ V2 n, RealFloat n) => t
 unitSquare = polygon (def & polyType   .~ PolyRegular 4 (sqrt 2 / 2)
                           & polyOrient .~ OrientH)
 
@@ -99,7 +98,7 @@ unitSquare = polygon (def & polyType   .~ PolyRegular 4 (sqrt 2 / 2)
 --   length, oriented parallel to the axes.
 --
 --   <<diagrams/src_Diagrams_TwoD_Shapes_squareEx.svg#diagram=squareEx&width=200>>
-square :: (TrailLike t, Transformable t, V t ~ v, R2Ish v) => Scalar v -> t
+square :: (TrailLike t, Transformable t, Vn t ~ V2 n, RealFloat n) => n -> t
 square d = rect d d
 
 -- > squareEx = hcat' (with & sep .~ 0.5) [square 1, square 2, square 3]
@@ -109,7 +108,7 @@ square d = rect d d
 --   @h@, centered at the origin.
 --
 --   <<diagrams/src_Diagrams_TwoD_Shapes_rectEx.svg#diagram=rectEx&width=150>>
-rect :: (TrailLike t, Transformable t, V t ~ v, R2Ish v) => Scalar v -> Scalar v -> t
+rect :: (TrailLike t, Transformable t, Vn t ~ V2 n, RealFloat n) => n -> n -> t
 rect w h = trailLike . head . op Path $ unitSquare # scaleX w # scaleY h
 
 -- > rectEx = rect 1 0.7 # pad 1.1
@@ -141,7 +140,7 @@ rect w h = trailLike . head . op Path $ unitSquare # scaleX w # scaleY h
 --   polygons of a given /radius/).
 --
 --   The polygon will be oriented with one edge parallel to the x-axis.
-regPoly :: (TrailLike t, V t ~ v, R2Ish v) => Int -> Scalar v -> t
+regPoly :: (TrailLike t, Vn t ~ V2 n, RealFloat n) => Int -> n -> t
 regPoly n l = polygon (def & polyType .~
                                PolySides
                                  (repeat (1/fromIntegral n @@ turn))
@@ -161,76 +160,76 @@ regPoly n l = polygon (def & polyType .~
 -- > dodecagonEx  = shapeEx dodecagon
 
 -- | A synonym for 'triangle', provided for backwards compatibility.
-eqTriangle :: (TrailLike t, V t ~ v, R2Ish v) => Scalar v -> t
+eqTriangle :: (TrailLike t, Vn t ~ V2 n, RealFloat n) => n -> t
 eqTriangle = triangle
 
 -- | An equilateral triangle, with sides of the given length and base
 --   parallel to the x-axis.
 --
 --   <<diagrams/src_Diagrams_TwoD_Shapes_triangleEx.svg#diagram=triangleEx&width=100>>
-triangle :: (TrailLike t, V t ~ v, R2Ish v) => Scalar v -> t
+triangle :: (TrailLike t, Vn t ~ V2 n, RealFloat n) => n -> t
 triangle = regPoly 3
 
 -- | A regular pentagon, with sides of the given length and base
 --   parallel to the x-axis.
 --
 --   <<diagrams/src_Diagrams_TwoD_Shapes_pentagonEx.svg#diagram=pentagonEx&width=100>>
-pentagon :: (TrailLike t, V t ~ v, R2Ish v) => Scalar v -> t
+pentagon :: (TrailLike t, Vn t ~ V2 n, RealFloat n) => n -> t
 pentagon = regPoly 5
 
 -- | A regular hexagon, with sides of the given length and base
 --   parallel to the x-axis.
 --
 --   <<diagrams/src_Diagrams_TwoD_Shapes_hexagonEx.svg#diagram=hexagonEx&width=100>>
-hexagon :: (TrailLike t, V t ~ v, R2Ish v) => Scalar v -> t
+hexagon :: (TrailLike t, Vn t ~ V2 n, RealFloat n) => n -> t
 hexagon = regPoly 6
 
 -- | A regular heptagon, with sides of the given length and base
 --   parallel to the x-axis.
 --
 --   <<diagrams/src_Diagrams_TwoD_Shapes_heptagonEx.svg#diagram=heptagonEx&width=100>>
-heptagon :: (TrailLike t, V t ~ v, R2Ish v) => Scalar v -> t
+heptagon :: (TrailLike t, Vn t ~ V2 n, RealFloat n) => n -> t
 heptagon = regPoly 7
 
 -- | A synonym for 'heptagon'.  It is, however, completely inferior,
 --   being a base admixture of the Latin /septum/ (seven) and the
 --   Greek γωνία (angle).
-septagon :: (TrailLike t, V t ~ v, R2Ish v) => Scalar v -> t
+septagon :: (TrailLike t, Vn t ~ V2 n, RealFloat n) => n -> t
 septagon = heptagon
 
 -- | A regular octagon, with sides of the given length and base
 --   parallel to the x-axis.
 --
 --   <<diagrams/src_Diagrams_TwoD_Shapes_octagonEx.svg#diagram=octagonEx&width=100>>
-octagon :: (TrailLike t, V t ~ v, R2Ish v) => Scalar v -> t
+octagon :: (TrailLike t, Vn t ~ V2 n, RealFloat n) => n -> t
 octagon = regPoly 8
 
 -- | A regular nonagon, with sides of the given length and base
 --   parallel to the x-axis.
 --
 --   <<diagrams/src_Diagrams_TwoD_Shapes_nonagonEx.svg#diagram=nonagonEx&width=100>>
-nonagon :: (TrailLike t, V t ~ v, R2Ish v) => Scalar v -> t
+nonagon :: (TrailLike t, Vn t ~ V2 n, RealFloat n) => n -> t
 nonagon = regPoly 9
 
 -- | A regular decagon, with sides of the given length and base
 --   parallel to the x-axis.
 --
 --   <<diagrams/src_Diagrams_TwoD_Shapes_decagonEx.svg#diagram=decagonEx&width=100>>
-decagon :: (TrailLike t, V t ~ v, R2Ish v) => Scalar v -> t
+decagon :: (TrailLike t, Vn t ~ V2 n, RealFloat n) => n -> t
 decagon = regPoly 10
 
 -- | A regular hendecagon, with sides of the given length and base
 --   parallel to the x-axis.
 --
 --   <<diagrams/src_Diagrams_TwoD_Shapes_hendecagonEx.svg#diagram=hendecagonEx&width=100>>
-hendecagon :: (TrailLike t, V t ~ v, R2Ish v) => Scalar v -> t
+hendecagon :: (TrailLike t, Vn t ~ V2 n, RealFloat n) => n -> t
 hendecagon = regPoly 11
 
 -- | A regular dodecagon, with sides of the given length and base
 --   parallel to the x-axis.
 --
 --   <<diagrams/src_Diagrams_TwoD_Shapes_dodecagonEx.svg#diagram=dodecagonEx&width=100>>
-dodecagon :: (TrailLike t, V t ~ v, R2Ish v) => Scalar v -> t
+dodecagon :: (TrailLike t, Vn t ~ V2 n, RealFloat n) => n -> t
 dodecagon = regPoly 12
 
 ------------------------------------------------------------
@@ -268,7 +267,7 @@ instance (Num d) => Default (RoundedRectOpts d) where
 --   >                                & radiusBR .~ 0.1)
 --   >   ]
 
-roundedRect :: (TrailLike t, V t ~ v, R2Ish v) => Scalar v -> Scalar v -> Scalar v -> t
+roundedRect :: (TrailLike t, Vn t ~ V2 n, RealFloat n) => n -> n -> n -> t
 roundedRect w h r = roundedRect' w h (def & radiusTL .~ r
                                           & radiusBR .~ r
                                           & radiusTR .~ r
@@ -278,10 +277,10 @@ roundedRect w h r = roundedRect' w h (def & radiusTL .~ r
 --   each corner indivually, using @RoundedRectOpts@. The default corner radius is 0.
 --   Each radius can also be negative, which results in the curves being reversed
 --   to be inward instead of outward.
-roundedRect' :: (TrailLike t, V t ~ v, R2Ish v) => Scalar v -> Scalar v -> RoundedRectOpts (Scalar v) -> t
+roundedRect' :: (TrailLike t, Vn t ~ V2 n, RealFloat n) => n -> n -> RoundedRectOpts n -> t
 roundedRect' w h opts
    = trailLike
-   . (`at` (p2 (w/2, abs rBR - h/2)))
+   . (`at` p2 (w/2, abs rBR - h/2))
    . wrapTrail
    . glueLine
    $ seg (0, h - abs rTR - abs rBR)

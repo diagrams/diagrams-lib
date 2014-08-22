@@ -31,7 +31,6 @@ import Linear.Vector
 import Linear.Affine
 
 import           Diagrams.Core
-import           Diagrams.Core.V
 import           Diagrams.Core.Points    ()
 import           Diagrams.Core.Transform
 import           Diagrams.Parametric
@@ -130,9 +129,9 @@ instance (Traced a, Num (N a)) => Traced (Located a) where
 instance Qualifiable a => Qualifiable (Located a) where
   n |> (Loc p a) = Loc p (n |> a)
 
-type instance Codomain (Located a) (N a) = Point (Codomain a) (N a)
+type instance Codomain (Located a) n = Point (Codomain a) n
 
-instance (Codomain a ~ V a, Additive (V a), Num (N a), Parametric a) -- , Diff (Point (V a) (N a)) ~ V a (N a))
+instance (Vn a ~ v n, Codomain a ~ V a, Codomain a n ~ v n, Additive v, Num n, Parametric a) -- , Diff (Point (V a)) ~ V a)
     => Parametric (Located a) where
   (Loc x a) `atParam` p = x .+^ (a `atParam` p)
 
@@ -140,12 +139,12 @@ instance DomainBounds a => DomainBounds (Located a) where
   domainLower (Loc _ a) = domainLower a
   domainUpper (Loc _ a) = domainUpper a
 
-instance (Codomain a ~ V a, Additive (V a), Num (N a), EndValues a)
+instance (Vn a ~ v n, Codomain a ~ v, Codomain a n ~ v n, Additive v, Num n, EndValues a)
     => EndValues (Located a)
 
-instance ( Codomain a ~ V a, Fractional (N a), Additive (V a)
-         , Sectionable a, Parametric a
-         )
+-- not sure why Codomain a n ~ v n is needed as well. I've probably done something wrong.
+instance ( Vn a ~ v n, Codomain a ~ v, Codomain a n ~ v n
+         , Fractional n, Additive v , Sectionable a, Parametric a)
     => Sectionable (Located a) where
   splitAtParam (Loc x a) p = (Loc x a1, Loc (x .+^ (a `atParam` p)) a2)
     where (a1,a2) = splitAtParam a p
@@ -153,9 +152,8 @@ instance ( Codomain a ~ V a, Fractional (N a), Additive (V a)
   reverseDomain (Loc x a) = Loc (x .+^ y) (reverseDomain a)
     where y = a `atParam` domainUpper a
 
-instance ( Codomain a ~ V a, Additive (V a), Fractional (N a)
-         , HasArcLength a
-         )
+instance ( Vn a ~ v n, Codomain a ~ v, Codomain a n ~ v n
+         , Additive v, Fractional n , HasArcLength a)
     => HasArcLength (Located a) where
   arcLengthBounded eps (Loc _ a) = arcLengthBounded eps a
   arcLengthToParam eps (Loc _ a) = arcLengthToParam eps a

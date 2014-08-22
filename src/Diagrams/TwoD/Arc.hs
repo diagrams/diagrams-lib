@@ -37,10 +37,12 @@ import           Diagrams.TwoD.Vector    (unitX, unitY, unit_Y)
 import           Diagrams.Util           (( # ))
 
 import           Control.Lens            ((&), (<>~), (^.))
-import           Data.AffineSpace
 import           Data.Semigroup          ((<>))
-import           Data.VectorSpace
-import           Diagrams.Coordinates
+
+import Linear.Epsilon
+import Linear.Vector
+import Linear.Metric
+import Linear.Affine
 
 -- For details of this approximation see:
 --   http://www.tinaja.com/glib/bezcirc2.pdf
@@ -49,12 +51,12 @@ import           Diagrams.Coordinates
 --  the positive y direction and sweeps counterclockwise through an
 --  angle @s@.  The approximation is only valid for angles in the
 --  first quadrant.
-bezierFromSweepQ1 :: (R2Ish v) => Angle (Scalar v) -> Segment Closed v
-bezierFromSweepQ1 s = fmap (^-^ v) . rotate (s ^/ 2) $ bezier3 c2 c1 p0
-  where p0@(coords -> x :& y) = rotate (s ^/ 2) v
-        c1                    = ((4-x)/3)  ^&  ((1-x)*(3-x)/(3*y))
-        c2                    = reflectY c1
-        v                     = unitX
+bezierFromSweepQ1 :: Floating n => Angle n -> Segment Closed V2 n
+bezierFromSweepQ1 s = mapSegmentVectors (^-^ v) . rotate (s ^/ 2) $ bezier3 c2 c1 p0
+  where p0@(V2 x y) = rotate (s ^/ 2) v
+        c1          = V2 ((4-x)/3) ((1-x)*(3-x)/(3*y))
+        c2          = reflectY c1
+        v           = unitX
 
 -- | @bezierFromSweep s@ constructs a series of 'Cubic' segments that
 --   start in the positive y direction and sweep counter clockwise
@@ -62,13 +64,13 @@ bezierFromSweepQ1 s = fmap (^-^ v) . rotate (s ^/ 2) $ bezier3 c2 c1 p0
 --   negative y direction and sweep clockwise.  When @s@ is less than
 --   0.0001 the empty list results.  If the sweep is greater than @fullTurn@
 --   later segments will overlap earlier segments.
-bezierFromSweep :: (R2Ish v) => Angle (Scalar v) -> [Segment Closed v]
+bezierFromSweep :: OrderedField n => Angle n -> [Segment Closed V2 n]
 bezierFromSweep s
-  | s < zeroV      = fmap reflectY . bezierFromSweep $ (negateV s)
-  | s < 0.0001 @@ rad     = []
-  | s < fullTurn^/4      = [bezierFromSweepQ1 s]
-  | otherwise      = bezierFromSweepQ1 (fullTurn^/4)
-          : map (rotateBy (1/4)) (bezierFromSweep (max (s ^-^ fullTurn^/4) zeroV))
+  | s < zero          = fmap reflectY . bezierFromSweep $ negated s
+  | s < 0.0001 @@ rad = []
+  | s < fullTurn^/4   = [bezierFromSweepQ1 s]
+  | otherwise         = bezierFromSweepQ1 (fullTurn^/4)
+          : map (rotateBy (1/4)) (bezierFromSweep (max (s ^-^ fullTurn^/4) zero))
 
 {-
 ~~~~ Note [segment spacing]
@@ -94,16 +96,16 @@ the approximation error.
 --   is the 'Trail' of a radius one arc starting at @d@ and sweeping out
 --   the angle @s@ counterclockwise (for positive s).  The resulting
 --   @Trail@ is allowed to wrap around and overlap itself.
-arcT :: (R2Ish v) => Direction v -> Angle (Scalar v) -> Trail v
+arcT :: (RealFloat n, Epsilon n) => Direction V2 n -> Angle n -> Trail V2 n
 arcT start sweep = trailFromSegments bs
   where
-        bs    = map (rotate $ start ^. _theta) . bezierFromSweep $ sweep
+    bs = map (rotate $ start ^. _theta) . bezierFromSweep $ sweep
 
--- | Given a start angle @d@ and a sweep angle @s@, @'arc' d s@ is the
+-- | Given a start direction @d@ and a sweep angle @s@, @'arc' d s@ is the
 --   path of a radius one arc starting at @d@ and sweeping out the angle
 --   @s@ counterclockwise (for positive s).  The resulting
 --   @Trail@ is allowed to wrap around and overlap itself.
-arc :: (R2Ish v, TrailLike t, V t ~ v) => Direction v -> Angle (Scalar v) -> t
+arc :: (TrailLike t, Vn t ~ V2 n, RealFloat n, Epsilon n) => Direction V2 n -> Angle n -> t
 arc start sweep = trailLike $ arcT start sweep `at` (rotate (start ^. _theta) $ p2 (1,0))
 
 -- | Given a radus @r@, a start direction @d@ and an angle @s@,
@@ -115,7 +117,7 @@ arc start sweep = trailLike $ arcT start sweep `at` (rotate (start ^. _theta) $ 
 --
 --   > arc'Ex = mconcat [ arc' r (0 @@ turn) (1/4 @@ turn) | r <- [0.5,-1,1.5] ]
 --   >        # centerXY # pad 1.1
-arc' :: (R2Ish v, TrailLike p, V p ~ v) => Scalar v -> Direction v -> Angle (Scalar v) -> p
+arc' :: (TrailLike t, Vn t ~ V2 n, RealFloat n) => n -> Direction V2 n -> Angle n -> t
 arc' r start sweep = trailLike $ scale (abs r) ts `at` (rotate (start ^. _theta) $ p2 (abs r,0))
   where ts = arcT start sweep
 
@@ -131,11 +133,11 @@ arc' r start sweep = trailLike $ scale (abs r) ts `at` (rotate (start ^. _theta)
 --   >   ]
 --   >   # fc blue
 --   >   # centerXY # pad 1.1
-wedge :: (R2Ish v, TrailLike p, V p ~ v) => Scalar v -> Direction v -> Angle (Scalar v) -> p
+wedge :: (TrailLike t, Vn t ~ V2 n, RealFloat n) => n -> Direction V2 n -> Angle n -> t
 wedge r d s = trailLike . (`at` origin) . glueTrail . wrapLine
               $ fromOffsets [r *^ fromDirection d]
                 <> arc d s # scale r
-                <> fromOffsets [r *^ negateV (rotate s $ fromDirection d)]
+                <> fromOffsets [r *^ negated (rotate s $ fromDirection d)]
 
 -- | @arcBetween p q height@ creates an arc beginning at @p@ and
 --   ending at @q@, with its midpoint at a distance of @abs height@
@@ -148,24 +150,24 @@ wedge r d s = trailLike . (`at` origin) . glueTrail . wrapLine
 --   > arcBetweenEx = mconcat
 --   >   [ arcBetween origin (p2 (2,1)) ht | ht <- [-0.2, -0.1 .. 0.2] ]
 --   >   # centerXY # pad 1.1
-arcBetween :: (R2Ish v, TrailLike t, V t ~ v) => Point v -> Point v -> Scalar v -> t
+arcBetween :: (TrailLike t, Vn t ~ V2 n, RealFloat n) => Point V2 n -> Point V2 n -> n -> t
 arcBetween p q ht = trailLike (a # rotate (v^._theta) # moveTo p)
   where
     h = abs ht
     isStraight = h < 0.00001
     v = q .-. p
-    d = magnitude (q .-. p)
+    d = norm (q .-. p)
     th  = acosA ((d*d - 4*h*h)/(d*d + 4*h*h))
     r = d/(2*sinA th)
     mid | ht >= 0    = direction unitY
         | otherwise  = direction unit_Y
-    st  = mid & _theta <>~ (negateV th)
+    st  = mid & _theta <>~ negated th
     a | isStraight
       = fromOffsets [d *^ unitX]
       | otherwise
       = arc st (2 *^ th)
         # scale r
-        # translateY ((if ht > 0 then negate else id) (r-h))
+        # translateY ((if ht > 0 then negate else id) (r - h))
         # translateX (d/2)
         # (if ht > 0 then reverseLocTrail else id)
 
@@ -182,12 +184,13 @@ arcBetween p q ht = trailLike (a # rotate (v^._theta) # moveTo p)
 --   >   ]
 --   >   # fc blue
 --   >   # centerXY # pad 1.1
-annularWedge :: (R2Ish v, TrailLike p, V p ~ v) =>
-                Scalar v -> Scalar v -> Direction v -> Angle (Scalar v) -> p
+annularWedge :: (TrailLike t, Vn t ~ V2 n, RealFloat n) =>
+                n -> n -> Direction V2 n -> Angle n -> t
 annularWedge r1' r2' d1 s = trailLike . (`at` o) . glueTrail . wrapLine
-              $ fromOffsets [(r1'-r2') *^ fromDirection d1]
+              $ fromOffsets [(r1' - r2') *^ fromDirection d1]
                 <> arc d1 s # scale r1'
-                <> fromOffsets [(r1'-r2') *^ negateV (fromDirection d2)]
-                <> arc d2 (negateV s) # scale r2'
+                <> fromOffsets [(r1' - r2') *^ negated (fromDirection d2)]
+                <> arc d2 (negated s) # scale r2'
   where o = origin # translate (r2' *^ fromDirection d1)
         d2 = d1 & _theta <>~ s
+
