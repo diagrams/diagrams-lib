@@ -313,7 +313,7 @@ data CatMethod = Cat     -- ^ Normal catenation: simply put diagrams
 -- | Options for 'cat''.
 data CatOpts v = CatOpts { _catMethod       :: CatMethod
                          , _sep             :: Scalar v
-                         , _catOptsvProxy__ :: Proxy v
+                         , catOptsvProxy__ :: Proxy v
                          }
 
 -- The reason the proxy field is necessary is that without it,
@@ -328,15 +328,7 @@ data CatOpts v = CatOpts { _catMethod       :: CatMethod
 -- more restricted.
 
 makeLensesWith
-  ( lensRules
-    -- don't make a lens for the proxy field
-    & lensField .~ (\label ->
-        case label of
-          "_catOptsvProxy__" -> Nothing
-          _ -> Just (drop 1 label)
-        )
-    & generateSignatures .~ False
-  )
+  ( lensRules & generateSignatures .~ False)
   ''CatOpts
 
 -- | Which 'CatMethod' should be used:
@@ -352,7 +344,7 @@ sep :: forall v. Lens' (CatOpts v) (Scalar v)
 instance Num (Scalar v) => Default (CatOpts v) where
   def = CatOpts { _catMethod       = Cat
                 , _sep             = 0
-                , _catOptsvProxy__ = Proxy
+                , catOptsvProxy__ = Proxy
                 }
 
 -- | @cat v@ positions a list of objects so that their local origins
