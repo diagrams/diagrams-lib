@@ -48,15 +48,15 @@ class DomainBounds p where
   --   numeric scalars).
   domainLower :: p -> N p
 
-  -- default domainLower :: Num n => p n -> n
-  -- domainLower = const 0
+  default domainLower :: Num (N p) => p -> N p
+  domainLower = const 0
 
   -- | 'domainUpper' defaults to being constantly 1 (for vector spaces
   --   with numeric scalars).
   domainUpper :: p -> N p
 
-  -- default domainUpper :: Num n => p n -> n
-  -- domainUpper = const 1
+  default domainUpper :: Num n => p -> n
+  domainUpper = const 1
 
 -- | Type class for querying the values of a parametric object at the
 --   ends of its domain.
@@ -127,9 +127,9 @@ class DomainBounds p => Sectionable p where
   --
   --   That is, the section should have the same domain as the
   --   original, and the reparameterization should be linear.
-  section :: p -> n -> n -> p
-  -- default section :: Fractional n => p n -> n -> n -> p n
-  -- section x t1 t2 = snd (splitAtParam (fst (splitAtParam x t2)) (t1/t2))
+  section :: p -> N p -> N p -> p
+  default section :: Fractional (N p) => p -> N p -> N p -> p
+  section x t1 t2 = snd (splitAtParam (fst (splitAtParam x t2)) (t1/t2))
 
   -- | Flip the parameterization on the domain.
   reverseDomain :: p -> p
@@ -151,14 +151,14 @@ class Parametric p => HasArcLength p where
   -- | @arcLength eps s@ approximates the arc length of @x@ up to the
   --   accuracy @eps@ (plus or minus).
   arcLength :: N p -> p -> N p
-  -- default arcLength :: Fractional n => n -> p n -> n
-  -- arcLength eps = I.midpoint . arcLengthBounded eps
+  default arcLength :: Fractional (N p) => N p -> p -> N p
+  arcLength eps = I.midpoint . arcLengthBounded eps
 
   -- | Approximate the arc length up to a standard accuracy of
   --   'stdTolerance' (@1e-6@).
   stdArcLength :: p -> N p
-  -- default stdArcLength :: Fractional n => p n -> n
-  -- stdArcLength = arcLength stdTolerance
+  default stdArcLength :: Fractional (N p) => p -> N p
+  stdArcLength = arcLength stdTolerance
 
   -- | @'arcLengthToParam' eps s l@ converts the absolute arc length
   --   @l@, measured from the start of the domain, to a parameter on
@@ -172,7 +172,6 @@ class Parametric p => HasArcLength p where
   -- | A simple interface to convert arc length to a parameter,
   --   guaranteed to be accurate within 'stdTolerance', or @1e-6@.
   stdArcLengthToParam :: p -> N p -> N p
-  -- default stdArcLengthToParam :: Fractional n
-  --                             => p n -> n -> n
-  -- stdArcLengthToParam = arcLengthToParam stdTolerance
+  default stdArcLengthToParam :: Fractional (N p) => p -> N p -> N p
+  stdArcLengthToParam = arcLengthToParam stdTolerance
 

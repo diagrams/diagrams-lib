@@ -20,15 +20,14 @@ module Diagrams.TwoD.Curvature
     , squaredRadiusOfCurvature
     ) where
 
-import           Data.Monoid.Inf
+import Data.Monoid.Inf
 
-import           Diagrams.Segment
-import           Diagrams.Tangent
-import           Diagrams.TwoD.Types
-import Diagrams.Coordinates
+import Diagrams.Segment
+import Diagrams.Tangent
+import Diagrams.TwoD.Types
 
+import Control.Lens  (over)
 import Linear.Vector
-import Control.Lens (over)
 
 -- | Curvature measures how curved the segment is at a point.  One intuition
 -- for the concept is how much you would turn the wheel when driving a car

@@ -7,7 +7,7 @@ import Diagrams.TwoD.Types
 
 -- | The parallel projection onto the line x=0
 parallelX0 :: Floating n => Deformation V2 n
-parallelX0 = Deformation (& _x .~ 0)
+parallelX0 = Deformation (_x .~ 0)
 
 -- | The perspective division onto the line x=1 along lines going
 -- through the origin.
