@@ -148,15 +148,15 @@ instance Coordinates (V4 n) where
 
 -- | The class of types with at least one coordinate, called _x.
 class HasX t where
-    _x :: Floating n => Lens' (t n) n
+  _x :: Floating n => Lens' (t n) n
 
 -- | The class of types with at least two coordinates, the second called _y.
 class HasX t => HasY t where
-    _y :: Floating n => Lens' (t n) n
+  _y :: Floating n => Lens' (t n) n
 
 -- | The class of types with at least three coordinates, the third called _z.
 class HasY t => HasZ t where
-    _z :: Floating n => Lens' (t n) n
+  _z :: Floating n => Lens' (t n) n
 
 -- | The class of types with a single length coordinate _r.  _r is
 -- magnitude of a vector, or the distance from the origin of a point.
