@@ -15,7 +15,7 @@
 
 module Diagrams.Points
        ( -- * Points
-         Point, origin, (*.)
+         Point (..), origin, (*.)
 
          -- * Point-related utilities
        , centroid

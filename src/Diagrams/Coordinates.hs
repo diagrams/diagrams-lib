@@ -23,7 +23,8 @@ module Diagrams.Coordinates
 
 import Control.Lens           (Lens')
 import Diagrams.Points
-import Linear.Affine
+
+import Linear (V2 (..), V3 (..), V4 (..))
 
 -- | Types which are instances of the @Coordinates@ class can be
 --   constructed using '^&' (for example, a three-dimensional vector
@@ -53,7 +54,7 @@ class Coordinates c where
   --
   -- @
   -- 2 ^& 3 :: P2
-  -- 3 ^& 5 ^& 6 :: R3
+  -- 3 ^& 5 ^& 6 :: V3
   -- @
   --
   --   Note that @^&@ is left-associative.
@@ -119,6 +120,32 @@ instance Coordinates (v n) => Coordinates (Point v n) where
   x ^& y        = P (x ^& y)
   coords (P v) = coords v
 
+-- instances for linear
+
+instance Coordinates (V2 n) where
+  type FinalCoord (V2 n)    = n
+  type PrevDim (V2 n)       = n
+  type Decomposition (V2 n) = n :& n
+
+  x ^& y          = V2 x y
+  coords (V2 x y) = x :& y
+
+instance Coordinates (V3 n) where
+  type FinalCoord (V3 n)    = n
+  type PrevDim (V3 n)       = V2 n
+  type Decomposition (V3 n) = n :& n :& n
+
+  V2 x y ^& z       = V3 x y z
+  coords (V3 x y z) = x :& y :& z
+
+instance Coordinates (V4 n) where
+  type FinalCoord (V4 n)    = n
+  type PrevDim (V4 n)       = V3 n
+  type Decomposition (V4 n) = n :& n :& n :& n
+
+  V3 x y z ^& w       = V4 x y z w
+  coords (V4 x y z w) = x :& y :& z :& w
+
 -- | The class of types with at least one coordinate, called _x.
 class HasX t where
     _x :: Floating n => Lens' (t n) n
@@ -137,14 +164,14 @@ class HasR t where
     _r :: Lens' (t n) n
 
 instance HasX v => HasX (Point v) where
-    _x = _pIso . _x
+    _x = lensP . _x
 
 instance HasY v => HasY (Point v) where
-    _y = _pIso . _y
+    _y = lensP . _y
 
 instance HasZ v => HasZ (Point v) where
-    _z = _pIso . _z
+    _z = lensP . _z
 
 instance HasR v => HasR (Point v) where
-    _r = _pIso . _r
+    _r = lensP . _r
 
