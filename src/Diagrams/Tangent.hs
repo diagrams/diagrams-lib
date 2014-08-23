@@ -48,7 +48,7 @@ instance DomainBounds t => DomainBounds (Tangent t) where
   domainLower (Tangent t) = domainLower t
   domainUpper (Tangent t) = domainUpper t
 
-type instance Codomain (Tangent (Located t)) n = Codomain (Tangent t) n
+type instance Codomain (Tangent (Located t)) = Codomain (Tangent t)
 
 instance Parametric (Tangent t) => Parametric (Tangent (Located t)) where
   Tangent l `atParam` p = Tangent (unLoc l) `atParam` p
@@ -84,7 +84,7 @@ tangentAtEnd = atEnd . Tangent
 --------------------------------------------------
 -- Segment
 
-type instance Codomain (Tangent (Segment Closed v n)) n = Codomain (Segment Closed v n) n
+type instance Codomain (Tangent (Segment Closed v n)) = Codomain (Segment Closed v n)
 
 instance (Additive v, Num n)
     => Parametric (Tangent (Segment Closed v n)) where

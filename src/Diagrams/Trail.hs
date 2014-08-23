@@ -174,7 +174,7 @@ deriving instance (OrderedField n, Metric v)
 deriving instance (Metric v, OrderedField n)
   => Transformable (SegTree v n)
 
-type instance Codomain (SegTree v n) n = v n
+type instance Codomain (SegTree v n) = v
 
 instance (Metric v, OrderedField n, RealFrac n)
     => Parametric (SegTree v n) where
@@ -185,8 +185,7 @@ instance Num n => DomainBounds (SegTree v n)
 instance (Metric v, OrderedField n, RealFrac n, Num n)
     => EndValues (SegTree v n)
 
-instance (Metric v, RealFrac n, Floating n, Epsilon n)
-    => Sectionable (SegTree v n) where
+instance (Metric v, RealFrac n, Floating n, Epsilon n) => Sectionable (SegTree v n) where
   splitAtParam (SegTree t) p
     | p < 0     = case FT.viewl t of
                     EmptyL    -> emptySplit
@@ -372,7 +371,7 @@ deriving instance Ord  (v n) => Ord  (Trail' l v n)
 type instance V (Trail' l v n) = v
 type instance N (Trail' l v n) = n
 
-type instance Codomain (Trail' l v n) n = v n
+type instance Codomain (Trail' l v n) = v
 
 instance (OrderedField n, Metric v) => Semigroup (Trail' Line v n) where
   (Line t1) <> (Line t2) = Line (t1 `mappend` t2)
@@ -407,17 +406,14 @@ instance (Metric v, OrderedField n, RealFrac n)
                   (\l -> cutLoop l `atParam` mod1 p)
                   t
 
-type instance Codomain (Tangent (Trail' c v n)) n = Codomain (Trail' c v n) n
+type instance Codomain (Tangent (Trail' c v n)) = Codomain (Trail' c v n)
 
-instance ( Parametric (GetSegment (Trail' c v n))
-         , Additive v
-         , Num n
-         )
+instance (Parametric (GetSegment (Trail' c v n)), Additive v, Num n)
     => Parametric (Tangent (Trail' c v n)) where
   Tangent tr `atParam` p =
     case GetSegment tr `atParam` p of
-      Nothing                -> zero
-      Just (_, seg, reparam) -> Tangent seg `atParam` (p ^. cloneIso reparam)
+      GetSegmentCodomain Nothing                  -> zero
+      GetSegmentCodomain (Just (_, seg, reparam)) -> Tangent seg `atParam` (p ^. cloneIso reparam)
 
 instance ( Parametric (GetSegment (Trail' c v n))
          , EndValues (GetSegment (Trail' c v n))
@@ -427,19 +423,16 @@ instance ( Parametric (GetSegment (Trail' c v n))
     => EndValues (Tangent (Trail' c v n)) where
   atStart (Tangent tr) =
     case atStart (GetSegment tr) of
-      Nothing          -> zero
-      Just (_, seg, _) -> atStart (Tangent seg)
+      GetSegmentCodomain Nothing            -> zero
+      GetSegmentCodomain (Just (_, seg, _)) -> atStart (Tangent seg)
   atEnd (Tangent tr) =
     case atEnd (GetSegment tr) of
-      Nothing          -> zero
-      Just (_, seg, _) -> atEnd (Tangent seg)
+      GetSegmentCodomain Nothing            -> zero
+      GetSegmentCodomain (Just (_, seg, _)) -> atEnd (Tangent seg)
 
-type instance Codomain (Tangent (Trail v n)) n = Codomain (Trail v n) n
+type instance Codomain (Tangent (Trail v n)) = Codomain (Trail v n)
 
-instance ( Metric v
-         , OrderedField n
-         , RealFrac n
-         )
+instance (Metric v , OrderedField n, RealFrac n)
     => Parametric (Tangent (Trail v n)) where
   Tangent tr `atParam` p
     = withTrail
@@ -528,6 +521,13 @@ instance (Metric v, OrderedField n, RealFrac n)
 --     you can use.
 newtype GetSegment t = GetSegment t
 
+newtype GetSegmentCodomain v n =
+  GetSegmentCodomain
+    (Maybe ( v n                -- offset from trail start to segment start
+           , Segment Closed v n -- the segment
+           , AnIso' n n         -- reparameterization, trail <-> segment
+           ))
+
 -- | Create a 'GetSegment' wrapper around a trail, after which you can
 --   call 'atParam', 'atStart', or 'atEnd' to extract a segment.
 getSegment :: t -> GetSegment t
@@ -535,36 +535,28 @@ getSegment = GetSegment
 
 type instance V (GetSegment t) = V t
 type instance N (GetSegment t) = N t
-type instance Codomain (GetSegment t) n
-  -- = V t
-  = Maybe
-    ( V t n                  -- offset from trail start to segment start
-    , Segment Closed (V t) n -- the segment
-    , AnIso' n n             -- reparameterization, trail <-> segment
-    )
+
+type instance Codomain (GetSegment t) = GetSegmentCodomain (V t)
 
 -- | Parameters less than 0 yield the first segment; parameters
 --   greater than 1 yield the last.  A parameter exactly at the
 --   junction of two segments yields the second segment (/i.e./ the
 --   one with higher parameter values).
-instance (Metric v, OrderedField n)
-    => Parametric (GetSegment (Trail' Line v n)) where
+instance (Metric v, OrderedField n) => Parametric (GetSegment (Trail' Line v n)) where
   atParam (GetSegment (Line (SegTree ft))) p
-    | p <= 0
-    = case FT.viewl ft of
-        EmptyL    -> Nothing
-        seg :< _  -> Just (zero, seg, reparam 0)
+    | p <= 0 = case FT.viewl ft of
+        EmptyL   -> GetSegmentCodomain Nothing
+        seg :< _ -> GetSegmentCodomain $ Just (zero, seg, reparam 0)
 
-    | p >= 1
-    = case FT.viewr ft of
-        EmptyR     -> Nothing
-        ft' :> seg -> Just (offset ft', seg, reparam (n-1))
+    | p >= 1 = case FT.viewr ft of
+        EmptyR     -> GetSegmentCodomain Nothing
+        ft' :> seg -> GetSegmentCodomain $ Just (offset ft', seg, reparam (n-1))
 
     | otherwise
     = let (before, after) = FT.split ((p*n <) . numSegs) ft
       in  case FT.viewl after of
-            EmptyL   -> Nothing
-            seg :< _ -> Just (offset before, seg, reparam (numSegs before))
+            EmptyL   -> GetSegmentCodomain Nothing
+            seg :< _ -> GetSegmentCodomain $ Just (offset before, seg, reparam (numSegs before))
     where
       n = numSegs ft
       reparam k = iso (subtract k . (*n))
@@ -572,8 +564,7 @@ instance (Metric v, OrderedField n)
 
 -- | The parameterization for loops wraps around, /i.e./ parameters
 --   are first reduced \"mod 1\".
-instance (Metric v, OrderedField n, RealFrac n)
-    => Parametric (GetSegment (Trail' Loop v n)) where
+instance (Metric v, OrderedField n, RealFrac n) => Parametric (GetSegment (Trail' Loop v n)) where
   atParam (GetSegment l) p = atParam (GetSegment (cutLoop l)) (mod1 p)
 
 instance (Metric v, OrderedField n, RealFrac n)
@@ -592,19 +583,20 @@ instance (Metric v, OrderedField n)
     => EndValues (GetSegment (Trail' Line v n)) where
   atStart (GetSegment (Line (SegTree ft)))
     = case FT.viewl ft of
-        EmptyL   -> Nothing
+        EmptyL   -> GetSegmentCodomain Nothing
         seg :< _ ->
           let n = numSegs ft
-          in  Just (zero, seg, iso (*n) (/n))
+          in  GetSegmentCodomain $ Just (zero, seg, iso (*n) (/n))
 
   atEnd (GetSegment (Line (SegTree ft)))
     = case FT.viewr ft of
-        EmptyR     -> Nothing
+        EmptyR     -> GetSegmentCodomain Nothing
         ft' :> seg ->
           let n = numSegs ft
-          in  Just (offset ft', seg, iso (subtract (n-1) . (*n))
+          in  GetSegmentCodomain $ 
+                Just (offset ft', seg, iso (subtract (n-1) . (*n))
                                          ((/n) . (+ (n-1)))
-                   )
+                     )
 
 instance (Metric v, OrderedField n, RealFrac n)
     => EndValues (GetSegment (Trail' Loop v n)) where
@@ -676,7 +668,7 @@ instance (OrderedField n, Metric v) => Monoid (Trail v n) where
 type instance V (Trail v n) = v
 type instance N (Trail v n) = n
 
-type instance Codomain (Trail v n) n = v n
+type instance Codomain (Trail v n) = v
 
 instance (HasLinearMap v, Metric v, OrderedField n)
     => Transformable (Trail v n) where

@@ -27,7 +27,7 @@ import qualified Numeric.Interval.Kaucher as I
 
 -- | Codomain of parametric classes.  This is usually either @(V p)@, for relative
 --   vector results, or @(Point (V p))@, for functions with absolute coordinates.
-type family Codomain p n :: *
+type family Codomain p :: * -> *
 
 -- | Type class for parametric functions.
 class Parametric p where
@@ -175,3 +175,4 @@ class Parametric p => HasArcLength p where
   -- default stdArcLengthToParam :: Fractional n
   --                             => p n -> n -> n
   -- stdArcLengthToParam = arcLengthToParam stdTolerance
+

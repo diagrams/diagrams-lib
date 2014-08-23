@@ -129,9 +129,9 @@ instance (Traced a, Num (N a)) => Traced (Located a) where
 instance Qualifiable a => Qualifiable (Located a) where
   n |> (Loc p a) = Loc p (n |> a)
 
-type instance Codomain (Located a) n = Point (Codomain a) n
+type instance Codomain (Located a) = Point (Codomain a)
 
-instance (Vn a ~ v n, Codomain a ~ V a, Codomain a n ~ v n, Additive v, Num n, Parametric a) -- , Diff (Point (V a)) ~ V a)
+instance (Vn a ~ v n, Codomain a ~ v, Additive v, Num n, Parametric a)
     => Parametric (Located a) where
   (Loc x a) `atParam` p = x .+^ (a `atParam` p)
 
@@ -139,12 +139,11 @@ instance DomainBounds a => DomainBounds (Located a) where
   domainLower (Loc _ a) = domainLower a
   domainUpper (Loc _ a) = domainUpper a
 
-instance (Vn a ~ v n, Codomain a ~ v, Codomain a n ~ v n, Additive v, Num n, EndValues a)
+instance (Vn a ~ v n, Codomain a ~ v, Additive v, Num n, EndValues a)
     => EndValues (Located a)
 
 -- not sure why Codomain a n ~ v n is needed as well. I've probably done something wrong.
-instance ( Vn a ~ v n, Codomain a ~ v, Codomain a n ~ v n
-         , Fractional n, Additive v , Sectionable a, Parametric a)
+instance (Vn a ~ v n, Codomain a ~ v, Fractional n, Additive v , Sectionable a, Parametric a)
     => Sectionable (Located a) where
   splitAtParam (Loc x a) p = (Loc x a1, Loc (x .+^ (a `atParam` p)) a2)
     where (a1,a2) = splitAtParam a p
@@ -152,8 +151,7 @@ instance ( Vn a ~ v n, Codomain a ~ v, Codomain a n ~ v n
   reverseDomain (Loc x a) = Loc (x .+^ y) (reverseDomain a)
     where y = a `atParam` domainUpper a
 
-instance ( Vn a ~ v n, Codomain a ~ v, Codomain a n ~ v n
-         , Additive v, Fractional n , HasArcLength a)
+instance (Vn a ~ v n, Codomain a ~ v, Additive v, Fractional n , HasArcLength a)
     => HasArcLength (Located a) where
   arcLengthBounded eps (Loc _ a) = arcLengthBounded eps a
   arcLengthToParam eps (Loc _ a) = arcLengthToParam eps a

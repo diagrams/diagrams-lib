@@ -45,17 +45,20 @@ import Linear.V3
 
 -- Parameterize Camera on the lens type, so that Backends can express which
 -- lenses they handle.
-data Camera l = Camera
-    { camLoc  :: Point (V l) (N l)
-    , forward :: Vn l
-    , up      :: Vn l
-    , lens    :: l
+data Camera l n = Camera
+    { camLoc  :: Point V3 n
+    , forward :: V3 n
+    , up      :: V3 n
+    , lens    :: l n
     }
   deriving Typeable
 
-class (Typeable l, Typeable (Vn l)) => CameraLens l where
+type instance V (Camera l n) = V3
+type instance N (Camera l n) = n
+
+class Typeable l => CameraLens l where
     -- | The natural aspect ratio of the projection.
-    aspect :: l -> N l
+    aspect :: Floating n => l n -> n
 
 -- | A perspective projection
 data PerspectiveLens n = PerspectiveLens
@@ -69,7 +72,7 @@ makeLenses ''PerspectiveLens
 type instance V (PerspectiveLens n) = V3
 type instance N (PerspectiveLens n) = n
 
-instance (Floating n, Typeable n) => CameraLens (PerspectiveLens n) where
+instance CameraLens PerspectiveLens where
   aspect (PerspectiveLens h v) = angleRatio h v
 
 -- | An orthographic projection
@@ -84,35 +87,32 @@ makeLenses ''OrthoLens
 type instance V (OrthoLens n) = V3
 type instance N (OrthoLens n) = n
 
-instance (Typeable n, Fractional n) => CameraLens (OrthoLens n) where
+instance CameraLens OrthoLens where
     aspect (OrthoLens h v) = h / v
 
-type instance V (Camera l) = V l
-type instance N (Camera l) = N l
-
-instance (Vn l ~ V3 n, Num n) => Transformable (Camera l) where
+instance Num n => Transformable (Camera l n) where
   transform t (Camera p f u l) =
       Camera (transform t p)
              (transform t f)
              (transform t u)
              l
 
-instance (Vn l ~ V3 n, Num n) => Renderable (Camera l) NullBackend where
+instance Num n => Renderable (Camera l n) NullBackend where
     render _ _ = mempty
 
 -- | A camera at the origin facing along the negative Z axis, with its
 -- up-axis coincident with the positive Y axis.  The field of view is
 -- chosen to match a 50mm camera on 35mm film. Note that Cameras take
 -- up no space in the Diagram.
-mm50Camera :: (Typeable n, Floating n, Ord n, Backend b V3 n, Renderable (Camera (PerspectiveLens n)) b)
+mm50Camera :: (Typeable n, Floating n, Ord n, Renderable (Camera PerspectiveLens n) b)
            => Diagram b V3 n
 mm50Camera = facing_ZCamera mm50
 
 -- | 'facing_ZCamera l' is a camera at the origin facing along the
 -- negative Z axis, with its up-axis coincident with the positive Y
 -- axis, with the projection defined by l.
-facing_ZCamera :: (Vn l ~ V3 n, Floating n, Ord n, CameraLens l, Backend b V3 n, Renderable (Camera l) b) =>
-                  l -> Diagram b V3 n
+facing_ZCamera :: (Floating n, Ord n, Typeable n, CameraLens l, Renderable (Camera l n) b) =>
+                  l n -> Diagram b V3 n
 facing_ZCamera l = mkQD (Prim $ Camera origin unit_Z unitY l)
         mempty mempty mempty (Query . const . Any $ False)
 
@@ -130,20 +130,20 @@ mm50Wide = PerspectiveLens (43.2 @@ deg)  (27 @@ deg)
 -- aspect ratio of 4:3, for VGA and similar computer resolutions.
 mm50Narrow = PerspectiveLens (36 @@ deg) (27 @@ deg)
 
-camForward :: (Vn l ~ V3 n, Fractional n) => Camera l -> Direction V3 n
+camForward :: Fractional n => Camera l n -> Direction V3 n
 camForward = direction . forward
 
-camUp :: (Vn l ~ V3 n, Fractional n) => Camera l -> Direction V3 n
+camUp :: Fractional n => Camera l n -> Direction V3 n
 camUp = direction . up
 
-camRight :: (Vn l ~ V3 n, Fractional n) => Camera l -> Direction V3 n
+camRight :: Fractional n => Camera l n -> Direction V3 n
 camRight c = direction right where
   right = cross (forward c) (up c)
 
-camLens :: (V3 ~ V l) => Camera l -> l
+camLens :: Camera l n -> l n
 camLens = lens
 
-camAspect :: (Vn l ~ V3 n, CameraLens l) => Camera l -> n
+camAspect :: Floating n => CameraLens l => Camera l n -> n
 camAspect = aspect . camLens
 
 {-# ANN module ("HLint: ignore Use camelCase" :: String) #-}

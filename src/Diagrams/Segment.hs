@@ -201,7 +201,7 @@ bezier3 c1 c2 x = Cubic c1 c2 (OffsetClosed x)
 bézier3 :: v n -> v n -> v n -> Segment Closed v n
 bézier3 = bezier3
 
-type instance Codomain (Segment Closed v n) n = v n
+type instance Codomain (Segment Closed v n) = v
 
 -- | 'atParam' yields a parametrized view of segments as continuous
 --   functions @[0,1] -> v@, which give the offset from the start of
@@ -387,7 +387,7 @@ fromFixedSeg :: (Num n, Additive v) => FixedSegment v n -> Located (Segment Clos
 fromFixedSeg (FLinear p1 p2)      = straight (p2 .-. p1) `at` p1
 fromFixedSeg (FCubic x1 c1 c2 x2) = bezier3 (c1 .-. x1) (c2 .-. x1) (x2 .-. x1) `at` x1
 
-type instance Codomain (FixedSegment v n) n = Point v n
+type instance Codomain (FixedSegment v n) = Point v
 
 instance (Additive v, Num n) => Parametric (FixedSegment v n) where
   atParam (FLinear p1 p2) t = lerp t p1 p2
