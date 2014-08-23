@@ -18,6 +18,7 @@ module Diagrams.ThreeD.Types
        , p3, unp3, mkP3
        , r3Iso, p3Iso, project
        , V3 (..)
+       , R1 (..), R2 (..), R3 (..)
 
        -- * other coördinate systems
        , Spherical(..), Cylindrical(..), HasPhi(..)
@@ -30,10 +31,8 @@ import           Diagrams.Core
 import           Diagrams.Points
 
 import Linear.V3 as V
-import Linear.Affine
 import Linear.Metric
 import Linear.Vector
-import Diagrams.Coordinates
 
 ------------------------------------------------------------
 -- 3D Euclidean space
@@ -93,15 +92,6 @@ instance Cylindrical v => Cylindrical (Point v) where
 
 instance Spherical v => Spherical (Point v) where
   spherical = _pIso . spherical
-
-instance HasX V3 where
-  _x = V._x
-
-instance HasY V3 where
-  _y = V._y
-
-instance HasZ V3 where
-  _z = V._z
 
 type instance V (V3 n) = V3
 type instance N (V3 n) = n

@@ -4,8 +4,8 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE ViewPatterns          #-}
 {-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE ViewPatterns          #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.ThreeD.Transform
@@ -46,24 +46,24 @@ module Diagrams.ThreeD.Transform
        -- , onBasis
        ) where
 
-import           Diagrams.Core
-import           Diagrams.Core.Transform
+import Diagrams.Core
+import Diagrams.Core.Transform
 
-import           Diagrams.Angle
-import           Diagrams.Coordinates
-import           Diagrams.Direction
-import           Diagrams.ThreeD.Types
-import           Diagrams.Transform
+import Diagrams.Angle
+import Diagrams.Direction
+import Diagrams.ThreeD.Types
+import Diagrams.Transform
 
-import           Control.Lens            (view, (*~), (//~), (&), (.~))
-import           Data.Semigroup
-import Diagrams.TwoD.Transform hiding (rotationAbout, reflectAbout, reflectionAbout)
+import Control.Lens            (view, (&), (*~), (.~), (//~))
+import Data.Semigroup
+import Diagrams.TwoD.Transform hiding (reflectAbout, reflectionAbout,
+                                rotationAbout)
 
-import Linear.Vector
 import Linear.Affine
 import Linear.Epsilon
 import Linear.Metric
-import Linear.V3 (cross)
+import Linear.V3      (cross)
+import Linear.Vector
 
 -- | Create a transformation which rotates by the given angle about
 --   a line parallel the Z axis passing through the local origin.
@@ -157,7 +157,7 @@ pointAtUnit about initial final = tilt <> pan where
 
 -- | Construct a transformation which scales by the given factor in
 --   the z direction.
-scalingZ :: (HasZ v, Additive v, Floating n) => n -> Transformation v n
+scalingZ :: (R3 v, Additive v, Floating n) => n -> Transformation v n
 scalingZ c = fromSymmetric s
   where s = (_z *~ c) <-> (_z //~ c)
 
@@ -170,29 +170,29 @@ scaleZ = transform . scalingZ
 
 -- | Construct a transformation which translates by the given distance
 --   in the z direction.
-translationZ :: (HasZ v, Additive v, Floating n) => n -> Transformation v n
+translationZ :: (R3 v, Additive v, Floating n) => n -> Transformation v n
 translationZ z = translation (zero & _z .~ z)
 
 -- | Translate a diagram by the given distance in the y
 --   direction.
-translateZ :: (HasZ v, Transformable t, Vn t ~ v n, Additive v, Floating n) => n -> t -> t
+translateZ :: (R3 v, Transformable t, Vn t ~ v n, Additive v, Floating n) => n -> t -> t
 translateZ = transform . translationZ
 
 -- Reflection ----------------------------------------------
 
 -- | Construct a transformation which flips a diagram across z=0,
 -- i.e. sends the point (x,y,z) to (x,y,-z).
-reflectionZ :: (HasZ v, Additive v, Floating n) => Transformation v n
+reflectionZ :: (R3 v, Additive v, Floating n) => Transformation v n
 reflectionZ = scalingZ (-1)
 
 -- | Flip a diagram across z=0, i.e. send the point (x,y,z) to
 -- (x,y,-z).
-reflectZ :: (HasZ v, Transformable t, Vn t ~ v n, Additive v, Floating n) => t -> t
+reflectZ :: (R3 v, Transformable t, Vn t ~ v n, Additive v, Floating n) => t -> t
 reflectZ = transform reflectionZ
 
 -- | @reflectionAbout p v@ is a reflection across the plane through
 --   the point @p@ and normal to vector @v@.
-reflectionAbout :: (HasLinearMap v, Metric v, Fractional n, HasZ v) => Point v n -> v n -> Transformation v n
+reflectionAbout :: (HasLinearMap v, Metric v, Fractional n, R3 v) => Point v n -> v n -> Transformation v n
 reflectionAbout p v =
   conjugate (translation (origin .-. p)) reflect
 	  where
@@ -202,7 +202,7 @@ reflectionAbout p v =
 
 -- | @reflectAbout p v@ reflects a diagram in the line determined by
 --   the point @p@ and the vector @v@.
-reflectAbout :: (HasZ v, HasLinearMap v, Metric v, Fractional n, Transformable t, Vn t ~ v n)
+reflectAbout :: (R3 v, HasLinearMap v, Metric v, Fractional n, Transformable t, Vn t ~ v n)
   => Point v n -> v n -> t -> t
 reflectAbout p v = transform (reflectionAbout p v)
 

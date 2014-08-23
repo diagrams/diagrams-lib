@@ -15,8 +15,8 @@
 
 module Diagrams.TwoD.Types
        ( -- * 2D Euclidean space
-         V2 (..), R2, P2, r2, unr2, mkR2, r2Iso
-       , p2, mkP2, unp2, p2Iso, project
+         V2 (..), R1 (..), R2 (..), P2, r2, unr2, mkR2, r2Iso
+       , p2, mkP2, unp2, p2Iso, project, perp
        , Polar(..)
        ) where
 
@@ -26,17 +26,13 @@ import           Diagrams.Angle
 -- import           Diagrams.Coordinates
 import           Diagrams.Points
 
-import Linear.Affine
 import Linear.Vector
 import Linear.Metric
-import Linear.V2 hiding (R2)
-import qualified Linear.V2 as V
-import Diagrams.Coordinates
+import Linear.V2
 import Diagrams.Core.V
 import Diagrams.Core.Transform
 
 
-type R2 = V2
 type P2 = Point V2
 
 type instance V (V2 n) = V2
@@ -93,12 +89,6 @@ project u v = ((v `dot` u) / quadrance u) *^ u
 
 instance Transformable (V2 n) where
   transform = apply
-
-instance HasX V2 where
-  _x = V._x
-
-instance HasY V2 where
-  _y = V._y
 
 instance Polar V2 where
   polar = iso (\v@(V2 x y) -> (norm v, atan2A y x))

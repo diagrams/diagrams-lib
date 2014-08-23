@@ -1,14 +1,9 @@
-{-# LANGUAGE ConstraintKinds  #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE TypeFamilies     #-}
 module Diagrams.ThreeD.Deform where
 
-import           Control.Lens
+import Control.Lens
 
-import           Diagrams.Deform
-
-import           Diagrams.Coordinates
-import           Diagrams.ThreeD.Types
+import Diagrams.Deform
+import Diagrams.ThreeD.Types
 
 -- | The parallel projection onto the plane x=0
 parallelX0 :: Floating n => Deformation V3 n

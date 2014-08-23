@@ -1,14 +1,9 @@
-{-# LANGUAGE ConstraintKinds  #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE TypeFamilies     #-}
 module Diagrams.TwoD.Deform where
 
-import           Control.Lens
+import Control.Lens
 
-import           Diagrams.Deform
-
-import           Diagrams.Coordinates
-import           Diagrams.TwoD.Types
+import Diagrams.Deform
+import Diagrams.TwoD.Types
 
 -- | The parallel projection onto the line x=0
 parallelX0 :: Floating n => Deformation V2 n

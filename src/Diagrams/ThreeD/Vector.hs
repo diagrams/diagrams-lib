@@ -16,15 +16,15 @@ module Diagrams.ThreeD.Vector
          unitX, unitY, unitZ, unit_X, unit_Y, unit_Z, unit, unit_
        ) where
 
-import           Diagrams.Coordinates
-import           Diagrams.TwoD.Vector
+import Diagrams.TwoD.Vector
+import Diagrams.ThreeD.Types
 
 import Linear.Vector hiding (unit)
 
 -- | The unit vector in the positive Y direction.
-unitZ :: (HasZ v, Additive v, Floating n) => v n
+unitZ :: (R3 v, Additive v, Num n) => v n
 unitZ = unit _y
 
 -- | The unit vector in the negative X direction.
-unit_Z :: (HasZ v, Additive v, Floating n) => v n
+unit_Z :: (R3 v, Additive v, Num n) => v n
 unit_Z = unit_ _z

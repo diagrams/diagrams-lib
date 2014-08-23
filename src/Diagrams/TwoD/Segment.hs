@@ -23,24 +23,23 @@
 
 module Diagrams.TwoD.Segment where
 
-import           Control.Applicative     (liftA2)
-import           Control.Lens            ((^.))
+import Control.Applicative (liftA2)
+import Control.Lens        ((^.))
 
-import           Diagrams.Core
+import Diagrams.Core
 
-import           Diagrams.Angle
-import           Diagrams.Located
-import           Diagrams.Parametric
-import           Diagrams.Segment
-import           Diagrams.Solve
-import           Diagrams.TwoD.Transform
-import           Diagrams.TwoD.Types
-import           Diagrams.TwoD.Vector
-import           Diagrams.Util
+import Diagrams.Angle
+import Diagrams.Located
+import Diagrams.Parametric
+import Diagrams.Segment
+import Diagrams.Solve
+import Diagrams.TwoD.Transform
+import Diagrams.TwoD.Types
+import Diagrams.Util
 
 import Linear.Affine
-import Linear.Vector
 import Linear.Metric
+import Linear.Vector
 
 {- All instances of Traced should maintain the invariant that the list of
    traces is sorted in increasing order.

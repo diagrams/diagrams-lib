@@ -61,9 +61,8 @@ import           Diagrams.TwoD.Types
 import           Control.Lens            (review, (^.), (*~), (//~), (&), (.~))
 import           Data.Semigroup
 
-import Diagrams.Coordinates
-import Linear.Vector
 import Linear.Affine
+import Linear.Vector
 
 
 
@@ -116,25 +115,25 @@ rotateAbout p angle = rotate angle `under` translation (origin .-. p)
 
 -- | Construct a transformation which scales by the given factor in
 --   the x (horizontal) direction.
-scalingX :: (HasX v, Additive v, Floating n) => n -> Transformation v n
+scalingX :: (R1 v, Additive v, Floating n) => n -> Transformation v n
 scalingX c = fromLinear s s
   where s = (_x *~ c) <-> (_x //~ c)
 
 -- | Scale a diagram by the given factor in the x (horizontal)
 --   direction.  To scale uniformly, use 'scale'.
-scaleX :: (Vn t ~ v n, Transformable t, HasX v, Additive v, Floating n)
+scaleX :: (Vn t ~ v n, Transformable t, R1 v, Additive v, Floating n)
   => n -> t -> t
 scaleX = transform . scalingX
 
 -- | Construct a transformation which scales by the given factor in
 --   the y (vertical) direction.
-scalingY :: (HasY v, Additive v, Floating n) => n -> Transformation v n
+scalingY :: (R2 v, Additive v, Floating n) => n -> Transformation v n
 scalingY c = fromLinear s s
   where s = (_y *~ c) <-> (_y //~ c)
 
 -- | Scale a diagram by the given factor in the y (vertical)
 --   direction.  To scale uniformly, use 'scale'.
-scaleY :: (Vn t ~ v n, Transformable t, HasY v, Additive v, Floating n)
+scaleY :: (Vn t ~ v n, Transformable t, R2 v, Additive v, Floating n)
   => n -> t -> t
 scaleY = transform . scalingY
 
@@ -168,23 +167,23 @@ scaleUToY h d = scale (h / height d) d
 
 -- | Construct a transformation which translates by the given distance
 --   in the x (horizontal) direction.
-translationX :: (HasX v, Additive v, Floating n) => n -> Transformation v n
+translationX :: (R1 v, Additive v, Floating n) => n -> Transformation v n
 translationX x = translation (zero & _x .~ x)
 
 -- | Translate a diagram by the given distance in the x (horizontal)
 --   direction.
-translateX :: (Vn t ~ v n, Transformable t, HasX v, Additive v, Floating n)
+translateX :: (Vn t ~ v n, Transformable t, R1 v, Additive v, Floating n)
   => n -> t -> t
 translateX = transform . translationX
 
 -- | Construct a transformation which translates by the given distance
 --   in the y (vertical) direction.
-translationY :: (HasY v, Additive v, Floating n) => n -> Transformation v n
+translationY :: (R2 v, Additive v, Floating n) => n -> Transformation v n
 translationY y = translation (zero & _y .~ y)
 
 -- | Translate a diagram by the given distance in the y (vertical)
 --   direction.
-translateY :: (Vn t ~ v n, Transformable t, HasY v, Additive v, Floating n)
+translateY :: (Vn t ~ v n, Transformable t, R2 v, Additive v, Floating n)
   => n -> t -> t
 translateY = transform . translationY
 
@@ -192,22 +191,22 @@ translateY = transform . translationY
 
 -- | Construct a transformation which flips a diagram from left to
 --   right, i.e. sends the point (x,y) to (-x,y).
-reflectionX :: (HasX v, Additive v, Floating n) => Transformation v n
+reflectionX :: (R1 v, Additive v, Floating n) => Transformation v n
 reflectionX = scalingX (-1)
 
 -- | Flip a diagram from left to right, i.e. send the point (x,y) to
 --   (-x,y).
-reflectX :: (Vn t ~ v n, Transformable t, HasX v, Additive v, Floating n) => t -> t
+reflectX :: (Vn t ~ v n, Transformable t, R1 v, Additive v, Floating n) => t -> t
 reflectX = transform reflectionX
 
 -- | Construct a transformation which flips a diagram from top to
 --   bottom, i.e. sends the point (x,y) to (x,-y).
-reflectionY :: (HasY v, Additive v, Floating n) => Transformation v n
+reflectionY :: (R2 v, Additive v, Floating n) => Transformation v n
 reflectionY = scalingY (-1)
 
 -- | Flip a diagram from top to bottom, i.e. send the point (x,y) to
 --   (x,-y).
-reflectY :: (Vn t ~ v n, Transformable t, HasY v, Additive v, Floating n)
+reflectY :: (Vn t ~ v n, Transformable t, R2 v, Additive v, Floating n)
   => t -> t
 reflectY = transform reflectionY
 

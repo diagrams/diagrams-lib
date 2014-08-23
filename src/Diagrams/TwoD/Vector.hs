@@ -28,9 +28,8 @@ import           Diagrams.Angle
 import           Diagrams.Direction
 
 import Linear.Vector hiding (unit)
-import Linear.V2 hiding (_x,_y)
+import Diagrams.TwoD.Types
 import Linear.Metric
-import Diagrams.Coordinates
 
 unit :: (Additive v, Num n) => ASetter' (v n) n -> v n
 unit l = set' l 1 zero
@@ -40,29 +39,29 @@ unit_ l = set' l (-1) zero
 
 
 -- | The unit vector in the positive X direction.
-unitX :: (HasX v, Additive v, Floating n) => v n
+unitX :: (R1 v, Additive v, Num n) => v n
 unitX = unit _x
 
 -- | The unit vector in the positive Y direction.
-unitY :: (HasY v, Additive v, Floating n) => v n
+unitY :: (R2 v, Additive v, Num n) => v n
 unitY = unit _y
 
 -- | The unit vector in the negative X direction.
-unit_X :: (HasX v, Additive v, Floating n) => v n
+unit_X :: (R1 v, Additive v, Num n) => v n
 unit_X = unit_ _x
 
 -- | The unit vector in the negative Y direction.
-unit_Y :: (HasY v, Additive v, Floating n) => v n
+unit_Y :: (R2 v, Additive v, Num n) => v n
 unit_Y = unit_ _y
 
 -- | The origin of the direction AffineSpace.  For all d, @d .-. xDir
 -- = d^._theta@.
-xDir :: (HasX v, Additive v, Floating n) => Direction v n
+xDir :: (R1 v, Additive v, Num n) => Direction v n
 xDir = direction unitX
 
 -- | A unit vector at a specified angle counterclockwise from the
 -- positive X axis.
-e :: (HasTheta v, HasX v, Additive v, RealFloat n) => Angle n -> v n
+e :: (HasTheta v, R1 v, Additive v, RealFloat n) => Angle n -> v n
 e a = unitX & _theta .~ a
 
 -- -- | @perp v@ is perpendicular to and has the same magnitude as @v@.

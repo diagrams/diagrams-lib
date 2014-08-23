@@ -17,7 +17,7 @@ module Diagrams.Coordinates
     ( (:&)(..), Coordinates(..)
 
     -- * Lenses for particular axes
-    , HasX(..), HasY(..), HasZ(..), HasR(..)
+    , HasR(..)
     )
     where
 
@@ -146,32 +146,8 @@ instance Coordinates (V4 n) where
   V3 x y z ^& w       = V4 x y z w
   coords (V4 x y z w) = x :& y :& z :& w
 
--- | The class of types with at least one coordinate, called _x.
-class HasX t where
-  _x :: Floating n => Lens' (t n) n
-
--- | The class of types with at least two coordinates, the second called _y.
-class HasX t => HasY t where
-  _y :: Floating n => Lens' (t n) n
-
--- | The class of types with at least three coordinates, the third called _z.
-class HasY t => HasZ t where
-  _z :: Floating n => Lens' (t n) n
-
 -- | The class of types with a single length coordinate _r.  _r is
 -- magnitude of a vector, or the distance from the origin of a point.
 class HasR t where
     _r :: Lens' (t n) n
-
-instance HasX v => HasX (Point v) where
-    _x = lensP . _x
-
-instance HasY v => HasY (Point v) where
-    _y = lensP . _y
-
-instance HasZ v => HasZ (Point v) where
-    _z = lensP . _z
-
-instance HasR v => HasR (Point v) where
-    _r = lensP . _r
 

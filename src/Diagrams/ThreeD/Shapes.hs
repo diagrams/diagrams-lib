@@ -2,9 +2,9 @@
 {-# LANGUAGE DeriveDataTypeable    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
-{-# LANGUAGE RankNTypes  #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.ThreeD.Shapes
@@ -23,21 +23,20 @@ module Diagrams.ThreeD.Shapes
        , Frustum(..) , frustum, cone, cylinder
        ) where
 
-import           Control.Applicative
-import           Control.Lens           (review, (^.), _1)
-import           Data.Typeable
+import Control.Applicative
+import Control.Lens        (review, (^.), _1)
+import Data.Typeable
 
-import           Data.Semigroup
-import           Diagrams.Angle
-import           Diagrams.Coordinates
-import           Diagrams.Core
-import           Diagrams.Solve
-import           Diagrams.ThreeD.Types
-import           Diagrams.ThreeD.Vector
+import Data.Semigroup
+import Diagrams.Angle
+import Diagrams.Core
+import Diagrams.Solve
+import Diagrams.ThreeD.Types
+import Diagrams.ThreeD.Vector
 
 import Linear.Affine
-import Linear.Vector
 import Linear.Metric
+import Linear.Vector
 
 data Ellipsoid n = Ellipsoid (Transformation V3 n)
   deriving Typeable
@@ -68,7 +67,7 @@ sphere = mkQD (Prim $ Ellipsoid mempty)
     sphereQuery v = Any $ quadrance (v .-. origin) <= 1
 
 data Box n = Box (Transformation V3 n)
-         deriving (Typeable)
+  deriving Typeable
 
 type instance V (Box n) = V3
 type instance N (Box n) = n
