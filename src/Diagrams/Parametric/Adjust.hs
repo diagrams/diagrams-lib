@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE TypeFamilies #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Parametric.Adjust
@@ -21,14 +21,14 @@ module Diagrams.Parametric.Adjust
 
     ) where
 
-import           Control.Lens        (Lens', generateSignatures, lensField, lensRules,
-                                      makeLensesWith, (&), (.~), (^.))
-import           Data.Proxy
+import Control.Lens (Lens', generateSignatures, lensRules,
+                     makeLensesWith, (&), (.~), (^.))
+import Data.Proxy
 
-import           Data.Default.Class
+import Data.Default.Class
 
-import           Diagrams.Core.V
-import           Diagrams.Parametric
+import Diagrams.Core.V
+import Diagrams.Parametric
 
 -- | What method should be used for adjusting a segment, trail, or
 --   path?
@@ -46,23 +46,13 @@ data AdjustSide = Start  -- ^ Adjust only the beginning
   deriving (Show, Read, Eq, Ord, Bounded, Enum)
 
 -- | How should a segment, trail, or path be adjusted?
-data AdjustOpts v n = AO { _adjMethod       :: AdjustMethod n
-                         , _adjSide         :: AdjustSide
-                         , _adjEps          :: n
-                         , _adjOptsvProxy__ :: Proxy (v n)
+data AdjustOpts v n = AO { _adjMethod    :: AdjustMethod n
+                         , _adjSide      :: AdjustSide
+                         , _adjEps       :: n
+                         , adjOptsvProxy :: Proxy (v n)
                          }
 
-makeLensesWith
-  ( lensRules
-    -- don't make a lens for the proxy field
-    & lensField .~ (\label ->
-        case label of
-          "_adjOptsvProxy__" -> Nothing
-          _ -> Just (drop 1 label)
-        )
-    & generateSignatures .~ False
-  )
-  ''AdjustOpts
+makeLensesWith (lensRules & generateSignatures .~ False) ''AdjustOpts
 
 -- | Which method should be used for adjusting?
 adjMethod :: Lens' (AdjustOpts v n) (AdjustMethod n)
@@ -80,7 +70,11 @@ instance Default AdjustSide where
   def = Both
 
 instance Fractional n => Default (AdjustOpts v n) where
-  def = AO def def stdTolerance Proxy
+  def = AO { _adjMethod    = def
+           , _adjSide      = def
+           , _adjEps       = stdTolerance
+           , adjOptsvProxy = Proxy
+           }
 
 -- | Adjust the length of a parametric object such as a segment or
 --   trail.  The second parameter is an option record which controls how

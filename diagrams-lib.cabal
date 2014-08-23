@@ -102,7 +102,7 @@ Library
                        data-default-class < 0.1,
                        fingertree >= 0.1 && < 0.2,
                        intervals >= 0.7 && < 0.8,
-                       lens >= 4.0 && < 4.4,
+                       lens >= 4.0 && < 4.5,
                        tagged >= 0.7,
                        optparse-applicative >= 0.7 && < 0.10,
                        filepath,

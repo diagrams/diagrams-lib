@@ -41,7 +41,7 @@ module Diagrams.Combinators
 
 import           Data.Typeable
 
-import           Control.Lens          (Lens', generateSignatures, lensField, lensRules,
+import           Control.Lens          (Lens', generateSignatures, lensRules,
                                         makeLensesWith, (%~), (&), (.~), (^.), _Wrapping)
 import           Data.Default.Class
 import           Data.Monoid.Deletable (toDeletable)
@@ -288,9 +288,9 @@ data CatMethod = Cat     -- ^ Normal catenation: simply put diagrams
                          --   of separation, diagrams may overlap.
 
 -- | Options for 'cat''.
-data CatOpts n = CatOpts { _catMethod       :: CatMethod
-                         , _sep             :: n
-                         , _catOptsvProxy__ :: Proxy n
+data CatOpts n = CatOpts { _catMethod    :: CatMethod
+                         , _sep          :: n
+                         , catOptsvProxy :: Proxy n
                          }
 
 -- The reason the proxy field is necessary is that without it,
@@ -304,17 +304,7 @@ data CatOpts n = CatOpts { _catMethod       :: CatMethod
 -- this is not a problem when using the 'sep' lens, as its type is
 -- more restricted.
 
-makeLensesWith
-  ( lensRules
-    -- don't make a lens for the proxy field
-    & lensField .~ (\label ->
-        case label of
-          "_catOptsvProxy__" -> Nothing
-          _ -> Just (drop 1 label)
-        )
-    & generateSignatures .~ False
-  )
-  ''CatOpts
+makeLensesWith (lensRules & generateSignatures .~ False) ''CatOpts
 
 -- | Which 'CatMethod' should be used:
 --   normal catenation (default), or distribution?
@@ -327,9 +317,9 @@ catMethod :: forall n. Lens' (CatOpts n) CatMethod
 sep :: forall n. Lens' (CatOpts n) n
 
 instance Num n => Default (CatOpts n) where
-  def = CatOpts { _catMethod       = Cat
-                , _sep             = 0
-                , _catOptsvProxy__ = Proxy
+  def = CatOpts { _catMethod    = Cat
+                , _sep          = 0
+                , catOptsvProxy = Proxy
                 }
 
 -- | @cat v@ positions a list of objects so that their local origins

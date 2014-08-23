@@ -1,13 +1,10 @@
-{-# LANGUAGE ConstraintKinds           #-}
-{-# LANGUAGE DeriveFunctor             #-}
-{-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE FlexibleContexts          #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
-{-# LANGUAGE StandaloneDeriving        #-}
-{-# LANGUAGE TemplateHaskell           #-}
-{-# LANGUAGE TypeFamilies              #-}
-{-# LANGUAGE UndecidableInstances      #-}
-{-# LANGUAGE ViewPatterns              #-}
+{-# LANGUAGE ConstraintKinds     #-}
+{-# LANGUAGE DeriveFunctor       #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE TypeFamilies        #-}
+{-# LANGUAGE ViewPatterns        #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -49,34 +46,34 @@ module Diagrams.TwoD.Polygons(
 
     ) where
 
-import           Control.Lens            (Lens', generateSignatures, lensRules, makeLensesWith,
-                                          view, (.~), (^.))
-import           Control.Monad           (forM, liftM)
-import           Control.Monad.ST        (ST, runST)
-import           Data.Array.ST           (STUArray, newArray, readArray, writeArray)
-import           Data.List               (maximumBy, minimumBy)
-import           Data.Maybe              (catMaybes)
-import           Data.Monoid             (mconcat, mempty)
-import           Data.Ord                (comparing)
+import Control.Lens     (Lens', generateSignatures, lensRules,
+                         makeLensesWith, view, (.~), (^.))
+import Control.Monad    (forM, liftM)
+import Control.Monad.ST (ST, runST)
+import Data.Array.ST    (STUArray, newArray, readArray, writeArray)
+import Data.List        (maximumBy, minimumBy)
+import Data.Maybe       (catMaybes)
+import Data.Monoid      (mconcat, mempty)
+import Data.Ord         (comparing)
 
-import           Data.Default.Class
+import Data.Default.Class
 
-import           Diagrams.Angle
-import           Diagrams.Core
-import           Diagrams.Located
-import           Diagrams.Path
-import           Diagrams.Points         (centroid)
-import           Diagrams.Trail
-import           Diagrams.TrailLike
-import           Diagrams.TwoD.Transform
-import           Diagrams.TwoD.Types
-import           Diagrams.TwoD.Vector    (leftTurn, unitX, unitY, unit_Y)
-import           Diagrams.Util           (tau, ( # ))
+import Diagrams.Angle
+import Diagrams.Core
+import Diagrams.Located
+import Diagrams.Path
+import Diagrams.Points         (centroid)
+import Diagrams.Trail
+import Diagrams.TrailLike
+import Diagrams.TwoD.Transform
+import Diagrams.TwoD.Types
+import Diagrams.TwoD.Vector    (leftTurn, unitX, unitY, unit_Y)
+import Diagrams.Util           (tau, ( # ))
 
 import Linear.Affine
-import Linear.Vector
-import Linear.Metric
 import Linear.Epsilon
+import Linear.Metric
+import Linear.Vector
 
 -- | Method used to determine the vertices of a polygon.
 data PolyType n = PolyPolar [Angle n] [n]
