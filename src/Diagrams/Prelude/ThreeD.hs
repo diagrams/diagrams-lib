@@ -112,9 +112,9 @@ module Diagrams.Prelude.ThreeD
          --   Data.Semigroup and Data.Monoid often come in handy.
        , module Data.Semigroup
          -- | For computing with vectors.
-       , module Data.VectorSpace
+       , module Linear.Vector
          -- | For computing with points and vectors.
-       , module Data.AffineSpace
+       , module Linear.Affine
 
          -- | For working with 'Active' (i.e. animated) things.
        , module Data.Active
@@ -156,8 +156,9 @@ import           Diagrams.Util
 import           Control.Applicative
 import           Control.Lens               ((%~), (&), (.~))
 import           Data.Active
-import           Data.AffineSpace
 import           Data.Colour                hiding (AffineSpace (..), atop, over)
 import           Data.Colour.Names          hiding (tan)
 import           Data.Semigroup
-import           Data.VectorSpace           hiding (Sum (..))
+
+import Linear.Affine
+import Linear.Vector hiding (unit)

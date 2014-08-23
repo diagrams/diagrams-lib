@@ -36,7 +36,7 @@ import           Diagrams.Core
 import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector
 
-import           Control.Applicative  (liftA2, (<$>))
+import           Control.Applicative
 import           Control.Arrow        ((&&&), (***))
 import           Data.Hashable        (Hashable)
 import           GHC.Generics         (Generic)

@@ -27,14 +27,18 @@ import           Diagrams.Core
 import           Diagrams.TwoD.Attributes (lineTextureA, lineWidthA)
 import           Diagrams.TwoD.Size       (SizeSpec2D (..), center2D, requiredScale, size2D)
 import           Diagrams.TwoD.Text       (fontSizeA)
-import           Diagrams.TwoD.Types      (R2Ish, R2D, p2)
+import           Diagrams.TwoD.Types
 import           Diagrams.Util            (( # ))
 
-import           Control.Lens             (Lens', (&), (.~), (^.))
-import           Data.AffineSpace         ((.-.))
+import           Control.Lens             (Lens', (&), (.~), (^.), over, both)
 import           Data.Default.Class
 import           Data.Semigroup
-import           Data.VectorSpace         (Scalar)
+
+import Data.Data
+import Linear.Affine
+import Linear.Epsilon
+
+type TypeableFloat n = (Data n, Typeable n, RealFloat n, Epsilon n)
 
 -- | Set default attributes of a 2D diagram (in case they have not
 --   been set):
@@ -50,7 +54,7 @@ import           Data.VectorSpace         (Scalar)
 --       * line join miter
 --
 --       * Miter limit 10
-setDefault2DAttributes :: (Semigroup m, R2D v) => QDiagram b v m -> QDiagram b v m
+setDefault2DAttributes :: (TypeableFloat n, Semigroup m) => QDiagram b V2 n m -> QDiagram b V2 n m
 setDefault2DAttributes d = d # lineWidthA def # lineTextureA def # fontSizeA def
                              # lineCap def # lineJoin def # lineMiterLimitA def
 
@@ -62,14 +66,14 @@ setDefault2DAttributes d = d # lineWidthA def # lineTextureA def # fontSizeA def
 --   inverse of which can be used, say, to translate output/device
 --   coordinates back into local diagram coordinates), and the
 --   modified diagram itself.
-adjustDiaSize2D :: (Monoid' m, R2Ish v)
-                => Lens' (Options b v) (SizeSpec2D (Scalar v))
-                -> b -> Options b v -> QDiagram b v m
-                -> (Options b v, Transformation v, QDiagram b v m)
+adjustDiaSize2D :: (TypeableFloat n, Monoid' m)
+                => Lens' (Options b V2 n) (SizeSpec2D n)
+                -> b -> Options b V2 n -> QDiagram b V2 n m
+                -> (Options b V2 n, Transformation V2 n, QDiagram b V2 n m)
 adjustDiaSize2D szL _ opts d =
   ( case spec of
-     Dims _ _ -> opts
-     _        -> opts & szL .~ (uncurry Dims . scale s $ size)
+      Dims _ _ -> opts
+      _        -> opts & szL .~ (uncurry Dims . over both (*s) $ size)
   , adjustT
   , d # transform adjustT
   )
@@ -78,7 +82,7 @@ adjustDiaSize2D szL _ opts d =
         s    = requiredScale spec size
         finalSz = case spec of
                     Dims w h -> (w,h)
-                    _        -> scale s size
+                    _        -> over both (*s) size
         tr = (0.5 *. p2 finalSz) .-. (s *. center2D d)
         adjustT = translation tr <> scaling s
 
@@ -99,10 +103,10 @@ adjustDiaSize2D szL _ opts d =
 --   to the diagram (the inverse of which can be used, say, to
 --   translate output/device coordinates back into local diagram
 --   coordinates), and the modified diagram itself.
-adjustDia2D :: (Monoid' m, R2D v)
-            => Lens' (Options b v) (SizeSpec2D (Scalar v))
-            -> b -> Options b v -> QDiagram b v m
-            -> (Options b v, Transformation v, QDiagram b v m)
+adjustDia2D :: (TypeableFloat n, Monoid' m)
+            => Lens' (Options b V2 n) (SizeSpec2D n)
+            -> b -> Options b V2 n -> QDiagram b V2 n m
+            -> (Options b V2 n, Transformation V2 n, QDiagram b V2 n m)
 adjustDia2D szL b opts d
   = adjustDiaSize2D szL b opts (d # setDefault2DAttributes)
 

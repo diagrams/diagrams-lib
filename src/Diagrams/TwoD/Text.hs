@@ -40,12 +40,12 @@ import           Diagrams.Core.Envelope   (pointEnvelope)
 import           Diagrams.TwoD.Attributes (recommendFillColor)
 import           Diagrams.TwoD.Types
 
-import           Data.AffineSpace         ((.-.))
 import           Data.Colour
 import           Data.Data
 import           Data.Default.Class
 import           Data.Semigroup
-import           Data.VectorSpace
+
+import Linear.Affine
 
 ------------------------------------------------------------
 -- Text diagrams
@@ -57,12 +57,13 @@ import           Data.VectorSpace
 --   text; the second accumulates normalized, "anti-scaled" versions
 --   of the transformations which have had their average scaling
 --   component removed.
-data Text v = Text (Transformation v) (Transformation v) (TextAlignment (Scalar v)) String
+data Text n = Text (Transformation V2 n) (Transformation V2 n) (TextAlignment n) String
   deriving Typeable
 
-type instance V (Text v) = v
+type instance V (Text n) = V2
+type instance N (Text n) = n
 
-instance (R2Ish v) => Transformable (Text v) where
+instance Floating n => Transformable (Text n) where
   transform t (Text tt tn a s) = Text (t <> tt) (t <> tn <> t') a s
     where
       t' = scaling (1 / avgScale t)
@@ -70,16 +71,17 @@ instance (R2Ish v) => Transformable (Text v) where
       -- followed by the old transformation tn and then the new
       -- transformation t.  That way translation is handled properly.
 
-instance (R2Ish v) => HasOrigin (Text v) where
+instance Floating n => HasOrigin (Text n) where
   moveOriginTo p = translate (origin .-. p)
 
-instance (R2Ish v) => Renderable (Text v) NullBackend where
+instance Floating n => Renderable (Text n) NullBackend where
   render _ _ = mempty
 
 -- | @TextAlignment@ specifies the alignment of the text's origin.
 data TextAlignment d = BaselineText | BoxAlignedText d d
 
-mkText :: (R2Ish v, Renderable (Text v) b) => TextAlignment (Scalar v) -> String -> Diagram b v
+mkText :: (OrderedField n, Typeable n, Renderable (Text n) b)
+  => TextAlignment n -> String -> Diagram b V2 n
 mkText a t = recommendFillColor (black :: Colour Double)
              -- See Note [recommendFillColor]
 
@@ -116,7 +118,7 @@ mkText a t = recommendFillColor (black :: Colour Double)
 --
 --   Note that it /takes up no space/, as text size information is not
 --   available.
-text :: (R2Ish v, Renderable (Text v) b) => String -> Diagram b v
+text :: (OrderedField n, Typeable n) => (Renderable (Text n) b) => String -> Diagram b V2 n
 text = alignedText 0.5 0.5
 
 -- | Create a primitive text diagram from the given string, origin at
@@ -124,7 +126,7 @@ text = alignedText 0.5 0.5
 --   @'alignedText' 0 1@.
 --
 --   Note that it /takes up no space/.
-topLeftText :: (R2Ish v, Renderable (Text v) b) => String -> Diagram b v
+topLeftText :: (OrderedField n, Typeable n) => (Renderable (Text n) b) => String -> Diagram b V2 n
 topLeftText = alignedText 0 1
 
 -- | Create a primitive text diagram from the given string, with the
@@ -136,7 +138,8 @@ topLeftText = alignedText 0 1
 --   and descent, rather than the height of the particular string.
 --
 --   Note that it /takes up no space/.
-alignedText :: (R2Ish v, Renderable (Text v) b) => Scalar v -> Scalar v -> String -> Diagram b v
+alignedText :: (OrderedField n, Typeable n, Renderable (Text n) b)
+  => n -> n -> String -> Diagram b V2 n
 alignedText w h = mkText (BoxAlignedText w h)
 
 -- | Create a primitive text diagram from the given string, with the
@@ -145,7 +148,8 @@ alignedText w h = mkText (BoxAlignedText w h)
 --   graphics library.
 --
 --   Note that it /takes up no space/.
-baselineText :: (R2Ish v, Renderable (Text v) b) => String -> Diagram b v
+baselineText :: (OrderedField n, Typeable n, Renderable (Text n) b)
+  => String -> Diagram b V2 n
 baselineText = mkText BaselineText
 
 ------------------------------------------------------------
@@ -174,19 +178,21 @@ font = applyAttr . Font . Last
 
 -- | The @FontSize@ attribute specifies the size of a font's
 --   em-square.  Inner @FontSize@ attributes override outer ones.
-newtype FontSize v = FontSize (Last (Measure v, Bool))
+newtype FontSize n = FontSize (Last (Measure n, Bool))
   deriving (Typeable, Semigroup)
-deriving instance (Data (Scalar v), Data v) => Data (FontSize v)
-instance (Typeable v) => AttributeClass (FontSize v)
+
+deriving instance Data n => Data (FontSize n)
+instance Typeable n      => AttributeClass (FontSize n)
 
 -- Note, the Bool stored in the FontSize indicates whether it started
 -- life as Local.  Typically, if the Bool is True, backends should use
 -- the first (Transformation v) value stored in a Text object; otherwise, the second
 -- (anti-scaled) (Transformation v) value should be used.
 
-type instance V (FontSize v) = v
+type instance V (FontSize n) = V2
+type instance N (FontSize n) = n
 
-instance (R2Ish v) => Default (FontSize v) where
+instance Num n => Default (FontSize n) where
     def = FontSize (Last (Local 1, True))
 
 -- FontSize has to be Transformable + also have an instance of Data,
@@ -194,43 +200,43 @@ instance (R2Ish v) => Default (FontSize v) where
 -- However, we don't actually want the Transformable instance to do
 -- anything.  All the scaling of text happens not by manipulating the
 -- font size but by accumulating (Transformation v) values in Text objects.
-instance (R2Ish v) => Transformable (FontSize v) where
+instance Transformable (FontSize n) where
   transform _ f = f
 
 -- | Extract the size from a @FontSize@ attribute.
-getFontSize :: FontSize v -> Measure v
+getFontSize :: FontSize n -> Measure n
 getFontSize (FontSize (Last (s,_))) = s
 
 -- | Determine whether a @FontSize@ attribute began its life measured
 --   in 'Local' units.
-getFontSizeIsLocal :: FontSize v -> Bool
+getFontSizeIsLocal :: FontSize n -> Bool
 getFontSizeIsLocal (FontSize (Last (_,b))) = b
 
 -- | Set the font size, that is, the size of the font's em-square as
 --   measured within the current local vector space.  The default size
 --   is @1@.
-fontSize :: (R2D v, HasStyle a, V a ~ v) => Measure v -> a -> a
+fontSize :: (Data n, HasStyle a, Vn a ~ V2 n) => Measure n -> a -> a
 fontSize m@(Local {}) = applyGTAttr . FontSize . Last $ (m,True)
 fontSize m            = applyGTAttr . FontSize . Last $ (m,False)
 
 -- | A convenient synonym for 'fontSize (Global w)'.
-fontSizeG :: (R2D v, HasStyle a, V a ~ v) => Scalar v -> a -> a
+fontSizeG :: (Data n, HasStyle a, Vn a ~ V2 n) => n -> a -> a
 fontSizeG w = fontSize (Global w)
 
 -- | A convenient synonym for 'fontSize (Normalized w)'.
-fontSizeN :: (R2D v, HasStyle a, V a ~ v) => Scalar v -> a -> a
+fontSizeN :: (Data n, HasStyle a, Vn a ~ V2 n) => n -> a -> a
 fontSizeN w = fontSize (Normalized w)
 
 -- | A convenient synonym for 'fontSize (Output w)'.
-fontSizeO :: (R2D v, HasStyle a, V a ~ v) => Scalar v -> a -> a
+fontSizeO :: (Data n, HasStyle a, Vn a ~ V2 n) => n -> a -> a
 fontSizeO w = fontSize (Output w)
 
 -- | A convenient sysnonym for 'fontSize (Local w)'.
-fontSizeL :: (R2D v, HasStyle a, V a ~ v) => Scalar v -> a -> a
+fontSizeL :: (Data n, HasStyle a, Vn a ~ V2 n) => n -> a -> a
 fontSizeL w = fontSize (Local w)
 
 -- | Apply a 'FontSize' attribute.
-fontSizeA :: (R2D v, HasStyle a, V a ~ v) => FontSize v -> a -> a
+fontSizeA :: (Data n, HasStyle a, Vn a ~ V2 n) => FontSize n -> a -> a
 fontSizeA = applyGTAttr
 
 --------------------------------------------------
@@ -239,7 +245,7 @@ fontSizeA = applyGTAttr
 data FontSlant = FontSlantNormal
                | FontSlantItalic
                | FontSlantOblique
-    deriving (Eq)
+    deriving (Eq, Show)
 
 -- | The @FontSlantA@ attribute specifies the slant (normal, italic,
 --   or oblique) that should be used for all text within a diagram.
@@ -271,7 +277,7 @@ oblique = fontSlant FontSlantOblique
 
 data FontWeight = FontWeightNormal
                 | FontWeightBold
-    deriving (Eq)
+    deriving (Eq, Show)
 
 -- | The @FontWeightA@ attribute specifies the weight (normal or bold)
 --   that should be used for all text within a diagram.  Inner

@@ -88,7 +88,6 @@ import           Data.Colour
 import           Data.Colour.Names
 import           Data.Colour.SRGB
 import           Data.Data
-import           Data.List           (intercalate)
 import           Data.Monoid
 
 import           Numeric
@@ -339,30 +338,30 @@ class ToResult d where
 
 -- | A diagram can always produce a diagram when given @()@ as an argument.
 --   This is our base case.
-instance ToResult (Diagram b v) where
-    type Args (Diagram b v) = ()
-    type ResultOf (Diagram b v) = Diagram b v
+instance ToResult (Diagram b v n) where
+    type Args (Diagram b v n) = ()
+    type ResultOf (Diagram b v n) = Diagram b v n
 
     toResult d _ = d
 
 -- | A list of diagrams can produce pages.
-instance ToResult [Diagram b v] where
-   type Args [Diagram b v] = ()
-   type ResultOf [Diagram b v] = [Diagram b v]
+instance ToResult [Diagram b v n] where
+   type Args [Diagram b v n] = ()
+   type ResultOf [Diagram b v n] = [Diagram b v n]
 
    toResult ds _ = ds
 
 -- | A list of named diagrams can give the multi-diagram interface.
-instance ToResult [(String,Diagram b v)] where
-   type Args [(String,Diagram b v)]  = ()
-   type ResultOf [(String,Diagram b v)] = [(String,Diagram b v)]
+instance ToResult [(String, Diagram b v n)] where
+   type Args [(String,Diagram b v n)]  = ()
+   type ResultOf [(String,Diagram b v n)] = [(String,Diagram b v n)]
 
    toResult ds _ = ds
 
 -- | An animation is another suitable base case.
-instance ToResult (Animation b v) where
-   type Args (Animation b v) = ()
-   type ResultOf (Animation b v) = Animation b v
+instance ToResult (Animation b v n) where
+   type Args (Animation b v n) = ()
+   type ResultOf (Animation b v n) = Animation b v n
 
    toResult a _ = a
 
@@ -468,11 +467,11 @@ instance Mainable d => Mainable (IO d) where
 --   specifying the name of the diagram that should be rendered.  The list of
 --   available diagrams may also be printed by passing the option @--list@.
 --
---   Typically a backend can write its @[(String,Diagram B V)]@ instance as
+--   Typically a backend can write its @[(String,Diagram b v n)]@ instance as
 --
 --   @
---   instance Mainable [(String,Diagram B V)] where
---       type MainOpts [(String,Diagram B V)] = (DiagramOpts, DiagramMultiOpts)
+--   instance Mainable [(String,Diagram b v n)] where
+--       type MainOpts [(String,Diagram b v n)] = (DiagramOpts, DiagramMultiOpts)
 --       mainRender = defaultMultiMainRender
 --   @
 --
@@ -492,7 +491,7 @@ defaultMultiMainRender (opts,multi) ds =
 showDiaList :: [String] -> IO ()
 showDiaList ds = do
   putStrLn "Available diagrams:"
-  putStrLn $ "  " ++ intercalate " " ds
+  putStrLn $ "  " ++ unwords ds
 
 -- | @defaultAnimMainRender@ is an implementation of 'mainRender' which renders
 --   an animation as numbered frames, named by extending the given output file
@@ -510,7 +509,7 @@ showDiaList ds = do
 --   be output for each second (unit time) of animation.
 --
 --   This function requires a lens into the structure that the particular backend
---   uses for it's diagram base case.  If @MainOpts (Diagram b v) ~ DiagramOpts@
+--   uses for it's diagram base case.  If @MainOpts (Diagram b v n) ~ DiagramOpts@
 --   then this lens will simply be 'output'.  For a backend supporting looping
 --   it will most likely be @_1 . output@.  This lens is required because the
 --   implementation works by modifying the output field and running the base @mainRender@.
@@ -524,10 +523,10 @@ showDiaList ds = do
 --
 --   We do not provide this instance in general so that backends can choose to
 --   opt-in to this form or provide a different instance that makes more sense.
-defaultAnimMainRender :: (Mainable (Diagram b v))
-                      => (Lens' (MainOpts (Diagram b v)) FilePath) -- ^ A lens into the output path.
-                      -> (MainOpts (Diagram b v),DiagramAnimOpts)
-                      -> Animation b v
+defaultAnimMainRender :: (Mainable (Diagram b v n))
+                      => Lens' (MainOpts (Diagram b v n)) FilePath   -- ^ A lens into the output path.
+                      -> (MainOpts (Diagram b v n) ,DiagramAnimOpts)
+                      -> Animation b v n
                       -> IO ()
 defaultAnimMainRender out (opts,animOpts) anim = do
     let frames  = simulate (toRational $ animOpts^.fpu) anim
@@ -537,8 +536,9 @@ defaultAnimMainRender out (opts,animOpts) anim = do
 -- | @indexize d n@ adds the integer index @n@ to the end of the
 --   output file name, padding with zeros if necessary so that it uses
 --   at least @d@ digits.
-indexize :: Lens' s FilePath ->  Int -> Integer -> s -> s
+indexize :: Lens' s FilePath -> Int -> Integer -> s -> s
 indexize out nDigits i opts = opts & out .~ output'
   where fmt         = "%0" ++ show nDigits ++ "d"
         output'     = addExtension (base ++ printf fmt (i::Integer)) ext
         (base, ext) = splitExtension (opts^.out)
+
