@@ -202,7 +202,7 @@ instance (Metric v, OrderedField n, Real n) => Sectionable (SegTree v n) where
                                         , SegTree $ FT.singleton seg2
                                         )
     | otherwise = case FT.viewl after of
-                    EmptyL    -> emptySplit
+                    EmptyL        -> emptySplit
                     seg :< after' ->
                       case seg `splitAtParam` mod1 (p * tSegs) of
                         (seg1, seg2) -> ( SegTree $ before |> seg1

@@ -279,16 +279,16 @@ instance (Additive v, Fractional n) => Sectionable (Segment Closed v n) where
   splitAtParam (Linear (OffsetClosed x1)) t = (left, right)
     where left  = straight p
           right = straight (x1 ^-^ p)
-          p = lerp t zero  x1
+          p = lerp t x1 zero
   splitAtParam (Cubic c1 c2 (OffsetClosed x2)) t = (left, right)
     where left  = bezier3 a b e
           right = bezier3 (c ^-^ e) (d ^-^ e) (x2 ^-^ e)
-          p = lerp t c1    c2
-          a = lerp t zero  c1
-          b = lerp t a     p
-          d = lerp t c2    x2
-          c = lerp t p     d
-          e = lerp t b     c
+          p = lerp t c2 c1
+          a = lerp t c1 zero
+          b = lerp t p a
+          d = lerp t x2 c2
+          c = lerp t d p
+          e = lerp t c b
 
   reverseDomain = reverseSegment
 
@@ -392,16 +392,16 @@ fromFixedSeg (FCubic x1 c1 c2 x2) = bezier3 (c1 .-. x1) (c2 .-. x1) (x2 .-. x1) 
 type instance Codomain (FixedSegment v n) = Point v
 
 instance (Additive v, Num n) => Parametric (FixedSegment v n) where
-  atParam (FLinear p1 p2) t = lerp t p1 p2
+  atParam (FLinear p1 p2) t = lerp t p2 p1
   atParam (FCubic x1 c1 c2 x2) t = p3
-    where p11 = lerp t x1 c1
-          p12 = lerp t c1 c2
-          p13 = lerp t c2 x2
+    where p11 = lerp t c1 x1
+          p12 = lerp t c2 c1
+          p13 = lerp t x2 c2
 
-          p21 = lerp t p11 p12
-          p22 = lerp t p12 p13
+          p21 = lerp t p12 p11
+          p22 = lerp t p13 p12
 
-          p3  = lerp t p21 p22
+          p3  = lerp t p22 p21
 
 instance Num n => DomainBounds (FixedSegment v n)
 
@@ -415,19 +415,19 @@ instance (Additive v, Fractional n) => Sectionable (FixedSegment v n) where
   splitAtParam (FLinear p0 p1) t = (left, right)
     where left  = FLinear p0 p
           right = FLinear p  p1
-          p = lerp t p0 p1
+          p = lerp t p1 p0
   splitAtParam (FCubic p0 c1 c2 p1) t = (left, right)
     where left  = FCubic p0 a b cut
           right = FCubic cut c d p1
           -- first round
-          a   = lerp t p0 c1
-          p   = lerp t c1 c2
-          d   = lerp t c2 p1
+          a   = lerp t c1 p0
+          p   = lerp t c2 c1
+          d   = lerp t p1 c2
           -- second round
-          b   = lerp t a  p
-          c   = lerp t p  d
+          b   = lerp t p a
+          c   = lerp t d p
           -- final round
-          cut = lerp t b  c
+          cut = lerp t c b
 
   reverseDomain (FLinear p0 p1) = FLinear p1 p0
   reverseDomain (FCubic p0 c1 c2 p1) = FCubic p1 c2 c1 p0
