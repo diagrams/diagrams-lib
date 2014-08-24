@@ -39,7 +39,6 @@ import           Diagrams.Util           (( # ))
 import           Control.Lens            ((&), (<>~), (^.))
 import           Data.Semigroup          ((<>))
 
-import Linear.Epsilon
 import Linear.Vector
 import Linear.Metric
 import Linear.Affine
@@ -96,7 +95,7 @@ the approximation error.
 --   is the 'Trail' of a radius one arc starting at @d@ and sweeping out
 --   the angle @s@ counterclockwise (for positive s).  The resulting
 --   @Trail@ is allowed to wrap around and overlap itself.
-arcT :: (RealFloat n, Epsilon n) => Direction V2 n -> Angle n -> Trail V2 n
+arcT :: RealFloat n => Direction V2 n -> Angle n -> Trail V2 n
 arcT start sweep = trailFromSegments bs
   where
     bs = map (rotate $ start ^. _theta) . bezierFromSweep $ sweep
@@ -105,7 +104,7 @@ arcT start sweep = trailFromSegments bs
 --   path of a radius one arc starting at @d@ and sweeping out the angle
 --   @s@ counterclockwise (for positive s).  The resulting
 --   @Trail@ is allowed to wrap around and overlap itself.
-arc :: (TrailLike t, Vn t ~ V2 n, RealFloat n, Epsilon n) => Direction V2 n -> Angle n -> t
+arc :: (TrailLike t, Vn t ~ V2 n, RealFloat n) => Direction V2 n -> Angle n -> t
 arc start sweep = trailLike $ arcT start sweep `at` (rotate (start ^. _theta) $ p2 (1,0))
 
 -- | Given a radus @r@, a start direction @d@ and an angle @s@,

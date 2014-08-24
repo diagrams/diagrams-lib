@@ -2,9 +2,9 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE RankNTypes                 #-}
 -- {-# LANGUAGE StandaloneDeriving         #-}
+{-# LANGUAGE DeriveFunctor              #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE UndecidableInstances       #-}
-{-# LANGUAGE DeriveFunctor       #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Angle
@@ -28,21 +28,16 @@ module Diagrams.Angle
        , HasPhi(..)
        ) where
 
-import           Control.Lens     (Iso', Lens', iso, review, (^.))
+import Control.Applicative
+import Control.Lens        (Iso', Lens', iso, review, (^.))
+import Data.Monoid         hiding ((<>))
+import Data.Semigroup
 
-import           Data.Monoid      hiding ((<>))
-import           Data.Semigroup
--- import           Data.VectorSpace
-import Linear.Affine
+import Diagrams.Core.V
+import Diagrams.Points
+
 import Linear.Metric
 import Linear.Vector
-import Linear.Epsilon
-
-import Control.Applicative
-
-import           Diagrams.Core.V
-import           Diagrams.Points
--- import Data.Fixed
 
 -- | Angles can be expressed in a variety of units.  Internally,
 -- they are represented in radians.
@@ -159,8 +154,8 @@ infixl 5 @@
 
 -- | compute the positive angle between the two vectors in their common plane
 -- | N.B.: currently discards the common plane information
-angleBetween  :: (Metric v, Floating n, Epsilon n) => v n -> v n -> Angle n
-angleBetween v1 v2 = acos (normalize v1 `dot` normalize v2) @@ rad
+angleBetween  :: (Metric v, Floating n) => v n -> v n -> Angle n
+angleBetween v1 v2 = acos (signorm v1 `dot` signorm v2) @@ rad
 
 -- | Normalize an angle so that is lies in the [0,tau) range.
 -- normalizeAngle :: (Floating n, Real n) => Angle n -> Angle n

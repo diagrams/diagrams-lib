@@ -7,21 +7,20 @@
 
 module Diagrams.Deform (Deformation(..), Deformable(..), asDeformation) where
 
-import           Control.Lens        (under, _Unwrapped)
-import           Data.Monoid         hiding ((<>))
-import           Data.Semigroup
+import Control.Lens   (under, _Unwrapped)
+import Data.Monoid    hiding ((<>))
+import Data.Semigroup
 
-import           Diagrams.Core
-import           Diagrams.Located
-import           Diagrams.Parametric
-import           Diagrams.Path
-import           Diagrams.Segment
-import           Diagrams.Trail
+import Diagrams.Core
+import Diagrams.Located
+import Diagrams.Parametric
+import Diagrams.Path
+import Diagrams.Segment
+import Diagrams.Trail
 
 import Linear.Affine
-import Linear.Vector
 import Linear.Metric
-import Linear.Epsilon
+import Linear.Vector
 
 ------------------------------------------------------------
 -- Deformations
@@ -74,24 +73,24 @@ instance Deformable (Point v n) where
 -- precision by a series of @Segment@s.  @deformSegment@ does this,
 -- which allows types built from lists of @Segment@s to themselves be
 -- @Deformable@.
-deformSegment :: (Metric v, Ord n, Floating n, Epsilon n) => n -> Deformation v n -> FixedSegment v n -> [FixedSegment v n]
+deformSegment :: (Metric v, OrderedField n) => n -> Deformation v n -> FixedSegment v n -> [FixedSegment v n]
 deformSegment epsilon t s
     | goodEnough epsilon t s = [approx t s]
     | otherwise              = concatMap (deformSegment epsilon t) [s1, s2]
   where
     (s1, s2) = splitAtParam s 0.5
 
-approx :: (Metric v, Ord n, Floating n) => Deformation v n -> FixedSegment v n -> FixedSegment v n
+approx :: (Metric v, OrderedField n) => Deformation v n -> FixedSegment v n -> FixedSegment v n
 approx t (FLinear p0 p1) = FLinear (deform t p0) (deform t p1)
 approx t (FCubic p0 c1 c2 p1) = FCubic (f p0) (f c1) (f c2) (f p1) where
       f = deform t
 
-goodEnough :: (Metric v, Ord n, Floating n, Epsilon n) => n -> Deformation v n -> FixedSegment v n -> Bool
+goodEnough :: (Metric v, Ord n, Floating n) => n -> Deformation v n -> FixedSegment v n -> Bool
 goodEnough e t s =
     all (< e) [norm $ deform t (s `atParam` u) .-. approx t s `atParam` u
               | u <- [0.25, 0.5, 0.75]]
 
-instance (Metric v, Ord n, Floating n, Epsilon n) => Deformable (Located (Trail v n)) where
+instance (Metric v, OrderedField n) => Deformable (Located (Trail v n)) where
   deform' eps p t
     | isLine $ unLoc t  = line `at` p0
     | otherwise = glueTrail line `at` p0
@@ -110,7 +109,7 @@ instance (Metric v, Ord n, Floating n, Epsilon n) => Deformable (Located (Trail 
       extent = maximum . map dist . trailVertices $ t
       dist pt = norm $ pt .-. loc t
 
-instance (Metric v, Ord n, Floating n, Epsilon n) => Deformable (Path v n) where
+instance (Metric v, OrderedField n) => Deformable (Path v n) where
   deform' eps p = under _Unwrapped $ map (deform' eps p)
   deform p      = under _Unwrapped $ map (deform p)
 

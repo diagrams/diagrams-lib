@@ -34,11 +34,7 @@ import           Control.Lens             (Lens', (&), (.~), (^.), over, both)
 import           Data.Default.Class
 import           Data.Semigroup
 
-import Data.Data
 import Linear.Affine
-import Linear.Epsilon
-
-type TypeableFloat n = (Data n, Typeable n, RealFloat n, Epsilon n)
 
 -- | Set default attributes of a 2D diagram (in case they have not
 --   been set):
@@ -54,7 +50,7 @@ type TypeableFloat n = (Data n, Typeable n, RealFloat n, Epsilon n)
 --       * line join miter
 --
 --       * Miter limit 10
-setDefault2DAttributes :: (TypeableFloat n, Semigroup m) => QDiagram b V2 n m -> QDiagram b V2 n m
+setDefault2DAttributes :: (DataFloat n, Semigroup m) => QDiagram b V2 n m -> QDiagram b V2 n m
 setDefault2DAttributes d = d # lineWidthA def # lineTextureA def # fontSizeA def
                              # lineCap def # lineJoin def # lineMiterLimitA def
 
@@ -103,7 +99,7 @@ adjustDiaSize2D szL _ opts d =
 --   to the diagram (the inverse of which can be used, say, to
 --   translate output/device coordinates back into local diagram
 --   coordinates), and the modified diagram itself.
-adjustDia2D :: (TypeableFloat n, Monoid' m)
+adjustDia2D :: (DataFloat n, Monoid' m)
             => Lens' (Options b V2 n) (SizeSpec2D n)
             -> b -> Options b V2 n -> QDiagram b V2 n m
             -> (Options b V2 n, Transformation V2 n, QDiagram b V2 n m)

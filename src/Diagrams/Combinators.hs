@@ -59,7 +59,6 @@ import           Diagrams.Segment      (straight)
 import           Diagrams.Util
 
 import Linear.Affine
-import Linear.Epsilon
 import Linear.Metric
 import Linear.Vector
 
@@ -148,7 +147,7 @@ strut v = QD $ D.leafU (inj . toDeletable $ env)
 --   the cosine of the difference in angle, and leaving it unchanged
 --   when this factor is negative.
 extrudeEnvelope
-  :: (HasLinearMap v, Ord n, Floating n, Epsilon n, Metric v, Monoid' m)
+  :: (HasLinearMap v, Ord n, Floating n, Metric v, Monoid' m)
   => v n -> QDiagram b v n m -> QDiagram b v n m
 extrudeEnvelope = deformEnvelope 0.5
 
@@ -160,13 +159,13 @@ extrudeEnvelope = deformEnvelope 0.5
 --   Note that this could create strange inverted envelopes, where
 --   @ diameter v d < 0 @.
 intrudeEnvelope
-  :: (HasLinearMap v, Ord n, Floating n, Epsilon n, Metric v, Monoid' m)
+  :: (HasLinearMap v, Ord n, Floating n, Metric v, Monoid' m)
   => v n -> QDiagram b v n m -> QDiagram b v n m
 intrudeEnvelope = deformEnvelope (-0.5)
 
 -- Utility for extrudeEnvelope / intrudeEnvelope
 deformEnvelope
-  :: (HasLinearMap v, Ord n, Epsilon n, Floating n, Metric v, Monoid' m)
+  :: (HasLinearMap v, Ord n, Floating n, Metric v, Monoid' m)
   => n -> v n -> QDiagram b v n m -> QDiagram b v n m
 deformEnvelope s v d = setEnvelope (getEnvelope d & _Wrapping Envelope %~ deformE) d
   where
@@ -233,7 +232,7 @@ beside v d1 d2 = d1 <> juxtapose v d1 d2
 --   from the first.  The local origin of the resulting combined
 --   diagram is the same as the local origin of the first.  See the
 --   documentation of 'beside' for more information.
-atDirection :: (Juxtaposable a, Semigroup a, Vn a ~ v n, Metric v, Floating n, Epsilon n)
+atDirection :: (Juxtaposable a, Semigroup a, Vn a ~ v n, Metric v, Floating n)
             => Direction v n -> a -> a -> a
 atDirection = beside . fromDirection
 

@@ -71,7 +71,6 @@ import Diagrams.TwoD.Vector    (leftTurn, unitX, unitY, unit_Y)
 import Diagrams.Util           (tau, ( # ))
 
 import Linear.Affine
-import Linear.Epsilon
 import Linear.Metric
 import Linear.Vector
 
@@ -165,7 +164,7 @@ instance Num n => Default (PolygonOpts n) where
     def = PolygonOpts (PolyRegular 5 1) OrientH origin
 
 -- | Generate a polygon.  See 'PolygonOpts' for more information.
-polyTrail :: (RealFloat n, Epsilon n) =>  PolygonOpts n -> Located (Trail V2 n)
+polyTrail :: RealFloat n =>  PolygonOpts n -> Located (Trail V2 n)
 polyTrail po = transform ori tr
     where
         tr = case po^.polyType of
@@ -184,7 +183,7 @@ polygon = trailLike . polyTrail
 
 -- | Generate the located trail of a polygon specified by polar data
 --   (central angles and radii). See 'PolyPolar'.
-polyPolarTrail :: (RealFloat n, Epsilon n) =>  [Angle n] -> [n] -> Located (Trail V2 n)
+polyPolarTrail :: RealFloat n =>  [Angle n] -> [n] -> Located (Trail V2 n)
 polyPolarTrail [] _ = emptyTrail `at` origin
 polyPolarTrail _ [] = emptyTrail `at` origin
 polyPolarTrail ans (r:rs) = tr `at` p1
@@ -199,7 +198,7 @@ polyPolarTrail ans (r:rs) = tr `at` p1
 -- | Generate the vertices of a polygon specified by side length and
 --   angles, and a starting point for the trail such that the origin
 --   is at the centroid of the vertices.  See 'PolySides'.
-polySidesTrail :: (RealFloat n, Epsilon n) =>  [Angle n] -> [n] -> Located (Trail V2 n)
+polySidesTrail :: RealFloat n =>  [Angle n] -> [n] -> Located (Trail V2 n)
 polySidesTrail ans ls = tr `at` (centroid ps # scale (-1))
   where
     ans'    = scanl (^+^) zero ans
@@ -208,7 +207,7 @@ polySidesTrail ans ls = tr `at` (centroid ps # scale (-1))
     tr      = closeTrail . trailFromOffsets $ offsets
 
 -- | Generate the vertices of a regular polygon.  See 'PolyRegular'.
-polyRegularTrail :: (RealFloat n, Epsilon n) =>  Int -> n -> Located (Trail V2 n)
+polyRegularTrail :: RealFloat n =>  Int -> n -> Located (Trail V2 n)
 polyRegularTrail n r = polyPolarTrail
                          (replicate (n - 1) $ fullTurn ^/ fromIntegral n)
                          (repeat r)
@@ -217,7 +216,7 @@ polyRegularTrail n r = polyPolarTrail
 --   generates the smallest rotation such that one of the segments
 --   adjacent to the vertex furthest in the direction of @v@ is
 --   perpendicular to @v@.
-orient :: (RealFloat n, Epsilon n) => V2 n -> Located (Trail V2 n) -> Transformation V2 n
+orient :: RealFloat n => V2 n -> Located (Trail V2 n) -> Transformation V2 n
 orient v = orientPoints v . trailVertices
 
 orientPoints :: (Floating n, Ord n) => V2 n -> [Point V2 n] -> Transformation V2 n

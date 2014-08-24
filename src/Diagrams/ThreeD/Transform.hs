@@ -60,7 +60,6 @@ import Diagrams.TwoD.Transform hiding (reflectAbout, reflectionAbout,
                                 rotationAbout)
 
 import Linear.Affine
-import Linear.Epsilon
 import Linear.Metric
 import Linear.V3      (cross)
 import Linear.Vector
@@ -107,7 +106,7 @@ aboutY (view rad -> a) = fromOrthogonal r where
 -- | @rotationAbout p d a@ is a rotation about a line parallel to @d@
 --   passing through @p@.
 rotationAbout
-  :: (Floating n, Epsilon n)
+  :: (Floating n)
 	=> Point V3 n         -- ^ origin of rotation
   -> Direction V3 n     -- ^ direction of rotation axis
   -> Angle n            -- ^ angle of rotation
@@ -130,18 +129,18 @@ rotationAbout (P t) d (view rad -> a)
 -- without tilting, it will be, otherwise if only tilting is
 -- necessary, no panning will occur.  The tilt will always be between
 -- ± 1/4 turn.
-pointAt :: (Floating n, Epsilon n)
+pointAt :: (Floating n)
         => Direction V3 n -> Direction V3 n -> Direction V3 n
 				-> Transformation V3 n
 pointAt a i f = pointAt' (fromDirection a) (fromDirection i) (fromDirection f)
 
 -- | pointAt' has the same behavior as 'pointAt', but takes vectors
 -- instead of directions.
-pointAt' :: (Floating n, Epsilon n) => V3 n -> V3 n -> V3 n -> Transformation V3 n
+pointAt' :: (Floating n) => V3 n -> V3 n -> V3 n -> Transformation V3 n
 pointAt' about initial final = pointAtUnit (signorm about) (signorm initial) (signorm final)
 
 -- | pointAtUnit has the same behavior as @pointAt@, but takes unit vectors.
-pointAtUnit :: (Floating n, Epsilon n) => V3 n -> V3 n -> V3 n -> Transformation V3 n
+pointAtUnit :: (Floating n) => V3 n -> V3 n -> V3 n -> Transformation V3 n
 pointAtUnit about initial final = tilt <> pan where
   -- rotating u by (signedAngle rel u v) about rel gives a vector in the direction of v
   signedAngle rel u v = signum (cross u v `dot` rel) *^ angleBetween u v

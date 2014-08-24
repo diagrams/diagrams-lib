@@ -19,12 +19,11 @@ module Diagrams.Direction
        , angleBetweenDirs
        ) where
 
-import           Control.Lens     (Iso', iso)
+import Control.Lens     (Iso', iso)
 
-import           Diagrams.Angle
-import           Diagrams.Core
+import Diagrams.Angle
+import Diagrams.Core
 import Linear.Metric
-import Linear.Epsilon
 
 --------------------------------------------------------------------------------
 -- Direction
@@ -61,11 +60,11 @@ direction :: v n -> Direction v n
 direction = Direction
 
 -- | @fromDirection d@ is the unit vector in the direction @d@.
-fromDirection :: (Metric v, Floating n, Epsilon n) => Direction v n -> v n
-fromDirection (Direction v) = normalize v
+fromDirection :: (Metric v, Floating n) => Direction v n -> v n
+fromDirection (Direction v) = signorm v
 
 -- | compute the positive angle between the two directions in their common plane
-angleBetweenDirs  :: (Metric v, Floating n, Epsilon n) =>
+angleBetweenDirs  :: (Metric v, Floating n) =>
                      Direction v n -> Direction v n -> Angle n
 angleBetweenDirs d1 d2 = angleBetween (fromDirection d1) (fromDirection d2)
 

@@ -103,27 +103,27 @@ module Diagrams.Trail
        ) where
 
 import           Control.Arrow            ((***))
-import           Control.Lens             (AnIso', Rewrapped, Wrapped (..), cloneIso, iso, op, view,
-                                           (^.))
--- import           Data.AffineSpace
-import           Data.FingerTree          (FingerTree, ViewL (..), ViewR (..), (<|), (|>))
+import           Control.Lens             (AnIso', Rewrapped,
+                                           Wrapped (..), cloneIso, iso,
+                                           op, view, (^.))
+import           Data.FingerTree          (FingerTree, ViewL (..),
+                                           ViewR (..), (<|), (|>))
 import qualified Data.FingerTree          as FT
+import           Data.Fixed
 import qualified Data.Foldable            as F
 import           Data.Monoid.MList
 import           Data.Semigroup
--- import           Data.Additive         hiding (Sum (..))
 import qualified Numeric.Interval.Kaucher as I
 
-import           Diagrams.Core            hiding ((|>))
-import           Diagrams.Located
-import           Diagrams.Parametric
-import           Diagrams.Segment
-import           Diagrams.Tangent
+import Diagrams.Core       hiding ((|>))
+import Diagrams.Located
+import Diagrams.Parametric
+import Diagrams.Segment
+import Diagrams.Tangent
 
 import Linear.Affine
-import Linear.Vector
 import Linear.Metric
-import Linear.Epsilon
+import Linear.Vector
 
 -- $internals
 --
@@ -176,16 +176,16 @@ deriving instance (Metric v, OrderedField n)
 
 type instance Codomain (SegTree v n) = v
 
-instance (Metric v, OrderedField n, RealFrac n)
+instance (Metric v, OrderedField n, Real n)
     => Parametric (SegTree v n) where
   atParam t p = offset . fst $ splitAtParam t p
 
 instance Num n => DomainBounds (SegTree v n)
 
-instance (Metric v, OrderedField n, RealFrac n, Num n)
+instance (Metric v, OrderedField n, Real n)
     => EndValues (SegTree v n)
 
-instance (Metric v, RealFrac n, Floating n, Epsilon n) => Sectionable (SegTree v n) where
+instance (Metric v, OrderedField n, Real n) => Sectionable (SegTree v n) where
   splitAtParam (SegTree t) p
     | p < 0     = case FT.viewl t of
                     EmptyL    -> emptySplit
@@ -204,7 +204,7 @@ instance (Metric v, RealFrac n, Floating n, Epsilon n) => Sectionable (SegTree v
     | otherwise = case FT.viewl after of
                     EmptyL    -> emptySplit
                     seg :< after' ->
-                      case seg `splitAtParam` (snd . propFrac $ p * tSegs) of
+                      case seg `splitAtParam` mod1 (p * tSegs) of
                         (seg1, seg2) -> ( SegTree $ before |> seg1
                                         , SegTree $ seg2   <| after'
                                         )
@@ -219,7 +219,7 @@ instance (Metric v, RealFrac n, Floating n, Epsilon n) => Sectionable (SegTree v
   -- XXX seems like it should be possible to collapse some of the
   -- above cases into one?
 
-instance (Metric v, OrderedField n, RealFrac n)
+instance (Metric v, OrderedField n, Real n)
     => HasArcLength (SegTree v n) where
   arcLengthBounded eps t
     -- Use the cached value if it is accurate enough; otherwise fall
@@ -399,7 +399,7 @@ instance (HasLinearMap v, Metric v, OrderedField n)
     => Renderable (Trail' o v n) NullBackend where
   render _ _ = mempty
 
-instance (Metric v, OrderedField n, RealFrac n)
+instance (Metric v, OrderedField n, Real n)
     => Parametric (Trail' l v n) where
   atParam t p = withTrail'
                   (\(Line segT) -> segT `atParam` p)
@@ -432,7 +432,7 @@ instance ( Parametric (GetSegment (Trail' c v n))
 
 type instance Codomain (Tangent (Trail v n)) = Codomain (Trail v n)
 
-instance (Metric v , OrderedField n, RealFrac n)
+instance (Metric v , OrderedField n, Real n)
     => Parametric (Tangent (Trail v n)) where
   Tangent tr `atParam` p
     = withTrail
@@ -440,30 +440,22 @@ instance (Metric v , OrderedField n, RealFrac n)
         ((`atParam` p) . Tangent)
         tr
 
-instance (Metric v, OrderedField n, RealFrac n)
+instance (Metric v, OrderedField n, Real n)
     => EndValues (Tangent (Trail v n)) where
   atStart (Tangent tr) = withTrail (atStart . Tangent) (atStart . Tangent) tr
   atEnd   (Tangent tr) = withTrail (atEnd   . Tangent) (atEnd   . Tangent) tr
 
 -- | Compute the remainder mod 1.  Convenient for constructing loop
 --   parameterizations that wrap around.
-mod1 :: RealFrac a => a -> a
-mod1 p = p'
- where
-   pf = snd . propFrac $ p
-   p' | p >= 0    = pf
-      | otherwise = 1 + pf
-
--- Get rid of defaulting warnings
-propFrac :: RealFrac a => a -> (Int, a)
-propFrac = properFraction
+mod1 :: Real a => a -> a
+mod1 = (`mod'` 1)
 
 instance Num n => DomainBounds (Trail' l v n)
 
-instance (Metric v, OrderedField n, RealFrac n)
+instance (Metric v, OrderedField n, Real n)
   => EndValues (Trail' l v n)
 
-instance (Metric v, RealFrac n, Floating n, Epsilon n)
+instance (Metric v, OrderedField n, Real n)
     => Sectionable (Trail' Line v n) where
   splitAtParam (Line t) p = (Line t1, Line t2)
     where
@@ -471,7 +463,7 @@ instance (Metric v, RealFrac n, Floating n, Epsilon n)
 
   reverseDomain = reverseLine
 
-instance (Metric v, OrderedField n, RealFrac n)
+instance (Metric v, OrderedField n, Real n)
     => HasArcLength (Trail' l v n) where
   arcLengthBounded eps =
     withTrail'
@@ -564,10 +556,10 @@ instance (Metric v, OrderedField n) => Parametric (GetSegment (Trail' Line v n))
 
 -- | The parameterization for loops wraps around, /i.e./ parameters
 --   are first reduced \"mod 1\".
-instance (Metric v, OrderedField n, RealFrac n) => Parametric (GetSegment (Trail' Loop v n)) where
+instance (Metric v, OrderedField n, Real n) => Parametric (GetSegment (Trail' Loop v n)) where
   atParam (GetSegment l) p = atParam (GetSegment (cutLoop l)) (mod1 p)
 
-instance (Metric v, OrderedField n, RealFrac n)
+instance (Metric v, OrderedField n, Real n)
     => Parametric (GetSegment (Trail v n)) where
   atParam (GetSegment t) p
     = withTrail
@@ -579,7 +571,7 @@ instance DomainBounds t => DomainBounds (GetSegment t) where
   domainLower (GetSegment t) = domainLower t
   domainUpper (GetSegment t) = domainUpper t
 
-instance (Metric v, OrderedField n)
+instance (Metric v, OrderedField n, Real n)
     => EndValues (GetSegment (Trail' Line v n)) where
   atStart (GetSegment (Line (SegTree ft)))
     = case FT.viewl ft of
@@ -593,17 +585,17 @@ instance (Metric v, OrderedField n)
         EmptyR     -> GetSegmentCodomain Nothing
         ft' :> seg ->
           let n = numSegs ft
-          in  GetSegmentCodomain $ 
+          in  GetSegmentCodomain $
                 Just (offset ft', seg, iso (subtract (n-1) . (*n))
                                          ((/n) . (+ (n-1)))
                      )
 
-instance (Metric v, OrderedField n, RealFrac n)
+instance (Metric v, OrderedField n, Real n)
     => EndValues (GetSegment (Trail' Loop v n)) where
   atStart (GetSegment l) = atStart (GetSegment (cutLoop l))
   atEnd   (GetSegment l) = atEnd   (GetSegment (cutLoop l))
 
-instance (Metric v, OrderedField n, RealFrac n)
+instance (Metric v, OrderedField n, Real n)
     => EndValues (GetSegment (Trail v n)) where
   atStart (GetSegment t)
     = withTrail
@@ -677,13 +669,13 @@ instance (HasLinearMap v, Metric v, OrderedField n)
 instance (Metric v, OrderedField n) => Enveloped (Trail v n) where
   getEnvelope = withTrail getEnvelope getEnvelope
 
-instance (Metric v, OrderedField n, RealFrac n)
+instance (Metric v, OrderedField n, Real n)
     => Parametric (Trail v n) where
   atParam t p = withTrail (`atParam` p) (`atParam` p) t
 
 instance Num n => DomainBounds (Trail v n)
 
-instance (Metric v, OrderedField n, RealFrac n)
+instance (Metric v, OrderedField n, Real n)
   => EndValues (Trail v n)
 
 -- | Note that there is no @Sectionable@ instance for @Trail' Loop@,
@@ -695,13 +687,13 @@ instance (Metric v, OrderedField n, RealFrac n)
 --   semantically a bit silly, so please don't rely on it. (*E.g.* if
 --   this is really the behavior you want, consider first calling
 --   'cutLoop' yourself.)
-instance (Metric v, RealFrac n, Floating n, Epsilon n)
+instance (Metric v, OrderedField n, Real n)
     => Sectionable (Trail v n) where
   splitAtParam t p = withLine ((wrapLine *** wrapLine) . (`splitAtParam` p)) t
 
   reverseDomain = reverseTrail
 
-instance (Metric v, OrderedField n, RealFrac n)
+instance (Metric v, OrderedField n, Real n)
     => HasArcLength (Trail v n) where
   arcLengthBounded = withLine . arcLengthBounded
   arcLengthToParam eps tr al = withLine (\ln -> arcLengthToParam eps ln al) tr
@@ -1088,8 +1080,8 @@ loopVertices' toler (viewLoc -> (p,t))
   | length segs > 1 = if far > toler  then init ps else init . drop 1 $ ps
   | otherwise       = ps
   where
-    far = quadrance ((normalize . tangentAtStart . head $ segs) ^-^
-                       (normalize . tangentAtEnd   . last $ segs))
+    far = quadrance ((signorm . tangentAtStart . head $ segs) ^-^
+                       (signorm . tangentAtEnd   . last $ segs))
     segs = lineSegments . cutLoop $ t
     ps = segmentVertices' toler p segs
 
@@ -1112,8 +1104,8 @@ segmentVertices' toler p ts  =
     _       -> ps
     where
       ds = zipWith far tans (drop 1 tans)
-      tans = [(normalize . tangentAtStart $ s
-              ,normalize . tangentAtEnd   $ s) | s <- ts]
+      tans = [(signorm . tangentAtStart $ s
+              ,signorm . tangentAtEnd   $ s) | s <- ts]
       ps = scanl (.+^) p . map segOffset $ ts
       far p2 q2 = quadrance (snd p2 ^-^ fst q2) > toler
 

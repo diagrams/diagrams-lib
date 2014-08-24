@@ -143,7 +143,7 @@ camRight c = direction right where
 camLens :: Camera l n -> l n
 camLens = lens
 
-camAspect :: Floating n => CameraLens l => Camera l n -> n
+camAspect :: (Floating n, CameraLens l) => Camera l n -> n
 camAspect = aspect . camLens
 
 {-# ANN module ("HLint: ignore Use camelCase" :: String) #-}

@@ -63,7 +63,9 @@ module Diagrams.Segment
 
        ) where
 
-import           Control.Lens             (Rewrapped, Wrapped (..), iso, makeLenses, op, Traversal, over)
+import           Control.Lens             (Rewrapped, Traversal,
+                                           Wrapped (..), iso,
+                                           makeLenses, op, over)
 import           Data.FingerTree
 import           Data.Monoid.MList
 import           Data.Semigroup
@@ -71,14 +73,14 @@ import           Numeric.Interval.Kaucher (Interval (..))
 import qualified Numeric.Interval.Kaucher as I
 
 import Linear.Affine
-import Linear.Vector
 import Linear.Metric
+import Linear.Vector
 
-import           Diagrams.Core
-import           Diagrams.Located
-import           Diagrams.Parametric
-import           Diagrams.Solve
 import Control.Applicative
+import Diagrams.Core
+import Diagrams.Located
+import Diagrams.Parametric
+import Diagrams.Solve
 
 
 ------------------------------------------------------------
@@ -151,7 +153,7 @@ data Segment c v n
 
   deriving (Show, Functor, Eq, Ord)
 
--- this is provided as a replacement of the previous fmap functionality. (Now 
+-- this is provided as a replacement of the previous fmap functionality. (Now
 -- fmap is only over the number type)
 
 -- Prehaps a traversal is overkill. Only really need to map over segment vectors.
