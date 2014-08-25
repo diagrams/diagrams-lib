@@ -47,32 +47,34 @@ module Diagrams.TwoD.Path
        , Clip(..), clipBy, clipTo, clipped
        ) where
 
-import           Control.Applicative   (liftA2)
-import           Control.Lens          (Lens, Lens', generateSignatures, lensRules, makeLensesWith,
-                                        makeWrapped, op, (.~), (^.), _Wrapped')
-import qualified Data.Foldable         as F
+import           Control.Applicative (liftA2)
+import           Control.Lens        (Lens, Lens', generateSignatures,
+                                      lensRules, makeLensesWith,
+                                      makeWrapped, op, (.~), (^.),
+                                      _Wrapped')
+import qualified Data.Foldable       as F
 import           Data.Semigroup
 import           Data.Typeable
 
-import           Data.Default.Class
+import Data.Default.Class
 
-import           Diagrams.Angle
-import           Diagrams.Combinators  (withEnvelope, withTrace)
-import           Diagrams.Core
-import           Diagrams.Core.Trace
-import           Diagrams.Located      (Located, mapLoc, unLoc)
-import           Diagrams.Parametric
-import           Diagrams.Path
-import           Diagrams.Segment
-import           Diagrams.Solve
-import           Diagrams.Trail
-import           Diagrams.TrailLike
-import           Diagrams.TwoD.Segment ()
-import           Diagrams.TwoD.Types
-import           Diagrams.Util         (tau)
+import Diagrams.Angle
+import Diagrams.Combinators  (withEnvelope, withTrace)
+import Diagrams.Core
+import Diagrams.Core.Trace
+import Diagrams.Located      (Located, mapLoc, unLoc)
+import Diagrams.Parametric
+import Diagrams.Path
+import Diagrams.Segment
+import Diagrams.Solve
+import Diagrams.Trail
+import Diagrams.TrailLike
+import Diagrams.TwoD.Segment ()
+import Diagrams.TwoD.Types
+import Diagrams.Util         (tau)
 
-import Linear.Vector
 import Linear.Affine
+import Linear.Vector
 
 ------------------------------------------------------------
 --  Trail and path traces  ---------------------------------
@@ -82,14 +84,14 @@ import Linear.Affine
 
 -- XXX can the efficiency of this be improved?  See the comment in
 -- Diagrams.Path on the Enveloped instance for Trail.
-instance (OrderedField n, RealFloat n) => Traced (Trail V2 n) where
+instance RealFloat n => Traced (Trail V2 n) where
   getTrace = withLine $
       foldr
         (\seg bds -> moveOriginBy (negated . atEnd $ seg) bds <> getTrace seg)
         mempty
     . lineSegments
 
-instance (OrderedField n, RealFloat n) => Traced (Path V2 n) where
+instance RealFloat n => Traced (Path V2 n) where
   getTrace = F.foldMap getTrace . op Path
 
 ------------------------------------------------------------
@@ -164,7 +166,8 @@ stroke :: (TypeableFloat n, Renderable (Path V2 n) b)
        => Path V2 n -> Diagram b V2 n
 stroke = stroke' (def :: StrokeOpts ())
 
-instance (OrderedField n, Typeable n, RealFloat n, Renderable (Path V2 n) b) => TrailLike (Diagram b V2 n) where
+instance (TypeableFloat n, Renderable (Path V2 n) b)
+    => TrailLike (Diagram b V2 n) where
   trailLike = stroke . trailLike
 
 -- | A variant of 'stroke' that takes an extra record of options to
@@ -174,11 +177,12 @@ instance (OrderedField n, Typeable n, RealFloat n, Renderable (Path V2 n) b) => 
 --
 --   'StrokeOpts' is an instance of 'Default', so @stroke' ('with' &
 --   ... )@ syntax may be used.
-stroke' :: (TypeableFloat n, Renderable (Path V2 n) b, IsName a) => StrokeOpts a -> Path V2 n -> Diagram b V2 n
+stroke' :: (TypeableFloat n, Renderable (Path V2 n) b, IsName a)
+    => StrokeOpts a -> Path V2 n -> Diagram b V2 n
 stroke' opts path
-  | null (pLines ^. _Wrapped') =           mkP pLoops
+  | null (pLines ^. _Wrapped') = mkP pLoops
   | null (pLoops ^. _Wrapped') = mkP pLines
-  | otherwise                   = mkP pLines <> mkP pLoops
+  | otherwise                  = mkP pLines <> mkP pLoops
   where
     (pLines,pLoops) = partitionPath (isLine . unLoc) path
     mkP p
@@ -199,11 +203,13 @@ stroke' opts path
 --   The solution is to give a type signature to expressions involving
 --   @strokeTrail@, or (recommended) upgrade GHC (the bug is fixed in 7.0.2
 --   onwards).
-strokeTrail :: (TypeableFloat n, Renderable (Path V2 n) b) => Trail V2 n -> Diagram b V2 n
+strokeTrail :: (TypeableFloat n, Renderable (Path V2 n) b)
+            => Trail V2 n -> Diagram b V2 n
 strokeTrail = stroke . pathFromTrail
 
 -- | Deprecated synonym for 'strokeTrail'.
-strokeT :: (TypeableFloat n, Renderable (Path V2 n) b) => Trail V2 n -> Diagram b V2 n
+strokeT :: (TypeableFloat n, Renderable (Path V2 n) b)
+        => Trail V2 n -> Diagram b V2 n
 strokeT = strokeTrail
 
 -- | A composition of 'stroke'' and 'pathFromTrail' for conveniently
@@ -219,38 +225,42 @@ strokeT' = strokeTrail'
 
 -- | A composition of 'strokeT' and 'wrapLine' for conveniently
 --   converting a line directly into a diagram.
-strokeLine :: (TypeableFloat n, Renderable (Path V2 n) b) => Trail' Line V2 n -> Diagram b V2 n
+strokeLine :: (TypeableFloat n, Renderable (Path V2 n) b)
+           => Trail' Line V2 n -> Diagram b V2 n
 strokeLine = strokeT . wrapLine
 
 -- | A composition of 'strokeT' and 'wrapLoop' for conveniently
 --   converting a loop directly into a diagram.
-strokeLoop :: (TypeableFloat n, Renderable (Path V2 n) b) => Trail' Loop V2 n -> Diagram b V2 n
+strokeLoop :: (TypeableFloat n, Renderable (Path V2 n) b)
+           => Trail' Loop V2 n -> Diagram b V2 n
 strokeLoop = strokeT . wrapLoop
 
 -- | A convenience function for converting a @Located Trail@ directly
 --   into a diagram; @strokeLocTrail = stroke . trailLike@.
-strokeLocTrail :: (TypeableFloat n, Renderable (Path V2 n) b) => Located (Trail V2 n) -> Diagram b V2 n
+strokeLocTrail :: (TypeableFloat n, Renderable (Path V2 n) b)
+               => Located (Trail V2 n) -> Diagram b V2 n
 strokeLocTrail = stroke . trailLike
 
 -- | Deprecated synonym for 'strokeLocTrail'.
-strokeLocT :: (TypeableFloat n, Renderable (Path V2 n) b) => Located (Trail V2 n) -> Diagram b V2 n
+strokeLocT :: (TypeableFloat n, Renderable (Path V2 n) b)
+           => Located (Trail V2 n) -> Diagram b V2 n
 strokeLocT = strokeLocTrail
 
 -- | A convenience function for converting a @Located@ line directly
 --   into a diagram; @strokeLocLine = stroke . trailLike . mapLoc wrapLine@.
-strokeLocLine :: (TypeableFloat n, Renderable (Path V2 n) b) => Located (Trail' Line V2 n) -> Diagram b V2 n
+strokeLocLine :: (TypeableFloat n, Renderable (Path V2 n) b)
+              => Located (Trail' Line V2 n) -> Diagram b V2 n
 strokeLocLine = stroke . trailLike . mapLoc wrapLine
 
 -- | A convenience function for converting a @Located@ loop directly
 --   into a diagram; @strokeLocLoop = stroke . trailLike . mapLoc wrapLoop@.
-strokeLocLoop :: (TypeableFloat n, Renderable (Path V2 n) b) => Located (Trail' Loop V2 n) -> Diagram b V2 n
+strokeLocLoop :: (TypeableFloat n, Renderable (Path V2 n) b)
+              => Located (Trail' Loop V2 n) -> Diagram b V2 n
 strokeLocLoop = stroke . trailLike . mapLoc wrapLoop
 
 ------------------------------------------------------------
 --  Inside/outside testing
 ------------------------------------------------------------
-
-
 
 runFillRule :: RealFloat n => FillRule -> Point V2 n -> Path V2 n -> Bool
 runFillRule Winding = isInsideWinding

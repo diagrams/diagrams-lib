@@ -5,6 +5,7 @@
 {-# LANGUAGE NoMonomorphismRestriction  #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
 {-# LANGUAGE StandaloneDeriving         #-}
+{-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE TypeFamilies               #-}
 
 -----------------------------------------------------------------------------
@@ -34,7 +35,7 @@ module Diagrams.BoundingBox
        , isEmptyBox
        , getCorners, getAllCorners
        , boxExtents, boxTransform, boxFit
-       , contains, contains'
+       , contains, contains', boundingBoxQuery
        , inside, inside', outside, outside'
 
          -- * Operations on bounding boxes
@@ -44,13 +45,16 @@ module Diagrams.BoundingBox
 import Data.Data      (Data, Typeable)
 import Data.Foldable  as F
 import Data.Maybe     (fromMaybe)
-import Data.Monoid    (Monoid (..))
-import Data.Semigroup (Option (..), Semigroup (..))
+import Data.Semigroup
 
-import Diagrams.Core.Envelope
-import Diagrams.Core.HasOrigin (HasOrigin (..))
 import Diagrams.Core.Transform
-import Diagrams.Core.V
+import Diagrams.Core
+import Diagrams.TwoD.Types
+import Diagrams.TwoD.Path ()
+import Diagrams.TwoD.Shapes
+import Diagrams.ThreeD.Shapes
+import Diagrams.ThreeD.Types
+import Diagrams.Path
 
 import Control.Applicative
 import Data.Traversable    as T
@@ -91,7 +95,7 @@ deriving instance (Additive v, Ord n) => Monoid (BoundingBox v n)
 type instance V (BoundingBox v n) = v
 type instance N (BoundingBox v n) = n
 
--- Map a function on a homogenous 2-tuple. (unexported utility)
+-- Map a function on a homogeneous 2-tuple. (unexported utility)
 mapT :: (a -> b) -> (a, a) -> (b, b)
 mapT f (x, y) = (f x, f y)
 
@@ -103,6 +107,18 @@ instance (Additive v, Num n, Ord n) => HasOrigin (BoundingBox v n) where
 instance (Metric v, Traversable v, OrderedField n)
           => Enveloped (BoundingBox v n) where
   getEnvelope = getEnvelope . getAllCorners
+
+-- Feels like cheating.
+-- Should be possible to generalise this.
+instance RealFloat n => Traced (BoundingBox V2 n) where
+  getTrace = getTrace
+           . ((`boxFit` rect 1 1) . boundingBox :: Envelope V2 n -> Path V2 n)
+           . getEnvelope
+
+instance TypeableFloat n => Traced (BoundingBox V3 n) where
+  getTrace = getTrace
+           . ((`boxFit` cube) . boundingBox :: Envelope V3 n -> D V3 n)
+           . getEnvelope
 
 instance Show (v n) => Show (BoundingBox v n) where
   show
@@ -192,6 +208,10 @@ contains' b p = maybe False check $ getCorners b
   where
     check (l, h) = F.and (liftI2 (<) l p)
                 && F.and (liftI2 (<) p h)
+
+boundingBoxQuery :: (Additive v, Foldable v, Ord n)
+  => BoundingBox v n -> Query v n Any
+boundingBoxQuery bb = Query $ Any . contains bb
 
 -- | Test whether the first bounding box is contained inside
 --   the second.
