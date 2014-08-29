@@ -40,7 +40,7 @@ module Diagrams.ThreeD.Transform
        , reflectionX, reflectX
        , reflectionY, reflectY
        , reflectionZ, reflectZ
-       , reflectionAbout, reflectAbout
+       , reflectionAcross, reflectAcross
 
        -- * Utilities for Backends
        -- , onBasis
@@ -56,8 +56,7 @@ import Diagrams.Transform
 
 import Control.Lens            (view, (&), (*~), (.~), (//~))
 import Data.Semigroup
-import Diagrams.TwoD.Transform hiding (reflectAbout, reflectionAbout,
-                                rotationAbout)
+import Diagrams.TwoD.Transform
 
 import Linear.Affine
 import Linear.Metric
@@ -106,7 +105,7 @@ aboutY (view rad -> a) = fromOrthogonal r where
 -- | @rotationAbout p d a@ is a rotation about a line parallel to @d@
 --   passing through @p@.
 rotationAbout
-  :: (Floating n)
+  :: Floating n
 	=> Point V3 n         -- ^ origin of rotation
   -> Direction V3 n     -- ^ direction of rotation axis
   -> Angle n            -- ^ angle of rotation
@@ -129,18 +128,18 @@ rotationAbout (P t) d (view rad -> a)
 -- without tilting, it will be, otherwise if only tilting is
 -- necessary, no panning will occur.  The tilt will always be between
 -- ± 1/4 turn.
-pointAt :: (Floating n)
+pointAt :: Floating n
         => Direction V3 n -> Direction V3 n -> Direction V3 n
 				-> Transformation V3 n
 pointAt a i f = pointAt' (fromDirection a) (fromDirection i) (fromDirection f)
 
 -- | pointAt' has the same behavior as 'pointAt', but takes vectors
 -- instead of directions.
-pointAt' :: (Floating n) => V3 n -> V3 n -> V3 n -> Transformation V3 n
+pointAt' :: Floating n => V3 n -> V3 n -> V3 n -> Transformation V3 n
 pointAt' about initial final = pointAtUnit (signorm about) (signorm initial) (signorm final)
 
 -- | pointAtUnit has the same behavior as @pointAt@, but takes unit vectors.
-pointAtUnit :: (Floating n) => V3 n -> V3 n -> V3 n -> Transformation V3 n
+pointAtUnit :: Floating n => V3 n -> V3 n -> V3 n -> Transformation V3 n
 pointAtUnit about initial final = tilt <> pan where
   -- rotating u by (signedAngle rel u v) about rel gives a vector in the direction of v
   signedAngle rel u v = signum (cross u v `dot` rel) *^ angleBetween u v
@@ -189,22 +188,22 @@ reflectionZ = scalingZ (-1)
 reflectZ :: (Vn t ~ v n, R3 v, Transformable t, Additive v, Floating n) => t -> t
 reflectZ = transform reflectionZ
 
--- | @reflectionAbout p v@ is a reflection across the plane through
+-- | @reflectionAcross p v@ is a reflection across the plane through
 --   the point @p@ and normal to vector @v@.
-reflectionAbout :: (R3 v, HasLinearMap v, Metric v, Fractional n)
+reflectionAcross :: (R3 v, HasLinearMap v, Metric v, Fractional n)
   => Point v n -> v n -> Transformation v n
-reflectionAbout p v =
+reflectionAcross p v =
   conjugate (translation (origin .-. p)) reflect
 	  where
 			reflect = fromLinear t (linv t)
 			t       = f v <-> f (negated v)
 			f u w   = w ^-^ 2 *^ project u w
 
--- | @reflectAbout p v@ reflects a diagram in the line determined by
+-- | @reflectAcross p v@ reflects a diagram across the plane though
 --   the point @p@ and the vector @v@.
-reflectAbout :: (Vn t ~ v n, R3 v, HasLinearMap v, Metric v, Fractional n, Transformable t)
+reflectAcross :: (Vn t ~ v n, R3 v, HasLinearMap v, Metric v, Fractional n, Transformable t)
   => Point v n -> v n -> t -> t
-reflectAbout p v = transform (reflectionAbout p v)
+reflectAcross p v = transform (reflectionAcross p v)
 
 -- Utilities ----------------------------------------
 

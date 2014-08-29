@@ -24,7 +24,7 @@ module Diagrams.TwoD.Transform
          -- * Rotation
        , rotation, rotate, rotateBy
 
-       , rotationAbout, rotateAbout
+       , rotationAround, rotateAround
 
          -- * Scaling
        , scalingX, scaleX
@@ -104,13 +104,13 @@ rotateBy = transform . rotation . review turn
 
 -- | @rotationAbout p@ is a rotation about the point @p@ (instead of
 --   around the local origin).
-rotationAbout :: Floating n => P2 n -> Angle n -> T2 n
-rotationAbout p angle = conjugate (translation (origin .-. p)) (rotation angle)
+rotationAround :: Floating n => P2 n -> Angle n -> T2 n
+rotationAround p angle = conjugate (translation (origin .-. p)) (rotation angle)
 
 -- | @rotateAbout p@ is like 'rotate', except it rotates around the
 --   point @p@ instead of around the local origin.
-rotateAbout :: (Vn t ~ V2 n, Transformable t, Floating n) => P2 n -> Angle n -> t -> t
-rotateAbout p angle = rotate angle `under` translation (origin .-. p)
+rotateAround :: (Vn t ~ V2 n, Transformable t, Floating n) => P2 n -> Angle n -> t -> t
+rotateAround p angle = rotate angle `under` translation (origin .-. p)
 
 -- Scaling -------------------------------------------------
 

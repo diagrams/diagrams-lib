@@ -175,7 +175,7 @@ module Diagrams.TwoD
          -- * Transformations
          -- ** Rotation
        , rotation, rotate, rotateBy
-       , rotationAbout, rotateAbout
+       , rotationAround, rotateAround
          -- ** Scaling
        , scalingX, scaleX
        , scalingY, scaleY

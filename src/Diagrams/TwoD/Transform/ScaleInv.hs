@@ -98,7 +98,7 @@ instance (Vn t ~ V2 n, RealFloat n, Transformable t) => Transformable (ScaleInv 
       angle = transform tr v ^. _theta
 
       rot :: (Vn k ~ Vn t, Transformable k) => k -> k
-      rot = rotateAbout l angle
+      rot = rotateAround l angle
 
       -- l' :: Point V2 n
       l'  = transform tr l
@@ -116,28 +116,28 @@ instance (Vn t ~ V2 n, RealFloat n, Transformable t) => Transformable (ScaleInv 
                 = translate zeroV
                 = id
         }
-        { rot   = rotateAbout l angle
-                = rotateAbout l (direction (transform mempty v) - direction v)
-                = rotateAbout l (direction v - direction v)
-                = rotateAbout l 0
+        { rot   = rotateAround l angle
+                = rotateAround l (direction (transform mempty v) - direction v)
+                = rotateAround l (direction v - direction v)
+                = rotateAround l 0
                 = id
         }
       = ScaleInv t v l
 
   2. transform t1 (transform t2 (ScaleInv t v l))
      = let angle = direction (transform t2 v) - direction v
-           rot   = rotateAbout l angle
+           rot   = rotateAround l angle
            l'    = transform t2 l
            trans = translate (l' .-. l)
        in
            transform t1 (ScaleInv (trans . rot $ t) (rot v) l')
 
      = let angle  = direction (transform t2 v) - direction v
-           rot    = rotateAbout l angle
+           rot    = rotateAround l angle
            l'     = transform t2 l
            trans  = translate (l' .-. l)
            angle2 = direction (transform t1 (rot v)) - direction (rot v)
-           rot2   = rotateAbout l' angle2
+           rot2   = rotateAround l' angle2
            l'2    = transform t1 l'
            trans2 = translate (l'2 .-. l')
        in
@@ -151,7 +151,7 @@ instance (Vn t ~ V2 n, RealFloat n, Transformable t) => Transformable (ScaleInv 
                 = translate (transform (t1 <> t2) l .-. transform t2 l)
                 = translate (transform t1 l .-. l)
        }
-       { rot v  = rotateAbout l angle v
+       { rot v  = rotateAround l angle v
                 = rotate angle `under` translation (origin .-. l) $ v
                 = rotate angle v
        }
@@ -159,7 +159,7 @@ instance (Vn t ~ V2 n, RealFloat n, Transformable t) => Transformable (ScaleInv 
                 = direction (transform t1 (rotate angle v)) - direction (rotate angle v)
                 = direction (transform t1 (rotate angle v)) - direction v - angle
        }
-       { rot2   = rotateAbout l' angle2
+       { rot2   = rotateAround l' angle2
                 = ???
        }
 
