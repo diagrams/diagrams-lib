@@ -63,13 +63,13 @@ instance Fractional n => Default (OriginOpts n) where
   def = OriginOpts red (1/50) 0.001
 
 -- | Mark the origin of a diagram by placing a red dot 1/50th its size.
-showOrigin :: (RealFloat n, OrderedField n, Renderable (Path V2 n) b, Data n, Monoid' m)
+showOrigin :: (RealFloat n, Renderable (Path V2 n) b, Data n, Monoid' m)
            => QDiagram b V2 n m -> QDiagram b V2 n m
 showOrigin = showOrigin' def
 
 -- | Mark the origin of a diagram, with control over colour and scale
 -- of marker dot.
-showOrigin' :: (RealFloat n, OrderedField n, Renderable (Path V2 n) b, Data n, Monoid' m)
+showOrigin' :: (RealFloat n, Renderable (Path V2 n) b, Data n, Monoid' m)
            => OriginOpts n -> QDiagram b V2 n m -> QDiagram b V2 n m
 showOrigin' oo d = o <> d
   where o     = stroke (circle sz)

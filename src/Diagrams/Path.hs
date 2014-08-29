@@ -56,28 +56,29 @@ module Diagrams.Path
 
        ) where
 
-import           Data.Typeable
+import Data.Typeable
 
-import           Diagrams.Align
-import           Diagrams.Core
-import           Diagrams.Core.Points ()
-import           Diagrams.Located
-import           Diagrams.Points
-import           Diagrams.Segment
-import           Diagrams.Trail
-import           Diagrams.TrailLike
-import           Diagrams.Transform
+import Diagrams.Align
+import Diagrams.Core
+import Diagrams.Core.Points ()
+import Diagrams.Located
+import Diagrams.Points
+import Diagrams.Segment
+import Diagrams.Trail
+import Diagrams.TrailLike
+import Diagrams.Transform
 
-import           Control.Arrow        ((***))
-import           Control.Lens         (Rewrapped, Wrapped (..), iso, mapped, op, over, view, (%~),
-                                       _Unwrapped', _Wrapped)
-import qualified Data.Foldable        as F
-import           Data.List            (partition)
+import           Control.Arrow  ((***))
+import           Control.Lens   (Rewrapped, Wrapped (..), iso, mapped,
+                                 op, over, view, (%~), _Unwrapped',
+                                 _Wrapped)
+import qualified Data.Foldable  as F
+import           Data.List      (partition)
 import           Data.Semigroup
 
 import Linear.Affine
-import Linear.Vector
 import Linear.Metric
+import Linear.Vector
 
 ------------------------------------------------------------
 --  Paths  -------------------------------------------------
@@ -91,8 +92,8 @@ newtype Path v n = Path [Located (Trail v n)]
   deriving (Semigroup, Monoid, Typeable)
 
 instance Wrapped (Path v n) where
-    type Unwrapped (Path v n) = [Located (Trail v n)]
-    _Wrapped' = iso (\(Path x) -> x) Path
+  type Unwrapped (Path v n) = [Located (Trail v n)]
+  _Wrapped' = iso (\(Path x) -> x) Path
 
 instance Rewrapped (Path v n) (Path v' n')
 
@@ -109,7 +110,6 @@ type instance N (Path v n) = n
 
 instance (Additive v, Num n) => HasOrigin (Path v n) where
   moveOriginTo = over _Wrapped' . map . moveOriginTo
-  --moveOriginTo = over pathTrails . map . moveOriginTo
 
 -- | Paths are trail-like; a trail can be used to construct a
 --   singleton path.
@@ -120,16 +120,6 @@ instance (Metric v, OrderedField n) => TrailLike (Path v n) where
 instance (HasLinearMap v, Metric v, OrderedField n)
     => Transformable (Path v n) where
   transform = over _Wrapped . map . transform
-
-{- ~~~~ Note [Transforming paths]
-
-Careful!  It's tempting to just define
-
-> transform = fmap . transform
-
-but that doesn't take into account the fact that some
-of the v's are inside Points and hence ought to be translated.
--}
 
 instance (Metric v, OrderedField n) => Enveloped (Path v n) where
   getEnvelope = F.foldMap trailEnvelope . op Path --view pathTrails

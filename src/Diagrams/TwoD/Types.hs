@@ -15,33 +15,27 @@
 
 module Diagrams.TwoD.Types
        ( -- * 2D Euclidean space
-         V2 (..), R1 (..), R2 (..), P2, r2, unr2, mkR2, r2Iso
-       , p2, mkP2, unp2, p2Iso, project, perp
+         V2 (..), P2, R1 (..), R2 (..)
+       , r2, unr2, mkR2, r2Iso
+       , p2, mkP2, unp2, p2Iso, project
        , Polar(..)
        ) where
 
-import           Control.Lens           (Iso', iso, _2)
+import Control.Lens (Iso', iso, _2)
 
-import           Diagrams.Angle
--- import           Diagrams.Coordinates
-import           Diagrams.Points
+import Diagrams.Angle
+import Diagrams.Points
 
-import Linear.Vector
+import Diagrams.Core.Transform
+import Diagrams.Core.V
 import Linear.Metric
 import Linear.V2
-import Diagrams.Core.V
-import Diagrams.Core.Transform
-
+import Linear.Vector
 
 type P2 = Point V2
 
 type instance V (V2 n) = V2
 type instance N (V2 n) = n
-
--- type ScalarR2Ish d = (RealFloat d, VectorSpace d, HasBasis d, Basis d ~ (), Transformable d, Scalar d ~ d, V d ~ d, Typeable d)
--- type R2Ish v = (HasBasis v, Basis v ~ R2Basis, V v ~ v, Transformable v, InnerSpace v, Coordinates v, Decomposition v ~ (FinalCoord v :& FinalCoord v), PrevDim v ~ FinalCoord v, FinalCoord v ~ Scalar v, HasX v, HasY v, ScalarR2Ish (Scalar v), HasTheta v, Typeable v)
-
--- type R2D v = (R2Ish v, Data v, Data (Scalar v))
 
 -- | Construct a 2D vector from a pair of components.  See also '&'.
 r2 :: (n, n) -> V2 n
@@ -84,8 +78,6 @@ instance Polar v => Polar (Point v) where
 project :: (Metric v, Fractional n) => v n -> v n -> v n
 project u v = ((v `dot` u) / quadrance u) *^ u
 -- find somewhere better for this
-
--- TODO: coordinate instance for V2
 
 instance Transformable (V2 n) where
   transform = apply

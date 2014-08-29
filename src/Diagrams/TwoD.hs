@@ -61,7 +61,9 @@
 -----------------------------------------------------------------------------
 module Diagrams.TwoD
        ( -- * R^2
-         r2, unr2, mkR2
+         V2 (..), R1 (..), R2 (..)
+       , P2, T2
+       , r2, unr2, mkR2
        , p2, unp2, mkP2
        , unitX, unitY, unit_X, unit_Y
        , xDir

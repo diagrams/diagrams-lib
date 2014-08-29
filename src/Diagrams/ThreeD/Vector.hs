@@ -1,6 +1,3 @@
-{-# LANGUAGE ConstraintKinds  #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE TypeFamilies     #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.ThreeD.Vector
@@ -12,19 +9,22 @@
 --
 -----------------------------------------------------------------------------
 module Diagrams.ThreeD.Vector
-       ( -- * Special 2D vectors
-         unitX, unitY, unitZ, unit_X, unit_Y, unit_Z, unit, unit_
+       ( -- * Special 3D vectors
+         unitX, unitY, unitZ, unit_X, unit_Y, unit_Z,
        ) where
+
+import Control.Lens ((&), (.~))
 
 import Diagrams.TwoD.Vector
 import Diagrams.ThreeD.Types
 
-import Linear.Vector hiding (unit)
+import Linear.Vector
 
 -- | The unit vector in the positive Y direction.
 unitZ :: (R3 v, Additive v, Num n) => v n
-unitZ = unit _y
+unitZ = zero & _z .~ 1
 
 -- | The unit vector in the negative X direction.
 unit_Z :: (R3 v, Additive v, Num n) => v n
-unit_Z = unit_ _z
+unit_Z = zero & _z .~ (-1)
+

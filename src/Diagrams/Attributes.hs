@@ -47,15 +47,15 @@ module Diagrams.Attributes (
 
   ) where
 
-import           Data.Colour
-import           Data.Colour.RGBSpace (RGB (..))
-import           Data.Colour.SRGB     (toSRGB)
-import           Data.Default.Class
+import Data.Colour
+import Data.Colour.RGBSpace (RGB (..))
+import Data.Colour.SRGB     (toSRGB)
+import Data.Default.Class
 
-import           Data.Semigroup
-import           Data.Typeable
+import Data.Semigroup
+import Data.Typeable
 
-import           Diagrams.Core
+import Diagrams.Core
 
 ------------------------------------------------------------
 --  Color  -------------------------------------------------
@@ -167,7 +167,6 @@ getLineCap (LineCapA (Last c)) = c
 lineCap :: HasStyle a => LineCap -> a -> a
 lineCap = applyAttr . LineCapA . Last
 
-
 -- | How should the join points between line segments be drawn?
 data LineJoin = LineJoinMiter    -- ^ Use a \"miter\" shape (whatever that is).
               | LineJoinRound    -- ^ Use rounded join points.
@@ -190,7 +189,6 @@ getLineJoin (LineJoinA (Last j)) = j
 lineJoin :: HasStyle a => LineJoin -> a -> a
 lineJoin = applyAttr . LineJoinA . Last
 
-
 -- | Miter limit attribute affecting the 'LineJoinMiter' joins.
 --   For some backends this value may have additional effects.
 newtype LineMiterLimit = LineMiterLimit (Last Double)
@@ -210,3 +208,4 @@ lineMiterLimit = applyAttr . LineMiterLimit . Last
 -- | Apply a 'LineMiterLimit' attribute.
 lineMiterLimitA :: HasStyle a => LineMiterLimit -> a -> a
 lineMiterLimitA = applyAttr
+

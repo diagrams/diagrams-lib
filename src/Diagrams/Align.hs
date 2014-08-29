@@ -137,7 +137,7 @@ snugBy = alignBy' traceBoundary
 -- | Like align but uses trace.
 snug :: (Vn a ~ v n, Fractional n, Alignable a, Traced a, HasOrigin a)
       => v n -> a -> a
-snug v = snugBy  v 1
+snug v = snugBy v 1
 
 -- | @centerV v@ centers an enveloped object along the direction of
 --   @v@.

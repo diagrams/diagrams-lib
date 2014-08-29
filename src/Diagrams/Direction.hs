@@ -64,7 +64,7 @@ fromDirection :: (Metric v, Floating n) => Direction v n -> v n
 fromDirection (Direction v) = signorm v
 
 -- | compute the positive angle between the two directions in their common plane
-angleBetweenDirs  :: (Metric v, Floating n) =>
-                     Direction v n -> Direction v n -> Angle n
+angleBetweenDirs  :: (Metric v, Floating n)
+  => Direction v n -> Direction v n -> Angle n
 angleBetweenDirs d1 d2 = angleBetween (fromDirection d1) (fromDirection d2)
 

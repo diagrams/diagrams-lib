@@ -1,6 +1,3 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE TypeFamilies     #-}
-
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Points
@@ -9,7 +6,7 @@
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
 -- Points in space.  For more tools for working with points and
--- vectors, see "Data.AffineSpace" and "Diagrams.Coordinates".
+-- vectors, see "Linear.Affine".
 --
 -----------------------------------------------------------------------------
 
@@ -23,14 +20,14 @@ module Diagrams.Points
        , _pIso, lensP
        ) where
 
-import           Diagrams.Core          (pointDiagram)
-import           Diagrams.Core.Points
+import Diagrams.Core        (pointDiagram)
+import Diagrams.Core.Points
 
-import           Control.Lens           (Iso', iso)
+import Control.Lens (Iso', iso)
 
+import Data.Foldable as F
 import Linear.Affine
 import Linear.Vector
-import Data.Foldable as F
 
 -- Point v <-> v
 _pIso :: Iso' (Point v n) (v n)

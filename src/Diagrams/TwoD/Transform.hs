@@ -20,8 +20,9 @@
 
 module Diagrams.TwoD.Transform
        (
+         T2
          -- * Rotation
-         rotation, rotate, rotateBy
+       , rotation, rotate, rotateBy
 
        , rotationAbout, rotateAbout
 
@@ -233,6 +234,7 @@ sh' f g k = swap . sh f g k . swap
 
 swap :: V2 n -> V2 n
 swap (V2 x y) = V2 y x
+{-# INLINE swap #-}
 
 -- | @shearingX d@ is the linear transformation which is the identity on
 --   y coordinates and sends @(0,1)@ to @(d,1)@.

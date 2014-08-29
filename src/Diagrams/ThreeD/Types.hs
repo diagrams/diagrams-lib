@@ -17,7 +17,7 @@ module Diagrams.ThreeD.Types
          r3, unr3, mkR3
        , p3, unp3, mkP3
        , r3Iso, p3Iso, project
-       , V3 (..)
+       , V3 (..), P3
        , R1 (..), R2 (..), R3 (..)
 
        -- * other coördinate systems

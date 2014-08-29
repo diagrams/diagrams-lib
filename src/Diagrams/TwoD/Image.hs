@@ -1,4 +1,3 @@
-{-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE DeriveDataTypeable    #-}
 {-# LANGUAGE EmptyDataDecls        #-}
 {-# LANGUAGE FlexibleContexts      #-}
@@ -33,20 +32,19 @@ module Diagrams.TwoD.Image
     ) where
 
 
-import           Codec.Picture
-import           Codec.Picture.Types  (dynamicMap)
+import Codec.Picture
+import Codec.Picture.Types (dynamicMap)
 
-import           Data.Colour          (AlphaColour)
-import           Data.Typeable        (Typeable)
+import Data.Colour   (AlphaColour)
+import Data.Semigroup
+import Data.Typeable (Typeable)
 
-import           Diagrams.Core
+import Diagrams.Core
 
-import           Diagrams.Attributes  (colorToSRGBA)
-import           Diagrams.TwoD.Path   (isInsideEvenOdd)
-import           Diagrams.TwoD.Shapes (rect)
-import           Diagrams.TwoD.Types
-
-import           Data.Semigroup
+import Diagrams.Attributes  (colorToSRGBA)
+import Diagrams.TwoD.Path   (isInsideEvenOdd)
+import Diagrams.TwoD.Shapes (rect)
+import Diagrams.TwoD.Types
 
 import Linear.Affine
 
@@ -65,7 +63,7 @@ data ImageData :: * -> * where
 -------------------------------------------------------------------------------
 -- | An image primitive, the two ints are width followed by height.
 --   Will typically be created by @loadImageEmb@ or @loadImageExt@ which,
---   will handle setting the width and heigh to the actual width and height
+--   will handle setting the width and height to the actual width and height
 --   of the image.
 data DImage :: * -> * -> * where
   DImage :: ImageData t -> Int -> Int -> Transformation V2 n -> DImage n t
@@ -81,26 +79,29 @@ instance Fractional n => HasOrigin (DImage n a) where
   moveOriginTo p = translate (origin .-. p)
 
 -- | Make a 'DImage' into a 'Diagram'.
-image :: (OrderedField n, RealFloat n, Typeable a, Renderable (DImage n a) b, Typeable n)
+image :: (TypeableFloat n, Typeable a, Renderable (DImage n a) b)
       => DImage n a -> Diagram b V2 n
-image img = mkQD (Prim img) (getEnvelope r) (getTrace r) mempty
-                  (Query $ \p -> Any (isInsideEvenOdd p r))
+image img
+  = mkQD (Prim img)
+         (getEnvelope r)
+         (getTrace r)
+         mempty
+         (Query $ \p -> Any (isInsideEvenOdd p r))
   where
-    -- r :: Path v
     r = rect (fromIntegral w) (fromIntegral h)
     DImage _ w h _ = img
 
 -- | Use JuicyPixels to read an image in any format and wrap it in a 'DImage'.
 --   The width and height of the image are set to their actual values.
-loadImageEmb :: (Num n) => FilePath -> IO (Either String (DImage n Embedded))
+loadImageEmb :: Num n => FilePath -> IO (Either String (DImage n Embedded))
 loadImageEmb path = do
-    dImg <- readImage path
-    return $ case dImg of
-      Left msg  -> Left msg
-      Right img -> Right (DImage (ImageRaster img) w h mempty)
-        where
-          w = dynamicMap imageWidth img
-          h = dynamicMap imageHeight img
+  dImg <- readImage path
+  return $ case dImg of
+    Left msg  -> Left msg
+    Right img -> Right (DImage (ImageRaster img) w h mempty)
+      where
+        w = dynamicMap imageWidth img
+        h = dynamicMap imageHeight img
 
 -- | Check that a file exists, and use JuicyPixels to figure out
 --   the right size, but save a reference to the image instead
@@ -122,7 +123,7 @@ uncheckedImageRef :: Num n => FilePath -> Int -> Int -> DImage n External
 uncheckedImageRef path w h = DImage (ImageRef path) w h mempty
 
 -- | Crate a diagram from raw raster data.
-rasterDia :: (OrderedField n, Typeable n, RealFloat n, Renderable (DImage n Embedded) b)
+rasterDia :: (TypeableFloat n, Renderable (DImage n Embedded) b)
           => (Int -> Int -> AlphaColour Double) -> Int -> Int -> Diagram b V2 n
 rasterDia f w h = image $ raster f w h
 
@@ -142,3 +143,4 @@ fromAlphaColour c = PixelRGBA8 r g b a
 
 instance Fractional n => (Renderable (DImage n a) NullBackend) where
   render _ _ = mempty
+

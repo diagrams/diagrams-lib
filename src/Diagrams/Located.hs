@@ -19,21 +19,20 @@
 
 module Diagrams.Located
     ( Located
-    , at, viewLoc, unLoc, loc, mapLoc, located
+    , at, viewLoc, unLoc, loc, mapLoc, located, _location, _Loc
     )
     where
 
-import           Control.Lens            (Lens)
--- import           Data.AffineSpace
-import           Data.Functor            ((<$>))
+import Control.Lens (Iso', Lens, Lens', iso, lens)
+import Data.Functor ((<$>))
 
-import Linear.Vector
 import Linear.Affine
+import Linear.Vector
 
-import           Diagrams.Core
-import           Diagrams.Core.Points    ()
-import           Diagrams.Core.Transform
-import           Diagrams.Parametric
+import Diagrams.Core
+import Diagrams.Core.Points    ()
+import Diagrams.Core.Transform
+import Diagrams.Parametric
   -- for GHC 7.4 type family bug
 
 -- | \"Located\" things, /i.e./ things with a concrete location:
@@ -89,8 +88,14 @@ mapLoc :: (V a ~ V b, N a ~ N b) => (a -> b) -> Located a -> Located b
 mapLoc f (Loc p a) = Loc p (f a)
 
 -- | A lens giving access to the object within a 'Located' wrapper.
-located :: (V a ~ V a', N a ~ N a') => Lens (Located a) (Located a') a a'
+located :: (Vn a ~ Vn a') => Lens (Located a) (Located a') a a'
 located f (Loc p a) = Loc p <$> f a
+
+_location :: (Vn a ~ v n) => Lens' (Located a) (Point v n)
+_location = lens (\(Loc l _) -> l) (\(Loc _ a) l -> Loc l a)
+
+_Loc :: (Vn a ~ v n) => Iso' (Located a) (Point v n, a)
+_Loc = iso viewLoc (uncurry Loc)
 
 deriving instance (Eq   (V a (N a)), Eq a  ) => Eq   (Located a)
 deriving instance (Ord  (V a (N a)), Ord a ) => Ord  (Located a)
@@ -142,8 +147,7 @@ instance DomainBounds a => DomainBounds (Located a) where
 instance (Vn a ~ v n, Codomain a ~ v, Additive v, Num n, EndValues a)
     => EndValues (Located a)
 
--- not sure why Codomain a n ~ v n is needed as well. I've probably done something wrong.
-instance (Vn a ~ v n, Codomain a ~ v, Fractional n, Additive v , Sectionable a, Parametric a)
+instance (Vn a ~ v n, Codomain a ~ v, Fractional n, Additive v, Sectionable a, Parametric a)
     => Sectionable (Located a) where
   splitAtParam (Loc x a) p = (Loc x a1, Loc (x .+^ (a `atParam` p)) a2)
     where (a1,a2) = splitAtParam a p
@@ -151,7 +155,8 @@ instance (Vn a ~ v n, Codomain a ~ v, Fractional n, Additive v , Sectionable a, 
   reverseDomain (Loc x a) = Loc (x .+^ y) (reverseDomain a)
     where y = a `atParam` domainUpper a
 
-instance (Vn a ~ v n, Codomain a ~ v, Additive v, Fractional n , HasArcLength a)
+instance (Vn a ~ v n, Codomain a ~ v, Additive v, Fractional n, HasArcLength a)
     => HasArcLength (Located a) where
   arcLengthBounded eps (Loc _ a) = arcLengthBounded eps a
   arcLengthToParam eps (Loc _ a) = arcLengthToParam eps a
+

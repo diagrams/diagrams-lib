@@ -1,4 +1,3 @@
-{-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies          #-}
@@ -30,20 +29,20 @@ module Diagrams.Animation
 
        ) where
 
-import           Diagrams.Core
+import Diagrams.Core
 
-import           Diagrams.Animation.Active ()
-import           Diagrams.BoundingBox
-import           Diagrams.Combinators
-import           Diagrams.TrailLike
-import           Diagrams.TwoD.Shapes
-import           Diagrams.TwoD.Types
+import Diagrams.Animation.Active ()
+import Diagrams.BoundingBox
+import Diagrams.Combinators
+import Diagrams.TrailLike
+import Diagrams.TwoD.Shapes
+import Diagrams.TwoD.Types
 
-import           Data.Active
-import           Data.Semigroup
+import Data.Active
+import Data.Semigroup
 
-import           Control.Applicative       ((<$>))
-import           Data.Foldable             (foldMap)
+import Control.Applicative ((<$>))
+import Data.Foldable       (foldMap)
 
 import Linear.Metric
 

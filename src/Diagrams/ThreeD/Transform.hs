@@ -162,7 +162,7 @@ scalingZ c = fromSymmetric s
 
 -- | Scale a diagram by the given factor in the z direction.  To scale
 -- uniformly, use 'scale'.
-scaleZ :: (Transformable t, Floating n, Vn t ~ V3 n) => n -> t -> t
+scaleZ :: (Vn t ~ v n, R3 v, Additive v, Transformable t, Floating n) => n -> t -> t
 scaleZ = transform . scalingZ
 
 -- Translation ----------------------------------------
@@ -174,7 +174,7 @@ translationZ z = translation (zero & _z .~ z)
 
 -- | Translate a diagram by the given distance in the y
 --   direction.
-translateZ :: (R3 v, Transformable t, Vn t ~ v n, Additive v, Floating n) => n -> t -> t
+translateZ :: (Vn t ~ v n, R3 v, Transformable t, Additive v, Floating n) => n -> t -> t
 translateZ = transform . translationZ
 
 -- Reflection ----------------------------------------------
@@ -186,22 +186,23 @@ reflectionZ = scalingZ (-1)
 
 -- | Flip a diagram across z=0, i.e. send the point (x,y,z) to
 -- (x,y,-z).
-reflectZ :: (R3 v, Transformable t, Vn t ~ v n, Additive v, Floating n) => t -> t
+reflectZ :: (Vn t ~ v n, R3 v, Transformable t, Additive v, Floating n) => t -> t
 reflectZ = transform reflectionZ
 
 -- | @reflectionAbout p v@ is a reflection across the plane through
 --   the point @p@ and normal to vector @v@.
-reflectionAbout :: (HasLinearMap v, Metric v, Fractional n, R3 v) => Point v n -> v n -> Transformation v n
+reflectionAbout :: (R3 v, HasLinearMap v, Metric v, Fractional n)
+  => Point v n -> v n -> Transformation v n
 reflectionAbout p v =
   conjugate (translation (origin .-. p)) reflect
 	  where
 			reflect = fromLinear t (linv t)
-			t = f v <-> f (negated v)
-			f u w = w ^-^ 2 *^ project u w
+			t       = f v <-> f (negated v)
+			f u w   = w ^-^ 2 *^ project u w
 
 -- | @reflectAbout p v@ reflects a diagram in the line determined by
 --   the point @p@ and the vector @v@.
-reflectAbout :: (R3 v, HasLinearMap v, Metric v, Fractional n, Transformable t, Vn t ~ v n)
+reflectAbout :: (Vn t ~ v n, R3 v, HasLinearMap v, Metric v, Fractional n, Transformable t)
   => Point v n -> v n -> t -> t
 reflectAbout p v = transform (reflectionAbout p v)
 

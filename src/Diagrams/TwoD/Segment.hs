@@ -35,6 +35,7 @@ import Diagrams.Segment
 import Diagrams.Solve
 import Diagrams.TwoD.Transform
 import Diagrams.TwoD.Types
+import Diagrams.TwoD.Vector
 import Diagrams.Util
 
 import Linear.Affine

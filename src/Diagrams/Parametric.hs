@@ -22,7 +22,7 @@ module Diagrams.Parametric
 
   ) where
 
-import Diagrams.Core.V
+import           Diagrams.Core.V
 import qualified Numeric.Interval.Kaucher as I
 
 -- | Codomain of parametric classes.  This is usually either @(V p)@, for relative

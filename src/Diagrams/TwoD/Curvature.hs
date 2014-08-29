@@ -1,4 +1,3 @@
-{-# LANGUAGE ConstraintKinds  #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GADTs            #-}
 -----------------------------------------------------------------------------
@@ -27,6 +26,7 @@ import Diagrams.Tangent
 import Diagrams.TwoD.Types
 
 import Control.Lens  (over)
+import Control.Monad
 import Linear.Vector
 
 -- | Curvature measures how curved the segment is at a point.  One intuition
@@ -109,35 +109,24 @@ curvature :: RealFloat n
           -> PosInf n             -- ^ Result is a @PosInf@ value where @PosInfty@ represents
                                   --   infinite curvature or zero radius of curvature.
 curvature s = toPosInf . over _y sqrt . curvaturePair s
--- curvature s = toPosInf . second sqrt . curvaturePair (fmap unr2 s) -- TODO: Use the generalized unr2
 
 -- | With @squaredCurvature@ we can compute values in spaces that do not support
 -- 'sqrt' and it is just as useful for relative ordering of curvatures or looking
 -- for zeros.
 squaredCurvature :: RealFloat n => Segment Closed V2 n -> n -> PosInf n
--- squaredCurvature s = toPosInf . first (join (*)) . curvaturePair (fmap unr2 s) -- TODO: Use the generalized unr2
-squaredCurvature s = toPosInf . over _x sq . curvaturePair s -- TODO: Use the generalized unr2
-
+squaredCurvature s = toPosInf . over _x (join (*)) . curvaturePair s
 
 -- | Reciprocal of @curvature@.
 radiusOfCurvature :: RealFloat n
                   => Segment Closed V2 n -- ^ Segment to measure on.
                   -> n                   -- ^ Parameter to measure at.
                   -> PosInf n            -- ^ Result is a @PosInf@ value where @PosInfty@ represents
-                                         -- infinite radius of curvature or zero curvature.
--- radiusOfCurvature s = toPosInf . (\(p,q) -> (q,p)) . second sqrt . curvaturePair (fmap unr2 s)
+                                         --   infinite radius of curvature or zero curvature.
 radiusOfCurvature s = toPosInf . (\(V2 p q) -> V2 (sqrt q) p) . curvaturePair s
 
 -- | Reciprocal of @squaredCurvature@
 squaredRadiusOfCurvature :: RealFloat n => Segment Closed V2 n -> n -> PosInf n
--- squaredRadiusOfCurvature s = toPosInf . (\(p,q) -> (q,p)) . first (join (*)) . curvaturePair
-squaredRadiusOfCurvature s = toPosInf . (\(V2 p q) -> (V2 q (sq p))) . curvaturePair s
-
-sq :: Num a => a -> a
-sq x = x * x
-{-# INLINE sq #-}
-
-
+squaredRadiusOfCurvature s = toPosInf . (\(V2 p q) -> (V2 q (p * p))) . curvaturePair s
 
 -- Package up problematic values with the appropriate infinity.
 toPosInf :: RealFloat a => V2 a -> PosInf a
@@ -150,10 +139,11 @@ toPosInf (V2 p q)
 -- Internal function that is not quite curvature or squaredCurvature but lets
 -- us get there by either taking the square root of the numerator or squaring
 -- the denominator respectively.
-curvaturePair :: (Num n)
+curvaturePair :: Num n
     => Segment Closed V2 n -> n -> V2 n
-curvaturePair (Linear _) _                       = V2 0 1 -- Linear segments always have zero curvature (infinite radius).
-curvaturePair seg@(Cubic b c (OffsetClosed d)) t = V2 (x'*y'' - y'*x'') ((x'*x' + y'*y')^(3 :: Integer))
+curvaturePair (Linear _) _ = V2 0 1 -- Linear segments always have zero curvature (infinite radius).
+curvaturePair seg@(Cubic b c (OffsetClosed d)) t
+  = V2 (x'*y'' - y'*x'') ((x'*x' + y'*y')^(3 :: Int))
   where
     (V2 x'  y' )     = seg `tangentAtParam` t
     (V2 x'' y'')     = secondDerivative
