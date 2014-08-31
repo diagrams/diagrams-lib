@@ -1,10 +1,6 @@
-{-# LANGUAGE FlexibleContexts           #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE RankNTypes                 #-}
--- {-# LANGUAGE StandaloneDeriving         #-}
-{-# LANGUAGE DeriveFunctor              #-}
-{-# LANGUAGE TypeFamilies               #-}
-{-# LANGUAGE UndecidableInstances       #-}
+{-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE RankNTypes    #-}
+{-# LANGUAGE TypeFamilies  #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Angle
@@ -12,18 +8,28 @@
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
--- Type for representing angles, independent of vector-space
+-- Type for representing angles.
 --
 -----------------------------------------------------------------------------
 
 module Diagrams.Angle
-       (
+       ( -- * Angle type
          Angle
-       , rad, turn, deg
-       , fullTurn, halfTurn, quarterTurn, angleRatio
-       , sinA, cosA, tanA, asinA, acosA, atanA, atan2A
-       , (@@)
-       , angleBetween
+
+         -- ** Using angles
+       , (@@), rad, turn, deg
+
+         -- ** Common angles
+       , fullTurn, halfTurn, quarterTurn
+
+         -- ** Trigonometric functions
+       , sinA, cosA, tanA
+       , asinA, acosA, atanA, atan2A
+
+         -- ** Angle utilities
+       , angleBetween, angleRatio
+
+         -- ** Classes
        , HasTheta(..)
        , HasPhi(..)
        ) where
@@ -40,9 +46,11 @@ import Linear.Metric
 import Linear.Vector
 
 -- | Angles can be expressed in a variety of units.  Internally,
--- they are represented in radians.
+--   they are represented in radians.
 newtype Angle n = Radians n
   deriving (Read, Show, Eq, Ord, Functor)
+
+type instance N (Angle n) = n
 
 instance Applicative Angle where
   pure = Radians
@@ -56,29 +64,31 @@ instance Additive Angle where
 
 instance Num n => Semigroup (Angle n) where
   (<>) = (^+^)
+  {-# INLINE (<>) #-}
 
 instance Num n => Monoid (Angle n) where
   mappend = (<>)
   mempty  = Radians 0
 
-type instance N (Angle n) = n
-
 -- | The radian measure of an @Angle@ @a@ can be accessed as @a
--- ^. rad@.  A new @Angle@ can be defined in radians as @pi \@\@ rad@.
+--   ^. rad@.  A new @Angle@ can be defined in radians as @pi \@\@ rad@.
 rad :: Iso' (Angle n) n
 rad = iso (\(Radians r) -> r) Radians
+{-# INLINE rad #-}
 
 -- | The measure of an @Angle@ @a@ in full circles can be accessed as
--- @a ^. turn@.  A new @Angle@ of one-half circle can be defined in as
--- @1/2 \@\@ turn@.
+--   @a ^. turn@.  A new @Angle@ of one-half circle can be defined in as
+--   @1/2 \@\@ turn@.
 turn :: Floating n => Iso' (Angle n) n
 turn = iso (\(Radians r) -> r / (2*pi)) (Radians . (*(2*pi)))
+{-# INLINE turn #-}
 
 -- | The degree measure of an @Angle@ @a@ can be accessed as @a
--- ^. deg@.  A new @Angle@ can be defined in degrees as @180 \@\@
--- deg@.
+--   ^. deg@.  A new @Angle@ can be defined in degrees as @180 \@\@
+--   deg@.
 deg :: Floating n => Iso' (Angle n) n
 deg = iso (\(Radians r) -> r / (2*pi/360)) (Radians . ( * (2*pi/360)))
+{-# INLINE deg #-}
 
 -- | An angle representing one full turn.
 fullTurn :: Floating v => Angle v
@@ -94,7 +104,7 @@ quarterTurn = 0.25 @@ turn
 
 -- | Calculate ratio between two angles.
 angleRatio :: Floating n => Angle n -> Angle n -> n
-angleRatio a b = abs (a ^. rad) / abs (b ^. rad)
+angleRatio a b = (a ^. rad) / (b ^. rad)
 
 -- | The sine of the given @Angle@.
 sinA :: Floating n => Angle n -> n
@@ -121,31 +131,15 @@ atanA :: Floating n => n -> Angle n
 atanA = Radians . atan
 
 -- | @atan2A n d@ is the @Angle with tangent @n/d@, unless d is 0, in
--- which case it is ±π/2.
+--   which case it is ±π/2.
 atan2A :: RealFloat n => n -> n -> Angle n
 atan2A y x = Radians $ atan2 y x
 
--- Like atan2 but unable to differentiate between 0 and -0:
--- atan2 0 (-0)  = pi
--- atan2' 0 (-0) = 0
---
--- have to decide if this technicality is worth a RealFloat instance.
-
--- atan2' :: (Floating n, Ord n) => n -> n -> n
--- atan2' y x
---   | x > 0            =  atan (y/x)
---   | x == 0 && y >  0 =  pi/2
---   | x <  0 && y >  0 =  pi + atan (y/x)
---   | x <= 0 && y <  0 = -atan2' (-y) x
---   | y == 0 && x <  0 =  pi    -- must be after the previous test on zero y
---   | x == 0 && y == 0 =  y     -- must be after the other double zero tests
---   | otherwise        =  x + y -- x or y is a NaN, return a NaN (via +)
-
 -- | @30 \@\@ deg@ is an @Angle@ of the given measure and units.
 --
--- More generally, @\@\@@ reverses the @Iso\'@ on its right, and
--- applies the @Iso\'@ to the value on the left.  @Angle@s are the
--- motivating example where this order improves readability.
+--   More generally, @\@\@@ reverses the @Iso\'@ on its right, and
+--   applies the @Iso\'@ to the value on the left.  @Angle@s are the
+--   motivating example where this order improves readability.
 (@@) :: b -> Iso' a b -> a
 -- The signature above is slightly specialized, in favor of readability
 a @@ i = review i a
@@ -166,17 +160,19 @@ angleBetween v1 v2 = acos (signorm v1 `dot` signorm v2) @@ rad
 
 -- | The class of types with at least one angle coordinate, called _theta.
 class HasTheta t where
-    _theta :: RealFloat n => Lens' (t n) (Angle n)
+  _theta :: RealFloat n => Lens' (t n) (Angle n)
 
 -- | The class of types with at least two angle coordinates, the
--- second called _phi.
+--   second called _phi.
 class HasTheta t => HasPhi t where
-    _phi :: RealFloat n => Lens' (t n) (Angle n)
+  _phi :: RealFloat n => Lens' (t n) (Angle n)
 
 -- Point instances
 instance HasTheta v => HasTheta (Point v) where
-    _theta = _pIso . _theta
+  _theta = lensP . _theta
+  {-# INLINE _theta #-}
 
 instance HasPhi v => HasPhi (Point v) where
-    _phi = _pIso . _phi
+  _phi = lensP . _phi
+  {-# INLINE _phi #-}
 

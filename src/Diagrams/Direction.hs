@@ -23,6 +23,7 @@ import Control.Lens     (Iso', iso)
 
 import Diagrams.Angle
 import Diagrams.Core
+
 import Linear.Metric
 
 --------------------------------------------------------------------------------
@@ -40,13 +41,13 @@ type instance N (Direction v n) = n
 
 -- instance (Transformable v, Vn (Direction v n) ~ v n) => Transformable (Direction v) where
 instance (Vn (v n) ~ v n, Transformable (v n)) => Transformable (Direction v n) where
-    transform t (Direction v) = Direction (transform t v)
+  transform t (Direction v) = Direction (transform t v)
 
 instance HasTheta v => HasTheta (Direction v) where
-    _theta = _Dir . _theta
+  _theta = _Dir . _theta
 
 instance HasPhi v => HasPhi (Direction v) where
-    _phi = _Dir . _phi
+  _phi = _Dir . _phi
 
 -- | _Dir is provided to allow efficient implementations of functions
 -- in particular vector-spaces, but should be used with care as it
@@ -64,7 +65,7 @@ fromDirection :: (Metric v, Floating n) => Direction v n -> v n
 fromDirection (Direction v) = signorm v
 
 -- | compute the positive angle between the two directions in their common plane
-angleBetweenDirs  :: (Metric v, Floating n)
+angleBetweenDirs :: (Metric v, Floating n)
   => Direction v n -> Direction v n -> Angle n
 angleBetweenDirs d1 d2 = angleBetween (fromDirection d1) (fromDirection d2)
 

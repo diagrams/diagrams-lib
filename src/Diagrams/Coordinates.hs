@@ -1,4 +1,5 @@
 {-# LANGUAGE TypeFamilies         #-}
+{-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
 -----------------------------------------------------------------------------
@@ -22,6 +23,7 @@ module Diagrams.Coordinates
     where
 
 import Control.Lens           (Lens')
+
 import Diagrams.Points
 
 import Linear (V2 (..), V3 (..), V4 (..))

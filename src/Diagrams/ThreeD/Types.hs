@@ -17,29 +17,27 @@ module Diagrams.ThreeD.Types
          r3, unr3, mkR3
        , p3, unp3, mkP3
        , r3Iso, p3Iso, project
+       , r3SphericalIso, r3CylindricalIso
        , V3 (..), P3
        , R1 (..), R2 (..), R3 (..)
 
-       -- * other coördinate systems
-       , Spherical(..), Cylindrical(..), HasPhi(..)
        ) where
 
-import           Control.Lens           (Iso', iso, _2)
+import           Control.Lens           (Iso', iso, _1, _2, _3)
 
 import           Diagrams.Angle
 import           Diagrams.Core
 import           Diagrams.Points
+import           Diagrams.TwoD.Types
 
 import Linear.V3 as V
 import Linear.Metric
-import Linear.Vector
 
 ------------------------------------------------------------
 -- 3D Euclidean space
 
 -- Basic R3 types
 
--- type R3 = V3
 type P3 = Point V3
 
 r3Iso :: Iso' (V3 n) (n, n, n)
@@ -72,56 +70,28 @@ p3Iso = iso unp3 p3
 mkP3 :: n -> n -> n -> P3 n
 mkP3 x y z = p3 (x, y, z)
 
-
--- | @project u v@ computes the projection of @v@ onto @u@.
-project :: (Metric v, Fractional n) => v n -> v n -> v n
-project u v = ((v `dot` u) / quadrance u) *^ u
-
--- | Types which can be expressed in spherical 3D coordinates, as a
--- triple (r,θ,φ), where θ is rotation about the Z axis, and φ is the
--- angle from the Z axis.
-class Spherical v where
-  spherical :: RealFloat n => Iso' (v n) (n, Angle n, Angle n)
-
--- | Types which can be expressed in cylindrical 3D coordinates.
-class Cylindrical v where
-  cylindrical :: Floating n => Iso' (v n) (n, Angle n, n) -- r, θ, z
-
-instance Cylindrical v => Cylindrical (Point v) where
-  cylindrical = _pIso . cylindrical
-
-instance Spherical v => Spherical (Point v) where
-  spherical = _pIso . spherical
-
 type instance V (V3 n) = V3
 type instance N (V3 n) = n
 
 instance Transformable (V3 n) where
-	transform = apply
+  transform = apply
 
-instance Cylindrical V3 where
-  cylindrical = iso
-    (\(V3 x y z) -> (sqrt (sq x + sq y), atanA (y/x), z))
-    (\(r,θ,z)    -> V3 (r*cosA θ) (r*sinA θ) z)
-    where sq x = x * x
+r3SphericalIso :: RealFloat n => Iso' (V3 n) (n, Angle n, Angle n)
+r3SphericalIso = iso
+  (\v@(V3 x y z) -> (norm v, atan2A y x, acosA (z / norm v)))
+  (\(r,θ,φ)   -> V3 (r * cosA θ * sinA φ) (r * sinA θ * sinA φ) (r * cosA φ))
 
-instance Spherical V3 where
-  spherical = iso
-    (\v@(V3 x y z) -> (norm v, atan2A y x, acosA (z / norm v)))
-    (\(r,θ,φ)   -> V3 (r * cosA θ * sinA φ) (r * sinA θ * sinA φ) (r * cosA φ))
+r3CylindricalIso :: RealFloat n => Iso' (V3 n) (n, Angle n, n)
+r3CylindricalIso = iso
+  (\(V3 x y z) -> (sqrt $ x*x + y*y, atan2A y x, z))
+  (\(r,θ,z)    -> V3 (r*cosA θ) (r*sinA θ) z)
 
-    -- spherical = iso
-    --   (\v@(R3 x y z) -> (magnitude v, atanA (y/x), atanA (v^._r/z)))
-    --   (\(r,θ,φ) -> R3 (r*cosA θ*sinA φ) (r*sinA θ*sinA φ) (r*cosA φ))
-
--- We'd like to write: instance Spherical t => HasR t
--- But GHC can't work out that the instance won't overlap.  Just write them explicitly:
-
--- instance HasR V3 where
---   _r = spherical . _1
+instance HasR V3 where
+  _r = r3SphericalIso . _1
 
 instance HasTheta V3 where
-  _theta = cylindrical . _2
+  _theta = r3CylindricalIso . _2
 
--- instance HasPhi V3 where
---   _phi = spherical . _3
+instance HasPhi V3 where
+  _phi = r3SphericalIso . _3
+
