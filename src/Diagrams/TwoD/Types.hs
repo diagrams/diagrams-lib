@@ -23,16 +23,16 @@ module Diagrams.TwoD.Types
        , HasR (..)
        ) where
 
-import Control.Lens (Lens', Iso', iso, _1, _2)
+import           Control.Lens            (Iso', Lens', iso, _1, _2)
 
-import Diagrams.Angle
-import Diagrams.Points
+import           Diagrams.Angle
+import           Diagrams.Points
 
-import Diagrams.Core.Transform
-import Diagrams.Core.V
-import Linear.Metric
-import Linear.V2
-import Linear.Vector
+import           Diagrams.Core.Transform
+import           Diagrams.Core.V
+import           Linear.Metric
+import           Linear.V2
+import           Linear.Vector
 
 type P2 = Point V2
 

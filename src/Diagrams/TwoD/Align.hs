@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeFamilies     #-}
+{-# LANGUAGE TypeFamilies #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -39,13 +39,13 @@ module Diagrams.TwoD.Align
 
     ) where
 
-import Diagrams.Core
+import           Diagrams.Core
 
-import Diagrams.Align
-import Diagrams.TwoD.Types
-import Diagrams.TwoD.Vector
+import           Diagrams.Align
+import           Diagrams.TwoD.Types
+import           Diagrams.TwoD.Vector
 
-import Linear.Vector
+import           Linear.Vector
 
 -- | Align along the left edge, i.e. translate the diagram in a
 --   horizontal direction so that the local origin is on the left edge

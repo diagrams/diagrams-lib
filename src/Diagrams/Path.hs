@@ -56,29 +56,28 @@ module Diagrams.Path
 
        ) where
 
-import Data.Typeable
+import           Data.Typeable
 
-import Diagrams.Align
-import Diagrams.Core
-import Diagrams.Core.Points ()
-import Diagrams.Located
-import Diagrams.Points
-import Diagrams.Segment
-import Diagrams.Trail
-import Diagrams.TrailLike
-import Diagrams.Transform
+import           Diagrams.Align
+import           Diagrams.Core
+import           Diagrams.Core.Points ()
+import           Diagrams.Located
+import           Diagrams.Points
+import           Diagrams.Segment
+import           Diagrams.Trail
+import           Diagrams.TrailLike
+import           Diagrams.Transform
 
-import           Control.Arrow  ((***))
-import           Control.Lens   (Rewrapped, Wrapped (..), iso, mapped,
-                                 op, over, view, (%~), _Unwrapped',
-                                 _Wrapped)
-import qualified Data.Foldable  as F
-import           Data.List      (partition)
+import           Control.Arrow        ((***))
+import           Control.Lens         (Rewrapped, Wrapped (..), iso, mapped, op, over, view, (%~),
+                                       _Unwrapped', _Wrapped)
+import qualified Data.Foldable        as F
+import           Data.List            (partition)
 import           Data.Semigroup
 
-import Linear.Affine
-import Linear.Metric
-import Linear.Vector
+import           Linear.Affine
+import           Linear.Metric
+import           Linear.Vector
 
 ------------------------------------------------------------
 --  Paths  -------------------------------------------------

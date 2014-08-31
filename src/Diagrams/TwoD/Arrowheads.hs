@@ -77,9 +77,9 @@ import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector    (unitX, unit_X, xDir)
 import           Diagrams.Util           (( # ))
 
-import Linear.Affine
-import Linear.Vector
-import Linear.Metric
+import           Linear.Affine
+import           Linear.Metric
+import           Linear.Vector
 
 -----------------------------------------------------------------------------
 

@@ -103,11 +103,9 @@ module Diagrams.Trail
        ) where
 
 import           Control.Arrow            ((***))
-import           Control.Lens             (AnIso', Rewrapped,
-                                           Wrapped (..), cloneIso, iso,
-                                           op, view, (^.))
-import           Data.FingerTree          (FingerTree, ViewL (..),
-                                           ViewR (..), (<|), (|>))
+import           Control.Lens             (AnIso', Rewrapped, Wrapped (..), cloneIso, iso, op, view,
+                                           (^.))
+import           Data.FingerTree          (FingerTree, ViewL (..), ViewR (..), (<|), (|>))
 import qualified Data.FingerTree          as FT
 import           Data.Fixed
 import qualified Data.Foldable            as F
@@ -115,15 +113,15 @@ import           Data.Monoid.MList
 import           Data.Semigroup
 import qualified Numeric.Interval.Kaucher as I
 
-import Diagrams.Core       hiding ((|>))
-import Diagrams.Located
-import Diagrams.Parametric
-import Diagrams.Segment
-import Diagrams.Tangent
+import           Diagrams.Core            hiding ((|>))
+import           Diagrams.Located
+import           Diagrams.Parametric
+import           Diagrams.Segment
+import           Diagrams.Tangent
 
-import Linear.Affine
-import Linear.Metric
-import Linear.Vector
+import           Linear.Affine
+import           Linear.Metric
+import           Linear.Vector
 
 -- $internals
 --

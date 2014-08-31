@@ -44,7 +44,7 @@ import           Diagrams.Core       (HasLinearMap, OrderedField, Point)
 import           Diagrams.Core.Names
 import           Diagrams.Core.Types
 
-import Linear.Metric
+import           Linear.Metric
 
 -- | Attach an atomic name to a diagram.
 named :: (IsName nm, HasLinearMap v, Metric v, OrderedField n, Semigroup m)

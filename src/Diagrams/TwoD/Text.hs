@@ -1,4 +1,3 @@
-{-# LANGUAGE ConstraintKinds            #-}
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
@@ -45,7 +44,7 @@ import           Data.Data
 import           Data.Default.Class
 import           Data.Semigroup
 
-import Linear.Affine
+import           Linear.Affine
 
 ------------------------------------------------------------
 -- Text diagrams

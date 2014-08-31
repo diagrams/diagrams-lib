@@ -21,22 +21,21 @@ module Diagrams.ThreeD.Types.Cylindrical
 
   ) where
 
-import Control.Applicative
-import Control.Lens
-import Control.Monad.Fix
-import Control.Monad.Zip
-import Data.Distributive
-import Data.Foldable
-import Data.Functor.Rep
-import Data.Typeable
-import GHC.Generics        (Generic1)
+import           Control.Applicative
+import           Control.Lens
+import           Control.Monad.Fix
+import           Control.Monad.Zip
+import           Data.Distributive
+import           Data.Foldable
+import           Data.Functor.Rep
+import           Data.Typeable
+import           GHC.Generics                    (Generic1)
 
-import Diagrams.Angle
-import Diagrams.TwoD.Types.Polar
-import Diagrams.ThreeD.Types
-import Diagrams.ThreeD.Types.Spherical
+import           Diagrams.Angle
+import           Diagrams.ThreeD.Types
+import           Diagrams.ThreeD.Types.Spherical
 
-import Linear.Vector
+import           Linear.Vector
 
 
 -- | Space which has a radial, angular and height basis.

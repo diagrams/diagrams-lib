@@ -23,16 +23,16 @@ module Diagrams.Located
     )
     where
 
-import Control.Lens (Iso', Lens, Lens', iso, lens)
-import Data.Functor ((<$>))
+import           Control.Lens            (Iso', Lens, Lens', iso, lens)
+import           Data.Functor            ((<$>))
 
-import Linear.Affine
-import Linear.Vector
+import           Linear.Affine
+import           Linear.Vector
 
-import Diagrams.Core
-import Diagrams.Core.Points    ()
-import Diagrams.Core.Transform
-import Diagrams.Parametric
+import           Diagrams.Core
+import           Diagrams.Core.Points    ()
+import           Diagrams.Core.Transform
+import           Diagrams.Parametric
   -- for GHC 7.4 type family bug
 
 -- | \"Located\" things, /i.e./ things with a concrete location:

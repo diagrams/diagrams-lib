@@ -101,40 +101,38 @@ module Diagrams.TwoD.Arrow
        , module Diagrams.TwoD.Arrowheads
        ) where
 
-import Control.Applicative   ((<*>))
-import Control.Lens          (Lens', Setter', Traversal',
-                              generateSignatures, lensRules,
-                              makeLensesWith, view, (%~), (&), (.~),
-                              (^.))
-import Data.Default.Class
-import Data.Functor          ((<$>))
-import Data.Maybe            (fromMaybe)
-import Data.Monoid.Coproduct (untangle)
-import Data.Semigroup
+import           Control.Applicative      ((<*>))
+import           Control.Lens             (Lens', Setter', Traversal', generateSignatures,
+                                           lensRules, makeLensesWith, view, (%~), (&), (.~), (^.))
+import           Data.Default.Class
+import           Data.Functor             ((<$>))
+import           Data.Maybe               (fromMaybe)
+import           Data.Monoid.Coproduct    (untangle)
+import           Data.Semigroup
 
-import Data.Colour         hiding (atop)
-import Diagrams.Core
-import Diagrams.Core.Types (QDiaLeaf (..), mkQD')
+import           Data.Colour              hiding (atop)
+import           Diagrams.Core
+import           Diagrams.Core.Types      (QDiaLeaf (..), mkQD')
 
-import Diagrams.Angle
-import Diagrams.Attributes
-import Diagrams.Direction
-import Diagrams.Parametric
-import Diagrams.Path
-import Diagrams.Solve           (quadForm)
-import Diagrams.Tangent         (tangentAtEnd, tangentAtStart)
-import Diagrams.Trail
-import Diagrams.TwoD.Arrowheads
-import Diagrams.TwoD.Attributes
-import Diagrams.TwoD.Path       (stroke, strokeT)
-import Diagrams.TwoD.Transform  (rotate, translateX)
-import Diagrams.TwoD.Types
-import Diagrams.TwoD.Vector     (unitX, unit_X)
-import Diagrams.Util            (( # ))
+import           Diagrams.Angle
+import           Diagrams.Attributes
+import           Diagrams.Direction
+import           Diagrams.Parametric
+import           Diagrams.Path
+import           Diagrams.Solve           (quadForm)
+import           Diagrams.Tangent         (tangentAtEnd, tangentAtStart)
+import           Diagrams.Trail
+import           Diagrams.TwoD.Arrowheads
+import           Diagrams.TwoD.Attributes
+import           Diagrams.TwoD.Path       (stroke, strokeT)
+import           Diagrams.TwoD.Transform  (rotate, translateX)
+import           Diagrams.TwoD.Types
+import           Diagrams.TwoD.Vector     (unitX, unit_X)
+import           Diagrams.Util            (( # ))
 
-import Linear.Affine
-import Linear.Metric
-import Linear.Vector
+import           Linear.Affine
+import           Linear.Metric
+import           Linear.Vector
 
 
 data ArrowOpts n

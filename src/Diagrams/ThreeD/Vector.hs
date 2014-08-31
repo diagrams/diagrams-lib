@@ -13,12 +13,12 @@ module Diagrams.ThreeD.Vector
          unitX, unitY, unitZ, unit_X, unit_Y, unit_Z,
        ) where
 
-import Control.Lens ((&), (.~))
+import           Control.Lens          ((&), (.~))
 
-import Diagrams.TwoD.Vector
-import Diagrams.ThreeD.Types
+import           Diagrams.ThreeD.Types
+import           Diagrams.TwoD.Vector
 
-import Linear.Vector
+import           Linear.Vector
 
 -- | The unit vector in the positive Y direction.
 unitZ :: (R3 v, Additive v, Num n) => v n

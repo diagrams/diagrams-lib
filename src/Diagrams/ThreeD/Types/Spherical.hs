@@ -23,25 +23,25 @@ module Diagrams.ThreeD.Types.Spherical
 
   ) where
 
-import Control.Applicative
-import Control.Lens
-import Control.Monad.Fix
-import Control.Monad.Zip
-import Data.Distributive
-import Data.Foldable
-import Data.Functor.Rep
-import Data.Typeable
-import GHC.Generics        (Generic1)
+import           Control.Applicative
+import           Control.Lens
+import           Control.Monad.Fix
+import           Control.Monad.Zip
+import           Data.Distributive
+import           Data.Foldable
+import           Data.Functor.Rep
+import           Data.Typeable
+import           GHC.Generics              (Generic1)
 
-import Diagrams.Angle
-import Diagrams.TwoD.Types.Polar
+import           Diagrams.Angle
+import           Diagrams.TwoD.Types.Polar
 
-import Linear.Affine
-import Linear.Metric
-import Linear.V1
-import Linear.V2
-import Linear.V3
-import Linear.Vector
+import           Linear.Affine
+import           Linear.Metric
+import           Linear.V1
+import           Linear.V2
+import           Linear.V3
+import           Linear.Vector
 
 -- | Space which has a radial and two angular basis. The inclination is the
 --   positive angles from the z-axis.

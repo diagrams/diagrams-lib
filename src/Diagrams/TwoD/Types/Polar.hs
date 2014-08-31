@@ -3,9 +3,9 @@
 {-# LANGUAGE DeriveTraversable          #-}
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE FlexibleInstances          #-}
-{-# LANGUAGE TemplateHaskell            #-}
-{-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeFamilies               #-}
 
 module Diagrams.TwoD.Types.Polar
@@ -25,23 +25,23 @@ module Diagrams.TwoD.Types.Polar
 
   ) where
 
-import Control.Applicative
-import Control.Lens
-import Control.Monad.Fix
-import Control.Monad.Zip
-import Data.Distributive
-import Data.Foldable
-import Data.Functor.Rep
-import Data.Typeable
-import GHC.Generics        (Generic1)
+import           Control.Applicative
+import           Control.Lens
+import           Control.Monad.Fix
+import           Control.Monad.Zip
+import           Data.Distributive
+import           Data.Foldable
+import           Data.Functor.Rep
+import           Data.Typeable
+import           GHC.Generics        (Generic1)
 
-import Diagrams.Angle
-import Diagrams.TwoD.Types
+import           Diagrams.Angle
+import           Diagrams.TwoD.Types
 
-import Linear.Affine
-import Linear.Metric
-import Linear.V3
-import Linear.Vector
+import           Linear.Affine
+import           Linear.Metric
+import           Linear.V3
+import           Linear.Vector
 
 
 newtype Polar a = Polar (V2 a)
@@ -95,8 +95,8 @@ interpPolar :: Num n => n -> Polar n -> Polar n -> Polar n
 interpPolar t (Polar a) (Polar b) = Polar (lerp t a b)
 
 
--- | Space which has a radial length basis. For Polar and Cylindrical this is 
---   the radius of the circle in the xy-plane. For Spherical this is the 
+-- | Space which has a radial length basis. For Polar and Cylindrical this is
+--   the radius of the circle in the xy-plane. For Spherical this is the
 --   distance from the origin.
 class Radial t where
   _radial :: Lens' (t a) a

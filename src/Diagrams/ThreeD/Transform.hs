@@ -46,22 +46,22 @@ module Diagrams.ThreeD.Transform
        -- , onBasis
        ) where
 
-import Diagrams.Core
-import Diagrams.Core.Transform
+import           Diagrams.Core
+import           Diagrams.Core.Transform
 
-import Diagrams.Angle
-import Diagrams.Direction
-import Diagrams.ThreeD.Types
-import Diagrams.Transform
+import           Diagrams.Angle
+import           Diagrams.Direction
+import           Diagrams.ThreeD.Types
+import           Diagrams.Transform
 
-import Control.Lens            (view, (&), (*~), (.~), (//~))
-import Data.Semigroup
-import Diagrams.TwoD.Transform
+import           Control.Lens            (view, (&), (*~), (.~), (//~))
+import           Data.Semigroup
+import           Diagrams.TwoD.Transform
 
-import Linear.Affine
-import Linear.Metric
-import Linear.V3      (cross)
-import Linear.Vector
+import           Linear.Affine
+import           Linear.Metric
+import           Linear.V3               (cross)
+import           Linear.Vector
 
 -- | Create a transformation which rotates by the given angle about
 --   a line parallel the Z axis passing through the local origin.

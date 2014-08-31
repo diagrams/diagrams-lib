@@ -47,15 +47,15 @@ module Diagrams.Attributes (
 
   ) where
 
-import Data.Colour
-import Data.Colour.RGBSpace (RGB (..))
-import Data.Colour.SRGB     (toSRGB)
-import Data.Default.Class
+import           Data.Colour
+import           Data.Colour.RGBSpace (RGB (..))
+import           Data.Colour.SRGB     (toSRGB)
+import           Data.Default.Class
 
-import Data.Semigroup
-import Data.Typeable
+import           Data.Semigroup
+import           Data.Typeable
 
-import Diagrams.Core
+import           Diagrams.Core
 
 ------------------------------------------------------------
 --  Color  -------------------------------------------------
@@ -99,7 +99,7 @@ instance (Floating a, Real a) => Color (AlphaColour a) where
 
 instance Color SomeColor where
   toAlphaColour (SomeColor c) = toAlphaColour c
-  fromAlphaColour c = SomeColor c
+  fromAlphaColour             = SomeColor
 
 -- | Convert to sRGBA.
 colorToSRGBA, colorToRGBA :: Color c => c -> (Double, Double, Double, Double)

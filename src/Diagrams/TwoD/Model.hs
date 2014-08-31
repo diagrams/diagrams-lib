@@ -1,4 +1,3 @@
-{-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TemplateHaskell       #-}
@@ -22,7 +21,14 @@ module Diagrams.TwoD.Model
        , showLabels
        ) where
 
+import           Control.Arrow            (second)
 import           Control.Lens             (makeLenses, (^.))
+import           Data.Colour              (Colour)
+import           Data.Colour.Names
+import           Data.Data
+import           Data.Default.Class
+import qualified Data.Map                 as M
+import           Data.Semigroup
 
 import           Diagrams.Core
 import           Diagrams.Path
@@ -34,18 +40,8 @@ import           Diagrams.TwoD.Text
 import           Diagrams.TwoD.Types
 import           Diagrams.Util
 
-import           Control.Arrow            (second)
-import           Data.Default.Class
-import           Data.Semigroup
-
-import qualified Data.Map                 as M
-
-import           Data.Colour              (Colour)
-import           Data.Colour.Names
-
-import Linear.Affine
-import Linear.Vector
-import Data.Data
+import           Linear.Affine
+import           Linear.Vector
 
 ------------------------------------------------------------
 -- Marking the origin

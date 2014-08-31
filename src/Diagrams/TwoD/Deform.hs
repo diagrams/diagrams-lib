@@ -1,11 +1,11 @@
 module Diagrams.TwoD.Deform where
 
-import Control.Lens
+import           Control.Lens
 
-import Diagrams.Deform
+import           Diagrams.Deform
 
-import Linear.V2
-import Linear.Vector
+import           Linear.V2
+import           Linear.Vector
 
 -- | The parallel projection onto the plane x=0
 parallelX0 :: (R1 v, Num n) => Deformation v n

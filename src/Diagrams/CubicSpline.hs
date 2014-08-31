@@ -23,6 +23,8 @@ module Diagrams.CubicSpline
          cubicSpline
        ) where
 
+import           Control.Lens                  (view)
+
 import           Diagrams.Core
 import           Diagrams.CubicSpline.Internal
 import           Diagrams.Located              (Located, at, mapLoc)
@@ -30,9 +32,8 @@ import           Diagrams.Segment
 import           Diagrams.Trail
 import           Diagrams.TrailLike            (TrailLike (..))
 
-import Linear.Affine
-import Control.Lens (view)
-import Linear.Metric
+import           Linear.Affine
+import           Linear.Metric
 
 -- | Construct a spline path-like thing of cubic segments from a list of
 --   vertices, with the first vertex as the starting point.  The first

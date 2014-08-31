@@ -29,22 +29,22 @@ module Diagrams.Animation
 
        ) where
 
-import Diagrams.Core
+import           Control.Applicative       ((<$>))
+import           Data.Active
+import           Data.Foldable             (foldMap)
+import           Data.Semigroup
 
-import Diagrams.Animation.Active ()
-import Diagrams.BoundingBox
-import Diagrams.Combinators
-import Diagrams.TrailLike
-import Diagrams.TwoD.Shapes
-import Diagrams.TwoD.Types
+import           Diagrams.Core
 
-import Data.Active
-import Data.Semigroup
+import           Diagrams.Animation.Active ()
+import           Diagrams.BoundingBox
+import           Diagrams.Combinators
+import           Diagrams.TrailLike
+import           Diagrams.TwoD.Shapes
+import           Diagrams.TwoD.Types
 
-import Control.Applicative ((<$>))
-import Data.Foldable       (foldMap)
 
-import Linear.Metric
+import           Linear.Metric
 
 -- | A value of type @QAnimation b v m@ is an animation (a
 --   time-varying diagram with start and end times) that can be

@@ -29,17 +29,15 @@ module Diagrams.TrailLike
        ) where
 
 import           Control.Lens     (view, _Unwrapped')
--- import           Data.AffineSpace ((.-.))
--- import           Data.VectorSpace
 
 import           Diagrams.Core
 import           Diagrams.Located
 import           Diagrams.Segment
 import           Diagrams.Trail
 
-import Linear.Affine
-import Linear.Metric
-import Linear.Vector
+import           Linear.Affine
+import           Linear.Metric
+import           Linear.Vector
 
 ------------------------------------------------------------
 --  TrailLike class

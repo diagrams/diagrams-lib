@@ -1,4 +1,3 @@
-{-# LANGUAGE ConstraintKinds  #-}
 {-# LANGUAGE DeriveGeneric    #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TypeFamilies     #-}
@@ -32,17 +31,17 @@ module Diagrams.TwoD.Size
        , sized, sizedAs, sizePair
        ) where
 
-import           Diagrams.Core
-import           Diagrams.TwoD.Types
-import           Diagrams.TwoD.Vector
-
 import           Control.Applicative
 import           Control.Arrow        ((&&&), (***))
 import           Data.Hashable        (Hashable)
 import           GHC.Generics         (Generic)
 
-import Linear.Vector
-import Control.Lens (Iso', iso)
+import           Diagrams.Core
+import           Diagrams.TwoD.Types
+import           Diagrams.TwoD.Vector
+
+import           Control.Lens         (Iso', iso)
+import           Linear.Vector
 
 ------------------------------------------------------------
 -- Computing diagram sizes

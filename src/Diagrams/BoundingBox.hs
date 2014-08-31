@@ -1,11 +1,11 @@
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE DeriveFunctor              #-}
 {-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE NoMonomorphismRestriction  #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
 {-# LANGUAGE StandaloneDeriving         #-}
-{-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE TypeFamilies               #-}
 
 -----------------------------------------------------------------------------
@@ -42,25 +42,25 @@ module Diagrams.BoundingBox
        , union, intersection
        ) where
 
-import Data.Data      (Data, Typeable)
-import Data.Foldable  as F
-import Data.Maybe     (fromMaybe)
-import Data.Semigroup
+import           Data.Data               (Data, Typeable)
+import           Data.Foldable           as F
+import           Data.Maybe              (fromMaybe)
+import           Data.Semigroup
 
-import Diagrams.Core.Transform
-import Diagrams.Core
-import Diagrams.TwoD.Types
-import Diagrams.TwoD.Path ()
-import Diagrams.TwoD.Shapes
-import Diagrams.ThreeD.Shapes
-import Diagrams.ThreeD.Types
-import Diagrams.Path
+import           Diagrams.Core
+import           Diagrams.Core.Transform
+import           Diagrams.Path
+import           Diagrams.ThreeD.Shapes
+import           Diagrams.ThreeD.Types
+import           Diagrams.TwoD.Path      ()
+import           Diagrams.TwoD.Shapes
+import           Diagrams.TwoD.Types
 
-import Control.Applicative
-import Data.Traversable    as T
-import Linear.Affine
-import Linear.Metric
-import Linear.Vector
+import           Control.Applicative
+import           Data.Traversable        as T
+import           Linear.Affine
+import           Linear.Metric
+import           Linear.Vector
 
 -- Unexported utility newtype
 

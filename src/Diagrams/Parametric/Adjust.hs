@@ -21,14 +21,14 @@ module Diagrams.Parametric.Adjust
 
     ) where
 
-import Control.Lens (Lens', generateSignatures, lensRules,
-                     makeLensesWith, (&), (.~), (^.))
-import Data.Proxy
+import           Control.Lens        (Lens', generateSignatures, lensRules, makeLensesWith, (&),
+                                      (.~), (^.))
+import           Data.Proxy
 
-import Data.Default.Class
+import           Data.Default.Class
 
-import Diagrams.Core.V
-import Diagrams.Parametric
+import           Diagrams.Core.V
+import           Diagrams.Parametric
 
 -- | What method should be used for adjusting a segment, trail, or
 --   path?

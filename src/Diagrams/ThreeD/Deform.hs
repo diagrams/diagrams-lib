@@ -4,13 +4,13 @@ module Diagrams.ThreeD.Deform
   , parallelZ0, perspectiveZ1, facingZ
   ) where
 
-import Control.Lens
+import           Control.Lens
 
-import Diagrams.Deform
-import Diagrams.TwoD.Deform
+import           Diagrams.Deform
+import           Diagrams.TwoD.Deform
 
-import Linear.Vector
-import Linear.V3
+import           Linear.V3
+import           Linear.Vector
 
 -- | The parallel projection onto the plane z=0
 parallelZ0 :: (R3 v, Num n) => Deformation v n

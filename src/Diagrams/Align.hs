@@ -36,18 +36,18 @@ module Diagrams.Align
        ) where
 
 import           Diagrams.Core
-import           Diagrams.Util    (applyAll)
+import           Diagrams.Util (applyAll)
 
-import           Data.Maybe       (fromMaybe)
-import           Data.Ord         (comparing)
+import           Data.Maybe    (fromMaybe)
+import           Data.Ord      (comparing)
 
-import qualified Data.Foldable    as F
-import qualified Data.Map         as M
-import qualified Data.Set         as S
+import qualified Data.Foldable as F
+import qualified Data.Map      as M
+import qualified Data.Set      as S
 
-import Linear.Affine
-import Linear.Vector
-import Linear.Metric
+import           Linear.Affine
+import           Linear.Metric
+import           Linear.Vector
 
 -- | Class of things which can be aligned.
 class Alignable a where
@@ -76,6 +76,7 @@ alignBy'Default boundary v d a = moveOriginTo (lerp ((d + 1) / 2)
                                                     (boundary v a)
                                                     (boundary (negated v) a)
                                               ) a
+                                              
 
 -- | Some standard functions which can be used as the `boundary` argument to
 --  `alignBy'`.
@@ -162,4 +163,6 @@ snugCenter :: (Vn a ~ v n, HasLinearMap v, Alignable a, HasOrigin a, Fractional 
 snugCenter = applyAll fs
   where
     fs = map snugCenterV basis
+
+{-# ANN module "HLint: ignore Use camelCase" #-}
 

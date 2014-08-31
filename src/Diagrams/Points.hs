@@ -20,14 +20,14 @@ module Diagrams.Points
        , _pIso, lensP
        ) where
 
-import Diagrams.Core        (pointDiagram)
-import Diagrams.Core.Points
+import           Diagrams.Core        (pointDiagram)
+import           Diagrams.Core.Points
 
-import Control.Lens (Iso', iso)
+import           Control.Lens         (Iso', iso)
 
-import Data.Foldable as F
-import Linear.Affine
-import Linear.Vector
+import           Data.Foldable        as F
+import           Linear.Affine
+import           Linear.Vector
 
 -- Point v <-> v
 _pIso :: Iso' (Point v n) (v n)

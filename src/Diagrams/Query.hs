@@ -16,5 +16,5 @@ module Diagrams.Query
 
     ) where
 
-import Diagrams.Core
+import           Diagrams.Core
 

@@ -1,4 +1,3 @@
-{-# LANGUAGE ConstraintKinds      #-}
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE GADTs                #-}
 {-# LANGUAGE StandaloneDeriving   #-}
@@ -41,35 +40,35 @@ module Diagrams.TwoD.Offset
 
     ) where
 
-import Control.Applicative
-import Control.Lens        hiding (at)
+import           Control.Applicative
+import           Control.Lens            hiding (at)
 
-import Data.Maybe      (catMaybes)
-import Data.Monoid
-import Data.Monoid.Inf
+import           Data.Maybe              (catMaybes)
+import           Data.Monoid
+import           Data.Monoid.Inf
 
-import Data.Default.Class
+import           Data.Default.Class
 
-import Diagrams.Core
+import           Diagrams.Core
 
-import Diagrams.Angle
-import Diagrams.Attributes
-import Diagrams.Direction      (direction)
-import Diagrams.Located
-import Diagrams.Parametric
-import Diagrams.Path
-import Diagrams.Segment
-import Diagrams.Trail          hiding (isLoop, offset)
-import Diagrams.TrailLike
-import Diagrams.TwoD.Arc
-import Diagrams.TwoD.Curvature
-import Diagrams.TwoD.Path      ()
-import Diagrams.TwoD.Types
-import Diagrams.TwoD.Vector    hiding (e)
+import           Diagrams.Angle
+import           Diagrams.Attributes
+import           Diagrams.Direction      (direction)
+import           Diagrams.Located
+import           Diagrams.Parametric
+import           Diagrams.Path
+import           Diagrams.Segment
+import           Diagrams.Trail          hiding (isLoop, offset)
+import           Diagrams.TrailLike
+import           Diagrams.TwoD.Arc
+import           Diagrams.TwoD.Curvature
+import           Diagrams.TwoD.Path      ()
+import           Diagrams.TwoD.Types
+import           Diagrams.TwoD.Vector    hiding (e)
 
-import Linear.Affine
-import Linear.Metric
-import Linear.Vector
+import           Linear.Affine
+import           Linear.Metric
+import           Linear.Vector
 
 unitPerp :: OrderedField n => V2 n -> V2 n
 unitPerp = signorm . perp

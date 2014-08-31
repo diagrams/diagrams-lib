@@ -1,4 +1,3 @@
-{-# LANGUAGE ConstraintKinds  #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TemplateHaskell  #-}
 {-# LANGUAGE TypeFamilies     #-}
@@ -46,6 +45,10 @@ module Diagrams.TwoD.Shapes
        , roundedRect'
        ) where
 
+import           Control.Lens            (makeLenses, op, (&), (.~), (<>~), (^.))
+import           Data.Default.Class
+import           Data.Semigroup
+
 import           Diagrams.Core
 
 import           Diagrams.Angle
@@ -59,12 +62,8 @@ import           Diagrams.TwoD.Polygons
 import           Diagrams.TwoD.Transform
 import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector
-
 import           Diagrams.Util
 
-import           Control.Lens            (makeLenses, op, (&), (.~), (<>~), (^.))
-import           Data.Default.Class
-import           Data.Semigroup
 
 -- | Create a centered horizontal (L-R) line of the given length.
 --

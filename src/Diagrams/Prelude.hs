@@ -126,43 +126,42 @@ module Diagrams.Prelude
        , Applicative(..), (*>), (<*), (<$>), (<$), liftA, liftA2, liftA3
        ) where
 
-import Diagrams.Core
+import           Diagrams.Core
 
-import Diagrams.Align
-import Diagrams.Angle
-import Diagrams.Animation
-import Diagrams.Attributes
-import Diagrams.Combinators
-import Diagrams.Coordinates
-import Diagrams.CubicSpline
-import Diagrams.Deform
-import Diagrams.Direction
-import Diagrams.Envelope
-import Diagrams.Located
-import Diagrams.Names
-import Diagrams.Parametric
-import Diagrams.Parametric.Adjust
-import Diagrams.Path
-import Diagrams.Points
-import Diagrams.Query
-import Diagrams.Segment
-import Diagrams.Tangent
-import Diagrams.Trace
-import Diagrams.Trail             hiding (linePoints, loopPoints,
-                                   trailPoints)
-import Diagrams.TrailLike
-import Diagrams.Transform
-import Diagrams.TwoD
-import Diagrams.Util
+import           Diagrams.Align
+import           Diagrams.Angle
+import           Diagrams.Animation
+import           Diagrams.Attributes
+import           Diagrams.Combinators
+import           Diagrams.Coordinates
+import           Diagrams.CubicSpline
+import           Diagrams.Deform
+import           Diagrams.Direction
+import           Diagrams.Envelope
+import           Diagrams.Located
+import           Diagrams.Names
+import           Diagrams.Parametric
+import           Diagrams.Parametric.Adjust
+import           Diagrams.Path
+import           Diagrams.Points
+import           Diagrams.Query
+import           Diagrams.Segment
+import           Diagrams.Tangent
+import           Diagrams.Trace
+import           Diagrams.Trail             hiding (linePoints, loopPoints, trailPoints)
+import           Diagrams.TrailLike
+import           Diagrams.Transform
+import           Diagrams.TwoD
+import           Diagrams.Util
 
-import Control.Applicative
-import Control.Lens        ((%~), (&), (.~))
-import Data.Active
-import Data.Colour         hiding (AffineSpace (..), atop, over)
-import Data.Colour.Names   hiding (tan)
-import Data.Semigroup
+import           Control.Applicative
+import           Control.Lens               ((%~), (&), (.~))
+import           Data.Active
+import           Data.Colour                hiding (AffineSpace (..), atop, over)
+import           Data.Colour.Names          hiding (tan)
+import           Data.Semigroup
 
-import Linear.Affine
-import Linear.Vector
-import Linear.Metric
+import           Linear.Affine
+import           Linear.Metric
+import           Linear.Vector
 

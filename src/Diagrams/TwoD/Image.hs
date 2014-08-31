@@ -31,22 +31,21 @@ module Diagrams.TwoD.Image
     , rasterDia
     ) where
 
+import           Codec.Picture
+import           Codec.Picture.Types  (dynamicMap)
 
-import Codec.Picture
-import Codec.Picture.Types (dynamicMap)
+import           Data.Colour          (AlphaColour)
+import           Data.Semigroup
+import           Data.Typeable        (Typeable)
 
-import Data.Colour   (AlphaColour)
-import Data.Semigroup
-import Data.Typeable (Typeable)
+import           Diagrams.Core
 
-import Diagrams.Core
+import           Diagrams.Attributes  (colorToSRGBA)
+import           Diagrams.TwoD.Path   (isInsideEvenOdd)
+import           Diagrams.TwoD.Shapes (rect)
+import           Diagrams.TwoD.Types
 
-import Diagrams.Attributes  (colorToSRGBA)
-import Diagrams.TwoD.Path   (isInsideEvenOdd)
-import Diagrams.TwoD.Shapes (rect)
-import Diagrams.TwoD.Types
-
-import Linear.Affine
+import           Linear.Affine
 
 data Embedded deriving Typeable
 data External deriving Typeable

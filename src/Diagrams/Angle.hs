@@ -34,16 +34,16 @@ module Diagrams.Angle
        , HasPhi(..)
        ) where
 
-import Control.Applicative
-import Control.Lens        (Iso', Lens', iso, review, (^.))
-import Data.Monoid         hiding ((<>))
-import Data.Semigroup
+import           Control.Applicative
+import           Control.Lens        (Iso', Lens', iso, review, (^.))
+import           Data.Monoid         hiding ((<>))
+import           Data.Semigroup
 
-import Diagrams.Core.V
-import Diagrams.Points
+import           Diagrams.Core.V
+import           Diagrams.Points
 
-import Linear.Metric
-import Linear.Vector
+import           Linear.Metric
+import           Linear.Vector
 
 -- | Angles can be expressed in a variety of units.  Internally,
 --   they are represented in radians.
@@ -162,8 +162,8 @@ angleBetween v1 v2 = acos (signorm v1 `dot` signorm v2) @@ rad
 class HasTheta t where
   _theta :: RealFloat n => Lens' (t n) (Angle n)
 
--- | The class of types with at least two angle coordinates, the
---   second called _phi.
+-- | The class of types with at least two angle coordinates, the second called
+--   _phi. _phi is the positive angle measured from the z axis.
 class HasTheta t => HasPhi t where
   _phi :: RealFloat n => Lens' (t n) (Angle n)
 

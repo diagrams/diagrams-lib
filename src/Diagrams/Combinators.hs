@@ -41,8 +41,8 @@ module Diagrams.Combinators
 
 import           Data.Typeable
 
-import           Control.Lens          (Lens', generateSignatures, lensRules,
-                                        makeLensesWith, (%~), (&), (.~), (^.), _Wrapping)
+import           Control.Lens          (Lens', generateSignatures, lensRules, makeLensesWith, (%~),
+                                        (&), (.~), (^.), _Wrapping)
 import           Data.Default.Class
 import           Data.Monoid.Deletable (toDeletable)
 import           Data.Monoid.MList     (inj)
@@ -58,9 +58,9 @@ import           Diagrams.Direction
 import           Diagrams.Segment      (straight)
 import           Diagrams.Util
 
-import Linear.Affine
-import Linear.Metric
-import Linear.Vector
+import           Linear.Affine
+import           Linear.Metric
+import           Linear.Vector
 
 ------------------------------------------------------------
 -- Working with envelopes

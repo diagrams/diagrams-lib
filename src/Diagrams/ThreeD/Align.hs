@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeFamilies     #-}
+{-# LANGUAGE TypeFamilies #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -39,14 +39,14 @@ module Diagrams.ThreeD.Align
 
     ) where
 
-import Diagrams.Core
+import           Diagrams.Core
 
-import Diagrams.Align
-import Diagrams.ThreeD.Types
-import Diagrams.ThreeD.Vector
-import Diagrams.TwoD.Align
+import           Diagrams.Align
+import           Diagrams.ThreeD.Types
+import           Diagrams.ThreeD.Vector
+import           Diagrams.TwoD.Align
 
-import Linear.Vector
+import           Linear.Vector
 
 -- | Translate the diagram along unitX so that all points have
 --   positive x-values.

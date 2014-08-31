@@ -21,14 +21,14 @@ module Diagrams.TwoD.Vector
          -- * Synonym for R2 things
        ) where
 
-import Control.Lens (view, (&), (.~))
+import           Control.Lens       (view, (&), (.~))
 
-import Diagrams.Angle
-import Diagrams.Direction
+import           Diagrams.Angle
+import           Diagrams.Direction
 
-import Linear.Metric
-import Linear.Vector
-import Linear.V2
+import           Linear.Metric
+import           Linear.V2
+import           Linear.Vector
 
 -- | The unit vector in the positive X direction.
 unitX :: (R1 v, Additive v, Num n) => v n

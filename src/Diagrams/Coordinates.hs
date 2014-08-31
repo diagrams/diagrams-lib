@@ -1,5 +1,5 @@
-{-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
 -----------------------------------------------------------------------------
@@ -16,17 +16,12 @@
 
 module Diagrams.Coordinates
     ( (:&)(..), Coordinates(..)
-
-    -- * Lenses for particular axes
-    , HasR(..)
     )
     where
 
-import Control.Lens           (Lens')
+import           Diagrams.Points
 
-import Diagrams.Points
-
-import Linear (V2 (..), V3 (..), V4 (..))
+import           Linear          (V2 (..), V3 (..), V4 (..))
 
 -- | Types which are instances of the @Coordinates@ class can be
 --   constructed using '^&' (for example, a three-dimensional vector
@@ -111,7 +106,7 @@ instance Coordinates (a,b,c,d) where
   type PrevDim (a,b,c,d)       = (a,b,c)
   type Decomposition (a,b,c,d) = Decomposition (a,b,c) :& d
 
-  (w,x,y)  ^& z                  = (w,x,y,z)
+  (w,x,y)  ^& z                = (w,x,y,z)
   coords (w,x,y,z)             = coords (w,x,y) :& z
 
 instance Coordinates (v n) => Coordinates (Point v n) where
@@ -119,7 +114,7 @@ instance Coordinates (v n) => Coordinates (Point v n) where
   type PrevDim (Point v n)       = PrevDim (v n)
   type Decomposition (Point v n) = Decomposition (v n)
 
-  x ^& y        = P (x ^& y)
+  x ^& y       = P (x ^& y)
   coords (P v) = coords v
 
 -- instances for linear
@@ -147,9 +142,4 @@ instance Coordinates (V4 n) where
 
   V3 x y z ^& w       = V4 x y z w
   coords (V4 x y z w) = x :& y :& z :& w
-
--- | The class of types with a single length coordinate _r.  _r is
--- magnitude of a vector, or the distance from the origin of a point.
-class HasR t where
-    _r :: Lens' (t n) n
 

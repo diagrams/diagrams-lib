@@ -31,7 +31,7 @@ import           Diagrams.Located
 import           Diagrams.Parametric
 import           Diagrams.Segment
 
-import Linear.Vector
+import           Linear.Vector
 
 ------------------------------------------------------------
 -- Tangent
@@ -119,19 +119,19 @@ instance (Additive v, Num n)
 --   :: (R2Ish (Codomain (Tangent t)), Parametric (Tangent t))
 --   => t -> Scalar (V t) -> Codomain (Tangent t)
 -- normalAtParam t p = normize (t `tangentAtParam` p)
--- 
+--
 -- -- | Compute the normal vector at the start of a segment or trail.
 -- normalAtStart
 --   :: (R2Ish (Codomain (Tangent t)), EndValues (Tangent t))
 --   => t -> Codomain (Tangent t)
 -- normalAtStart = normize . tangentAtStart
--- 
+--
 -- -- | Compute the normal vector at the end of a segment or trail.
 -- normalAtEnd
 --   :: (R2Ish (Codomain (Tangent t)), EndValues (Tangent t))
 --   => t -> Codomain (Tangent t)
 -- normalAtEnd = normize . tangentAtEnd
--- 
+--
 -- | Construct a normal vector from a tangent.
 -- normize :: (Additive v, Num n) => v n -> v n
 -- normize = negated . perp . normalize

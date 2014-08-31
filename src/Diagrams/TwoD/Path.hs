@@ -1,4 +1,3 @@
-{-# LANGUAGE ConstraintKinds            #-}
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE FlexibleInstances          #-}
@@ -47,34 +46,32 @@ module Diagrams.TwoD.Path
        , Clip(..), clipBy, clipTo, clipped
        ) where
 
-import           Control.Applicative (liftA2)
-import           Control.Lens        (Lens, Lens', generateSignatures,
-                                      lensRules, makeLensesWith,
-                                      makeWrapped, op, (.~), (^.),
-                                      _Wrapped')
-import qualified Data.Foldable       as F
+import           Control.Applicative   (liftA2)
+import           Control.Lens          (Lens, Lens', generateSignatures, lensRules, makeLensesWith,
+                                        makeWrapped, op, (.~), (^.), _Wrapped')
+import qualified Data.Foldable         as F
 import           Data.Semigroup
 import           Data.Typeable
 
-import Data.Default.Class
+import           Data.Default.Class
 
-import Diagrams.Angle
-import Diagrams.Combinators  (withEnvelope, withTrace)
-import Diagrams.Core
-import Diagrams.Core.Trace
-import Diagrams.Located      (Located, mapLoc, unLoc)
-import Diagrams.Parametric
-import Diagrams.Path
-import Diagrams.Segment
-import Diagrams.Solve
-import Diagrams.Trail
-import Diagrams.TrailLike
-import Diagrams.TwoD.Segment ()
-import Diagrams.TwoD.Types
-import Diagrams.Util         (tau)
+import           Diagrams.Angle
+import           Diagrams.Combinators  (withEnvelope, withTrace)
+import           Diagrams.Core
+import           Diagrams.Core.Trace
+import           Diagrams.Located      (Located, mapLoc, unLoc)
+import           Diagrams.Parametric
+import           Diagrams.Path
+import           Diagrams.Segment
+import           Diagrams.Solve
+import           Diagrams.Trail
+import           Diagrams.TrailLike
+import           Diagrams.TwoD.Segment ()
+import           Diagrams.TwoD.Types
+import           Diagrams.Util         (tau)
 
-import Linear.Affine
-import Linear.Vector
+import           Linear.Affine
+import           Linear.Vector
 
 ------------------------------------------------------------
 --  Trail and path traces  ---------------------------------

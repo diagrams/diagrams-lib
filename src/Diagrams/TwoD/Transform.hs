@@ -1,4 +1,3 @@
-{-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -56,16 +55,14 @@ import           Diagrams.Core
 
 import           Diagrams.Angle
 import           Diagrams.Transform
-import           Diagrams.TwoD.Size      (height, width)
+import           Diagrams.TwoD.Size  (height, width)
 import           Diagrams.TwoD.Types
 
-import           Control.Lens            (review, (^.), (*~), (//~), (&), (.~))
+import           Control.Lens        (review, (&), (*~), (.~), (//~), (^.))
 import           Data.Semigroup
 
-import Linear.Affine
-import Linear.Vector
-
-
+import           Linear.Affine
+import           Linear.Vector
 
 type T2 = Transformation V2
 

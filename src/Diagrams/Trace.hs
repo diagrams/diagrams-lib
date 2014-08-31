@@ -35,8 +35,8 @@ import           Data.Maybe
 import           Data.Semigroup
 import           Diagrams.Combinators (withTrace)
 
-import Linear.Vector
-import Linear.Metric
+import           Linear.Metric
+import           Linear.Vector
 
 -- | Compute the furthest point on the boundary of a subdiagram,
 --   beginning from the location (local origin) of the subdiagram and

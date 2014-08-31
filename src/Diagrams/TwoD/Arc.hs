@@ -1,7 +1,6 @@
 {-# LANGUAGE ConstraintKinds  #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TypeFamilies     #-}
-{-# LANGUAGE ViewPatterns     #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Arc
@@ -39,9 +38,9 @@ import           Diagrams.Util           (( # ))
 import           Control.Lens            ((&), (<>~), (^.))
 import           Data.Semigroup          ((<>))
 
-import Linear.Vector
-import Linear.Metric
-import Linear.Affine
+import           Linear.Affine
+import           Linear.Metric
+import           Linear.Vector
 
 -- For details of this approximation see:
 --   http://www.tinaja.com/glib/bezcirc2.pdf
@@ -105,7 +104,7 @@ arcT start sweep = trailFromSegments bs
 --   @s@ counterclockwise (for positive s).  The resulting
 --   @Trail@ is allowed to wrap around and overlap itself.
 arc :: (TrailLike t, Vn t ~ V2 n, RealFloat n) => Direction V2 n -> Angle n -> t
-arc start sweep = trailLike $ arcT start sweep `at` (rotate (start ^. _theta) $ p2 (1,0))
+arc start sweep = trailLike $ arcT start sweep `at` rotate (start ^. _theta) (p2 (1,0))
 
 -- | Given a radus @r@, a start direction @d@ and an angle @s@,
 --   @'arc'' r d s@ is the path of a radius @(abs r)@ arc starting at
@@ -117,7 +116,7 @@ arc start sweep = trailLike $ arcT start sweep `at` (rotate (start ^. _theta) $ 
 --   > arc'Ex = mconcat [ arc' r (0 @@ turn) (1/4 @@ turn) | r <- [0.5,-1,1.5] ]
 --   >        # centerXY # pad 1.1
 arc' :: (TrailLike t, Vn t ~ V2 n, RealFloat n) => n -> Direction V2 n -> Angle n -> t
-arc' r start sweep = trailLike $ scale (abs r) ts `at` (rotate (start ^. _theta) $ p2 (abs r,0))
+arc' r start sweep = trailLike $ scale (abs r) ts `at` rotate (start ^. _theta) (p2 (abs r,0))
   where ts = arcT start sweep
 
 -- | Create a circular wedge of the given radius, beginning at the

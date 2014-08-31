@@ -1,4 +1,3 @@
-{-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
@@ -59,10 +58,8 @@ import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector
 import           Diagrams.Util            (( # ))
 
--- import Data.Typeable
--- import Data.Data
-import Linear.Affine
-import Linear.Vector
+import           Linear.Affine
+import           Linear.Vector
 
 infixl 6 ===
 infixl 6 |||

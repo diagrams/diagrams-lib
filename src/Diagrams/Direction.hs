@@ -19,12 +19,12 @@ module Diagrams.Direction
        , angleBetweenDirs
        ) where
 
-import Control.Lens     (Iso', iso)
+import           Control.Lens   (Iso', iso)
 
-import Diagrams.Angle
-import Diagrams.Core
+import           Diagrams.Angle
+import           Diagrams.Core
 
-import Linear.Metric
+import           Linear.Metric
 
 --------------------------------------------------------------------------------
 -- Direction

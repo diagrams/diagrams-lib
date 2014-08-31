@@ -34,8 +34,8 @@ import           Diagrams.Core
 import           Diagrams.TwoD.Transform
 import           Diagrams.TwoD.Types
 
-import Linear.Vector
-import Linear.Affine
+import           Linear.Affine
+import           Linear.Vector
 
 -- | The @ScaleInv@ wrapper creates two-dimensional /scale-invariant/
 --   objects.  Intuitively, a scale-invariant object is affected by

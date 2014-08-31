@@ -5,22 +5,26 @@
 {-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module Diagrams.Deform (Deformation(..), Deformable(..), asDeformation) where
+module Diagrams.Deform
+       ( Deformation(..)
+       , Deformable(..)
+       , asDeformation
+       ) where
 
-import Control.Lens   (under, _Unwrapped)
-import Data.Monoid    hiding ((<>))
-import Data.Semigroup
+import           Control.Lens        (under, _Unwrapped)
+import           Data.Monoid         hiding ((<>))
+import           Data.Semigroup
 
-import Diagrams.Core
-import Diagrams.Located
-import Diagrams.Parametric
-import Diagrams.Path
-import Diagrams.Segment
-import Diagrams.Trail
+import           Diagrams.Core
+import           Diagrams.Located
+import           Diagrams.Parametric
+import           Diagrams.Path
+import           Diagrams.Segment
+import           Diagrams.Trail
 
-import Linear.Affine
-import Linear.Metric
-import Linear.Vector
+import           Linear.Affine
+import           Linear.Metric
+import           Linear.Vector
 
 ------------------------------------------------------------
 -- Deformations

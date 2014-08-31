@@ -23,15 +23,15 @@ module Diagrams.ThreeD.Types
 
        ) where
 
-import           Control.Lens           (Iso', iso, _1, _2, _3)
+import           Control.Lens        (Iso', iso, _1, _2, _3)
 
 import           Diagrams.Angle
 import           Diagrams.Core
 import           Diagrams.Points
 import           Diagrams.TwoD.Types
 
-import Linear.V3 as V
-import Linear.Metric
+import           Linear.Metric
+import           Linear.V3           as V
 
 ------------------------------------------------------------
 -- 3D Euclidean space
