@@ -131,7 +131,7 @@ type instance V (LineWidth n) = V2
 type instance N (LineWidth n) = n
 
 instance Floating n => Transformable (LineWidth n) where
-  transform = scaleFromTransform
+  transform t (LineWidth (Last m)) = LineWidth (Last $ scaleLocal (avgScale t) m)
 
 instance Floating n => Default (LineWidth n) where
     def = LineWidth (Last medium)
@@ -190,18 +190,20 @@ type instance V (DashingA n) = V2
 type instance N (DashingA n) = n
 
 instance Floating n => Transformable (DashingA n) where
-  transform = scaleFromTransform
+  transform t (DashingA (Last (Dashing ms m)))
+    = DashingA (Last $ Dashing (map f ms) (f m))
+      where f = scaleLocal (avgScale t)
 
 getDashing :: DashingA n -> Dashing n
 getDashing (DashingA (Last d)) = d
 
 -- | Set the line dashing style.
-dashing :: (Floating n, Data n, HasStyle a, Vn a ~ V2 n) =>
-           [Measure n]  -- ^ A list specifying alternate lengths of on
-                         --   and off portions of the stroke.  The empty
-                         --   list indicates no dashing.
+dashing :: (Floating n, Data n, HasStyle a, Vn a ~ V2 n)
+        => [Measure n]  -- ^ A list specifying alternate lengths of on
+                        --   and off portions of the stroke.  The empty
+                        --   list indicates no dashing.
         -> Measure n    -- ^ An offset into the dash pattern at which the
-                         --   stroke should start.
+                        --   stroke should start.
         -> a -> a
 dashing ds offs = applyGTAttr (DashingA (Last (Dashing ds offs)))
 

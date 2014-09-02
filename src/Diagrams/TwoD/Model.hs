@@ -69,9 +69,9 @@ showOrigin' :: (RealFloat n, Renderable (Path V2 n) b, Data n, Monoid' m)
            => OriginOpts n -> QDiagram b V2 n m -> QDiagram b V2 n m
 showOrigin' oo d = o <> d
   where o     = stroke (circle sz)
-                # fc (oo^.oColor)
-                # lineWidth (Output 0)
-                # fmap (const mempty)
+                  # fc (oo^.oColor)
+                  # lw none
+                  # fmap (const mempty)
         (w,h) = size2D d ^* oo^.oScale
         sz    = maximum [w, h, oo^.oMinSize]
 

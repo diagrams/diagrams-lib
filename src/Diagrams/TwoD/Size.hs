@@ -33,6 +33,7 @@ module Diagrams.TwoD.Size
 
 import           Control.Applicative
 import           Control.Arrow        ((&&&), (***))
+import           Control.Lens         (Iso', iso)
 import           Data.Hashable        (Hashable)
 import           GHC.Generics         (Generic)
 
@@ -40,7 +41,6 @@ import           Diagrams.Core
 import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector
 
-import           Control.Lens         (Iso', iso)
 import           Linear.Vector
 
 ------------------------------------------------------------
@@ -58,6 +58,11 @@ height = maybe 0 (negate . uncurry (-)) . extentY
 -- | Compute the width and height of an enveloped object.
 size2D :: (Vn a ~ V2 n, Enveloped a) => a -> (n, n)
 size2D = width &&& height
+
+-- | Compute the vector that goes from the lower left to the upper right of an 
+--   enveloped object.
+envelopeRange :: (Vn a ~ V2 n, Enveloped a) => a -> V2 n
+envelopeRange = liftA2 V2 width height
 
 -- | Compute the size of an enveloped object as a 'SizeSpec2D' value.
 sizeSpec2D :: (Vn a ~ V2 n, Enveloped a) => a -> SizeSpec2D n

@@ -253,13 +253,9 @@ headSty opts = fc black (opts^.headStyle)
 tailSty :: TypeableFloat n => ArrowOpts n -> Style V2 n
 tailSty opts = fc black (opts^.tailStyle)
 
-fromMeasure :: TypeableFloat n => n -> n -> Measure n -> n
-fromMeasure g n m = u
-  where Output u = toOutput g n m
-
 -- | Calculate the length of the portion of the horizontal line that passes
 --   through the origin and is inside of p.
-xWidth :: (Floating n) => (Traced t, Vn t ~ V2 n) => t -> n
+xWidth :: Floating n => (Traced t, Vn t ~ V2 n) => t -> n
 xWidth p = a + b
   where
     a = fromMaybe 0 (norm <$> traceV origin unitX p)
@@ -269,19 +265,19 @@ xWidth p = a + b
 --   And set the opacity of the shaft to the current opacity.
 colorJoint :: TypeableFloat n => Style V2 n -> Style V2 n
 colorJoint sStyle =
-    let c = fmap getLineTexture . getAttr $ sStyle
-        o = fmap getOpacity . getAttr $ sStyle
-    in
-    case (c, o) of
-        (Nothing, Nothing) -> fillColor (black :: Colour Double) mempty
-        (Just t, Nothing)  -> fillTexture t mempty
-        (Nothing, Just o') -> opacity o' . fillColor (black :: Colour Double) $ mempty
-        (Just t, Just o')  -> opacity o' . fillTexture t $ mempty
+  let c = fmap getLineTexture . getAttr $ sStyle
+      o = fmap getOpacity . getAttr $ sStyle
+  in
+  case (c, o) of
+      (Nothing, Nothing) -> fillColor (black :: Colour Double) mempty
+      (Just t, Nothing)  -> fillTexture t mempty
+      (Nothing, Just o') -> opacity o' . fillColor (black :: Colour Double) $ mempty
+      (Just t, Just o')  -> opacity o' . fillTexture t $ mempty
 
 -- | Get line width from a style.
-widthOfJoint :: forall n. TypeableFloat n => Style V2 n -> n -> n  -> n
+widthOfJoint :: forall n. TypeableFloat n => Style V2 n -> n -> n -> n
 widthOfJoint sStyle gToO nToO =
-  maybe (fromMeasure gToO nToO (Output 1 :: Measure n)) -- Should be same as default line width
+  maybe (fromMeasure gToO nToO medium) -- should be same as default line width
         (fromMeasure gToO nToO)
         (fmap getLineWidth . getAttr $ sStyle :: Maybe (Measure n))
 
@@ -290,8 +286,8 @@ widthOfJoint sStyle gToO nToO =
 --   and its width.
 mkHead :: (DataFloat n, Renderable (Path V2 n) b) =>
           n -> ArrowOpts n -> n -> n -> (Diagram b V2 n, n)
-mkHead size opts gToO nToO = ((j <> h) # moveOriginBy (jWidth *^ unit_X) # lwO 0
-              , hWidth + jWidth)
+mkHead size opts gToO nToO = ( (j <> h) # moveOriginBy (jWidth *^ unit_X) # lwO 0
+                             , hWidth + jWidth)
   where
     (h', j') = (opts^.arrowHead) size
                (widthOfJoint (shaftSty opts) gToO nToO)
@@ -417,15 +413,11 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
 
         -- The head size, tail size, head gap, and tail gap are obtained
         -- from the style and converted to output units.
-        scaleFromMeasure = fromMeasure gToO nToO . scaleFromTransform tr
+        scaleFromMeasure = fromMeasure gToO nToO . scaleLocal (avgScale tr)
         hSize = scaleFromMeasure $ opts ^. headLength
         tSize = scaleFromMeasure $ opts ^. tailLength
         hGap  = scaleFromMeasure $ opts ^. headGap
         tGap  = scaleFromMeasure $ opts ^. tailGap
-        -- hSize = fromMeasure gToO nToO . transform tr $ opts ^. headLength
-        -- tSize = fromMeasure gToO nToO . transform tr $ opts ^. tailLength
-        -- hGap = fromMeasure gToO nToO . transform tr $ opts ^. headGap
-        -- tGap = fromMeasure gToO nToO . transform tr $ opts ^. tailGap
 
         -- Make the head and tail and save their widths.
         (h, hWidth') = mkHead hSize opts' gToO nToO

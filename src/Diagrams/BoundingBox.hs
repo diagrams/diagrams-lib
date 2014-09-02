@@ -164,8 +164,8 @@ isEmptyBox _                              = False
 -- | Gets the lower and upper corners that define the bounding box.
 getCorners :: BoundingBox v n -> Maybe (Point v n, Point v n)
 getCorners (BoundingBox p) = nonEmptyCorners <$> getOption p
---
--- -- | Computes all of the corners of the bounding box.
+
+-- | Computes all of the corners of the bounding box.
 getAllCorners :: (Additive v, Traversable v, Num n) => BoundingBox v n -> [Point v n]
 getAllCorners (BoundingBox (Option Nothing)) = []
 getAllCorners (BoundingBox (Option (Just (NonEmptyBoundingBox (l, u)))))
