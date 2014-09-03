@@ -113,7 +113,7 @@ arrowheadTriangle theta = aHead
 
 -- | Isoceles triangle with linear concave base. Inkscape type 1 - dart like.
 arrowheadDart :: RealFloat n => Angle n -> ArrowHT n
-arrowheadDart theta len shaftWidth = (hd # scale size, jt)
+arrowheadDart theta len shaftWidth = (hd # scale sz, jt)
   where
     hd = snugL . pathFromTrail . glueTrail $ fromOffsets [t1, t2, b2, b1]
     jt = pathFromTrail . glueTrail $ j <> reflectY j
@@ -125,7 +125,7 @@ arrowheadDart theta len shaftWidth = (hd # scale size, jt)
     jLength = shaftWidth / (2 * tan psi)
 
     -- If the shaft if too wide, set the size to a default value of 1.
-    size = max 1 ((len - jLength) / 1.5)
+    sz = max 1 ((len - jLength) / 1.5)
 
 -- | Isoceles triangle with curved concave base. Inkscape type 2.
 arrowheadSpike :: RealFloat n => Angle n -> ArrowHT n
@@ -157,7 +157,7 @@ arrowheadSpike theta len shaftWidth  = (hd # scale r, jt # scale r)
 
 -- | Curved sides, linear concave base. Illustrator CS5 #3
 arrowheadThorn :: RealFloat n => Angle n -> ArrowHT n
-arrowheadThorn theta len shaftWidth = (hd # scale size, jt)
+arrowheadThorn theta len shaftWidth = (hd # scale sz, jt)
   where
     hd = snugL . pathFromTrail . glueTrail $ hTop <> reflectY hTop
     hTop = closeTrail . trailFromSegments $ [c, l]
@@ -171,7 +171,7 @@ arrowheadThorn theta len shaftWidth = (hd # scale size, jt)
     jLength = shaftWidth / (2 * tanA psi)
 
     -- If the shaft if too wide, set the size to a default value of 1.
-    size = max 1 ((len - jLength) / 1.5)
+    sz = max 1 ((len - jLength) / 1.5)
 
 -- | Make a side for the thorn head.
 curvedSide :: (Floating n, Ord n) => Angle n -> Segment Closed V2 n
@@ -225,9 +225,9 @@ dart = arrowheadDart (2/5 @@ turn)
 headToTail :: (OrderedField n) => ArrowHT n -> ArrowHT n
 headToTail hd = tl
   where
-    tl size shaftWidth = (t, j)
+    tl sz shaftWidth = (t, j)
       where
-        (t', j') = hd size shaftWidth
+        (t', j') = hd sz shaftWidth
         t = reflectX t'
         j = reflectX j'
 
@@ -249,8 +249,8 @@ arrowtailQuill theta = aTail
    aTail len shaftWidth = (t, j)
       where
         t = closedPath (trailFromVertices [v0, v1, v2, v3, v4, v5, v0])
-              # scale size # alignR
-        size = len / 0.6
+              # scale sz # alignR
+        sz = len / 0.6
         v0 = p2 (0.5, 0)
         v2 = origin .+^ (rotate theta unitX # scale 0.5)
         v1 = v2 # translateX (5/8)

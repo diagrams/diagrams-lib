@@ -164,5 +164,5 @@ snugCenter = applyAll fs
   where
     fs = map snugCenterV basis
 
-{-# ANN module "HLint: ignore Use camelCase" #-}
+{-# ANN module ("HLint: ignore Use camelCase" :: String) #-}
 

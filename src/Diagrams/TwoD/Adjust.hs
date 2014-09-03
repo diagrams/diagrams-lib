@@ -69,16 +69,16 @@ adjustDiaSize2D :: (TypeableFloat n, Monoid' m)
 adjustDiaSize2D szL _ opts d =
   ( case spec of
       Dims _ _ -> opts
-      _        -> opts & szL .~ (uncurry Dims . over both (*s) $ size)
+      _        -> opts & szL .~ (uncurry Dims . over both (*s) $ sz)
   , adjustT
   , d # transform adjustT
   )
   where spec = opts ^. szL
-        size = size2D d
-        s    = requiredScale spec size
+        sz   = size2D d
+        s    = requiredScale spec sz
         finalSz = case spec of
                     Dims w h -> (w,h)
-                    _        -> over both (*s) size
+                    _        -> over both (*s) sz
         tr = (0.5 *. p2 finalSz) .-. (s *. center2D d)
         adjustT = translation tr <> scaling s
 

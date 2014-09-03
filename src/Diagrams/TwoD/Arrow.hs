@@ -242,7 +242,7 @@ shaftTexture = shaftStyle . styleLineTexture
 -- default style after all other styles have been applied.
 -- The semigroup stucture of the lw attribute will insure that the default
 -- is only used if it has not been set in @opts@.
-shaftSty :: (Fractional n) => ArrowOpts n -> Style V2 n
+shaftSty :: Fractional n => ArrowOpts n -> Style V2 n
 shaftSty opts = opts^.shaftStyle
 
 -- Set the default head style. See `shaftSty`.
@@ -286,10 +286,10 @@ widthOfJoint sStyle gToO nToO =
 --   and its width.
 mkHead :: (DataFloat n, Renderable (Path V2 n) b) =>
           n -> ArrowOpts n -> n -> n -> (Diagram b V2 n, n)
-mkHead size opts gToO nToO = ( (j <> h) # moveOriginBy (jWidth *^ unit_X) # lwO 0
+mkHead sz opts gToO nToO = ( (j <> h) # moveOriginBy (jWidth *^ unit_X) # lwO 0
                              , hWidth + jWidth)
   where
-    (h', j') = (opts^.arrowHead) size
+    (h', j') = (opts^.arrowHead) sz
                (widthOfJoint (shaftSty opts) gToO nToO)
     hWidth = xWidth h'
     jWidth = xWidth j'
@@ -299,10 +299,10 @@ mkHead size opts gToO nToO = ( (j <> h) # moveOriginBy (jWidth *^ unit_X) # lwO 
 -- | Just like mkHead only the attachment point is on the right.
 mkTail :: (DataFloat n, Renderable (Path V2 n) b) =>
           n -> ArrowOpts n -> n -> n -> (Diagram b V2 n, n)
-mkTail size opts gToO nToO = ((t <> j) # moveOriginBy (jWidth *^ unitX) # lwO 0
+mkTail sz opts gToO nToO = ((t <> j) # moveOriginBy (jWidth *^ unitX) # lwO 0
               , tWidth + jWidth)
   where
-    (t', j') = (opts^.arrowTail) size
+    (t', j') = (opts^.arrowTail) sz
                (widthOfJoint (shaftSty opts) gToO nToO)
     tWidth = xWidth t'
     jWidth = xWidth j'
@@ -313,7 +313,7 @@ mkTail size opts gToO nToO = ((t <> j) # moveOriginBy (jWidth *^ unitX) # lwO 0
 --   tw, head width hw and shaft of tr, such that the magnituted of the shaft
 --   offset is size. Used for calculating the offset of an arrow.
 spine :: TypeableFloat n => Trail V2 n -> n -> n -> n -> Trail V2 n
-spine tr tw hw size = tS <> tr # scale size <> hS
+spine tr tw hw sz = tS <> tr # scale sz <> hS
   where
     tSpine = trailFromOffsets [signorm . tangentAtStart $ tr] # scale tw
     hSpine = trailFromOffsets [signorm . tangentAtEnd $ tr] # scale hw

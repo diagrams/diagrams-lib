@@ -59,11 +59,6 @@ height = maybe 0 (negate . uncurry (-)) . extentY
 size2D :: (Vn a ~ V2 n, Enveloped a) => a -> (n, n)
 size2D = width &&& height
 
--- | Compute the vector that goes from the lower left to the upper right of an 
---   enveloped object.
-envelopeRange :: (Vn a ~ V2 n, Enveloped a) => a -> V2 n
-envelopeRange = liftA2 V2 width height
-
 -- | Compute the size of an enveloped object as a 'SizeSpec2D' value.
 sizeSpec2D :: (Vn a ~ V2 n, Enveloped a) => a -> SizeSpec2D n
 sizeSpec2D = uncurry Dims . size2D
@@ -131,7 +126,7 @@ spec2D = iso getter (uncurry mkSizeSpec)
 requiredScaleT
   :: (Additive v, RealFloat n)
   => SizeSpec2D n -> (n, n) -> Transformation v n
-requiredScaleT spec size = scaling (requiredScale spec size)
+requiredScaleT spec sz = scaling (requiredScale spec sz)
 -- is requiredScaling a more consistent name?
 
 -- | @requiredScale spec sz@ returns a scaling factor necessary to

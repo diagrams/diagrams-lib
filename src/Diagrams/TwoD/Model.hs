@@ -35,7 +35,6 @@ import           Diagrams.Path
 import           Diagrams.TwoD.Attributes
 import           Diagrams.TwoD.Ellipse
 import           Diagrams.TwoD.Path
-import           Diagrams.TwoD.Size       (size2D)
 import           Diagrams.TwoD.Text
 import           Diagrams.TwoD.Types
 import           Diagrams.Util
@@ -72,8 +71,8 @@ showOrigin' oo d = o <> d
                   # fc (oo^.oColor)
                   # lw none
                   # fmap (const mempty)
-        (w,h) = size2D d ^* oo^.oScale
-        sz    = maximum [w, h, oo^.oMinSize]
+        V2 w h = oo^.oScale *^ size d
+        sz     = maximum [w, h, oo^.oMinSize]
 
 ------------------------------------------------------------
 -- Labeling named points
