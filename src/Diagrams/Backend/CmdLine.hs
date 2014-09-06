@@ -76,7 +76,7 @@ import           Diagrams.Animation
 import           Diagrams.Attributes
 import           Diagrams.Core       hiding (value)
 
-import           Options.Applicative hiding ((&))
+import           Options.Applicative
 
 import           Prelude
 
@@ -144,11 +144,11 @@ makeLenses ''DiagramLoopOpts
 --   Output is option @--output@ or @-o@.
 diagramOpts :: Parser DiagramOpts
 diagramOpts = DiagramOpts
-    <$> (optional . option)
+    <$> (optional . option auto)
         ( long "width" <> short 'w'
        <> metavar "WIDTH"
        <> help "Desired WIDTH of the output image")
-    <*> (optional . option)
+    <*> (optional . option auto)
         ( long "height" <> short 'h'
        <> metavar "HEIGHT"
        <> help "Desired HEIGHT of the output image")
@@ -175,7 +175,7 @@ diagramMultiOpts = DiagramMultiOpts
 --   Frames per unit is @--fpu@ or @-f@.
 diagramAnimOpts :: Parser DiagramAnimOpts
 diagramAnimOpts = DiagramAnimOpts
-    <$> option
+    <$> option auto
         ( long "fpu" <> short 'f'
        <> value 30.0
        <> help "Frames per unit time (for animations)")
@@ -190,7 +190,7 @@ diagramLoopOpts = DiagramLoopOpts
     <*> (optional . strOption)
         ( long "src" <> short 's'
        <> help "Source file to watch")
-    <*> option
+    <*> option auto
         ( long "interval" <> short 'i'
        <> value 1
        <> metavar "INTERVAL"
@@ -430,10 +430,10 @@ class Mainable d where
     -- @
     -- import Diagrams.Prelude
     -- import Diagrams.Backend.TheBestBackend.CmdLine
-    -- 
+    --
     -- d :: Diagram B R2
     -- d = ...
-    -- 
+    --
     -- main = mainWith d
     -- @
     --
