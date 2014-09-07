@@ -57,8 +57,8 @@ type instance V (Camera l n) = V3
 type instance N (Camera l n) = n
 
 class Typeable l => CameraLens l where
-    -- | The natural aspect ratio of the projection.
-    aspect :: Floating n => l n -> n
+  -- | The natural aspect ratio of the projection.
+  aspect :: Floating n => l n -> n
 
 -- | A perspective projection
 data PerspectiveLens n = PerspectiveLens
@@ -98,7 +98,7 @@ instance Num n => Transformable (Camera l n) where
              l
 
 instance Num n => Renderable (Camera l n) NullBackend where
-    render _ _ = mempty
+  render _ _ = mempty
 
 -- | A camera at the origin facing along the negative Z axis, with its
 -- up-axis coincident with the positive Y axis.  The field of view is

@@ -94,16 +94,13 @@ instance (Vn t ~ v n, Additive v, Num n, HasOrigin t) => HasOrigin (ScaleInv t) 
 instance (Vn t ~ V2 n, RealFloat n, Transformable t) => Transformable (ScaleInv t) where
   transform tr (ScaleInv t v l) = ScaleInv (trans . rot $ t) (rot v) l'
     where
-      -- angle :: Angle n
       angle = transform tr v ^. _theta
 
       rot :: (Vn k ~ Vn t, Transformable k) => k -> k
       rot = rotateAround l angle
 
-      -- l' :: Point V2 n
       l'  = transform tr l
 
-      -- trans :: (Vn k ~ Vn t, Transformable k) => k -> k
       trans = translate (l' .-. l)
 
 {- Proof that the above satisfies the monoid action laws.

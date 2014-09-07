@@ -104,16 +104,16 @@ cube = mkQD (Prim $ Box mempty)
     boxQuery = Any . range
 
 data Frustum n = Frustum n n (Transformation V3 n)
-         deriving Typeable
+  deriving Typeable
 
 type instance V (Frustum n) = V3
 type instance N (Frustum n) = n
 
 instance Fractional n => Transformable (Frustum n) where
-    transform t1 (Frustum r0 r1 t2) = Frustum r0 r1 (t1 <> t2)
+  transform t1 (Frustum r0 r1 t2) = Frustum r0 r1 (t1 <> t2)
 
 instance Fractional n => Renderable (Frustum n) NullBackend where
-    render _ _ = mempty
+  render _ _ = mempty
 
 -- | A frustum of a right circular cone.  It has height 1 oriented
 -- along the positive z axis, and radii r0 and r1 at Z=0 and Z=1.

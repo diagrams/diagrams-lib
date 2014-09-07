@@ -19,11 +19,11 @@
 
 module Diagrams.Located
     ( Located
-    , at, viewLoc, unLoc, loc, mapLoc, located, _location, _Loc
+    , at, viewLoc, unLoc, loc, mapLoc, located,
     )
     where
 
-import           Control.Lens            (Iso', Lens, Lens', iso, lens)
+import           Control.Lens            (Lens)
 import           Data.Functor            ((<$>))
 
 import           Linear.Affine
@@ -90,12 +90,6 @@ mapLoc f (Loc p a) = Loc p (f a)
 -- | A lens giving access to the object within a 'Located' wrapper.
 located :: (Vn a ~ Vn a') => Lens (Located a) (Located a') a a'
 located f (Loc p a) = Loc p <$> f a
-
-_location :: (Vn a ~ v n) => Lens' (Located a) (Point v n)
-_location = lens (\(Loc l _) -> l) (\(Loc _ a) l -> Loc l a)
-
-_Loc :: (Vn a ~ v n) => Iso' (Located a) (Point v n, a)
-_Loc = iso viewLoc (uncurry Loc)
 
 deriving instance (Eq   (V a (N a)), Eq a  ) => Eq   (Located a)
 deriving instance (Ord  (V a (N a)), Ord a ) => Ord  (Located a)

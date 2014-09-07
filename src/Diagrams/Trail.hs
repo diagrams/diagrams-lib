@@ -673,8 +673,7 @@ instance (Metric v, OrderedField n, Real n)
 
 instance Num n => DomainBounds (Trail v n)
 
-instance (Metric v, OrderedField n, Real n)
-  => EndValues (Trail v n)
+instance (Metric v, OrderedField n, Real n) => EndValues (Trail v n)
 
 -- | Note that there is no @Sectionable@ instance for @Trail' Loop@,
 --   because it does not make sense (splitting a loop at a parameter
@@ -685,8 +684,7 @@ instance (Metric v, OrderedField n, Real n)
 --   semantically a bit silly, so please don't rely on it. (*E.g.* if
 --   this is really the behavior you want, consider first calling
 --   'cutLoop' yourself.)
-instance (Metric v, OrderedField n, Real n)
-    => Sectionable (Trail v n) where
+instance (Metric v, OrderedField n, Real n) => Sectionable (Trail v n) where
   splitAtParam t p = withLine ((wrapLine *** wrapLine) . (`splitAtParam` p)) t
 
   reverseDomain = reverseTrail
@@ -735,7 +733,7 @@ withLine f = withTrail f (f . cutLoop)
 --   there is no nice way in general to convert a line into a loop,
 --   operate on it, and then convert back.
 onLine :: (Metric v, OrderedField n)
-            => (Trail' Line v n -> Trail' Line v n) -> Trail v n -> Trail v n
+       => (Trail' Line v n -> Trail' Line v n) -> Trail v n -> Trail v n
 onLine f = onTrail f (glueLine . f . cutLoop)
 
 -- | Convert a 'Trail'' into a 'Trail', hiding the type-level
@@ -786,14 +784,12 @@ trailFromSegments = wrapTrail . lineFromSegments
 --
 --   > import Diagrams.Coordinates
 --   > lineFromOffsetsEx = strokeLine $ lineFromOffsets [ 2 ^& 1, 2 ^& (-1), 2 ^& 0.5 ]
-lineFromOffsets :: (Metric v, OrderedField n)
-                  => [v n] -> Trail' Line v n
+lineFromOffsets :: (Metric v, OrderedField n) => [v n] -> Trail' Line v n
 lineFromOffsets = lineFromSegments . map straight
 
 -- | @trailFromOffsets === 'wrapTrail' . 'lineFromOffsets'@, for
 --   conveniently constructing a @Trail@ instead of a @Trail' Line@.
-trailFromOffsets :: (Metric v, OrderedField n)
-                 => [v n] -> Trail v n
+trailFromOffsets :: (Metric v, OrderedField n) => [v n] -> Trail v n
 trailFromOffsets = wrapTrail . lineFromOffsets
 
 -- | Construct a line containing only linear segments from a list of

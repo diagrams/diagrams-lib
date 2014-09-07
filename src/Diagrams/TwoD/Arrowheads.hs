@@ -222,7 +222,7 @@ dart = arrowheadDart (2/5 @@ turn)
 
 -- | Utility function to convert any arrowhead to an arrowtail, i.e.
 --   attached at the start of the trail.
-headToTail :: (OrderedField n) => ArrowHT n -> ArrowHT n
+headToTail :: OrderedField n => ArrowHT n -> ArrowHT n
 headToTail hd = tl
   where
     tl sz shaftWidth = (t, j)
@@ -243,7 +243,7 @@ arrowtailBlock theta = aTail
         x  = norm a
 
 -- | The angle is where the top left corner intersects the circle.
-arrowtailQuill :: (Floating n, Ord n) => Angle n -> ArrowHT n
+arrowtailQuill :: OrderedField n => Angle n -> ArrowHT n
 arrowtailQuill theta = aTail
   where
    aTail len shaftWidth = (t, j)
@@ -266,10 +266,10 @@ arrowtailQuill theta = aTail
 
 -- Standard tails ---------------------------------------------------------
 -- | A line the same width as the shaft.
-lineTail :: (RealFloat n) => ArrowHT n
+lineTail :: RealFloat n => ArrowHT n
 lineTail s w = (square 1 # scaleY w # scaleX s # alignR, mempty)
 
-noTail :: (Floating n, Ord n) => ArrowHT n
+noTail :: OrderedField n => ArrowHT n
 noTail _ _ = (mempty, mempty)
 
 -- | <<diagrams/src_Diagrams_TwoD_Arrowheads_tri'Ex.svg#diagram=tri'Ex&width=100>>

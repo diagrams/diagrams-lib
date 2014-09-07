@@ -33,11 +33,11 @@ import           Diagrams.Parametric
 -- | What method should be used for adjusting a segment, trail, or
 --   path?
 data AdjustMethod n = ByParam n     -- ^ Extend by the given parameter value
-                                             --   (use a negative parameter to shrink)
+                                    --   (use a negative parameter to shrink)
                     | ByAbsolute n  -- ^ Extend by the given arc length
-                                             --   (use a negative length to shrink)
+                                    --   (use a negative length to shrink)
                     | ToAbsolute n  -- ^ Extend or shrink to the given
-                                             --   arc length
+                                    --   arc length
 
 -- | Which side of a segment, trail, or path should be adjusted?
 data AdjustSide = Start  -- ^ Adjust only the beginning

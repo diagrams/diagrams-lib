@@ -96,5 +96,6 @@ instance Juxtaposable a => Juxtaposable (Active a) where
       )
       a1
 
---instance Alignable a => Alignable (Active a) where
---  alignBy v d a = alignBy v d <$> a
+-- instance Alignable a => Alignable (Active a) where
+--   alignBy v d a = alignBy v d <$> a
+

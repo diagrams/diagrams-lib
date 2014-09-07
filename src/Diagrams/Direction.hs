@@ -39,7 +39,6 @@ newtype Direction v n = Direction (v n)
 type instance V (Direction v n) = v
 type instance N (Direction v n) = n
 
--- instance (Transformable v, Vn (Direction v n) ~ v n) => Transformable (Direction v) where
 instance (Vn (v n) ~ v n, Transformable (v n)) => Transformable (Direction v n) where
   transform t (Direction v) = Direction (transform t v)
 

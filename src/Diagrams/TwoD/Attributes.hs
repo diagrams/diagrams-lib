@@ -122,7 +122,7 @@ huge      = Normalized 0.10
 -- | Line widths specified on child nodes always override line widths
 --   specified at parent nodes.
 newtype LineWidth n = LineWidth (Last (Measure n))
- deriving (Typeable, Semigroup, Functor)
+  deriving (Typeable, Semigroup, Functor)
 
 deriving instance (Data n) => Data (LineWidth n)
 instance (Typeable n)      => AttributeClass (LineWidth n)
@@ -134,7 +134,7 @@ instance Floating n => Transformable (LineWidth n) where
   transform t (LineWidth (Last m)) = LineWidth (Last $ scaleLocal (avgScale t) m)
 
 instance Floating n => Default (LineWidth n) where
-    def = LineWidth (Last medium)
+  def = LineWidth (Last medium)
 
 getLineWidth :: LineWidth n -> Measure n
 getLineWidth (LineWidth (Last w)) = w
@@ -405,7 +405,7 @@ instance Floating n => Transformable (LineTexture n) where
   transform t (LineTexture (Last tx)) = LineTexture (Last $ transform t tx)
 
 instance Default (LineTexture n) where
-    def = LineTexture (Last (SC (SomeColor (black :: Colour Double))))
+  def = LineTexture (Last (SC (SomeColor (black :: Colour Double))))
 
 getLineTexture :: LineTexture n -> Texture n
 getLineTexture (LineTexture (Last t)) = t
@@ -475,8 +475,8 @@ instance Floating n => Transformable (FillTexture n) where
   transform t (FillTexture (Commit (Last tx))) = FillTexture (Commit (Last $ transform t tx))
 
 instance Default (FillTexture n) where
-    def = FillTexture (Recommend (Last (SC
-                      (SomeColor (transparent :: AlphaColour Double)))))
+  def = FillTexture (Recommend (Last (SC
+                    (SomeColor (transparent :: AlphaColour Double)))))
 
 getFillTexture :: FillTexture n -> Texture n
 getFillTexture (FillTexture tx) = getLast . getRecommend $ tx
