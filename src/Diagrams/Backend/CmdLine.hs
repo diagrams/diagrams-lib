@@ -566,11 +566,14 @@ indexize out nDigits i opts = opts & out .~ output'
 
 defaultLoopRender :: DiagramLoopOpts -> IO ()
 defaultLoopRender opts = when (opts ^. loop) $ do
+    putStrLn"Looping is turned on."
     prog <- getProgName
+    putStrLn $ "program is named: " ++ prog
     args <- getArgs
     srcPath <- canonicalizePath $
             fromMaybe (addExtension (dropExtensions prog) ".hs") (opts ^. src)
     let newProg = newProgName (takeFileName srcPath) prog
+    putStrLn $ "canonical name is: " ++ srcPath
     -- Polling is only used on Windows
     withManagerConf defaultConfig { confPollInterval = (opts ^. interval) } $
         \mgr -> do
@@ -579,7 +582,8 @@ defaultLoopRender opts = when (opts ^. loop) $ do
                      (directory . fromText . T.pack $ srcPath)
                      (existsEvents $ \fp -> (fromText $ T.pack srcPath) ==  fp)
                      -- Call the new program without the looping option
-                     (\_ -> recompile srcPath newProg  >>= run newProg (filter (/= "-l") args))
+                     (\ev -> print ev >> recompile srcPath newProg  >>= run newProg (filter (/= "-l") args))
+            putStrLn "entering infinite loop"
             forever $ threadDelay maxBound
 
 recompile :: FilePath -> FilePath -> IO ExitCode
@@ -590,6 +594,7 @@ recompile srcFile outFile = do
               bracket (openFile errFile WriteMode) hClose $ \h -> do
                   sargs <- sandboxArgs
                   let ghcArgs = ["--make", srcFile, "-o", outFile] ++ sargs
+                  print $ "passing ghc args: " ++ intercalate " " ghcArgs
                   p <- runProcess "ghc" ghcArgs
                        Nothing Nothing Nothing Nothing (Just h)
                   waitForProcess p
@@ -633,6 +638,7 @@ newProgName srcFile oldName = case os of
 run :: String -> [String] -> ExitCode -> IO ()
 run prog args ExitSuccess = do
     let path = "." </> prog
+    putStrLn $ intercalate " " $ ["calling as", path] ++ args
     (exit, stdout, stderr) <- readProcessWithExitCode path args ""
     case exit of
      ExitSuccess -> return ()
