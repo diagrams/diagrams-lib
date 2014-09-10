@@ -584,7 +584,10 @@ defaultLoopRender opts = when (opts ^. loop) $ do
                      -- Call the new program without the looping option
                      (\ev -> print ev >> recompile srcPath newProg  >>= run newProg (filter (/= "-l") args))
             putStrLn "entering infinite loop"
-            forever $ threadDelay maxBound
+            forever . threadDelay $ case os of
+                -- https://ghc.haskell.org/trac/ghc/ticket/7325
+                                     "darwin" -> 1000000000000
+                                     _ -> maxBound
 
 recompile :: FilePath -> FilePath -> IO ExitCode
 recompile srcFile outFile = do
