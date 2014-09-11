@@ -75,7 +75,7 @@ module Diagrams.TwoD.Arrow
 
        , arrow
        , arrow'
-       
+
        , arrowFromLocatedTrail
        , arrowFromLocatedTrail'
 
@@ -112,6 +112,7 @@ import           Data.Functor             ((<$>))
 import           Data.Maybe               (fromMaybe)
 import           Data.Monoid.Coproduct    (untangle)
 import           Data.Semigroup
+import Data.Data
 
 import           Data.Colour              hiding (atop)
 import           Diagrams.Core
@@ -502,19 +503,19 @@ arrowV'
   => ArrowOpts n -> V2 n -> Diagram b V2 n
 arrowV' opts = arrowAt' opts origin
 
--- | Turn a located trail into a default arrow by putting an 
+-- | Turn a located trail into a default arrow by putting an
 --   arrowhead at the end of the trail.
-arrowFromLocatedTrail 
-  :: Renderable (Path R2) b 
-  => Located (Trail R2) -> Diagram b R2
+arrowFromLocatedTrail
+  :: (Renderable (Path V2 n) b, RealFloat n, Data n)
+  => Located (Trail V2 n) -> Diagram b V2 n
 arrowFromLocatedTrail = arrowFromLocatedTrail' def
 
 -- | Turn a located trail into an arrow using the given options.
-arrowFromLocatedTrail' 
-  :: Renderable (Path R2) b 
-  => ArrowOpts -> Located (Trail R2) -> Diagram b R2
+arrowFromLocatedTrail'
+  :: (Renderable (Path V2 n) b, RealFloat n, Data n)
+  => ArrowOpts n -> Located (Trail V2 n) -> Diagram b V2 n
 arrowFromLocatedTrail' opts trail = arrowBetween' opts' start end
-  where 
+  where
     opts' = opts & arrowShaft .~ unLoc trail
     start = atStart trail
     end   = atEnd trail
@@ -576,4 +577,3 @@ connectOutside' opts n1 n2 =
         e' = fromMaybe (location b2) $ traceP midpoint v b2
     in
       atop (arrowBetween' opts s' e')
-

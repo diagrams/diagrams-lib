@@ -548,7 +548,7 @@ defaultAnimMainRender ::
     (opts -> Diagram b v n -> IO ())
     -> (Lens' opts FilePath) -- ^ A lens into the output path.
     -> (opts ,DiagramAnimOpts)
-    -> Animation b v
+    -> Animation b v n
     -> IO ()
 defaultAnimMainRender renderF out (opts,animOpts) anim = do
  let

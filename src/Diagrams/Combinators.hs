@@ -44,8 +44,6 @@ import           Data.Typeable
 import           Control.Lens          (Lens', generateSignatures,
                                         lensRules, makeLensesWith, (%~), (&),
                                         (.~), (^.), _Wrapping)
-import           Data.AdditiveGroup
--- import           Data.AffineSpace      ((.+^))
 import           Data.Default.Class
 import           Data.Monoid.Deletable (toDeletable)
 import           Data.Monoid.MList     (inj)
