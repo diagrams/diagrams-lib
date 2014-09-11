@@ -75,6 +75,9 @@ module Diagrams.TwoD.Arrow
 
        , arrow
        , arrow'
+       
+       , arrowFromLocatedTrail
+       , arrowFromLocatedTrail'
 
          -- * Options
        , ArrowOpts(..)
@@ -117,6 +120,7 @@ import           Diagrams.Core.Types      (QDiaLeaf (..), mkQD')
 import           Diagrams.Angle
 import           Diagrams.Attributes
 import           Diagrams.Direction
+import           Diagrams.Located         (Located(..), unLoc)
 import           Diagrams.Parametric
 import           Diagrams.Path
 import           Diagrams.Solve           (quadForm)
@@ -497,6 +501,23 @@ arrowV'
   :: (DataFloat n, Renderable (Path V2 n) b)
   => ArrowOpts n -> V2 n -> Diagram b V2 n
 arrowV' opts = arrowAt' opts origin
+
+-- | Turn a located trail into a default arrow by putting an 
+--   arrowhead at the end of the trail.
+arrowFromLocatedTrail 
+  :: Renderable (Path R2) b 
+  => Located (Trail R2) -> Diagram b R2
+arrowFromLocatedTrail = arrowFromLocatedTrail' def
+
+-- | Turn a located trail into an arrow using the given options.
+arrowFromLocatedTrail' 
+  :: Renderable (Path R2) b 
+  => ArrowOpts -> Located (Trail R2) -> Diagram b R2
+arrowFromLocatedTrail' opts trail = arrowBetween' opts' start end
+  where 
+    opts' = opts & arrowShaft .~ unLoc trail
+    start = atStart trail
+    end   = atEnd trail
 
 -- | Connect two diagrams with a straight arrow.
 connect

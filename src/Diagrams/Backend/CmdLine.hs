@@ -66,36 +66,56 @@ module Diagrams.Backend.CmdLine
          -- ** General currying
        , ToResult(..)
 
-         -- ** Default @mainRender@ implementations
+         -- ** helper functions for implementing @mainRender@
        , defaultAnimMainRender
        , defaultMultiMainRender
+       , defaultLoopRender
        ) where
 
-import           Control.Lens        hiding (argument)
+import           Control.Lens              (Lens', makeLenses, (&), (.~), (^.))
 import           Diagrams.Animation
 import           Diagrams.Attributes
-import           Diagrams.Core       hiding (value)
+import           Diagrams.Core             hiding (value)
 
-import           Options.Applicative hiding ((&))
+import           Options.Applicative
 
 import           Prelude
 
-import           Control.Monad       (forM_)
+import           Control.Monad             (forM_, forever, when)
 
-import           Data.Active         hiding (interval)
-import           Data.Char           (isDigit)
+import           Data.Active               hiding (interval)
+import           Data.Char                 (isDigit, isSpace)
 import           Data.Colour
 import           Data.Colour.Names
 import           Data.Colour.SRGB
 import           Data.Data
+import           Data.List                 (intercalate)
+import           Data.Maybe                (fromMaybe)
 import           Data.Monoid
-
+import qualified Data.Text                 as T
 import           Numeric
 
-import           Safe                (readMay)
+import           Safe                      (readMay)
 
-import           System.Environment  (getProgName)
-import           System.FilePath     (addExtension, splitExtension)
+import           Control.Concurrent        (threadDelay)
+import           Control.Exception         (bracket)
+import           Filesystem.Path.CurrentOS (directory, fromText)
+import           System.Directory          (canonicalizePath,
+                                            doesDirectoryExist,
+                                            getCurrentDirectory)
+import           System.Environment        (getArgs, getProgName)
+import           System.Exit               (ExitCode (..))
+import           System.FilePath           (addExtension, dropExtension,
+                                            dropExtensions, replaceExtension,
+                                            splitExtension, takeFileName, (</>))
+import           System.FSNotify           (WatchConfig (..), defaultConfig,
+                                            watchDir, withManagerConf)
+import           System.FSNotify.Devel     (existsEvents)
+import           System.Info               (os)
+import           System.IO                 (IOMode (..), hClose, openFile)
+import           System.Process            (readProcess,
+                                            readProcessWithExitCode, runProcess,
+                                            waitForProcess)
 
 import           Text.Printf
 
@@ -143,11 +163,11 @@ makeLenses ''DiagramLoopOpts
 --   Output is option @--output@ or @-o@.
 diagramOpts :: Parser DiagramOpts
 diagramOpts = DiagramOpts
-    <$> (optional . option)
+    <$> (optional . option auto)
         ( long "width" <> short 'w'
        <> metavar "WIDTH"
        <> help "Desired WIDTH of the output image")
-    <*> (optional . option)
+    <*> (optional . option auto)
         ( long "height" <> short 'h'
        <> metavar "HEIGHT"
        <> help "Desired HEIGHT of the output image")
@@ -174,7 +194,7 @@ diagramMultiOpts = DiagramMultiOpts
 --   Frames per unit is @--fpu@ or @-f@.
 diagramAnimOpts :: Parser DiagramAnimOpts
 diagramAnimOpts = DiagramAnimOpts
-    <$> option
+    <$> option auto
         ( long "fpu" <> short 'f'
        <> value 30.0
        <> help "Frames per unit time (for animations)")
@@ -189,7 +209,7 @@ diagramLoopOpts = DiagramLoopOpts
     <*> (optional . strOption)
         ( long "src" <> short 's'
        <> help "Source file to watch")
-    <*> option
+    <*> option auto
         ( long "interval" <> short 'i'
        <> value 1
        <> metavar "INTERVAL"
@@ -523,15 +543,18 @@ showDiaList ds = do
 --
 --   We do not provide this instance in general so that backends can choose to
 --   opt-in to this form or provide a different instance that makes more sense.
-defaultAnimMainRender :: (Mainable (Diagram b v n))
-                      => Lens' (MainOpts (Diagram b v n)) FilePath   -- ^ A lens into the output path.
-                      -> (MainOpts (Diagram b v n) ,DiagramAnimOpts)
-                      -> Animation b v n
-                      -> IO ()
-defaultAnimMainRender out (opts,animOpts) anim = do
-    let frames  = simulate (toRational $ animOpts^.fpu) anim
-        nDigits = length . show . length $ frames
-    forM_ (zip [1..] frames) $ \(i,d) -> mainRender (indexize out nDigits i opts) d
+
+defaultAnimMainRender ::
+    (opts -> Diagram b v n -> IO ())
+    -> (Lens' opts FilePath) -- ^ A lens into the output path.
+    -> (opts ,DiagramAnimOpts)
+    -> Animation b v
+    -> IO ()
+defaultAnimMainRender renderF out (opts,animOpts) anim = do
+ let
+     frames  = simulate (toRational $ animOpts^.fpu) anim
+     nDigits = length . show . length $ frames
+ forM_ (zip [1..] frames) $ \(i,d) -> renderF (indexize out nDigits i opts) d
 
 -- | @indexize d n@ adds the integer index @n@ to the end of the
 --   output file name, padding with zeros if necessary so that it uses
@@ -542,3 +565,96 @@ indexize out nDigits i opts = opts & out .~ output'
         output'     = addExtension (base ++ printf fmt (i::Integer)) ext
         (base, ext) = splitExtension (opts^.out)
 
+defaultLoopRender :: DiagramLoopOpts -> IO ()
+defaultLoopRender opts = when (opts ^. loop) $ do
+    putStrLn"Looping is turned on."
+    prog <- getProgName
+    putStrLn $ "program is named: " ++ prog
+    args <- getArgs
+    srcPath <- canonicalizePath $
+            fromMaybe (addExtension (dropExtensions prog) ".hs") (opts ^. src)
+    let newProg = newProgName (takeFileName srcPath) prog
+    putStrLn $ "canonical name is: " ++ srcPath
+    -- Polling is only used on Windows
+    withManagerConf defaultConfig { confPollInterval = (opts ^. interval) } $
+        \mgr -> do
+            _stop <- watchDir
+                     mgr
+                     (directory . fromText . T.pack $ srcPath)
+                     (existsEvents $ \fp -> (fromText $ T.pack srcPath) ==  fp)
+                     -- Call the new program without the looping option
+                     (\ev -> print ev >> recompile srcPath newProg  >>= run newProg (filter (/= "-l") args))
+            putStrLn "entering infinite loop"
+            forever . threadDelay $ case os of
+                -- https://ghc.haskell.org/trac/ghc/ticket/7325
+                                     "darwin" -> 1000000000000
+                                     _ -> maxBound
+
+recompile :: FilePath -> FilePath -> IO ExitCode
+recompile srcFile outFile = do
+    let errFile = srcFile ++ ".errors"
+    putStr "Recompiling..."
+    status <- do
+              bracket (openFile errFile WriteMode) hClose $ \h -> do
+                  sargs <- sandboxArgs
+                  let ghcArgs = ["--make", srcFile, "-o", outFile] ++ sargs
+                  print $ "passing ghc args: " ++ intercalate " " ghcArgs
+                  p <- runProcess "ghc" ghcArgs
+                       Nothing Nothing Nothing Nothing (Just h)
+                  waitForProcess p
+    if (status /= ExitSuccess)
+        then putStrLn "" >> putStrLn (replicate 75 '-') >> readFile errFile >>= putStr
+        else putStrLn "done."
+    return status
+
+sandboxArgs :: IO [String]
+sandboxArgs = do
+    cur <- getCurrentDirectory
+    let sandbox = cur </> ".cabal-sandbox"
+    exists <- doesDirectoryExist sandbox
+    if exists
+      then do
+        let strip = reverse . dropWhile isSpace . reverse . dropWhile isSpace
+        ghcV <- strip <$> readProcess "ghc" ["--numeric-version"] ""
+        uname <- case os of
+                 "linux" -> strip <$> readProcess "uname" ["-m"] ""
+                 _ -> return ""
+        let pdb = case os of
+                "linux" -> sandbox </> (uname ++ "-linux-ghc-" ++ ghcV ++ "-packages.conf.d")
+                "mingw32" -> sandbox </> "i386-windows-ghc-" ++ ghcV ++ "-packages.conf.d"
+                "darwin" -> sandbox </> "x86_64-osx-ghc-" ++ ghcV ++ "-packages.conf.d"
+                _ -> error "I don't know how to handle cabal sandbox on this OS"
+        return ["-no-user-package-db", "-package-db", pdb]
+    else return []
+
+-- | On Windows, the next compilation must have a different output
+-- than the currently running program.
+newProgName :: FilePath -> String -> String
+newProgName srcFile oldName = case os of
+    "mingw32" ->
+        if oldName == replaceExtension srcFile "exe"
+        then replaceExtension srcFile ".1.exe"
+        else replaceExtension srcFile "exe"
+    _ -> dropExtension srcFile
+
+-- | Run the given program with specified arguments, if and only if
+-- the previous command returned ExitSuccess.
+run :: String -> [String] -> ExitCode -> IO ()
+run prog args ExitSuccess = do
+    let path = "." </> prog
+    putStrLn $ intercalate " " $ ["calling as", path] ++ args
+    (exit, stdout, stderr) <- readProcessWithExitCode path args ""
+    case exit of
+     ExitSuccess -> return ()
+     ExitFailure r -> do
+         putStr $ prog ++ " failed with exit code: "
+         print r
+         when (stdout /= "") $ do
+             putStrLn "---------------------------------------- STDOUT"
+             putStrLn stdout
+         when (stderr /= "") $ do
+             putStrLn "---------------------------------------- STDERR"
+             putStrLn stderr
+         when ((stdout ++ stderr) /= "") $ do
+             putStrLn "----------------------------------------"
+run _ _ _ = return ()

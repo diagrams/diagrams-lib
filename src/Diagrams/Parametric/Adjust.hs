@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE TemplateHaskell      #-}
 {-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -94,4 +95,3 @@ adjust s opts = section s
     absDelta len = arcLength eps s - len
   bothCoef = if opts^.adjSide == Both then 0.5 else 1
   eps = opts^.adjEps
-

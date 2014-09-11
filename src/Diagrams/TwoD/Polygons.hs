@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveFunctor       #-}
+{-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
@@ -134,7 +135,7 @@ data PolyOrientation n = NoOrient        -- ^ No special orientation; the first
                                          --   /facing/ /in/ /the/ /direction/
                                          --   /of/, that is, perpendicular
                                          --   to, the given vector.
-  deriving (Eq, Ord, Show, Read)
+                       deriving (Eq, Ord, Show, Read)
 
 -- | Options for specifying a polygon.
 data PolygonOpts n = PolygonOpts
@@ -336,4 +337,3 @@ star sOpts vs = graphToPath $ mkGraph f vs
                               $ ps
 
         partToPath (Hair ps)  = fromVertices ps
-

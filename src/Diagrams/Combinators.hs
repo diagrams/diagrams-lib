@@ -41,8 +41,11 @@ module Diagrams.Combinators
 
 import           Data.Typeable
 
-import           Control.Lens          (Lens', generateSignatures, lensRules, makeLensesWith, (%~),
-                                        (&), (.~), (^.), _Wrapping)
+import           Control.Lens          (Lens', generateSignatures,
+                                        lensRules, makeLensesWith, (%~), (&),
+                                        (.~), (^.), _Wrapping)
+import           Data.AdditiveGroup
+-- import           Data.AffineSpace      ((.+^))
 import           Data.Default.Class
 import           Data.Monoid.Deletable (toDeletable)
 import           Data.Monoid.MList     (inj)
@@ -330,7 +333,7 @@ instance Num n => Default (CatOpts n) where
 --   See also 'cat'', which takes an extra options record allowing
 --   certain aspects of the operation to be tweaked.
 cat :: (Juxtaposable a, Monoid' a, HasOrigin a , Vn a ~ v n, Metric v, OrderedField n)
-		=> v n -> [a] -> a
+       => v n -> [a] -> a
 cat v = cat' v def
 
 -- | Like 'cat', but taking an extra 'CatOpts' arguments allowing the
@@ -358,4 +361,3 @@ cat' v (CatOpts { _catMethod = Cat, _sep = s }) = foldB comb mempty
 
 cat' v (CatOpts { _catMethod = Distrib, _sep = s }) =
   position . zip (iterate (.+^ (s *^ signorm v)) origin)
-
