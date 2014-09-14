@@ -158,7 +158,7 @@ newtype LineCapA = LineCapA (Last LineCap)
 instance AttributeClass LineCapA
 
 instance Default LineCap where
-    def = LineCapButt
+  def = LineCapButt
 
 getLineCap :: LineCapA -> LineCap
 getLineCap (LineCapA (Last c)) = c

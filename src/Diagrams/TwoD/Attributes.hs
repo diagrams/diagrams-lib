@@ -4,7 +4,6 @@
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
 {-# LANGUAGE StandaloneDeriving         #-}
 {-# LANGUAGE TemplateHaskell            #-}
@@ -122,10 +121,9 @@ huge      = Normalized 0.10
 -- | Line widths specified on child nodes always override line widths
 --   specified at parent nodes.
 newtype LineWidth n = LineWidth (Last (Measure n))
-  deriving (Typeable, Semigroup, Functor)
+  deriving (Data, Typeable, Semigroup)
 
-deriving instance (Data n) => Data (LineWidth n)
-instance (Typeable n)      => AttributeClass (LineWidth n)
+instance (Typeable n) => AttributeClass (LineWidth n)
 
 type instance V (LineWidth n) = V2
 type instance N (LineWidth n) = n
@@ -173,16 +171,10 @@ lwL w = lineWidth (Local w)
 
 -- | Create lines that are dashing... er, dashed.
 data Dashing n = Dashing [Measure n] (Measure n)
-  deriving (Typeable, Functor)
-
-deriving instance Data n => Data (Dashing n)
-deriving instance Eq n   => Eq (Dashing n)
+  deriving (Data, Typeable)
 
 newtype DashingA n = DashingA (Last (Dashing n))
-  deriving (Typeable, Semigroup, Functor)
-
-deriving instance Data n => Data (DashingA n)
-deriving instance Eq n   => Eq (DashingA n)
+  deriving (Data, Typeable, Semigroup)
 
 instance Typeable n => AttributeClass (DashingA n)
 
@@ -227,7 +219,6 @@ dashingL w v = dashing (map Local w) (Local v)
 data GradientStop d = GradientStop
      { _stopColor    :: SomeColor
      , _stopFraction :: d}
-  deriving Functor
 
 makeLensesWith (lensRules & generateSignatures .~ False) ''GradientStop
 

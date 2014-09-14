@@ -43,7 +43,6 @@ import           Diagrams.TrailLike
 import           Diagrams.TwoD.Shapes
 import           Diagrams.TwoD.Types
 
-
 import           Linear.Metric
 
 -- | A value of type @QAnimation b v m@ is an animation (a
@@ -91,7 +90,7 @@ type Animation b v n = QAnimation b v n Any
 --
 --   See also 'animRect' for help constructing a background to go
 --   behind an animation.
-animEnvelope :: (Backend b v n, OrderedField n, Metric v, Monoid' m)
+animEnvelope :: (Backend b v n, OrderedField n, Metric v, HasLinearMap v, Monoid' m)
            => QAnimation b v n m -> QAnimation b v n m
 animEnvelope = animEnvelope' 30
 
@@ -99,7 +98,7 @@ animEnvelope = animEnvelope' 30
 --   parameter is the number of samples per time unit to use.  Lower
 --   rates will be faster but less accurate; higher rates are more
 --   accurate but slower.
-animEnvelope' :: (Backend b v n, OrderedField n, Metric v, Monoid' m)
+animEnvelope' :: (Backend b v n, OrderedField n, Metric v, HasLinearMap v, Monoid' m)
             => Rational -> QAnimation b v n m -> QAnimation b v n m
 animEnvelope' r a = withEnvelope (simulate r a) <$> a
 
