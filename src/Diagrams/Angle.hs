@@ -94,7 +94,7 @@ deg = iso (\(Radians r) -> r / (2*pi/360)) (Radians . ( * (2*pi/360)))
 fullTurn :: Floating v => Angle v
 fullTurn = 1 @@ turn
 
--- | An angle representing a half.
+-- | An angle representing a half turn.
 halfTurn :: Floating v => Angle v
 halfTurn = 0.5 @@ turn
 
@@ -130,8 +130,8 @@ acosA = Radians . acos
 atanA :: Floating n => n -> Angle n
 atanA = Radians . atan
 
--- | @atan2A n d@ is the @Angle with tangent @n/d@, unless d is 0, in
---   which case it is ±π/2.
+-- | @atan2A y x@ is the angle between the positive x-axis and the vector given 
+--   by the coordinates (x, y). The 'Angle' returned is in the [-pi,pi] range.
 atan2A :: RealFloat n => n -> n -> Angle n
 atan2A y x = Radians $ atan2 y x
 
@@ -146,12 +146,12 @@ a @@ i = review i a
 
 infixl 5 @@
 
--- | compute the positive angle between the two vectors in their common plane
--- | N.B.: currently discards the common plane information
+-- | Compute the positive angle between the two vectors in their common plane.
 angleBetween  :: (Metric v, Floating n) => v n -> v n -> Angle n
 angleBetween v1 v2 = acos (signorm v1 `dot` signorm v2) @@ rad
+-- N.B.: Currently discards the common plane information.
 
--- | Normalize an angle so that is lies in the [0,tau) range.
+-- | Normalize an angle so that it lies in the [0,tau) range.
 -- normalizeAngle :: (Floating n, Real n) => Angle n -> Angle n
 -- normalizeAngle = over rad (`mod'` (2 * pi))
 

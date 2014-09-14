@@ -76,6 +76,7 @@ alignBy'Default boundary v d a = moveOriginTo (lerp ((d + 1) / 2)
                                                     (boundary v a)
                                                     (boundary (negated v) a)
                                               ) a
+{-# ANN alignBy'Default ("HLint: ignore Use camelCase" :: String) #-}
                                               
 
 -- | Some standard functions which can be used as the `boundary` argument to

@@ -171,10 +171,6 @@ getAllCorners (BoundingBox (Option Nothing)) = []
 getAllCorners (BoundingBox (Option (Just (NonEmptyBoundingBox (l, u)))))
   = T.sequence (liftI2 (\a b -> [a,b]) l u)
 
--- 
--- allCorners :: (Additive v, Traversable v, Num n) => BoundingBox v n -> Maybe [Point v n]
--- allCorners = fmap (\(l,u) -> T.sequence (liftI2 (\a b -> [a,b]) l u)) . getCorners
-
 -- | Get the size of the bounding box - the vector from the (component-wise)
 --   lesser point to the greater point.
 boxExtents :: (Additive v, Num n) => BoundingBox v n -> v n
@@ -190,13 +186,12 @@ boxTransform u v = do
   let i  = s (v, u) <-> s (u, v)
       s = liftU2 (*) . uncurry (liftU2 (/)) . mapT boxExtents
   return $ Transformation i i (vl ^-^ s (v, u) ul)
-  -- NOTE: Need to check this one
 
 -- | Transforms an enveloped thing to fit within a @BoundingBox@.  If it's
 --   empty, then the result is also @mempty@.
 boxFit
   :: (Vn a ~ v n, Enveloped a, Transformable a, Monoid a, HasLinearMap v, HasBasis v, Num n)
-  => BoundingBox (V a) (N a) -> a -> a
+  => BoundingBox v n -> a -> a
 boxFit b x = maybe mempty (`transform` x) $ boxTransform (boundingBox x) b
 
 -- | Check whether a point is contained in a bounding box (including its edges).
