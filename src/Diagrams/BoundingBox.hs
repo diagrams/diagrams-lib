@@ -65,7 +65,7 @@ import           Linear.Vector
 -- Unexported utility newtype
 
 newtype NonEmptyBoundingBox v n = NonEmptyBoundingBox (Point v n, Point v n)
-  deriving (Eq, Data, Typeable, Functor)
+  deriving (Eq, Typeable, Functor)
 
 type instance V (NonEmptyBoundingBox v n) = v
 type instance N (NonEmptyBoundingBox v n) = n
@@ -87,7 +87,7 @@ instance (Additive v, Ord n) => Semigroup (NonEmptyBoundingBox v n) where
 --   indicating its \"lower\" and \"upper\" corners.  It can also represent
 --   an empty bounding box - the points are wrapped in @Maybe@.
 newtype BoundingBox v n = BoundingBox (Option (NonEmptyBoundingBox v n))
-  deriving (Eq, Data, Typeable, Functor)
+  deriving (Eq, Typeable, Functor)
 
 deriving instance (Additive v, Ord n) => Semigroup (BoundingBox v n)
 deriving instance (Additive v, Ord n) => Monoid (BoundingBox v n)
