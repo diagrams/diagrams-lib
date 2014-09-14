@@ -42,10 +42,10 @@ module Diagrams.BoundingBox
        , union, intersection
        ) where
 
-import           Data.Data               (Data, Typeable)
 import           Data.Foldable           as F
 import           Data.Maybe              (fromMaybe)
 import           Data.Semigroup
+import           Data.Typeable           (Typeable)
 
 import           Diagrams.Core
 import           Diagrams.Core.Transform
