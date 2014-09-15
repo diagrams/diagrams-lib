@@ -50,113 +50,113 @@ import           Linear.Vector
 
 -- | Translate the diagram along unitX so that all points have
 --   positive x-values.
-alignXMin :: (Vn a ~ v n, Alignable a, HasOrigin a,
+alignXMin :: (V a ~ v, N a ~ n, Alignable a, HasOrigin a,
               R1 v, Additive v, Fractional n) => a -> a
 alignXMin = align unit_X
 
-snugXMin :: (Vn a ~ v n, Alignable a, Traced a, HasOrigin a,
+snugXMin :: (V a ~ v, N a ~ n, Alignable a, Traced a, HasOrigin a,
              R1 v, Additive v, Fractional n) => a -> a
 snugXMin = snug unit_X
 
 -- | Translate the diagram along unitX so that all points have
 -- negative x-values.
-alignXMax :: (Vn a ~ v n, Alignable a, HasOrigin a,
+alignXMax :: (V a ~ v, N a ~ n, Alignable a, HasOrigin a,
               R1 v, Additive v, Fractional n) => a -> a
 alignXMax = align unitX
 
-snugXMax :: (Vn a ~ v n, Alignable a, Traced a, HasOrigin a,
+snugXMax :: (V a ~ v, N a ~ n, Alignable a, Traced a, HasOrigin a,
              R1 v, Additive v, Fractional n) => a -> a
 snugXMax = snug unitX
 
 
 -- | Translate the diagram along unitY so that all points have
 --   positive y-values.
-alignYMin :: (Vn a ~ v n, Alignable a, HasOrigin a,
+alignYMin :: (V a ~ v, N a ~ n, Alignable a, HasOrigin a,
               R2 v, Additive v, Fractional n) => a -> a
 alignYMin = align unit_Y
 
-snugYMin :: (Vn a ~ v n, Alignable a, Traced a, HasOrigin a,
+snugYMin :: (V a ~ v, N a ~ n, Alignable a, Traced a, HasOrigin a,
              R2 v, Additive v, Fractional n) => a -> a
 snugYMin = snug unit_Y
 
 -- | Translate the diagram along unitY so that all points have
 -- negative y-values.
-alignYMax :: (Vn a ~ v n, Alignable a, HasOrigin a,
+alignYMax :: (V a ~ v, N a ~ n, Alignable a, HasOrigin a,
               R2 v, Additive v, Fractional n) => a -> a
 alignYMax = align unitY
 
-snugYMax :: (Vn a ~ v n, Alignable a, Traced a, HasOrigin a,
+snugYMax :: (V a ~ v, N a ~ n, Alignable a, Traced a, HasOrigin a,
              R2 v, Additive v, Fractional n) => a -> a
 snugYMax = snug unitY
 
 
 -- | Translate the diagram along unitZ so that all points have
 --   positive z-values.
-alignZMin :: (Vn a ~ v n, Alignable a, HasOrigin a,
+alignZMin :: (V a ~ v, N a ~ n, Alignable a, HasOrigin a,
               R3 v, Additive v, Fractional n) => a -> a
 alignZMin = align unit_Z
 
-snugZMin :: (Vn a ~ v n, Alignable a, Traced a, HasOrigin a,
+snugZMin :: (V a ~ v, N a ~ n, Alignable a, Traced a, HasOrigin a,
              R3 v, Additive v, Fractional n) => a -> a
 snugZMin = snug unit_Z
 
 -- | Translate the diagram along unitZ so that all points have
 -- negative z-values.
-alignZMax :: (Vn a ~ v n, Alignable a, HasOrigin a,
+alignZMax :: (V a ~ v, N a ~ n, Alignable a, HasOrigin a,
               R3 v, Additive v, Fractional n) => a -> a
 alignZMax = align unitZ
 
-snugZMax :: (Vn a ~ v n, Alignable a, Traced a, HasOrigin a,
+snugZMax :: (V a ~ v, N a ~ n, Alignable a, Traced a, HasOrigin a,
              R3 v, Additive v, Fractional n) => a -> a
 snugZMax = snug unitZ
 
 -- | Like 'alignX', but moving the local origin in the Z direction, with an
 --   argument of @1@ corresponding to the top edge and @(-1)@ corresponding
 --   to the bottom edge.
-alignZ :: (Vn a ~ v n, Alignable a, HasOrigin a,
+alignZ :: (V a ~ v, N a ~ n, Alignable a, HasOrigin a,
            R3 v, Additive v, Fractional n) => n -> a -> a
 alignZ = alignBy unitZ
 
 -- | See the documentation for 'alignZ'.
-snugZ :: (Vn a ~ v n, Alignable a, Traced a, HasOrigin a,
+snugZ :: (V a ~ v, N a ~ n, Alignable a, Traced a, HasOrigin a,
           R3 v, Additive v, Fractional n) => n -> a -> a
 snugZ = snugBy unitZ
 
 
 -- | Center the local origin along the Z-axis.
-centerZ :: (Vn a ~ v n, Alignable a, HasOrigin a,
+centerZ :: (V a ~ v, N a ~ n, Alignable a, HasOrigin a,
             R3 v, Additive v, Fractional n) => a -> a
 centerZ = alignBy unitZ 0
 
-snugCenterZ :: (Vn a ~ v n, Alignable a, Traced a, HasOrigin a,
+snugCenterZ :: (V a ~ v, N a ~ n, Alignable a, Traced a, HasOrigin a,
                 R3 v, Additive v, Fractional n) => a -> a
 snugCenterZ = snugBy unitZ 0
 
 -- | Center along both the X- and Z-axes.
-centerXZ :: (Vn a ~ v n, Alignable a, HasOrigin a,
+centerXZ :: (V a ~ v, N a ~ n, Alignable a, HasOrigin a,
              R3 v, Additive v, Fractional n) => a -> a
 centerXZ = centerX . centerZ
 
-snugCenterXZ :: (Vn a ~ v n, Alignable a, Traced a, HasOrigin a,
+snugCenterXZ :: (V a ~ v, N a ~ n, Alignable a, Traced a, HasOrigin a,
                  R3 v, Additive v, Fractional n) => a -> a
 snugCenterXZ = snugCenterX . snugCenterZ
 
 
 -- | Center along both the Y- and Z-axes.
-centerYZ :: (Vn a ~ v n, Alignable a, HasOrigin a,
+centerYZ :: (V a ~ v, N a ~ n, Alignable a, HasOrigin a,
              R3 v, Additive v, Fractional n) => a -> a
 centerYZ = centerZ . centerY
 
-snugCenterYZ :: (Vn a ~ v n, Alignable a, Traced a, HasOrigin a,
+snugCenterYZ :: (V a ~ v, N a ~ n, Alignable a, Traced a, HasOrigin a,
                 R3 v, Additive v, Fractional n) => a -> a
 snugCenterYZ = snugCenterZ . snugCenterY
 
 -- | Center an object in three dimensions.
-centerXYZ :: (Vn a ~ v n, Alignable a, HasOrigin a,
+centerXYZ :: (V a ~ v, N a ~ n, Alignable a, HasOrigin a,
              R3 v, Additive v, Fractional n) => a -> a
 centerXYZ = centerX . centerY . centerZ
 
-snugCenterXYZ :: (Vn a ~ v n, Alignable a, Traced a, HasOrigin a,
+snugCenterXYZ :: (V a ~ v, N a ~ n, Alignable a, Traced a, HasOrigin a,
                  R3 v, Additive v, Fractional n) => a -> a
 snugCenterXYZ = snugCenterX . snugCenterY . snugCenterZ
 

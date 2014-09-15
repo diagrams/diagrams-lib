@@ -96,7 +96,7 @@ instance (V t ~ V2, N t ~ n, RealFloat n, Transformable t) => Transformable (Sca
     where
       angle = transform tr v ^. _theta
 
-      rot :: (Vn k ~ Vn t, Transformable k) => k -> k
+      rot :: (V k ~ V t, N k ~ N t, Transformable k) => k -> k
       rot = rotateAround l angle
 
       l'  = transform tr l
