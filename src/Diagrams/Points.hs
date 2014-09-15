@@ -18,6 +18,7 @@ module Diagrams.Points
        , centroid
        , pointDiagram
        , _pIso, lensP
+       , project
        ) where
 
 import           Diagrams.Core        (pointDiagram)
@@ -27,6 +28,7 @@ import           Control.Lens         (Iso', iso)
 
 import           Data.Foldable        as F
 import           Linear.Affine
+import           Linear.Metric
 import           Linear.Vector
 
 -- Point v <-> v
@@ -41,3 +43,6 @@ meanV :: (Foldable f, Additive v, Fractional a) => f (v a) -> v a
 meanV = uncurry (^/) . F.foldl' (\(s,c) e -> (e ^+^ s,c+1)) (zero,0)
 {-# INLINE meanV #-}
 
+-- | @project u v@ computes the projection of @v@ onto @u@.
+project :: (Metric v, Fractional n) => v n -> v n -> v n
+project u v = ((v `dot` u) / quadrance u) *^ u

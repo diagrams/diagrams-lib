@@ -33,6 +33,7 @@ import           Diagrams.Core
 import           Diagrams.Solve
 import           Diagrams.ThreeD.Types
 import           Diagrams.ThreeD.Vector
+import           Diagrams.Points
 
 import           Linear.Affine
 import           Linear.Metric
@@ -167,4 +168,3 @@ cone = frustum 1 0
 -- origin, and extending to Z=1.
 cylinder :: (TypeableFloat n, Renderable (Frustum n) b) => Diagram b V3 n
 cylinder = frustum 1 1
-

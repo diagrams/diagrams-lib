@@ -19,7 +19,6 @@ module Diagrams.TwoD.Types
        , r2, unr2, mkR2, r2Iso
        , p2, mkP2, unp2, p2Iso
        , r2polarIso
-       , project
        , HasR (..)
        ) where
 
@@ -32,7 +31,6 @@ import           Diagrams.Core.Transform
 import           Diagrams.Core.V
 import           Linear.Metric
 import           Linear.V2
-import           Linear.Vector
 
 type P2 = Point V2
 
@@ -69,11 +67,6 @@ mkP2 x = P . V2 x
 p2Iso :: Iso' (Point V2 n) (n, n)
 p2Iso = iso unp2 p2
 
--- | @project u v@ computes the projection of @v@ onto @u@.
-project :: (Metric v, Fractional n) => v n -> v n -> v n
-project u v = ((v `dot` u) / quadrance u) *^ u
--- find somewhere better for this
-
 instance Transformable (V2 n) where
   transform = apply
 
@@ -97,4 +90,3 @@ instance HasR V2 where
 instance HasTheta V2 where
   _theta = r2polarIso . _2
   {-# INLINE _theta #-}
-

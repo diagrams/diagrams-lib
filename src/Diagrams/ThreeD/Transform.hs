@@ -53,6 +53,7 @@ import           Diagrams.Angle
 import           Diagrams.Direction
 import           Diagrams.ThreeD.Types
 import           Diagrams.Transform
+import           Diagrams.Points
 
 import           Control.Lens            (view, (&), (*~), (.~), (//~))
 import           Data.Semigroup
