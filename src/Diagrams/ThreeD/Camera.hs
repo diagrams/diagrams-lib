@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                   #-}
 {-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE DeriveDataTypeable    #-}
 {-# LANGUAGE FlexibleContexts      #-}
@@ -51,12 +52,25 @@ data Camera l n = Camera
     , up      :: V3 n
     , lens    :: l n
     }
+#if __GLASGOW_HASKELL__ >= 707
   deriving Typeable
+#else
+
+instance Typeable1 (Camera l) where
+  typeOf1 _ = mkTyConApp cameraTyCon []
+
+cameraTyCon :: TyCon
+cameraTyCon = mkTyCon3 "diagrams-lib" "Diagrams.ThreeD.Camera" "Camera"
+#endif
 
 type instance V (Camera l n) = V3
 type instance N (Camera l n) = n
 
+#if __GLASGOW_HASKELL__ > 707
 class Typeable l => CameraLens l where
+#else
+class Typeable1 l => CameraLens l where
+#endif
   -- | The natural aspect ratio of the projection.
   aspect :: Floating n => l n -> n
 
@@ -115,6 +129,7 @@ facing_ZCamera :: (Floating n, Ord n, Typeable n, CameraLens l, Renderable (Came
                   l n -> Diagram b V3 n
 facing_ZCamera l = mkQD (Prim $ Camera origin unit_Z unitY l)
         mempty mempty mempty (Query . const . Any $ False)
+{-# ANN facing_ZCamera ("HLint: ignore Use camelCase" :: String) #-}
 
 mm50, mm50Wide, mm50Narrow :: Floating n => PerspectiveLens n
 
@@ -146,4 +161,3 @@ camLens = lens
 camAspect :: (Floating n, CameraLens l) => Camera l n -> n
 camAspect = aspect . camLens
 
-{-# ANN module ("HLint: ignore Use camelCase" :: String) #-}

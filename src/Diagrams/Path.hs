@@ -1,5 +1,7 @@
 {-# LANGUAGE CPP                        #-}
+#if __GLASGOW_HASKELL__ >= 707
 {-# LANGUAGE DeriveDataTypeable         #-}
+#endif
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
@@ -57,6 +59,12 @@ module Diagrams.Path
 
        ) where
 
+import           Control.Arrow        ((***))
+import           Control.Lens         (Rewrapped, Wrapped (..), iso, mapped, op, over, view, (%~),
+                                       _Unwrapped', _Wrapped)
+import qualified Data.Foldable        as F
+import           Data.List            (partition)
+import           Data.Semigroup
 import           Data.Typeable
 
 import           Diagrams.Align
@@ -69,12 +77,6 @@ import           Diagrams.Trail
 import           Diagrams.TrailLike
 import           Diagrams.Transform
 
-import           Control.Arrow        ((***))
-import           Control.Lens         (Rewrapped, Wrapped (..), iso, mapped, op, over, view, (%~),
-                                       _Unwrapped', _Wrapped)
-import qualified Data.Foldable        as F
-import           Data.List            (partition)
-import           Data.Semigroup
 
 import           Linear.Affine
 import           Linear.Metric
@@ -96,8 +98,14 @@ newtype Path v n = Path [Located (Trail v n)]
   )
 
 #if __GLASGOW_HASKELL__ < 707
-instance Typeable2 Path where
-  typeOf2 _ = mkTyConApp pathTyCon []
+-- This should really be Typeable2 Path but since Path has kind
+--   (* -> *) -> * -> *
+-- not
+--   * -> * -> *
+-- we can only do Typeable1 (Path v). This is why the instance cannot be 
+-- derived.
+instance Typeable1 (Path v) where
+  typeOf1 _ = mkTyConApp pathTyCon []
 
 pathTyCon :: TyCon
 pathTyCon = mkTyCon3 "diagrams-lib" "Diagrams.Path" "Path"

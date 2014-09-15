@@ -39,7 +39,8 @@ import           Diagrams.Core
 -- | @SurfaceColor@ is the inherent pigment of an object, assumed to
 -- be opaque.
 newtype SurfaceColor = SurfaceColor (Last (Colour Double))
-                     deriving (Typeable, Semigroup)
+  deriving (Typeable, Semigroup)
+
 instance AttributeClass SurfaceColor
 
 surfaceColor :: Iso' SurfaceColor (Colour Double)
@@ -55,7 +56,8 @@ sc = applyAttr . review surfaceColor
 -- Attribute.  For physical reasonableness, @Diffuse@ should have a
 -- value between 0 and 1; this is not checked.
 newtype Diffuse = Diffuse (Last Double)
-                deriving (Typeable, Semigroup)
+  deriving (Typeable, Semigroup)
+
 instance AttributeClass Diffuse
 
 _Diffuse :: Iso' Diffuse Double
@@ -72,7 +74,8 @@ diffuse = applyAttr . review _Diffuse
 -- indirect lighting incident on that object and the diffuse
 -- reflectance.
 newtype Ambient = Ambient (Last Double)
-                deriving (Typeable, Semigroup)
+  deriving (Typeable, Semigroup)
+
 instance AttributeClass Ambient
 
 _Ambient :: Iso' Ambient Double
@@ -96,7 +99,8 @@ data Specular = Specular { _specularIntensity :: Double
 makeLenses ''Specular
 
 newtype Highlight = Highlight (Last Specular)
-                    deriving (Typeable, Semigroup)
+  deriving (Typeable, Semigroup)
+
 instance AttributeClass Highlight
 
 _Highlight :: Iso' Highlight Specular
@@ -105,3 +109,4 @@ _Highlight = iso (\(Highlight (Last s)) -> s) (Highlight . Last)
 -- | Set the specular highlight.
 highlight :: HasStyle d => Specular -> d -> d
 highlight = applyAttr . review _Highlight
+

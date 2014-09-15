@@ -1,4 +1,4 @@
-{-# LANGUAGE ConstraintKinds            #-}
+{-# LANGUAGE CPP                        #-}
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE ExistentialQuantification  #-}
 {-# LANGUAGE FlexibleContexts           #-}
@@ -528,6 +528,14 @@ instance Typeable n => SplitAttribute (FillTextureLoops n) where
 --   applied to lines/non-closed paths as well as loops/closed paths,
 --   whereas in the semantics of diagrams, fill attributes only apply
 --   to loops.
-splitTextureFills :: forall b v n a. (Typeable v, Typeable n) => RTree b v n a -> RTree b v n a
+splitTextureFills
+  :: forall b v n a. (
+#if __GLASGOW_HASKELL__ > 707
+                       Typeable v
+#else
+                       Typeable1 v
+#endif
+
+                     , Typeable n) => RTree b v n a -> RTree b v n a
 splitTextureFills = splitAttr (FillTextureLoops :: FillTextureLoops n)
 
