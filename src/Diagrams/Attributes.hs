@@ -173,7 +173,7 @@ data LineJoin = LineJoinMiter    -- ^ Use a \"miter\" shape (whatever that is).
               | LineJoinBevel    -- ^ Use a \"bevel\" shape (whatever
                                  --   that is).  Are these...
                                  --   carpentry terms?
-  deriving (Eq,Show,Typeable)
+  deriving (Eq, Show, Typeable)
 
 newtype LineJoinA = LineJoinA (Last LineJoin)
   deriving (Typeable, Semigroup, Eq)

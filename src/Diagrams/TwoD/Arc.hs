@@ -103,7 +103,7 @@ arcT start sweep = trailFromSegments bs
 --   path of a radius one arc starting at @d@ and sweeping out the angle
 --   @s@ counterclockwise (for positive s).  The resulting
 --   @Trail@ is allowed to wrap around and overlap itself.
-arc :: (TrailLike t, Vn t ~ V2 n, RealFloat n) => Direction V2 n -> Angle n -> t
+arc :: (TrailLike t, V t ~ V2, N t ~ n, RealFloat n) => Direction V2 n -> Angle n -> t
 arc start sweep = trailLike $ arcT start sweep `at` rotate (start ^. _theta) (p2 (1,0))
 
 -- | Given a radus @r@, a start direction @d@ and an angle @s@,
@@ -115,7 +115,7 @@ arc start sweep = trailLike $ arcT start sweep `at` rotate (start ^. _theta) (p2
 --
 --   > arc'Ex = mconcat [ arc' r (0 @@ turn) (1/4 @@ turn) | r <- [0.5,-1,1.5] ]
 --   >        # centerXY # pad 1.1
-arc' :: (TrailLike t, Vn t ~ V2 n, RealFloat n) => n -> Direction V2 n -> Angle n -> t
+arc' :: (TrailLike t, V t ~ V2, N t ~ n, RealFloat n) => n -> Direction V2 n -> Angle n -> t
 arc' r start sweep = trailLike $ scale (abs r) ts `at` rotate (start ^. _theta) (p2 (abs r,0))
   where ts = arcT start sweep
 
@@ -131,7 +131,7 @@ arc' r start sweep = trailLike $ scale (abs r) ts `at` rotate (start ^. _theta) 
 --   >   ]
 --   >   # fc blue
 --   >   # centerXY # pad 1.1
-wedge :: (TrailLike t, Vn t ~ V2 n, RealFloat n) => n -> Direction V2 n -> Angle n -> t
+wedge :: (TrailLike t, V t ~ V2, N t ~ n, RealFloat n) => n -> Direction V2 n -> Angle n -> t
 wedge r d s = trailLike . (`at` origin) . glueTrail . wrapLine
               $ fromOffsets [r *^ fromDirection d]
                 <> arc d s # scale r
@@ -148,7 +148,7 @@ wedge r d s = trailLike . (`at` origin) . glueTrail . wrapLine
 --   > arcBetweenEx = mconcat
 --   >   [ arcBetween origin (p2 (2,1)) ht | ht <- [-0.2, -0.1 .. 0.2] ]
 --   >   # centerXY # pad 1.1
-arcBetween :: (TrailLike t, Vn t ~ V2 n, RealFloat n) => Point V2 n -> Point V2 n -> n -> t
+arcBetween :: (TrailLike t, V t ~ V2, N t ~ n, RealFloat n) => Point V2 n -> Point V2 n -> n -> t
 arcBetween p q ht = trailLike (a # rotate (v^._theta) # moveTo p)
   where
     h = abs ht
@@ -182,7 +182,7 @@ arcBetween p q ht = trailLike (a # rotate (v^._theta) # moveTo p)
 --   >   ]
 --   >   # fc blue
 --   >   # centerXY # pad 1.1
-annularWedge :: (TrailLike t, Vn t ~ V2 n, RealFloat n) =>
+annularWedge :: (TrailLike t, V t ~ V2, N t ~ n, RealFloat n) =>
                 n -> n -> Direction V2 n -> Angle n -> t
 annularWedge r1' r2' d1 s = trailLike . (`at` o) . glueTrail . wrapLine
               $ fromOffsets [(r1' - r2') *^ fromDirection d1]

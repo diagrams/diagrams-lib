@@ -214,28 +214,28 @@ getFontSizeIsLocal (FontSize (Last (_,b))) = b
 -- | Set the font size, that is, the size of the font's em-square as
 --   measured within the current local vector space.  The default size
 --   is @1@.
-fontSize :: (Data n, HasStyle a, Vn a ~ V2 n) => Measure n -> a -> a
+fontSize :: (Data n, HasStyle a, V a ~ V2, N a ~ n) => Measure n -> a -> a
 fontSize m@(Local {}) = applyGTAttr . FontSize . Last $ (m,True)
 fontSize m            = applyGTAttr . FontSize . Last $ (m,False)
 
 -- | A convenient synonym for 'fontSize (Global w)'.
-fontSizeG :: (Data n, HasStyle a, Vn a ~ V2 n) => n -> a -> a
+fontSizeG :: (Data n, HasStyle a, V a ~ V2, N a ~ n) => n -> a -> a
 fontSizeG w = fontSize (Global w)
 
 -- | A convenient synonym for 'fontSize (Normalized w)'.
-fontSizeN :: (Data n, HasStyle a, Vn a ~ V2 n) => n -> a -> a
+fontSizeN :: (Data n, HasStyle a, V a ~ V2, N a ~ n) => n -> a -> a
 fontSizeN w = fontSize (Normalized w)
 
 -- | A convenient synonym for 'fontSize (Output w)'.
-fontSizeO :: (Data n, HasStyle a, Vn a ~ V2 n) => n -> a -> a
+fontSizeO :: (Data n, HasStyle a, V a ~ V2, N a ~ n) => n -> a -> a
 fontSizeO w = fontSize (Output w)
 
 -- | A convenient sysnonym for 'fontSize (Local w)'.
-fontSizeL :: (Data n, HasStyle a, Vn a ~ V2 n) => n -> a -> a
+fontSizeL :: (Data n, HasStyle a, V a ~ V2, N a ~ n) => n -> a -> a
 fontSizeL w = fontSize (Local w)
 
 -- | Apply a 'FontSize' attribute.
-fontSizeA :: (Data n, HasStyle a, Vn a ~ V2 n) => FontSize n -> a -> a
+fontSizeA :: (Data n, HasStyle a, V a ~ V2, N a ~ n) => FontSize n -> a -> a
 fontSizeA = applyGTAttr
 
 --------------------------------------------------

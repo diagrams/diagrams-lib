@@ -376,7 +376,7 @@ instance (OrderedField n) => Transformable (Clip n) where
 --     path will be drawn.
 --
 --   * The envelope of the diagram is unaffected.
-clipBy :: (HasStyle a, Vn a ~ V2 n, TypeableFloat n) => Path V2 n -> a -> a
+clipBy :: (HasStyle a, V a ~ V2, N a ~ n, TypeableFloat n) => Path V2 n -> a -> a
 clipBy = applyTAttr . Clip . (:[])
 
 -- | Clip a diagram to the given path setting its envelope to the

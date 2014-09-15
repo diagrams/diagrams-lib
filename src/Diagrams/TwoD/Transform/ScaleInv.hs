@@ -82,16 +82,16 @@ makeLenses ''ScaleInv
 
 -- | Create a scale-invariant object pointing in the given direction,
 --   located at the origin.
-scaleInv :: (Vn t ~ v n, Additive v, Num n) => t -> v n -> ScaleInv t
+scaleInv :: (V t ~ v, N t ~ n, Additive v, Num n) => t -> v n -> ScaleInv t
 scaleInv t d = ScaleInv t d origin
 
 type instance V (ScaleInv t) = V t
 type instance N (ScaleInv t) = N t
 
-instance (Vn t ~ v n, Additive v, Num n, HasOrigin t) => HasOrigin (ScaleInv t) where
+instance (V t ~ v, N t ~ n, Additive v, Num n, HasOrigin t) => HasOrigin (ScaleInv t) where
   moveOriginTo p (ScaleInv t v l) = ScaleInv (moveOriginTo p t) v (moveOriginTo p l)
 
-instance (Vn t ~ V2 n, RealFloat n, Transformable t) => Transformable (ScaleInv t) where
+instance (V t ~ V2, N t ~ n, RealFloat n, Transformable t) => Transformable (ScaleInv t) where
   transform tr (ScaleInv t v l) = ScaleInv (trans . rot $ t) (rot v) l'
     where
       angle = transform tr v ^. _theta
@@ -162,7 +162,7 @@ instance (Vn t ~ V2 n, RealFloat n, Transformable t) => Transformable (ScaleInv 
 
 -}
 
-instance (Vn t ~ V2 n, RealFloat n, Renderable t b) => Renderable (ScaleInv t) b where
+instance (V t ~ V2, N t ~ n, RealFloat n, Renderable t b) => Renderable (ScaleInv t) b where
   render b = render b . view scaleInvObj
 
 -- | Create a diagram from a single scale-invariant primitive.  The
@@ -180,6 +180,6 @@ instance (Vn t ~ V2 n, RealFloat n, Renderable t b) => Renderable (ScaleInv t) b
 --   scale-invariant things will be used only as \"decorations\" (/e.g./
 --   arrowheads) which should not affect the envelope, trace, and
 --   query.
-scaleInvPrim :: (Vn t ~ V2 n, RealFloat n, Transformable t, Typeable t, Renderable t b, Monoid m)
+scaleInvPrim :: (V t ~ V2, N t ~ n, RealFloat n, Transformable t, Typeable t, Renderable t b, Monoid m)
              => t -> V2 n -> QDiagram b (V t) (N t) m
 scaleInvPrim t d = mkQD (Prim $ scaleInv t d) mempty mempty mempty mempty

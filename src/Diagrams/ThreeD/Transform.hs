@@ -161,7 +161,7 @@ scalingZ c = fromSymmetric s
 
 -- | Scale a diagram by the given factor in the z direction.  To scale
 -- uniformly, use 'scale'.
-scaleZ :: (Vn t ~ v n, R3 v, Additive v, Transformable t, Floating n) => n -> t -> t
+scaleZ :: (V t ~ v, N t ~ n, R3 v, Additive v, Transformable t, Floating n) => n -> t -> t
 scaleZ = transform . scalingZ
 
 -- Translation ----------------------------------------
@@ -173,7 +173,7 @@ translationZ z = translation (zero & _z .~ z)
 
 -- | Translate a diagram by the given distance in the y
 --   direction.
-translateZ :: (Vn t ~ v n, R3 v, Transformable t, Additive v, Floating n) => n -> t -> t
+translateZ :: (V t ~ v, N t ~ n, R3 v, Transformable t, Additive v, Floating n) => n -> t -> t
 translateZ = transform . translationZ
 
 -- Reflection ----------------------------------------------
@@ -185,7 +185,7 @@ reflectionZ = scalingZ (-1)
 
 -- | Flip a diagram across z=0, i.e. send the point (x,y,z) to
 -- (x,y,-z).
-reflectZ :: (Vn t ~ v n, R3 v, Transformable t, Additive v, Floating n) => t -> t
+reflectZ :: (V t ~ v, N t ~ n, R3 v, Transformable t, Additive v, Floating n) => t -> t
 reflectZ = transform reflectionZ
 
 -- | @reflectionAcross p v@ is a reflection across the plane through
@@ -201,7 +201,7 @@ reflectionAcross p v =
 
 -- | @reflectAcross p v@ reflects a diagram across the plane though
 --   the point @p@ and the vector @v@.
-reflectAcross :: (Vn t ~ v n, R3 v, HasLinearMap v, Metric v, Fractional n, Transformable t)
+reflectAcross :: (V t ~ v, N t ~ n, R3 v, HasLinearMap v, Metric v, Fractional n, Transformable t)
   => Point v n -> v n -> t -> t
 reflectAcross p v = transform (reflectionAcross p v)
 

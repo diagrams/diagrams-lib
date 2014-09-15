@@ -260,7 +260,7 @@ tailSty opts = fc black (opts^.tailStyle)
 
 -- | Calculate the length of the portion of the horizontal line that passes
 --   through the origin and is inside of p.
-xWidth :: Floating n => (Traced t, Vn t ~ V2 n) => t -> n
+xWidth :: Floating n => (Traced t, V t ~ V2, N t ~ n) => t -> n
 xWidth p = a + b
   where
     a = fromMaybe 0 (norm <$> traceV origin unitX p)

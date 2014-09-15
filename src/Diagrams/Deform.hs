@@ -47,7 +47,7 @@ class Deformable a where
   -- | @deform' epsilon d a@ transforms @a@ by the deformation @d@.
   -- If the type of @a@ is not closed under projection, approximate
   -- to accuracy @epsilon@.
-  deform' :: Vn a ~ v n => n -> Deformation v n -> a -> a
+  deform' :: (V a ~ v, N a ~ n) => n -> Deformation v n -> a -> a
 
   -- | @deform d a@ transforms @a@ by the deformation @d@.
   -- If the type of @a@ is not closed under projection, @deform@

@@ -78,7 +78,7 @@ infixl 6 |||
 --   combined diagram is the same as the local origin of the first.
 --   @(===)@ is associative and has 'mempty' as an identity.  See the
 --   documentation of 'beside' for more information.
-(===) :: (Juxtaposable a, Vn a ~ V2 n, TypeableFloat n, Semigroup a) => a -> a -> a
+(===) :: (Juxtaposable a, V a ~ V2, N a ~ n, TypeableFloat n, Semigroup a) => a -> a -> a
 (===) = beside unit_Y
 
 -- | Place two diagrams (or other juxtaposable objects) horizontally
@@ -87,7 +87,7 @@ infixl 6 |||
 --   is the same as the local origin of the first.  @(|||)@ is
 --   associative and has 'mempty' as an identity.  See the
 --   documentation of 'beside' for more information.
-(|||) :: (Juxtaposable a, Vn a ~ V2 n, TypeableFloat n, Semigroup a) => a -> a -> a
+(|||) :: (Juxtaposable a, V a ~ V2, N a ~ n, TypeableFloat n, Semigroup a) => a -> a -> a
 (|||) = beside unitX
 
 -- | Lay out a list of juxtaposable objects in a row from left to right,
@@ -101,7 +101,7 @@ infixl 6 |||
 --     "Diagrams.TwoD.Align" before applying 'hcat'.
 --
 --   * For non-axis-aligned layout, see 'cat'.
-hcat :: (Juxtaposable a, HasOrigin a, Monoid' a, Vn a ~ V2 n, TypeableFloat n)
+hcat :: (Juxtaposable a, HasOrigin a, Monoid' a, V a ~ V2, N a ~ n, TypeableFloat n)
      => [a] -> a
 hcat = hcat' def
 
@@ -109,13 +109,13 @@ hcat = hcat' def
 --   the spacing.  See the 'cat'' documentation for a description of
 --   the possibilities. For the common case of setting just a
 --   separation amount, see 'hsep'.
-hcat' :: (Juxtaposable a, HasOrigin a, Monoid' a, Vn a ~ V2 n, TypeableFloat n)
+hcat' :: (Juxtaposable a, HasOrigin a, Monoid' a, V a ~ V2, N a ~ n, TypeableFloat n)
       => CatOpts n -> [a] -> a
 hcat' = cat' unitX
 
 -- | A convenient synonym for horizontal concatenation with
 --   separation: @hsep s === hcat' (with & sep .~ s)@.
-hsep :: (Juxtaposable a, HasOrigin a, Monoid' a, Vn a ~ V2 n, TypeableFloat n)
+hsep :: (Juxtaposable a, HasOrigin a, Monoid' a, V a ~ V2, N a ~ n, TypeableFloat n)
      => n -> [a] -> a
 hsep s = hcat' (def & sep .~ s)
 
@@ -130,7 +130,7 @@ hsep s = hcat' (def & sep .~ s)
 --     "Diagrams.TwoD.Align" before applying 'vcat'.
 --
 --   * For non-axis-aligned layout, see 'cat'.
-vcat :: (Juxtaposable a, HasOrigin a, Monoid' a, Vn a ~ V2 n, TypeableFloat n)
+vcat :: (Juxtaposable a, HasOrigin a, Monoid' a, V a ~ V2, N a ~ n, TypeableFloat n)
      => [a] -> a
 vcat = vcat' def
 
@@ -138,13 +138,13 @@ vcat = vcat' def
 --   the spacing.  See the 'cat'' documentation for a description of
 --   the possibilities.  For the common case of setting just a
 --   separation amount, see 'vsep'.
-vcat' :: (Juxtaposable a, HasOrigin a, Monoid' a, Vn a ~ V2 n, TypeableFloat n)
+vcat' :: (Juxtaposable a, HasOrigin a, Monoid' a, V a ~ V2, N a ~ n, TypeableFloat n)
       => CatOpts n -> [a] -> a
 vcat' = cat' unit_Y
 
 -- | A convenient synonym for vertical concatenation with
 --   separation: @vsep s === vcat' (with & sep .~ s)@.
-vsep :: (Juxtaposable a, HasOrigin a, Monoid' a, Vn a ~ V2 n, TypeableFloat n)
+vsep :: (Juxtaposable a, HasOrigin a, Monoid' a, V a ~ V2, N a ~ n, TypeableFloat n)
      => n -> [a] -> a
 vsep s = vcat' (def & sep .~ s)
 
@@ -244,8 +244,8 @@ view p (V2 w h) = withEnvelope (rect w h # alignBL # moveTo p :: D V2 n)
 
 -- | Construct a bounding rectangle for an enveloped object, that is,
 --   the smallest axis-aligned rectangle which encloses the object.
-boundingRect :: ( Enveloped t, Transformable t, TrailLike t, Monoid t, Vn a ~ Vn t
-                , Enveloped a, Vn a ~ V2 n, TypeableFloat n
+boundingRect :: ( Enveloped t, Transformable t, TrailLike t, Monoid t, V a ~ V t, N a ~ N t
+                , Enveloped a, V a ~ V2, N a ~ n, TypeableFloat n
                 )
              => a -> t
 boundingRect = (`boxFit` rect 1 1) . boundingBox

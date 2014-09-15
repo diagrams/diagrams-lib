@@ -49,7 +49,7 @@ import           Linear.Metric
 --   >               # centerXY # pad 1.1
 --
 --   For more information, see <http://mathworld.wolfram.com/CubicSpline.html>.
-cubicSpline :: (Vn t ~ v n, TrailLike t, Fractional (v n)) => Bool -> [Point v n] -> t
+cubicSpline :: (V t ~ v, N t ~ n, TrailLike t, Fractional (v n)) => Bool -> [Point v n] -> t
 cubicSpline closed [] = trailLike . closeIf closed $ emptyLine `at` origin
 cubicSpline closed ps = flattenBeziers . map f . solveCubicSplineCoefficients closed . map (view lensP) $ ps
   where

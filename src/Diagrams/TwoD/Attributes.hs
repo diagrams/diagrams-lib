@@ -138,31 +138,31 @@ getLineWidth :: LineWidth n -> Measure n
 getLineWidth (LineWidth (Last w)) = w
 
 -- | Set the line (stroke) width.
-lineWidth :: (Data n, HasStyle a, Vn a ~ V2 n, Floating n) => Measure n -> a -> a
+lineWidth :: (Data n, HasStyle a, V a ~ V2, N a ~ n, Floating n) => Measure n -> a -> a
 lineWidth = applyGTAttr . LineWidth . Last
 
 -- | Apply a 'LineWidth' attribute.
-lineWidthA :: (Data n, HasStyle a, Vn a ~ V2 n, Floating n) => LineWidth n -> a -> a
+lineWidthA :: (Data n, HasStyle a, V a ~ V2, N a ~ n, Floating n) => LineWidth n -> a -> a
 lineWidthA = applyGTAttr
 
 -- | Default for 'lineWidth'.
-lw :: (Data n, Floating n, HasStyle a, Vn a ~ V2 n) => Measure n -> a -> a
+lw :: (Data n, Floating n, HasStyle a, V a ~ V2, N a ~ n) => Measure n -> a -> a
 lw = lineWidth
 
 -- | A convenient synonym for 'lineWidth (Global w)'.
-lwG :: (Data n, Floating n, HasStyle a, Vn a ~ V2 n) => n -> a -> a
+lwG :: (Data n, Floating n, HasStyle a, V a ~ V2, N a ~ n) => n -> a -> a
 lwG w = lineWidth (Global w)
 
 -- | A convenient synonym for 'lineWidth (Normalized w)'.
-lwN :: (Data n, Floating n, HasStyle a, Vn a ~ V2 n) => n -> a -> a
+lwN :: (Data n, Floating n, HasStyle a, V a ~ V2, N a ~ n) => n -> a -> a
 lwN w = lineWidth (Normalized w)
 
 -- | A convenient synonym for 'lineWidth (Output w)'.
-lwO :: (Data n, Floating n, HasStyle a, Vn a ~ V2 n) => n -> a -> a
+lwO :: (Data n, Floating n, HasStyle a, V a ~ V2, N a ~ n) => n -> a -> a
 lwO w = lineWidth (Output w)
 
 -- | A convenient sysnonym for 'lineWidth (Local w)'.
-lwL :: (Data n, Floating n, HasStyle a, Vn a ~ V2 n) => n -> a -> a
+lwL :: (Data n, Floating n, HasStyle a, V a ~ V2, N a ~ n) => n -> a -> a
 lwL w = lineWidth (Local w)
 
 -----------------------------------------------------------------
@@ -190,7 +190,7 @@ getDashing :: DashingA n -> Dashing n
 getDashing (DashingA (Last d)) = d
 
 -- | Set the line dashing style.
-dashing :: (Floating n, Data n, HasStyle a, Vn a ~ V2 n)
+dashing :: (Floating n, Data n, HasStyle a, V a ~ V2, N a ~ n)
         => [Measure n]  -- ^ A list specifying alternate lengths of on
                         --   and off portions of the stroke.  The empty
                         --   list indicates no dashing.
@@ -200,19 +200,19 @@ dashing :: (Floating n, Data n, HasStyle a, Vn a ~ V2 n)
 dashing ds offs = applyGTAttr (DashingA (Last (Dashing ds offs)))
 
 -- | A convenient synonym for 'dashing (Global w)'.
-dashingG :: (Data n, Floating n, HasStyle a, Vn a ~ V2 n) => [n] -> n -> a -> a
+dashingG :: (Data n, Floating n, HasStyle a, V a ~ V2, N a ~ n) => [n] -> n -> a -> a
 dashingG w v = dashing (map Global w) (Global v)
 
 -- | A convenient synonym for 'dashing (Normalized w)'.
-dashingN :: (Data n, Floating n, HasStyle a, Vn a ~ V2 n) => [n] -> n -> a -> a
+dashingN :: (Data n, Floating n, HasStyle a, V a ~ V2, N a ~ n) => [n] -> n -> a -> a
 dashingN w v = dashing (map Normalized w) (Normalized v)
 
 -- | A convenient synonym for 'dashing (Output w)'.
-dashingO :: (Data n, Floating n, HasStyle a, Vn a ~ V2 n) => [n] -> n -> a -> a
+dashingO :: (Data n, Floating n, HasStyle a, V a ~ V2, N a ~ n) => [n] -> n -> a -> a
 dashingO w v = dashing (map Output w) (Output v)
 
 -- | A convenient sysnonym for 'dashing (Local w)'.
-dashingL :: (Data n, Floating n, HasStyle a, Vn a ~ V2 n) => [n] -> n -> a -> a
+dashingL :: (Data n, Floating n, HasStyle a, V a ~ V2, N a ~ n) => [n] -> n -> a -> a
 dashingL w v = dashing (map Local w) (Local v)
 
 -- | A gradient stop contains a color and fraction (usually between 0 and 1)
@@ -401,10 +401,10 @@ instance Default (LineTexture n) where
 getLineTexture :: LineTexture n -> Texture n
 getLineTexture (LineTexture (Last t)) = t
 
-lineTexture :: (Typeable n, Floating n, HasStyle a, Vn a ~ V2 n) => Texture n -> a -> a
+lineTexture :: (Typeable n, Floating n, HasStyle a, V a ~ V2, N a ~ n) => Texture n -> a -> a
 lineTexture = applyTAttr . LineTexture . Last
 
-lineTextureA :: (Typeable n, Floating n, HasStyle a, Vn a ~ V2 n) => LineTexture n -> a -> a
+lineTextureA :: (Typeable n, Floating n, HasStyle a, V a ~ V2, N a ~ n) => LineTexture n -> a -> a
 lineTextureA = applyTAttr
 
 mkLineTexture :: Texture v -> LineTexture v
@@ -426,26 +426,26 @@ styleLineTexture = sets modifyLineTexture
 --   'AlphaColour'), but this can sometimes create problems for type
 --   inference, so the 'lc' and 'lcA' variants are provided with more
 --   concrete types.
-lineColor :: (Typeable n, Floating n, Color c, HasStyle a, Vn a ~ V2 n) => c -> a -> a
+lineColor :: (Typeable n, Floating n, Color c, HasStyle a, V a ~ V2, N a ~ n) => c -> a -> a
 lineColor = lineTexture . SC . SomeColor
 
 -- | A synonym for 'lineColor', specialized to @'Colour' Double@
 --   (i.e. opaque colors).  See comment in 'lineColor' about backends.
-lc :: (Typeable n, Floating n, HasStyle a, Vn a ~ V2 n) => Colour Double -> a -> a
+lc :: (Typeable n, Floating n, HasStyle a, V a ~ V2, N a ~ n) => Colour Double -> a -> a
 lc = lineColor
 
 -- | A synonym for 'lineColor', specialized to @'AlphaColour' Double@
 --   (i.e. colors with transparency).  See comment in 'lineColor'
 --   about backends.
-lcA :: (Typeable n, Floating n, HasStyle a, Vn a ~ V2 n) => AlphaColour Double -> a -> a
+lcA :: (Typeable n, Floating n, HasStyle a, V a ~ V2, N a ~ n) => AlphaColour Double -> a -> a
 lcA = lineColor
 
 -- | Apply a linear gradient.
-lineLGradient :: (Typeable n, Floating n, HasStyle a, Vn a ~ V2 n) => LGradient n -> a -> a
+lineLGradient :: (Typeable n, Floating n, HasStyle a, V a ~ V2, N a ~ n) => LGradient n -> a -> a
 lineLGradient g = lineTexture (LG g)
 
 -- | Apply a radial gradient.
-lineRGradient :: (Typeable n, Floating n, HasStyle a, Vn a ~ V2 n) => RGradient n -> a -> a
+lineRGradient :: (Typeable n, Floating n, HasStyle a, V a ~ V2, N a ~ n) => RGradient n -> a -> a
 lineRGradient g = lineTexture (RG g)
 
 -- | The texture with which objects are filled.
@@ -472,7 +472,7 @@ instance Default (FillTexture n) where
 getFillTexture :: FillTexture n -> Texture n
 getFillTexture (FillTexture tx) = getLast . getRecommend $ tx
 
-fillTexture :: (HasStyle a, Vn a ~ V2 n, Typeable n, Floating n) => Texture n -> a -> a
+fillTexture :: (HasStyle a, V a ~ V2, N a ~ n, Typeable n, Floating n) => Texture n -> a -> a
 fillTexture = applyTAttr . FillTexture . Commit . Last
 
 mkFillTexture :: Texture n -> FillTexture n
@@ -493,24 +493,24 @@ styleFillTexture = sets modifyFillTexture
 --   type (so it can be used with either 'Colour' or 'AlphaColour'),
 --   but this can sometimes create problems for type inference, so the
 --   'fc' and 'fcA' variants are provided with more concrete types.
-fillColor :: (Color c, HasStyle a, Vn a ~ V2 n, Typeable n, Floating n) => c -> a -> a
+fillColor :: (Color c, HasStyle a, V a ~ V2, N a ~ n, Typeable n, Floating n) => c -> a -> a
 fillColor = fillTexture . SC . SomeColor
 
 -- | Set a \"recommended\" fill color, to be used only if no explicit
 --   calls to 'fillColor' (or 'fc', or 'fcA') are used.
 --   See comment after 'fillColor' about backends.
-recommendFillColor :: (Color c, HasStyle a, Vn a ~ V2 n, Typeable n, Floating n) => c -> a -> a
+recommendFillColor :: (Color c, HasStyle a, V a ~ V2, N a ~ n, Typeable n, Floating n) => c -> a -> a
 recommendFillColor =
   applyTAttr . FillTexture . Recommend . Last . SC . SomeColor
 
 -- | A synonym for 'fillColor', specialized to @'Colour' Double@
 --   (i.e. opaque colors). See comment after 'fillColor' about backends.
-fc :: (HasStyle a, Vn a ~ V2 n, Floating n, Typeable n) => Colour Double -> a -> a
+fc :: (HasStyle a, V a ~ V2, N a ~ n, Floating n, Typeable n) => Colour Double -> a -> a
 fc = fillColor
 
 -- | A synonym for 'fillColor', specialized to @'AlphaColour' Double@
 --   (i.e. colors with transparency). See comment after 'fillColor' about backends.
-fcA :: (HasStyle a, Vn a ~ V2 n, Floating n, Typeable n) => AlphaColour Double -> a -> a
+fcA :: (HasStyle a, V a ~ V2, N a ~ n, Floating n, Typeable n) => AlphaColour Double -> a -> a
 fcA = fillColor
 ------------------------------------------------------------
 

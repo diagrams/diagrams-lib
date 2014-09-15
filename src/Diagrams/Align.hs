@@ -58,19 +58,19 @@ class Alignable a where
   --   edge of the boundary in the direction of the negation of @v@.
   --   Other values of @d@ interpolate linearly (so for example, @d =
   --   0@ centers the origin along the direction of @v@).
-  alignBy' :: (Vn a ~ v n, HasOrigin a, Additive v, Fractional n)
+  alignBy' :: (V a ~ v, N a ~ n, HasOrigin a, Additive v, Fractional n)
            => (v n -> a -> Point v n) -> v n -> n -> a -> a
   alignBy' = alignBy'Default
 
-  defaultBoundary :: Vn a ~ v n => v n -> a -> Point v n
+  defaultBoundary :: (V a ~ v, N a ~ n) => v n -> a -> Point v n
 
-  alignBy :: (Vn a ~ v n, Additive v, HasOrigin a, Fractional n)
+  alignBy :: (V a ~ v, N a ~ n, Additive v, HasOrigin a, Fractional n)
           => v n -> n -> a -> a
   alignBy = alignBy' defaultBoundary
 
 -- | Default implementation of 'alignBy' for types with 'HasOrigin'
 --   and 'AdditiveGroup' instances.
-alignBy'Default :: (Vn a ~ v n, HasOrigin a, Additive v, Fractional n)
+alignBy'Default :: (V a ~ v, N a ~ n, HasOrigin a, Additive v, Fractional n)
                 => (v n -> a -> Point v n) -> v n -> n -> a -> a
 alignBy'Default boundary v d a = moveOriginTo (lerp ((d + 1) / 2)
                                                     (boundary v a)
@@ -81,14 +81,14 @@ alignBy'Default boundary v d a = moveOriginTo (lerp ((d + 1) / 2)
 
 -- | Some standard functions which can be used as the `boundary` argument to
 --  `alignBy'`.
-envelopeBoundary :: (Vn a ~ v n, Enveloped a) => v n -> a -> Point v n
+envelopeBoundary :: (V a ~ v, N a ~ n, Enveloped a) => v n -> a -> Point v n
 envelopeBoundary = envelopeP
 
-traceBoundary :: (Vn a ~ v n, Num n, Traced a) => v n -> a -> Point v n
+traceBoundary :: (V a ~ v, N a ~ n, Num n, Traced a) => v n -> a -> Point v n
 traceBoundary v a = fromMaybe origin (maxTraceP origin v a)
 
 combineBoundaries
-  :: (Vn a ~ v n, F.Foldable f, Metric v, Ord n, Num n)
+  :: (V a ~ v, N a ~ n, F.Foldable f, Metric v, Ord n, Num n)
   => (v n -> a -> Point v n) -> v n -> f a -> Point v n
 combineBoundaries b v fa
     = b v $ F.maximumBy (comparing (quadrance . (.-. origin) . b v)) fa
@@ -99,14 +99,14 @@ instance (Metric v, OrderedField n) => Alignable (Envelope v n) where
 instance (Metric v, OrderedField n) => Alignable (Trace v n) where
   defaultBoundary = traceBoundary
 
-instance (Vn b ~ v n, Metric v, OrderedField n, Alignable b) => Alignable [b] where
+instance (V b ~ v, N b ~ n, Metric v, OrderedField n, Alignable b) => Alignable [b] where
   defaultBoundary = combineBoundaries defaultBoundary
 
-instance (Vn b ~ v n,  Metric v, OrderedField n, Alignable b)
+instance (V b ~ v, N b ~ n,  Metric v, OrderedField n, Alignable b)
     => Alignable (S.Set b) where
   defaultBoundary = combineBoundaries defaultBoundary
 
-instance (Vn b ~ v n,  Metric v, OrderedField n, Alignable b)
+instance (V b ~ v, N b ~ n,  Metric v, OrderedField n, Alignable b)
     => Alignable (M.Map k b) where
   defaultBoundary = combineBoundaries defaultBoundary
 
@@ -119,7 +119,7 @@ instance (HasLinearMap v, Metric v, OrderedField n, Monoid' m)
 --   'defaultBoundary'. Instead, we provide a total method, but one that
 --   is not sensible. This should not present a serious problem as long
 --   as your use of 'Alignable' happens through 'alignBy'.
-instance (Vn a ~ v n, Additive v, Num n, HasOrigin a, Alignable a) => Alignable (b -> a) where
+instance (V a ~ v, N a ~ n, Additive v, Num n, HasOrigin a, Alignable a) => Alignable (b -> a) where
   alignBy v d f b     = alignBy v d (f b)
   defaultBoundary _ _ = origin
 
@@ -128,38 +128,38 @@ instance (Vn a ~ v n, Additive v, Num n, HasOrigin a, Alignable a) => Alignable 
 --   direction of @v@ until it is on the edge of the envelope.  (Note
 --   that if the local origin is outside the envelope to begin with,
 --   it may have to move \"backwards\".)
-align :: (Vn a ~ v n, Additive v, Alignable a, HasOrigin a, Fractional n) => v n -> a -> a
+align :: (V a ~ v, N a ~ n, Additive v, Alignable a, HasOrigin a, Fractional n) => v n -> a -> a
 align v = alignBy v 1
 
 -- | Version of @alignBy@ specialized to use @traceBoundary@
-snugBy :: (Vn a ~ v n, Alignable a, Traced a, HasOrigin a, Fractional n)
+snugBy :: (V a ~ v, N a ~ n, Alignable a, Traced a, HasOrigin a, Fractional n)
        => v n -> n -> a -> a
 snugBy = alignBy' traceBoundary
 
 -- | Like align but uses trace.
-snug :: (Vn a ~ v n, Fractional n, Alignable a, Traced a, HasOrigin a)
+snug :: (V a ~ v, N a ~ n, Fractional n, Alignable a, Traced a, HasOrigin a)
       => v n -> a -> a
 snug v = snugBy v 1
 
 -- | @centerV v@ centers an enveloped object along the direction of
 --   @v@.
-centerV :: (Vn a ~ v n, Additive v, Alignable a, HasOrigin a, Fractional n) => v n -> a -> a
+centerV :: (V a ~ v, N a ~ n, Additive v, Alignable a, HasOrigin a, Fractional n) => v n -> a -> a
 centerV v = alignBy v 0
 
 -- | @center@ centers an enveloped object along all of its basis vectors.
-center :: (Vn a ~ v n, HasLinearMap v, Alignable a, HasOrigin a, Fractional n) => a -> a
+center :: (V a ~ v, N a ~ n, HasLinearMap v, Alignable a, HasOrigin a, Fractional n) => a -> a
 center = applyAll fs
   where
     fs = map centerV basis
 
 -- | Like @centerV@ using trace.
 snugCenterV
-  :: (Vn a ~ v n, Fractional n, Alignable a, Traced a, HasOrigin a)
+  :: (V a ~ v, N a ~ n, Fractional n, Alignable a, Traced a, HasOrigin a)
    => v n -> a -> a
 snugCenterV v = alignBy' traceBoundary v 0
 
 -- | Like @center@ using trace.
-snugCenter :: (Vn a ~ v n, HasLinearMap v, Alignable a, HasOrigin a, Fractional n, Traced a)
+snugCenter :: (V a ~ v, N a ~ n, HasLinearMap v, Alignable a, HasOrigin a, Fractional n, Traced a)
            => a -> a
 snugCenter = applyAll fs
   where

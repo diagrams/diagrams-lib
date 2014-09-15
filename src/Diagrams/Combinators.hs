@@ -80,19 +80,19 @@ import           Linear.Vector
 --   >     )
 --   > c = circle 0.8
 --   > withEnvelopeEx = sqNewEnv # centerXY # pad 1.5
-withEnvelope :: (Vn a ~ v n, HasLinearMap v, Enveloped a, Monoid' m)
+withEnvelope :: (V a ~ v, N a ~ n, HasLinearMap v, Enveloped a, Monoid' m)
            => a -> QDiagram b v n m -> QDiagram b v n m
 withEnvelope = setEnvelope . getEnvelope
 
 -- | Use the trace from some object as the trace for a diagram, in
 --   place of the diagram's default trace.
-withTrace :: (Vn a ~ v n, HasLinearMap v, Traced a, OrderedField n, Metric v, Monoid' m)
+withTrace :: (V a ~ v, N a ~ n, HasLinearMap v, Traced a, OrderedField n, Metric v, Monoid' m)
           => a -> QDiagram b v n m -> QDiagram b v n m
 withTrace = setTrace . getTrace
 
 -- | @phantom x@ produces a \"phantom\" diagram, which has the same
 --   envelope and trace as @x@ but produces no output.
-phantom :: (Enveloped a, Traced a, Vn a ~ v n, Monoid' m) => a -> QDiagram b v n m
+phantom :: (Enveloped a, Traced a, V a ~ v, N a ~ n, Monoid' m) => a -> QDiagram b v n m
 phantom a = QD $ D.leafU ((inj . toDeletable . getEnvelope $ a) <> (inj . toDeletable . getTrace $ a))
 
 -- | @pad s@ \"pads\" a diagram, expanding its envelope by a factor of
@@ -233,7 +233,7 @@ beside v d1 d2 = d1 <> juxtapose v d1 d2
 --   from the first.  The local origin of the resulting combined
 --   diagram is the same as the local origin of the first.  See the
 --   documentation of 'beside' for more information.
-atDirection :: (Juxtaposable a, Semigroup a, Vn a ~ v n, Metric v, Floating n)
+atDirection :: (Juxtaposable a, Semigroup a, V a ~ v, N a ~ n, Metric v, Floating n)
             => Direction v n -> a -> a -> a
 atDirection = beside . fromDirection
 
@@ -263,12 +263,12 @@ appends d1 apps = d1 <> mconcat (map (\(v,d) -> juxtapose v d1 d) apps)
 --   > positionEx = position (zip (map mkPoint [-3, -2.8 .. 3]) (repeat dot))
 --   >   where dot       = circle 0.2 # fc black
 --   >         mkPoint x = p2 (x,x^2)
-position :: (Vn a ~ v n, Additive v, Num n, HasOrigin a, Monoid' a) => [(Point v n, a)] -> a
+position :: (V a ~ v, N a ~ n, Additive v, Num n, HasOrigin a, Monoid' a) => [(Point v n, a)] -> a
 position = mconcat . map (uncurry moveTo)
 
 -- | Curried version of @position@, takes a list of points and a list of
 --   objects.
-atPoints :: (Vn a ~ v n, Additive v, Num n, HasOrigin a, Monoid' a) => [Point v n] -> [a] -> a
+atPoints :: (V a ~ v, N a ~ n, Additive v, Num n, HasOrigin a, Monoid' a) => [Point v n] -> [a] -> a
 atPoints ps as = position $ zip ps as
 
 -- | Methods for concatenating diagrams.
@@ -330,7 +330,7 @@ instance Num n => Default (CatOpts n) where
 --
 --   See also 'cat'', which takes an extra options record allowing
 --   certain aspects of the operation to be tweaked.
-cat :: (Juxtaposable a, Monoid' a, HasOrigin a , Vn a ~ v n, Metric v, OrderedField n)
+cat :: (Juxtaposable a, Monoid' a, HasOrigin a , V a ~ v, N a ~ n, Metric v, OrderedField n)
        => v n -> [a] -> a
 cat v = cat' v def
 
@@ -351,7 +351,7 @@ cat v = cat' v def
 --   Note that @cat' v (with & catMethod .~ Distrib) === mconcat@
 --   (distributing with a separation of 0 is the same as
 --   superimposing).
-cat' :: ( Juxtaposable a, Monoid' a, HasOrigin a, Vn a ~ v n, Metric v, OrderedField n)
+cat' :: ( Juxtaposable a, Monoid' a, HasOrigin a, V a ~ v, N a ~ n, Metric v, OrderedField n)
      => v n -> CatOpts n -> [a] -> a
 cat' v (CatOpts { _catMethod = Cat, _sep = s }) = foldB comb mempty
   where comb d1 d2 = d1 <> (juxtapose v d1 d2 # moveOriginBy vs)

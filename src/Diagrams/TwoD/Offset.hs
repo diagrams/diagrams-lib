@@ -240,7 +240,7 @@ offsetSegment epsilon r s@(Cubic a b (OffsetClosed c)) = t `at` origin .+^ va
 -- collapse the Located into the result.  This assumes that Located has the
 -- meaning of merely taking something that cannot be translated and lifting
 -- it into a space with translation.
-bindLoc :: (Transformable b, Vn a ~ Vn b, Vn a ~ V2 n, Num n) => (a -> b) -> Located a -> b
+bindLoc :: (Transformable b, V a ~ V b, N a ~ N b, V a ~ V2, N a ~ n, Num n) => (a -> b) -> Located a -> b
 bindLoc f = join' . mapLoc f
   where
     join' (viewLoc -> (p,a)) = translate (p .-. origin) a
@@ -475,10 +475,10 @@ capArc r c a b = trailLike . moveTo c $ fs
 
 -- Arc helpers
 -- always picks the shorter arc (< τ/2)
-arcV :: (OrderedField n, RealFloat n, TrailLike t, Vn t ~ V2 n) => V2 n -> V2 n -> t
+arcV :: (OrderedField n, RealFloat n, TrailLike t, V t ~ V2, N t ~ n) => V2 n -> V2 n -> t
 arcV u v = arc (direction u) (angleBetween v u)
 
-arcVCW :: (OrderedField n, RealFloat n, TrailLike t, Vn t ~ V2 n) => V2 n -> V2 n -> t
+arcVCW :: (OrderedField n, RealFloat n, TrailLike t, V t ~ V2, N t ~ n) => V2 n -> V2 n -> t
 arcVCW u v = arc (direction u) (negated $ angleBetween v u)
 
 -- | Join together a list of located trails with the given join style.  The

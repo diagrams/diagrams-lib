@@ -45,7 +45,6 @@ module Diagrams.BoundingBox
 import           Data.Foldable           as F
 import           Data.Maybe              (fromMaybe)
 import           Data.Semigroup
-import           Data.Typeable           (Typeable)
 
 import           Diagrams.Core
 import           Diagrams.Core.Transform
@@ -65,7 +64,7 @@ import           Linear.Vector
 -- Unexported utility newtype
 
 newtype NonEmptyBoundingBox v n = NonEmptyBoundingBox (Point v n, Point v n)
-  deriving (Eq, Typeable, Functor)
+  deriving (Eq, Functor)
 
 type instance V (NonEmptyBoundingBox v n) = v
 type instance N (NonEmptyBoundingBox v n) = n
@@ -87,7 +86,7 @@ instance (Additive v, Ord n) => Semigroup (NonEmptyBoundingBox v n) where
 --   indicating its \"lower\" and \"upper\" corners.  It can also represent
 --   an empty bounding box - the points are wrapped in @Maybe@.
 newtype BoundingBox v n = BoundingBox (Option (NonEmptyBoundingBox v n))
-  deriving (Eq, Typeable, Functor)
+  deriving (Eq, Functor)
 
 deriving instance (Additive v, Ord n) => Semigroup (BoundingBox v n)
 deriving instance (Additive v, Ord n) => Monoid (BoundingBox v n)
@@ -148,7 +147,7 @@ fromPoints :: (Additive v, Ord n) => [Point v n] -> BoundingBox v n
 fromPoints = mconcat . map fromPoint
 
 -- | Create a bounding box for any enveloped object (such as a diagram or path).
-boundingBox :: (Vn a ~ v n, Enveloped a, HasLinearMap v, HasBasis v, Num n)
+boundingBox :: (V a ~ v, N a ~ n, Enveloped a, HasLinearMap v, HasBasis v, Num n)
             => a -> BoundingBox v n
 boundingBox a = fromMaybeEmpty $ do
   env <- (appEnvelope . getEnvelope) a
@@ -190,7 +189,7 @@ boxTransform u v = do
 -- | Transforms an enveloped thing to fit within a @BoundingBox@.  If it's
 --   empty, then the result is also @mempty@.
 boxFit
-  :: (Vn a ~ v n, Enveloped a, Transformable a, Monoid a, HasLinearMap v, HasBasis v, Num n)
+  :: (V a ~ v, N a ~ n, Enveloped a, Transformable a, Monoid a, HasLinearMap v, HasBasis v, Num n)
   => BoundingBox v n -> a -> a
 boxFit b x = maybe mempty (`transform` x) $ boxTransform (boundingBox x) b
 

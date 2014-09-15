@@ -145,7 +145,7 @@ fromOffsets = trailLike . (`at` origin) . trailFromOffsets
 
 -- | Construct a trail-like thing of linear segments from a located
 --   list of offsets.
-fromLocOffsets :: (Vn (Vn t) ~ Vn t, TrailLike t) => Located [Vn t] -> t
+fromLocOffsets :: (V t ~ v, N t ~ n, V (v n) ~ v, N (v n) ~ n, TrailLike t) => Located [v n] -> t
 fromLocOffsets = trailLike . mapLoc trailFromOffsets
 
 -- | Construct a trail-like thing connecting the given vertices with
@@ -183,7 +183,7 @@ segmentsFromVertices vvs@(_:vs) = map straight (zipWith (flip (.-.)) vvs vs)
 --   > twiddleEx
 --   >   = mconcat ((~~) <$> hexagon 1 <*> hexagon 1)
 --   >   # centerXY # pad 1.1
-(~~) :: (Vn t ~ v n, TrailLike t) => Point v n -> Point v n -> t
+(~~) :: (V t ~ v, N t ~ n, TrailLike t) => Point v n -> Point v n -> t
 p1 ~~ p2 = fromVertices [p1, p2]
 
 -- | Given a concretely located trail, \"explode\" it by turning each
@@ -197,7 +197,7 @@ p1 ~~ p2 = fromVertices [p1, p2]
 --   >   # explodeTrail  -- generate a list of diagrams
 --   >   # zipWith lc [orange, green, yellow, red, blue]
 --   >   # mconcat # centerXY # pad 1.1
-explodeTrail :: (Vn t ~ v n, Additive v, TrailLike t) => Located (Trail v n) -> [t]
+explodeTrail :: (V t ~ v, N t ~ n, Additive v, TrailLike t) => Located (Trail v n) -> [t]
 explodeTrail = map (mkTrail . fromFixedSeg) . fixTrail
   where
     mkTrail = trailLike . mapLoc (trailFromSegments . (:[]))

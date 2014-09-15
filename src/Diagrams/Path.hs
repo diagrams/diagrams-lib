@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                        #-}
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE FlexibleInstances          #-}
@@ -88,7 +89,20 @@ import           Linear.Vector
 --   and they form a monoid under /superposition/ (placing one path on
 --   top of another) rather than concatenation.
 newtype Path v n = Path [Located (Trail v n)]
-  deriving (Semigroup, Monoid, Typeable)
+  deriving (Semigroup, Monoid
+#if __GLASGOW_HASKELL__ >= 707
+  , Typeable
+#endif
+  )
+
+#if __GLASGOW_HASKELL__ < 707
+instance Typeable2 Path where
+  typeOf2 _ = mkTyConApp pathTyCon []
+
+pathTyCon :: TyCon
+pathTyCon = mkTyCon3 "diagrams-lib" "Diagrams.Path" "Path"
+#endif
+
 
 instance Wrapped (Path v n) where
   type Unwrapped (Path v n) = [Located (Trail v n)]
@@ -187,7 +201,7 @@ fixPath = map fixTrail . op Path
 
 -- | \"Explode\" a path by exploding every component trail (see
 --   'explodeTrail').
-explodePath :: (Vn t ~ v n, Additive v, TrailLike t) => Path v n -> [[t]]
+explodePath :: (V t ~ v, N t ~ n, Additive v, TrailLike t) => Path v n -> [[t]]
 explodePath = map explodeTrail . op Path
 
 -- | Partition a path into two paths based on a predicate on trails:

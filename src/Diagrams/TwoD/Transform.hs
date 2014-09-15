@@ -90,13 +90,13 @@ rotation ang = fromLinear r (linv r)
 --   will yield an error since GHC cannot figure out which sort of
 --   angle you want to use.  In this common situation you can use
 --   'rotateBy', which interprets its argument as a number of turns.
-rotate :: (Vn t ~ V2 n, Transformable t, Floating n) => Angle n -> t -> t
+rotate :: (V t ~ V2, N t ~ n, Transformable t, Floating n) => Angle n -> t -> t
 rotate = transform . rotation
 
 -- | A synonym for 'rotate', interpreting its argument in units of
 -- turns; it can be more convenient to write @rotateBy (1\/4)@ than
 -- @'rotate' (1\/4 \@\@ 'turn')@.
-rotateBy :: (Vn t ~ V2 n, Transformable t, Floating n) => n -> t -> t
+rotateBy :: (V t ~ V2, N t ~ n, Transformable t, Floating n) => n -> t -> t
 rotateBy = transform . rotation . review turn
 
 -- | @rotationAbout p@ is a rotation about the point @p@ (instead of
@@ -106,7 +106,7 @@ rotationAround p angle = conjugate (translation (origin .-. p)) (rotation angle)
 
 -- | @rotateAbout p@ is like 'rotate', except it rotates around the
 --   point @p@ instead of around the local origin.
-rotateAround :: (Vn t ~ V2 n, Transformable t, Floating n) => P2 n -> Angle n -> t -> t
+rotateAround :: (V t ~ V2, N t ~ n, Transformable t, Floating n) => P2 n -> Angle n -> t -> t
 rotateAround p angle = rotate angle `under` translation (origin .-. p)
 
 -- Scaling -------------------------------------------------
@@ -119,7 +119,7 @@ scalingX c = fromLinear s s
 
 -- | Scale a diagram by the given factor in the x (horizontal)
 --   direction.  To scale uniformly, use 'scale'.
-scaleX :: (Vn t ~ v n, Transformable t, R1 v, Additive v, Floating n)
+scaleX :: (V t ~ v, N t ~ n, Transformable t, R1 v, Additive v, Floating n)
   => n -> t -> t
 scaleX = transform . scalingX
 
@@ -131,7 +131,7 @@ scalingY c = fromLinear s s
 
 -- | Scale a diagram by the given factor in the y (vertical)
 --   direction.  To scale uniformly, use 'scale'.
-scaleY :: (Vn t ~ v n, Transformable t, R2 v, Additive v, Floating n)
+scaleY :: (V t ~ v, N t ~ n, Transformable t, R2 v, Additive v, Floating n)
   => n -> t -> t
 scaleY = transform . scalingY
 
@@ -139,26 +139,26 @@ scaleY = transform . scalingY
 --   whatever factor required to make its width @w@.  @scaleToX@
 --   should not be applied to diagrams with a width of 0, such as
 --   'vrule'.
-scaleToX :: (Vn t ~ V2 n, Enveloped t, Transformable t) => n -> t -> t
+scaleToX :: (V t ~ V2, N t ~ n, Enveloped t, Transformable t) => n -> t -> t
 scaleToX w d = scaleX (w / width d) d
 
 -- | @scaleToY h@ scales a diagram in the y (vertical) direction by
 --   whatever factor required to make its height @h@.  @scaleToY@
 --   should not be applied to diagrams with a height of 0, such as
 --   'hrule'.
-scaleToY :: (Vn t ~ V2 n, Enveloped t, Transformable t) => n -> t -> t
+scaleToY :: (V t ~ V2, N t ~ n, Enveloped t, Transformable t) => n -> t -> t
 scaleToY h d = scaleY (h / height d) d
 
 -- | @scaleUToX w@ scales a diagram /uniformly/ by whatever factor
 --   required to make its width @w@.  @scaleUToX@ should not be
 --   applied to diagrams with a width of 0, such as 'vrule'.
-scaleUToX :: (Vn t ~ V2 n, Enveloped t, Transformable t) => n -> t -> t
+scaleUToX :: (V t ~ V2, N t ~ n, Enveloped t, Transformable t) => n -> t -> t
 scaleUToX w d = scale (w / width d) d
 
 -- | @scaleUToY h@ scales a diagram /uniformly/ by whatever factor
 --   required to make its height @h@.  @scaleUToY@ should not be applied
 --   to diagrams with a height of 0, such as 'hrule'.
-scaleUToY :: (Vn t ~ V2 n, Enveloped t, Transformable t) => n -> t -> t
+scaleUToY :: (V t ~ V2, N t ~ n, Enveloped t, Transformable t) => n -> t -> t
 scaleUToY h d = scale (h / height d) d
 
 -- Translation ---------------------------------------------
@@ -170,7 +170,7 @@ translationX x = translation (zero & _x .~ x)
 
 -- | Translate a diagram by the given distance in the x (horizontal)
 --   direction.
-translateX :: (Vn t ~ v n, Transformable t, R1 v, Additive v, Floating n)
+translateX :: (V t ~ v, N t ~ n, Transformable t, R1 v, Additive v, Floating n)
   => n -> t -> t
 translateX = transform . translationX
 
@@ -181,7 +181,7 @@ translationY y = translation (zero & _y .~ y)
 
 -- | Translate a diagram by the given distance in the y (vertical)
 --   direction.
-translateY :: (Vn t ~ v n, Transformable t, R2 v, Additive v, Floating n)
+translateY :: (V t ~ v, N t ~ n, Transformable t, R2 v, Additive v, Floating n)
   => n -> t -> t
 translateY = transform . translationY
 
@@ -194,7 +194,7 @@ reflectionX = scalingX (-1)
 
 -- | Flip a diagram from left to right, i.e. send the point (x,y) to
 --   (-x,y).
-reflectX :: (Vn t ~ v n, Transformable t, R1 v, Additive v, Floating n) => t -> t
+reflectX :: (V t ~ v, N t ~ n, Transformable t, R1 v, Additive v, Floating n) => t -> t
 reflectX = transform reflectionX
 
 -- | Construct a transformation which flips a diagram from top to
@@ -204,7 +204,7 @@ reflectionY = scalingY (-1)
 
 -- | Flip a diagram from top to bottom, i.e. send the point (x,y) to
 --   (x,-y).
-reflectY :: (Vn t ~ v n, Transformable t, R2 v, Additive v, Floating n)
+reflectY :: (V t ~ v, N t ~ n, Transformable t, R2 v, Additive v, Floating n)
   => t -> t
 reflectY = transform reflectionY
 
@@ -217,7 +217,7 @@ reflectionAbout p v =
 
 -- | @reflectAbout p v@ reflects a diagram in the line determined by
 --   the point @p@ and the vector @v@.
-reflectAbout :: (Vn t ~ V2 n, Transformable t, RealFloat n) => P2 n -> V2 n -> t -> t
+reflectAbout :: (V t ~ V2, N t ~ n, Transformable t, RealFloat n) => P2 n -> V2 n -> t -> t
 reflectAbout p v = transform (reflectionAbout p v)
 
 -- Shears --------------------------------------------------
@@ -244,7 +244,7 @@ shearingX d = fromLinear (sh f g d  <-> sh f g (-d))
 
 -- | @shearX d@ performs a shear in the x-direction which sends
 --   @(0,1)@ to @(d,1)@.
-shearX :: (Vn t ~ V2 n, Transformable t, Num n) => n -> t -> t
+shearX :: (V t ~ V2, N t ~ n, Transformable t, Num n) => n -> t -> t
 shearX = transform . shearingX
 
 -- | @shearingY d@ is the linear transformation which is the identity on
@@ -258,7 +258,7 @@ shearingY d = fromLinear (sh f g d  <-> sh f g (-d))
 
 -- | @shearY d@ performs a shear in the y-direction which sends
 --   @(1,0)@ to @(1,d)@.
-shearY :: (Vn t ~ V2 n, Transformable t, Num n) => n -> t -> t
+shearY :: (V t ~ V2, N t ~ n, Transformable t, Num n) => n -> t -> t
 shearY = transform . shearingY
 
 -- | Get the matrix equivalent of the linear transform,
