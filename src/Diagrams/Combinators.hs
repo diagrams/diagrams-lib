@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP                   #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE Rank2Types            #-}
@@ -39,17 +38,13 @@ module Diagrams.Combinators
 
        ) where
 
-import           Data.Typeable
-
 import           Control.Lens          (Lens', generateSignatures,
                                         lensRules, makeLensesWith, (%~), (&),
                                         (.~), (^.), _Wrapping)
 import           Data.Default.Class
 import           Data.Monoid.Deletable (toDeletable)
 import           Data.Monoid.MList     (inj)
-#if __GLASGOW_HASKELL__ < 707
 import           Data.Proxy
-#endif
 import           Data.Semigroup
 import qualified Data.Tree.DUAL        as D
 

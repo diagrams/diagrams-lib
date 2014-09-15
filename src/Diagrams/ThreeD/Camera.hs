@@ -39,10 +39,9 @@ import           Data.Typeable
 import           Diagrams.Angle
 import           Diagrams.Core
 import           Diagrams.Direction
-import           Diagrams.ThreeD.Types ()
 import           Diagrams.ThreeD.Vector
 
-import Linear.V3
+import           Linear.V3
 
 -- Parameterize Camera on the lens type, so that Backends can express which
 -- lenses they handle.
