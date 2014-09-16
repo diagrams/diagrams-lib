@@ -6,6 +6,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
 -----------------------------------------------------------------------------
@@ -55,11 +56,9 @@ data Camera l n = Camera
   deriving Typeable
 #else
 
-instance Typeable1 (Camera l) where
-  typeOf1 _ = mkTyConApp cameraTyCon []
-
-cameraTyCon :: TyCon
-cameraTyCon = mkTyCon3 "diagrams-lib" "Diagrams.ThreeD.Camera" "Camera"
+instance forall l. Typeable1 l => Typeable1 (Camera l) where
+  typeOf1 _ = mkTyConApp (mkTyCon3 "diagrams-lib" "Diagrams.ThreeD.Camera" "Camera") [] `mkAppTy`
+              typeOf1 (undefined :: l n)
 #endif
 
 type instance V (Camera l n) = V3
@@ -101,7 +100,7 @@ type instance V (OrthoLens n) = V3
 type instance N (OrthoLens n) = n
 
 instance CameraLens OrthoLens where
-    aspect (OrthoLens h v) = h / v
+  aspect (OrthoLens h v) = h / v
 
 instance Num n => Transformable (Camera l n) where
   transform t (Camera p f u l) =

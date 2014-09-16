@@ -69,14 +69,12 @@ import           Data.Typeable
 
 import           Diagrams.Align
 import           Diagrams.Core
-import           Diagrams.Core.Points ()
 import           Diagrams.Located
 import           Diagrams.Points
 import           Diagrams.Segment
 import           Diagrams.Trail
 import           Diagrams.TrailLike
 import           Diagrams.Transform
-
 
 import           Linear.Affine
 import           Linear.Metric
@@ -104,13 +102,10 @@ newtype Path v n = Path [Located (Trail v n)]
 --   * -> * -> *
 -- we can only do Typeable1 (Path v). This is why the instance cannot be 
 -- derived.
-instance Typeable1 (Path v) where
-  typeOf1 _ = mkTyConApp pathTyCon []
-
-pathTyCon :: TyCon
-pathTyCon = mkTyCon3 "diagrams-lib" "Diagrams.Path" "Path"
+instance forall v. Typeable1 v => Typeable1 (Trail v) where
+  typeOf1 _ = mkTyConApp (mkTyCon3 "diagrams-lib" "Diagrams.Path" "Path") [] `mkAppTy`
+              typeOf1 (undefined :: v n)
 #endif
-
 
 instance Wrapped (Path v n) where
   type Unwrapped (Path v n) = [Located (Trail v n)]
