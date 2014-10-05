@@ -26,15 +26,17 @@ import           Diagrams.Core
 import           Diagrams.Direction
 import           Diagrams.ThreeD.Types
 
-import Linear.Affine
-
+-- | A @PointLight@ radiates uniformly in all directions from a given
+-- point.
 data PointLight n = PointLight (Point V3 n) (Colour Double)
   deriving Typeable
 
 type instance V (PointLight n) = V3
 type instance N (PointLight n) = n
 
-data ParallelLight n = ParallelLight (Point V3 n) (Colour Double)
+-- | A @ParallelLight@ casts parallel rays in the specified direction,
+-- from some distant location outside the scene.
+data ParallelLight n = ParallelLight (V3 n) (Colour Double)
   deriving Typeable
 
 type instance V (ParallelLight n) = V3
@@ -59,5 +61,5 @@ parallelLight :: (Typeable n, OrderedField n, Renderable (ParallelLight n) b)
                  => Direction V3 n -- ^ The direction in which the light travels.
                  -> Colour Double  -- ^ The color of the light.
                  -> Diagram b V3 n
-parallelLight d c = mkQD (Prim $ ParallelLight (P $ fromDirection d) c)
+parallelLight d c = mkQD (Prim $ ParallelLight (fromDirection d) c)
                     mempty mempty mempty (Query . const . Any $ False)
