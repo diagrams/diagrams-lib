@@ -1,6 +1,7 @@
-{-# LANGUAGE DeriveFunctor #-}
-{-# LANGUAGE RankNTypes    #-}
-{-# LANGUAGE TypeFamilies  #-}
+{-# LANGUAGE DeriveFunctor              #-}
+{-# LANGUAGE RankNTypes                 #-}
+{-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Angle
@@ -48,7 +49,7 @@ import           Linear.Vector
 -- | Angles can be expressed in a variety of units.  Internally,
 --   they are represented in radians.
 newtype Angle n = Radians n
-  deriving (Read, Show, Eq, Ord, Functor)
+  deriving (Read, Show, Eq, Ord, Enum,  Functor)
 
 type instance N (Angle n) = n
 
