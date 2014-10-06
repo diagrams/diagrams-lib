@@ -96,6 +96,9 @@ module Diagrams.Prelude
          --   diagrams.
        , module Diagrams.TwoD
 
+         -- | Extra things for three-dimensional diagrams.
+       , module Diagrams.ThreeD
+
          -- | Tools for making animations.
        , module Diagrams.Animation
 
@@ -152,6 +155,7 @@ import           Diagrams.Trail             hiding (linePoints, loopPoints, trai
 import           Diagrams.TrailLike
 import           Diagrams.Transform
 import           Diagrams.TwoD
+import           Diagrams.ThreeD
 import           Diagrams.Util
 
 import           Control.Applicative
