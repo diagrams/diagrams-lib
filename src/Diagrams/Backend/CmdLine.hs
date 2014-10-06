@@ -78,6 +78,7 @@ import           Diagrams.Attributes
 import           Diagrams.Core             hiding (value)
 
 import           Options.Applicative
+import           Options.Applicative.Types (readerAsk)
 
 import           Prelude
 
@@ -94,8 +95,6 @@ import           Data.Maybe                (fromMaybe)
 import           Data.Monoid
 import qualified Data.Text                 as T
 import           Numeric
-
-import           Safe                      (readMay)
 
 import           Control.Concurrent        (threadDelay)
 import           Control.Exception         (bracket)
@@ -251,19 +250,19 @@ class Parseable a where
 -- certainly want the latter.  So we need to have less Read instances.
 --
 -- instance Read a => Parseable a where
---    parser = argument readMay mempty
+--    parser = argument auto mempty
 
 -- | Parse 'Int' according to its 'Read' instance.
 instance Parseable Int where
-    parser = argument readMay mempty
+    parser = argument auto mempty
 
 -- | Parse 'Double' according to its 'Read' instance.
 instance Parseable Double where
-    parser = argument readMay mempty
+    parser = argument auto mempty
 
 -- | Parse a string by just accepting the given string.
 instance Parseable String where
-    parser = argument Just mempty
+    parser = argument str mempty
 
 -- | Parse 'DiagramOpts' using the 'diagramOpts' parser.
 instance Parseable DiagramOpts where
@@ -285,20 +284,21 @@ instance Parseable DiagramLoopOpts where
 -- | Parse @'Colour' Double@ as either a named color from "Data.Colour.Names"
 --   or a hexadecimal color.
 instance Parseable (Colour Double) where
-    parser = argument (liftA2 (<|>) rc rh) mempty
+    parser = argument (rc <|> rh) mempty
       where
-        rh s = (f . colorToSRGBA) <$> readHexColor s
-        rc s = readColourName s
+        rh, rc :: ReadM (Colour Double)
+        rh = f . colorToSRGBA <$> (readerAsk >>= readHexColor)
+        rc = readerAsk >>= readColourName
         f (r,g,b,_) = sRGB r g b -- TODO: this seems unfortunate.  Should the alpha
                                  -- value be applied to the r g b values?
 
 -- | Parse @'AlphaColour' Double@ as either a named color from "Data.Colour.Names"
 --   or a hexadecimal color.
 instance Parseable (AlphaColour Double) where
-    parser = argument (liftA2 (<|>) rc rh) mempty
+    parser = argument (rc <|> rh) mempty
       where
-        rh s = readHexColor s
-        rc s = opaque <$> readColourName s
+        rh = readerAsk >>= readHexColor
+        rc = opaque <$> (readerAsk >>= readColourName)
 
 -- Addapted from the Clay.Color module of the clay package
 
@@ -308,7 +308,7 @@ instance Parseable (AlphaColour Double) where
 --   example, @\"0xfc4\"@ is the same as @\"0xffcc44\"@.  When eight or six
 --   digits are given each pair of digits is a color or alpha channel with the
 --   order being red, green, blue, alpha.
-readHexColor :: String -> Maybe (AlphaColour Double)
+readHexColor :: (Applicative m, Monad m) => String -> m (AlphaColour Double)
 readHexColor cs = case cs of
      ('0':'x':hs) -> handle hs
      ('#':hs)     -> handle hs
@@ -320,14 +320,14 @@ readHexColor cs = case cs of
         [a,b,c,d,e,f    ] -> opaque      <$> (sRGB <$> hex a b <*> hex c d <*> hex e f)
         [a,b,c,d        ] -> withOpacity <$> (sRGB <$> hex a a <*> hex b b <*> hex c c) <*> hex d d
         [a,b,c          ] -> opaque      <$> (sRGB <$> hex a a <*> hex b b <*> hex c c)
-        _                 -> Nothing
-    handle _ = Nothing
+        _                 -> fail $ "could not parse as a colour" ++ cs
+    handle _ = fail $ "could not parse as a colour: " ++ cs
 
     isHexDigit c = isDigit c|| c `elem` "abcdef"
 
     hex a b = (/ 255) <$> case readHex [a,b] of
-                [(h,"")] -> Just h
-                _        -> Nothing
+                [(h,"")] -> return h
+                _        -> fail $ "could not parse as a hex value" ++ (a:b:[])
 
 
 -- | This instance is needed to signal the end of a chain of
