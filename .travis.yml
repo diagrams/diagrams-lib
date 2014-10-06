@@ -10,7 +10,7 @@ env:
     - GHCVER=head
   global:
     - CABALVER=1.20
-    - HEAD_DEPS="diagrams-core"
+    - HEAD_DEPS="diagrams-core active"
 
 matrix:
   allow_failures:

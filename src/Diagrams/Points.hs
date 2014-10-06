@@ -25,8 +25,8 @@ import           Diagrams.Core        (pointDiagram)
 import           Diagrams.Core.Points
 
 import           Control.Lens         (Iso', iso)
-
 import           Data.Foldable        as F
+
 import           Linear.Affine
 import           Linear.Metric
 import           Linear.Vector

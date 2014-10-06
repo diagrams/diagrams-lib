@@ -157,8 +157,8 @@ newtype SegTree v n = SegTree (FingerTree (SegMeasure v n) (Segment Closed v n))
   deriving (Eq, Ord, Show)
 
 instance Wrapped (SegTree v n) where
-    type Unwrapped (SegTree v n) = FingerTree (SegMeasure v n) (Segment Closed v n)
-    _Wrapped' = iso (\(SegTree x) -> x) SegTree
+  type Unwrapped (SegTree v n) = FingerTree (SegMeasure v n) (Segment Closed v n)
+  _Wrapped' = iso (\(SegTree x) -> x) SegTree
 
 instance Rewrapped (SegTree v n) (SegTree v' n')
 
