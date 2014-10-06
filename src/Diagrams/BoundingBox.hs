@@ -45,6 +45,7 @@ import           Data.Foldable           as F
 import           Data.Maybe              (fromMaybe)
 import           Data.Semigroup
 
+import           Diagrams.Align
 import           Diagrams.Core
 import           Diagrams.Core.Transform
 import           Diagrams.Path
@@ -118,6 +119,9 @@ instance TypeableFloat n => Traced (BoundingBox V3 n) where
            . ((`boxFit` cube) . boundingBox :: Envelope V3 n -> D V3 n)
            . getEnvelope
 
+instance (Metric v, Traversable v, OrderedField n) => Alignable (BoundingBox v n) where
+  defaultBoundary = envelopeP
+
 instance Show (v n) => Show (BoundingBox v n) where
   show
     = maybe "emptyBox" (\(l, u) -> "fromCorners " ++ show l ++ " " ++ show u)
@@ -185,8 +189,8 @@ boxTransform u v = do
       s = liftU2 (*) . uncurry (liftU2 (/)) . mapT boxExtents
   return $ Transformation i i (vl ^-^ s (v, u) ul)
 
--- | Transforms an enveloped thing to fit within a @BoundingBox@.  If it's
---   empty, then the result is also @mempty@.
+-- | Transforms an enveloped thing to fit within a @BoundingBox@.  If the 
+--   bounding box is empty, then the result is also @mempty@.
 boxFit
   :: (V a ~ v, N a ~ n, Enveloped a, Transformable a, Monoid a, HasLinearMap v, HasBasis v, Num n)
   => BoundingBox v n -> a -> a
@@ -206,8 +210,7 @@ contains' b p = maybe False check $ getCorners b
     check (l, h) = F.and (liftI2 (<) l p)
                 && F.and (liftI2 (<) p h)
 
-boundingBoxQuery :: (Additive v, Foldable v, Ord n)
-  => BoundingBox v n -> Query v n Any
+boundingBoxQuery :: (Additive v, Foldable v, Ord n) => BoundingBox v n -> Query v n Any
 boundingBoxQuery bb = Query $ Any . contains bb
 
 -- | Test whether the first bounding box is contained inside

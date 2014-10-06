@@ -107,7 +107,6 @@ data Closed
 data Offset c v n where
   OffsetOpen   :: Offset Open v n
   OffsetClosed :: v n -> Offset Closed v n
-  -- OffsetClosed :: !v -> Offset Closed v n
 
 deriving instance Show (v n) => Show (Offset c v n)
 deriving instance Eq   (v n) => Eq   (Offset c v n)

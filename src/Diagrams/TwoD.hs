@@ -239,22 +239,22 @@ module Diagrams.TwoD
          -- ** Adjusting size
        , sized, sizedAs
 
-        -- * Textures
-      , Texture(..), solid
-      , SpreadMethod(..), GradientStop(..), mkStops, getFillTexture
-      , fillTexture, getLineTexture, lineTexture, lineTextureA
-      , stopFraction, stopColor
+         -- * Textures
+       , Texture(..), solid
+       , SpreadMethod(..), GradientStop(..), mkStops, getFillTexture
+       , fillTexture, getLineTexture, lineTexture, lineTextureA
+       , stopFraction, stopColor
 
-      , LGradient(..), lGradStops, lGradTrans, lGradStart, lGradEnd
-      , lGradSpreadMethod, defaultLG, _LG, mkLinearGradient
+       , LGradient(..), lGradStops, lGradTrans, lGradStart, lGradEnd
+       , lGradSpreadMethod, defaultLG, _LG, mkLinearGradient
 
-      , RGradient(..)
-      , rGradStops, rGradCenter0, rGradRadius0, rGradCenter1, rGradRadius1
-      , rGradTrans, rGradSpreadMethod, defaultRG, _RG, mkRadialGradient
+       , RGradient(..)
+       , rGradStops, rGradCenter0, rGradRadius0, rGradCenter1, rGradRadius1
+       , rGradTrans, rGradSpreadMethod, defaultRG, _RG, mkRadialGradient
 
-        -- ** Colors
-      , fillColor, fc, fcA, recommendFillColor
-      , lineColor, lc, lcA, _SC
+         -- ** Colors
+       , fillColor, fc, fcA, recommendFillColor
+       , lineColor, lc, lcA, _SC
 
        -- ** Width
        , LineWidth, getLineWidth, lineWidth, lineWidthA
