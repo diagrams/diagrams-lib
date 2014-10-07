@@ -2,7 +2,7 @@
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE StandaloneDeriving         #-}
+{-# LANGUAGE ConstraintKinds            #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE UndecidableInstances       #-}
 
@@ -38,6 +38,7 @@ import           Diagrams.Core
 import           Diagrams.Core.Envelope   (pointEnvelope)
 import           Diagrams.TwoD.Attributes (recommendFillColor)
 import           Diagrams.TwoD.Types
+import           Diagrams.Measure
 
 import           Data.Colour
 import           Data.Data
@@ -180,7 +181,6 @@ font = applyAttr . Font . Last
 newtype FontSize n = FontSize (Last (Measure n, Bool))
   deriving (Typeable, Semigroup)
 
-deriving instance Data n => Data (FontSize n)
 instance Typeable n      => AttributeClass (FontSize n)
 
 -- Note, the Bool stored in the FontSize indicates whether it started
@@ -192,7 +192,7 @@ type instance V (FontSize n) = V2
 type instance N (FontSize n) = n
 
 instance Num n => Default (FontSize n) where
-    def = FontSize (Last (Local 1, True))
+    def = FontSize (Last (local 1, True))
 
 -- FontSize has to be Transformable + also have an instance of Data,
 -- so the Measure inside it will be automatically converted to Output.
@@ -214,29 +214,32 @@ getFontSizeIsLocal (FontSize (Last (_,b))) = b
 -- | Set the font size, that is, the size of the font's em-square as
 --   measured within the current local vector space.  The default size
 --   is @1@.
-fontSize :: (Data n, HasStyle a, V a ~ V2, N a ~ n) => Measure n -> a -> a
-fontSize m@(Local {}) = applyGTAttr . FontSize . Last $ (m,True)
-fontSize m            = applyGTAttr . FontSize . Last $ (m,False)
+fontSize :: (InSpace V2 n a, Typeable n, HasStyle a) => Measure n -> a -> a
+fontSize m = applyTAttr . FontSize . Last $ (m,False)
+
+-- XXX temporary fix
+fontSizeL :: (InSpace V2 n a, Typeable n, HasStyle a) => Measure n -> a -> a
+fontSizeL m = applyTAttr . FontSize . Last $ (m,True)
 
 -- | A convenient synonym for 'fontSize (Global w)'.
-fontSizeG :: (Data n, HasStyle a, V a ~ V2, N a ~ n) => n -> a -> a
-fontSizeG w = fontSize (Global w)
+fontSizeG :: (InSpace V2 n a, Typeable n, HasStyle a) => n -> a -> a
+fontSizeG w = fontSize (global w)
 
 -- | A convenient synonym for 'fontSize (Normalized w)'.
-fontSizeN :: (Data n, HasStyle a, V a ~ V2, N a ~ n) => n -> a -> a
-fontSizeN w = fontSize (Normalized w)
+fontSizeN :: (InSpace V2 n a, Typeable n, HasStyle a) => n -> a -> a
+fontSizeN w = fontSize (normalized w)
 
 -- | A convenient synonym for 'fontSize (Output w)'.
-fontSizeO :: (Data n, HasStyle a, V a ~ V2, N a ~ n) => n -> a -> a
-fontSizeO w = fontSize (Output w)
+fontSizeO :: (InSpace V2 n a, Typeable n, HasStyle a) => n -> a -> a
+fontSizeO w = fontSize (output w)
 
 -- | A convenient sysnonym for 'fontSize (Local w)'.
-fontSizeL :: (Data n, HasStyle a, V a ~ V2, N a ~ n) => n -> a -> a
-fontSizeL w = fontSize (Local w)
+-- fontSizeL :: (Data n, HasStyle a, V a ~ V2, N a ~ n) => n -> a -> a
+-- fontSizeL w = fontSize (local w)
 
 -- | Apply a 'FontSize' attribute.
-fontSizeA :: (Data n, HasStyle a, V a ~ V2, N a ~ n) => FontSize n -> a -> a
-fontSizeA = applyGTAttr
+fontSizeA :: (InSpace V2 n a, Typeable n, HasStyle a) => FontSize n -> a -> a
+fontSizeA = applyTAttr
 
 --------------------------------------------------
 -- Font slant

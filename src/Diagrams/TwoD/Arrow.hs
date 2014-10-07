@@ -122,6 +122,7 @@ import           Diagrams.Angle
 import           Diagrams.Attributes
 import           Diagrams.Direction
 import           Diagrams.Located         (Located(..), unLoc)
+import           Diagrams.Measure
 import           Diagrams.Parametric
 import           Diagrams.Path
 import           Diagrams.Solve           (quadForm)
@@ -282,8 +283,8 @@ colorJoint sStyle =
 -- | Get line width from a style.
 widthOfJoint :: forall n. TypeableFloat n => Style V2 n -> n -> n -> n
 widthOfJoint sStyle gToO nToO =
-  maybe (fromMeasure gToO nToO medium) -- should be same as default line width
-        (fromMeasure gToO nToO)
+  maybe (fromMeasured gToO nToO medium) -- should be same as default line width
+        (fromMeasured gToO nToO)
         (fmap getLineWidth . getAttr $ sStyle :: Maybe (Measure n))
 
 -- | Combine the head and its joint into a single scale invariant diagram
@@ -419,7 +420,7 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
 
         -- The head size, tail size, head gap, and tail gap are obtained
         -- from the style and converted to output units.
-        scaleFromMeasure = fromMeasure gToO nToO . scaleLocal (avgScale tr)
+        scaleFromMeasure = fromMeasured gToO nToO . scaleLocal (avgScale tr)
         hSize = scaleFromMeasure $ opts ^. headLength
         tSize = scaleFromMeasure $ opts ^. tailLength
         hGap  = scaleFromMeasure $ opts ^. headGap
