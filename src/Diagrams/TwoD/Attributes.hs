@@ -81,6 +81,7 @@ import           Diagrams.Core.Types         (RTree)
 import           Diagrams.Located            (unLoc)
 import           Diagrams.Path               (Path, pathTrails)
 import           Diagrams.Trail              (isLoop)
+import           Diagrams.Measure
 
 import           Control.Lens                (Lens', Setter', generateSignatures, lensRules,
                                               makeLensesWith, makePrisms, sets, (&), (.~), over)
@@ -96,23 +97,23 @@ import           Data.Semigroup
 
 -- | Standard 'Measures'.
 none, ultraThin, veryThin, thin, medium, thick, veryThick, ultraThick,
-  tiny, verySmall, small, normal, large, veryLarge, huge :: Floating n => Measure n
-none       = Output 0
-ultraThin  = Normalized 0.0005 `atLeast` Output 0.5
-veryThin   = Normalized 0.001  `atLeast` Output 0.5
-thin       = Normalized 0.002  `atLeast` Output 0.5
-medium     = Normalized 0.004  `atLeast` Output 0.5
-thick      = Normalized 0.0075 `atLeast` Output 0.5
-veryThick  = Normalized 0.01   `atLeast` Output 0.5
-ultraThick = Normalized 0.02   `atLeast` Output 0.5
+  tiny, verySmall, small, normal, large, veryLarge, huge :: Floating n => Ord n => Measure n
+none       = output 0
+ultraThin  = normalized 0.0005 `atLeast` output 0.5
+veryThin   = normalized 0.001  `atLeast` output 0.5
+thin       = normalized 0.002  `atLeast` output 0.5
+medium     = normalized 0.004  `atLeast` output 0.5
+thick      = normalized 0.0075 `atLeast` output 0.5
+veryThick  = normalized 0.01   `atLeast` output 0.5
+ultraThick = normalized 0.02   `atLeast` output 0.5
 
-tiny      = Normalized 0.01
-verySmall = Normalized 0.015
-small     = Normalized 0.023
-normal    = Normalized 0.035
-large     = Normalized 0.05
-veryLarge = Normalized 0.07
-huge      = Normalized 0.10
+tiny      = normalized 0.01
+verySmall = normalized 0.015
+small     = normalized 0.023
+normal    = normalized 0.035
+large     = normalized 0.05
+veryLarge = normalized 0.07
+huge      = normalized 0.10
 
 -----------------------------------------------------------------
 --  Line Width  -------------------------------------------------
@@ -121,7 +122,7 @@ huge      = Normalized 0.10
 -- | Line widths specified on child nodes always override line widths
 --   specified at parent nodes.
 newtype LineWidth n = LineWidth (Last (Measure n))
-  deriving (Data, Typeable, Semigroup)
+  deriving (Typeable, Semigroup)
 
 instance (Typeable n) => AttributeClass (LineWidth n)
 
@@ -131,7 +132,7 @@ type instance N (LineWidth n) = n
 instance Floating n => Transformable (LineWidth n) where
   transform t (LineWidth (Last m)) = LineWidth (Last $ scaleLocal (avgScale t) m)
 
-instance Floating n => Default (LineWidth n) where
+instance (Floating n, Ord n) => Default (LineWidth n) where
   def = LineWidth (Last medium)
 
 getLineWidth :: LineWidth n -> Measure n
@@ -139,31 +140,31 @@ getLineWidth (LineWidth (Last w)) = w
 
 -- | Set the line (stroke) width.
 lineWidth :: (Data n, HasStyle a, V a ~ V2, N a ~ n, Floating n) => Measure n -> a -> a
-lineWidth = applyGTAttr . LineWidth . Last
+lineWidth = applyTAttr . LineWidth . Last
 
 -- | Apply a 'LineWidth' attribute.
 lineWidthA :: (Data n, HasStyle a, V a ~ V2, N a ~ n, Floating n) => LineWidth n -> a -> a
-lineWidthA = applyGTAttr
+lineWidthA = applyTAttr
 
 -- | Default for 'lineWidth'.
 lw :: (Data n, Floating n, HasStyle a, V a ~ V2, N a ~ n) => Measure n -> a -> a
 lw = lineWidth
 
--- | A convenient synonym for 'lineWidth (Global w)'.
+-- | A convenient synonym for 'lineWidth (global w)'.
 lwG :: (Data n, Floating n, HasStyle a, V a ~ V2, N a ~ n) => n -> a -> a
-lwG w = lineWidth (Global w)
+lwG w = lineWidth (global w)
 
--- | A convenient synonym for 'lineWidth (Normalized w)'.
+-- | A convenient synonym for 'lineWidth (normalized w)'.
 lwN :: (Data n, Floating n, HasStyle a, V a ~ V2, N a ~ n) => n -> a -> a
-lwN w = lineWidth (Normalized w)
+lwN w = lineWidth (normalized w)
 
--- | A convenient synonym for 'lineWidth (Output w)'.
+-- | A convenient synonym for 'lineWidth (output w)'.
 lwO :: (Data n, Floating n, HasStyle a, V a ~ V2, N a ~ n) => n -> a -> a
-lwO w = lineWidth (Output w)
+lwO w = lineWidth (output w)
 
--- | A convenient sysnonym for 'lineWidth (Local w)'.
+-- | A convenient sysnonym for 'lineWidth (local w)'.
 lwL :: (Data n, Floating n, HasStyle a, V a ~ V2, N a ~ n) => n -> a -> a
-lwL w = lineWidth (Local w)
+lwL w = lineWidth (local w)
 
 -----------------------------------------------------------------
 --  Dashing  ----------------------------------------------------
@@ -171,10 +172,10 @@ lwL w = lineWidth (Local w)
 
 -- | Create lines that are dashing... er, dashed.
 data Dashing n = Dashing [Measure n] (Measure n)
-  deriving (Data, Typeable)
+  deriving Typeable
 
 newtype DashingA n = DashingA (Last (Dashing n))
-  deriving (Data, Typeable, Semigroup)
+  deriving (Typeable, Semigroup)
 
 instance Typeable n => AttributeClass (DashingA n)
 
@@ -197,23 +198,23 @@ dashing :: (Floating n, Data n, HasStyle a, V a ~ V2, N a ~ n)
         -> Measure n    -- ^ An offset into the dash pattern at which the
                         --   stroke should start.
         -> a -> a
-dashing ds offs = applyGTAttr (DashingA (Last (Dashing ds offs)))
+dashing ds offs = applyTAttr (DashingA (Last (Dashing ds offs)))
 
--- | A convenient synonym for 'dashing (Global w)'.
+-- | A convenient synonym for 'dashing (global w)'.
 dashingG :: (Data n, Floating n, HasStyle a, V a ~ V2, N a ~ n) => [n] -> n -> a -> a
-dashingG w v = dashing (map Global w) (Global v)
+dashingG w v = dashing (map global w) (global v)
 
--- | A convenient synonym for 'dashing (Normalized w)'.
+-- | A convenient synonym for 'dashing (normalized w)'.
 dashingN :: (Data n, Floating n, HasStyle a, V a ~ V2, N a ~ n) => [n] -> n -> a -> a
-dashingN w v = dashing (map Normalized w) (Normalized v)
+dashingN w v = dashing (map normalized w) (normalized v)
 
--- | A convenient synonym for 'dashing (Output w)'.
+-- | A convenient synonym for 'dashing (output w)'.
 dashingO :: (Data n, Floating n, HasStyle a, V a ~ V2, N a ~ n) => [n] -> n -> a -> a
-dashingO w v = dashing (map Output w) (Output v)
+dashingO w v = dashing (map output w) (output v)
 
--- | A convenient sysnonym for 'dashing (Local w)'.
+-- | A convenient sysnonym for 'dashing (local w)'.
 dashingL :: (Data n, Floating n, HasStyle a, V a ~ V2, N a ~ n) => [n] -> n -> a -> a
-dashingL w v = dashing (map Local w) (Local v)
+dashingL w v = dashing (map local w) (local v)
 
 -- | A gradient stop contains a color and fraction (usually between 0 and 1)
 data GradientStop d = GradientStop
@@ -260,11 +261,11 @@ lGradStops :: Lens' (LGradient n) [GradientStop n]
 lGradTrans :: Lens' (LGradient n) (Transformation V2 n)
 
 -- | The starting point for the first gradient stop. The coordinates are in
---   'Local' units and the default is (-0.5, 0).
+--   'local' units and the default is (-0.5, 0).
 lGradStart :: Lens' (LGradient n) (Point V2 n)
 
 -- | The ending point for the last gradient stop.The coordinates are in
---   'Local' units and the default is (0.5, 0).
+--   'local' units and the default is (0.5, 0).
 lGradEnd :: Lens' (LGradient n) (Point V2 n)
 
 -- | For setting the spread method.
@@ -294,13 +295,13 @@ rGradStops :: Lens' (RGradient n) [GradientStop n]
 -- | The center point of the inner circle.
 rGradCenter0 :: Lens' (RGradient n) (Point V2 n)
 
--- | The radius of the inner cirlce in 'Local' coordinates.
+-- | The radius of the inner cirlce in 'local' coordinates.
 rGradRadius0 :: Lens' (RGradient n) n
 
 -- | The center of the outer circle.
 rGradCenter1  :: Lens' (RGradient n) (Point V2 n)
 
--- | The radius of the outer circle in 'Local' coordinates.
+-- | The radius of the outer circle in 'local' coordinates.
 rGradRadius1 :: Lens' (RGradient n) n
 
 -- | A transformation to be applied to the gradient. Usually this field will
