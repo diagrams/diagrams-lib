@@ -1,12 +1,17 @@
+1.2.0.4 (8 October 2014)
+------------------------
+
+- Allow and require `optparse-applicative-0.11`
+
 1.2.0.3 (7 September 2014)
 --------------------------
 
-- Allow optparse-applicative-0.10
+- Allow `optparse-applicative-0.10`
 
 1.2.0.2 (22 August 2014)
 ------------------------
 
-- Allow lens-4.4
+- Allow `lens-4.4`
 
 1.2.0.1 (4 June 2014)
 ---------------------
