@@ -78,7 +78,7 @@ showOrigin' oo d = o <> d
 -- Labeling named points
 ------------------------------------------------------------
 
-showLabels :: (Typeable n, OrderedField n, Renderable (Text n) b, Semigroup m)
+showLabels :: (TypeableFloat n, Renderable (Text n) b, Semigroup m)
            => QDiagram b V2 n m -> QDiagram b V2 n Any
 showLabels d =
              ( mconcat
