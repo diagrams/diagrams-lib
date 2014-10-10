@@ -1,12 +1,14 @@
-{-# LANGUAGE FlexibleInstances, TypeSynonymInstances, TypeFamilies #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE TypeFamilies         #-}
+{-# LANGUAGE TypeSynonymInstances #-}
 
-import Test.QuickCheck
-import Control.Applicative
-import Data.Ratio
-import Data.VectorSpace
-import Data.Default
+import           Control.Applicative
+import           Data.Default
+import           Data.Ratio
+import           Data.VectorSpace
+import           Test.QuickCheck
 
-import Diagrams.Prelude
+import           Diagrams.Prelude
 
 
 type Q2 = (Rational, Rational)

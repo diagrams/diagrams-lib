@@ -36,16 +36,18 @@ module Diagrams.Align
        ) where
 
 import           Diagrams.Core
-import           Diagrams.Util    (applyAll)
+import           Diagrams.Util (applyAll)
 
-import           Data.AffineSpace (alerp, (.-.))
-import           Data.VectorSpace
-import           Data.Maybe       (fromMaybe)
-import           Data.Ord         (comparing)
+import           Data.Maybe    (fromMaybe)
+import           Data.Ord      (comparing)
 
-import qualified Data.Map         as M
-import qualified Data.Set         as S
-import qualified Data.Foldable    as F
+import qualified Data.Foldable as F
+import qualified Data.Map      as M
+import qualified Data.Set      as S
+
+import           Linear.Affine
+import           Linear.Metric
+import           Linear.Vector
 
 -- | Class of things which can be aligned.
 class Alignable a where
@@ -56,61 +58,60 @@ class Alignable a where
   --   edge of the boundary in the direction of the negation of @v@.
   --   Other values of @d@ interpolate linearly (so for example, @d =
   --   0@ centers the origin along the direction of @v@).
-  alignBy' :: ( HasOrigin a, AdditiveGroup (V a), Num (Scalar (V a))
-              , Fractional (Scalar (V a)))
-            => (V a -> a -> Point (V a)) -> V a -> Scalar (V a) -> a -> a
+  alignBy' :: (V a ~ v, N a ~ n, HasOrigin a, Additive v, Fractional n)
+           => (v n -> a -> Point v n) -> v n -> n -> a -> a
   alignBy' = alignBy'Default
 
-  defaultBoundary :: V a -> a -> Point (V a)
+  defaultBoundary :: (V a ~ v, N a ~ n) => v n -> a -> Point v n
 
-  alignBy :: (HasOrigin a, Num (Scalar (V a)), Fractional (Scalar (V a)))
-           => V a -> Scalar (V a) -> a -> a
+  alignBy :: (V a ~ v, N a ~ n, Additive v, HasOrigin a, Fractional n)
+          => v n -> n -> a -> a
   alignBy = alignBy' defaultBoundary
 
 -- | Default implementation of 'alignBy' for types with 'HasOrigin'
 --   and 'AdditiveGroup' instances.
-alignBy'Default :: ( HasOrigin a, AdditiveGroup (V a), Num (Scalar (V a))
-                   , Fractional (Scalar (V a)))
-                 => (V a -> a -> Point (V a)) -> V a -> Scalar (V a) -> a -> a
-alignBy'Default boundary v d a = moveOriginTo (alerp (boundary (negateV v) a)
-                                    (boundary v a)
-                                    ((d + 1) / 2)) a
+alignBy'Default :: (V a ~ v, N a ~ n, HasOrigin a, Additive v, Fractional n)
+                => (v n -> a -> Point v n) -> v n -> n -> a -> a
+alignBy'Default boundary v d a = moveOriginTo (lerp ((d + 1) / 2)
+                                                    (boundary v a)
+                                                    (boundary (negated v) a)
+                                              ) a
+{-# ANN alignBy'Default ("HLint: ignore Use camelCase" :: String) #-}
+                                              
 
 -- | Some standard functions which can be used as the `boundary` argument to
 --  `alignBy'`.
-envelopeBoundary :: Enveloped a => V a -> a -> Point (V a)
+envelopeBoundary :: (V a ~ v, N a ~ n, Enveloped a) => v n -> a -> Point v n
 envelopeBoundary = envelopeP
 
-traceBoundary :: Traced a => V a -> a -> Point (V a)
+traceBoundary :: (V a ~ v, N a ~ n, Num n, Traced a) => v n -> a -> Point v n
 traceBoundary v a = fromMaybe origin (maxTraceP origin v a)
 
 combineBoundaries
-  :: (F.Foldable f, InnerSpace (V a), Ord (Scalar (V a)))
-  => (V a -> a -> Point (V a)) -> (V a -> f a -> Point (V a))
+  :: (V a ~ v, N a ~ n, F.Foldable f, Metric v, Ord n, Num n)
+  => (v n -> a -> Point v n) -> v n -> f a -> Point v n
 combineBoundaries b v fa
-    = b v $ F.maximumBy (comparing (magnitudeSq . (.-. origin) . b v)) fa
+    = b v $ F.maximumBy (comparing (quadrance . (.-. origin) . b v)) fa
 
-instance (InnerSpace v, OrderedField (Scalar v)) => Alignable (Envelope v) where
+instance (Metric v, OrderedField n) => Alignable (Envelope v n) where
   defaultBoundary = envelopeBoundary
 
-instance (InnerSpace v, OrderedField (Scalar v)) => Alignable (Trace v) where
+instance (Metric v, OrderedField n) => Alignable (Trace v n) where
   defaultBoundary = traceBoundary
 
-instance (InnerSpace (V b), Ord (Scalar (V b)), Alignable b)
-       => Alignable [b] where
+instance (V b ~ v, N b ~ n, Metric v, OrderedField n, Alignable b) => Alignable [b] where
   defaultBoundary = combineBoundaries defaultBoundary
 
-instance (InnerSpace (V b), Ord (Scalar (V b)), Alignable b)
-       => Alignable (S.Set b) where
+instance (V b ~ v, N b ~ n,  Metric v, OrderedField n, Alignable b)
+    => Alignable (S.Set b) where
   defaultBoundary = combineBoundaries defaultBoundary
 
-instance (InnerSpace (V b), Ord (Scalar (V b)), Alignable b)
-       => Alignable (M.Map k b) where
+instance (V b ~ v, N b ~ n,  Metric v, OrderedField n, Alignable b)
+    => Alignable (M.Map k b) where
   defaultBoundary = combineBoundaries defaultBoundary
 
-instance ( HasLinearMap v, InnerSpace v, OrderedField (Scalar v)
-         , Monoid' m
-         ) => Alignable (QDiagram b v m) where
+instance (HasLinearMap v, Metric v, OrderedField n, Monoid' m)
+    => Alignable (QDiagram b v n m) where
   defaultBoundary = envelopeBoundary
 
 -- | Although the 'alignBy' method for the @(b -> a)@ instance is
@@ -118,8 +119,8 @@ instance ( HasLinearMap v, InnerSpace v, OrderedField (Scalar v)
 --   'defaultBoundary'. Instead, we provide a total method, but one that
 --   is not sensible. This should not present a serious problem as long
 --   as your use of 'Alignable' happens through 'alignBy'.
-instance (HasOrigin a, Alignable a) => Alignable (b -> a) where
-  alignBy v d f b = alignBy v d (f b)
+instance (V a ~ v, N a ~ n, Additive v, Num n, HasOrigin a, Alignable a) => Alignable (b -> a) where
+  alignBy v d f b     = alignBy v d (f b)
   defaultBoundary _ _ = origin
 
 -- | @align v@ aligns an enveloped object along the edge in the
@@ -127,42 +128,42 @@ instance (HasOrigin a, Alignable a) => Alignable (b -> a) where
 --   direction of @v@ until it is on the edge of the envelope.  (Note
 --   that if the local origin is outside the envelope to begin with,
 --   it may have to move \"backwards\".)
-align :: ( Alignable a, HasOrigin a, Num (Scalar (V a))
-         , Fractional (Scalar (V a))) => V a -> a -> a
+align :: (V a ~ v, N a ~ n, Additive v, Alignable a, HasOrigin a, Fractional n) => v n -> a -> a
 align v = alignBy v 1
 
 -- | Version of @alignBy@ specialized to use @traceBoundary@
-snugBy :: (Alignable a, Traced a, HasOrigin a, Num (Scalar (V a)), Fractional (Scalar (V a)))
-       => V a -> Scalar (V a) -> a -> a
+snugBy :: (V a ~ v, N a ~ n, Alignable a, Traced a, HasOrigin a, Fractional n)
+       => v n -> n -> a -> a
 snugBy = alignBy' traceBoundary
 
 -- | Like align but uses trace.
-snug :: (Fractional (Scalar (V a)), Alignable a, Traced a, HasOrigin a)
-      => V a -> a -> a
-snug v = snugBy  v 1
+snug :: (V a ~ v, N a ~ n, Fractional n, Alignable a, Traced a, HasOrigin a)
+      => v n -> a -> a
+snug v = snugBy v 1
 
 -- | @centerV v@ centers an enveloped object along the direction of
 --   @v@.
-centerV :: ( Alignable a, HasOrigin a, Num (Scalar (V a))
-          , Fractional (Scalar (V a))) => V a -> a -> a
+centerV :: (V a ~ v, N a ~ n, Additive v, Alignable a, HasOrigin a, Fractional n) => v n -> a -> a
 centerV v = alignBy v 0
 
 -- | @center@ centers an enveloped object along all of its basis vectors.
-center :: ( HasLinearMap (V a), Alignable a, HasOrigin a, Num (Scalar (V a)),
-             Fractional (Scalar (V a))) => a -> a
-center d = applyAll fs d
+center :: (V a ~ v, N a ~ n, HasLinearMap v, Alignable a, HasOrigin a, Fractional n) => a -> a
+center = applyAll fs
   where
     fs = map centerV basis
 
 -- | Like @centerV@ using trace.
 snugCenterV
-  :: (Fractional (Scalar (V a)), Alignable a, Traced a, HasOrigin a)
-   => V a -> a -> a
-snugCenterV v = (alignBy' traceBoundary) v 0
+  :: (V a ~ v, N a ~ n, Fractional n, Alignable a, Traced a, HasOrigin a)
+   => v n -> a -> a
+snugCenterV v = alignBy' traceBoundary v 0
 
 -- | Like @center@ using trace.
-snugCenter :: ( HasLinearMap (V a), Alignable a, HasOrigin a, Num (Scalar (V a)),
-                      Fractional (Scalar (V a)), Traced a) => a -> a
-snugCenter d = applyAll fs d
+snugCenter :: (V a ~ v, N a ~ n, HasLinearMap v, Alignable a, HasOrigin a, Fractional n, Traced a)
+           => a -> a
+snugCenter = applyAll fs
   where
     fs = map snugCenterV basis
+
+{-# ANN module ("HLint: ignore Use camelCase" :: String) #-}
+

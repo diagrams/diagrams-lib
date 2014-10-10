@@ -96,6 +96,9 @@ module Diagrams.Prelude
          --   diagrams.
        , module Diagrams.TwoD
 
+         -- | Extra things for three-dimensional diagrams.
+       , module Diagrams.ThreeD
+
          -- | Tools for making animations.
        , module Diagrams.Animation
 
@@ -111,9 +114,11 @@ module Diagrams.Prelude
          --   Data.Semigroup and Data.Monoid often come in handy.
        , module Data.Semigroup
          -- | For computing with vectors.
-       , module Data.VectorSpace
+       , module Linear.Vector
          -- | For computing with points and vectors.
-       , module Data.AffineSpace
+       , module Linear.Affine
+         -- | For computing with dot products and norm.
+       , module Linear.Metric
 
          -- | For working with 'Active' (i.e. animated) things.
        , module Data.Active
@@ -146,17 +151,21 @@ import           Diagrams.Query
 import           Diagrams.Segment
 import           Diagrams.Tangent
 import           Diagrams.Trace
-import           Diagrams.Trail hiding (trailPoints, loopPoints, linePoints)
+import           Diagrams.Trail             hiding (linePoints, loopPoints, trailPoints)
 import           Diagrams.TrailLike
 import           Diagrams.Transform
 import           Diagrams.TwoD
+import           Diagrams.ThreeD
 import           Diagrams.Util
 
 import           Control.Applicative
+import           Control.Lens               ((%~), (&), (.~))
 import           Data.Active
-import           Data.AffineSpace
 import           Data.Colour                hiding (AffineSpace (..), atop, over)
 import           Data.Colour.Names          hiding (tan)
 import           Data.Semigroup
-import           Data.VectorSpace           hiding (Sum (..))
-import           Control.Lens               ((&), (.~), (%~))
+
+import           Linear.Affine
+import           Linear.Metric
+import           Linear.Vector
+

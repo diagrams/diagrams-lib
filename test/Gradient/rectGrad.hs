@@ -2,8 +2,8 @@
 
 module Main where
 
-import           Diagrams.Prelude
 import           Diagrams.Backend.SVG.CmdLine
+import           Diagrams.Prelude
 
 -- Red to White to Blue linear gradient wtih direction vector (1,0).
 --g = LGradient [(SomeColor red, 0, 1), (SomeColor black, 0.5, 0)

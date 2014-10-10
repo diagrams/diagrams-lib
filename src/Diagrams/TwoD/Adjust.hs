@@ -1,4 +1,7 @@
-{-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE ConstraintKinds  #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE Rank2Types       #-}
+{-# LANGUAGE TypeFamilies     #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -19,20 +22,19 @@ module Diagrams.TwoD.Adjust
     , adjustDia2D
     ) where
 
-import           Diagrams.Attributes      (lineCap, lineJoin,
-                                           lineMiterLimitA)
+import           Diagrams.Attributes      (lineCap, lineJoin, lineMiterLimitA)
 import           Diagrams.Core
-import           Diagrams.TwoD.Attributes (lineWidthA, lineTextureA)
-import           Diagrams.TwoD.Size       (SizeSpec2D (..), center2D,
-                                           requiredScale, size2D)
+import           Diagrams.TwoD.Attributes (lineTextureA, lineWidthA)
+import           Diagrams.TwoD.Size       (SizeSpec2D (..), center2D, requiredScale, size2D)
 import           Diagrams.TwoD.Text       (fontSizeA)
-import           Diagrams.TwoD.Types      (R2, T2, p2)
+import           Diagrams.TwoD.Types
 import           Diagrams.Util            (( # ))
 
-import           Control.Lens             (Lens', (&), (.~), (^.))
-import           Data.AffineSpace         ((.-.))
+import           Control.Lens             (Lens', (&), (.~), (^.), over, both)
 import           Data.Default.Class
 import           Data.Semigroup
+
+import Linear.Affine
 
 -- | Set default attributes of a 2D diagram (in case they have not
 --   been set):
@@ -48,7 +50,7 @@ import           Data.Semigroup
 --       * line join miter
 --
 --       * Miter limit 10
-setDefault2DAttributes :: Semigroup m => QDiagram b R2 m -> QDiagram b R2 m
+setDefault2DAttributes :: (DataFloat n, Semigroup m) => QDiagram b V2 n m -> QDiagram b V2 n m
 setDefault2DAttributes d = d # lineWidthA def # lineTextureA def # fontSizeA def
                              # lineCap def # lineJoin def # lineMiterLimitA def
 
@@ -60,23 +62,23 @@ setDefault2DAttributes d = d # lineWidthA def # lineTextureA def # fontSizeA def
 --   inverse of which can be used, say, to translate output/device
 --   coordinates back into local diagram coordinates), and the
 --   modified diagram itself.
-adjustDiaSize2D :: Monoid' m
-                => Lens' (Options b R2) SizeSpec2D
-                -> b -> Options b R2 -> QDiagram b R2 m
-                -> (Options b R2, T2, QDiagram b R2 m)
+adjustDiaSize2D :: (TypeableFloat n, Monoid' m)
+                => Lens' (Options b V2 n) (SizeSpec2D n)
+                -> b -> Options b V2 n -> QDiagram b V2 n m
+                -> (Options b V2 n, Transformation V2 n, QDiagram b V2 n m)
 adjustDiaSize2D szL _ opts d =
   ( case spec of
-     Dims _ _ -> opts
-     _        -> opts & szL .~ (uncurry Dims . scale s $ size)
+      Dims _ _ -> opts
+      _        -> opts & szL .~ (uncurry Dims . over both (*s) $ sz)
   , adjustT
   , d # transform adjustT
   )
   where spec = opts ^. szL
-        size = size2D d
-        s    = requiredScale spec size
+        sz   = size2D d
+        s    = requiredScale spec sz
         finalSz = case spec of
                     Dims w h -> (w,h)
-                    _        -> scale s size
+                    _        -> over both (*s) sz
         tr = (0.5 *. p2 finalSz) .-. (s *. center2D d)
         adjustT = translation tr <> scaling s
 
@@ -97,10 +99,10 @@ adjustDiaSize2D szL _ opts d =
 --   to the diagram (the inverse of which can be used, say, to
 --   translate output/device coordinates back into local diagram
 --   coordinates), and the modified diagram itself.
-adjustDia2D :: Monoid' m
-            => Lens' (Options b R2) SizeSpec2D
-            -> b -> Options b R2 -> QDiagram b R2 m
-            -> (Options b R2, T2, QDiagram b R2 m)
+adjustDia2D :: (DataFloat n, Monoid' m)
+            => Lens' (Options b V2 n) (SizeSpec2D n)
+            -> b -> Options b V2 n -> QDiagram b V2 n m
+            -> (Options b V2 n, Transformation V2 n, QDiagram b V2 n m)
 adjustDia2D szL b opts d
   = adjustDiaSize2D szL b opts (d # setDefault2DAttributes)
 

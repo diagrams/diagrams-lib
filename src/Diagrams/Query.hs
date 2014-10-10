@@ -17,3 +17,4 @@ module Diagrams.Query
     ) where
 
 import           Diagrams.Core
+

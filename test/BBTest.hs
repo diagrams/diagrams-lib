@@ -1,6 +1,6 @@
-import Test.QuickCheck
+import           Test.QuickCheck
 
-import Diagrams.BoundingBox
+import           Diagrams.BoundingBox
 
 instance Arbitrary (NonEmptyBoundingBox Q2) where
   arbitrary = do

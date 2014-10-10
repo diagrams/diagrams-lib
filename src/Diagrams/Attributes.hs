@@ -48,8 +48,8 @@ module Diagrams.Attributes (
   ) where
 
 import           Data.Colour
-import           Data.Colour.RGBSpace        (RGB (..))
-import           Data.Colour.SRGB            (toSRGB)
+import           Data.Colour.RGBSpace (RGB (..))
+import           Data.Colour.SRGB     (toSRGB)
 import           Data.Default.Class
 
 import           Data.Semigroup
@@ -99,7 +99,7 @@ instance (Floating a, Real a) => Color (AlphaColour a) where
 
 instance Color SomeColor where
   toAlphaColour (SomeColor c) = toAlphaColour c
-  fromAlphaColour c = SomeColor c
+  fromAlphaColour             = SomeColor
 
 -- | Convert to sRGBA.
 colorToSRGBA, colorToRGBA :: Color c => c -> (Double, Double, Double, Double)
@@ -158,7 +158,7 @@ newtype LineCapA = LineCapA (Last LineCap)
 instance AttributeClass LineCapA
 
 instance Default LineCap where
-    def = LineCapButt
+  def = LineCapButt
 
 getLineCap :: LineCapA -> LineCap
 getLineCap (LineCapA (Last c)) = c
@@ -167,14 +167,13 @@ getLineCap (LineCapA (Last c)) = c
 lineCap :: HasStyle a => LineCap -> a -> a
 lineCap = applyAttr . LineCapA . Last
 
-
 -- | How should the join points between line segments be drawn?
 data LineJoin = LineJoinMiter    -- ^ Use a \"miter\" shape (whatever that is).
               | LineJoinRound    -- ^ Use rounded join points.
               | LineJoinBevel    -- ^ Use a \"bevel\" shape (whatever
                                  --   that is).  Are these...
                                  --   carpentry terms?
-  deriving (Eq,Show,Typeable)
+  deriving (Eq, Show, Typeable)
 
 newtype LineJoinA = LineJoinA (Last LineJoin)
   deriving (Typeable, Semigroup, Eq)
@@ -189,7 +188,6 @@ getLineJoin (LineJoinA (Last j)) = j
 -- | Set the segment join style.
 lineJoin :: HasStyle a => LineJoin -> a -> a
 lineJoin = applyAttr . LineJoinA . Last
-
 
 -- | Miter limit attribute affecting the 'LineJoinMiter' joins.
 --   For some backends this value may have additional effects.
@@ -210,3 +208,4 @@ lineMiterLimit = applyAttr . LineMiterLimit . Last
 -- | Apply a 'LineMiterLimit' attribute.
 lineMiterLimitA :: HasStyle a => LineMiterLimit -> a -> a
 lineMiterLimitA = applyAttr
+

@@ -1,8 +1,13 @@
+{-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE DeriveDataTypeable    #-}
+{-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE StandaloneDeriving    #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE UndecidableInstances  #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Transform.ScaleInv
@@ -17,11 +22,10 @@
 module Diagrams.TwoD.Transform.ScaleInv
     ( ScaleInv(..)
     , scaleInvObj, scaleInvDir, scaleInvLoc
-    , scaleInv, scaleInvPrim )
+    , scaleInv, scaleInvPrim)
     where
 
-import           Control.Lens            (makeLenses, view,(^.))
-import           Data.AffineSpace        ((.-.))
+import           Control.Lens            (makeLenses, view, (^.))
 import           Data.Semigroup
 import           Data.Typeable
 
@@ -29,6 +33,9 @@ import           Diagrams.Angle
 import           Diagrams.Core
 import           Diagrams.TwoD.Transform
 import           Diagrams.TwoD.Types
+
+import           Linear.Affine
+import           Linear.Vector
 
 -- | The @ScaleInv@ wrapper creates two-dimensional /scale-invariant/
 --   objects.  Intuitively, a scale-invariant object is affected by
@@ -64,30 +71,36 @@ import           Diagrams.TwoD.Types
 data ScaleInv t =
   ScaleInv
   { _scaleInvObj :: t
-  , _scaleInvDir :: R2
-  , _scaleInvLoc :: P2
+  , _scaleInvDir :: Vn t
+  , _scaleInvLoc :: Point (V t) (N t)
   }
-  deriving (Show, Typeable)
+  deriving Typeable
+
+deriving instance (Show t, Show (Vn t)) => Show (ScaleInv t)
 
 makeLenses ''ScaleInv
 
 -- | Create a scale-invariant object pointing in the given direction,
 --   located at the origin.
-scaleInv :: t -> R2 -> ScaleInv t
+scaleInv :: (V t ~ v, N t ~ n, Additive v, Num n) => t -> v n -> ScaleInv t
 scaleInv t d = ScaleInv t d origin
 
-type instance V (ScaleInv t) = R2
+type instance V (ScaleInv t) = V t
+type instance N (ScaleInv t) = N t
 
-instance (V t ~ R2, HasOrigin t) => HasOrigin (ScaleInv t) where
+instance (V t ~ v, N t ~ n, Additive v, Num n, HasOrigin t) => HasOrigin (ScaleInv t) where
   moveOriginTo p (ScaleInv t v l) = ScaleInv (moveOriginTo p t) v (moveOriginTo p l)
 
-instance (V t ~ R2, Transformable t) => Transformable (ScaleInv t) where
+instance (V t ~ V2, N t ~ n, RealFloat n, Transformable t) => Transformable (ScaleInv t) where
   transform tr (ScaleInv t v l) = ScaleInv (trans . rot $ t) (rot v) l'
     where
-      angle = (transform tr v ^. _theta)
-      rot :: (Transformable t, V t ~ R2) => t -> t
-      rot = rotateAbout l angle
+      angle = transform tr v ^. _theta
+
+      rot :: (V k ~ V t, N k ~ N t, Transformable k) => k -> k
+      rot = rotateAround l angle
+
       l'  = transform tr l
+
       trans = translate (l' .-. l)
 
 {- Proof that the above satisfies the monoid action laws.
@@ -100,28 +113,28 @@ instance (V t ~ R2, Transformable t) => Transformable (ScaleInv t) where
                 = translate zeroV
                 = id
         }
-        { rot   = rotateAbout l angle
-                = rotateAbout l (direction (transform mempty v) - direction v)
-                = rotateAbout l (direction v - direction v)
-                = rotateAbout l 0
+        { rot   = rotateAround l angle
+                = rotateAround l (direction (transform mempty v) - direction v)
+                = rotateAround l (direction v - direction v)
+                = rotateAround l 0
                 = id
         }
       = ScaleInv t v l
 
   2. transform t1 (transform t2 (ScaleInv t v l))
      = let angle = direction (transform t2 v) - direction v
-           rot   = rotateAbout l angle
+           rot   = rotateAround l angle
            l'    = transform t2 l
            trans = translate (l' .-. l)
        in
            transform t1 (ScaleInv (trans . rot $ t) (rot v) l')
 
      = let angle  = direction (transform t2 v) - direction v
-           rot    = rotateAbout l angle
+           rot    = rotateAround l angle
            l'     = transform t2 l
            trans  = translate (l' .-. l)
            angle2 = direction (transform t1 (rot v)) - direction (rot v)
-           rot2   = rotateAbout l' angle2
+           rot2   = rotateAround l' angle2
            l'2    = transform t1 l'
            trans2 = translate (l'2 .-. l')
        in
@@ -135,7 +148,7 @@ instance (V t ~ R2, Transformable t) => Transformable (ScaleInv t) where
                 = translate (transform (t1 <> t2) l .-. transform t2 l)
                 = translate (transform t1 l .-. l)
        }
-       { rot v  = rotateAbout l angle v
+       { rot v  = rotateAround l angle v
                 = rotate angle `under` translation (origin .-. l) $ v
                 = rotate angle v
        }
@@ -143,13 +156,13 @@ instance (V t ~ R2, Transformable t) => Transformable (ScaleInv t) where
                 = direction (transform t1 (rotate angle v)) - direction (rotate angle v)
                 = direction (transform t1 (rotate angle v)) - direction v - angle
        }
-       { rot2   = rotateAbout l' angle2
+       { rot2   = rotateAround l' angle2
                 = ???
        }
 
 -}
 
-instance (Renderable t b, V t ~ R2) => Renderable (ScaleInv t) b where
+instance (V t ~ V2, N t ~ n, RealFloat n, Renderable t b) => Renderable (ScaleInv t) b where
   render b = render b . view scaleInvObj
 
 -- | Create a diagram from a single scale-invariant primitive.  The
@@ -167,6 +180,6 @@ instance (Renderable t b, V t ~ R2) => Renderable (ScaleInv t) b where
 --   scale-invariant things will be used only as \"decorations\" (/e.g./
 --   arrowheads) which should not affect the envelope, trace, and
 --   query.
-scaleInvPrim :: (Transformable t, Typeable t, Renderable t b, V t ~ R2, Monoid m)
-             => t -> R2 -> QDiagram b R2 m
+scaleInvPrim :: (V t ~ V2, N t ~ n, RealFloat n, Transformable t, Typeable t, Renderable t b, Monoid m)
+             => t -> V2 n -> QDiagram b (V t) (N t) m
 scaleInvPrim t d = mkQD (Prim $ scaleInv t d) mempty mempty mempty mempty

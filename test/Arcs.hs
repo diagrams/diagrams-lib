@@ -1,30 +1,30 @@
-import Diagrams.Prelude
-import Diagrams.Backend.Postscript
-import Diagrams.Backend.Postscript.CmdLine
+import           Diagrams.Backend.Postscript
+import           Diagrams.Backend.Postscript.CmdLine
+import           Diagrams.Prelude
 
-import Diagrams.TwoD.Arc
+import           Diagrams.TwoD.Arc
 
-exampleArc f r = (vertLabel |||) . centerXY . (horzLabel ===) . centerXY $ hcat 
-    [ vcat 
-      [  phantom (circle (1.05 * abs r) :: D R2) 
+exampleArc f r = (vertLabel |||) . centerXY . (horzLabel ===) . centerXY $ hcat
+    [ vcat
+      [  phantom (circle (1.05 * abs r) :: D R2)
       <> s # lc green # lw 0.01
       <> e # lc red   # lw 0.01
       <> (lw 0.01 . stroke $ f r (n/8) (m/8))
       | n <- rs
       , let s = rotateBy (n/8) (origin ~~ (3 & 0))
       , let e = rotateBy (m/8) (origin ~~ (3 & 0))
-      ] 
+      ]
     | m <- rs
     ]
   where
     rs = [0..7 :: CircleFrac]
     horzLabel = centerX                  $ rect 5 10 # lw 0 <> (text "start angle" # scale 0.4)
     vertLabel = centerY . rotateBy (1/4) $ rect 5 10 # lw 0 <> (text "end angle"   # scale 0.4)
-  
+
 exampleRR :: Diagram Postscript R2
-exampleRR = (vertLabel |||) . centerXY . (horzLabel ===) . centerXY $ hcat 
-    [ vcat 
-      [  phantom (pad 1.1 $ rect 10 15 :: D R2) 
+exampleRR = (vertLabel |||) . centerXY . (horzLabel ===) . centerXY $ hcat
+    [ vcat
+      [  phantom (pad 1.1 $ rect 10 15 :: D R2)
       <> (origin ~~ (0 & r)) # lc red   # lw 0.01
       <> (fc lightblue . lw 0.01 . stroke $ roundedRect' 10 15 o)
       | o <- [ RoundedRectOpts 0 r 0 0
@@ -32,7 +32,7 @@ exampleRR = (vertLabel |||) . centerXY . (horzLabel ===) . centerXY $ hcat
              , RoundedRectOpts 0 0 r 0
              , RoundedRectOpts 0 0 0 r
              ]
-      ] 
+      ]
     | r <- [-4..4]
     ]
   where

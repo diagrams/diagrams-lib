@@ -21,8 +21,8 @@ import           Data.Ord      (comparing)
 
 import           Diagrams.Util (tau)
 
-import           Prelude hiding ((^))
-import qualified Prelude as P ((^))
+import           Prelude       hiding ((^))
+import qualified Prelude       as P ((^))
 
 -- | A specialization of (^) to Integer
 --   c.f. http://comments.gmane.org/gmane.comp.lang.haskell.libraries/21164
@@ -130,7 +130,7 @@ _cubForm_prop a b c d = all (aboutZero' 1e-5 . eval) (cubForm a b c d)
            -- issue in practice we could, say, use the solutions
            -- generated here as very good guesses to a numerical
            -- solver which can give us a more precise answer?
-           
+
 ------------------------------------------------------------
 -- Quartic formula
 ------------------------------------------------------------
@@ -165,7 +165,7 @@ quartForm' toler c4 c3 c2 c1 c0
 
       -- solve the resolvent cubic - only one solution is needed
       z:_ = cubForm 1 (-p/2) (-r) (p*r/2 - q^2/8)
-      
+
       -- solve the two quadratic equations
       -- y^2 ± v*y-(±u-z)
       u = z^2 - r

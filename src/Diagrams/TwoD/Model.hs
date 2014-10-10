@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeFamilies          #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Model
@@ -20,66 +21,65 @@ module Diagrams.TwoD.Model
        , showLabels
        ) where
 
-import           Control.Lens          (makeLenses, (^.))
+import           Control.Arrow            (second)
+import           Control.Lens             (makeLenses, (^.))
+import           Data.Colour              (Colour)
+import           Data.Colour.Names
+import           Data.Data
+import           Data.Default.Class
+import qualified Data.Map                 as M
+import           Data.Semigroup
 
 import           Diagrams.Core
-import           Diagrams.TwoD.Attributes
 import           Diagrams.Path
+import           Diagrams.TwoD.Attributes
 import           Diagrams.TwoD.Ellipse
 import           Diagrams.TwoD.Path
-import           Diagrams.TwoD.Size    (size2D)
 import           Diagrams.TwoD.Text
 import           Diagrams.TwoD.Types
 import           Diagrams.Util
 
-import           Control.Arrow         (second)
-import           Data.AffineSpace      ((.-.))
-import           Data.Default.Class
-import           Data.Semigroup
-import           Data.VectorSpace      ((^*))
-
-import qualified Data.Map              as M
-
-import           Data.Colour           (Colour)
-import           Data.Colour.Names
+import           Linear.Affine
+import           Linear.Vector
 
 ------------------------------------------------------------
 -- Marking the origin
 ------------------------------------------------------------
 
-data OriginOpts = OriginOpts { _oColor   :: Colour Double
-                             , _oScale   :: Double
-                             , _oMinSize :: Double
-                             }
+data OriginOpts n = OriginOpts
+  { _oColor   :: Colour Double
+  , _oScale   :: n
+  , _oMinSize :: n
+  }
 
 makeLenses ''OriginOpts
 
-instance Default OriginOpts where
+instance Fractional n => Default (OriginOpts n) where
   def = OriginOpts red (1/50) 0.001
 
 -- | Mark the origin of a diagram by placing a red dot 1/50th its size.
-showOrigin :: (Renderable (Path R2) b, Backend b R2, Monoid' m)
-           => QDiagram b R2 m -> QDiagram b R2 m
+showOrigin :: (RealFloat n, Renderable (Path V2 n) b, Data n, Monoid' m)
+           => QDiagram b V2 n m -> QDiagram b V2 n m
 showOrigin = showOrigin' def
 
 -- | Mark the origin of a diagram, with control over colour and scale
 -- of marker dot.
-showOrigin' :: (Renderable (Path R2) b, Backend b R2, Monoid' m)
-           => OriginOpts -> QDiagram b R2 m -> QDiagram b R2 m
+showOrigin' :: (RealFloat n, Renderable (Path V2 n) b, Data n, Monoid' m)
+           => OriginOpts n -> QDiagram b V2 n m -> QDiagram b V2 n m
 showOrigin' oo d = o <> d
   where o     = stroke (circle sz)
-                # fc (oo^.oColor)
-                # lineWidth (Output 0)
-                # fmap (const mempty)
-        (w,h) = size2D d ^* oo^.oScale
-        sz = maximum [w, h, oo^.oMinSize]
+                  # fc (oo^.oColor)
+                  # lw none
+                  # fmap (const mempty)
+        V2 w h = oo^.oScale *^ size d
+        sz     = maximum [w, h, oo^.oMinSize]
 
 ------------------------------------------------------------
 -- Labeling named points
 ------------------------------------------------------------
 
-showLabels :: (Renderable Text b, Backend b R2, Semigroup m)
-           => QDiagram b R2 m -> QDiagram b R2 Any
+showLabels :: (Typeable n, OrderedField n, Renderable (Text n) b, Semigroup m)
+           => QDiagram b V2 n m -> QDiagram b V2 n Any
 showLabels d =
              ( mconcat
              . map (\(n,p) -> text (show n) # translate (p .-. origin))

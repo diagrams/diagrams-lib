@@ -1,5 +1,7 @@
-{-# LANGUAGE TypeFamilies  #-}
-{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE TypeFamilies         #-}
+{-# LANGUAGE TypeOperators        #-}
+{-# LANGUAGE UndecidableInstances #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Coordinates
@@ -14,23 +16,12 @@
 
 module Diagrams.Coordinates
     ( (:&)(..), Coordinates(..)
-
-    -- * Lenses for particular axes
-    , HasX(..), HasY(..), HasZ(..), HasR(..)
     )
     where
 
-import           Control.Lens          (Lens')
+import           Diagrams.Points
 
-import           Diagrams.Core.Points
-
--- | A pair of values, with a convenient infix (left-associative)
---   data constructor.
-data a :& b = a :& b
-  deriving (Eq, Ord, Show)
-
-infixl 7 :&
-
+import           Linear          (V2 (..), V3 (..), V4 (..))
 
 -- | Types which are instances of the @Coordinates@ class can be
 --   constructed using '^&' (for example, a three-dimensional vector
@@ -60,7 +51,7 @@ class Coordinates c where
   --
   -- @
   -- 2 ^& 3 :: P2
-  -- 3 ^& 5 ^& 6 :: R3
+  -- 3 ^& 5 ^& 6 :: V3
   -- @
   --
   --   Note that @^&@ is left-associative.
@@ -76,6 +67,22 @@ class Coordinates c where
 
 infixl 7 ^&
 
+-- | A pair of values, with a convenient infix (left-associative)
+--   data constructor.
+data a :& b = a :& b
+  deriving (Eq, Ord, Show)
+
+infixl 7 :&
+
+-- Instance for :& (the buck stops here)
+instance Coordinates (a :& b) where
+  type FinalCoord (a :& b) = b
+  type PrevDim (a :& b) = a
+  type Decomposition (a :& b) = a :& b
+  x ^& y                    = x :& y
+  coords (x :& y)           = x :& y
+
+
 -- Some standard instances for plain old tuples
 
 instance Coordinates (a,b) where
@@ -83,7 +90,7 @@ instance Coordinates (a,b) where
   type PrevDim (a,b)       = a
   type Decomposition (a,b) = a :& b
 
-  x ^& y                    = (x,y)
+  x ^& y                   = (x,y)
   coords (x,y)             = x :& y
 
 instance Coordinates (a,b,c) where
@@ -99,30 +106,40 @@ instance Coordinates (a,b,c,d) where
   type PrevDim (a,b,c,d)       = (a,b,c)
   type Decomposition (a,b,c,d) = Decomposition (a,b,c) :& d
 
-  (w,x,y)  ^& z                  = (w,x,y,z)
+  (w,x,y)  ^& z                = (w,x,y,z)
   coords (w,x,y,z)             = coords (w,x,y) :& z
 
-instance Coordinates v => Coordinates (Point v) where
-  type FinalCoord (Point v)    = FinalCoord v
-  type PrevDim (Point v)       = PrevDim v
-  type Decomposition (Point v) = Decomposition v
+instance Coordinates (v n) => Coordinates (Point v n) where
+  type FinalCoord (Point v n)    = FinalCoord (v n)
+  type PrevDim (Point v n)       = PrevDim (v n)
+  type Decomposition (Point v n) = Decomposition (v n)
 
-  x ^& y        = P (x ^& y)
+  x ^& y       = P (x ^& y)
   coords (P v) = coords v
 
--- | The class of types with at least one coordinate, called _x.
-class HasX t where
-    _x :: Lens' t Double
+-- instances for linear
 
--- | The class of types with at least two coordinates, the second called _y.
-class HasY t where
-    _y :: Lens' t Double
+instance Coordinates (V2 n) where
+  type FinalCoord (V2 n)    = n
+  type PrevDim (V2 n)       = n
+  type Decomposition (V2 n) = n :& n
 
--- | The class of types with at least three coordinates, the third called _z.
-class HasZ t where
-    _z :: Lens' t Double
+  x ^& y          = V2 x y
+  coords (V2 x y) = x :& y
 
--- | The class of types with a single length coordinate _r.  _r is
--- magnitude of a vector, or the distance from the origin of a point.
-class HasR t where
-    _r :: Lens' t Double
+instance Coordinates (V3 n) where
+  type FinalCoord (V3 n)    = n
+  type PrevDim (V3 n)       = V2 n
+  type Decomposition (V3 n) = n :& n :& n
+
+  V2 x y ^& z       = V3 x y z
+  coords (V3 x y z) = x :& y :& z
+
+instance Coordinates (V4 n) where
+  type FinalCoord (V4 n)    = n
+  type PrevDim (V4 n)       = V3 n
+  type Decomposition (V4 n) = n :& n :& n :& n
+
+  V3 x y z ^& w       = V4 x y z w
+  coords (V4 x y z w) = x :& y :& z :& w
+
