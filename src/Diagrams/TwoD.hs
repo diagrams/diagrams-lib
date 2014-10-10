@@ -229,15 +229,11 @@ module Diagrams.TwoD
 
          -- * Size
          -- ** Computing size
-       , width, height, size2D, sizeSpec2D
-       , extentX, extentY, center2D
+       , width, height
+       , extentX, extentY
 
          -- ** Specifying size
-       , SizeSpec2D(..)
-       , mkSizeSpec
-
-         -- ** Adjusting size
-       , sized, sizedAs
+       , mkSizeSpec2D
 
          -- * Textures
        , Texture(..), solid

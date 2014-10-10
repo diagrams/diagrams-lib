@@ -1,6 +1,8 @@
 {-# LANGUAGE CPP                        #-}
 {-# LANGUAGE DeriveDataTypeable         #-}
+{-# LANGUAGE DeriveFunctor              #-}
 {-# LANGUAGE ExistentialQuantification  #-}
+{-# LANGUAGE ConstraintKinds            #-}
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
@@ -8,6 +10,7 @@
 {-# LANGUAGE StandaloneDeriving         #-}
 {-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE ViewPatterns               #-}
 {-# LANGUAGE UndecidableInstances       #-}
 
 -----------------------------------------------------------------------------
@@ -29,7 +32,7 @@
 
 module Diagrams.TwoD.Attributes (
     -- ** Width
-    LineWidth, getLineWidth, lineWidth, lineWidthA
+    LineWidth, getLineWidth, lineWidth, lineWidthM
   , lw, lwN, lwO, lwL, lwG
   , ultraThin, veryThin, thin, medium, thick, veryThick, ultraThick, none
   , tiny, verySmall, small, normal, large, veryLarge, huge
@@ -81,7 +84,6 @@ import           Diagrams.Core.Types         (RTree)
 import           Diagrams.Located            (unLoc)
 import           Diagrams.Path               (Path, pathTrails)
 import           Diagrams.Trail              (isLoop)
-import           Diagrams.Measure
 
 import           Control.Lens                (Lens', Setter', generateSignatures, lensRules,
                                               makeLensesWith, makePrisms, sets, (&), (.~), over)
@@ -90,6 +92,7 @@ import           Data.Colour                 hiding (AffineSpace, over)
 import           Data.Data
 import           Data.Default.Class
 import           Data.Maybe                  (fromMaybe)
+import           Data.Distributive
 
 import           Data.Monoid.Recommend
 import           Data.Semigroup
@@ -121,49 +124,45 @@ huge      = normalized 0.10
 
 -- | Line widths specified on child nodes always override line widths
 --   specified at parent nodes.
-newtype LineWidth n = LineWidth (Last (Measure n))
+newtype LineWidth n = LineWidth (Last n)
   deriving (Typeable, Semigroup)
 
-instance (Typeable n) => AttributeClass (LineWidth n)
+instance Typeable n => AttributeClass (LineWidth n)
 
-type instance V (LineWidth n) = V2
-type instance N (LineWidth n) = n
+type LineWidthM n = Measured n (LineWidth n)
 
-instance Floating n => Transformable (LineWidth n) where
-  transform t (LineWidth (Last m)) = LineWidth (Last $ scaleLocal (avgScale t) m)
+instance (Floating n, Ord n) => Default (LineWidthM n) where
+  def = fmap (LineWidth . Last) medium
 
-instance (Floating n, Ord n) => Default (LineWidth n) where
-  def = LineWidth (Last medium)
-
-getLineWidth :: LineWidth n -> Measure n
+getLineWidth :: LineWidth n -> n
 getLineWidth (LineWidth (Last w)) = w
 
 -- | Set the line (stroke) width.
-lineWidth :: (Data n, HasStyle a, V a ~ V2, N a ~ n, Floating n) => Measure n -> a -> a
-lineWidth = applyTAttr . LineWidth . Last
+lineWidth :: (N a ~ n, HasStyle a, Typeable n) => Measure n -> a -> a
+lineWidth = applyMAttr . fmap (LineWidth . Last)
 
 -- | Apply a 'LineWidth' attribute.
-lineWidthA :: (Data n, HasStyle a, V a ~ V2, N a ~ n, Floating n) => LineWidth n -> a -> a
-lineWidthA = applyTAttr
+lineWidthM :: (N a ~ n, HasStyle a, Typeable n) => LineWidthM n -> a -> a
+lineWidthM = applyMAttr
 
 -- | Default for 'lineWidth'.
-lw :: (Data n, Floating n, HasStyle a, V a ~ V2, N a ~ n) => Measure n -> a -> a
+lw :: (N a ~ n, HasStyle a, Typeable n) => Measure n -> a -> a
 lw = lineWidth
 
 -- | A convenient synonym for 'lineWidth (global w)'.
-lwG :: (Data n, Floating n, HasStyle a, V a ~ V2, N a ~ n) => n -> a -> a
+lwG :: (N a ~ n, HasStyle a, Typeable n, Num n) => n -> a -> a
 lwG w = lineWidth (global w)
 
 -- | A convenient synonym for 'lineWidth (normalized w)'.
-lwN :: (Data n, Floating n, HasStyle a, V a ~ V2, N a ~ n) => n -> a -> a
+lwN :: (N a ~ n, HasStyle a, Typeable n, Num n) => n -> a -> a
 lwN w = lineWidth (normalized w)
 
 -- | A convenient synonym for 'lineWidth (output w)'.
-lwO :: (Data n, Floating n, HasStyle a, V a ~ V2, N a ~ n) => n -> a -> a
-lwO w = lineWidth (output w)
+lwO :: (N a ~ n, HasStyle a, Typeable n) => n -> a -> a
+lwO = applyAttr . LineWidth . Last -- minor optimisation
 
 -- | A convenient sysnonym for 'lineWidth (local w)'.
-lwL :: (Data n, Floating n, HasStyle a, V a ~ V2, N a ~ n) => n -> a -> a
+lwL :: (N a ~ n, HasStyle a, Typeable n, Num n) => n -> a -> a
 lwL w = lineWidth (local w)
 
 -----------------------------------------------------------------
@@ -171,49 +170,41 @@ lwL w = lineWidth (local w)
 -----------------------------------------------------------------
 
 -- | Create lines that are dashing... er, dashed.
-data Dashing n = Dashing [Measure n] (Measure n)
-  deriving Typeable
+data Dashing n = Dashing [n] n
+  deriving (Functor, Typeable)
 
 newtype DashingA n = DashingA (Last (Dashing n))
-  deriving (Typeable, Semigroup)
+  deriving (Functor, Typeable, Semigroup)
 
 instance Typeable n => AttributeClass (DashingA n)
-
-type instance V (DashingA n) = V2
-type instance N (DashingA n) = n
-
-instance Floating n => Transformable (DashingA n) where
-  transform t (DashingA (Last (Dashing ms m)))
-    = DashingA (Last $ Dashing (map f ms) (f m))
-      where f = scaleLocal (avgScale t)
 
 getDashing :: DashingA n -> Dashing n
 getDashing (DashingA (Last d)) = d
 
 -- | Set the line dashing style.
-dashing :: (Floating n, Data n, HasStyle a, V a ~ V2, N a ~ n)
+dashing :: (N a ~ n, HasStyle a, Typeable n)
         => [Measure n]  -- ^ A list specifying alternate lengths of on
                         --   and off portions of the stroke.  The empty
                         --   list indicates no dashing.
         -> Measure n    -- ^ An offset into the dash pattern at which the
                         --   stroke should start.
         -> a -> a
-dashing ds offs = applyTAttr (DashingA (Last (Dashing ds offs)))
+dashing ds offs = applyMAttr . distribute $ DashingA (Last (Dashing ds offs))
 
 -- | A convenient synonym for 'dashing (global w)'.
-dashingG :: (Data n, Floating n, HasStyle a, V a ~ V2, N a ~ n) => [n] -> n -> a -> a
+dashingG :: (N a ~ n, HasStyle a, Typeable n, Num n) => [n] -> n -> a -> a
 dashingG w v = dashing (map global w) (global v)
 
 -- | A convenient synonym for 'dashing (normalized w)'.
-dashingN :: (Data n, Floating n, HasStyle a, V a ~ V2, N a ~ n) => [n] -> n -> a -> a
+dashingN :: (N a ~ n, HasStyle a, Typeable n, Num n) => [n] -> n -> a -> a
 dashingN w v = dashing (map normalized w) (normalized v)
 
 -- | A convenient synonym for 'dashing (output w)'.
-dashingO :: (Data n, Floating n, HasStyle a, V a ~ V2, N a ~ n) => [n] -> n -> a -> a
+dashingO :: (N a ~ n, HasStyle a, Typeable n, Num n) => [n] -> n -> a -> a
 dashingO w v = dashing (map output w) (output v)
 
 -- | A convenient sysnonym for 'dashing (local w)'.
-dashingL :: (Data n, Floating n, HasStyle a, V a ~ V2, N a ~ n) => [n] -> n -> a -> a
+dashingL :: (N a ~ n, HasStyle a, Typeable n, Num n) => [n] -> n -> a -> a
 dashingL w v = dashing (map local w) (local v)
 
 -- | A gradient stop contains a color and fraction (usually between 0 and 1)
