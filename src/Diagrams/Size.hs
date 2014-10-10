@@ -34,6 +34,7 @@ module Diagrams.Size
 	, sized
 	, sizedAs
 	, getSize
+  , specSize
   ) where
 
 import           Control.Applicative
@@ -106,6 +107,11 @@ dims = SizeSpec
 absolute :: (Additive v, Num n) => SizeSpec v n
 absolute = SizeSpec zero
 
+specSize :: (Foldable v, Functor v, Num n, Ord n) => n -> SizeSpec v n -> v n
+specSize x (getSpec -> spec) = fmap (fromMaybe smallest) spec
+  where
+    smallest = fromMaybe x $ minimumOf (folded . _Just) spec
+
 -- | @requiredScale spec sz@ returns the largest scaling factor to make
 --   something of size @sz@ fit the requested size @spec@, without changing the
 --   aspect ratio. @sz@ should be a strictly positive vector (otherwise a scale
@@ -140,54 +146,4 @@ getSize n (getSpec -> spec) = fmap (fromMaybe lower) spec
   where
     lower = fromMaybe n $ minimumOf (folded . _Just) spec
 
-
--- -- | Adjust the size and position of a 'Diagram' to fit within the requested
--- --   'SizeSpec'.
--- adjustSize
---   :: (V a ~ v, N a ~ n, Enveloped a, Transformable a, Fractional n)
---   => SizeSpec v n          -- ^ Desired size
---   -> a                     -- ^ Object to adjust
---   -> ( (n,n,n)
---      , v n
---      , Transformation v n
---      , QDiagram b v n m)   -- ^
--- adjustSize spec d = ((gToO,nToO,1), s *^ sz, t, transform t d)
---   where
---     s  = requiredScale spec sz
---     sz = size d
---     --
---     sz' = s *^ sz -- size of transformed diagram
--- 
---     -- vector from origin to lower corner of envelope
---     v  = fmap (env . negated) eye
--- 
---     -- transform by moving lower corner to origin and scale
---     t  = scaling s <> translate v
--- 
---     -- gToO = avgScale globalToOutput
---     gToO = s
--- 
---     -- Scaling factor from normalized units to output units: nth root
---     -- of product of diameters along each basis direction.  Note at
---     -- this point the diagram has already had the globalToOutput
---     -- transformation applied, so output = global = local units.
---     -- nToO = product (map (`diameter` d) basis) ** (1 / fromIntegral (dimension d))
---     nToO = productOf folded sz' ** (recip . fromIntegral . dimension) d
-
-
--- adjustDiaSize2D szL _ opts d =
---   ( case spec of
---       Dims _ _ -> opts
---       _        -> opts & szL .~ (uncurry Dims . over both (*s) $ sz)
---   , adjustT
---   , d # transform adjustT
---   )
---   where spec = opts ^. szL
---         sz   = size2D d
---         s    = requiredScale spec sz
---         finalSz = case spec of
---                     Dims w h -> (w,h)
---                     _        -> over both (*s) sz
---         tr = (0.5 *. p2 finalSz) .-. (s *. center2D d)
---         adjustT = translation tr <> scaling s
 

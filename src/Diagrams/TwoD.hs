@@ -253,7 +253,7 @@ module Diagrams.TwoD
        , lineColor, lc, lcA, _SC
 
        -- ** Width
-       , LineWidth, getLineWidth, lineWidth, lineWidthA
+       , LineWidth, getLineWidth, lineWidth, lineWidthM
        , lw, lwN, lwO, lwL, lwG
        , ultraThin, veryThin, thin, medium, thick, veryThick, ultraThick, none
        , tiny, verySmall, small, normal, large, veryLarge, huge
