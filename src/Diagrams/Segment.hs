@@ -76,7 +76,7 @@ import           Linear.Metric
 import           Linear.Vector
 
 import           Control.Applicative
-import           Diagrams.Core
+import           Diagrams.Core            hiding (Measured)
 import           Diagrams.Located
 import           Diagrams.Parametric
 import           Diagrams.Solve
