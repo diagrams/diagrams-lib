@@ -19,7 +19,7 @@
 --
 -----------------------------------------------------------------------------
 
-module Diagrams.TwoD.Transform.ScaleInv
+module Diagrams.Transform.ScaleInv
     ( ScaleInv(..)
     , scaleInvObj, scaleInvDir, scaleInvLoc
     , scaleInv, scaleInvPrim)
