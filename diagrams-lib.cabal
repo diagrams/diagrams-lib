@@ -41,6 +41,7 @@ Library
                        Diagrams.Deform
                        Diagrams.Direction,
                        Diagrams.Envelope,
+                       Diagrams.LinearMap,
                        Diagrams.Located,
                        Diagrams.Names,
                        Diagrams.Parametric,
