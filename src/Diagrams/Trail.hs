@@ -181,34 +181,53 @@ instance Num (Scalar v) => DomainBounds (SegTree v)
 instance (InnerSpace v, OrderedField (Scalar v), RealFrac (Scalar v), Num (Scalar v))
     => EndValues (SegTree v)
 
+type SplitResult v = ((SegTree v, Scalar v -> Scalar v), (SegTree v, Scalar v -> Scalar v))
+
+splitAtParam' :: (InnerSpace v, RealFrac (Scalar v), Floating (Scalar v), Sectionable (SegTree v))
+              => SegTree v -> Scalar v -> SplitResult v
+splitAtParam' tree@(SegTree t) p
+  | p < 0     = case FT.viewl t of
+                  EmptyL    -> emptySplit
+                  seg :< t' ->
+                    case seg `splitAtParam` (p * tSegs) of
+                      (seg1, seg2) -> ( (SegTree $ FT.singleton seg1, \u -> u * p)
+                                      , (SegTree $ seg2 <| t', \u -> 1 - (1 - u) * tSegs / (tSegs + 1))
+                                      )
+  | p >= 1    = case FT.viewr t of
+                  EmptyR    -> emptySplit
+                  t' :> seg ->
+                    case seg `splitAtParam` (1 - (1 - p)*tSegs) of
+                      (seg1, seg2) -> ( (SegTree $ t' |> seg1, \u -> u * tSegs / (tSegs + 1))
+                                      , (SegTree $ FT.singleton seg2, \u -> (u - p) / (1 - p))
+                                      )
+  | otherwise = case FT.viewl after of
+                  EmptyL    -> emptySplit
+                  seg :< after' ->
+                    let (fromIntegral -> n, p') = propFrac $ p * tSegs in
+                    case seg `splitAtParam` p' of
+                      (seg1, seg2) -> ( ( SegTree $ before |> seg1
+                                        , \u -> if u * tSegs < n
+                                                  then u * tSegs / (n + 1)
+                                                  else (n + (u * tSegs - n) / (p * tSegs - n)) / (n+1)
+                                        )
+                                      , ( SegTree $ seg2   <| after'
+                                        , \u -> 1 - (1 - u) * tSegs / newSegs (1 - p)
+                                        )
+                                      )
+ where
+    newSegs p' = fromIntegral . succ . fst . propFrac $ p' * tSegs
+    (before, after) = FT.split ((p * tSegs <) . numSegs) t
+    tSegs           = numSegs t
+    emptySplit      = let t' = (tree, id) in (t',t')
+
 instance (InnerSpace v, RealFrac (Scalar v), Floating (Scalar v))
     => Sectionable (SegTree v) where
-  splitAtParam (SegTree t) p
-    | p < 0     = case FT.viewl t of
-                    EmptyL    -> emptySplit
-                    seg :< t' ->
-                      case seg `splitAtParam` (p * tSegs) of
-                        (seg1, seg2) -> ( SegTree $ FT.singleton seg1
-                                        , SegTree $ seg2 <| t'
-                                        )
-    | p >= 1    = case FT.viewr t of
-                    EmptyR    -> emptySplit
-                    t' :> seg ->
-                      case seg `splitAtParam` (1 - (1 - p)*tSegs) of
-                        (seg1, seg2) -> ( SegTree $ t' |> seg1
-                                        , SegTree $ FT.singleton seg2
-                                        )
-    | otherwise = case FT.viewl after of
-                    EmptyL    -> emptySplit
-                    seg :< after' ->
-                      case seg `splitAtParam` (snd . propFrac $ p * tSegs) of
-                        (seg1, seg2) -> ( SegTree $ before |> seg1
-                                        , SegTree $ seg2   <| after'
-                                        )
+  splitAtParam t p = let ((ta,_),(tb,_)) = splitAtParam' t p in (ta,tb)
+
+  section tree p p' = t'
     where
-      (before, after) = FT.split ((p * tSegs <) . numSegs) t
-      tSegs           = numSegs t
-      emptySplit      = (SegTree t, SegTree t)
+      ((ta,f), _ ) = splitAtParam' tree p'
+      (_     , t') = splitAtParam  ta   (f p)
 
   reverseDomain (SegTree t) = SegTree $ FT.reverse t'
     where t' = FT.fmap' reverseSegment t
