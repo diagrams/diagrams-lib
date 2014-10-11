@@ -66,6 +66,7 @@ Library
                        Diagrams.Trail,
                        Diagrams.TrailLike,
                        Diagrams.Transform,
+                       Diagrams.Transform.ScaleInv,
                        Diagrams.TwoD,
                        Diagrams.TwoD.Adjust,
                        Diagrams.TwoD.Align,
@@ -87,7 +88,6 @@ Library
                        Diagrams.TwoD.Shapes,
                        Diagrams.TwoD.Text,
                        Diagrams.TwoD.Transform,
-                       Diagrams.TwoD.Transform.ScaleInv,
                        Diagrams.TwoD.Types,
                        Diagrams.TwoD.Vector,
                        Diagrams.Util

@@ -48,7 +48,6 @@ import           Data.Typeable
 -- import           GHC.Generics         (Generic)
 
 import           Diagrams.Core
-import           Diagrams.Core.Transform
 
 import           Linear.Vector
 

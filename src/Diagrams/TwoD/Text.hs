@@ -40,7 +40,7 @@ import           Diagrams.Core.Envelope   (pointEnvelope)
 import           Diagrams.TwoD.Attributes (recommendFillColor)
 import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector
-import           Diagrams.TwoD.Transform.ScaleInv
+import           Diagrams.Transform.ScaleInv
 
 import           Data.Colour
 import           Data.Functor
