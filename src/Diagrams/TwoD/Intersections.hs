@@ -1,10 +1,10 @@
-{-# LANGUAGE FlexibleContexts           #-}
-{-# LANGUAGE FlexibleInstances          #-}
-{-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE Rank2Types                 #-}
-{-# LANGUAGE TypeFamilies               #-}
-{-# LANGUAGE UndecidableInstances       #-}
-{-# LANGUAGE BangPatterns               #-}
+{-# LANGUAGE BangPatterns          #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE Rank2Types            #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE UndecidableInstances  #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 -----------------------------------------------------------------------------
 -- |
@@ -22,22 +22,21 @@
 
 module Diagrams.TwoD.Intersections where
 
-import           Control.Lens hiding (contains)
+import           Control.Lens          hiding (contains)
 
 import           Diagrams.Core
 import           Diagrams.Parametric
 import           Diagrams.Segment
 import           Diagrams.Trail
 import           Diagrams.TwoD.Segment ()
-import           Diagrams.TwoD.Types hiding (p2)
+import           Diagrams.TwoD.Types   hiding (p2)
 
-import           Linear.Affine
-import Data.List (tails)
-import Data.Maybe
-import Diagrams.Prelude hiding (view, p2, p3, pr)
-import Control.Monad
-import Data.Foldable (Foldable)
-import Diagrams.BoundingBox
+import           Control.Monad
+import           Data.Foldable         (Foldable)
+import           Data.List             (tails)
+import           Data.Maybe
+import           Diagrams.BoundingBox
+import           Diagrams.Prelude      hiding (p2, p3, pr, view)
 
 ------------------------------------------------------------------------
 -- High level functions
@@ -145,7 +144,7 @@ findOuter upper (p1:p2:rest) =
   case findOuter' upper (p2.-.p1) p2 rest of
     Right l -> p1:l
     Left l  -> findOuter upper (p1:l)
-findOuter _ l = l    
+findOuter _ l = l
 
 -- take the y values and turn it in into a convex hull with upper en
 -- lower points separated.
@@ -221,7 +220,7 @@ bezierClip p@(FCubic !p0 !p1 !p2 !p3) q@(FCubic !q0 !q1 !q2 !q3)
          in  bezierClip ql newP umin half_t new_tmin new_tmax newClip eps (not revCurves) ++
              bezierClip qr newP half_t umax new_tmin new_tmax newClip eps (not revCurves)
 
-  -- within tolerance      
+  -- within tolerance
   | max (umax - umin) (new_tmax - new_tmin) < eps =
     if revCurves
     then [ (umin + (umax - umin)/2,
@@ -271,7 +270,7 @@ bezierIntersection p q eps = bezierClip p q 0 1 0 1 0 eps False
 -- can be used as a bernstein polynomial root solver by converting from
 -- the power basis to the bernstein basis.
 bezierFindRoot :: OrderedField n => BernsteinPoly n -- ^ the bernstein coefficients of the polynomial
-               -> n  -- ^ The lower bound of the interval 
+               -> n  -- ^ The lower bound of the interval
                -> n  -- ^ The upper bound of the interval
                -> n  -- ^ The accuracy
                -> [n] -- ^ The roots found
@@ -325,8 +324,6 @@ closest cb (P (V2 px py)) = bezierFindRoot poly 0 1
            (by ~- listToBernstein [py, py, py, py]) ~* by'
 
 
-
-
 bezierToBernstein :: Fractional n => FixedSegment V2 n -> (BernsteinPoly n, BernsteinPoly n)
 bezierToBernstein (FCubic a b c d) = (listToBernstein $ map (view _x) coeffs, listToBernstein $ map (view _y) coeffs)
   where coeffs = [a, b, c, d]
@@ -355,7 +352,7 @@ zeroPoly = BernsteinPoly 0 [0]
 
 -- | Return the subsegment between the two parameters.
 bernsteinSubsegment :: OrderedField n => BernsteinPoly n -> n -> n -> BernsteinPoly n
-bernsteinSubsegment b t1 t2 
+bernsteinSubsegment b t1 t2
   | t1 > t2   = bernsteinSubsegment b t2 t1
   | otherwise = snd $ flip bernsteinSplit (t1/t2) $
                 fst $ bernsteinSplit b t2
@@ -414,7 +411,7 @@ bernsteinEval (BernsteinPoly lp (b':bs)) t = go t n (b'*u) 2 bs
           (i+1)             -- i
           rest
         go _ _ _ _ [] = error "impossible"
-        
+
 
 -- | Evaluate the bernstein polynomial and its derivatives.
 bernsteinEvalDerivs :: Fractional n => BernsteinPoly n -> n -> [n]
@@ -473,7 +470,7 @@ a *~ (BernsteinPoly lb b) = BernsteinPoly lb (map (*a) b)
 -- Line-Line intersection
 ------------------------------------------------------------------------
 
--- | @lineLineIntersect a b c d@ calculates the intersection between the two 
+-- | @lineLineIntersect a b c d@ calculates the intersection between the two
 --   lines defined by point @a b@ and points @c d@.
 lineLineIntersect :: Fractional n => P2 n -> P2 n -> P2 n -> P2 n -> P2 n
 lineLineIntersect (P (V2 x1 y1)) (P (V2 x2 y2)) (P (V2 x3 y3)) (P (V2 x4 y4)) = mkP2 x y
@@ -492,7 +489,7 @@ lineLineIntersect (P (V2 x1 y1)) (P (V2 x2 y2)) (P (V2 x3 y3)) (P (V2 x4 y4)) = 
     --
     det a b c d = a*d - b*c
 
--- | Calculate the intersecting box for two fixed segments. This is a 
+-- | Calculate the intersecting box for two fixed segments. This is a
 --   specialised version of @intersection (boundingBox a) (boundingBox b)@.
 segmentIntersectingBox
   :: (Foldable v, Additive v, Fractional n, Ord n)
