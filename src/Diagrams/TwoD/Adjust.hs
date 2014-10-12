@@ -21,10 +21,10 @@ module Diagrams.TwoD.Adjust
     , adjustDiaSize
     ) where
 
-import           Diagrams.Attributes      (lineCap, lineJoin, lineMiterLimitA)
+import           Diagrams.Attributes
 import           Diagrams.Core
 import           Diagrams.Core.Envelope
-import           Diagrams.TwoD.Attributes (lineTextureA, lineWidthM)
+import           Diagrams.TwoD.Attributes (lineTextureA)
 import           Diagrams.TwoD.Text       (fontSizeM)
 import           Diagrams.TwoD.Types
 import           Diagrams.Util            (( # ))
@@ -51,7 +51,7 @@ import           Linear.Vector
 --       * line join miter
 --
 --       * Miter limit 10
-setDefault2DAttributes :: (DataFloat n, Semigroup m) => QDiagram b V2 n m -> QDiagram b V2 n m
+setDefault2DAttributes :: (TypeableFloat n, Semigroup m) => QDiagram b V2 n m -> QDiagram b V2 n m
 setDefault2DAttributes d
   = d # lineWidthM def
       # lineTextureA def
@@ -109,7 +109,7 @@ adjustSize szL _ opts d = (set szL sz' opts, t, d # transform t)
 --   to the diagram (the inverse of which can be used, say, to
 --   translate output/device coordinates back into local diagram
 --   coordinates), and the modified diagram itself.
-adjustDiaSize :: (DataFloat n, Monoid' m)
+adjustDiaSize :: (TypeableFloat n, Monoid' m)
             => Lens' (Options b V2 n) (SizeSpec V2 n)
             -> b -> Options b V2 n -> QDiagram b V2 n m
             -> (Options b V2 n, Transformation V2 n, QDiagram b V2 n m)

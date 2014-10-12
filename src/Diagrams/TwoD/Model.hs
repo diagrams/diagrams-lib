@@ -30,6 +30,7 @@ import           Data.Default.Class
 import qualified Data.Map                 as M
 import           Data.Semigroup
 
+import           Diagrams.Attributes
 import           Diagrams.Core
 import           Diagrams.Path
 import           Diagrams.TwoD.Attributes

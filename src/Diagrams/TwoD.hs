@@ -252,16 +252,6 @@ module Diagrams.TwoD
        , fillColor, fc, fcA, recommendFillColor
        , lineColor, lc, lcA, _SC
 
-       -- ** Width
-       , LineWidth, getLineWidth, lineWidth, lineWidthM
-       , lw, lwN, lwO, lwL, lwG
-       , ultraThin, veryThin, thin, medium, thick, veryThick, ultraThick, none
-       , tiny, verySmall, small, normal, large, veryLarge, huge
-
-       -- ** Dashing
-       , Dashing(..), DashingA, getDashing
-       , dashing, dashingO, dashingL, dashingN, dashingG
-
          -- * Visual aids for understanding the internal model
        , showOrigin
        , showOrigin'
