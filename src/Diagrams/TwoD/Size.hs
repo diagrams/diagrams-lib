@@ -21,6 +21,8 @@ module Diagrams.TwoD.Size
 
          -- ** Specifying sizes
        , mkSizeSpec2D
+       , mkWidth
+       , mkHeight
 
        ) where
 
@@ -57,4 +59,10 @@ extentY = extent unitY
 --   height.
 mkSizeSpec2D :: Num n => Maybe n -> Maybe n -> SizeSpec V2 n
 mkSizeSpec2D x = mkSpec . V2 x
+
+mkWidth :: Num n => n -> SizeSpec V2 n
+mkWidth w = dims (V2 w 0)
+
+mkHeight :: Num n => n -> SizeSpec V2 n
+mkHeight h = dims (V2 0 h)
 
