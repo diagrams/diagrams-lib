@@ -5,9 +5,9 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE ViewPatterns         #-}
 {-# LANGUAGE DeriveFunctor        #-}
+{-# LANGUAGE DeriveGeneric        #-}
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE StandaloneDeriving   #-}
 {-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE ConstraintKinds      #-}
@@ -41,11 +41,10 @@ import           Control.Applicative
 import           Control.Lens         hiding (transform)
 import           Control.Monad
 import           Data.Foldable        as F
--- import           Data.Functor.Rep
--- import           Data.Hashable        (Hashable)
 import           Data.Maybe
 import           Data.Typeable
--- import           GHC.Generics         (Generic)
+import           Data.Hashable
+import           GHC.Generics         (Generic)
 
 import           Diagrams.Core
 
@@ -54,10 +53,6 @@ import           Linear.Vector
 ------------------------------------------------------------
 -- Computing diagram sizes
 ------------------------------------------------------------
-
--- -- | Compute the size of an enveloped object as a vector.
--- size :: (V a ~ v, N a ~ n, Enveloped a, HasLinearMap v) => a -> v n
--- size d = tabulate $ \(E l) -> diameter (unit l) d
 
 -- | Compute the point in the center of the bounding box of the enveloped object.
 -- centerPoint :: (InSpace v n a, Enveloped a, HasLinearMap v, HasBasis v) => a -> Maybe (Point v n)
@@ -69,22 +64,19 @@ newtype SizeSpec v n = SizeSpec (v n)
 #if __GLASGOW_HASKELL__ >= 707
   Typeable,
 #endif
-  Functor)
+  Functor,
+  Generic,
+  Hashable,
+  Show)
 
 #if __GLASGOW_HASKELL__ < 707
-instance Typeable2 Path where
-  typeOf2 _ = mkTyConApp sizeSpecTyCon []
-
-sizeSpecTyCon :: TyCon
-sizeSpecTyCon = mkTyCon3 "diagrams-lib" "Diagrams.Size" "SizeSpec"
+instance forall v. Typeable1 v => Typeable1 (SizeSpec v) where
+  typeOf1 _ = mkTyConApp (mkTyCon3 "diagrams-lib" "Diagrams.Size" "Size") [] `mkAppTy`
+              typeOf1 (undefined :: v n)
 #endif
 
 type instance V (SizeSpec v n) = v
 type instance N (SizeSpec v n) = n
-
-deriving instance (Show (v n)) => Show (SizeSpec v n)
--- instance Generic (v n)         => Generic (SizeSpec v n)
--- instance Hashable (v n)        => Hashable (SizeSpec v n)
 
 sizeSpec :: (InSpace v n a, Enveloped a, HasBasis v) => a -> SizeSpec v n
 sizeSpec = dims . size
