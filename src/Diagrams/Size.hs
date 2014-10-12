@@ -1,17 +1,17 @@
-{-# LANGUAGE CPP                  #-}
+{-# LANGUAGE CPP                        #-}
 #if __GLASGOW_HASKELL__ >= 707
-{-# LANGUAGE DeriveDataTypeable   #-}
+{-# LANGUAGE DeriveDataTypeable         #-}
 #endif
+{-# LANGUAGE ConstraintKinds            #-}
+{-# LANGUAGE DeriveFunctor              #-}
+{-# LANGUAGE DeriveGeneric              #-}
+{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE ViewPatterns         #-}
-{-# LANGUAGE DeriveFunctor        #-}
-{-# LANGUAGE DeriveGeneric        #-}
-{-# LANGUAGE FlexibleContexts     #-}
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE TypeFamilies         #-}
-{-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE ConstraintKinds      #-}
-{-# LANGUAGE RankNTypes           #-}
+{-# LANGUAGE RankNTypes                 #-}
+{-# LANGUAGE ScopedTypeVariables        #-}
+{-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE UndecidableInstances       #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -39,13 +39,13 @@ module Diagrams.Size
   ) where
 
 import           Control.Applicative
-import           Control.Lens         hiding (transform)
+import           Control.Lens        hiding (transform)
 import           Control.Monad
-import           Data.Foldable        as F
+import           Data.Foldable       as F
+import           Data.Hashable
 import           Data.Maybe
 import           Data.Typeable
-import           Data.Hashable
-import           GHC.Generics         (Generic)
+import           GHC.Generics        (Generic)
 
 import           Diagrams.Core
 
