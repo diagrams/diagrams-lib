@@ -44,13 +44,14 @@ import           Data.Semigroup
 
 import           Diagrams.Core
 
+import           Diagrams.Attributes      (lineWidth)
 import           Diagrams.BoundingBox
 import           Diagrams.Combinators
 import           Diagrams.Path
 import           Diagrams.Segment
 import           Diagrams.TrailLike
 import           Diagrams.TwoD.Align
-import           Diagrams.TwoD.Attributes (fc, lineWidth)
+import           Diagrams.TwoD.Attributes (fc)
 import           Diagrams.TwoD.Path       ()
 import           Diagrams.TwoD.Shapes
 import           Diagrams.TwoD.Transform  (scaleX, scaleY)

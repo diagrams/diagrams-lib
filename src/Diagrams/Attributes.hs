@@ -1,5 +1,7 @@
 {-# LANGUAGE DeriveDataTypeable         #-}
+{-# LANGUAGE DeriveFunctor              #-}
 {-# LANGUAGE ExistentialQuantification  #-}
+{-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
 {-# LANGUAGE TypeFamilies               #-}
@@ -24,10 +26,23 @@
 -----------------------------------------------------------------------------
 
 module Diagrams.Attributes (
+    -- ** Standard measures
+    ultraThin, veryThin, thin, medium, thick, veryThick, ultraThick, none
+  , tiny, verySmall, small, normal, large, veryLarge, huge
+
+    -- ** Line width
+  , LineWidth, getLineWidth, lineWidth, lineWidthM
+  , lw, lwN, lwO, lwL, lwG
+
+    -- ** Dashing
+  , Dashing(..), DashingA, getDashing
+  , dashing, dashingN, dashingO, dashingL, dashingG
+
+
   -- * Color
   -- $color
 
-    Color(..), SomeColor(..), someToAlpha
+  , Color(..), SomeColor(..), someToAlpha
 
   -- ** Opacity
   , Opacity, getOpacity, opacity
@@ -51,11 +66,125 @@ import           Data.Colour
 import           Data.Colour.RGBSpace (RGB (..))
 import           Data.Colour.SRGB     (toSRGB)
 import           Data.Default.Class
-
+import           Data.Distributive
 import           Data.Semigroup
 import           Data.Typeable
 
 import           Diagrams.Core
+
+
+-----------------------------------------------------------------
+--  Standard Measures -------------------------------------------
+-----------------------------------------------------------------
+
+none, ultraThin, veryThin, thin, medium, thick, veryThick, ultraThick,
+  tiny, verySmall, small, normal, large, veryLarge, huge
+  :: OrderedField n => Measure n
+none       = output 0
+ultraThin  = normalized 0.0005 `atLeast` output 0.5
+veryThin   = normalized 0.001  `atLeast` output 0.5
+thin       = normalized 0.002  `atLeast` output 0.5
+medium     = normalized 0.004  `atLeast` output 0.5
+thick      = normalized 0.0075 `atLeast` output 0.5
+veryThick  = normalized 0.01   `atLeast` output 0.5
+ultraThick = normalized 0.02   `atLeast` output 0.5
+
+tiny      = normalized 0.01
+verySmall = normalized 0.015
+small     = normalized 0.023
+normal    = normalized 0.035
+large     = normalized 0.05
+veryLarge = normalized 0.07
+huge      = normalized 0.10
+
+-----------------------------------------------------------------
+--  Line Width  -------------------------------------------------
+-----------------------------------------------------------------
+
+-- | Line widths specified on child nodes always override line widths
+--   specified at parent nodes.
+newtype LineWidth n = LineWidth (Last n)
+  deriving (Typeable, Semigroup)
+
+instance Typeable n => AttributeClass (LineWidth n)
+
+type LineWidthM n = Measured n (LineWidth n)
+
+instance (Floating n, Ord n) => Default (LineWidthM n) where
+  def = fmap (LineWidth . Last) medium
+
+getLineWidth :: LineWidth n -> n
+getLineWidth (LineWidth (Last w)) = w
+
+-- | Set the line (stroke) width.
+lineWidth :: (N a ~ n, HasStyle a, Typeable n) => Measure n -> a -> a
+lineWidth = applyMAttr . fmap (LineWidth . Last)
+
+-- | Apply a 'LineWidth' attribute.
+lineWidthM :: (N a ~ n, HasStyle a, Typeable n) => LineWidthM n -> a -> a
+lineWidthM = applyMAttr
+
+-- | Default for 'lineWidth'.
+lw :: (N a ~ n, HasStyle a, Typeable n) => Measure n -> a -> a
+lw = lineWidth
+
+-- | A convenient synonym for 'lineWidth (global w)'.
+lwG :: (N a ~ n, HasStyle a, Typeable n, Num n) => n -> a -> a
+lwG w = lineWidth (global w)
+
+-- | A convenient synonym for 'lineWidth (normalized w)'.
+lwN :: (N a ~ n, HasStyle a, Typeable n, Num n) => n -> a -> a
+lwN w = lineWidth (normalized w)
+
+-- | A convenient synonym for 'lineWidth (output w)'.
+lwO :: (N a ~ n, HasStyle a, Typeable n) => n -> a -> a
+lwO = applyAttr . LineWidth . Last -- minor optimisation
+
+-- | A convenient sysnonym for 'lineWidth (local w)'.
+lwL :: (N a ~ n, HasStyle a, Typeable n, Num n) => n -> a -> a
+lwL w = lineWidth (local w)
+
+-----------------------------------------------------------------
+--  Dashing  ----------------------------------------------------
+-----------------------------------------------------------------
+
+-- | Create lines that are dashing... er, dashed.
+data Dashing n = Dashing [n] n
+  deriving (Functor, Typeable)
+
+newtype DashingA n = DashingA (Last (Dashing n))
+  deriving (Functor, Typeable, Semigroup)
+
+instance Typeable n => AttributeClass (DashingA n)
+
+getDashing :: DashingA n -> Dashing n
+getDashing (DashingA (Last d)) = d
+
+-- | Set the line dashing style.
+dashing :: (N a ~ n, HasStyle a, Typeable n)
+        => [Measure n]  -- ^ A list specifying alternate lengths of on
+                        --   and off portions of the stroke.  The empty
+                        --   list indicates no dashing.
+        -> Measure n    -- ^ An offset into the dash pattern at which the
+                        --   stroke should start.
+        -> a -> a
+dashing ds offs = applyMAttr . distribute $ DashingA (Last (Dashing ds offs))
+
+-- | A convenient synonym for 'dashing (global w)'.
+dashingG :: (N a ~ n, HasStyle a, Typeable n, Num n) => [n] -> n -> a -> a
+dashingG w v = dashing (map global w) (global v)
+
+-- | A convenient synonym for 'dashing (normalized w)'.
+dashingN :: (N a ~ n, HasStyle a, Typeable n, Num n) => [n] -> n -> a -> a
+dashingN w v = dashing (map normalized w) (normalized v)
+
+-- | A convenient synonym for 'dashing (output w)'.
+dashingO :: (N a ~ n, HasStyle a, Typeable n, Num n) => [n] -> n -> a -> a
+dashingO w v = dashing (map output w) (output v)
+
+-- | A convenient sysnonym for 'dashing (local w)'.
+dashingL :: (N a ~ n, HasStyle a, Typeable n, Num n) => [n] -> n -> a -> a
+dashingL w v = dashing (map local w) (local v)
 
 ------------------------------------------------------------
 --  Color  -------------------------------------------------
