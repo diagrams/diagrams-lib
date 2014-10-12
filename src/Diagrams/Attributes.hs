@@ -137,8 +137,8 @@ lwN :: (N a ~ n, HasStyle a, Typeable n, Num n) => n -> a -> a
 lwN w = lineWidth (normalized w)
 
 -- | A convenient synonym for 'lineWidth (output w)'.
-lwO :: (N a ~ n, HasStyle a, Typeable n) => n -> a -> a
-lwO = applyAttr . LineWidth . Last -- minor optimisation
+lwO :: (N a ~ n, HasStyle a, Typeable n, Num n) => n -> a -> a
+lwO w = lineWidth (output w)
 
 -- | A convenient sysnonym for 'lineWidth (local w)'.
 lwL :: (N a ~ n, HasStyle a, Typeable n, Num n) => n -> a -> a
