@@ -379,7 +379,8 @@ arrow = arrow' def
 arrow' :: (DataFloat n, Renderable (Path V2 n) b) => ArrowOpts n -> n -> Diagram b V2 n
 arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
 
-      -- Currently arrows have an empty envelope and trace.
+      -- Currently we approximate the envelope of an arrow by using the 
+      -- envelope of its shaft (see 'arrowEnv'). The trace of an arrow is empty.
       (arrowEnv opts len) mempty mempty mempty
 
   where
