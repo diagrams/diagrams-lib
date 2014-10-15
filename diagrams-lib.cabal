@@ -84,6 +84,7 @@ Library
                        Diagrams.TwoD.Offset,
                        Diagrams.TwoD.Path,
                        Diagrams.TwoD.Polygons,
+                       Diagrams.TwoD.Intersections,
                        Diagrams.TwoD.Segment,
                        Diagrams.TwoD.Size,
                        Diagrams.TwoD.Shapes,

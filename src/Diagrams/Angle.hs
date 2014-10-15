@@ -25,7 +25,7 @@ module Diagrams.Angle
 
          -- ** Trigonometric functions
        , sinA, cosA, tanA
-       , asinA, acosA, atanA, atan2A
+       , asinA, acosA, atanA, atan2A, atan2A'
 
          -- ** Angle utilities
        , angleBetween, angleRatio
@@ -41,6 +41,7 @@ import           Data.Monoid         hiding ((<>))
 import           Data.Semigroup
 
 import           Diagrams.Core.V
+import           Diagrams.Core       (OrderedField)
 import           Diagrams.Points
 
 import           Linear.Metric
@@ -49,7 +50,7 @@ import           Linear.Vector
 -- | Angles can be expressed in a variety of units.  Internally,
 --   they are represented in radians.
 newtype Angle n = Radians n
-  deriving (Read, Show, Eq, Ord, Enum,  Functor)
+  deriving (Read, Show, Eq, Ord, Enum, Functor)
 
 type instance N (Angle n) = n
 
@@ -131,10 +132,27 @@ acosA = Radians . acos
 atanA :: Floating n => n -> Angle n
 atanA = Radians . atan
 
--- | @atan2A y x@ is the angle between the positive x-axis and the vector given 
+-- | @atan2A y x@ is the angle between the positive x-axis and the vector given
 --   by the coordinates (x, y). The 'Angle' returned is in the [-pi,pi] range.
 atan2A :: RealFloat n => n -> n -> Angle n
 atan2A y x = Radians $ atan2 y x
+
+-- | Similar to 'atan2A' but without the 'RealFloat' constraint. This means it
+--   doesn't handle negative zero cases. However, for most geometric purposes,
+--   outcome will be the same.
+atan2A' :: OrderedField n => n -> n -> Angle n
+atan2A' y x = atan2' y x @@ rad
+
+-- atan2 without negative zero tests
+atan2' :: OrderedField n => n -> n -> n
+atan2' y x
+  | x > 0            =  atan (y/x)
+  | x == 0 && y > 0  =  pi/2
+  | x <  0 && y > 0  =  pi + atan (y/x)
+  | x <= 0 && y < 0  = -atan2' (-y) x
+  | y == 0 && x < 0  =  pi    -- must be after the previous test on zero y
+  | x==0 && y==0     =  y     -- must be after the other double zero tests
+  | otherwise        =  x + y -- x or y is a NaN, return a NaN (via +)
 
 -- | @30 \@\@ deg@ is an @Angle@ of the given measure and units.
 --
@@ -148,8 +166,9 @@ a @@ i = review i a
 infixl 5 @@
 
 -- | Compute the positive angle between the two vectors in their common plane.
+--   Returns NaN if either of the vectors are zero.
 angleBetween  :: (Metric v, Floating n) => v n -> v n -> Angle n
-angleBetween v1 v2 = acos (signorm v1 `dot` signorm v2) @@ rad
+angleBetween v1 v2 = acosA (signorm v1 `dot` signorm v2)
 -- N.B.: Currently discards the common plane information.
 
 -- | Normalize an angle so that it lies in the [0,tau) range.
