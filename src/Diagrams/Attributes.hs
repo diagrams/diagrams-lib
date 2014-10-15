@@ -110,7 +110,7 @@ instance Typeable n => AttributeClass (LineWidth n)
 
 type LineWidthM n = Measured n (LineWidth n)
 
-instance (Floating n, Ord n) => Default (LineWidthM n) where
+instance OrderedField n => Default (LineWidthM n) where
   def = fmap (LineWidth . Last) medium
 
 getLineWidth :: LineWidth n -> n
@@ -130,19 +130,19 @@ lw = lineWidth
 
 -- | A convenient synonym for 'lineWidth (global w)'.
 lwG :: (N a ~ n, HasStyle a, Typeable n, Num n) => n -> a -> a
-lwG w = lineWidth (global w)
+lwG = lw . global
 
 -- | A convenient synonym for 'lineWidth (normalized w)'.
 lwN :: (N a ~ n, HasStyle a, Typeable n, Num n) => n -> a -> a
-lwN w = lineWidth (normalized w)
+lwN = lw . normalized
 
 -- | A convenient synonym for 'lineWidth (output w)'.
 lwO :: (N a ~ n, HasStyle a, Typeable n, Num n) => n -> a -> a
-lwO w = lineWidth (output w)
+lwO = lw . output
 
 -- | A convenient sysnonym for 'lineWidth (local w)'.
 lwL :: (N a ~ n, HasStyle a, Typeable n, Num n) => n -> a -> a
-lwL w = lineWidth (local w)
+lwL = lw . local
 
 -----------------------------------------------------------------
 --  Dashing  ----------------------------------------------------

@@ -12,6 +12,7 @@
 {-# LANGUAGE ScopedTypeVariables        #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE UndecidableInstances       #-}
+{-# LANGUAGE ViewPatterns               #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -25,7 +26,6 @@
 -----------------------------------------------------------------------------
 module Diagrams.Size
   ( SizeSpec
-  , sizeSpec
   , mkSpec
 	, dims
 	, absolute
@@ -78,9 +78,6 @@ instance forall v. Typeable1 v => Typeable1 (SizeSpec v) where
 
 type instance V (SizeSpec v n) = v
 type instance N (SizeSpec v n) = n
-
-sizeSpec :: (InSpace v n a, Enveloped a, HasBasis v) => a -> SizeSpec v n
-sizeSpec = dims . size
 
 -- | Retrieve a size spec as a vector of maybe values. Only positive sizes are
 --   returned.

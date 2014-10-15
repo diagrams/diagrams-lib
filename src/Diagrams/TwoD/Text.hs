@@ -39,7 +39,6 @@ import           Diagrams.Core
 import           Diagrams.Core.Envelope   (pointEnvelope)
 import           Diagrams.TwoD.Attributes (recommendFillColor)
 import           Diagrams.TwoD.Types
-import           Diagrams.TwoD.Vector
 import           Diagrams.Transform.ScaleInv
 
 import           Data.Colour
@@ -47,6 +46,7 @@ import           Data.Functor
 import           Data.Typeable
 import           Data.Default.Class
 import           Data.Semigroup
+import           Data.Monoid.Recommend
 
 import           Linear.Affine
 
@@ -67,7 +67,8 @@ type instance V (Text n) = V2
 type instance N (Text n) = n
 
 instance Floating n => Transformable (Text n) where
-  transform t (Text tt a s) = Text (t <> tt) a s
+  transform t (Text tt a s) = Text (t <> tt <> t') a s
+    where t' = scaling (1 / avgScale t)
 
 instance Floating n => HasOrigin (Text n) where
   moveOriginTo p = translate (origin .-. p)
@@ -83,7 +84,7 @@ mkText :: (TypeableFloat n, Renderable (Text n) b)
 mkText a t = recommendFillColor (black :: Colour Double)
              -- See Note [recommendFillColor]
 
-           $ mkQD (Prim $ scaleInv (Text mempty a t) unitX)
+           $ mkQD (Prim $ mkScaleNormalize (Text mempty a t))
                        (pointEnvelope origin)
                        mempty
                        mempty
@@ -177,25 +178,33 @@ font = applyAttr . Font . Last
 
 -- | The @FontSize@ attribute specifies the size of a font's
 --   em-square.  Inner @FontSize@ attributes override outer ones.
-newtype FontSize n = FontSize (Last n)
-  deriving (Typeable, Semigroup, Functor)
+newtype FontSize n = FontSize (Recommend (Last n))
+  deriving (Typeable, Semigroup)
+
+-- not sure why this can't be derived
+instance Functor FontSize where
+  fmap f (FontSize (Recommend (Last a))) = FontSize (Recommend (Last (f a)))
+  fmap f (FontSize (Commit (Last a)))    = FontSize (Commit (Last (f a)))
+
+-- (Recommend (Last (Texture n)))
 
 type FontSizeM n = Measured n (FontSize n)
 
 instance Typeable n => AttributeClass (FontSize n)
 
 instance Num n => Default (FontSizeM n) where
-  def = FontSize . Last <$> local 1
+  def = FontSize . Recommend . Last <$> local 1
 
 -- | Extract the size from a @FontSize@ attribute.
 getFontSize :: FontSize n -> n
-getFontSize (FontSize (Last s)) = s
+getFontSize (FontSize (Recommend (Last s))) = s
+getFontSize (FontSize (Commit (Last s)))    = s
 
 -- | Set the font size, that is, the size of the font's em-square as
 --   measured within the current local vector space.  The default size
 --   is @1@.
 fontSize :: (N a ~ n, Typeable n, HasStyle a) => Measure n -> a -> a
-fontSize = applyMAttr . fmap (FontSize . Last)
+fontSize = applyMAttr . fmap (FontSize . Commit . Last)
 
 -- | A convenient synonym for 'fontSize (Global w)'.
 fontSizeG :: (N a ~ n, Typeable n, Num n, HasStyle a) => n -> a -> a
