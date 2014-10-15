@@ -236,6 +236,7 @@ module Diagrams.TwoD
        , mkSizeSpec2D
        , mkWidth
        , mkHeight
+       , dims2D
 
          -- * Textures
        , Texture(..), solid
