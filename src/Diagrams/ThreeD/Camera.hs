@@ -117,14 +117,14 @@ instance Num n => Renderable (Camera l n) NullBackend where
 -- chosen to match a 50mm camera on 35mm film. Note that Cameras take
 -- up no space in the Diagram.
 mm50Camera :: (Typeable n, Floating n, Ord n, Renderable (Camera PerspectiveLens n) b)
-           => Diagram b V3 n
+           => QDiagram b V3 n Any
 mm50Camera = facing_ZCamera mm50
 
 -- | 'facing_ZCamera l' is a camera at the origin facing along the
 -- negative Z axis, with its up-axis coincident with the positive Y
 -- axis, with the projection defined by l.
 facing_ZCamera :: (Floating n, Ord n, Typeable n, CameraLens l, Renderable (Camera l n) b) =>
-                  l n -> Diagram b V3 n
+                  l n -> QDiagram b V3 n Any
 facing_ZCamera l = mkQD (Prim $ Camera origin unit_Z unitY l)
         mempty mempty mempty (Query . const . Any $ False)
 {-# ANN facing_ZCamera ("HLint: ignore Use camelCase" :: String) #-}

@@ -160,11 +160,11 @@ instance Default (StrokeOpts a) where
 --   signature to expressions involving @stroke@, or (recommended)
 --   upgrade GHC (the bug is fixed in 7.0.2 onwards).
 stroke :: (TypeableFloat n, Renderable (Path V2 n) b)
-       => Path V2 n -> Diagram b V2 n
+       => Path V2 n -> QDiagram b V2 n Any
 stroke = stroke' (def :: StrokeOpts ())
 
 instance (TypeableFloat n, Renderable (Path V2 n) b)
-    => TrailLike (Diagram b V2 n) where
+    => TrailLike (QDiagram b V2 n Any) where
   trailLike = stroke . trailLike
 
 -- | A variant of 'stroke' that takes an extra record of options to
@@ -175,7 +175,7 @@ instance (TypeableFloat n, Renderable (Path V2 n) b)
 --   'StrokeOpts' is an instance of 'Default', so @stroke' ('with' &
 --   ... )@ syntax may be used.
 stroke' :: (TypeableFloat n, Renderable (Path V2 n) b, IsName a)
-    => StrokeOpts a -> Path V2 n -> Diagram b V2 n
+    => StrokeOpts a -> Path V2 n -> QDiagram b V2 n Any
 stroke' opts path
   | null (pLines ^. _Wrapped') = mkP pLoops
   | null (pLoops ^. _Wrapped') = mkP pLines
@@ -201,58 +201,58 @@ stroke' opts path
 --   @strokeTrail@, or (recommended) upgrade GHC (the bug is fixed in 7.0.2
 --   onwards).
 strokeTrail :: (TypeableFloat n, Renderable (Path V2 n) b)
-            => Trail V2 n -> Diagram b V2 n
+            => Trail V2 n -> QDiagram b V2 n Any
 strokeTrail = stroke . pathFromTrail
 
 -- | Deprecated synonym for 'strokeTrail'.
 strokeT :: (TypeableFloat n, Renderable (Path V2 n) b)
-        => Trail V2 n -> Diagram b V2 n
+        => Trail V2 n -> QDiagram b V2 n Any
 strokeT = strokeTrail
 
 -- | A composition of 'stroke'' and 'pathFromTrail' for conveniently
 --   converting a trail directly into a diagram.
 strokeTrail' :: (TypeableFloat n, Renderable (Path V2 n) b, IsName a)
-             => StrokeOpts a -> Trail V2 n -> Diagram b V2 n
+             => StrokeOpts a -> Trail V2 n -> QDiagram b V2 n Any
 strokeTrail' opts = stroke' opts . pathFromTrail
 
 -- | Deprecated synonym for 'strokeTrail''.
 strokeT' :: (TypeableFloat n, Renderable (Path V2 n) b, IsName a)
-         => StrokeOpts a -> Trail V2 n -> Diagram b V2 n
+         => StrokeOpts a -> Trail V2 n -> QDiagram b V2 n Any
 strokeT' = strokeTrail'
 
 -- | A composition of 'strokeT' and 'wrapLine' for conveniently
 --   converting a line directly into a diagram.
 strokeLine :: (TypeableFloat n, Renderable (Path V2 n) b)
-           => Trail' Line V2 n -> Diagram b V2 n
+           => Trail' Line V2 n -> QDiagram b V2 n Any
 strokeLine = strokeT . wrapLine
 
 -- | A composition of 'strokeT' and 'wrapLoop' for conveniently
 --   converting a loop directly into a diagram.
 strokeLoop :: (TypeableFloat n, Renderable (Path V2 n) b)
-           => Trail' Loop V2 n -> Diagram b V2 n
+           => Trail' Loop V2 n -> QDiagram b V2 n Any
 strokeLoop = strokeT . wrapLoop
 
 -- | A convenience function for converting a @Located Trail@ directly
 --   into a diagram; @strokeLocTrail = stroke . trailLike@.
 strokeLocTrail :: (TypeableFloat n, Renderable (Path V2 n) b)
-               => Located (Trail V2 n) -> Diagram b V2 n
+               => Located (Trail V2 n) -> QDiagram b V2 n Any
 strokeLocTrail = stroke . trailLike
 
 -- | Deprecated synonym for 'strokeLocTrail'.
 strokeLocT :: (TypeableFloat n, Renderable (Path V2 n) b)
-           => Located (Trail V2 n) -> Diagram b V2 n
+           => Located (Trail V2 n) -> QDiagram b V2 n Any
 strokeLocT = strokeLocTrail
 
 -- | A convenience function for converting a @Located@ line directly
 --   into a diagram; @strokeLocLine = stroke . trailLike . mapLoc wrapLine@.
 strokeLocLine :: (TypeableFloat n, Renderable (Path V2 n) b)
-              => Located (Trail' Line V2 n) -> Diagram b V2 n
+              => Located (Trail' Line V2 n) -> QDiagram b V2 n Any
 strokeLocLine = stroke . trailLike . mapLoc wrapLine
 
 -- | A convenience function for converting a @Located@ loop directly
 --   into a diagram; @strokeLocLoop = stroke . trailLike . mapLoc wrapLoop@.
 strokeLocLoop :: (TypeableFloat n, Renderable (Path V2 n) b)
-              => Located (Trail' Loop V2 n) -> Diagram b V2 n
+              => Located (Trail' Loop V2 n) -> QDiagram b V2 n Any
 strokeLocLoop = stroke . trailLike . mapLoc wrapLoop
 
 ------------------------------------------------------------
@@ -384,7 +384,7 @@ clipBy = applyTAttr . Clip . (:[])
 --   trace consists of those parts of the original diagram's trace
 --   which fall within the clipping path, or parts of the path's trace
 --   within the original diagram.
-clipTo :: (TypeableFloat n, Renderable (Path V2 n) b) => Path V2 n -> Diagram b V2 n -> Diagram b V2 n
+clipTo :: (TypeableFloat n, Renderable (Path V2 n) b) => Path V2 n -> QDiagram b V2 n Any -> QDiagram b V2 n Any
 clipTo p d = setTrace intersectionTrace . toEnvelope $ clipBy p d
   where
     envP = appEnvelope . getEnvelope $ p
@@ -404,6 +404,6 @@ clipTo p d = setTrace intersectionTrace . toEnvelope $ clipBy p d
 
 -- | Clip a diagram to the clip path taking the envelope and trace of the clip
 --   path.
-clipped :: (TypeableFloat n, Renderable (Path V2 n) b) => Path V2 n -> Diagram b V2 n -> Diagram b V2 n
+clipped :: (TypeableFloat n, Renderable (Path V2 n) b) => Path V2 n -> QDiagram b V2 n Any -> QDiagram b V2 n Any
 clipped p = withTrace p . withEnvelope p . clipBy p
 

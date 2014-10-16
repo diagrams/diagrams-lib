@@ -80,7 +80,7 @@ instance Floating n => Renderable (Text n) NullBackend where
 data TextAlignment d = BaselineText | BoxAlignedText d d
 
 mkText :: (OrderedField n, Typeable n, Renderable (Text n) b)
-  => TextAlignment n -> String -> Diagram b V2 n
+  => TextAlignment n -> String -> QDiagram b V2 n Any
 mkText a t = recommendFillColor (black :: Colour Double)
              -- See Note [recommendFillColor]
 
@@ -117,7 +117,7 @@ mkText a t = recommendFillColor (black :: Colour Double)
 --
 --   Note that it /takes up no space/, as text size information is not
 --   available.
-text :: (OrderedField n, Typeable n) => (Renderable (Text n) b) => String -> Diagram b V2 n
+text :: (OrderedField n, Typeable n) => (Renderable (Text n) b) => String -> QDiagram b V2 n Any
 text = alignedText 0.5 0.5
 
 -- | Create a primitive text diagram from the given string, origin at
@@ -125,7 +125,7 @@ text = alignedText 0.5 0.5
 --   @'alignedText' 0 1@.
 --
 --   Note that it /takes up no space/.
-topLeftText :: (OrderedField n, Typeable n) => (Renderable (Text n) b) => String -> Diagram b V2 n
+topLeftText :: (OrderedField n, Typeable n) => (Renderable (Text n) b) => String -> QDiagram b V2 n Any
 topLeftText = alignedText 0 1
 
 -- | Create a primitive text diagram from the given string, with the
@@ -138,7 +138,7 @@ topLeftText = alignedText 0 1
 --
 --   Note that it /takes up no space/.
 alignedText :: (OrderedField n, Typeable n, Renderable (Text n) b)
-  => n -> n -> String -> Diagram b V2 n
+  => n -> n -> String -> QDiagram b V2 n Any
 alignedText w h = mkText (BoxAlignedText w h)
 
 -- | Create a primitive text diagram from the given string, with the
@@ -148,7 +148,7 @@ alignedText w h = mkText (BoxAlignedText w h)
 --
 --   Note that it /takes up no space/.
 baselineText :: (OrderedField n, Typeable n, Renderable (Text n) b)
-  => String -> Diagram b V2 n
+  => String -> QDiagram b V2 n Any
 baselineText = mkText BaselineText
 
 ------------------------------------------------------------

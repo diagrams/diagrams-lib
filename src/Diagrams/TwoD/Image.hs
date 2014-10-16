@@ -79,7 +79,7 @@ instance Fractional n => HasOrigin (DImage n a) where
 
 -- | Make a 'DImage' into a 'Diagram'.
 image :: (TypeableFloat n, Typeable a, Renderable (DImage n a) b)
-      => DImage n a -> Diagram b V2 n
+      => DImage n a -> QDiagram b V2 n Any
 image img
   = mkQD (Prim img)
          (getEnvelope r)
@@ -123,7 +123,7 @@ uncheckedImageRef path w h = DImage (ImageRef path) w h mempty
 
 -- | Crate a diagram from raw raster data.
 rasterDia :: (TypeableFloat n, Renderable (DImage n Embedded) b)
-          => (Int -> Int -> AlphaColour Double) -> Int -> Int -> Diagram b V2 n
+          => (Int -> Int -> AlphaColour Double) -> Int -> Int -> QDiagram b V2 n Any
 rasterDia f w h = image $ raster f w h
 
 -- | Create an image "from scratch" by specifying the pixel data

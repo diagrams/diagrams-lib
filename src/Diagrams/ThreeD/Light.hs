@@ -52,7 +52,7 @@ instance Fractional n => Transformable (ParallelLight n) where
 -- takes up no space.
 pointLight :: (Typeable n, Num n, Ord n, Renderable (PointLight n) b)
               => Colour Double -- ^ The color of the light
-              -> Diagram b V3 n
+              -> QDiagram b V3 n Any
 pointLight c = mkQD (Prim $ PointLight origin c) mempty mempty mempty
                (Query . const . Any $ False)
 
@@ -60,6 +60,6 @@ pointLight c = mkQD (Prim $ PointLight origin c) mempty mempty mempty
 parallelLight :: (Typeable n, OrderedField n, Renderable (ParallelLight n) b)
                  => Direction V3 n -- ^ The direction in which the light travels.
                  -> Colour Double  -- ^ The color of the light.
-                 -> Diagram b V3 n
+                 -> QDiagram b V3 n Any
 parallelLight d c = mkQD (Prim $ ParallelLight (fromDirection d) c)
                     mempty mempty mempty (Query . const . Any $ False)
