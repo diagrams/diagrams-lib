@@ -39,7 +39,6 @@ import           Diagrams.Core
 import           Diagrams.Core.Envelope   (pointEnvelope)
 import           Diagrams.TwoD.Attributes (recommendFillColor)
 import           Diagrams.TwoD.Types
-import           Diagrams.Transform.ScaleInv
 
 import           Data.Colour
 import           Data.Functor
@@ -83,8 +82,10 @@ mkText :: (TypeableFloat n, Renderable (Text n) b)
   => TextAlignment n -> String -> QDiagram b V2 n Any
 mkText a t = recommendFillColor (black :: Colour Double)
              -- See Note [recommendFillColor]
+           . recommendFontSize (local 1)
+             -- See Note [recommendFontSize]
 
-           $ mkQD (Prim $ mkScaleNormalize (Text mempty a t))
+           $ mkQD (Prim $ Text mempty a t)
                        (pointEnvelope origin)
                        mempty
                        mempty
@@ -111,6 +112,9 @@ mkText a t = recommendFillColor (black :: Colour Double)
 -- user explicitly sets a fill color later it should override this
 -- recommendation; normally, the innermost occurrence of an attribute
 -- would override all outer occurrences.
+--
+-- The reason we "recommend" a fill color of black instead of setting
+-- it directly (or instead of simply not specifying a fill color at
 
 -- | Create a primitive text diagram from the given string, with center
 --   alignment, equivalent to @'alignedText' 0.5 0.5@.
@@ -225,6 +229,9 @@ fontSizeL = fontSize . local
 -- | Apply a 'FontSize' attribute.
 fontSizeM :: (N a ~ n, Typeable n, Num n, HasStyle a) => FontSizeM n -> a -> a
 fontSizeM = applyMAttr
+
+recommendFontSize :: (N a ~ n, Typeable n, HasStyle a) => Measure n -> a -> a
+recommendFontSize = applyMAttr . fmap (FontSize . Recommend . Last)
 
 --------------------------------------------------
 -- Font slant
