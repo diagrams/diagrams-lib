@@ -52,7 +52,7 @@ instance Fractional n => Renderable (Ellipsoid n) NullBackend where
   render _ _ = mempty
 
 -- | A sphere of radius 1 with its center at the origin.
-sphere :: (Typeable n, OrderedField n, Renderable (Ellipsoid n) b) => Diagram b V3 n
+sphere :: (Typeable n, OrderedField n, Renderable (Ellipsoid n) b) => QDiagram b V3 n Any
 sphere = mkQD (Prim $ Ellipsoid mempty)
               (mkEnvelope sphereEnv)
               (mkTrace sphereTrace)
@@ -81,7 +81,7 @@ instance Fractional n => Renderable (Box n) NullBackend where
 
 -- | A cube with side length 1, in the positive octant, with one
 -- vertex at the origin.
-cube :: (Typeable n, OrderedField n, Renderable (Box n) b) => Diagram b V3 n
+cube :: (Typeable n, OrderedField n, Renderable (Box n) b) => QDiagram b V3 n Any
 cube = mkQD (Prim $ Box mempty)
             (mkEnvelope boxEnv)
             (mkTrace boxTrace)
@@ -119,7 +119,7 @@ instance Fractional n => Renderable (Frustum n) NullBackend where
 -- | A frustum of a right circular cone.  It has height 1 oriented
 -- along the positive z axis, and radii r0 and r1 at Z=0 and Z=1.
 -- 'cone' and 'cylinder' are special cases.
-frustum :: (TypeableFloat n, Renderable (Frustum n) b) => n -> n -> Diagram b V3 n
+frustum :: (TypeableFloat n, Renderable (Frustum n) b) => n -> n -> QDiagram b V3 n Any
 frustum r0 r1 = mkQD (Prim $ Frustum r0 r1 mempty)
                  (mkEnvelope frEnv)
                  (mkTrace frTrace)
@@ -161,10 +161,10 @@ frustum r0 r1 = mkQD (Prim $ Frustum r0 r1 mempty)
 
 -- | A cone with its base centered on the origin, with radius 1 at the
 -- base, height 1, and it's apex on the positive Z axis.
-cone :: (TypeableFloat n, Renderable (Frustum n) b) => Diagram b V3 n
+cone :: (TypeableFloat n, Renderable (Frustum n) b) => QDiagram b V3 n Any
 cone = frustum 1 0
 
 -- | A circular cylinder of radius 1 with one end cap centered on the
 -- origin, and extending to Z=1.
-cylinder :: (TypeableFloat n, Renderable (Frustum n) b) => Diagram b V3 n
+cylinder :: (TypeableFloat n, Renderable (Frustum n) b) => QDiagram b V3 n Any
 cylinder = frustum 1 1

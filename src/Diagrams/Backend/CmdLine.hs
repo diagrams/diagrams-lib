@@ -358,23 +358,23 @@ class ToResult d where
 
 -- | A diagram can always produce a diagram when given @()@ as an argument.
 --   This is our base case.
-instance ToResult (Diagram b v n) where
-    type Args (Diagram b v n) = ()
-    type ResultOf (Diagram b v n) = Diagram b v n
+instance ToResult (QDiagram b v n Any) where
+    type Args (QDiagram b v n Any) = ()
+    type ResultOf (QDiagram b v n Any) = QDiagram b v n Any
 
     toResult d _ = d
 
 -- | A list of diagrams can produce pages.
-instance ToResult [Diagram b v n] where
-   type Args [Diagram b v n] = ()
-   type ResultOf [Diagram b v n] = [Diagram b v n]
+instance ToResult [QDiagram b v n Any] where
+   type Args [QDiagram b v n Any] = ()
+   type ResultOf [QDiagram b v n Any] = [QDiagram b v n Any]
 
    toResult ds _ = ds
 
 -- | A list of named diagrams can give the multi-diagram interface.
-instance ToResult [(String, Diagram b v n)] where
-   type Args [(String,Diagram b v n)]  = ()
-   type ResultOf [(String,Diagram b v n)] = [(String,Diagram b v n)]
+instance ToResult [(String, QDiagram b v n Any)] where
+   type Args [(String,QDiagram b v n Any)]  = ()
+   type ResultOf [(String,QDiagram b v n Any)] = [(String,QDiagram b v n Any)]
 
    toResult ds _ = ds
 
@@ -487,11 +487,11 @@ instance Mainable d => Mainable (IO d) where
 --   specifying the name of the diagram that should be rendered.  The list of
 --   available diagrams may also be printed by passing the option @--list@.
 --
---   Typically a backend can write its @[(String,Diagram b v n)]@ instance as
+--   Typically a backend can write its @[(String,QDiagram b v n Any)]@ instance as
 --
 --   @
---   instance Mainable [(String,Diagram b v n)] where
---       type MainOpts [(String,Diagram b v n)] = (DiagramOpts, DiagramMultiOpts)
+--   instance Mainable [(String,QDiagram b v n Any)] where
+--       type MainOpts [(String,QDiagram b v n Any)] = (DiagramOpts, DiagramMultiOpts)
 --       mainRender = defaultMultiMainRender
 --   @
 --
@@ -529,7 +529,7 @@ showDiaList ds = do
 --   be output for each second (unit time) of animation.
 --
 --   This function requires a lens into the structure that the particular backend
---   uses for it's diagram base case.  If @MainOpts (Diagram b v n) ~ DiagramOpts@
+--   uses for it's diagram base case.  If @MainOpts (QDiagram b v n Any) ~ DiagramOpts@
 --   then this lens will simply be 'output'.  For a backend supporting looping
 --   it will most likely be @_1 . output@.  This lens is required because the
 --   implementation works by modifying the output field and running the base @mainRender@.
@@ -545,7 +545,7 @@ showDiaList ds = do
 --   opt-in to this form or provide a different instance that makes more sense.
 
 defaultAnimMainRender ::
-    (opts -> Diagram b v n -> IO ())
+    (opts -> QDiagram b v n Any -> IO ())
     -> (Lens' opts FilePath) -- ^ A lens into the output path.
     -> (opts ,DiagramAnimOpts)
     -> Animation b v n
