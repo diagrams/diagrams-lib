@@ -2,8 +2,8 @@
 
 module Main where
 
-import           Diagrams.Prelude
 import           Diagrams.Backend.Rasterific.CmdLine
+import           Diagrams.Prelude
 
 radial = mkRadialGradient (mkStops [(white,0,1), (black,1,1)])  ((-0.1) ^& (0.1)) 0.06 (0 ^& 0) 0.35 GradPad
 linear = mkLinearGradient (mkStops [(black,0,1), (white,1,1)]) (0 ^& (-0.5)) (0 ^& 0.5) GradPad

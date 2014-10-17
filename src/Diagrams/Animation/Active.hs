@@ -45,6 +45,7 @@ import           Diagrams.TrailLike
 import           Data.Active
 
 type instance V (Active a) = V a
+type instance N (Active a) = N a
 
 -- Yes, these are all orphan instances. Get over it.  We don't want to
 -- put them in the 'active' package because 'active' is supposed to be
@@ -95,5 +96,6 @@ instance Juxtaposable a => Juxtaposable (Active a) where
       )
       a1
 
---instance Alignable a => Alignable (Active a) where
---  alignBy v d a = alignBy v d <$> a
+-- instance Alignable a => Alignable (Active a) where
+--   alignBy v d a = alignBy v d <$> a
+

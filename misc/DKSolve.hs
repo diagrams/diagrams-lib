@@ -5,8 +5,8 @@
 -- See http://en.wikipedia.org/wiki/Durand–Kerner_method
 
 
-import Data.Complex
-import Data.List (inits, tails)
+import           Data.Complex
+import           Data.List    (inits, tails)
 
 eps :: Double
 eps = 1e-14

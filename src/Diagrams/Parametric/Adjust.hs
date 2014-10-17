@@ -1,6 +1,6 @@
 {-# LANGUAGE FlexibleContexts     #-}
-{-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE UndecidableInstances #-}
 -----------------------------------------------------------------------------
 -- |
@@ -21,23 +21,23 @@ module Diagrams.Parametric.Adjust
 
     ) where
 
-import           Control.Lens (makeLensesWith, lensRules, generateSignatures, (^.), (&), (.~), Lens')
+import           Control.Lens        (Lens', generateSignatures, lensRules, makeLensesWith, (&),
+                                      (.~), (^.))
 import           Data.Proxy
 
 import           Data.Default.Class
-import           Data.VectorSpace
 
 import           Diagrams.Core.V
 import           Diagrams.Parametric
 
 -- | What method should be used for adjusting a segment, trail, or
 --   path?
-data AdjustMethod v = ByParam (Scalar v)     -- ^ Extend by the given parameter value
-                                             --   (use a negative parameter to shrink)
-                    | ByAbsolute (Scalar v)  -- ^ Extend by the given arc length
-                                             --   (use a negative length to shrink)
-                    | ToAbsolute (Scalar v)  -- ^ Extend or shrink to the given
-                                             --   arc length
+data AdjustMethod n = ByParam n     -- ^ Extend by the given parameter value
+                                    --   (use a negative parameter to shrink)
+                    | ByAbsolute n  -- ^ Extend by the given arc length
+                                    --   (use a negative length to shrink)
+                    | ToAbsolute n  -- ^ Extend or shrink to the given
+                                    --   arc length
 
 -- | Which side of a segment, trail, or path should be adjusted?
 data AdjustSide = Start  -- ^ Adjust only the beginning
@@ -46,43 +46,41 @@ data AdjustSide = Start  -- ^ Adjust only the beginning
   deriving (Show, Read, Eq, Ord, Bounded, Enum)
 
 -- | How should a segment, trail, or path be adjusted?
-data AdjustOpts v = AO { _adjMethod       :: AdjustMethod v
-                       , _adjSide         :: AdjustSide
-                       , _adjEps          :: Scalar v
-                       , adjOptsvProxy__ :: Proxy v
-                       }
+data AdjustOpts v n = AO { _adjMethod    :: AdjustMethod n
+                         , _adjSide      :: AdjustSide
+                         , _adjEps       :: n
+                         , adjOptsvProxy :: Proxy (v n)
+                         }
 
-makeLensesWith
-  ( lensRules & generateSignatures .~ False)
-  ''AdjustOpts
+makeLensesWith (lensRules & generateSignatures .~ False) ''AdjustOpts
 
 -- | Which method should be used for adjusting?
-adjMethod :: Lens' (AdjustOpts v) (AdjustMethod v)
+adjMethod :: Lens' (AdjustOpts v n) (AdjustMethod n)
 
 -- | Which end(s) of the object should be adjusted?
-adjSide :: Lens' (AdjustOpts v) AdjustSide
+adjSide :: Lens' (AdjustOpts v n) AdjustSide
 
 -- | Tolerance to use when doing adjustment.
-adjEps :: Lens' (AdjustOpts v) (Scalar v)
+adjEps :: Lens' (AdjustOpts v n) n
 
-instance Fractional (Scalar v) => Default (AdjustMethod v) where
+instance Fractional n => Default (AdjustMethod n) where
   def = ByParam 0.2
 
 instance Default AdjustSide where
   def = Both
 
-instance Fractional (Scalar v) => Default (AdjustOpts v) where
-  def = AO { _adjMethod = def
-           , _adjSide = def
-           , _adjEps = stdTolerance
-           , adjOptsvProxy__ = Proxy
+instance Fractional n => Default (AdjustOpts v n) where
+  def = AO { _adjMethod    = def
+           , _adjSide      = def
+           , _adjEps       = stdTolerance
+           , adjOptsvProxy = Proxy
            }
 
 -- | Adjust the length of a parametric object such as a segment or
 --   trail.  The second parameter is an option record which controls how
 --   the adjustment should be performed; see 'AdjustOpts'.
-adjust :: (DomainBounds a, Sectionable a, HasArcLength a, Fractional (Scalar (V a)))
-       => a -> AdjustOpts (V a) -> a
+adjust :: (V a ~ v, N a ~ n, DomainBounds a, Sectionable a, HasArcLength a, Fractional n)
+       => a -> AdjustOpts v n -> a
 adjust s opts = section s
   (if opts^.adjSide == End   then domainLower s else getParam s)
   (if opts^.adjSide == Start then domainUpper s else domainUpper s - getParam (reverseDomain s))

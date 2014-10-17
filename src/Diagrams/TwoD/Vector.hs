@@ -1,7 +1,4 @@
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE TypeFamilies      #-}
-{-# LANGUAGE ViewPatterns      #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Vector
@@ -21,50 +18,47 @@ module Diagrams.TwoD.Vector
 
          -- * 2D vector utilities
        , perp, leftTurn
+         -- * Synonym for R2 things
        ) where
 
-import Control.Lens ((&), (.~))
+import           Control.Lens       (view, (&), (.~))
 
-import Data.VectorSpace
+import           Diagrams.Angle
+import           Diagrams.Direction
 
-import Diagrams.Angle
-import Diagrams.Direction
-import Diagrams.TwoD.Types
-import Diagrams.Coordinates
+import           Linear.Metric
+import           Linear.V2
+import           Linear.Vector
 
 -- | The unit vector in the positive X direction.
-unitX :: R2
-unitX = 1 ^& 0
-
--- | The unit vector in the positive Y direction.
-unitY :: R2
-unitY = 0 ^& 1
+unitX :: (R1 v, Additive v, Num n) => v n
+unitX = zero & _x .~ 1
 
 -- | The unit vector in the negative X direction.
-unit_X :: R2
-unit_X = (-1) ^& 0
+unit_X :: (R1 v, Additive v, Num n) => v n
+unit_X = zero & _x .~ (-1)
+
+-- | The unit vector in the positive Y direction.
+unitY :: (R2 v, Additive v, Num n) => v n
+unitY = zero & _y .~ 1
 
 -- | The unit vector in the negative Y direction.
-unit_Y :: R2
-unit_Y = 0 ^& (-1)
+unit_Y :: (R2 v, Additive v, Num n) => v n
+unit_Y = zero & _y .~ (-1)
 
 -- | The origin of the direction AffineSpace.  For all d, @d .-. xDir
 -- = d^._theta@.
-xDir :: Direction R2
+xDir :: (R1 v, Additive v, Num n) => Direction v n
 xDir = direction unitX
 
 -- | A unit vector at a specified angle counterclockwise from the
 -- positive X axis.
-e :: Angle -> R2
-e a = unitX & _theta .~ a
-
--- | @perp v@ is perpendicular to and has the same magnitude as @v@.
---   In particular @perp v == rotateBy (1/4) v@.
-perp :: R2 -> R2
-perp (coords -> x :& y) = (-y) ^& x
+e :: Floating n => Angle n -> V2 n
+e = angle . view rad
 
 -- | @leftTurn v1 v2@ tests whether the direction of @v2@ is a left
 --   turn from @v1@ (that is, if the direction of @v2@ can be obtained
 --   from that of @v1@ by adding an angle 0 <= theta <= tau/2).
-leftTurn :: R2 -> R2 -> Bool
-leftTurn v1 v2 = (v1 <.> perp v2) < 0
+leftTurn :: (Num n, Ord n) => V2 n -> V2 n -> Bool
+leftTurn v1 v2 = (v1 `dot` perp v2) < 0
+

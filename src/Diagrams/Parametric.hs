@@ -22,14 +22,12 @@ module Diagrams.Parametric
 
   ) where
 
-import           Diagrams.Core
-
-import           Data.VectorSpace
-import qualified Numeric.Interval.Kaucher   as I
+import           Diagrams.Core.V
+import qualified Numeric.Interval.Kaucher as I
 
 -- | Codomain of parametric classes.  This is usually either @(V p)@, for relative
 --   vector results, or @(Point (V p))@, for functions with absolute coordinates.
-type family Codomain p :: *
+type family Codomain p :: * -> *
 
 -- | Type class for parametric functions.
 class Parametric p where
@@ -37,7 +35,7 @@ class Parametric p where
   -- | 'atParam' yields a parameterized view of an object as a
   --   continuous function. It is designed to be used infix, like @path
   --   ``atParam`` 0.5@.
-  atParam :: p -> Scalar (V p) -> Codomain p
+  atParam :: p -> N p -> Codomain p (N p)
 
 -- | Type class for parametric functions with a bounded domain.  The
 --   default bounds are @[0,1]@.
@@ -48,16 +46,16 @@ class Parametric p where
 class DomainBounds p where
   -- | 'domainLower' defaults to being constantly 0 (for vector spaces with
   --   numeric scalars).
-  domainLower :: p -> Scalar (V p)
+  domainLower :: p -> N p
 
-  default domainLower :: Num (Scalar (V p)) => p -> Scalar (V p)
+  default domainLower :: Num (N p) => p -> N p
   domainLower = const 0
 
   -- | 'domainUpper' defaults to being constantly 1 (for vector spaces
   --   with numeric scalars).
-  domainUpper :: p -> Scalar (V p)
+  domainUpper :: p -> N p
 
-  default domainUpper :: Num (Scalar (V p)) => p -> Scalar (V p)
+  default domainUpper :: Num n => p -> n
   domainUpper = const 1
 
 -- | Type class for querying the values of a parametric object at the
@@ -69,7 +67,7 @@ class (Parametric p, DomainBounds p) => EndValues p where
   --
   --   This is the default implementation, but some representations will
   --   have a more efficient and/or precise implementation.
-  atStart :: p -> Codomain p
+  atStart :: p -> Codomain p (N p)
   atStart x = x `atParam` domainLower x
 
   -- | 'atEnd' is the value at the end of the domain. That is,
@@ -78,12 +76,12 @@ class (Parametric p, DomainBounds p) => EndValues p where
   --
   --   This is the default implementation, but some representations will
   --   have a more efficient and/or precise implementation.
-  atEnd :: p -> Codomain p
+  atEnd :: p -> Codomain p (N p)
   atEnd x = x `atParam` domainUpper x
 
 -- | Return the lower and upper bounds of a parametric domain together
 --   as a pair.
-domainBounds :: DomainBounds p => p -> (Scalar (V p), Scalar (V p))
+domainBounds :: DomainBounds p => p -> (N p, N p)
 domainBounds x = (domainLower x, domainUpper x)
 
 -- | Type class for parametric objects which can be split into
@@ -113,7 +111,7 @@ class DomainBounds p => Sectionable p where
   --   result paths where the first is the original path extended to
   --   the parameter 2, and the second result path travels /backwards/
   --   from the end of the first to the end of the original path.
-  splitAtParam :: p -> Scalar (V p) -> (p, p)
+  splitAtParam :: p -> N p -> (p, p)
   splitAtParam x t
     = ( section x (domainLower x) t
       , section x t (domainUpper x))
@@ -129,8 +127,8 @@ class DomainBounds p => Sectionable p where
   --
   --   That is, the section should have the same domain as the
   --   original, and the reparameterization should be linear.
-  section :: p -> Scalar (V p) -> Scalar (V p) -> p
-  default section :: Fractional (Scalar (V p)) => p -> Scalar (V p) -> Scalar (V p) -> p
+  section :: p -> N p -> N p -> p
+  default section :: Fractional (N p) => p -> N p -> N p -> p
   section x t1 t2 = snd (splitAtParam (fst (splitAtParam x t2)) (t1/t2))
 
   -- | Flip the parameterization on the domain.
@@ -148,18 +146,18 @@ class Parametric p => HasArcLength p where
   -- | @arcLengthBounded eps x@ approximates the arc length of @x@.
   --   The true arc length is guaranteed to lie within the interval
   --   returned, which will have a size of at most @eps@.
-  arcLengthBounded :: Scalar (V p) -> p -> I.Interval (Scalar (V p))
+  arcLengthBounded :: N p -> p -> I.Interval (N p)
 
   -- | @arcLength eps s@ approximates the arc length of @x@ up to the
   --   accuracy @eps@ (plus or minus).
-  arcLength :: Scalar (V p) -> p -> Scalar (V p)
-  default arcLength :: Fractional (Scalar (V p)) => Scalar (V p ) -> p -> Scalar (V p)
+  arcLength :: N p -> p -> N p
+  default arcLength :: Fractional (N p) => N p -> p -> N p
   arcLength eps = I.midpoint . arcLengthBounded eps
 
   -- | Approximate the arc length up to a standard accuracy of
   --   'stdTolerance' (@1e-6@).
-  stdArcLength :: p -> Scalar (V p)
-  default stdArcLength :: Fractional (Scalar (V p)) => p -> Scalar (V p)
+  stdArcLength :: p -> N p
+  default stdArcLength :: Fractional (N p) => p -> N p
   stdArcLength = arcLength stdTolerance
 
   -- | @'arcLengthToParam' eps s l@ converts the absolute arc length
@@ -169,11 +167,11 @@ class Parametric p => HasArcLength p where
   --
   --   This should work for /any/ arc length, and may return any
   --   parameter value (not just parameters in the domain).
-  arcLengthToParam :: Scalar (V p) -> p -> Scalar (V p) -> Scalar (V p)
+  arcLengthToParam :: N p -> p -> N p -> N p
 
   -- | A simple interface to convert arc length to a parameter,
   --   guaranteed to be accurate within 'stdTolerance', or @1e-6@.
-  stdArcLengthToParam :: p -> Scalar (V p) -> Scalar (V p)
-  default stdArcLengthToParam :: Fractional (Scalar (V p))
-                              => p -> Scalar (V p) -> Scalar (V p)
+  stdArcLengthToParam :: p -> N p -> N p
+  default stdArcLengthToParam :: Fractional (N p) => p -> N p -> N p
   stdArcLengthToParam = arcLengthToParam stdTolerance
+
