@@ -1,3 +1,4 @@
+{-# LANGUAGE ConstraintKinds            #-}
 {-# LANGUAGE DeriveFunctor              #-}
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE FlexibleInstances          #-}
@@ -151,7 +152,7 @@ fromPoints :: (Additive v, Ord n) => [Point v n] -> BoundingBox v n
 fromPoints = mconcat . map fromPoint
 
 -- | Create a bounding box for any enveloped object (such as a diagram or path).
-boundingBox :: (V a ~ v, N a ~ n, Enveloped a, HasLinearMap v, HasBasis v, Num n)
+boundingBox :: (InSpace v n a, HasBasis v, Num n, Enveloped a)
             => a -> BoundingBox v n
 boundingBox a = fromMaybeEmpty $ do
   env <- (appEnvelope . getEnvelope) a
@@ -198,7 +199,7 @@ boxTransform u v = do
 -- | Transforms an enveloped thing to fit within a @BoundingBox@.  If the 
 --   bounding box is empty, then the result is also @mempty@.
 boxFit
-  :: (V a ~ v, N a ~ n, Enveloped a, Transformable a, Monoid a, HasLinearMap v, HasBasis v, Num n)
+  :: (InSpace v n a, HasBasis v, Enveloped a, Transformable a, Monoid a, Num n)
   => BoundingBox v n -> a -> a
 boxFit b x = maybe mempty (`transform` x) $ boxTransform (boundingBox x) b
 

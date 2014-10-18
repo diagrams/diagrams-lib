@@ -36,10 +36,12 @@ module Diagrams.Align
        ) where
 
 import           Diagrams.Core
+import           Diagrams.Core.Transform
 import           Diagrams.Util (applyAll)
 
 import           Data.Maybe    (fromMaybe)
 import           Data.Ord      (comparing)
+import           Data.Traversable
 
 import qualified Data.Foldable as F
 import qualified Data.Map      as M
@@ -110,7 +112,7 @@ instance (V b ~ v, N b ~ n,  Metric v, OrderedField n, Alignable b)
     => Alignable (M.Map k b) where
   defaultBoundary = combineBoundaries defaultBoundary
 
-instance (HasLinearMap v, Metric v, OrderedField n, Monoid' m)
+instance (Metric v, OrderedField n, Monoid' m)
     => Alignable (QDiagram b v n m) where
   defaultBoundary = envelopeBoundary
 
@@ -147,10 +149,10 @@ centerV :: (V a ~ v, N a ~ n, Additive v, Alignable a, HasOrigin a, Fractional n
 centerV v = alignBy v 0
 
 -- | @center@ centers an enveloped object along all of its basis vectors.
-center :: (V a ~ v, N a ~ n, HasLinearMap v, Alignable a, HasOrigin a, Fractional n) => a -> a
+center :: (V a ~ v, N a ~ n, Additive v, Traversable v, Fractional n, Alignable a, HasOrigin a) => a -> a
 center = applyAll fs
   where
-    fs = map centerV basis
+    fs = map centerV basis'
 
 -- | Like @centerV@ using trace.
 snugCenterV
@@ -159,11 +161,11 @@ snugCenterV
 snugCenterV v = alignBy' traceBoundary v 0
 
 -- | Like @center@ using trace.
-snugCenter :: (V a ~ v, N a ~ n, HasLinearMap v, Alignable a, HasOrigin a, Fractional n, Traced a)
+snugCenter :: (V a ~ v, N a ~ n, Additive v, Traversable v, Fractional n, Alignable a, HasOrigin a, Traced a)
            => a -> a
 snugCenter = applyAll fs
   where
-    fs = map snugCenterV basis
+    fs = map snugCenterV basis'
 
 {-# ANN module ("HLint: ignore Use camelCase" :: String) #-}
 

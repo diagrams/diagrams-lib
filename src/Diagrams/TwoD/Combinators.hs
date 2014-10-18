@@ -1,3 +1,4 @@
+{-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
@@ -61,6 +62,7 @@ import           Diagrams.Util            (( # ))
 
 import           Linear.Affine
 import           Linear.Vector
+import           Linear.Metric
 
 infixl 6 ===
 infixl 6 |||
@@ -79,7 +81,7 @@ infixl 6 |||
 --   combined diagram is the same as the local origin of the first.
 --   @(===)@ is associative and has 'mempty' as an identity.  See the
 --   documentation of 'beside' for more information.
-(===) :: (Juxtaposable a, V a ~ V2, N a ~ n, TypeableFloat n, Semigroup a) => a -> a -> a
+(===) :: (InSpace V2 n a, Num n, Juxtaposable a, Semigroup a) => a -> a -> a
 (===) = beside unit_Y
 
 -- | Place two diagrams (or other juxtaposable objects) horizontally
@@ -88,7 +90,7 @@ infixl 6 |||
 --   is the same as the local origin of the first.  @(|||)@ is
 --   associative and has 'mempty' as an identity.  See the
 --   documentation of 'beside' for more information.
-(|||) :: (Juxtaposable a, V a ~ V2, N a ~ n, TypeableFloat n, Semigroup a) => a -> a -> a
+(|||) :: (InSpace V2 n a, Num n, Juxtaposable a, Semigroup a) => a -> a -> a
 (|||) = beside unitX
 
 -- | Lay out a list of juxtaposable objects in a row from left to right,
@@ -102,7 +104,7 @@ infixl 6 |||
 --     "Diagrams.TwoD.Align" before applying 'hcat'.
 --
 --   * For non-axis-aligned layout, see 'cat'.
-hcat :: (Juxtaposable a, HasOrigin a, Monoid' a, V a ~ V2, N a ~ n, TypeableFloat n)
+hcat :: (InSpace V2 n a, Floating n, Juxtaposable a, HasOrigin a, Monoid' a)
      => [a] -> a
 hcat = hcat' def
 
@@ -110,13 +112,13 @@ hcat = hcat' def
 --   the spacing.  See the 'cat'' documentation for a description of
 --   the possibilities. For the common case of setting just a
 --   separation amount, see 'hsep'.
-hcat' :: (Juxtaposable a, HasOrigin a, Monoid' a, V a ~ V2, N a ~ n, TypeableFloat n)
+hcat' :: (InSpace V2 n a, Floating n, Juxtaposable a, HasOrigin a, Monoid' a)
       => CatOpts n -> [a] -> a
 hcat' = cat' unitX
 
 -- | A convenient synonym for horizontal concatenation with
 --   separation: @hsep s === hcat' (with & sep .~ s)@.
-hsep :: (Juxtaposable a, HasOrigin a, Monoid' a, V a ~ V2, N a ~ n, TypeableFloat n)
+hsep :: (InSpace V2 n a, Floating n, Juxtaposable a, HasOrigin a, Monoid' a)
      => n -> [a] -> a
 hsep s = hcat' (def & sep .~ s)
 
@@ -131,7 +133,7 @@ hsep s = hcat' (def & sep .~ s)
 --     "Diagrams.TwoD.Align" before applying 'vcat'.
 --
 --   * For non-axis-aligned layout, see 'cat'.
-vcat :: (Juxtaposable a, HasOrigin a, Monoid' a, V a ~ V2, N a ~ n, TypeableFloat n)
+vcat :: (InSpace V2 n a, Floating n, Juxtaposable a, HasOrigin a, Monoid' a)
      => [a] -> a
 vcat = vcat' def
 
@@ -139,13 +141,13 @@ vcat = vcat' def
 --   the spacing.  See the 'cat'' documentation for a description of
 --   the possibilities.  For the common case of setting just a
 --   separation amount, see 'vsep'.
-vcat' :: (Juxtaposable a, HasOrigin a, Monoid' a, V a ~ V2, N a ~ n, TypeableFloat n)
+vcat' :: (InSpace V2 n a, Floating n, Juxtaposable a, HasOrigin a, Monoid' a)
       => CatOpts n -> [a] -> a
 vcat' = cat' unit_Y
 
 -- | A convenient synonym for vertical concatenation with
 --   separation: @vsep s === vcat' (with & sep .~ s)@.
-vsep :: (Juxtaposable a, HasOrigin a, Monoid' a, V a ~ V2, N a ~ n, TypeableFloat n)
+vsep :: (InSpace V2 n a, Floating n, Juxtaposable a, HasOrigin a, Monoid' a)
      => n -> [a] -> a
 vsep s = vcat' (def & sep .~ s)
 
@@ -155,7 +157,7 @@ vsep s = vcat' (def & sep .~ s)
 --   local origin at its center.  If you don't care about the trace
 --   then there's no difference between @strutR2@ and the more general
 --   'strut'.
-strutR2 :: (Monoid' m, TypeableFloat n) => V2 n -> QDiagram b V2 n m
+strutR2 :: (RealFloat n, Monoid' m) => V2 n -> QDiagram b V2 n m
 strutR2 v = phantom seg
   where
     seg = FLinear (origin .+^ 0.5 *^ v) (origin .+^ (-0.5) *^ v)
@@ -163,14 +165,14 @@ strutR2 v = phantom seg
 -- | @strutX w@ is an empty diagram with width @w@, height 0, and a
 --   centered local origin.  Note that @strutX (-w)@ behaves the same as
 --   @strutX w@.
-strutX :: (Monoid' m, TypeableFloat n) => n -> QDiagram b V2 n m
-strutX d = strut (V2 d 0)
+strutX :: (Metric v, R1 v, OrderedField n, Monoid' m) => n -> QDiagram b v n m
+strutX d = strut (zero & _x .~ d)
 
 -- | @strutY h@ is an empty diagram with height @h@, width 0, and a
 --   centered local origin. Note that @strutY (-h)@ behaves the same as
 --   @strutY h@.
-strutY :: (Monoid' m, TypeableFloat n) => n -> QDiagram b V2 n m
-strutY d = strut (V2 0 d)
+strutY :: (Metric v, R2 v, OrderedField n, Monoid' m) => n -> QDiagram b v n m
+strutY d = strut (zero & _y .~ d)
 
 -- | @padX s@ \"pads\" a diagram in the x-direction, expanding its
 --   envelope horizontally by a factor of @s@ (factors between 0 and 1
@@ -179,8 +181,8 @@ strutY d = strut (V2 0 d)
 --   centered horizontally the padding may appear \"uneven\".  If this
 --   is not desired, the origin can be centered (using 'centerX')
 --   before applying @padX@.
-padX :: (Monoid' m, TypeableFloat n )
-     => n -> QDiagram b V2 n m -> QDiagram b V2 n m
+padX :: (Metric v, R1 v, OrderedField n, Monoid' m)
+     => n -> QDiagram b v n m -> QDiagram b v n m
 padX s d = withEnvelope (d # scaleX s) d
 
 -- | @padY s@ \"pads\" a diagram in the y-direction, expanding its
@@ -190,8 +192,8 @@ padX s d = withEnvelope (d # scaleX s) d
 --   so if the origin is not centered vertically the padding may appear
 --   \"uneven\".  If this is not desired, the origin can be centered
 --   (using 'centerY') before applying @padY@.
-padY :: (Monoid' m, TypeableFloat n )
-     => n -> QDiagram b V2 n m -> QDiagram b V2 n m
+padY :: (Metric v, R2 v, Monoid' m, OrderedField n)
+     => n -> QDiagram b v n m -> QDiagram b v n m
 padY s d = withEnvelope (d # scaleY s) d
 
 -- | @extrudeLeft s@ \"extrudes\" a diagram in the negative x-direction,
@@ -199,7 +201,7 @@ padY s d = withEnvelope (d # scaleY s) d
 --   the envelope is inset instead.
 --
 --   See the documentation for 'extrudeEnvelope' for more information.
-extrudeLeft :: (Monoid' m, TypeableFloat n) => n -> QDiagram b V2 n m -> QDiagram b V2 n m
+extrudeLeft :: (OrderedField n, Monoid' m) => n -> QDiagram b V2 n m -> QDiagram b V2 n m
 extrudeLeft s
   | s >= 0    = extrudeEnvelope $ unitX ^* negate s
   | otherwise = intrudeEnvelope $ unitX ^* negate s
@@ -209,7 +211,7 @@ extrudeLeft s
 --   the envelope is inset instead.
 --
 --   See the documentation for 'extrudeEnvelope' for more information.
-extrudeRight :: (Monoid' m, TypeableFloat n) => n -> QDiagram b V2 n m -> QDiagram b V2 n m
+extrudeRight :: (OrderedField n, Monoid' m) => n -> QDiagram b V2 n m -> QDiagram b V2 n m
 extrudeRight s
   | s >= 0    = extrudeEnvelope $ unitX ^* s
   | otherwise = intrudeEnvelope $ unitX ^* s
@@ -219,7 +221,7 @@ extrudeRight s
 --   the envelope is inset instead.
 --
 --   See the documentation for 'extrudeEnvelope' for more information.
-extrudeBottom :: (Monoid' m, TypeableFloat n) => n -> QDiagram b V2 n m -> QDiagram b V2 n m
+extrudeBottom :: (OrderedField n, Monoid' m) => n -> QDiagram b V2 n m -> QDiagram b V2 n m
 extrudeBottom s
   | s >= 0    = extrudeEnvelope $ unitY ^* negate s
   | otherwise = intrudeEnvelope $ unitY ^* negate s
@@ -229,7 +231,7 @@ extrudeBottom s
 --   the envelope is inset instead.
 --
 --   See the documentation for 'extrudeEnvelope' for more information.
-extrudeTop :: (Monoid' m, TypeableFloat n) => n -> QDiagram b V2 n m -> QDiagram b V2 n m
+extrudeTop :: (OrderedField n, Monoid' m) => n -> QDiagram b V2 n m -> QDiagram b V2 n m
 extrudeTop s
   | s >= 0    = extrudeEnvelope $ unitY ^* s
   | otherwise = intrudeEnvelope $ unitY ^* s
@@ -239,15 +241,15 @@ extrudeTop s
 --   .+^ v@.  Useful for selecting the rectangular portion of a
 --   diagram which should actually be \"viewed\" in the final render,
 --   if you don't want to see the entire diagram.
-view :: forall b n m. (Monoid' m, TypeableFloat n)
+view :: forall b n m. (OrderedField n, Monoid' m)
      => Point V2 n -> V2 n -> QDiagram b V2 n m -> QDiagram b V2 n m
-view p (V2 w h) = withEnvelope (rect w h # alignBL # moveTo p :: D V2 n)
+view p (V2 w h) = withEnvelope (rect w h # alignBL # moveTo p :: Path V2 n)
 
 -- | Construct a bounding rectangle for an enveloped object, that is,
 --   the smallest axis-aligned rectangle which encloses the object.
-boundingRect :: ( Enveloped t, Transformable t, TrailLike t, Monoid t, V a ~ V t, N a ~ N t
-                , Enveloped a, V a ~ V2, N a ~ n, TypeableFloat n
-                )
+boundingRect :: ( InSpace V2 n a, SameSpace a t, Num n
+                , Enveloped t, Transformable t, TrailLike t, Monoid t
+                , Enveloped a)
              => a -> t
 boundingRect = (`boxFit` rect 1 1) . boundingBox
 
