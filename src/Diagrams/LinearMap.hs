@@ -230,16 +230,3 @@ instance AffineMappable Path where
     where
     amapLoc fv fp (Loc p x) = Loc (fp p) (amap fv fp x)
   
-
--- class Unfoldable m where
---   type Element m :: *
---   type Constr m :: GHC.Exts.Constraint
---   type Constr m = ()
--- 
---   fromList :: Constr m => [Element m] -> m
---   fromList = unfold step
---       where step [] = Nothing
---             step (a:as) = Just (a, as)
--- 
---   unfold :: (s -> Maybe (Element m, s)) -> s -> m
--- 

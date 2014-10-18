@@ -524,7 +524,7 @@ arrowFromLocatedTrail' opts trail = arrowBetween' opts' start end
 -- | Connect two diagrams with a straight arrow.
 connect
   :: (TypeableFloat n, Renderable (Path V2 n) b, IsName n1, IsName n2)
-  => n1 -> n2 -> Diagram b V2 n -> QDiagram b V2 n Any
+  => n1 -> n2 -> QDiagram b V2 n Any -> QDiagram b V2 n Any
 connect = connect' def
 
 -- | Connect two diagrams with an arbitrary arrow.
