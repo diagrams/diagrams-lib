@@ -14,9 +14,8 @@ env:
 
 matrix:
   allow_failures:
-    - env:
-        - GHCVER=head
-        - GHCVER=7.4.2
+    - env: GHCVER=head
+    - env: GHCVER=7.4.2
 
 before_install:
   - git clone http://github.com/diagrams/diagrams-travis travis
