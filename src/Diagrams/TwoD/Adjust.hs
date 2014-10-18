@@ -25,7 +25,6 @@ import           Diagrams.Attributes
 import           Diagrams.Core
 import           Diagrams.Core.Envelope
 import           Diagrams.TwoD.Attributes (lineTextureA)
-import           Diagrams.TwoD.Text       (fontSizeM)
 import           Diagrams.TwoD.Types
 import           Diagrams.Util            (( # ))
 import           Diagrams.Size
@@ -56,7 +55,7 @@ setDefault2DAttributes :: (TypeableFloat n, Semigroup m)
 setDefault2DAttributes d
   = d # lineWidthM def
       # lineTextureA def
-      # fontSizeM def
+      -- # fontSizeM def
       # lineCap def
       # lineJoin def
       # lineMiterLimitA def
