@@ -146,30 +146,6 @@ instance HasVectors FixedSegment where
                                           <*> vectors f p2 <*> vectors f p3
   {-# INLINE vectors #-}
 
-data Situated' a v n where
-  Situated  :: (V a ~ v, N a ~ n) => Point v n -> a v n -> Situated' a v n
-  Situated' :: (V a ~ v, N a ~ n) => Point v n -> a -> Situated' a v n
-
-newtype Canonical a (v :: * -> *) n = Canonical {uncanonical :: a}
-
-mkCanonical :: a -> Canonical a (V a) (N a)
-mkCanonical = Canonical
--- 
--- data Situated' a v n = Situated
---   { _loc      :: Point v n
---   , _situated :: a
---   } deriving Typeable
-
--- mkSituated :: (V a ~ v, N a ~ n) => Point v n -> a -> Situated' a v n
--- mkSituated = Situated
-
--- type Situated a v n = Situated' (a v n) v n
-
--- instance HasVectors (Canonical a) => HasVectors (Situated' a) where
---   type Restrict (Situated' a) v n = (V a ~ v, N a ~ n, Restrict (Canonical a) v n)
--- 
---   vectors f (Situated p a) = Situated <$> vectors f p <*> fmap uncanonical (vectors f (Canonical a))
---   {-# INLINE vectors #-}
 
 instance HasVectors Path where
   type Restrict Path v n = (Metric v, OrderedField n)

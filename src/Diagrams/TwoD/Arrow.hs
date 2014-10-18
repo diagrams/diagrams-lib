@@ -530,7 +530,7 @@ connect = connect' def
 -- | Connect two diagrams with an arbitrary arrow.
 connect'
   :: (TypeableFloat n, Renderable (Path V2 n) b, IsName n1, IsName n2)
-  => ArrowOpts n -> n1 -> n2 -> Diagram b V2 n -> QDiagram b V2 n Any
+  => ArrowOpts n -> n1 -> n2 -> QDiagram b V2 n Any -> QDiagram b V2 n Any
 connect' opts n1 n2 =
   withName n1 $ \sub1 ->
   withName n2 $ \sub2 ->

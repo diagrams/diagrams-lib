@@ -44,7 +44,7 @@ import           Data.Semigroup
 
 import           Diagrams.Core
 
-import           Diagrams.Attributes      (lineWidth)
+import           Diagrams.Attributes      (lwO)
 import           Diagrams.BoundingBox
 import           Diagrams.Combinators
 import           Diagrams.Path
@@ -260,6 +260,6 @@ bg c d = d <> boundingRect d # lwO 0 # fc c
 --   the diagram. The first parameter is used to set how far the background
 --   extends beyond the diagram.
 bgFrame :: (TypeableFloat n, Renderable (Path V2 n) b)
-    => n -> Colour Double -> Diagram b V2 n -> QDiagram b V2 n Any
+    => n -> Colour Double -> QDiagram b V2 n Any -> QDiagram b V2 n Any
 bgFrame f c d = d <> boundingRect (frame f d) # lwO 0 # fc c
 

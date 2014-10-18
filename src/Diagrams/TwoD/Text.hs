@@ -152,7 +152,7 @@ alignedText w h = mkText (BoxAlignedText w h)
 --
 --   Note that it /takes up no space/.
 baselineText :: (TypeableFloat n, Renderable (Text n) b)
-  => String -> Diagram b V2 n
+  => String -> QDiagram b V2 n Any
 baselineText = mkText BaselineText
 
 ------------------------------------------------------------
