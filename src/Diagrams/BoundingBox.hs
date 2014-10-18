@@ -33,7 +33,8 @@ module Diagrams.BoundingBox
          -- * Queries on bounding boxes
        , isEmptyBox
        , getCorners, getAllCorners
-       , boxExtents, boxTransform, boxFit
+       , boxExtents, boxCenter
+       , boxTransform, boxFit
        , contains, contains', boundingBoxQuery
        , inside, inside', outside, outside'
 
@@ -176,9 +177,14 @@ getAllCorners (BoundingBox (Option (Just (NonEmptyBoundingBox (l, u)))))
 -- | Get the size of the bounding box - the vector from the (component-wise)
 --   lesser point to the greater point.
 boxExtents :: (Additive v, Num n) => BoundingBox v n -> v n
-boxExtents = maybe zero (uncurry (.-.)) . getCorners
+boxExtents = maybe zero (\(l,u) -> u .-. l) . getCorners
 
--- | Create a transformation mapping points from one bounding box to the other.
+-- | Get the center point in a bounding box.
+boxCenter :: (Additive v, Fractional n) => BoundingBox v n -> Maybe (Point v n)
+boxCenter = fmap (uncurry (lerp 0.5)) . getCorners
+
+-- | Create a transformation mapping points from one bounding box to the 
+--   other. Returns 'Nothing' if either of the boxes are empty.
 boxTransform
   :: (Additive v, Fractional n)
   => BoundingBox v n -> BoundingBox v n -> Maybe (Transformation v n)

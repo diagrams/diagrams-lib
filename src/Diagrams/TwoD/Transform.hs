@@ -55,8 +55,8 @@ import           Diagrams.Core
 
 import           Diagrams.Angle
 import           Diagrams.Transform
-import           Diagrams.TwoD.Size  (height, width)
 import           Diagrams.TwoD.Types
+import           Diagrams.TwoD.Vector
 
 import           Control.Lens        (review, (&), (*~), (.~), (//~), (^.))
 import           Data.Semigroup
@@ -140,26 +140,26 @@ scaleY = transform . scalingY
 --   should not be applied to diagrams with a width of 0, such as
 --   'vrule'.
 scaleToX :: (V t ~ V2, N t ~ n, Enveloped t, Transformable t) => n -> t -> t
-scaleToX w d = scaleX (w / width d) d
+scaleToX w d = scaleX (w / diameter unitX d) d
 
 -- | @scaleToY h@ scales a diagram in the y (vertical) direction by
 --   whatever factor required to make its height @h@.  @scaleToY@
 --   should not be applied to diagrams with a height of 0, such as
 --   'hrule'.
 scaleToY :: (V t ~ V2, N t ~ n, Enveloped t, Transformable t) => n -> t -> t
-scaleToY h d = scaleY (h / height d) d
+scaleToY h d = scaleY (h / diameter unitY d) d
 
 -- | @scaleUToX w@ scales a diagram /uniformly/ by whatever factor
 --   required to make its width @w@.  @scaleUToX@ should not be
 --   applied to diagrams with a width of 0, such as 'vrule'.
 scaleUToX :: (V t ~ V2, N t ~ n, Enveloped t, Transformable t) => n -> t -> t
-scaleUToX w d = scale (w / width d) d
+scaleUToX w d = scale (w / diameter unitX d) d
 
 -- | @scaleUToY h@ scales a diagram /uniformly/ by whatever factor
 --   required to make its height @h@.  @scaleUToY@ should not be applied
 --   to diagrams with a height of 0, such as 'hrule'.
 scaleUToY :: (V t ~ V2, N t ~ n, Enveloped t, Transformable t) => n -> t -> t
-scaleUToY h d = scale (h / height d) d
+scaleUToY h d = scale (h / diameter unitY d) d
 
 -- Translation ---------------------------------------------
 

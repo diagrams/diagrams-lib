@@ -60,6 +60,7 @@ Library
                        Diagrams.ThreeD.Deform,
                        Diagrams.ThreeD.Light,
                        Diagrams.ThreeD.Shapes,
+                       Diagrams.ThreeD.Size,
                        Diagrams.ThreeD.Transform,
                        Diagrams.ThreeD.Types,
                        Diagrams.ThreeD.Vector,

@@ -21,21 +21,28 @@
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
--- Utilities for working with sizes of two-dimensional objects.
+-- Utilities for working with sizes of objects.
 --
 -----------------------------------------------------------------------------
 module Diagrams.Size
-  ( SizeSpec
-  , mkSpec
+  ( -- * Size spec
+    SizeSpec
+
+    -- ** Making size spec
+  , mkSizeSpec
 	, dims
 	, absolute
+
+    -- ** Extracting size specs
 	, getSpec
+  , specToSize
+
+    -- ** Functions on size specs
 	, requiredScale
   , requiredScaling
 	, sized
 	, sizedAs
-	, getSize
-  , specSize
+  , sizeAdjustment
   ) where
 
 import           Control.Applicative
@@ -43,23 +50,23 @@ import           Control.Lens        hiding (transform)
 import           Control.Monad
 import           Data.Foldable       as F
 import           Data.Hashable
+import           Data.Semigroup
 import           Data.Maybe
 import           Data.Typeable
 import           GHC.Generics        (Generic)
 
 import           Diagrams.Core
+import           Diagrams.BoundingBox
 
+import           Linear.Affine
 import           Linear.Vector
 
 ------------------------------------------------------------
 -- Computing diagram sizes
 ------------------------------------------------------------
 
--- | Compute the point in the center of the bounding box of the enveloped object.
--- centerPoint :: (InSpace v n a, Enveloped a, HasLinearMap v, HasBasis v) => a -> Maybe (Point v n)
--- centerPoint = fmap (uncurry $ lerp 0.5) . getCorners . boundingBox
-
--- | SizeSpec for a
+-- | A 'SizeSpec' is a way of specifying a size without needed lengths for all
+--   the dimensions.
 newtype SizeSpec v n = SizeSpec (v n)
   deriving (
 #if __GLASGOW_HASKELL__ >= 707
@@ -84,11 +91,12 @@ type instance N (SizeSpec v n) = n
 getSpec :: (Functor v, Num n, Ord n) => SizeSpec v n -> v (Maybe n)
 getSpec (SizeSpec sp) = mfilter (>0) . Just <$> sp
 
--- | Make a 'SizeSpec' from a vector of maybe values.
-mkSpec :: (Functor v, Num n) => v (Maybe n) -> SizeSpec v n
-mkSpec = dims . fmap (fromMaybe 0)
+-- | Make a 'SizeSpec' from a vector of maybe values. Any negative values will
+--   be ignored.
+mkSizeSpec :: (Functor v, Num n) => v (Maybe n) -> SizeSpec v n
+mkSizeSpec = dims . fmap (fromMaybe 0)
 
--- | Make a 'SizeSpec' from a vector.
+-- | Make a 'SizeSpec' from a vector. Any negative values will be ignored.
 dims :: Functor v => v n -> SizeSpec v n
 dims = SizeSpec
 
@@ -96,28 +104,33 @@ dims = SizeSpec
 absolute :: (Additive v, Num n) => SizeSpec v n
 absolute = SizeSpec zero
 
-specSize :: (Foldable v, Functor v, Num n, Ord n) => n -> SizeSpec v n -> v n
-specSize x (getSpec -> spec) = fmap (fromMaybe smallest) spec
+-- | @specToSize n spec@ extracts a size from a 'SizeSpec' @sz@. Any values not
+--   specified in the spec are replaced by the smallest of the values that are
+--   specified. If there are no specified values (i.e. 'absolute') then @n@ is
+--   used.
+specToSize :: (Foldable v, Functor v, Num n, Ord n) => n -> SizeSpec v n -> v n
+specToSize x (getSpec -> spec) = fmap (fromMaybe smallest) spec
   where
     smallest = fromMaybe x $ minimumOf (folded . _Just) spec
 
 -- | @requiredScale spec sz@ returns the largest scaling factor to make
---   something of size @sz@ fit the requested size @spec@, without changing the
---   aspect ratio. @sz@ should be a strictly positive vector (otherwise a scale
---   of 1 is returned). For non-uniform scaling see 'boxFit'.
+--   something of size @sz@ fit the requested size @spec@ without changing the
+--   aspect ratio. @sz@ should be non-zero (otherwise a scale of 1 is
+--   returned). For non-uniform scaling see 'boxFit'.
 requiredScale :: (Additive v, Foldable v, Fractional n, Ord n)
               => SizeSpec v n -> v n -> n
 requiredScale (getSpec -> spec) sz
-  | F.any (<= 0) sz = 1
+  | F.all (<= 0) sz = 1
   | otherwise       = fromMaybe 1 . minimumOf (folded . _Just)
                     $ liftI2 (^/) spec sz
 
+-- | Return the 'Transformation' calcuated from 'requiredScale'.
 requiredScaling :: (Additive v, Foldable v, Fractional n, Ord n)
   => SizeSpec v n -> v n -> Transformation v n
 requiredScaling spec = scaling . requiredScale spec
 
 -- | Uniformly scale any enveloped object so that it fits within the
---   given size, for non-uniform scaling see 'boxFit'.
+--   given size. For non-uniform scaling see 'boxFit'.
 sized :: (InSpace v n a, HasLinearMap v, HasBasis v, Transformable a, Enveloped a, Fractional n, Ord n)
       => SizeSpec v n -> a -> a
 sized spec a = transform (requiredScaling spec (size a)) a
@@ -130,9 +143,21 @@ sizedAs :: (InSpace v n a, SameSpace a b, HasLinearMap v, HasBasis v, Transforma
         => b -> a -> a
 sizedAs other = sized (dims $ size other)
 
-getSize :: (Functor v, Foldable v, Num n, Ord n) => n -> SizeSpec v n -> v n
-getSize n (getSpec -> spec) = fmap (fromMaybe lower) spec
+-- | Get the adjustment to fit a 'BoundingBox' in the given 'SizeSpec'. The 
+--   vector is the new size and the transformation  to position the lower 
+--   corner at the origin and scale to the size spec.
+sizeAdjustment :: (Additive v, Foldable v, OrderedField n)
+  => SizeSpec v n -> BoundingBox v n -> (v n, Transformation v n)
+sizeAdjustment spec bb = (sz', t)
   where
-    lower = fromMaybe n $ minimumOf (folded . _Just) spec
+    -- v   = maybe zero ((origin .-.) . fst) (getCorners bb)
+    v = (0.5 *^ P sz') .-. (s *^ fromMaybe origin (boxCenter bb))
 
+    sz  = boxExtents bb
+    sz' = if allOf folded isJust (getSpec spec) then specToSize 0 spec else s *^ sz
+
+    s = requiredScale spec sz
+
+    -- transform by moving lower corner to origin and scaling
+    t = translation v <> scaling s
 

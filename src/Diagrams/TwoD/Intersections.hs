@@ -402,6 +402,7 @@ closest cb (P (V2 px py)) = bezierFindRoot poly 0 1
 bezierToBernstein :: Fractional n => FixedSegment V2 n -> (BernsteinPoly n, BernsteinPoly n)
 bezierToBernstein (FCubic a b c d) = (listToBernstein $ map (view _x) coeffs, listToBernstein $ map (view _y) coeffs)
   where coeffs = [a, b, c, d]
+bezierToBernstein _ = error "bezierToBernstein only works on cubics"
 
 ------------------------------------------------------------------------
 -- Bernstein polynomials
@@ -569,6 +570,7 @@ segmentIntersectingBox (FLinear p1 p2) (FLinear p3 p4)
     mins1  = liftU2 min p1 p2
     maxes2 = liftU2 max p3 p4
     mins2  = liftU2 min p3 p4
+segmentIntersectingBox _ _ = error "intersectingBox is only for linear segments"
 -- other cases for completeness
 -- segmentIntersectingBox a b = intersection (boundingBox a) (boundingBox b)
 
