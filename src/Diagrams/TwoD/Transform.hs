@@ -205,7 +205,7 @@ reflectX = transform reflectionX
 -- | Construct a transformation which flips a diagram from top to
 --   bottom, i.e. sends the point (x,y) to (x,-y).
 reflectionY :: (Additive v, R2 v, Num n) => Transformation v n
-reflectionY = fromSymmetric $ (_x *~ (-1)) <-> (_x *~ (-1))
+reflectionY = fromSymmetric $ (_y *~ (-1)) <-> (_y *~ (-1))
 
 -- | Flip a diagram from top to bottom, i.e. send the point (x,y) to
 --   (x,-y).
