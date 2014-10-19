@@ -12,6 +12,7 @@
 {-# LANGUAGE ViewPatterns               #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 -- We have an orphan Transformable FingerTree instance here.
 
 -----------------------------------------------------------------------------
