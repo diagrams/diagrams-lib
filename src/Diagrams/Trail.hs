@@ -215,7 +215,6 @@ splitAtParam' tree@(SegTree t) p
                                              )
                                            )
  where
-      newSegs p' = (1+) . fst . propFrac $ p' * tSegs
       (before, after) = FT.split ((p * tSegs <) . numSegs) t
       tSegs           = numSegs t
       emptySplit      = let t' = (tree, id) in (t',t')
