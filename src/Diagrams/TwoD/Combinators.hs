@@ -181,7 +181,7 @@ strutY d = strut (zero & _y .~ d)
 --   centered horizontally the padding may appear \"uneven\".  If this
 --   is not desired, the origin can be centered (using 'centerX')
 --   before applying @padX@.
-padX :: (Metric v, R1 v, OrderedField n, Monoid' m)
+padX :: (Metric v, R2 v, OrderedField n, Monoid' m)
      => n -> QDiagram b v n m -> QDiagram b v n m
 padX s d = withEnvelope (d # scaleX s) d
 

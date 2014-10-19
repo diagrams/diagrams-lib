@@ -43,8 +43,6 @@ module Diagrams.ThreeD.Transform
        , reflectionZ, reflectZ
        , reflectionAcross, reflectAcross
 
-       -- * Utilities for Backends
-       -- , onBasis
        ) where
 
 import           Diagrams.Core
@@ -160,42 +158,41 @@ pointAtUnit about initial final = tilt <> pan where
 
 -- | Construct a transformation which scales by the given factor in
 --   the z direction.
-scalingZ :: (R3 v, Additive v, Floating n) => n -> Transformation v n
-scalingZ c = fromSymmetric s
-  where s = (_z *~ c) <-> (_z //~ c)
+scalingZ :: (Additive v, R3 v, Fractional n) => n -> Transformation v n
+scalingZ c = fromSymmetric $ (_z *~ c) <-> (_z //~ c)
 
 -- | Scale a diagram by the given factor in the z direction.  To scale
 -- uniformly, use 'scale'.
-scaleZ :: (V t ~ v, N t ~ n, R3 v, Additive v, Transformable t, Floating n) => n -> t -> t
+scaleZ :: (InSpace v n t, R3 v, Fractional n, Transformable t) => n -> t -> t
 scaleZ = transform . scalingZ
 
 -- Translation ----------------------------------------
 
 -- | Construct a transformation which translates by the given distance
 --   in the z direction.
-translationZ :: (R3 v, Additive v, Floating n) => n -> Transformation v n
+translationZ :: (Additive v, R3 v, Num n) => n -> Transformation v n
 translationZ z = translation (zero & _z .~ z)
 
 -- | Translate a diagram by the given distance in the y
 --   direction.
-translateZ :: (V t ~ v, N t ~ n, R3 v, Transformable t, Additive v, Floating n) => n -> t -> t
+translateZ :: (InSpace v n t, R3 v, Transformable t) => n -> t -> t
 translateZ = transform . translationZ
 
 -- Reflection ----------------------------------------------
 
 -- | Construct a transformation which flips a diagram across z=0,
 -- i.e. sends the point (x,y,z) to (x,y,-z).
-reflectionZ :: (R3 v, Additive v, Floating n) => Transformation v n
-reflectionZ = scalingZ (-1)
+reflectionZ :: (Additive v, R3 v, Num n) => Transformation v n
+reflectionZ = fromSymmetric $ (_z *~ (-1)) <-> (_z *~ (-1))
 
 -- | Flip a diagram across z=0, i.e. send the point (x,y,z) to
 -- (x,y,-z).
-reflectZ :: (V t ~ v, N t ~ n, R3 v, Transformable t, Additive v, Floating n) => t -> t
+reflectZ :: (InSpace v n t, R3 v, Transformable t) => t -> t
 reflectZ = transform reflectionZ
 
 -- | @reflectionAcross p v@ is a reflection across the plane through
 --   the point @p@ and normal to vector @v@.
-reflectionAcross :: (R3 v, HasLinearMap v, Metric v, Fractional n)
+reflectionAcross :: (Metric v, R3 v, Fractional n)
   => Point v n -> v n -> Transformation v n
 reflectionAcross p v =
   conjugate (translation (origin .-. p)) reflect
@@ -206,15 +203,7 @@ reflectionAcross p v =
 
 -- | @reflectAcross p v@ reflects a diagram across the plane though
 --   the point @p@ and the vector @v@.
-reflectAcross :: (V t ~ v, N t ~ n, R3 v, HasLinearMap v, Metric v, Fractional n, Transformable t)
+reflectAcross :: (InSpace v n t, Metric v, R3 v, Fractional n, Transformable t)
   => Point v n -> v n -> t -> t
 reflectAcross p v = transform (reflectionAcross p v)
 
--- Utilities ----------------------------------------
-
--- -- | Get the matrix equivalent of an affine transform, as a triple of
--- --   columns paired with the translation vector.  This is mostly
--- --   useful for implementing backends.
--- onBasis :: (R3Ish v) => Transformation v -> ((v, v, v), v)
--- onBasis t = ((x, y, z), v)
---   where (x:y:z:[], v) = T.onBasis t
