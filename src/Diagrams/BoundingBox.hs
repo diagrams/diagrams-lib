@@ -35,6 +35,7 @@ module Diagrams.BoundingBox
        , isEmptyBox
        , getCorners, getAllCorners
        , boxExtents, boxCenter
+       , mCenterPoint, centerPoint
        , boxTransform, boxFit
        , contains, contains', boundingBoxQuery
        , inside, inside', outside, outside'
@@ -183,6 +184,18 @@ boxExtents = maybe zero (\(l,u) -> u .-. l) . getCorners
 -- | Get the center point in a bounding box.
 boxCenter :: (Additive v, Fractional n) => BoundingBox v n -> Maybe (Point v n)
 boxCenter = fmap (uncurry (lerp 0.5)) . getCorners
+
+-- | Get the center of a the bounding box of an enveloped object, return 
+--   'Nothing' for object with empty envelope.
+mCenterPoint :: (InSpace v n a, HasBasis v, Num n, Enveloped a)
+            => a -> Maybe (Point v n)
+mCenterPoint = boxCenter . boundingBox
+
+-- | Get the center of a the bounding box of an enveloped object, return 
+--   the origin for object with empty envelope.
+centerPoint :: (InSpace v n a, HasBasis v, Num n, Enveloped a)
+            => a -> Point v n
+centerPoint = fromMaybe origin . mCenterPoint
 
 -- | Create a transformation mapping points from one bounding box to the 
 --   other. Returns 'Nothing' if either of the boxes are empty.
