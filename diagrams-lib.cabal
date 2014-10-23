@@ -41,10 +41,8 @@ Library
                        Diagrams.Deform
                        Diagrams.Direction,
                        Diagrams.Envelope,
-                       Diagrams.LinearMap,
                        Diagrams.Located,
                        Diagrams.Names,
-                       Diagrams.Measure,
                        Diagrams.Parametric,
                        Diagrams.Parametric.Adjust,
                        Diagrams.Path,
@@ -86,7 +84,6 @@ Library
                        Diagrams.TwoD.Offset,
                        Diagrams.TwoD.Path,
                        Diagrams.TwoD.Polygons,
-                       Diagrams.TwoD.Intersections,
                        Diagrams.TwoD.Segment,
                        Diagrams.TwoD.Size,
                        Diagrams.TwoD.Shapes,
