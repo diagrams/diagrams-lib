@@ -18,6 +18,12 @@ module Diagrams.TwoD.Model
          showOrigin
        , showOrigin'
        , OriginOpts(..), oColor, oScale, oMinSize
+       , showEnvelope
+       , showEnvelope'
+       , EnvelopeOpts(..), eColor, eLineWidth, ePoints
+       , showTrace
+       , showTrace'
+       , TraceOpts(..), tColor, tScale, tMinSize, tPoints
        , showLabels
        ) where
 
@@ -27,16 +33,21 @@ import           Data.Colour              (Colour)
 import           Data.Colour.Names
 import           Data.Default.Class
 import qualified Data.Map                 as M
+import           Data.Maybe               (catMaybes)
 import           Data.Semigroup
 
 import           Diagrams.Attributes
+import           Diagrams.Combinators     (atPoints)
 import           Diagrams.Core
+import           Diagrams.CubicSpline
 import           Diagrams.Path
 import           Diagrams.TwoD.Attributes
 import           Diagrams.TwoD.Ellipse
 import           Diagrams.TwoD.Path
 import           Diagrams.TwoD.Text
+import           Diagrams.TwoD.Transform (rotateBy)
 import           Diagrams.TwoD.Types
+import           Diagrams.TwoD.Vector    (unitX)
 import           Diagrams.Util
 
 import           Linear.Affine
@@ -57,6 +68,29 @@ makeLenses ''OriginOpts
 instance Fractional n => Default (OriginOpts n) where
   def = OriginOpts red (1/50) 0.001
 
+data EnvelopeOpts n = EnvelopeOpts
+  { _eColor     :: Colour Double
+  , _eLineWidth :: Measure n
+  , _ePoints    :: Int
+  }
+
+makeLenses ''EnvelopeOpts
+
+instance OrderedField n => Default (EnvelopeOpts n) where
+  def = EnvelopeOpts red medium 32
+
+data TraceOpts n = TraceOpts
+  { _tColor   :: Colour Double
+  , _tScale   :: n
+  , _tMinSize :: n
+  , _tPoints  :: Int
+  }
+
+makeLenses ''TraceOpts
+
+instance Floating n => Default (TraceOpts n) where
+  def = TraceOpts red (1/100) 0.001 64
+
 -- | Mark the origin of a diagram by placing a red dot 1/50th its size.
 showOrigin :: (TypeableFloat n, Renderable (Path V2 n) b, Monoid' m)
            => QDiagram b V2 n m -> QDiagram b V2 n m
@@ -73,6 +107,48 @@ showOrigin' oo d = o <> d
                   # fmap (const mempty)
         V2 w h = oo^.oScale *^ size d
         sz     = maximum [w, h, oo^.oMinSize]
+
+-- | Mark the envelope with an approximating cubic spline with control 
+--   over the color, line width and number of points.
+showEnvelope' :: (Enum n, TypeableFloat n, Renderable (Path V2 n) b) 
+              => EnvelopeOpts n -> QDiagram b V2 n Any -> QDiagram b V2 n Any
+showEnvelope' opts d = cubicSpline True pts # lc (opts^.eColor)
+                                            # lw w <> d
+  where
+    pts = catMaybes [envelopePMay v d | v <- map (`rotateBy` unitX) [0,inc..top]]
+    w   = opts ^. eLineWidth
+    inc = 1 / fromIntegral (opts^.ePoints)
+    top = 1 - inc
+
+
+-- | Mark the envelope with an approximating cubic spline
+--   using 32 points, medium line width and red line color.
+showEnvelope :: (Enum n, TypeableFloat n, Renderable (Path V2 n) b)
+             => QDiagram b V2 n Any -> QDiagram b V2 n Any
+showEnvelope = showEnvelope' def
+
+-- | Mark the trace of a diagram, with control over colour and scale
+-- of marker dot and the number of points on the trace.
+showTrace' :: (Enum n, TypeableFloat n, Renderable (Path V2 n) b) 
+          => TraceOpts n -> QDiagram b V2 n Any -> QDiagram b V2 n Any
+showTrace' opts d =  atPoints ps (repeat pt) <> d
+  where
+    ps = concatMap p ts
+    ts = zip rs vs
+    p (r, v) = [origin .+^ (s *^ v) | s <- r]
+    vs = map (`rotateBy` unitX) [0, inc..top]
+    rs = [getSortedList $ (appTrace . getTrace) d origin v | v <- vs]
+    pt = circle sz # fc (opts^.tColor) # lw none
+    V2 w h = opts^.tScale *^ size d
+    sz     = maximum [w, h, opts^.tMinSize]
+    inc = 1 / fromIntegral (opts^.tPoints)
+    top = 1 - inc
+
+-- | Mark the trace of a diagram by placing 64 red dots 1/100th its size
+--   along the trace.
+showTrace :: (Enum n, TypeableFloat n, Renderable (Path V2 n) b) 
+          => QDiagram b V2 n Any -> QDiagram b V2 n Any
+showTrace = showTrace' def
 
 ------------------------------------------------------------
 -- Labeling named points
