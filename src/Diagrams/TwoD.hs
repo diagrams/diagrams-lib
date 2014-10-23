@@ -259,6 +259,12 @@ module Diagrams.TwoD
        , showOrigin
        , showOrigin'
        , OriginOpts(..), oColor, oScale, oMinSize
+       , showEnvelope
+       , showEnvelope'
+       , EnvelopeOpts(..), eColor, eLineWidth, ePoints
+       , showTrace
+       , showTrace'
+       , TraceOpts(..), tColor, tScale, tMinSize, tPoints
        , showLabels
 
        ) where
