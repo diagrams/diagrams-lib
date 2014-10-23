@@ -53,6 +53,7 @@ import           Data.Hashable
 import           Data.Semigroup
 import           Data.Maybe
 import           Data.Typeable
+import           Data.Functor
 import           GHC.Generics        (Generic)
 
 import           Diagrams.Core
@@ -109,9 +110,9 @@ absolute = SizeSpec zero
 --   specified. If there are no specified values (i.e. 'absolute') then @n@ is
 --   used.
 specToSize :: (Foldable v, Functor v, Num n, Ord n) => n -> SizeSpec v n -> v n
-specToSize x (getSpec -> spec) = fmap (fromMaybe smallest) spec
+specToSize n (getSpec -> spec) = fmap (fromMaybe smallest) spec
   where
-    smallest = fromMaybe x $ minimumOf (folded . _Just) spec
+    smallest = fromMaybe n $ minimumOf (folded . _Just) spec
 
 -- | @requiredScale spec sz@ returns the largest scaling factor to make
 --   something of size @sz@ fit the requested size @spec@ without changing the
@@ -120,9 +121,12 @@ specToSize x (getSpec -> spec) = fmap (fromMaybe smallest) spec
 requiredScale :: (Additive v, Foldable v, Fractional n, Ord n)
               => SizeSpec v n -> v n -> n
 requiredScale (getSpec -> spec) sz
-  | F.all (<= 0) sz = 1
-  | otherwise       = fromMaybe 1 . minimumOf (folded . _Just)
-                    $ liftI2 (^/) spec sz
+  | allOf (folded . _Just) (<= 0) usedSz = 1
+  | otherwise                            = fromMaybe 1 mScale
+  where
+    usedSz = liftI2 ($>) spec sz
+    scales = liftI2 (^/) spec sz
+    mScale = minimumOf (folded . _Just) scales
 
 -- | Return the 'Transformation' calcuated from 'requiredScale'.
 requiredScaling :: (Additive v, Foldable v, Fractional n, Ord n)
@@ -150,14 +154,14 @@ sizeAdjustment :: (Additive v, Foldable v, OrderedField n)
   => SizeSpec v n -> BoundingBox v n -> (v n, Transformation v n)
 sizeAdjustment spec bb = (sz', t)
   where
-    -- v   = maybe zero ((origin .-.) . fst) (getCorners bb)
     v = (0.5 *^ P sz') .-. (s *^ fromMaybe origin (boxCenter bb))
 
     sz  = boxExtents bb
-    sz' = if allOf folded isJust (getSpec spec) then specToSize 0 spec else s *^ sz
+    sz' = if allOf folded isJust (getSpec spec)
+            then specToSize 0 spec
+            else s *^ sz
 
     s = requiredScale spec sz
 
-    -- transform by moving lower corner to origin and scaling
     t = translation v <> scaling s
 
