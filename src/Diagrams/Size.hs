@@ -53,7 +53,6 @@ import           Data.Hashable
 import           Data.Semigroup
 import           Data.Maybe
 import           Data.Typeable
-import           Data.Functor
 import           GHC.Generics        (Generic)
 
 import           Diagrams.Core
@@ -124,7 +123,7 @@ requiredScale (getSpec -> spec) sz
   | allOf (folded . _Just) (<= 0) usedSz = 1
   | otherwise                            = fromMaybe 1 mScale
   where
-    usedSz = liftI2 ($>) spec sz
+    usedSz = liftI2 (<$) sz spec
     scales = liftI2 (^/) spec sz
     mScale = minimumOf (folded . _Just) scales
 
