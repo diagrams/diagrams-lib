@@ -1,3 +1,4 @@
+{-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE Rank2Types            #-}
@@ -75,19 +76,19 @@ import           Linear.Vector
 --   >     )
 --   > c = circle 0.8
 --   > withEnvelopeEx = sqNewEnv # centerXY # pad 1.5
-withEnvelope :: (V a ~ v, N a ~ n, HasLinearMap v, Enveloped a, Monoid' m)
+withEnvelope :: (InSpace v n a, Metric v, OrderedField n, Monoid' m, Enveloped a)
            => a -> QDiagram b v n m -> QDiagram b v n m
 withEnvelope = setEnvelope . getEnvelope
 
 -- | Use the trace from some object as the trace for a diagram, in
 --   place of the diagram's default trace.
-withTrace :: (V a ~ v, N a ~ n, HasLinearMap v, Traced a, OrderedField n, Metric v, Monoid' m)
+withTrace :: (InSpace v n a, Metric v, OrderedField n, Monoid' m, Traced a)
           => a -> QDiagram b v n m -> QDiagram b v n m
 withTrace = setTrace . getTrace
 
 -- | @phantom x@ produces a \"phantom\" diagram, which has the same
 --   envelope and trace as @x@ but produces no output.
-phantom :: (Enveloped a, Traced a, V a ~ v, N a ~ n, Monoid' m) => a -> QDiagram b v n m
+phantom :: (InSpace v n a, Monoid' m, Enveloped a, Traced a) => a -> QDiagram b v n m
 phantom a = QD $ D.leafU ((inj . toDeletable . getEnvelope $ a) <> (inj . toDeletable . getTrace $ a))
 
 -- | @pad s@ \"pads\" a diagram, expanding its envelope by a factor of
@@ -96,7 +97,7 @@ phantom a = QD $ D.leafU ((inj . toDeletable . getEnvelope $ a) <> (inj . toDele
 --   origin, so if the origin is not centered the padding may appear
 --   \"uneven\".  If this is not desired, the origin can be centered
 --   (using, e.g., 'centerXY' for 2D diagrams) before applying @pad@.
-pad :: (HasLinearMap v, Metric v, OrderedField n, Monoid' m)
+pad :: (Metric v, OrderedField n, Monoid' m)
     => n -> QDiagram b v n m -> QDiagram b v n m
 pad s d = withEnvelope (d # scale s) d
 
@@ -104,7 +105,7 @@ pad s d = withEnvelope (d # scale s) d
 --   s is in the local units of the diagram. This function is similar to @pad@,
 --   only it takes an absolute quantity and pre-centering should not be
 --   necessary.
-frame :: (HasLinearMap v, Metric v, OrderedField n, Monoid' m)
+frame :: (Metric v, OrderedField n, Monoid' m)
         => n -> QDiagram b v n m -> QDiagram b v n m
 frame s d = setEnvelope (onEnvelope t (d^.envelope)) d
   where
@@ -143,7 +144,7 @@ strut v = QD $ D.leafU (inj . toDeletable $ env)
 --   the cosine of the difference in angle, and leaving it unchanged
 --   when this factor is negative.
 extrudeEnvelope
-  :: (HasLinearMap v, Ord n, Floating n, Metric v, Monoid' m)
+  :: (Metric v, OrderedField n, Monoid' m)
   => v n -> QDiagram b v n m -> QDiagram b v n m
 extrudeEnvelope = deformEnvelope 0.5
 
@@ -155,13 +156,13 @@ extrudeEnvelope = deformEnvelope 0.5
 --   Note that this could create strange inverted envelopes, where
 --   @ diameter v d < 0 @.
 intrudeEnvelope
-  :: (HasLinearMap v, Ord n, Floating n, Metric v, Monoid' m)
+  :: (Metric v, OrderedField n, Monoid' m)
   => v n -> QDiagram b v n m -> QDiagram b v n m
 intrudeEnvelope = deformEnvelope (-0.5)
 
 -- Utility for extrudeEnvelope / intrudeEnvelope
 deformEnvelope
-  :: (HasLinearMap v, Ord n, Floating n, Metric v, Monoid' m)
+  :: (Metric v, OrderedField n, Monoid' m)
   => n -> v n -> QDiagram b v n m -> QDiagram b v n m
 deformEnvelope s v d = setEnvelope (getEnvelope d & _Wrapping Envelope %~ deformE) d
   where
@@ -179,7 +180,7 @@ deformEnvelope s v d = setEnvelope (getEnvelope d & _Wrapping Envelope %~ deform
 -- | @beneath@ is just a convenient synonym for @'flip' 'atop'@; that is,
 --   @d1 \`beneath\` d2@ is the diagram with @d2@ superimposed on top of
 --   @d1@.
-beneath :: (HasLinearMap v, OrderedField n, Metric v, Monoid' m)
+beneath :: (Metric v, OrderedField n, Monoid' m)
      => QDiagram b v n m -> QDiagram b v n m -> QDiagram b v n m
 beneath = flip atop
 
@@ -228,7 +229,7 @@ beside v d1 d2 = d1 <> juxtapose v d1 d2
 --   from the first.  The local origin of the resulting combined
 --   diagram is the same as the local origin of the first.  See the
 --   documentation of 'beside' for more information.
-atDirection :: (Juxtaposable a, Semigroup a, V a ~ v, N a ~ n, Metric v, Floating n)
+atDirection :: (InSpace v n a, Metric v, Floating n, Juxtaposable a, Semigroup a)
             => Direction v n -> a -> a -> a
 atDirection = beside . fromDirection
 
@@ -258,12 +259,12 @@ appends d1 apps = d1 <> mconcat (map (\(v,d) -> juxtapose v d1 d) apps)
 --   > positionEx = position (zip (map mkPoint [-3, -2.8 .. 3]) (repeat dot))
 --   >   where dot       = circle 0.2 # fc black
 --   >         mkPoint x = p2 (x,x^2)
-position :: (V a ~ v, N a ~ n, Additive v, Num n, HasOrigin a, Monoid' a) => [(Point v n, a)] -> a
+position :: (InSpace v n a, HasOrigin a, Monoid' a) => [(Point v n, a)] -> a
 position = mconcat . map (uncurry moveTo)
 
 -- | Curried version of @position@, takes a list of points and a list of
 --   objects.
-atPoints :: (V a ~ v, N a ~ n, Additive v, Num n, HasOrigin a, Monoid' a) => [Point v n] -> [a] -> a
+atPoints :: (InSpace v n a, HasOrigin a, Monoid' a) => [Point v n] -> [a] -> a
 atPoints ps as = position $ zip ps as
 
 -- | Methods for concatenating diagrams.
@@ -325,7 +326,7 @@ instance Num n => Default (CatOpts n) where
 --
 --   See also 'cat'', which takes an extra options record allowing
 --   certain aspects of the operation to be tweaked.
-cat :: (Juxtaposable a, Monoid' a, HasOrigin a , V a ~ v, N a ~ n, Metric v, OrderedField n)
+cat :: (InSpace v n a, Metric v, Floating n, Juxtaposable a, Monoid' a, HasOrigin a)
        => v n -> [a] -> a
 cat v = cat' v def
 
@@ -346,7 +347,7 @@ cat v = cat' v def
 --   Note that @cat' v (with & catMethod .~ Distrib) === mconcat@
 --   (distributing with a separation of 0 is the same as
 --   superimposing).
-cat' :: ( Juxtaposable a, Monoid' a, HasOrigin a, V a ~ v, N a ~ n, Metric v, OrderedField n)
+cat' :: (InSpace v n a, Metric v, Floating n, Juxtaposable a, Monoid' a, HasOrigin a)
      => v n -> CatOpts n -> [a] -> a
 cat' v (CatOpts { _catMethod = Cat, _sep = s }) = foldB comb mempty
   where comb d1 d2 = d1 <> (juxtapose v d1 d2 # moveOriginBy vs)

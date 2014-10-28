@@ -1,3 +1,4 @@
+{-# LANGUAGE ConstraintKinds            #-}
 {-# LANGUAGE DeriveFunctor              #-}
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE FlexibleInstances          #-}
@@ -33,7 +34,9 @@ module Diagrams.BoundingBox
          -- * Queries on bounding boxes
        , isEmptyBox
        , getCorners, getAllCorners
-       , boxExtents, boxTransform, boxFit
+       , boxExtents, boxCenter
+       , mCenterPoint, centerPoint
+       , boxTransform, boxFit
        , contains, contains', boundingBoxQuery
        , inside, inside', outside, outside'
 
@@ -45,6 +48,7 @@ import           Data.Foldable           as F
 import           Data.Maybe              (fromMaybe)
 import           Data.Semigroup
 
+import           Diagrams.Align
 import           Diagrams.Core
 import           Diagrams.Core.Transform
 import           Diagrams.Path
@@ -118,6 +122,9 @@ instance TypeableFloat n => Traced (BoundingBox V3 n) where
            . ((`boxFit` cube) . boundingBox :: Envelope V3 n -> D V3 n)
            . getEnvelope
 
+instance (Metric v, Traversable v, OrderedField n) => Alignable (BoundingBox v n) where
+  defaultBoundary = envelopeP
+
 instance Show (v n) => Show (BoundingBox v n) where
   show
     = maybe "emptyBox" (\(l, u) -> "fromCorners " ++ show l ++ " " ++ show u)
@@ -146,7 +153,7 @@ fromPoints :: (Additive v, Ord n) => [Point v n] -> BoundingBox v n
 fromPoints = mconcat . map fromPoint
 
 -- | Create a bounding box for any enveloped object (such as a diagram or path).
-boundingBox :: (V a ~ v, N a ~ n, Enveloped a, HasLinearMap v, HasBasis v, Num n)
+boundingBox :: (InSpace v n a, HasBasis v, Num n, Enveloped a)
             => a -> BoundingBox v n
 boundingBox a = fromMaybeEmpty $ do
   env <- (appEnvelope . getEnvelope) a
@@ -172,9 +179,26 @@ getAllCorners (BoundingBox (Option (Just (NonEmptyBoundingBox (l, u)))))
 -- | Get the size of the bounding box - the vector from the (component-wise)
 --   lesser point to the greater point.
 boxExtents :: (Additive v, Num n) => BoundingBox v n -> v n
-boxExtents = maybe zero (uncurry (.-.)) . getCorners
+boxExtents = maybe zero (\(l,u) -> u .-. l) . getCorners
 
--- | Create a transformation mapping points from one bounding box to the other.
+-- | Get the center point in a bounding box.
+boxCenter :: (Additive v, Fractional n) => BoundingBox v n -> Maybe (Point v n)
+boxCenter = fmap (uncurry (lerp 0.5)) . getCorners
+
+-- | Get the center of a the bounding box of an enveloped object, return 
+--   'Nothing' for object with empty envelope.
+mCenterPoint :: (InSpace v n a, HasBasis v, Num n, Enveloped a)
+            => a -> Maybe (Point v n)
+mCenterPoint = boxCenter . boundingBox
+
+-- | Get the center of a the bounding box of an enveloped object, return 
+--   the origin for object with empty envelope.
+centerPoint :: (InSpace v n a, HasBasis v, Num n, Enveloped a)
+            => a -> Point v n
+centerPoint = fromMaybe origin . mCenterPoint
+
+-- | Create a transformation mapping points from one bounding box to the 
+--   other. Returns 'Nothing' if either of the boxes are empty.
 boxTransform
   :: (Additive v, Fractional n)
   => BoundingBox v n -> BoundingBox v n -> Maybe (Transformation v n)
@@ -185,10 +209,10 @@ boxTransform u v = do
       s = liftU2 (*) . uncurry (liftU2 (/)) . mapT boxExtents
   return $ Transformation i i (vl ^-^ s (v, u) ul)
 
--- | Transforms an enveloped thing to fit within a @BoundingBox@.  If it's
---   empty, then the result is also @mempty@.
+-- | Transforms an enveloped thing to fit within a @BoundingBox@.  If the 
+--   bounding box is empty, then the result is also @mempty@.
 boxFit
-  :: (V a ~ v, N a ~ n, Enveloped a, Transformable a, Monoid a, HasLinearMap v, HasBasis v, Num n)
+  :: (InSpace v n a, HasBasis v, Enveloped a, Transformable a, Monoid a, Num n)
   => BoundingBox v n -> a -> a
 boxFit b x = maybe mempty (`transform` x) $ boxTransform (boundingBox x) b
 
@@ -206,8 +230,7 @@ contains' b p = maybe False check $ getCorners b
     check (l, h) = F.and (liftI2 (<) l p)
                 && F.and (liftI2 (<) p h)
 
-boundingBoxQuery :: (Additive v, Foldable v, Ord n)
-  => BoundingBox v n -> Query v n Any
+boundingBoxQuery :: (Additive v, Foldable v, Ord n) => BoundingBox v n -> Query v n Any
 boundingBoxQuery bb = Query $ Any . contains bb
 
 -- | Test whether the first bounding box is contained inside

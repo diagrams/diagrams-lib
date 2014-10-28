@@ -21,7 +21,7 @@ import           Data.Typeable
 
 import           Control.Arrow       (second)
 import           Control.Lens        ((%~), (&), _Wrapping')
-import qualified Data.Map            as M
+import qualified Data.HashMap.Strict as HM
 import           Data.Semigroup      ((<>))
 import           Data.Tree           (Tree (..))
 
@@ -73,8 +73,8 @@ splitAttr code = fst . splitAttr' Nothing
   splitAttr' mattr (Node (RStyle sty) cs) = (t', ok)
     where
       mattr' = mattr <> getAttr sty
-      sty' = sty & _Wrapping' Style %~ M.delete ty
-      ty   = show . typeOf $ (undefined :: AttrType code)
+      sty' = sty & _Wrapping' Style %~ HM.delete ty
+      ty   = typeOf (undefined :: AttrType code)
       (cs', ok) = splitAttr'Forest mattr' cs
       t' | ok        = rebuildNode Nothing ok (RStyle sty) cs'
          | otherwise = rebuildNode mattr ok (RStyle sty') cs'

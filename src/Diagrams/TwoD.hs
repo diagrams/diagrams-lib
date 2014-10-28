@@ -229,47 +229,42 @@ module Diagrams.TwoD
 
          -- * Size
          -- ** Computing size
-       , width, height, size2D, sizeSpec2D
-       , extentX, extentY, center2D
+       , width, height
+       , extentX, extentY
 
          -- ** Specifying size
-       , SizeSpec2D(..)
-       , mkSizeSpec
+       , mkSizeSpec2D
+       , mkWidth
+       , mkHeight
+       , dims2D
 
-         -- ** Adjusting size
-       , sized, sizedAs
+         -- * Textures
+       , Texture(..), solid
+       , SpreadMethod(..), GradientStop(..), mkStops, getFillTexture
+       , fillTexture, getLineTexture, lineTexture, lineTextureA
+       , stopFraction, stopColor
 
-        -- * Textures
-      , Texture(..), solid
-      , SpreadMethod(..), GradientStop(..), mkStops, getFillTexture
-      , fillTexture, getLineTexture, lineTexture, lineTextureA
-      , stopFraction, stopColor
+       , LGradient(..), lGradStops, lGradTrans, lGradStart, lGradEnd
+       , lGradSpreadMethod, defaultLG, _LG, mkLinearGradient
 
-      , LGradient(..), lGradStops, lGradTrans, lGradStart, lGradEnd
-      , lGradSpreadMethod, defaultLG, _LG, mkLinearGradient
+       , RGradient(..)
+       , rGradStops, rGradCenter0, rGradRadius0, rGradCenter1, rGradRadius1
+       , rGradTrans, rGradSpreadMethod, defaultRG, _RG, mkRadialGradient
 
-      , RGradient(..)
-      , rGradStops, rGradCenter0, rGradRadius0, rGradCenter1, rGradRadius1
-      , rGradTrans, rGradSpreadMethod, defaultRG, _RG, mkRadialGradient
-
-        -- ** Colors
-      , fillColor, fc, fcA, recommendFillColor
-      , lineColor, lc, lcA, _SC
-
-       -- ** Width
-       , LineWidth, getLineWidth, lineWidth, lineWidthA
-       , lw, lwN, lwO, lwL, lwG
-       , ultraThin, veryThin, thin, medium, thick, veryThick, ultraThick, none
-       , tiny, verySmall, small, normal, large, veryLarge, huge
-
-       -- ** Dashing
-       , Dashing(..), DashingA, getDashing
-       , dashing, dashingO, dashingL, dashingN, dashingG
+         -- ** Colors
+       , fillColor, fc, fcA, recommendFillColor
+       , lineColor, lc, lcA, _SC
 
          -- * Visual aids for understanding the internal model
        , showOrigin
        , showOrigin'
        , OriginOpts(..), oColor, oScale, oMinSize
+       , showEnvelope
+       , showEnvelope'
+       , EnvelopeOpts(..), eColor, eLineWidth, ePoints
+       , showTrace
+       , showTrace'
+       , TraceOpts(..), tColor, tScale, tMinSize, tPoints
        , showLabels
 
        ) where

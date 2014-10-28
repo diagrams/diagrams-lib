@@ -1,5 +1,7 @@
 {-# LANGUAGE CPP                        #-}
+{-# LANGUAGE ConstraintKinds            #-}
 {-# LANGUAGE DeriveDataTypeable         #-}
+{-# LANGUAGE DeriveFunctor              #-}
 {-# LANGUAGE ExistentialQuantification  #-}
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE FlexibleInstances          #-}
@@ -28,18 +30,8 @@
 -----------------------------------------------------------------------------
 
 module Diagrams.TwoD.Attributes (
-    -- ** Width
-    LineWidth, getLineWidth, lineWidth, lineWidthA
-  , lw, lwN, lwO, lwL, lwG
-  , ultraThin, veryThin, thin, medium, thick, veryThick, ultraThick, none
-  , tiny, verySmall, small, normal, large, veryLarge, huge
-
-    -- ** Dashing
-  , Dashing(..), DashingA, getDashing
-  , dashing, dashingN, dashingO, dashingL, dashingG
-
   -- * Textures
-  , Texture(..), solid, _SC, _LG, _RG, defaultLG, defaultRG
+    Texture(..), solid, _SC, _LG, _RG, defaultLG, defaultRG
   , GradientStop(..), stopColor, stopFraction, mkStops
   , SpreadMethod(..), lineLGradient, lineRGradient
 
@@ -71,149 +63,29 @@ module Diagrams.TwoD.Attributes (
 
   ) where
 
-import           Diagrams.Attributes
-import           Diagrams.Attributes.Compile
-import           Diagrams.Core
-import           Diagrams.Core.Style         (setAttr)
-import           Diagrams.TwoD.Types
-
-import           Diagrams.Core.Types         (RTree)
-import           Diagrams.Located            (unLoc)
-import           Diagrams.Path               (Path, pathTrails)
-import           Diagrams.Trail              (isLoop)
-
 import           Control.Lens                (Lens', Setter', generateSignatures, lensRules,
-                                              makeLensesWith, makePrisms, sets, (&), (.~), over)
-
+                                              makeLensesWith, makePrisms, over, sets, (&), (.~))
 import           Data.Colour                 hiding (AffineSpace, over)
 import           Data.Data
 import           Data.Default.Class
 import           Data.Maybe                  (fromMaybe)
-
 import           Data.Monoid.Recommend
 import           Data.Semigroup
 
+import           Diagrams.Attributes
+import           Diagrams.Attributes.Compile
+import           Diagrams.Core
+import           Diagrams.Core.Style         (setAttr)
+import           Diagrams.Core.Types         (RTree)
+import           Diagrams.Located            (unLoc)
+import           Diagrams.Path               (Path, pathTrails)
+import           Diagrams.Trail              (isLoop)
+import           Diagrams.TwoD.Types
 
--- | Standard 'Measures'.
-none, ultraThin, veryThin, thin, medium, thick, veryThick, ultraThick,
-  tiny, verySmall, small, normal, large, veryLarge, huge :: Floating n => Measure n
-none       = Output 0
-ultraThin  = Normalized 0.0005 `atLeast` Output 0.5
-veryThin   = Normalized 0.001  `atLeast` Output 0.5
-thin       = Normalized 0.002  `atLeast` Output 0.5
-medium     = Normalized 0.004  `atLeast` Output 0.5
-thick      = Normalized 0.0075 `atLeast` Output 0.5
-veryThick  = Normalized 0.01   `atLeast` Output 0.5
-ultraThick = Normalized 0.02   `atLeast` Output 0.5
-
-tiny      = Normalized 0.01
-verySmall = Normalized 0.015
-small     = Normalized 0.023
-normal    = Normalized 0.035
-large     = Normalized 0.05
-veryLarge = Normalized 0.07
-huge      = Normalized 0.10
 
 -----------------------------------------------------------------
---  Line Width  -------------------------------------------------
+--  Gradients  --------------------------------------------------
 -----------------------------------------------------------------
-
--- | Line widths specified on child nodes always override line widths
---   specified at parent nodes.
-newtype LineWidth n = LineWidth (Last (Measure n))
-  deriving (Data, Typeable, Semigroup)
-
-instance (Typeable n) => AttributeClass (LineWidth n)
-
-type instance V (LineWidth n) = V2
-type instance N (LineWidth n) = n
-
-instance Floating n => Transformable (LineWidth n) where
-  transform t (LineWidth (Last m)) = LineWidth (Last $ scaleLocal (avgScale t) m)
-
-instance Floating n => Default (LineWidth n) where
-  def = LineWidth (Last medium)
-
-getLineWidth :: LineWidth n -> Measure n
-getLineWidth (LineWidth (Last w)) = w
-
--- | Set the line (stroke) width.
-lineWidth :: (Data n, HasStyle a, V a ~ V2, N a ~ n, Floating n) => Measure n -> a -> a
-lineWidth = applyGTAttr . LineWidth . Last
-
--- | Apply a 'LineWidth' attribute.
-lineWidthA :: (Data n, HasStyle a, V a ~ V2, N a ~ n, Floating n) => LineWidth n -> a -> a
-lineWidthA = applyGTAttr
-
--- | Default for 'lineWidth'.
-lw :: (Data n, Floating n, HasStyle a, V a ~ V2, N a ~ n) => Measure n -> a -> a
-lw = lineWidth
-
--- | A convenient synonym for 'lineWidth (Global w)'.
-lwG :: (Data n, Floating n, HasStyle a, V a ~ V2, N a ~ n) => n -> a -> a
-lwG w = lineWidth (Global w)
-
--- | A convenient synonym for 'lineWidth (Normalized w)'.
-lwN :: (Data n, Floating n, HasStyle a, V a ~ V2, N a ~ n) => n -> a -> a
-lwN w = lineWidth (Normalized w)
-
--- | A convenient synonym for 'lineWidth (Output w)'.
-lwO :: (Data n, Floating n, HasStyle a, V a ~ V2, N a ~ n) => n -> a -> a
-lwO w = lineWidth (Output w)
-
--- | A convenient sysnonym for 'lineWidth (Local w)'.
-lwL :: (Data n, Floating n, HasStyle a, V a ~ V2, N a ~ n) => n -> a -> a
-lwL w = lineWidth (Local w)
-
------------------------------------------------------------------
---  Dashing  ----------------------------------------------------
------------------------------------------------------------------
-
--- | Create lines that are dashing... er, dashed.
-data Dashing n = Dashing [Measure n] (Measure n)
-  deriving (Data, Typeable)
-
-newtype DashingA n = DashingA (Last (Dashing n))
-  deriving (Data, Typeable, Semigroup)
-
-instance Typeable n => AttributeClass (DashingA n)
-
-type instance V (DashingA n) = V2
-type instance N (DashingA n) = n
-
-instance Floating n => Transformable (DashingA n) where
-  transform t (DashingA (Last (Dashing ms m)))
-    = DashingA (Last $ Dashing (map f ms) (f m))
-      where f = scaleLocal (avgScale t)
-
-getDashing :: DashingA n -> Dashing n
-getDashing (DashingA (Last d)) = d
-
--- | Set the line dashing style.
-dashing :: (Floating n, Data n, HasStyle a, V a ~ V2, N a ~ n)
-        => [Measure n]  -- ^ A list specifying alternate lengths of on
-                        --   and off portions of the stroke.  The empty
-                        --   list indicates no dashing.
-        -> Measure n    -- ^ An offset into the dash pattern at which the
-                        --   stroke should start.
-        -> a -> a
-dashing ds offs = applyGTAttr (DashingA (Last (Dashing ds offs)))
-
--- | A convenient synonym for 'dashing (Global w)'.
-dashingG :: (Data n, Floating n, HasStyle a, V a ~ V2, N a ~ n) => [n] -> n -> a -> a
-dashingG w v = dashing (map Global w) (Global v)
-
--- | A convenient synonym for 'dashing (Normalized w)'.
-dashingN :: (Data n, Floating n, HasStyle a, V a ~ V2, N a ~ n) => [n] -> n -> a -> a
-dashingN w v = dashing (map Normalized w) (Normalized v)
-
--- | A convenient synonym for 'dashing (Output w)'.
-dashingO :: (Data n, Floating n, HasStyle a, V a ~ V2, N a ~ n) => [n] -> n -> a -> a
-dashingO w v = dashing (map Output w) (Output v)
-
--- | A convenient sysnonym for 'dashing (Local w)'.
-dashingL :: (Data n, Floating n, HasStyle a, V a ~ V2, N a ~ n) => [n] -> n -> a -> a
-dashingL w v = dashing (map Local w) (Local v)
 
 -- | A gradient stop contains a color and fraction (usually between 0 and 1)
 data GradientStop d = GradientStop
@@ -260,11 +132,11 @@ lGradStops :: Lens' (LGradient n) [GradientStop n]
 lGradTrans :: Lens' (LGradient n) (Transformation V2 n)
 
 -- | The starting point for the first gradient stop. The coordinates are in
---   'Local' units and the default is (-0.5, 0).
+--   'local' units and the default is (-0.5, 0).
 lGradStart :: Lens' (LGradient n) (Point V2 n)
 
 -- | The ending point for the last gradient stop.The coordinates are in
---   'Local' units and the default is (0.5, 0).
+--   'local' units and the default is (0.5, 0).
 lGradEnd :: Lens' (LGradient n) (Point V2 n)
 
 -- | For setting the spread method.
@@ -294,13 +166,13 @@ rGradStops :: Lens' (RGradient n) [GradientStop n]
 -- | The center point of the inner circle.
 rGradCenter0 :: Lens' (RGradient n) (Point V2 n)
 
--- | The radius of the inner cirlce in 'Local' coordinates.
+-- | The radius of the inner cirlce in 'local' coordinates.
 rGradRadius0 :: Lens' (RGradient n) n
 
 -- | The center of the outer circle.
 rGradCenter1  :: Lens' (RGradient n) (Point V2 n)
 
--- | The radius of the outer circle in 'Local' coordinates.
+-- | The radius of the outer circle in 'local' coordinates.
 rGradRadius1 :: Lens' (RGradient n) n
 
 -- | A transformation to be applied to the gradient. Usually this field will
@@ -310,6 +182,10 @@ rGradTrans :: Lens' (RGradient n) (Transformation V2 n)
 
 -- | For setting the spread method.
 rGradSpreadMethod :: Lens' (RGradient n) SpreadMethod
+
+-----------------------------------------------------------------
+--  Textures  ---------------------------------------------------
+-----------------------------------------------------------------
 
 -- | A Texture is either a color 'SC', linear gradient 'LG', or radial gradient 'RG'.
 --   An object can have only one texture which is determined by the 'Last'

@@ -62,7 +62,7 @@ unp2 (P (V2 x y)) = (x,y)
 
 -- | Curried form of `p2`.
 mkP2 :: n -> n -> P2 n
-mkP2 x = P . V2 x
+mkP2 x y = P (V2 x y)
 
 p2Iso :: Iso' (Point V2 n) (n, n)
 p2Iso = iso unp2 p2

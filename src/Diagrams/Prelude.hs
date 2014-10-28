@@ -84,10 +84,15 @@ module Diagrams.Prelude
          -- | Utilities for working with points.
        , module Diagrams.Points
 
+         -- | Utilities for working with size.
+       , module Diagrams.Size
+
          -- | Angles
        , module Diagrams.Angle
+
          -- | Convenience infix operators for working with coordinates.
        , module Diagrams.Coordinates
+
          -- | Directions, distinguished from angles or vectors
        , module Diagrams.Direction
 
@@ -108,15 +113,19 @@ module Diagrams.Prelude
          -- * Convenience re-exports
          -- | For representing and operating on colors.
        , module Data.Colour
+
          -- | A large list of color names.
        , module Data.Colour.Names
          -- | Semigroups and monoids show up all over the place, so things from
          --   Data.Semigroup and Data.Monoid often come in handy.
        , module Data.Semigroup
+
          -- | For computing with vectors.
        , module Linear.Vector
+
          -- | For computing with points and vectors.
        , module Linear.Affine
+
          -- | For computing with dot products and norm.
        , module Linear.Metric
 
@@ -149,13 +158,14 @@ import           Diagrams.Path
 import           Diagrams.Points
 import           Diagrams.Query
 import           Diagrams.Segment
+import           Diagrams.Size
 import           Diagrams.Tangent
+import           Diagrams.ThreeD
 import           Diagrams.Trace
 import           Diagrams.Trail             hiding (linePoints, loopPoints, trailPoints)
 import           Diagrams.TrailLike
 import           Diagrams.Transform
 import           Diagrams.TwoD
-import           Diagrams.ThreeD
 import           Diagrams.Util
 
 import           Control.Applicative
