@@ -36,6 +36,7 @@ module Diagrams.Path
          -- * Constructing paths
          -- $construct
 
+       , ToPath (..)
        , pathFromTrail
        , pathFromTrailAt
        , pathFromLocTrail
@@ -156,6 +157,43 @@ instance (HasLinearMap v, Metric v, OrderedField n)
 ------------------------------------------------------------
 --  Constructing paths  ------------------------------------
 ------------------------------------------------------------
+
+-- | Type class for things that can be converted to a 'Path'.
+--
+--   Note that this class is very different from 'TrailLike'. 'TrailLike' is
+--   usually the result of a library function to give you a convenient,
+--   polymorphic result ('Path', 'Diagram' etc.).
+--
+class ToPath t where
+-- | 'toPath' takes something that can be converted to 'Path' and returns
+--    the 'Path'.
+  toPath :: (Metric (V t), OrderedField (N t)) => t -> Path (V t) (N t)
+
+instance ToPath (Path v n) where
+  toPath = id
+
+instance ToPath (Trail v n) where
+  toPath = pathFromTrail
+
+instance ToPath (Located (Trail v n)) where
+  toPath = pathFromLocTrail
+
+instance ToPath (Located (Trail' l v n)) where
+  toPath = pathFromLocTrail . mapLoc Trail
+
+instance ToPath (Located (Segment Closed v n)) where
+  toPath (viewLoc -> (p,seg))
+    = Path [trailFromSegments [seg] `at` p]
+
+instance ToPath (Located [Segment Closed v n]) where
+  toPath (viewLoc -> (p,segs))
+    = Path [trailFromSegments segs `at` p]
+
+instance ToPath (FixedSegment v n) where
+  toPath = toPath . fromFixedSeg
+
+instance ToPath a => ToPath [a] where
+  toPath = F.foldMap toPath
 
 -- $construct
 -- Since paths are 'TrailLike', any function producing a 'TrailLike'
