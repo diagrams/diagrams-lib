@@ -73,11 +73,11 @@ module Diagrams.TwoD
 
          -- * Paths
          -- ** Stroking
-       , stroke, stroke', strokeTrail, strokeT, strokeTrail', strokeT'
+       , strokeP, strokeP', strokeTrail, strokeT, strokeTrail', strokeT'
        , strokeLine, strokeLoop
        , strokeLocTrail, strokeLocT, strokeLocLine, strokeLocLoop
        , FillRule(..), fillRule
-       , StrokeOpts(..), vertexNames, queryFillRule
+       , StrokeOpts(..), Strokable(..), vertexNames, queryFillRule
 
          -- ** Clipping
        , clipBy, clipTo, clipped

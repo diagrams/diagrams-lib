@@ -27,9 +27,10 @@
 module Diagrams.TwoD.Path
        ( -- * Constructing path-based diagrams
 
-         stroke, stroke', strokeTrail, strokeT, strokeTrail', strokeT'
+         strokeP, strokeP', strokeTrail, strokeT, strokeTrail', strokeT'
        , strokeLine, strokeLoop
        , strokeLocTrail, strokeLocT, strokeLocLine, strokeLocLoop
+       , Strokable(..)
 
          -- ** Stroke options
 
@@ -142,6 +143,8 @@ vertexNames :: forall a a'. Lens (StrokeOpts a) (StrokeOpts a') [[a]] [[a']]
 --   determining how it is to be drawn, use the 'fillRule' function.
 queryFillRule :: forall a. Lens' (StrokeOpts a) FillRule
 
+class Strokable b t where
+  stroke :: t -> QDiagram b V2 (N t) Any
 
 instance Default (StrokeOpts a) where
   def = StrokeOpts
@@ -159,24 +162,28 @@ instance Default (StrokeOpts a) where
 --   inferring the type of @stroke@.  The solution is to give a type
 --   signature to expressions involving @stroke@, or (recommended)
 --   upgrade GHC (the bug is fixed in 7.0.2 onwards).
-stroke :: (TypeableFloat n, Renderable (Path V2 n) b)
+strokeP :: (TypeableFloat n, Renderable (Path V2 n) b)
        => Path V2 n -> QDiagram b V2 n Any
-stroke = stroke' (def :: StrokeOpts ())
+strokeP = strokeP' (def :: StrokeOpts ())
 
 instance (TypeableFloat n, Renderable (Path V2 n) b)
     => TrailLike (QDiagram b V2 n Any) where
-  trailLike = stroke . trailLike
+  trailLike = strokeP . trailLike
 
--- | A variant of 'stroke' that takes an extra record of options to
+instance (TypeableFloat n, Renderable (Path V2 n) b) 
+      => Strokable b (Path V2 n) where
+  stroke = strokeP
+
+-- | A variant of 'strokeP' that takes an extra record of options to
 --   customize its behavior.  In particular:
 --
 --     * Names can be assigned to the path's vertices
 --
---   'StrokeOpts' is an instance of 'Default', so @stroke' ('with' &
+--   'StrokeOpts' is an instance of 'Default', so @strokeP' ('with' &
 --   ... )@ syntax may be used.
-stroke' :: (TypeableFloat n, Renderable (Path V2 n) b, IsName a)
+strokeP' :: (TypeableFloat n, Renderable (Path V2 n) b, IsName a)
     => StrokeOpts a -> Path V2 n -> QDiagram b V2 n Any
-stroke' opts path
+strokeP' opts path
   | null (pLines ^. _Wrapped') = mkP pLoops
   | null (pLoops ^. _Wrapped') = mkP pLines
   | otherwise                  = mkP pLines <> mkP pLoops
@@ -192,17 +199,21 @@ stroke' opts path
          (Query $ Any . flip (runFillRule (opts^.queryFillRule)) p)
 
 
--- | A composition of 'stroke' and 'pathFromTrail' for conveniently
+-- | A composition of 'strokeP' and 'pathFromTrail' for conveniently
 --   converting a trail directly into a diagram.
 --
 --   Note that a bug in GHC 7.0.1 causes a context stack overflow when
---   inferring the type of 'stroke' and hence of @strokeTrail@ as well.
+--   inferring the type of 'strokeP' and hence of @strokeTrail@ as well.
 --   The solution is to give a type signature to expressions involving
 --   @strokeTrail@, or (recommended) upgrade GHC (the bug is fixed in 7.0.2
 --   onwards).
 strokeTrail :: (TypeableFloat n, Renderable (Path V2 n) b)
             => Trail V2 n -> QDiagram b V2 n Any
-strokeTrail = stroke . pathFromTrail
+strokeTrail = strokeP . pathFromTrail
+
+instance (TypeableFloat n, Renderable (Path V2 n) b) 
+      => Strokable b (Trail V2 n) where
+  stroke = strokeTrail
 
 -- | Deprecated synonym for 'strokeTrail'.
 strokeT :: (TypeableFloat n, Renderable (Path V2 n) b)
@@ -213,7 +224,7 @@ strokeT = strokeTrail
 --   converting a trail directly into a diagram.
 strokeTrail' :: (TypeableFloat n, Renderable (Path V2 n) b, IsName a)
              => StrokeOpts a -> Trail V2 n -> QDiagram b V2 n Any
-strokeTrail' opts = stroke' opts . pathFromTrail
+strokeTrail' opts = strokeP' opts . pathFromTrail
 
 -- | Deprecated synonym for 'strokeTrail''.
 strokeT' :: (TypeableFloat n, Renderable (Path V2 n) b, IsName a)
@@ -226,17 +237,29 @@ strokeLine :: (TypeableFloat n, Renderable (Path V2 n) b)
            => Trail' Line V2 n -> QDiagram b V2 n Any
 strokeLine = strokeT . wrapLine
 
+instance (TypeableFloat n, Renderable (Path V2 n) b) 
+      => Strokable b (Trail' Line V2 n) where
+  stroke = strokeLine
+
 -- | A composition of 'strokeT' and 'wrapLoop' for conveniently
 --   converting a loop directly into a diagram.
 strokeLoop :: (TypeableFloat n, Renderable (Path V2 n) b)
            => Trail' Loop V2 n -> QDiagram b V2 n Any
 strokeLoop = strokeT . wrapLoop
 
+instance (TypeableFloat n, Renderable (Path V2 n) b) 
+      => Strokable b (Trail' Loop V2 n) where
+  stroke = strokeLoop
+
 -- | A convenience function for converting a @Located Trail@ directly
---   into a diagram; @strokeLocTrail = stroke . trailLike@.
+--   into a diagram; @strokeLocTrail = strokeP . trailLike@.
 strokeLocTrail :: (TypeableFloat n, Renderable (Path V2 n) b)
                => Located (Trail V2 n) -> QDiagram b V2 n Any
-strokeLocTrail = stroke . trailLike
+strokeLocTrail = strokeP . trailLike
+
+instance (TypeableFloat n, Renderable (Path V2 n) b) 
+      => Strokable b (Located (Trail V2 n)) where
+  stroke = strokeLocTrail
 
 -- | Deprecated synonym for 'strokeLocTrail'.
 strokeLocT :: (TypeableFloat n, Renderable (Path V2 n) b)
@@ -244,16 +267,24 @@ strokeLocT :: (TypeableFloat n, Renderable (Path V2 n) b)
 strokeLocT = strokeLocTrail
 
 -- | A convenience function for converting a @Located@ line directly
---   into a diagram; @strokeLocLine = stroke . trailLike . mapLoc wrapLine@.
+--   into a diagram; @strokeLocLine = strokeP . trailLike . mapLoc wrapLine@.
 strokeLocLine :: (TypeableFloat n, Renderable (Path V2 n) b)
               => Located (Trail' Line V2 n) -> QDiagram b V2 n Any
-strokeLocLine = stroke . trailLike . mapLoc wrapLine
+strokeLocLine = strokeP . trailLike . mapLoc wrapLine
+
+instance (TypeableFloat n, Renderable (Path V2 n) b) 
+      => Strokable b (Located (Trail' Line V2 n)) where
+  stroke = strokeLocLine
 
 -- | A convenience function for converting a @Located@ loop directly
---   into a diagram; @strokeLocLoop = stroke . trailLike . mapLoc wrapLoop@.
+--   into a diagram; @strokeLocLoop = strokeP . trailLike . mapLoc wrapLoop@.
 strokeLocLoop :: (TypeableFloat n, Renderable (Path V2 n) b)
               => Located (Trail' Loop V2 n) -> QDiagram b V2 n Any
-strokeLocLoop = stroke . trailLike . mapLoc wrapLoop
+strokeLocLoop = strokeP . trailLike . mapLoc wrapLoop
+
+instance (TypeableFloat n, Renderable (Path V2 n) b) 
+      => Strokable b (Located (Trail' Loop V2 n)) where
+  stroke = strokeLocLoop
 
 ------------------------------------------------------------
 --  Inside/outside testing

@@ -129,7 +129,7 @@ import           Diagrams.Tangent         (tangentAtEnd, tangentAtStart)
 import           Diagrams.Trail
 import           Diagrams.TwoD.Arrowheads
 import           Diagrams.TwoD.Attributes
-import           Diagrams.TwoD.Path       (stroke, strokeT)
+import           Diagrams.TwoD.Path       (Strokable (..))
 import           Diagrams.TwoD.Transform  (rotate, translateX)
 import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector     (unitX, unit_X)
@@ -452,7 +452,7 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
         -- shaft into a Diagram with using its style.
         sf = scaleFactor shaftTrail tWidth hWidth (norm (q .-. p))
         shaftTrail' = shaftTrail # scale sf
-        shaft = strokeT shaftTrail' # applyStyle (shaftSty opts)
+        shaft = stroke shaftTrail' # applyStyle (shaftSty opts)
 
         -- Adjust the head and tail to point in the directions of the shaft ends.
         h' = h # rotate hAngle
