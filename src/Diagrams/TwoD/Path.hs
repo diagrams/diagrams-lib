@@ -143,6 +143,7 @@ vertexNames :: forall a a'. Lens (StrokeOpts a) (StrokeOpts a') [[a]] [[a']]
 --   determining how it is to be drawn, use the 'fillRule' function.
 queryFillRule :: forall a. Lens' (StrokeOpts a) FillRule
 
+-- | Things that can be made into a diagram with the `stroke` function.
 class Strokable b t where
   stroke :: t -> QDiagram b V2 (N t) Any
 
