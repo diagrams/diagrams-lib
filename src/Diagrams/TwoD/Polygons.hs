@@ -62,7 +62,7 @@ import           Diagrams.Angle
 import           Diagrams.Core
 import           Diagrams.Located
 import           Diagrams.Path
-import           Diagrams.Points         (centroid, project)
+import           Diagrams.Points         (centroid)
 import           Diagrams.Trail
 import           Diagrams.TrailLike
 import           Diagrams.TwoD.Transform

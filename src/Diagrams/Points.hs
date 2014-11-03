@@ -17,23 +17,18 @@ module Diagrams.Points
          -- * Point-related utilities
        , centroid
        , pointDiagram
-       , _pIso, lensP
+       , _Point, lensP
        , project
        ) where
 
 import           Diagrams.Core        (pointDiagram)
 import           Diagrams.Core.Points
 
-import           Control.Lens         (Iso', iso)
 import           Data.Foldable        as F
 
 import           Linear.Affine
 import           Linear.Metric
 import           Linear.Vector
-
--- Point v <-> v
-_pIso :: Iso' (Point v n) (v n)
-_pIso = iso (\(P a) -> a) P
 
 -- | The centroid of a set of /n/ points is their sum divided by /n/.
 centroid :: (Additive v, Fractional n) => [Point v n] -> Point v n
@@ -43,6 +38,3 @@ meanV :: (Foldable f, Additive v, Fractional a) => f (v a) -> v a
 meanV = uncurry (^/) . F.foldl' (\(s,c) e -> (e ^+^ s,c+1)) (zero,0)
 {-# INLINE meanV #-}
 
--- | @project u v@ computes the projection of @v@ onto @u@.
-project :: (Metric v, Fractional n) => v n -> v n -> v n
-project u v = ((v `dot` u) / quadrance u) *^ u

@@ -37,7 +37,6 @@ module Diagrams.Align
        ) where
 
 import           Diagrams.Core
-import           Diagrams.Core.Transform
 import           Diagrams.Util (applyAll)
 
 import           Data.Maybe    (fromMaybe)
@@ -153,7 +152,7 @@ centerV v = alignBy v 0
 center :: (InSpace v n a, Fractional n, Traversable v, Alignable a, HasOrigin a) => a -> a
 center = applyAll fs
   where
-    fs = map centerV basis'
+    fs = map centerV basis
 
 -- | Like @centerV@ using trace.
 snugCenterV
@@ -166,7 +165,7 @@ snugCenter :: (InSpace v n a, Traversable v, Fractional n, Alignable a, HasOrigi
            => a -> a
 snugCenter = applyAll fs
   where
-    fs = map snugCenterV basis'
+    fs = map snugCenterV basis
 
 {-# ANN module ("HLint: ignore Use camelCase" :: String) #-}
 
