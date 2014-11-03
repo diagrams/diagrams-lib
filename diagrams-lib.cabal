@@ -85,6 +85,7 @@ Library
                        Diagrams.TwoD.Path,
                        Diagrams.TwoD.Polygons,
                        Diagrams.TwoD.Segment,
+                       Diagrams.TwoD.Segment.Bernstein,
                        Diagrams.TwoD.Size,
                        Diagrams.TwoD.Shapes,
                        Diagrams.TwoD.Text,
