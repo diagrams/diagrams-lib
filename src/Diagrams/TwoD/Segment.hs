@@ -149,7 +149,10 @@ segmentIntersection s1 s2 =
 
       in  guard (box `contains` p0) *> pure p0
     where
-      lineTest p q p0 = fromCorners p q `contains` p0
+      lineTest p q p0 = fromCorners (mins - 1e-8) (maxs + 1e-8) `contains` p0
+        where
+          mins = liftU2 min p q
+          maxs = liftU2 max p q
 
 -- | Find the convex hull of a list of points using Andrew's monotone chain
 --   algorithm O(n log n).
