@@ -62,7 +62,7 @@ module Diagrams.Path
 
 import           Control.Arrow        ((***))
 import           Control.Lens         (Rewrapped, Wrapped (..), iso, mapped, op, over, view, (%~),
-                                       _Unwrapped', _Wrapped)
+                                       _Unwrapped', _Wrapped, Each (..), traversed)
 import qualified Data.Foldable        as F
 import           Data.List            (partition)
 import           Data.Semigroup
@@ -114,6 +114,9 @@ instance Wrapped (Path v n) where
 
 instance Rewrapped (Path v n) (Path v' n')
 
+instance Each (Path v n) (Path v' n') (Located (Trail v n)) (Located (Trail v' n')) where
+  each = _Wrapped . traversed
+
 -- | Extract the located trails making up a 'Path'.
 pathTrails :: Path v n -> [Located (Trail v n)]
 pathTrails = op Path
@@ -139,7 +142,7 @@ instance (HasLinearMap v, Metric v, OrderedField n)
   transform = over _Wrapped . map . transform
 
 instance (Metric v, OrderedField n) => Enveloped (Path v n) where
-  getEnvelope = F.foldMap trailEnvelope . op Path --view pathTrails
+  getEnvelope = F.foldMap trailEnvelope . op Path
           -- this type signature is necessary to work around an apparent bug in ghc 6.12.1
     where trailEnvelope :: Located (Trail v n) -> Envelope v n
           trailEnvelope (viewLoc -> (p, t)) = moveOriginTo ((-1) *. p) (getEnvelope t)
