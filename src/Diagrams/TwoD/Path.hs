@@ -47,6 +47,12 @@ module Diagrams.TwoD.Path
          -- * Clipping
 
        , Clip(..), clipBy, clipTo, clipped
+
+         -- * Intersections
+
+       , intersections, intersections'
+       , intersectionsP, intersectionsP'
+       , intersectionsT, intersectionsT'
        ) where
 
 import           Control.Applicative   (liftA2)
@@ -69,7 +75,7 @@ import           Diagrams.Segment
 import           Diagrams.Solve
 import           Diagrams.Trail
 import           Diagrams.TrailLike
-import           Diagrams.TwoD.Segment ()
+import           Diagrams.TwoD.Segment
 import           Diagrams.TwoD.Types
 import           Diagrams.Util         (tau)
 
@@ -393,7 +399,8 @@ clipBy = applyTAttr . Clip . (:[])
 --   trace consists of those parts of the original diagram's trace
 --   which fall within the clipping path, or parts of the path's trace
 --   within the original diagram.
-clipTo :: (TypeableFloat n, Renderable (Path V2 n) b) => Path V2 n -> QDiagram b V2 n Any -> QDiagram b V2 n Any
+clipTo :: (TypeableFloat n, Renderable (Path V2 n) b)
+  => Path V2 n -> QDiagram b V2 n Any -> QDiagram b V2 n Any
 clipTo p d = setTrace intersectionTrace . toEnvelope $ clipBy p d
   where
     envP = appEnvelope . getEnvelope $ p
@@ -401,8 +408,8 @@ clipTo p d = setTrace intersectionTrace . toEnvelope $ clipBy p d
     toEnvelope = case (envP, envD) of
       (Just eP, Just eD) -> setEnvelope . mkEnvelope $ \v -> min (eP v) (eD v)
       (_, _)             -> id
-    intersectionTrace = Trace intersections
-    intersections pt v =
+    intersectionTrace = Trace traceIntersections
+    traceIntersections pt v =
         -- on boundary of d, inside p
         onSortedList (filter pInside) (appTrace (getTrace d) pt v) <>
         -- or on boundary of p, inside d
@@ -413,6 +420,42 @@ clipTo p d = setTrace intersectionTrace . toEnvelope $ clipBy p d
 
 -- | Clip a diagram to the clip path taking the envelope and trace of the clip
 --   path.
-clipped :: (TypeableFloat n, Renderable (Path V2 n) b) => Path V2 n -> QDiagram b V2 n Any -> QDiagram b V2 n Any
+clipped :: (TypeableFloat n, Renderable (Path V2 n) b)
+  => Path V2 n -> QDiagram b V2 n Any -> QDiagram b V2 n Any
 clipped p = withTrace p . withEnvelope p . clipBy p
 
+------------------------------------------------------------
+--  Intersections  -----------------------------------------
+------------------------------------------------------------
+
+-- | Find the intersections of two objects that can be converted to a path.
+intersections :: (InSpace V2 n t, SameSpace t s, ToPath t, ToPath s, OrderedField n)
+  => t -> s -> [P2 n]
+intersections = intersections' 1e-6
+
+-- | Find the intersections of two objects that can be converted to a path with
+--   the given tolerance.
+intersections' :: (InSpace V2 n t, SameSpace t s, ToPath t, ToPath s, OrderedField n)
+  => n -> t -> s -> [P2 n]
+intersections' eps t s = intersectionsP' eps (toPath t) (toPath s)
+
+-- | Compute the intersections between two paths.
+intersectionsP :: OrderedField n => Path V2 n -> Path V2 n -> [P2 n]
+intersectionsP = intersectionsP' 1e-6
+
+-- | Compute the intersections between two paths with given tolerance.
+intersectionsP' :: OrderedField n => n -> Path V2 n -> Path V2 n -> [P2 n]
+intersectionsP' eps as bs = do
+  a <- pathTrails as
+  b <- pathTrails bs
+  intersectionsT' eps a b
+
+-- | Compute the intersections between two located trails.
+intersectionsT :: OrderedField n => Located (Trail V2 n) -> Located (Trail V2 n) -> [P2 n]
+intersectionsT = intersectionsT' 1e-6
+
+intersectionsT' :: OrderedField n => n -> Located (Trail V2 n) -> Located (Trail V2 n) -> [P2 n]
+intersectionsT' eps as bs = do
+  a <- fixTrail as
+  b <- fixTrail bs
+  segmentIntersection' eps a b

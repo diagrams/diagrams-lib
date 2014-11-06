@@ -22,9 +22,13 @@
 
 module Diagrams.TwoD.Segment
   ( segmentIntersection
+  , segmentIntersection'
   , convexHull2D
-  , lineSegmentIntersect
   , closest
+
+    -- ** Low level functions
+  , lineSegmentIntersect'
+  , lineSegmentIntersect
   )
   where
 
@@ -122,8 +126,6 @@ instance RealFloat n => Traced (FixedSegment V2 n) where
     in
       mkSortedList xs
 
-
-
 -- pathIntersections :: OrderedField n => Path V2 n -> Path V2 n -> [P2 n]
 -- pathIntersections as bs = do
 --   a <- pathTrails as
@@ -137,19 +139,27 @@ instance RealFloat n => Traced (FixedSegment V2 n) where
 --   b <- fixTrail bs
 --   segmentIntersection a b
 
+defEps :: Fractional n => n
+defEps = 1e-8
+
+
+-- | Compute the intersections between two segments.
 segmentIntersection :: OrderedField n => FixedSegment V2 n -> FixedSegment V2 n -> [P2 n]
-segmentIntersection s1 s2 = 
+segmentIntersection = segmentIntersection' defEps
+
+-- | Compute the intersections between two segments using the given tolerance.
+segmentIntersection' :: OrderedField n => n -> FixedSegment V2 n -> FixedSegment V2 n -> [P2 n]
+segmentIntersection' eps s1 s2 = 
   case (s1,s2) of
-    (FCubic {}  , FCubic {})       -> map (atParam s1 . fst) $ bezierClip 1e-6 s1 s2
+    (FCubic {}  , FCubic {})       -> map (atParam s1 . fst) $ bezierClip eps s1 s2
     (FCubic {}  , FLinear p q)     -> filter (lineTest p q) (lineSegmentIntersect p q s1)
     (FLinear p q, FCubic {})       -> filter (lineTest p q) (lineSegmentIntersect p q s2)
     (FLinear p1 p2, FLinear p3 p4) ->
       let p0  = lineLineIntersect p1 p2 p3 p4
           box = segmentIntersectingBox s1 s2
-
       in  guard (box `contains` p0) *> pure p0
     where
-      lineTest p q p0 = fromCorners (mins - 1e-8) (maxs + 1e-8) `contains` p0
+      lineTest p q p0 = fromCorners (mins - pure eps) (maxs + pure eps) `contains` p0
         where
           mins = liftU2 min p q
           maxs = liftU2 max p q
@@ -172,10 +182,15 @@ convexHull2D ps = init upper ++ reverse (tail lower)
 
 -- | Intersections of an infinite line going through points @p@ and @q@ and the segment.
 lineSegmentIntersect :: OrderedField n => P2 n -> P2 n -> FixedSegment V2 n -> [P2 n]
-lineSegmentIntersect p q (FLinear p0 p1) = [lineLineIntersect p0 p1 p q] 
-lineSegmentIntersect p q b               = map (b `atParam`) params
+lineSegmentIntersect = lineSegmentIntersect' defEps
+
+-- | Intersections of an infinite line going through points @p@ and @q@ and the
+--   segment with the given tolerance.
+lineSegmentIntersect' :: OrderedField n => n -> P2 n -> P2 n -> FixedSegment V2 n -> [P2 n]
+lineSegmentIntersect' _   p q (FLinear p0 p1) = [lineLineIntersect p0 p1 p q] 
+lineSegmentIntersect' eps p q b               = map (b `atParam`) params
   where
-    params = bezierFindRoot (listToBernstein $ map (view _y) [p0, p1, p2, p3]) 0 1 1e-6
+    params = bezierFindRoot eps (listToBernstein $ map (view _y) [p0, p1, p2, p3]) 0 1
     V2 x y = p .-. q
     FCubic p0 p1 p2 p3 = rotate (negated $ atan2A' y x) . moveOriginTo p $ b
 
@@ -192,11 +207,11 @@ lineSegmentIntersect p q b               = map (b `atParam`) params
 --     dx = x2 - x1
 --     dy = y2 - y1
 
--- lineEq :: (Metric v, Floating n) => Line v n -> (v n,n)
--- lineEq (viewLoc -> (p,v)) = (v',c)
+-- lineEq :: Floating n => Line V2 n -> (n, n, n)
+-- lineEq (viewLoc -> (p,v)) = (a, b, c)
 --   where
---     v' = signorm v
---     c  = 
+--     v'@(V2 a b) = signorm v
+--     c           = - p `dot` P v'
 
 -- | Returns @(a, b, c)@ such that @ax + by + c = 0@ is the line going through 
 --   @p1@ and @p2@ with @a^2 + b^2 = 1@.
@@ -205,7 +220,8 @@ lineEquation (P (V2 x1 y1)) (P (V2 x2 y2)) = (a, b, c)
   where
     a  = a' / d
     b  = b' / d
-    c  = -(y1*b' + x1*a') / d
+    -- c  = -(y1*b' + x1*a') / d
+    c  = -(x1*a' + y1*b') / d
     a' = y1 - y2
     b' = x2 - x1
     d  = sqrt $ a'*a' + b'*b'
@@ -246,18 +262,18 @@ bezierClip eps p_ q_ = go p_ q_ 0 1 0 1 0 False
     | clip > 0.8 && clip' > 0.8 =
       if tmax' - tmin' > umax - umin -- split the longest segment
       then let (pl, pr) = p' `splitAtParam` 0.5
-               t3 = avg tmin' tmax'
-           in  go q pl umin umax tmin' t3 clip' (not revCurves) ++
-               go q pr umin umax t3 tmax' clip' (not revCurves)
+               tmid = avg tmin' tmax'
+           in  go q pl umin umax tmin' tmid  clip' (not revCurves) ++
+               go q pr umin umax tmid  tmax' clip' (not revCurves)
       else let (ql, qr) = q `splitAtParam` 0.5
-               u3 = avg umin umax
-           in  go ql p' umin u3 tmin' tmax' clip' (not revCurves) ++
-               go qr p' u3 umax tmin' tmax' clip' (not revCurves)
+               umid = avg umin umax
+           in  go ql p' umin umid tmin' tmax' clip' (not revCurves) ++
+               go qr p' umid umax tmin' tmax' clip' (not revCurves)
 
     | max (umax - umin) (tmax' - tmin') < eps =
       if revCurves -- return parameters in correct order
-      then [ (avg umin umax,   avg tmin' tmax') ]
-      else [ (avg tmin' tmax', avg umin umax  ) ]
+      then [ (avg umin  umax,  avg tmin' tmax') ]
+      else [ (avg tmin' tmax', avg umin  umax ) ]
 
     -- iterate with the curves reversed.
     | otherwise = go q p' umin umax tmin' tmax' clip' (not revCurves)
@@ -273,19 +289,19 @@ bezierClip eps p_ q_ = go p_ q_ 0 1 0 1 0 False
 --   can be used as a bernstein polynomial root solver by converting from
 --   the power basis to the bernstein basis.
 bezierFindRoot :: OrderedField n
-               => BernsteinPoly n -- ^ the bernstein coefficients of the polynomial
+               => n   -- ^ The accuracy
+               -> BernsteinPoly n -- ^ the bernstein coefficients of the polynomial
                -> n   -- ^ The lower bound of the interval
                -> n   -- ^ The upper bound of the interval
-               -> n   -- ^ The accuracy
                -> [n] -- ^ The roots found
-bezierFindRoot p tmin tmax eps
+bezierFindRoot eps p tmin tmax
   | isNothing chopInterval    = []
   | clip > 0.8 = let (p1, p2) = splitAtParam newP 0.5
                      tmid     = tmin' + (tmax' - tmin') / 2
-                 in  bezierFindRoot p1 tmin' tmid  eps ++
-                     bezierFindRoot p2 tmid  tmax' eps
+                 in  bezierFindRoot eps p1 tmin' tmid  ++
+                     bezierFindRoot eps p2 tmid  tmax'
   | tmax' - tmin' < eps = [avg tmin' tmax']
-  | otherwise           = bezierFindRoot newP tmin' tmax' eps
+  | otherwise           = bezierFindRoot eps newP tmin' tmax'
   where
     chopInterval              = chopYs (bernsteinCoeffs p)
     Just (tminChop, tmaxChop) = chopInterval
@@ -294,9 +310,14 @@ bezierFindRoot p tmin tmax eps
     tmin' = tmax * tminChop + tmin * (1 - tminChop)
     tmax' = tmax * tmaxChop + tmin * (1 - tmaxChop)
 
--- | Find the closest value(s) on the bezier to the given point, within tolerance.
-closest :: OrderedField n => FixedSegment V2 n -> P2 n -> n -> [n]
-closest cb (P (V2 px py)) = bezierFindRoot poly 0 1
+-- | Find the closest value(s) on the bezier to the given point.
+closest :: OrderedField n => FixedSegment V2 n -> P2 n -> [n]
+closest = closest' defEps
+
+-- | Find the closest value(s) on the bezier to the given point within given 
+--   tolerance.
+closest' :: OrderedField n => n -> FixedSegment V2 n -> P2 n -> [n]
+closest' eps cb (P (V2 px py)) = bezierFindRoot eps poly 0 1
   where
     (bx, by) = bezierToBernstein cb
     bx'  = bernsteinDeriv bx
@@ -333,7 +354,7 @@ sortedConvexHull ps = (chain True ps, chain False ps)
      where
        test = if upper then (>0) else (<0)
        -- find the convex hull by comparing the angles of the vectors with
-       -- the cross product and backtracking if necessary.
+       -- the cross product and backtracking if necessary
        go dir p1 l@(p2:rest)
          -- backtrack if the direction is outward
          | test $ dir `cross2` dir' = Left l
@@ -358,14 +379,14 @@ chopYs ds = chopHull 0 0 points
     n      = length ds - 1
 
 chopCubics :: OrderedField n => FixedSegment V2 n -> FixedSegment V2 n -> Maybe (n,n)
-chopCubics p@(FCubic p0 p1 p2 p3) (FCubic q0 _ _ q3)
+chopCubics (FCubic p0 p1 p2 p3) q@(FCubic q0 _ _ q3)
   = chopHull dmin dmax dps
   where
     dps = zipWith mkP2 [0, 1/3, 2/3, 1] ds
     ds  = map d [p0, p1, p2, p3]
     d   = lineDistance q0 q3
     --
-    (dmin,dmax) = fatLine p
+    (dmin,dmax) = fatLine q
 chopCubics _ _ = Nothing
 
 -- Reduce the interval which the intersection is known to lie in using the fat 

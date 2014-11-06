@@ -76,5 +76,3 @@ mkWidth w = dims (V2 w 0)
 mkHeight :: Num n => n -> SizeSpec V2 n
 mkHeight h = dims (V2 0 h)
 
-
-
