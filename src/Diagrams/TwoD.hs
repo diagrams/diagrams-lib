@@ -78,7 +78,8 @@ module Diagrams.TwoD
        , strokeLocTrail, strokeLocT, strokeLocLine, strokeLocLoop
        , FillRule(..), fillRule
        , StrokeOpts(..), vertexNames, queryFillRule
-       , intersections, intersections'
+       , intersectPoints, intersectPoints'
+       , intersectPointsP, intersectPointsP'
 
          -- ** Clipping
        , clipBy, clipTo, clipped

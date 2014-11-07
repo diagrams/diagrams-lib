@@ -50,9 +50,9 @@ module Diagrams.TwoD.Path
 
          -- * Intersections
 
-       , intersections, intersections'
-       , intersectionsP, intersectionsP'
-       , intersectionsT, intersectionsT'
+       , intersectPoints, intersectPoints'
+       , intersectPointsP, intersectPointsP'
+       , intersectPointsT, intersectPointsT'
        ) where
 
 import           Control.Applicative   (liftA2)
@@ -424,34 +424,36 @@ clipped p = withTrace p . withEnvelope p . clipBy p
 --  Intersections  -----------------------------------------
 ------------------------------------------------------------
 
--- | Find the intersections of two objects that can be converted to a path.
-intersections :: (InSpace V2 n t, SameSpace t s, ToPath t, ToPath s, OrderedField n)
+-- | Find the intersect points of two objects that can be converted to a path.
+intersectPoints :: (InSpace V2 n t, SameSpace t s, ToPath t, ToPath s, OrderedField n)
   => t -> s -> [P2 n]
-intersections = intersections' 1e-6
+intersectPoints = intersectPoints' 1e-10
 
--- | Find the intersections of two objects that can be converted to a path with
---   the given tolerance.
-intersections' :: (InSpace V2 n t, SameSpace t s, ToPath t, ToPath s, OrderedField n)
+-- | Find the intersect points of two objects that can be converted to a path 
+--   within the given tolerance.
+intersectPoints' :: (InSpace V2 n t, SameSpace t s, ToPath t, ToPath s, OrderedField n)
   => n -> t -> s -> [P2 n]
-intersections' eps t s = intersectionsP' eps (toPath t) (toPath s)
+intersectPoints' eps t s = intersectPointsP' eps (toPath t) (toPath s)
 
--- | Compute the intersections between two paths.
-intersectionsP :: OrderedField n => Path V2 n -> Path V2 n -> [P2 n]
-intersectionsP = intersectionsP' 1e-6
+-- | Compute the intersect points between two paths.
+intersectPointsP :: OrderedField n => Path V2 n -> Path V2 n -> [P2 n]
+intersectPointsP = intersectPointsP' 1e-10
 
--- | Compute the intersections between two paths with given tolerance.
-intersectionsP' :: OrderedField n => n -> Path V2 n -> Path V2 n -> [P2 n]
-intersectionsP' eps as bs = do
+-- | Compute the intersect points between two paths within given tolerance.
+intersectPointsP' :: OrderedField n => n -> Path V2 n -> Path V2 n -> [P2 n]
+intersectPointsP' eps as bs = do
   a <- pathTrails as
   b <- pathTrails bs
-  intersectionsT' eps a b
+  intersectPointsT' eps a b
 
--- | Compute the intersections between two located trails.
-intersectionsT :: OrderedField n => Located (Trail V2 n) -> Located (Trail V2 n) -> [P2 n]
-intersectionsT = intersectionsT' 1e-6
+-- | Compute the intersect points between two located trails.
+intersectPointsT :: OrderedField n => Located (Trail V2 n) -> Located (Trail V2 n) -> [P2 n]
+intersectPointsT = intersectPointsT' 1e-10
 
-intersectionsT' :: OrderedField n => n -> Located (Trail V2 n) -> Located (Trail V2 n) -> [P2 n]
-intersectionsT' eps as bs = do
+-- | Compute the intersect points between two located trails within the given
+--   tolerance.
+intersectPointsT' :: OrderedField n => n -> Located (Trail V2 n) -> Located (Trail V2 n) -> [P2 n]
+intersectPointsT' eps as bs = do
   a <- fixTrail as
   b <- fixTrail bs
-  intersectionsS' eps a b
+  intersectPointsS' eps a b

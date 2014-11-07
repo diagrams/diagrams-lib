@@ -23,12 +23,20 @@
 -----------------------------------------------------------------------------
 
 module Diagrams.TwoD.Segment
-  ( -- * Segment utilities
+  ( -- * Segment intersections
 
-    intersectionsS
-  , intersectionsS'
-  , closest
-  , closest'
+    intersectPointsS
+  , intersectPointsS'
+
+    -- * Closest point on a segment
+
+  , closestPoint
+  , closestPoint'
+  , closestDistance
+  , closestDistance'
+  , closestParam
+  , closestParam'
+
   , convexHull2D -- doesn't belong here
 
     -- ** Low level functions
@@ -68,12 +76,12 @@ defEps :: Fractional n => n
 defEps = 1e-8
 
 -- | Compute the intersections between two fixed segments.
-intersectionsS :: OrderedField n => FixedSegment V2 n -> FixedSegment V2 n -> [P2 n]
-intersectionsS = intersectionsS' defEps
+intersectPointsS :: OrderedField n => FixedSegment V2 n -> FixedSegment V2 n -> [P2 n]
+intersectPointsS = intersectPointsS' defEps
 
 -- | Compute the intersections between two segments using the given tolerance.
-intersectionsS' :: OrderedField n => n -> FixedSegment V2 n -> FixedSegment V2 n -> [P2 n]
-intersectionsS' eps s1 s2 = map (view _3) $ segmentSegment eps s1 s2
+intersectPointsS' :: OrderedField n => n -> FixedSegment V2 n -> FixedSegment V2 n -> [P2 n]
+intersectPointsS' eps s1 s2 = map (view _3) $ segmentSegment eps s1 s2
 
 -- | Find the convex hull of a list of points using Andrew's monotone chain
 --   algorithm O(n log n).
@@ -84,14 +92,32 @@ convexHull2D ps = init upper ++ reverse (tail lower)
   where
     (lower, upper) = sortedConvexHull (sort ps)
 
+-- | Get the closest distance(s) from a point to a 'FixedSegment'.
+closestDistance :: OrderedField n => FixedSegment V2 n -> P2 n -> [n]
+closestDistance = closestDistance' defEps
+
+-- | Get the closest distance(s) from a point to a 'FixedSegment' within given
+--   tolerance.
+closestDistance' :: OrderedField n => n -> FixedSegment V2 n -> P2 n -> [n]
+closestDistance' eps seg p = map (distanceA p) $ closestPoint' eps seg p
+
+-- | Get the closest point(s) on a 'FixedSegment' from a point.
+closestPoint :: OrderedField n => FixedSegment V2 n -> P2 n -> [P2 n]
+closestPoint = closestPoint' defEps
+
+-- | Get the closest point(s) on a 'FixedSegment' from a point within given
+--   tolerance.
+closestPoint' :: OrderedField n => n -> FixedSegment V2 n -> P2 n -> [P2 n]
+closestPoint' eps seg = map (seg `atParam`) . closestParam' eps seg
+
 -- | Find the closest value(s) on the Bêzier to the given point.
-closest :: OrderedField n => FixedSegment V2 n -> P2 n -> [n]
-closest = closest' defEps
+closestParam :: OrderedField n => FixedSegment V2 n -> P2 n -> [n]
+closestParam = closestParam' defEps
 
 -- | Find the closest value(s) on the Bêzier to the given point within given 
 --   tolerance.
-closest' :: OrderedField n => n -> FixedSegment V2 n -> P2 n -> [n]
-closest' _ (FLinear p0 p1) p
+closestParam' :: OrderedField n => n -> FixedSegment V2 n -> P2 n -> [n]
+closestParam' _ (FLinear p0 p1) p
   | t < 0     = [0]
   | t > 1     = [1]
   | otherwise = [t]
@@ -100,7 +126,7 @@ closest' _ (FLinear p0 p1) p
     v  = p1 .-. p0
     dp = vp `dot` v
     t  = dp / quadrance v
-closest' eps cb (P (V2 px py)) = bezierFindRoot eps poly 0 1
+closestParam' eps cb (P (V2 px py)) = bezierFindRoot eps poly 0 1
   where
     (bx, by) = bezierToBernstein cb
     bx'  = bernsteinDeriv bx
