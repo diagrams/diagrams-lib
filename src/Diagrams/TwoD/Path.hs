@@ -458,4 +458,4 @@ intersectionsT' :: OrderedField n => n -> Located (Trail V2 n) -> Located (Trail
 intersectionsT' eps as bs = do
   a <- fixTrail as
   b <- fixTrail bs
-  segmentIntersection' eps a b
+  intersectionsS' eps a b

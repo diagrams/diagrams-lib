@@ -51,12 +51,12 @@ import           Data.Semigroup
 import           Diagrams.Align
 import           Diagrams.Core
 import           Diagrams.Core.Transform
--- import           Diagrams.Path
+import           Diagrams.Path
 import           Diagrams.ThreeD.Shapes
 import           Diagrams.ThreeD.Types
--- import           Diagrams.TwoD.Path      ()
--- import           Diagrams.TwoD.Shapes
--- import           Diagrams.TwoD.Types
+import           Diagrams.TwoD.Path      ()
+import           Diagrams.TwoD.Shapes
+import           Diagrams.TwoD.Types
 
 import           Control.Applicative
 import           Data.Traversable        as T
@@ -112,10 +112,10 @@ instance (Metric v, Traversable v, OrderedField n)
 
 -- Feels like cheating.
 -- Should be possible to generalise this.
--- instance RealFloat n => Traced (BoundingBox V2 n) where
---   getTrace = getTrace
---            . ((`boxFit` rect 1 1) . boundingBox :: Envelope V2 n -> Path V2 n)
---            . getEnvelope
+instance RealFloat n => Traced (BoundingBox V2 n) where
+  getTrace = getTrace
+           . ((`boxFit` rect 1 1) . boundingBox :: Envelope V2 n -> Path V2 n)
+           . getEnvelope
 
 instance TypeableFloat n => Traced (BoundingBox V3 n) where
   getTrace = getTrace

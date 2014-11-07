@@ -1,10 +1,12 @@
+{-# LANGUAGE ConstraintKinds      #-}
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE TypeFamilies         #-}
+{-# LANGUAGE ViewPatterns         #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
--- Orphan Traced instances for Segment Closed R2 and FixedSegment R2.
+-- Orphan Traced instances for Segment Closed V2 and FixedSegment V2.
 -- They can't go in Traced; but they shouldn't really go in
 -- Diagrams.Segment either because we only have Traced instances for
 -- the special case of R2.
@@ -21,28 +23,28 @@
 -----------------------------------------------------------------------------
 
 module Diagrams.TwoD.Segment
-  ( segmentIntersection
-  , segmentIntersection'
-  , convexHull2D
+  ( -- * Segment utilities
+
+    intersectionsS
+  , intersectionsS'
   , closest
+  , closest'
+  , convexHull2D -- doesn't belong here
 
     -- ** Low level functions
-  , lineSegmentIntersect'
-  , lineSegmentIntersect
+  , segmentSegment
+  , lineSegment
   )
   where
 
 import           Data.List               (sort)
 import           Data.Maybe
-import           Data.Foldable           (Foldable)
 import           Control.Applicative
-import           Control.Lens            hiding (( # ), at, contains)
-import           Control.Monad           (guard)
+import           Control.Lens            hiding (( # ), at, contains, transform)
 
 import           Diagrams.Core
 
 import           Diagrams.Angle
-import           Diagrams.BoundingBox
 import           Diagrams.TwoD.Segment.Bernstein
 import           Diagrams.Located
 import           Diagrams.Parametric
@@ -126,129 +128,73 @@ instance RealFloat n => Traced (FixedSegment V2 n) where
     in
       mkSortedList xs
 
--- pathIntersections :: OrderedField n => Path V2 n -> Path V2 n -> [P2 n]
--- pathIntersections as bs = do
---   a <- pathTrails as
---   b <- pathTrails bs
---   locTrailIntersections a b
--- 
--- locTrailIntersections :: OrderedField n
---   => Located (Trail V2 n) -> Located (Trail V2 n) -> [P2 n]
--- locTrailIntersections as bs = do
---   a <- fixTrail as
---   b <- fixTrail bs
---   segmentIntersection a b
-
 defEps :: Fractional n => n
-defEps = 1e-8
+defEps = 1e-6
 
-
--- | Compute the intersections between two segments.
-segmentIntersection :: OrderedField n => FixedSegment V2 n -> FixedSegment V2 n -> [P2 n]
-segmentIntersection = segmentIntersection' defEps
+-- | Compute the intersections between two fixed segments.
+intersectionsS :: OrderedField n => FixedSegment V2 n -> FixedSegment V2 n -> [P2 n]
+intersectionsS = intersectionsS' defEps
 
 -- | Compute the intersections between two segments using the given tolerance.
-segmentIntersection' :: OrderedField n => n -> FixedSegment V2 n -> FixedSegment V2 n -> [P2 n]
-segmentIntersection' eps s1 s2 = 
-  case (s1,s2) of
-    (FCubic {}  , FCubic {})       -> map (atParam s1 . fst) $ bezierClip eps s1 s2
-    (FCubic {}  , FLinear p q)     -> filter (lineTest p q) (lineSegmentIntersect p q s1)
-    (FLinear p q, FCubic {})       -> filter (lineTest p q) (lineSegmentIntersect p q s2)
-    (FLinear p1 p2, FLinear p3 p4) ->
-      let p0  = lineLineIntersect p1 p2 p3 p4
-          box = segmentIntersectingBox s1 s2
-      in  guard (box `contains` p0) *> pure p0
-    where
-      lineTest p q p0 = fromCorners (mins - pure eps) (maxs + pure eps) `contains` p0
-        where
-          mins = liftU2 min p q
-          maxs = liftU2 max p q
+intersectionsS' :: OrderedField n => n -> FixedSegment V2 n -> FixedSegment V2 n -> [P2 n]
+intersectionsS' eps s1 s2 = map (view _3) $ segmentSegment eps s1 s2
 
 -- | Find the convex hull of a list of points using Andrew's monotone chain
 --   algorithm O(n log n).
 --   
 --   Returns clockwise list of points starting from the left-most point.
---
---   If your list of points is already sorted in the x direction see
---   'sortedConvexHull'.
 convexHull2D :: OrderedField n => [P2 n] -> [P2 n]
 convexHull2D ps = init upper ++ reverse (tail lower)
   where
     (lower, upper) = sortedConvexHull (sort ps)
 
-------------------------------------------------------------------------
--- Low level functions
-------------------------------------------------------------------------
+-- | Find the closest value(s) on the bezier to the given point.
+closest :: OrderedField n => FixedSegment V2 n -> P2 n -> [n]
+closest = closest' defEps
 
--- | Intersections of an infinite line going through points @p@ and @q@ and the segment.
-lineSegmentIntersect :: OrderedField n => P2 n -> P2 n -> FixedSegment V2 n -> [P2 n]
-lineSegmentIntersect = lineSegmentIntersect' defEps
-
--- | Intersections of an infinite line going through points @p@ and @q@ and the
---   segment with the given tolerance.
-lineSegmentIntersect' :: OrderedField n => n -> P2 n -> P2 n -> FixedSegment V2 n -> [P2 n]
-lineSegmentIntersect' _   p q (FLinear p0 p1) = [lineLineIntersect p0 p1 p q] 
-lineSegmentIntersect' eps p q b               = map (b `atParam`) params
+-- | Find the closest value(s) on the bezier to the given point within given 
+--   tolerance.
+closest' :: OrderedField n => n -> FixedSegment V2 n -> P2 n -> [n]
+closest' eps cb (P (V2 px py)) = bezierFindRoot eps poly 0 1
   where
-    params = bezierFindRoot eps (listToBernstein $ map (view _y) [p0, p1, p2, p3]) 0 1
-    V2 x y = p .-. q
-    FCubic p0 p1 p2 p3 = rotate (negated $ atan2A' y x) . moveOriginTo p $ b
-
-------------------------------------------------------------------------
--- Utilities
-------------------------------------------------------------------------
-
--- type Line v n = Located (v n)
-
--- pointLineDistance :: Floating n => P2 n -> P2 n -> P2 n -> n
--- pointLineDistance (P (V2 x1 y1)) (P (V2 x2 y2)) (P (V2 x0 y0))
---   = abs (dy * x0 - dx * y0 - x1 * y2 + x2 * y1) / sqrt (dx * dx + dy * dy)
---   where
---     dx = x2 - x1
---     dy = y2 - y1
-
--- lineEq :: Floating n => Line V2 n -> (n, n, n)
--- lineEq (viewLoc -> (p,v)) = (a, b, c)
---   where
---     v'@(V2 a b) = signorm v
---     c           = - p `dot` P v'
-
--- | Returns @(a, b, c)@ such that @ax + by + c = 0@ is the line going through 
---   @p1@ and @p2@ with @a^2 + b^2 = 1@.
-lineEquation :: Floating n => P2 n -> P2 n -> (n, n, n)
-lineEquation (P (V2 x1 y1)) (P (V2 x2 y2)) = (a, b, c)
-  where
-    a  = a' / d
-    b  = b' / d
-    -- c  = -(y1*b' + x1*a') / d
-    c  = -(x1*a' + y1*b') / d
-    a' = y1 - y2
-    b' = x2 - x1
-    d  = sqrt $ a'*a' + b'*b'
-
--- | Return the the distance from a point to the line.
-lineDistance :: Floating n => P2 n -> P2 n -> P2 n -> n
-lineDistance p1 p2 (P (V2 x y)) = a*x + b*y + c
-  where (a, b, c) = lineEquation p1 p2
-
--- find the x value where the line through the two points
--- intersect the line y=d
-intersectPt :: OrderedField n => n -> P2 n -> P2 n -> n
-intersectPt d (P (V2 x1 y1)) (P (V2 x2 y2)) =
-  x1 + (d - y1) * (x2 - x1) / (y2 - y1)
-
-cross2 :: Num n => V2 n -> V2 n -> n
-cross2 (V2 x1 y1) (V2 x2 y2) = x1 * y2 - y1 * x2
-
--- clockwise :: (Num n, Ord n) => V2 n -> V2 n -> Bool
--- clockwise a b = a `cross2` b <= 0
-
-avg :: Fractional n => n -> n -> n
-avg a b = (a + b)/2
+    (bx, by) = bezierToBernstein cb
+    bx'  = bernsteinDeriv bx
+    by'  = bernsteinDeriv by
+    poly = (bx - listToBernstein [px, px, px, px]) * bx'
+         + (by - listToBernstein [py, py, py, py]) * by'
 
 ------------------------------------------------------------------------
 -- Low level
 ------------------------------------------------------------------------
+
+-- | Return the intersection points with the parameters at which each segment 
+--   intersects.
+segmentSegment :: OrderedField n => n -> FixedSegment V2 n -> FixedSegment V2 n -> [(n, n, P2 n)]
+segmentSegment eps s1 s2 =
+  case (s1,s2) of
+    (FCubic{}, FCubic{})  -> map (\(t1,t2) -> (t1,t2, s1 `atParam` t1))
+                           $ bezierClip eps s1 s2
+    (FCubic{}, FLinear{}) -> map flip12 $ linearSeg (segLine s2) s1
+    _                     -> linearSeg (segLine s1) s2 -- s1 is linear
+  where
+    linearSeg l s = filter (inRange . view _1) $ lineSegment eps l s
+    flip12 (a,b,c) = (b,a,c)
+
+-- | Return the intersection points with the parameters at which the line and segment 
+--   intersect.
+lineSegment :: OrderedField n => n -> Located (V2 n) -> FixedSegment V2 n -> [(n, n, P2 n)]
+lineSegment _ l1 p@(FLinear p0 p1)
+  = map (\(tl,tp) -> (tl, tp, p `atParam` tp))
+  . filter (inRange . snd) . maybeToList $ lineLine l1 (mkLine p0 p1)
+lineSegment eps l@(viewLoc -> (p,r)) cb = map addPoint params
+  where
+    params = bezierFindRoot eps (listToBernstein $ cb' ^.. each . _y) 0 1
+    cb'    = transform (inv (rotationTo r)) . moveOriginTo p $ cb
+    --
+    addPoint t = (lt, t, intersect)
+      where
+        intersect = cb `atParam` t
+        lt        = getParameter l intersect
 
 -- | Use the bezier clipping algorithm to return the parameters at which the 
 --   bezier curves intersect.
@@ -310,36 +256,6 @@ bezierFindRoot eps p tmin tmax
     tmin' = tmax * tminChop + tmin * (1 - tminChop)
     tmax' = tmax * tmaxChop + tmin * (1 - tmaxChop)
 
--- | Find the closest value(s) on the bezier to the given point.
-closest :: OrderedField n => FixedSegment V2 n -> P2 n -> [n]
-closest = closest' defEps
-
--- | Find the closest value(s) on the bezier to the given point within given 
---   tolerance.
-closest' :: OrderedField n => n -> FixedSegment V2 n -> P2 n -> [n]
-closest' eps cb (P (V2 px py)) = bezierFindRoot eps poly 0 1
-  where
-    (bx, by) = bezierToBernstein cb
-    bx'  = bernsteinDeriv bx
-    by'  = bernsteinDeriv by
-    poly = (bx - listToBernstein [px, px, px, px]) * bx'
-         + (by - listToBernstein [py, py, py, py]) * by'
-
-
--- | An approximation of the fat line for a cubic bezier segment. Returns 
---   @(0,0)@ for a linear segment.
-fatLine :: OrderedField n => FixedSegment V2 n -> (n,n)
-fatLine (FCubic p0 p1 p2 p3)
-  = case (d1 > 0, d2 > 0) of
-      (True,  True)  -> (0,                0.75 * max d1 d2)
-      (False, False) -> (0.75 * min d1 d2, 0               )
-      (True,  False) -> (4/9 * d2,         4/9 * d1        )
-      (False, True)  -> (4/9 * d1,         4/9 * d2        )
-  where
-    d = lineDistance p0 p3
-    d1 = d p1; d2 = d p2
-fatLine _ = (0,0)
-
 -- | Find the convex hull of a set of points already sorted in the x direction. 
 --   The first list of the tuple is the upper hull going clockwise from 
 --   left-most to right-most point. The second is the lower hull from 
@@ -372,6 +288,20 @@ sortedConvexHull ps = (chain True ps, chain False ps)
 -- Internal
 ------------------------------------------------------------------------
 
+-- | An approximation of the fat line for a cubic bezier segment. Returns 
+--   @(0,0)@ for a linear segment.
+fatLine :: OrderedField n => FixedSegment V2 n -> (n,n)
+fatLine (FCubic p0 p1 p2 p3)
+  = case (d1 > 0, d2 > 0) of
+      (True,  True)  -> (0,                0.75 * max d1 d2)
+      (False, False) -> (0.75 * min d1 d2, 0               )
+      (True,  False) -> (4/9 * d2,         4/9 * d1        )
+      (False, True)  -> (4/9 * d1,         4/9 * d2        )
+  where
+    d = lineDistance p0 p3
+    d1 = d p1; d2 = d p2
+fatLine _ = (0,0)
+
 chopYs :: OrderedField n => [n] -> Maybe (n, n)
 chopYs ds = chopHull 0 0 points
   where
@@ -379,11 +309,11 @@ chopYs ds = chopHull 0 0 points
     n      = length ds - 1
 
 chopCubics :: OrderedField n => FixedSegment V2 n -> FixedSegment V2 n -> Maybe (n,n)
-chopCubics (FCubic p0 p1 p2 p3) q@(FCubic q0 _ _ q3)
+chopCubics p q@(FCubic q0 _ _ q3)
   = chopHull dmin dmax dps
   where
     dps = zipWith mkP2 [0, 1/3, 2/3, 1] ds
-    ds  = map d [p0, p1, p2, p3]
+    ds  = p ^.. each . to d
     d   = lineDistance q0 q3
     --
     (dmin,dmax) = fatLine q
@@ -424,39 +354,72 @@ bezierToBernstein (FCubic a b c d) =
 bezierToBernstein _ = error "bezierToBernstein only works on cubics"
 
 ------------------------------------------------------------------------
--- Line-Line intersection
+-- Lines
 ------------------------------------------------------------------------
 
--- | @lineLineIntersect a b c d@ calculates the intersection between the two
---   lines defined by points @a b@ and @c d@.
-lineLineIntersect :: Fractional n => P2 n -> P2 n -> P2 n -> P2 n -> P2 n
-lineLineIntersect (P (V2 x1 y1)) (P (V2 x2 y2)) (P (V2 x3 y3)) (P (V2 x4 y4)) = mkP2 x y
-  -- see http://mathworld.wolfram.com/Line-LineIntersection.html
-  where
-    x = det det1 dx1 det2 dx2 / det3
-    y = det det1 dy1 det2 dy2 / det3
-    --
-    det1 = det x1 y1 x2 y2
-    det2 = det x3 y3 x4 y4
-    det3 = det dx1 dy1 dx2 dy2
-    dx1  = x1 - x2
-    dx2  = x3 - x4
-    dy1  = y1 - y2
-    dy2  = y3 - y4
-    --
-    det a b c d = a*d - b*c
+-- Could split this into a separate module.
 
--- | Calculate the intersecting box for two fixed segments. This is a
---   specialised version of @intersection (boundingBox a) (boundingBox b)@.
-segmentIntersectingBox
-  :: (Additive v, Foldable v, Fractional n, Ord n)
-  => FixedSegment v n -> FixedSegment v n -> BoundingBox v n
-segmentIntersectingBox (FLinear p1 p2) (FLinear p3 p4)
-  = fromCorners (liftU2 max mins1 mins2) (liftU2 min maxes1 maxes2)
+-- | Returns @(a, b, c)@ such that @ax + by + c = 0@ is the line going through 
+--   @p1@ and @p2@ with @a^2 + b^2 = 1@.
+lineEquation :: Floating n => P2 n -> P2 n -> (n, n, n)
+lineEquation (P (V2 x1 y1)) (P (V2 x2 y2)) = (a, b, c)
   where
-    maxes1 = liftU2 max p1 p2
-    mins1  = liftU2 min p1 p2
-    maxes2 = liftU2 max p3 p4
-    mins2  = liftU2 min p3 p4
-segmentIntersectingBox _ _ = error "intersectingBox is only for linear segments"
+    a  = a' / d
+    b  = b' / d
+    -- c  = -(y1*b' + x1*a') / d
+    c  = -(x1*a' + y1*b') / d
+    a' = y1 - y2
+    b' = x2 - x1
+    d  = sqrt $ a'*a' + b'*b'
+
+-- | Return the the distance from a point to the line.
+lineDistance :: Floating n => P2 n -> P2 n -> P2 n -> n
+lineDistance p1 p2 (P (V2 x y)) = a*x + b*y + c
+  where (a, b, c) = lineEquation p1 p2
+
+-- find the x value where the line through the two points
+-- intersect the line y=d
+intersectPt :: OrderedField n => n -> P2 n -> P2 n -> n
+intersectPt d (P (V2 x1 y1)) (P (V2 x2 y2)) =
+  x1 + (d - y1) * (x2 - x1) / (y2 - y1)
+
+cross2 :: Num n => V2 n -> V2 n -> n
+cross2 (V2 x1 y1) (V2 x2 y2) = x1 * y2 - y1 * x2
+
+-- clockwise :: (Num n, Ord n) => V2 n -> V2 n -> Bool
+-- clockwise a b = a `cross2` b <= 0
+
+avg :: Fractional n => n -> n -> n
+avg a b = (a + b)/2
+
+-- given that a point lies on a line segment, what is its parameter?
+-- is there a better way to do this?
+getParameter :: (Fractional n, Ord n) => Located (V2 n) -> P2 n -> n
+getParameter (viewLoc -> (p, V2 dx dy)) (P (V2 x y))
+  | abs dy > 1e-6 = (y - p^._y) / dy
+  | abs dx > 1e-6 = (x - p^._x) / dx
+  | otherwise     = 0
+
+lineLine :: (Fractional n, Eq n) => Located (V2 n) -> Located (V2 n) -> Maybe (n,n)
+lineLine (viewLoc -> (p,r)) (viewLoc -> (q,s))
+  | x1 == 0 && x2 /= 0 = Nothing                 -- parallel
+  | otherwise          = Just (x3 / x1, x2 / x1) -- intersecting or colinear
+  where
+    x1 = r × s
+    x2 = v × r
+    x3 = v × s
+    v  = q .-. p
+
+(×) :: Num n => V2 n -> V2 n -> n
+(×) = cross2
+
+mkLine :: InSpace v n (v n) => Point v n -> Point v n -> Located (v n)
+mkLine p0 p1 = (p1 .-. p0) `at` p0
+
+segLine :: InSpace v n (v n) => FixedSegment v n -> Located (v n)
+segLine (FLinear p0 p1)    = mkLine p0 p1
+segLine (FCubic p0 _ _ p3) = mkLine p0 p3
+
+inRange :: (Fractional n, Ord n) => n -> Bool
+inRange x = x < 1.0000001 && x > (-0.0000001)
 
