@@ -39,34 +39,36 @@ module Diagrams.TwoD.Segment
 
 import           Data.List               (sort)
 import           Data.Maybe
-import           Control.Applicative
+-- import           Control.Applicative
 import           Control.Lens            hiding (( # ), at, contains, transform)
 
 import           Diagrams.Core
 
-import           Diagrams.Angle
+-- import           Diagrams.Angle
 import           Diagrams.TwoD.Segment.Bernstein
 import           Diagrams.Located
 import           Diagrams.Parametric
 import           Diagrams.Segment
-import           Diagrams.Solve
+-- import           Diagrams.Solve
 import           Diagrams.TwoD.Transform
 import           Diagrams.TwoD.Types     hiding (p2)
-import           Diagrams.TwoD.Vector
-import           Diagrams.Util
+-- import           Diagrams.TwoD.Vector
+-- import           Diagrams.Util
 
 import           Linear.Affine
 import           Linear.Metric
-import           Linear.Vector
+-- import           Linear.Vector
 
 {- All instances of Traced should maintain the invariant that the list of
    traces is sorted in increasing order.
 -}
 
-instance RealFloat n => Traced (Segment Closed V2 n) where
+instance OrderedField n => Traced (Segment Closed V2 n) where
   getTrace = getTrace . mkFixedSeg . (`at` origin)
 
-instance RealFloat n => Traced (FixedSegment V2 n) where
+instance OrderedField n => Traced (FixedSegment V2 n) where
+  getTrace seg = mkTrace $ \p v ->
+    mkSortedList . map (view _1) $ lineSegment defEps (v `at` p) seg
 
 {- Given lines defined by p0 + t0 * v0 and p1 + t1 * v1, their point of
    intersection in 2D is given by
@@ -89,18 +91,18 @@ instance RealFloat n => Traced (FixedSegment V2 n) where
    results in the above formulas for t_i.
 -}
 
-  getTrace (FLinear p0 p0') = mkTrace $ \p1 v1 ->
-    let
-      v0     = p0' .-. p0
-      det    = perp v1 `dot` v0
-      p      = p1 .-. p0
-      t0     = (perp v1 `dot` p) / det
-      t1     = (perp v0 `dot` p) / det
-    in
-      mkSortedList $
-        if det == 0 || t0 < 0 || t0 > 1
-          then []
-          else [t1]
+  -- getTrace (FLinear p0 p0') = mkTrace $ \p1 v1 ->
+  --   let
+  --     v0     = p0' .-. p0
+  --     det    = perp v1 `dot` v0
+  --     p      = p1 .-. p0
+  --     t0     = (perp v1 `dot` p) / det
+  --     t1     = (perp v0 `dot` p) / det
+  --   in
+  --     mkSortedList $
+  --       if det == 0 || t0 < 0 || t0 > 1
+  --         then []
+  --         else [t1]
 
 {- To do intersection of a line with a cubic Bezier, we first rotate
    and scale everything so that the line has parameters (origin, unitX);
@@ -111,25 +113,25 @@ instance RealFloat n => Traced (FixedSegment V2 n) where
    there can't possibly be any intersections)?  Need to set up some
    benchmarks.
 -}
-
-  getTrace bez@(FCubic {}) = mkTrace $ \p1 v1 ->
-    let
-      bez'@(FCubic x1 c1 c2 x2) =
-        bez # moveOriginTo p1
-            # rotate (negated (v1^._theta))
-            # scale (1/norm v1)
-      [y0,y1,y2,y3] = map (snd . unp2) [x1,c1,c2,x2]
-      a  = -y0 + 3*y1 - 3*y2 + y3
-      b  = 3*y0 - 6*y1 + 3*y2
-      c  = -3*y0 + 3*y1
-      d  = y0
-      ts = filter (liftA2 (&&) (>= 0) (<= 1)) (cubForm a b c d)
-      xs = map (fst . unp2 . atParam bez') ts
-    in
-      mkSortedList xs
+-- 
+--   getTrace bez@(FCubic {}) = mkTrace $ \p1 v1 ->
+--     let
+--       bez'@(FCubic x1 c1 c2 x2) =
+--         bez # moveOriginTo p1
+--             # rotate (negated (v1^._theta))
+--             # scale (1/norm v1)
+--       [y0,y1,y2,y3] = map (snd . unp2) [x1,c1,c2,x2]
+--       a  = -y0 + 3*y1 - 3*y2 + y3
+--       b  = 3*y0 - 6*y1 + 3*y2
+--       c  = -3*y0 + 3*y1
+--       d  = y0
+--       ts = filter (liftA2 (&&) (>= 0) (<= 1)) (cubForm a b c d)
+--       xs = map (fst . unp2 . atParam bez') ts
+--     in
+--       mkSortedList xs
 
 defEps :: Fractional n => n
-defEps = 1e-6
+defEps = 1e-8
 
 -- | Compute the intersections between two fixed segments.
 intersectionsS :: OrderedField n => FixedSegment V2 n -> FixedSegment V2 n -> [P2 n]
@@ -177,7 +179,7 @@ segmentSegment eps s1 s2 =
     (FCubic{}, FLinear{}) -> map flip12 $ linearSeg (segLine s2) s1
     _                     -> linearSeg (segLine s1) s2 -- s1 is linear
   where
-    linearSeg l s = filter (inRange . view _1) $ lineSegment eps l s
+    linearSeg l s  = filter (inRange . view _1) $ lineSegment eps l s
     flip12 (a,b,c) = (b,a,c)
 
 -- | Return the intersection points with the parameters at which the line and segment 
@@ -186,15 +188,15 @@ lineSegment :: OrderedField n => n -> Located (V2 n) -> FixedSegment V2 n -> [(n
 lineSegment _ l1 p@(FLinear p0 p1)
   = map (\(tl,tp) -> (tl, tp, p `atParam` tp))
   . filter (inRange . snd) . maybeToList $ lineLine l1 (mkLine p0 p1)
-lineSegment eps l@(viewLoc -> (p,r)) cb = map addPoint params
+lineSegment eps (viewLoc -> (p,r)) cb = map addPoint params
   where
     params = bezierFindRoot eps (listToBernstein $ cb' ^.. each . _y) 0 1
     cb'    = transform (inv (rotationTo r)) . moveOriginTo p $ cb
     --
-    addPoint t = (lt, t, intersect)
+    addPoint bt = (lt, bt, intersect)
       where
-        intersect = cb `atParam` t
-        lt        = getParameter l intersect
+        intersect = cb `atParam` bt
+        lt        = (cb' `atParam` bt) ^. _x / norm r
 
 -- | Use the bezier clipping algorithm to return the parameters at which the 
 --   bezier curves intersect.
@@ -273,7 +275,7 @@ sortedConvexHull ps = (chain True ps, chain False ps)
        -- the cross product and backtracking if necessary
        go dir p1 l@(p2:rest)
          -- backtrack if the direction is outward
-         | test $ dir `cross2` dir' = Left l
+         | test $ dir `cross22` dir' = Left l
          | otherwise                =
              case go dir' p2 rest of
                Left m  -> go dir p1 m
@@ -383,22 +385,22 @@ intersectPt :: OrderedField n => n -> P2 n -> P2 n -> n
 intersectPt d (P (V2 x1 y1)) (P (V2 x2 y2)) =
   x1 + (d - y1) * (x2 - x1) / (y2 - y1)
 
-cross2 :: Num n => V2 n -> V2 n -> n
-cross2 (V2 x1 y1) (V2 x2 y2) = x1 * y2 - y1 * x2
+cross22 :: Num n => V2 n -> V2 n -> n
+cross22 (V2 x1 y1) (V2 x2 y2) = x1 * y2 - y1 * x2
 
 -- clockwise :: (Num n, Ord n) => V2 n -> V2 n -> Bool
--- clockwise a b = a `cross2` b <= 0
+-- clockwise a b = a `cross22` b <= 0
 
 avg :: Fractional n => n -> n -> n
 avg a b = (a + b)/2
 
 -- given that a point lies on a line segment, what is its parameter?
 -- is there a better way to do this?
-getParameter :: (Fractional n, Ord n) => Located (V2 n) -> P2 n -> n
-getParameter (viewLoc -> (p, V2 dx dy)) (P (V2 x y))
-  | abs dy > 1e-6 = (y - p^._y) / dy
-  | abs dx > 1e-6 = (x - p^._x) / dx
-  | otherwise     = 0
+-- getParameter :: (Fractional n, Ord n) => Located (V2 n) -> P2 n -> n
+-- getParameter (viewLoc -> (p, V2 dx dy)) (P (V2 x y))
+--   | abs dy > 1e-6 = (y - p^._y) / dy
+--   | abs dx > 1e-6 = (x - p^._x) / dx
+--   | otherwise     = 0
 
 lineLine :: (Fractional n, Eq n) => Located (V2 n) -> Located (V2 n) -> Maybe (n,n)
 lineLine (viewLoc -> (p,r)) (viewLoc -> (q,s))
@@ -411,7 +413,7 @@ lineLine (viewLoc -> (p,r)) (viewLoc -> (q,s))
     v  = q .-. p
 
 (×) :: Num n => V2 n -> V2 n -> n
-(×) = cross2
+(×) = cross22
 
 mkLine :: InSpace v n (v n) => Point v n -> Point v n -> Located (v n)
 mkLine p0 p1 = (p1 .-. p0) `at` p0
