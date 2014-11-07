@@ -39,25 +39,19 @@ module Diagrams.TwoD.Segment
 
 import           Data.List               (sort)
 import           Data.Maybe
--- import           Control.Applicative
 import           Control.Lens            hiding (( # ), at, contains, transform)
 
 import           Diagrams.Core
 
--- import           Diagrams.Angle
 import           Diagrams.TwoD.Segment.Bernstein
 import           Diagrams.Located
 import           Diagrams.Parametric
 import           Diagrams.Segment
--- import           Diagrams.Solve
 import           Diagrams.TwoD.Transform
 import           Diagrams.TwoD.Types     hiding (p2)
--- import           Diagrams.TwoD.Vector
--- import           Diagrams.Util
 
 import           Linear.Affine
 import           Linear.Metric
--- import           Linear.Vector
 
 {- All instances of Traced should maintain the invariant that the list of
    traces is sorted in increasing order.
@@ -69,66 +63,6 @@ instance OrderedField n => Traced (Segment Closed V2 n) where
 instance OrderedField n => Traced (FixedSegment V2 n) where
   getTrace seg = mkTrace $ \p v ->
     mkSortedList . map (view _1) $ lineSegment defEps (v `at` p) seg
-
-{- Given lines defined by p0 + t0 * v0 and p1 + t1 * v1, their point of
-   intersection in 2D is given by
-
-     t_i = (v_(1-i)^ . (p1 - p0)) / (v1^ . v0)
-
-   where v^ denotes the perpendicular to v, i.e. v rotated by
-   -tau/4.
-
-   This can be derived by starting with the parametric equation
-
-     p0 + v0 t0 = p1 + v1 t1
-
-   and rearranging to get the matrix equation
-
-     [v0 -v1] [ t0 ]  =  (p1 - p0)
-              [ t1 ]
-
-   Working out the product of the inverse of [v0 -v1] with (p1 - p0)
-   results in the above formulas for t_i.
--}
-
-  -- getTrace (FLinear p0 p0') = mkTrace $ \p1 v1 ->
-  --   let
-  --     v0     = p0' .-. p0
-  --     det    = perp v1 `dot` v0
-  --     p      = p1 .-. p0
-  --     t0     = (perp v1 `dot` p) / det
-  --     t1     = (perp v0 `dot` p) / det
-  --   in
-  --     mkSortedList $
-  --       if det == 0 || t0 < 0 || t0 > 1
-  --         then []
-  --         else [t1]
-
-{- To do intersection of a line with a cubic Bezier, we first rotate
-   and scale everything so that the line has parameters (origin, unitX);
-   then we find the intersection(s) of the Bezier with the x-axis.
-
-   XXX could we speed this up by first checking whether all the
-   control point y-coordinates lie on the same side of the x-axis (if so,
-   there can't possibly be any intersections)?  Need to set up some
-   benchmarks.
--}
--- 
---   getTrace bez@(FCubic {}) = mkTrace $ \p1 v1 ->
---     let
---       bez'@(FCubic x1 c1 c2 x2) =
---         bez # moveOriginTo p1
---             # rotate (negated (v1^._theta))
---             # scale (1/norm v1)
---       [y0,y1,y2,y3] = map (snd . unp2) [x1,c1,c2,x2]
---       a  = -y0 + 3*y1 - 3*y2 + y3
---       b  = 3*y0 - 6*y1 + 3*y2
---       c  = -3*y0 + 3*y1
---       d  = y0
---       ts = filter (liftA2 (&&) (>= 0) (<= 1)) (cubForm a b c d)
---       xs = map (fst . unp2 . atParam bez') ts
---     in
---       mkSortedList xs
 
 defEps :: Fractional n => n
 defEps = 1e-8
@@ -150,11 +84,11 @@ convexHull2D ps = init upper ++ reverse (tail lower)
   where
     (lower, upper) = sortedConvexHull (sort ps)
 
--- | Find the closest value(s) on the bezier to the given point.
+-- | Find the closest value(s) on the Bêzier to the given point.
 closest :: OrderedField n => FixedSegment V2 n -> P2 n -> [n]
 closest = closest' defEps
 
--- | Find the closest value(s) on the bezier to the given point within given 
+-- | Find the closest value(s) on the Bêzier to the given point within given 
 --   tolerance.
 closest' :: OrderedField n => n -> FixedSegment V2 n -> P2 n -> [n]
 closest' eps cb (P (V2 px py)) = bezierFindRoot eps poly 0 1
@@ -198,8 +132,10 @@ lineSegment eps (viewLoc -> (p,r)) cb = map addPoint params
         intersect = cb `atParam` bt
         lt        = (cb' `atParam` bt) ^. _x / norm r
 
--- | Use the bezier clipping algorithm to return the parameters at which the 
---   bezier curves intersect.
+-- Adapted from from kuribas's cubicbezier package https://github.com/kuribas/cubicbezier
+
+-- | Use the Bêzier clipping algorithm to return the parameters at which the 
+--   Bêzier curves intersect.
 bezierClip :: OrderedField n => n -> FixedSegment V2 n -> FixedSegment V2 n -> [(n, n)]
 bezierClip eps p_ q_ = go p_ q_ 0 1 0 1 0 False
   where
@@ -233,12 +169,12 @@ bezierClip eps p_ q_ = go p_ q_ 0 1 0 1 0 False
       tmin' = tmax * tminChop + tmin * (1 - tminChop)
       tmax' = tmax * tmaxChop + tmin * (1 - tmaxChop)
 
--- | Find the zero of a 1D bezier curve of any degree.  Note that this
---   can be used as a bernstein polynomial root solver by converting from
---   the power basis to the bernstein basis.
+-- | Find the zero of a 1D Bêzier curve of any degree.  Note that this
+--   can be used as a Bernstein polynomial root solver by converting from
+--   the power basis to the Bernstein basis.
 bezierFindRoot :: OrderedField n
                => n   -- ^ The accuracy
-               -> BernsteinPoly n -- ^ the bernstein coefficients of the polynomial
+               -> BernsteinPoly n -- ^ the Bernstein coefficients of the polynomial
                -> n   -- ^ The lower bound of the interval
                -> n   -- ^ The upper bound of the interval
                -> [n] -- ^ The roots found
@@ -290,7 +226,7 @@ sortedConvexHull ps = (chain True ps, chain False ps)
 -- Internal
 ------------------------------------------------------------------------
 
--- | An approximation of the fat line for a cubic bezier segment. Returns 
+-- | An approximation of the fat line for a cubic Bêzier segment. Returns 
 --   @(0,0)@ for a linear segment.
 fatLine :: OrderedField n => FixedSegment V2 n -> (n,n)
 fatLine (FCubic p0 p1 p2 p3)
@@ -394,18 +330,10 @@ cross22 (V2 x1 y1) (V2 x2 y2) = x1 * y2 - y1 * x2
 avg :: Fractional n => n -> n -> n
 avg a b = (a + b)/2
 
--- given that a point lies on a line segment, what is its parameter?
--- is there a better way to do this?
--- getParameter :: (Fractional n, Ord n) => Located (V2 n) -> P2 n -> n
--- getParameter (viewLoc -> (p, V2 dx dy)) (P (V2 x y))
---   | abs dy > 1e-6 = (y - p^._y) / dy
---   | abs dx > 1e-6 = (x - p^._x) / dx
---   | otherwise     = 0
-
 lineLine :: (Fractional n, Eq n) => Located (V2 n) -> Located (V2 n) -> Maybe (n,n)
 lineLine (viewLoc -> (p,r)) (viewLoc -> (q,s))
   | x1 == 0 && x2 /= 0 = Nothing                 -- parallel
-  | otherwise          = Just (x3 / x1, x2 / x1) -- intersecting or colinear
+  | otherwise          = Just (x3 / x1, x2 / x1) -- intersecting or collinear
   where
     x1 = r × s
     x2 = v × r
@@ -423,5 +351,5 @@ segLine (FLinear p0 p1)    = mkLine p0 p1
 segLine (FCubic p0 _ _ p3) = mkLine p0 p3
 
 inRange :: (Fractional n, Ord n) => n -> Bool
-inRange x = x < 1.0000001 && x > (-0.0000001)
+inRange x = x < (1+defEps) && x > (-defEps)
 
