@@ -91,6 +91,15 @@ closest = closest' defEps
 -- | Find the closest value(s) on the Bêzier to the given point within given 
 --   tolerance.
 closest' :: OrderedField n => n -> FixedSegment V2 n -> P2 n -> [n]
+closest' _ (FLinear p0 p1) p
+  | t < 0     = [0]
+  | t > 1     = [1]
+  | otherwise = [t]
+  where
+    vp = p  .-. p0
+    v  = p1 .-. p0
+    dp = vp `dot` v
+    t  = dp / quadrance v
 closest' eps cb (P (V2 px py)) = bezierFindRoot eps poly 0 1
   where
     (bx, by) = bezierToBernstein cb
@@ -286,10 +295,9 @@ chopHull dmin dmax dps = do
       testAbove _   = Nothing
 
 bezierToBernstein :: Fractional n => FixedSegment V2 n -> (BernsteinPoly n, BernsteinPoly n)
-bezierToBernstein (FCubic a b c d) =
+bezierToBernstein seg =
     (listToBernstein $ map (view _x) coeffs, listToBernstein $ map (view _y) coeffs)
-  where coeffs = [a, b, c, d]
-bezierToBernstein _ = error "bezierToBernstein only works on cubics"
+  where coeffs = toListOf each seg
 
 ------------------------------------------------------------------------
 -- Lines
@@ -304,13 +312,12 @@ lineEquation (P (V2 x1 y1)) (P (V2 x2 y2)) = (a, b, c)
   where
     a  = a' / d
     b  = b' / d
-    -- c  = -(y1*b' + x1*a') / d
     c  = -(x1*a' + y1*b') / d
     a' = y1 - y2
     b' = x2 - x1
     d  = sqrt $ a'*a' + b'*b'
 
--- | Return the the distance from a point to the line.
+-- | Return the distance from a point to the line.
 lineDistance :: Floating n => P2 n -> P2 n -> P2 n -> n
 lineDistance p1 p2 (P (V2 x y)) = a*x + b*y + c
   where (a, b, c) = lineEquation p1 p2

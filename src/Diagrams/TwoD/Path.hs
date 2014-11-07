@@ -158,29 +158,32 @@ instance Default (StrokeOpts a) where
         , _queryFillRule = def
         }
 
--- | Convert a 'ToPath' object into a 'QDiagram'.
+-- | Convert a 'ToPath' object into a diagram.  The resulting diagram has the
+--   names 0, 1, ... assigned to each of the path's vertices.
 --
---   @
---   stroke = strokeP . toPath
---   @
+--   See also 'stroke'', which takes an extra options record allowing
+--   its behaviour to be customized.
 stroke :: (InSpace V2 n t, ToPath t, TypeableFloat n, Renderable (Path V2 n) b)
        => t -> QDiagram b V2 n Any
 stroke = strokeP . toPath
 
+-- | A variant of 'stroke' that takes an extra record of options to
+--   customize its behaviour.  In particular:
+--
+--     * Names can be assigned to the path's vertices
+--
+--   'StrokeOpts' is an instance of 'Default', so @stroke' ('with' &
+--   ... )@ syntax may be used.
 stroke' :: (InSpace V2 n t, ToPath t, TypeableFloat n, Renderable (Path V2 n) b, IsName a)
        => StrokeOpts a -> t -> QDiagram b V2 n Any
 stroke' opts = strokeP' opts . toPath
 
--- | Convert a path into a diagram.  The resulting diagram has the
---   names 0, 1, ... assigned to each of the path's vertices.
---
---   See also 'stroke'', which takes an extra options record allowing
---   its behavior to be customized.
---
+-- | 'stroke' specialised to 'Path'.
 strokeP :: (TypeableFloat n, Renderable (Path V2 n) b)
         => Path V2 n -> QDiagram b V2 n Any
 strokeP = strokeP' (def :: StrokeOpts ())
 
+-- | 'stroke' specialised to 'Path'.
 strokePath :: (TypeableFloat n, Renderable (Path V2 n) b)
         => Path V2 n -> QDiagram b V2 n Any
 strokePath = strokeP
@@ -189,13 +192,7 @@ instance (TypeableFloat n, Renderable (Path V2 n) b)
     => TrailLike (QDiagram b V2 n Any) where
   trailLike = strokeP . trailLike
 
--- | A variant of 'stroke' that takes an extra record of options to
---   customize its behavior.  In particular:
---
---     * Names can be assigned to the path's vertices
---
---   'StrokeOpts' is an instance of 'Default', so @stroke' ('with' &
---   ... )@ syntax may be used.
+-- | 'stroke'' specialised to 'Path'.
 strokeP' :: (TypeableFloat n, Renderable (Path V2 n) b, IsName a)
     => StrokeOpts a -> Path V2 n -> QDiagram b V2 n Any
 strokeP' opts path
@@ -213,18 +210,17 @@ strokeP' opts path
          )
          (Query $ Any . flip (runFillRule (opts^.queryFillRule)) p)
 
--- | Synonym for 'strokeP''
+-- | 'stroke'' specialised to 'Path'.
 strokePath' :: (TypeableFloat n, Renderable (Path V2 n) b, IsName a)
     => StrokeOpts a -> Path V2 n -> QDiagram b V2 n Any
 strokePath' = strokeP'
 
--- | A composition of 'stroke' and 'pathFromTrail' for conveniently
---   converting a trail directly into a diagram.
+-- | 'stroke' specialised to 'Trail'.
 strokeTrail :: (TypeableFloat n, Renderable (Path V2 n) b)
             => Trail V2 n -> QDiagram b V2 n Any
 strokeTrail = stroke . pathFromTrail
 
--- | Deprecated synonym for 'strokeTrail'.
+-- | 'stroke' specialised to 'Trail'.
 strokeT :: (TypeableFloat n, Renderable (Path V2 n) b)
         => Trail V2 n -> QDiagram b V2 n Any
 strokeT = strokeTrail
