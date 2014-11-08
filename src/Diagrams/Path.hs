@@ -168,8 +168,8 @@ instance (HasLinearMap v, Metric v, OrderedField n)
 --   polymorphic result ('Path', 'Diagram' etc.).
 --
 class ToPath t where
--- | 'toPath' takes something that can be converted to 'Path' and returns
---    the 'Path'.
+  -- | 'toPath' takes something that can be converted to 'Path' and returns
+  --    the 'Path'.
   toPath :: (Metric (V t), OrderedField (N t)) => t -> Path (V t) (N t)
 
 instance ToPath (Path v n) where
