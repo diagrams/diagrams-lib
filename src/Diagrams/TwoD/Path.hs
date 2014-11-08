@@ -77,6 +77,8 @@ import           Diagrams.Trail
 import           Diagrams.TrailLike
 import           Diagrams.TwoD.Segment
 import           Diagrams.TwoD.Types
+import           Diagrams.TwoD.Vector
+import           Diagrams.TwoD.Points
 import           Diagrams.Util         (tau)
 
 import           Linear.Affine
@@ -294,9 +296,6 @@ getFillRule (FillRuleA (Last r)) = r
 --   points are inside a path.
 fillRule :: HasStyle a => FillRule -> a -> a
 fillRule = applyAttr . FillRuleA . Last
-
-cross2 :: Num n => V2 n -> V2 n -> n
-cross2 (V2 x y) (V2 x' y') = x * y' - y * x'
 
 -- XXX link to more info on this
 

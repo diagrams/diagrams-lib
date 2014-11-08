@@ -56,6 +56,7 @@ import           Diagrams.Core.Transform
 import           Diagrams.Transform
 import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector
+import           Diagrams.TwoD.Points
 
 import           Control.Lens            (review, (&), (*~), (.~), (//~))
 import           Data.Semigroup

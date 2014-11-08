@@ -45,7 +45,6 @@ module Diagrams.TwoD.Segment
   )
   where
 
-import           Data.List               (sort)
 import           Data.Maybe
 import           Control.Lens            hiding (( # ), at, contains, transform)
 
@@ -57,6 +56,8 @@ import           Diagrams.Parametric
 import           Diagrams.Segment
 import           Diagrams.TwoD.Transform
 import           Diagrams.TwoD.Types     hiding (p2)
+import           Diagrams.TwoD.Points
+import           Diagrams.TwoD.Vector
 
 import           Linear.Affine
 import           Linear.Metric
@@ -82,15 +83,6 @@ intersectPointsS = intersectPointsS' defEps
 -- | Compute the intersections between two segments using the given tolerance.
 intersectPointsS' :: OrderedField n => n -> FixedSegment V2 n -> FixedSegment V2 n -> [P2 n]
 intersectPointsS' eps s1 s2 = map (view _3) $ segmentSegment eps s1 s2
-
--- | Find the convex hull of a list of points using Andrew's monotone chain
---   algorithm O(n log n).
---   
---   Returns clockwise list of points starting from the left-most point.
-convexHull2D :: OrderedField n => [P2 n] -> [P2 n]
-convexHull2D ps = init upper ++ reverse (tail lower)
-  where
-    (lower, upper) = sortedConvexHull (sort ps)
 
 -- | Get the closest distance(s) from a point to a 'FixedSegment'.
 closestDistance :: OrderedField n => FixedSegment V2 n -> P2 n -> [n]
@@ -229,33 +221,7 @@ bezierFindRoot eps p tmin tmax
     tmin' = tmax * tminChop + tmin * (1 - tminChop)
     tmax' = tmax * tmaxChop + tmin * (1 - tmaxChop)
 
--- | Find the convex hull of a set of points already sorted in the x direction. 
---   The first list of the tuple is the upper hull going clockwise from 
---   left-most to right-most point. The second is the lower hull from 
---   right-most to left-most in the anti-clockwise direction.
-sortedConvexHull :: OrderedField n => [P2 n] -> ([P2 n], [P2 n])
-sortedConvexHull ps = (chain True ps, chain False ps)
- where
-   chain upper (p1_:p2_:rest_) =
-     case go (p2_ .-. p1_) p2_ rest_ of
-       Right l -> p1_:l
-       Left l  -> chain upper (p1_:l)
-     where
-       test = if upper then (>0) else (<0)
-       -- find the convex hull by comparing the angles of the vectors with
-       -- the cross product and backtracking if necessary
-       go dir p1 l@(p2:rest)
-         -- backtrack if the direction is outward
-         | test $ dir `cross22` dir' = Left l
-         | otherwise                =
-             case go dir' p2 rest of
-               Left m  -> go dir p1 m
-               Right m -> Right (p1:m)
-         where
-           dir' = p2 .-. p1
-       go _ p1 p = Right (p1:p)
 
-   chain _ l = l
 
 ------------------------------------------------------------------------
 -- Internal
@@ -354,11 +320,8 @@ intersectPt :: OrderedField n => n -> P2 n -> P2 n -> n
 intersectPt d (P (V2 x1 y1)) (P (V2 x2 y2)) =
   x1 + (d - y1) * (x2 - x1) / (y2 - y1)
 
-cross22 :: Num n => V2 n -> V2 n -> n
-cross22 (V2 x1 y1) (V2 x2 y2) = x1 * y2 - y1 * x2
-
 -- clockwise :: (Num n, Ord n) => V2 n -> V2 n -> Bool
--- clockwise a b = a `cross22` b <= 0
+-- clockwise a b = a `cross2` b <= 0
 
 avg :: Fractional n => n -> n -> n
 avg a b = (a + b)/2
@@ -374,7 +337,7 @@ lineLine (viewLoc -> (p,r)) (viewLoc -> (q,s))
     v  = q .-. p
 
 (×) :: Num n => V2 n -> V2 n -> n
-(×) = cross22
+(×) = cross2
 
 mkLine :: InSpace v n (v n) => Point v n -> Point v n -> Located (v n)
 mkLine p0 p1 = (p1 .-. p0) `at` p0

@@ -83,6 +83,7 @@ Library
                        Diagrams.TwoD.Model,
                        Diagrams.TwoD.Offset,
                        Diagrams.TwoD.Path,
+                       Diagrams.TwoD.Points,
                        Diagrams.TwoD.Polygons,
                        Diagrams.TwoD.Segment,
                        Diagrams.TwoD.Segment.Bernstein,
