@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE ViewPatterns          #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 -----------------------------------------------------------------------------
@@ -53,12 +54,13 @@ module Diagrams.TwoD.Transform
 import           Diagrams.Angle
 import           Diagrams.Core
 import           Diagrams.Core.Transform
+import           Diagrams.Direction
 import           Diagrams.Transform
 import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector
 import           Diagrams.TwoD.Points
 
-import           Control.Lens            (review, (&), (*~), (.~), (//~))
+import           Control.Lens            (review, view, (&), (*~), (.~), (//~))
 import           Data.Semigroup
 
 import           Linear.Affine
@@ -110,13 +112,13 @@ rotateAround :: (InSpace V2 n t, Transformable t, Floating n) => P2 n -> Angle n
 rotateAround p angle = rotate angle `under` translation (origin .-. p)
 
 -- | The rotation that aligns the x-axis with the given non-zero vector.
-rotationTo :: OrderedField n => V2 n -> T2 n
-rotationTo (V2 x y) = rotation (atan2A' y x)
+rotationTo :: OrderedField n => Direction V2 n -> T2 n
+rotationTo (view _Dir -> V2 x y) = rotation (atan2A' y x)
 -- could be done with Direction
 
 -- | Rotate around the local origin such that the x axis aligns with the
 --   given direction.
-rotateTo :: (InSpace V2 n t, OrderedField n, Transformable t) => V2 n -> t -> t
+rotateTo :: (InSpace V2 n t, OrderedField n, Transformable t) => Direction V2 n -> t -> t
 rotateTo = transform . rotationTo
 
 -- Scaling -------------------------------------------------
@@ -217,7 +219,7 @@ reflectY = transform reflectionY
 --   the point @p@ and vector @v@.
 reflectionAbout :: OrderedField n => P2 n -> V2 n -> T2 n
 reflectionAbout p v =
-  conjugate (rotationTo (negated v) <> translation (origin .-. p))
+  conjugate (rotationTo (direction $ negated v) <> translation (origin .-. p))
             reflectionY
 
 -- | @reflectAbout p v@ reflects a diagram in the line determined by

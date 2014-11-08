@@ -28,7 +28,7 @@ module Diagrams.Angle
        , asinA, acosA, atanA, atan2A, atan2A'
 
          -- ** Angle utilities
-       , angleBetween, angleRatio
+       , angleBetween, angleRatio, normalizeAngle
 
          -- ** Classes
        , HasTheta(..)
@@ -36,8 +36,9 @@ module Diagrams.Angle
        ) where
 
 import           Control.Applicative
-import           Control.Lens        (Iso', Lens', iso, review, (^.))
+import           Control.Lens        (Iso', Lens', iso, review, (^.), over)
 import           Data.Monoid         hiding ((<>))
+import           Data.Fixed
 import           Data.Semigroup
 
 import           Diagrams.Core.V
@@ -172,8 +173,8 @@ angleBetween v1 v2 = acosA (signorm v1 `dot` signorm v2)
 -- N.B.: Currently discards the common plane information.
 
 -- | Normalize an angle so that it lies in the [0,tau) range.
--- normalizeAngle :: (Floating n, Real n) => Angle n -> Angle n
--- normalizeAngle = over rad (`mod'` (2 * pi))
+normalizeAngle :: (Floating n, Real n) => Angle n -> Angle n
+normalizeAngle = over rad (`mod'` (2 * pi))
 
 ------------------------------------------------------------
 -- Polar Coordinates

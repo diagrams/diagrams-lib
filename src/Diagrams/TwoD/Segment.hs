@@ -37,26 +37,25 @@ module Diagrams.TwoD.Segment
   , closestParam
   , closestParam'
 
-  , convexHull2D -- doesn't belong here
-
     -- ** Low level functions
   , segmentSegment
   , lineSegment
   )
   where
 
+import           Control.Lens                    hiding (at, contains, transform, ( # ))
 import           Data.Maybe
-import           Control.Lens            hiding (( # ), at, contains, transform)
 
 import           Diagrams.Core
 
-import           Diagrams.TwoD.Segment.Bernstein
+import           Diagrams.Direction
 import           Diagrams.Located
 import           Diagrams.Parametric
 import           Diagrams.Segment
-import           Diagrams.TwoD.Transform
-import           Diagrams.TwoD.Types     hiding (p2)
 import           Diagrams.TwoD.Points
+import           Diagrams.TwoD.Segment.Bernstein
+import           Diagrams.TwoD.Transform
+import           Diagrams.TwoD.Types             hiding (p2)
 import           Diagrams.TwoD.Vector
 
 import           Linear.Affine
@@ -106,7 +105,7 @@ closestPoint' eps seg = map (seg `atParam`) . closestParam' eps seg
 closestParam :: OrderedField n => FixedSegment V2 n -> P2 n -> [n]
 closestParam = closestParam' defEps
 
--- | Find the closest value(s) on the Bêzier to the given point within given 
+-- | Find the closest value(s) on the Bêzier to the given point within given
 --   tolerance.
 closestParam' :: OrderedField n => n -> FixedSegment V2 n -> P2 n -> [n]
 closestParam' _ (FLinear p0 p1) p
@@ -130,7 +129,7 @@ closestParam' eps cb (P (V2 px py)) = bezierFindRoot eps poly 0 1
 -- Low level
 ------------------------------------------------------------------------
 
--- | Return the intersection points with the parameters at which each segment 
+-- | Return the intersection points with the parameters at which each segment
 --   intersects.
 segmentSegment :: OrderedField n => n -> FixedSegment V2 n -> FixedSegment V2 n -> [(n, n, P2 n)]
 segmentSegment eps s1 s2 =
@@ -143,7 +142,7 @@ segmentSegment eps s1 s2 =
     linearSeg l s  = filter (inRange . view _1) $ lineSegment eps l s
     flip12 (a,b,c) = (b,a,c)
 
--- | Return the intersection points with the parameters at which the line and segment 
+-- | Return the intersection points with the parameters at which the line and segment
 --   intersect.
 lineSegment :: OrderedField n => n -> Located (V2 n) -> FixedSegment V2 n -> [(n, n, P2 n)]
 lineSegment _ l1 p@(FLinear p0 p1)
@@ -152,7 +151,7 @@ lineSegment _ l1 p@(FLinear p0 p1)
 lineSegment eps (viewLoc -> (p,r)) cb = map addPoint params
   where
     params = bezierFindRoot eps (listToBernstein $ cb' ^.. each . _y) 0 1
-    cb'    = transform (inv (rotationTo r)) . moveOriginTo p $ cb
+    cb'    = transform (inv (rotationTo $ dir r)) . moveOriginTo p $ cb
     --
     addPoint bt = (lt, bt, intersect)
       where
@@ -161,7 +160,7 @@ lineSegment eps (viewLoc -> (p,r)) cb = map addPoint params
 
 -- Adapted from from kuribas's cubicbezier package https://github.com/kuribas/cubicbezier
 
--- | Use the Bêzier clipping algorithm to return the parameters at which the 
+-- | Use the Bêzier clipping algorithm to return the parameters at which the
 --   Bêzier curves intersect.
 bezierClip :: OrderedField n => n -> FixedSegment V2 n -> FixedSegment V2 n -> [(n, n)]
 bezierClip eps p_ q_ = go p_ q_ 0 1 0 1 0 False
@@ -227,7 +226,7 @@ bezierFindRoot eps p tmin tmax
 -- Internal
 ------------------------------------------------------------------------
 
--- | An approximation of the fat line for a cubic Bêzier segment. Returns 
+-- | An approximation of the fat line for a cubic Bêzier segment. Returns
 --   @(0,0)@ for a linear segment.
 fatLine :: OrderedField n => FixedSegment V2 n -> (n,n)
 fatLine (FCubic p0 p1 p2 p3)
@@ -258,8 +257,8 @@ chopCubics p q@(FCubic q0 _ _ q3)
     (dmin,dmax) = fatLine q
 chopCubics _ _ = Nothing
 
--- Reduce the interval which the intersection is known to lie in using the fat 
--- line of one curve and convex hull of the points formed from the distance to 
+-- Reduce the interval which the intersection is known to lie in using the fat
+-- line of one curve and convex hull of the points formed from the distance to
 -- the thin line of the other
 chopHull :: OrderedField n => n -> n -> [P2 n] -> Maybe (n, n)
 chopHull dmin dmax dps = do
@@ -297,7 +296,7 @@ bezierToBernstein seg =
 
 -- Could split this into a separate module.
 
--- | Returns @(a, b, c)@ such that @ax + by + c = 0@ is the line going through 
+-- | Returns @(a, b, c)@ such that @ax + by + c = 0@ is the line going through
 --   @p1@ and @p2@ with @a^2 + b^2 = 1@.
 lineEquation :: Floating n => P2 n -> P2 n -> (n, n, n)
 lineEquation (P (V2 x1 y1)) (P (V2 x2 y2)) = (a, b, c)
