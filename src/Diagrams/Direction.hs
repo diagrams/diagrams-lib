@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveFunctor        #-}
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -34,7 +35,7 @@ import           Linear.Metric
 -- magnitude.  @Direction@s can be used with 'fromDirection' and the
 -- lenses provided by its instances.
 newtype Direction v n = Direction (v n)
-  deriving (Read, Show, Eq, Ord) -- todo: special instances
+  deriving (Read, Show, Eq, Ord, Functor) -- todo: special instances
 
 type instance V (Direction v n) = v
 type instance N (Direction v n) = n

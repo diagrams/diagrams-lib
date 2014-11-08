@@ -1,5 +1,6 @@
 {-# LANGUAGE ConstraintKinds  #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ViewPatterns     #-}
 {-# LANGUAGE TypeFamilies     #-}
 -----------------------------------------------------------------------------
 -- |
@@ -36,7 +37,7 @@ import           Diagrams.Trail
 import           Diagrams.TrailLike
 import           Diagrams.TwoD.Transform
 import           Diagrams.TwoD.Types
-import           Diagrams.TwoD.Vector    (unitX, unitY, unit_Y)
+import           Diagrams.TwoD.Vector    (unitX, unitY, unit_Y, e)
 import           Diagrams.Util           (( # ))
 
 import           Control.Lens            ((&), (<>~), (^.))
@@ -54,11 +55,10 @@ import           Linear.Vector
 --  angle @s@.  The approximation is only valid for angles in the
 --  first quadrant.
 bezierFromSweepQ1 :: Floating n => Angle n -> Segment Closed V2 n
-bezierFromSweepQ1 s = mapSegmentVectors (^-^ v) . rotate (s ^/ 2) $ bezier3 c2 c1 p0
-  where p0@(V2 x y) = rotate (s ^/ 2) v
+bezierFromSweepQ1 s = mapSegmentVectors (^-^ unitX) . rotate (s ^/ 2) $ bezier3 c2 c1 p0
+  where p0@(V2 x y) = e (s ^/ 2)
         c1          = V2 ((4-x)/3) ((1-x)*(3-x)/(3*y))
         c2          = reflectY c1
-        v           = unitX
 
 -- | @bezierFromSweep s@ constructs a series of 'Cubic' segments that
 --   start in the positive y direction and sweep counter clockwise
@@ -98,17 +98,17 @@ the approximation error.
 --   is the 'Trail' of a radius one arc starting at @d@ and sweeping out
 --   the angle @s@ counterclockwise (for positive s).  The resulting
 --   @Trail@ is allowed to wrap around and overlap itself.
-arcT :: RealFloat n => Direction V2 n -> Angle n -> Trail V2 n
+arcT :: OrderedField n => Direction V2 n -> Angle n -> Trail V2 n
 arcT start sweep = trailFromSegments bs
   where
-    bs = map (rotate $ start ^. _theta) . bezierFromSweep $ sweep
+    bs = map (rotateTo start) . bezierFromSweep $ sweep
 
 -- | Given a start direction @d@ and a sweep angle @s@, @'arc' d s@ is the
 --   path of a radius one arc starting at @d@ and sweeping out the angle
 --   @s@ counterclockwise (for positive s).  The resulting
 --   @Trail@ is allowed to wrap around and overlap itself.
-arc :: (TrailLike t, V t ~ V2, N t ~ n, RealFloat n) => Direction V2 n -> Angle n -> t
-arc start sweep = trailLike $ arcT start sweep `at` rotate (start ^. _theta) (p2 (1,0))
+arc :: (InSpace V2 n t, OrderedField n, TrailLike t) => Direction V2 n -> Angle n -> t
+arc start sweep = trailLike $ arcT start sweep `at` P (fromDirection start)
 
 -- | Given a radus @r@, a start direction @d@ and an angle @s@,
 --   @'arc'' r d s@ is the path of a radius @(abs r)@ arc starting at
@@ -119,52 +119,28 @@ arc start sweep = trailLike $ arcT start sweep `at` rotate (start ^. _theta) (p2
 --
 --   > arc'Ex = mconcat [ arc' r (0 @@ turn) (1/4 @@ turn) | r <- [0.5,-1,1.5] ]
 --   >        # centerXY # pad 1.1
-arc' :: (TrailLike t, V t ~ V2, N t ~ n, RealFloat n) => n -> Direction V2 n -> Angle n -> t
-arc' r start sweep = trailLike $ scale (abs r) ts `at` rotate (start ^. _theta) (p2 (abs r,0))
+arc' :: (InSpace V2 n t, OrderedField n, TrailLike t) => n -> Direction V2 n -> Angle n -> t
+arc' (abs -> r) start sweep = trailLike $ scale r ts `at` P (r *^ fromDirection start)
   where ts = arcT start sweep
 
--- | Given a start angle @s@ and an end angle @e@, @'arcTCCW' s e@ is the
---   'Trail' of a radius one arc counterclockwise between the two angles.
-arcTCCW :: (Floating n, RealFrac n) => Angle n -> Angle n -> Trail V2 n
-arcTCCW start end
-    | end' < start' = arcTCCW (start' @@ turn) (end' + fromIntegral d @@ turn)
-    | otherwise     = (if sweep >= 2*pi then glueTrail else id)
-                    $ trailFromSegments bs
-  where sweep = end^.rad - start^.rad
-        bs    = map (rotate start) . bezierFromSweep $ sweep @@ rad
+arcCCWT :: RealFloat n => Direction V2 n -> Direction V2 n -> Trail V2 n
+arcCCWT start end = trailFromSegments bs
+  where
+    bs    = map (rotateTo start) . bezierFromSweep $ sweep
+    sweep = normalizeAngle $ end ^. _theta ^-^ start ^. _theta
 
-        -- We want to compare the start and the end.
-        start' = start^.turn
-        end'   = end^.turn
-        d      = ceiling (start' - end') :: Integer
-
--- | Given a start angle @s@ and an end angle @e@, @'arcAngleCCW' s e@ is the
---   path of a radius one arc counterclockwise between the two angles.
+-- | Given a start direction @s@ and end direction @e@, @arcCCW s e@ is the
+--   path of a radius one arc counterclockwise between the two directions.
 --   The origin of the arc is its center.
-arcAngleCCW :: (TrailLike t, V t ~ V2, N t ~ n, RealFrac n) => Angle n -> Angle n -> t
-arcAngleCCW start end = trailLike $ arcTCCW start end `at` rotate start (p2 (1,0))
+arcCCW :: (InSpace V2 n t, RealFloat n, TrailLike t) => Direction V2 n -> Direction V2 n -> t
+arcCCW start end = trailLike $ arcCCWT start end `at` P (fromDirection start)
 
 -- | Like 'arcAngleCCW' but clockwise.
-arcAngleCW :: (TrailLike t, V t ~ V2, N t ~ n, RealFrac n) => Angle n -> Angle n -> t
-arcAngleCW start end = trailLike $
-                            -- flipped arguments to get the path we want
-                            -- then reverse the trail to get the cw direction.
-                            reverseTrail (arcTCCW end start)
-                            `at`
-                            rotate start (p2 (1,0))
-                            -- P (e start)
-                   -- We could just have `arcAngleCW = reversePath . flip arcAngleCCW`
-                   -- but that wouldn't be `TrailLike`.
-
--- | Given a start direction @s@ and end direction @e@, @'arcD' s e@ is
---   the trail of radius one arc counterclockwise starting at @s@ and ending
---   at @e@.  The origin of the arc is its center.
-arcCCW :: (RealFloat n, TrailLike t, V t ~ V2, N t ~ n) => Direction V2 n -> Direction V2 n -> t 
-arcCCW u v = arcAngleCCW (u^._theta) (v^._theta)
-
--- | Like 'arcAngleCCW' but clockwise.
-arcCW :: (RealFloat n, TrailLike t, V t ~ V2, N t ~ n) => Direction V2 n -> Direction V2 n -> t
-arcCW u v = arcAngleCW (u^._theta) (v^._theta)
+arcCW :: (InSpace V2 n t, RealFloat n, TrailLike t) => Direction V2 n -> Direction V2 n -> t
+arcCW start end = trailLike $
+  -- flipped arguments to get the path we want
+  -- then reverse the trail to get the cw direction.
+  reverseTrail (arcCCWT end start) `at` P (fromDirection start)
 
 -- | Create a circular wedge of the given radius, beginning at the
 --   given direction and extending through the given angle.
@@ -178,7 +154,7 @@ arcCW u v = arcAngleCW (u^._theta) (v^._theta)
 --   >   ]
 --   >   # fc blue
 --   >   # centerXY # pad 1.1
-wedge :: (TrailLike t, V t ~ V2, N t ~ n, RealFloat n) => n -> Direction V2 n -> Angle n -> t
+wedge :: (InSpace V2 n t, OrderedField n, TrailLike t) => n -> Direction V2 n -> Angle n -> t
 wedge r d s = trailLike . (`at` origin) . glueTrail . wrapLine
               $ fromOffsets [r *^ fromDirection d]
                 <> arc d s # scale r
