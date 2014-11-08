@@ -18,8 +18,8 @@
 -----------------------------------------------------------------------------
 
 module Diagrams.Located
-    ( Located
-    , at, viewLoc, unLoc, loc, mapLoc, located,
+    ( Located (..)
+    , at, viewLoc, mapLoc, located,
     )
     where
 

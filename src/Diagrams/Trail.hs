@@ -12,6 +12,7 @@
 {-# LANGUAGE ViewPatterns               #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 -- We have an orphan Transformable FingerTree instance here.
 
 -----------------------------------------------------------------------------
@@ -157,8 +158,8 @@ newtype SegTree v n = SegTree (FingerTree (SegMeasure v n) (Segment Closed v n))
   deriving (Eq, Ord, Show)
 
 instance Wrapped (SegTree v n) where
-    type Unwrapped (SegTree v n) = FingerTree (SegMeasure v n) (Segment Closed v n)
-    _Wrapped' = iso (\(SegTree x) -> x) SegTree
+  type Unwrapped (SegTree v n) = FingerTree (SegMeasure v n) (Segment Closed v n)
+  _Wrapped' = iso (\(SegTree x) -> x) SegTree
 
 instance Rewrapped (SegTree v n) (SegTree v' n')
 
@@ -183,36 +184,51 @@ instance Num n => DomainBounds (SegTree v n)
 instance (Metric v, OrderedField n, Real n)
     => EndValues (SegTree v n)
 
-instance (Metric v, OrderedField n, Real n) => Sectionable (SegTree v n) where
-  splitAtParam (SegTree t) p
+type SplitResult v n = ((SegTree v n, n -> n), (SegTree v n, n -> n))
+
+splitAtParam' :: (Metric v, OrderedField n, Real n) => SegTree v n -> n -> SplitResult v n
+splitAtParam' tree@(SegTree t) p
     | p < 0     = case FT.viewl t of
                     EmptyL    -> emptySplit
                     seg :< t' ->
                       case seg `splitAtParam` (p * tSegs) of
-                        (seg1, seg2) -> ( SegTree $ FT.singleton seg1
-                                        , SegTree $ seg2 <| t'
+                        (seg1, seg2) -> ( (SegTree $ FT.singleton seg1, \u -> u * p)
+                                        , (SegTree $ seg2 <| t', \u -> 1 - (1 - u) * tSegs / (tSegs + 1))
                                         )
     | p >= 1    = case FT.viewr t of
                     EmptyR    -> emptySplit
                     t' :> seg ->
                       case seg `splitAtParam` (1 - (1 - p)*tSegs) of
-                        (seg1, seg2) -> ( SegTree $ t' |> seg1
-                                        , SegTree $ FT.singleton seg2
+                        (seg1, seg2) -> ( (SegTree $ t' |> seg1, \u -> u * tSegs / (tSegs + 1))
+                                        , (SegTree $ FT.singleton seg2, \u -> (u - p) / (1 - p))
                                         )
     | otherwise = case FT.viewl after of
-                    EmptyL        -> emptySplit
+                    EmptyL    -> emptySplit
                     seg :< after' ->
-                      case seg `splitAtParam` mod1 (p * tSegs) of
-                        (seg1, seg2) -> ( SegTree $ before |> seg1
-                                        , SegTree $ seg2   <| after'
-                                        )
-    where
+                      let (n, p') = propFrac $ p * tSegs
+                          f p n u | u * tSegs < n = u * tSegs / (n + 1)
+                                  | otherwise     = (n + (u * tSegs - n) / (p * tSegs - n)) / (n+1)
+                      in case seg `splitAtParam` p' of
+                           (seg1, seg2) -> ( ( SegTree $ before |> seg1  , f p n )
+                                           , ( SegTree $ seg2   <| after'
+                                             , \v -> 1 - f (1 - p) (tSegs - n - 1) (1 - v)
+                                             )
+                                           )
+ where
       (before, after) = FT.split ((p * tSegs <) . numSegs) t
       tSegs           = numSegs t
-      emptySplit      = (SegTree t, SegTree t)
+      emptySplit      = let t' = (tree, id) in (t',t')
+
+      propFrac x = let m = signum x * mod1 x in (x - m, m)
+
+instance (Metric v, OrderedField n, Real n) => Sectionable (SegTree v n) where
+  splitAtParam tree p = let ((a,_),(b,_)) = splitAtParam' tree p in (a,b)
 
   reverseDomain (SegTree t) = SegTree $ FT.reverse t'
     where t' = FT.fmap' reverseSegment t
+
+  section x t1 t2 = let ((a,fa),_) = splitAtParam' x t2
+                    in  snd $ splitAtParam a (fa t1)
 
   -- XXX seems like it should be possible to collapse some of the
   -- above cases into one?

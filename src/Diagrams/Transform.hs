@@ -1,3 +1,4 @@
+{-# LANGUAGE ConstraintKinds #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Transform
@@ -11,7 +12,7 @@
 --
 -----------------------------------------------------------------------------
 
-{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeFamilies    #-}
 
 module Diagrams.Transform
     ( -- * Transformations
@@ -32,13 +33,15 @@ module Diagrams.Transform
 
     ) where
 
-import Data.Semigroup
-import Diagrams.Core
+import           Data.Semigroup
+import           Diagrams.Core
+
+import           Linear.Vector
 
 -- | Conjugate one transformation by another. @conjugate t1 t2@ is the
 --   transformation which performs first @t1@, then @t2@, then the
 --   inverse of @t1@.
-conjugate :: (HasLinearMap v, Num n, Functor v)
+conjugate :: (Additive v, Num n, Functor v)
           => Transformation v n -> Transformation v n -> Transformation v n
 conjugate t1 t2  = inv t1 <> t2 <> t1
 
@@ -55,6 +58,6 @@ conjugate t1 t2  = inv t1 <> t2 <> t1
 --   @
 --
 --   for all transformations @t1@ and @t2@.
-under :: (Transformable a, Transformable b, V a ~ V b, N a ~ N b, V a ~ v, N a ~ n, Num n, Functor v)
+under :: (InSpace v n a, SameSpace a b, Num n, Functor v, Transformable a, Transformable b)
       => (a -> b) -> Transformation v n -> a -> b
 f `under` t = transform (inv t) . f . transform t

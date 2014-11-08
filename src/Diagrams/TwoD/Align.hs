@@ -1,4 +1,6 @@
-{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE ConstraintKinds  #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TypeFamilies     #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -45,51 +47,45 @@ import           Diagrams.Align
 import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector
 
-import           Linear.Vector
-
 -- | Align along the left edge, i.e. translate the diagram in a
 --   horizontal direction so that the local origin is on the left edge
 --   of the envelope.
-alignL :: (Alignable a, HasOrigin a, V a ~ V2, N a ~ n, Floating n) => a -> a
+alignL :: (InSpace V2 n a, Fractional n, Alignable a, HasOrigin a) => a -> a
 alignL = align unit_X
 
-snugL :: (Fractional n, Alignable a, Traced a,
-      HasOrigin a, V a ~ V2, N a ~ n, Floating n) => a -> a
+snugL :: (InSpace V2 n a, Fractional n, Alignable a, Traced a, HasOrigin a) => a -> a
 snugL = snug unit_X
 
 -- | Align along the right edge.
-alignR :: (Alignable a, HasOrigin a, V a ~ V2, N a ~ n, Floating n) => a -> a
+alignR :: (InSpace V2 n a, Fractional n, Alignable a, HasOrigin a) => a -> a
 alignR = align unitX
 
-snugR :: (Fractional n, Alignable a, Traced a,
-      HasOrigin a, V a ~ V2, N a ~ n, Floating n) => a -> a
+snugR :: (InSpace V2 n a, Fractional n, Alignable a, Traced a, HasOrigin a) => a -> a
 snugR = snug unitX
 
 
 -- | Align along the top edge.
-alignT :: (Alignable a, HasOrigin a, V a ~ V2, N a ~ n, Floating n) => a -> a
+alignT :: (InSpace V2 n a, Fractional n, Alignable a, HasOrigin a) => a -> a
 alignT = align unitY
 
-snugT:: (Fractional n, Alignable a, Traced a,
-      HasOrigin a, V a ~ V2, N a ~ n, Floating n) => a -> a
+snugT:: (InSpace V2 n a, Fractional n, Alignable a, Traced a, HasOrigin a) => a -> a
 snugT = snug unitY
 
 -- | Align along the bottom edge.
-alignB :: (Alignable a, HasOrigin a, V a ~ V2, N a ~ n, Floating n) => a -> a
+alignB :: (InSpace V2 n a, Fractional n, Alignable a, HasOrigin a) => a -> a
 alignB = align unit_Y
 
-snugB :: (Fractional n, Alignable a, Traced a,
-      HasOrigin a, V a ~ V2, N a ~ n, Floating n) => a -> a
+snugB :: (InSpace V2 n a, Fractional n, Alignable a, Traced a, HasOrigin a) => a -> a
 snugB = snug unit_Y
 
-alignTL, alignTR, alignBL, alignBR :: (Alignable a, HasOrigin a, V a ~ V2, N a ~ n, Floating n) => a -> a
+alignTL, alignTR, alignBL, alignBR :: (InSpace V2 n a, Fractional n, Alignable a, HasOrigin a) => a -> a
 alignTL = alignT . alignL
 alignTR = alignT . alignR
 alignBL = alignB . alignL
 alignBR = alignB . alignR
 
 snugTL, snugTR, snugBL, snugBR
-  :: (Fractional n, Alignable a, Traced a, HasOrigin a, V a ~ V2, N a ~ n, Floating n)
+  :: (InSpace V2 n a, Fractional n, Alignable a, Traced a, HasOrigin a)
    => a -> a
 snugTL = snugT . snugL
 snugTR = snugT . snugR
@@ -108,53 +104,42 @@ snugBR = snugB . snugR
 --
 --   * @snugX@ works the same way.
 
-alignX :: (V a ~ v, N a ~ n, Alignable a, HasOrigin a,
-           R1 v, Additive v, Fractional n) => n -> a -> a
+alignX :: (InSpace v n a, R1 v, Fractional n, Alignable a, HasOrigin a) => n -> a -> a
 alignX = alignBy unitX
 
 -- | See the documentation for 'alignX'.
-snugX :: (V a ~ v, N a ~ n, Alignable a, Traced a, HasOrigin a,
-          R1 v, Additive v, Fractional n) => n -> a -> a
+snugX :: (InSpace v n a, R1 v, Fractional n, Alignable a, Traced a, HasOrigin a) => n -> a -> a
 snugX = snugBy unitX
 
 -- | Like 'alignX', but moving the local origin vertically, with an
 --   argument of @1@ corresponding to the top edge and @(-1)@ corresponding
 --   to the bottom edge.
-alignY :: (V a ~ v, N a ~ n, Alignable a, HasOrigin a,
-           R2 v, Additive v, Fractional n) => n -> a -> a
+alignY :: (InSpace v n a, R2 v, Fractional n, Alignable a, HasOrigin a) => n -> a -> a
 alignY = alignBy unitY
 
 -- | See the documentation for 'alignY'.
-snugY :: (V a ~ v, N a ~ n, Alignable a, Traced a, HasOrigin a,
-          R2 v, Additive v, Fractional n) => n -> a -> a
+snugY :: (InSpace v n a, R2 v, Fractional n, Alignable a, Traced a, HasOrigin a) => n -> a -> a
 snugY = snugBy unitY
 
-
 -- | Center the local origin along the X-axis.
-centerX :: (V a ~ v, N a ~ n, Alignable a, HasOrigin a,
-            R1 v, Additive v, Fractional n) => a -> a
+centerX :: (InSpace v n a, R1 v, Fractional n, Alignable a, HasOrigin a) => a -> a
 centerX = alignBy unitX 0
 
-snugCenterX :: (V a ~ v, N a ~ n, Alignable a, Traced a, HasOrigin a,
-                R1 v, Additive v, Fractional n) => a -> a
+snugCenterX :: (InSpace v n a, R1 v, Fractional n, Alignable a, Traced a, HasOrigin a) => a -> a
 snugCenterX = snugBy unitX 0
 
 -- | Center the local origin along the Y-axis.
-centerY :: (V a ~ v, N a ~ n, Alignable a, HasOrigin a,
-            R2 v, Additive v, Fractional n) => a -> a
+centerY :: (InSpace v n a, R2 v, Fractional n, Alignable a, HasOrigin a) => a -> a
 centerY = alignBy unitY 0
 
-snugCenterY :: (V a ~ v, N a ~ n, Alignable a, Traced a, HasOrigin a,
-                R2 v, Additive v, Fractional n) => a -> a
+snugCenterY :: (InSpace v n a, R2 v, Fractional n, Alignable a, Traced a, HasOrigin a) => a -> a
 snugCenterY = snugBy unitY 0
 
 -- | Center along both the X- and Y-axes.
-centerXY :: (V a ~ v, N a ~ n, Alignable a, HasOrigin a,
-             R2 v, Additive v, Fractional n) => a -> a
+centerXY :: (InSpace v n a, R2 v, Fractional n, Alignable a, HasOrigin a) => a -> a
 centerXY = centerX . centerY
 
-snugCenterXY :: (V a ~ v, N a ~ n, Alignable a, Traced a, HasOrigin a,
-                 R2 v, Additive v, Fractional n) => a -> a
+snugCenterXY :: (InSpace v n a, R2 v, Fractional n, Alignable a, Traced a, HasOrigin a) => a -> a
 snugCenterXY = snugCenterX . snugCenterY
 
 

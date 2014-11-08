@@ -112,7 +112,7 @@ import           Data.Functor             ((<$>))
 import           Data.Maybe               (fromMaybe)
 import           Data.Monoid.Coproduct    (untangle)
 import           Data.Semigroup
-import Data.Data
+import           Data.Typeable
 
 import           Data.Colour              hiding (atop)
 import           Diagrams.Core
@@ -158,7 +158,7 @@ data ArrowOpts n
 straightShaft :: OrderedField n => Trail V2 n
 straightShaft = trailFromOffsets [unitX]
 
-instance RealFloat n => Default (ArrowOpts n) where
+instance TypeableFloat n => Default (ArrowOpts n) where
   def = ArrowOpts
         { _arrowHead    = dart
         , _arrowTail    = noTail
@@ -282,14 +282,14 @@ colorJoint sStyle =
 -- | Get line width from a style.
 widthOfJoint :: forall n. TypeableFloat n => Style V2 n -> n -> n -> n
 widthOfJoint sStyle gToO nToO =
-  maybe (fromMeasure gToO nToO medium) -- should be same as default line width
-        (fromMeasure gToO nToO)
+  maybe (fromMeasured gToO nToO medium) -- should be same as default line width
+        (fromMeasured gToO nToO)
         (fmap getLineWidth . getAttr $ sStyle :: Maybe (Measure n))
 
 -- | Combine the head and its joint into a single scale invariant diagram
 --   and move the origin to the attachment point. Return the diagram
 --   and its width.
-mkHead :: (DataFloat n, Renderable (Path V2 n) b) =>
+mkHead :: (TypeableFloat n, Renderable (Path V2 n) b) =>
           n -> ArrowOpts n -> n -> n -> (QDiagram b V2 n Any, n)
 mkHead sz opts gToO nToO = ( (j <> h) # moveOriginBy (jWidth *^ unit_X) # lwO 0
                              , hWidth + jWidth)
@@ -302,7 +302,7 @@ mkHead sz opts gToO nToO = ( (j <> h) # moveOriginBy (jWidth *^ unit_X) # lwO 0
     j = stroke j' # applyStyle (colorJoint (opts^.shaftStyle))
 
 -- | Just like mkHead only the attachment point is on the right.
-mkTail :: (DataFloat n, Renderable (Path V2 n) b) =>
+mkTail :: (TypeableFloat n, Renderable (Path V2 n) b) =>
           n -> ArrowOpts n -> n -> n -> (QDiagram b V2 n Any, n)
 mkTail sz opts gToO nToO = ((t <> j) # moveOriginBy (jWidth *^ unitX) # lwO 0
               , tWidth + jWidth)
@@ -369,14 +369,14 @@ arrowEnv opts len = getEnvelope horizShaft
 -- | @arrow len@ creates an arrow of length @len@ with default
 --   parameters, starting at the origin and ending at the point
 --   @(len,0)@.
-arrow :: (DataFloat n, Renderable (Path V2 n) b) => n -> QDiagram b V2 n Any
+arrow :: (TypeableFloat n, Renderable (Path V2 n) b) => n -> QDiagram b V2 n Any
 arrow = arrow' def
 
 -- | @arrow' opts len@ creates an arrow of length @len@ using the
 --   given options, starting at the origin and ending at the point
 --   @(len,0)@.  In particular, it scales the given 'arrowShaft' so
 --   that the entire arrow has length @len@.
-arrow' :: (DataFloat n, Renderable (Path V2 n) b) => ArrowOpts n -> n -> QDiagram b V2 n Any
+arrow' :: (TypeableFloat n, Renderable (Path V2 n) b) => ArrowOpts n -> n -> QDiagram b V2 n Any
 arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
 
       -- Currently we approximate the envelope of an arrow by using the 
@@ -419,7 +419,7 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
 
         -- The head size, tail size, head gap, and tail gap are obtained
         -- from the style and converted to output units.
-        scaleFromMeasure = fromMeasure gToO nToO . scaleLocal (avgScale tr)
+        scaleFromMeasure = fromMeasured gToO nToO . scaleLocal (avgScale tr)
         hSize = scaleFromMeasure $ opts ^. headLength
         tSize = scaleFromMeasure $ opts ^. tailLength
         hGap  = scaleFromMeasure $ opts ^. headGap
@@ -465,7 +465,7 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
 
 -- | @arrowBetween s e@ creates an arrow pointing from @s@ to @e@
 --   with default parameters.
-arrowBetween :: (DataFloat n, Renderable (Path V2 n) b) => Point V2 n -> Point V2 n -> QDiagram b V2 n Any
+arrowBetween :: (TypeableFloat n, Renderable (Path V2 n) b) => Point V2 n -> Point V2 n -> QDiagram b V2 n Any
 arrowBetween = arrowBetween' def
 
 -- | @arrowBetween' opts s e@ creates an arrow pointing from @s@ to
@@ -473,17 +473,17 @@ arrowBetween = arrowBetween' def
 --   rotates @arrowShaft@ to go between @s@ and @e@, taking head,
 --   tail, and gaps into account.
 arrowBetween'
-  :: (DataFloat n, Renderable (Path V2 n) b) =>
+  :: (TypeableFloat n, Renderable (Path V2 n) b) =>
      ArrowOpts n -> Point V2 n -> Point V2 n -> QDiagram b V2 n Any
 arrowBetween' opts s e = arrowAt' opts s (e .-. s)
 
 -- | Create an arrow starting at s with length and direction determined by
 --   the vector v.
-arrowAt :: (DataFloat n, Renderable (Path V2 n) b) => Point V2 n -> V2 n -> QDiagram b V2 n Any
+arrowAt :: (TypeableFloat n, Renderable (Path V2 n) b) => Point V2 n -> V2 n -> QDiagram b V2 n Any
 arrowAt = arrowAt' def
 
 arrowAt'
-  :: (DataFloat n, Renderable (Path V2 n) b) =>
+  :: (TypeableFloat n, Renderable (Path V2 n) b) =>
      ArrowOpts n -> Point V2 n -> V2 n -> QDiagram b V2 n Any
 arrowAt' opts s v = arrow' opts len
                   # rotate dir # moveTo s
@@ -494,26 +494,26 @@ arrowAt' opts s v = arrow' opts len
 -- | @arrowV v@ creates an arrow with the direction and norm of
 --   the vector @v@ (with its tail at the origin), using default
 --   parameters.
-arrowV :: (DataFloat n, Renderable (Path V2 n) b) => V2 n -> QDiagram b V2 n Any
+arrowV :: (TypeableFloat n, Renderable (Path V2 n) b) => V2 n -> QDiagram b V2 n Any
 arrowV = arrowV' def
 
 -- | @arrowV' v@ creates an arrow with the direction and norm of
 --   the vector @v@ (with its tail at the origin).
 arrowV'
-  :: (DataFloat n, Renderable (Path V2 n) b)
+  :: (TypeableFloat n, Renderable (Path V2 n) b)
   => ArrowOpts n -> V2 n -> QDiagram b V2 n Any
 arrowV' opts = arrowAt' opts origin
 
 -- | Turn a located trail into a default arrow by putting an
 --   arrowhead at the end of the trail.
 arrowFromLocatedTrail
-  :: (Renderable (Path V2 n) b, RealFloat n, Data n)
+  :: (Renderable (Path V2 n) b, RealFloat n, Typeable n)
   => Located (Trail V2 n) -> QDiagram b V2 n Any
 arrowFromLocatedTrail = arrowFromLocatedTrail' def
 
 -- | Turn a located trail into an arrow using the given options.
 arrowFromLocatedTrail'
-  :: (Renderable (Path V2 n) b, RealFloat n, Data n)
+  :: (Renderable (Path V2 n) b, RealFloat n, Typeable n)
   => ArrowOpts n -> Located (Trail V2 n) -> QDiagram b V2 n Any
 arrowFromLocatedTrail' opts trail = arrowBetween' opts' start end
   where
@@ -523,13 +523,13 @@ arrowFromLocatedTrail' opts trail = arrowBetween' opts' start end
 
 -- | Connect two diagrams with a straight arrow.
 connect
-  :: (DataFloat n, Renderable (Path V2 n) b, IsName n1, IsName n2)
+  :: (TypeableFloat n, Renderable (Path V2 n) b, IsName n1, IsName n2)
   => n1 -> n2 -> QDiagram b V2 n Any -> QDiagram b V2 n Any
 connect = connect' def
 
 -- | Connect two diagrams with an arbitrary arrow.
 connect'
-  :: (DataFloat n, Renderable (Path V2 n) b, IsName n1, IsName n2)
+  :: (TypeableFloat n, Renderable (Path V2 n) b, IsName n1, IsName n2)
   => ArrowOpts n -> n1 -> n2 -> QDiagram b V2 n Any -> QDiagram b V2 n Any
 connect' opts n1 n2 =
   withName n1 $ \sub1 ->
@@ -540,13 +540,13 @@ connect' opts n1 n2 =
 -- | Connect two diagrams at point on the perimeter of the diagrams, choosen
 --   by angle.
 connectPerim
-  :: (DataFloat n, Renderable (Path V2 n) b, IsName n1, IsName n2)
+  :: (TypeableFloat n, Renderable (Path V2 n) b, IsName n1, IsName n2)
  => n1 -> n2 -> Angle n -> Angle n
   -> QDiagram b V2 n Any -> QDiagram b V2 n Any
 connectPerim = connectPerim' def
 
 connectPerim'
-  :: (DataFloat n, Renderable (Path V2 n) b, IsName n1, IsName n2)
+  :: (TypeableFloat n, Renderable (Path V2 n) b, IsName n1, IsName n2)
   => ArrowOpts n -> n1 -> n2 -> Angle n -> Angle n
   -> QDiagram b V2 n Any -> QDiagram b V2 n Any
 connectPerim' opts n1 n2 a1 a2 =
@@ -562,12 +562,12 @@ connectPerim' opts n1 n2 a1 a2 =
 --   drawn so that it stops at the boundaries of the diagrams, using traces
 --   to find the intersection points.
 connectOutside
-  :: (DataFloat n, Renderable (Path V2 n) b, IsName n1, IsName n2)
+  :: (TypeableFloat n, Renderable (Path V2 n) b, IsName n1, IsName n2)
   => n1 -> n2 -> QDiagram b V2 n Any -> QDiagram b V2 n Any
 connectOutside = connectOutside' def
 
 connectOutside'
-  :: (DataFloat n, Renderable (Path V2 n) b, IsName n1, IsName n2)
+  :: (TypeableFloat n, Renderable (Path V2 n) b, IsName n1, IsName n2)
   => ArrowOpts n -> n1 -> n2 -> QDiagram b V2 n Any -> QDiagram b V2 n Any
 connectOutside' opts n1 n2 =
   withName n1 $ \b1 ->

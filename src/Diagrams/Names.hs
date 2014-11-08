@@ -40,21 +40,21 @@ module Diagrams.Names
 
 import           Data.Semigroup
 
-import           Diagrams.Core       (HasLinearMap, OrderedField, Point)
+import           Diagrams.Core       (OrderedField, Point)
 import           Diagrams.Core.Names
 import           Diagrams.Core.Types
 
 import           Linear.Metric
 
 -- | Attach an atomic name to a diagram.
-named :: (IsName nm, HasLinearMap v, Metric v, OrderedField n, Semigroup m)
+named :: (IsName nm, Metric v, OrderedField n, Semigroup m)
       => nm -> QDiagram b v n m -> QDiagram b v n m
 named = nameSub mkSubdiagram
 
 -- | Attach an atomic name to a certain point (which may be computed
 --   from the given diagram), treated as a subdiagram with no content
 --   and a point envelope.
-namePoint :: (IsName nm , HasLinearMap v, Metric v, OrderedField n, Semigroup m)
+namePoint :: (IsName nm , Metric v, OrderedField n, Semigroup m)
           => (QDiagram b v n m -> Point v n) -> nm -> QDiagram b v n m -> QDiagram b v n m
 namePoint p = nameSub (subPoint . p)
 

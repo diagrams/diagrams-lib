@@ -100,7 +100,7 @@ newtype Path v n = Path [Located (Trail v n)]
 --   (* -> *) -> * -> *
 -- not
 --   * -> * -> *
--- we can only do Typeable1 (Path v). This is why the instance cannot be 
+-- we can only do Typeable1 (Path v). This is why the instance cannot be
 -- derived.
 instance forall v. Typeable1 v => Typeable1 (Path v) where
   typeOf1 _ = mkTyConApp (mkTyCon3 "diagrams-lib" "Diagrams.Path" "Path") [] `mkAppTy`
