@@ -16,6 +16,7 @@
 module Diagrams.TwoD.Types
        ( -- * 2D Euclidean space
          V2 (..), R1 (..), R2 (..)
+       , P2, T2
        , r2, unr2, mkR2, r2Iso
        , p2, mkP2, unp2, p2Iso
        , r2polarIso
@@ -31,7 +32,9 @@ import           Diagrams.Core.Transform
 import           Diagrams.Core.V
 import           Linear.Metric
 import           Linear.V2
-import           Diagrams.TwoD.Points
+
+type P2 = Point V2
+type T2 = Transformation V2
 
 type instance V (V2 n) = V2
 type instance N (V2 n) = n

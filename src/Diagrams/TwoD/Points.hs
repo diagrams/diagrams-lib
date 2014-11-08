@@ -13,14 +13,11 @@ module Diagrams.TwoD.Points where
 
 import Data.List
 
-import Diagrams.TwoD.Vector
 import Diagrams.Core
+import Diagrams.TwoD.Vector
+import Diagrams.TwoD.Types (P2)
 
 import Linear.Affine
-import Linear.V2
-
--- | Synonym for points in R2.
-type P2 = Point V2
 
 -- | Find the convex hull of a list of points using Andrew's monotone chain
 --   algorithm O(n log n).

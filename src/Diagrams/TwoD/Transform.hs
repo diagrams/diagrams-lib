@@ -58,15 +58,12 @@ import           Diagrams.Direction
 import           Diagrams.Transform
 import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector
-import           Diagrams.TwoD.Points
 
 import           Control.Lens            (review, view, (&), (*~), (.~), (//~))
 import           Data.Semigroup
 
 import           Linear.Affine
 import           Linear.Vector
-
-type T2 = Transformation V2
 
 -- Rotation ------------------------------------------------
 

@@ -148,7 +148,7 @@ import           Diagrams.Combinators
 import           Diagrams.Coordinates
 import           Diagrams.CubicSpline
 import           Diagrams.Deform
-import           Diagrams.Direction
+import           Diagrams.Direction         hiding (dir)
 import           Diagrams.Envelope
 import           Diagrams.Located
 import           Diagrams.Names

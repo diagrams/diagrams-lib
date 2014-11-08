@@ -18,7 +18,7 @@ module Diagrams.ThreeD.Types
        , p3, unp3, mkP3
        , r3Iso, p3Iso, project
        , r3SphericalIso, r3CylindricalIso
-       , V3 (..), P3
+       , V3 (..), P3,      T3
        , R1 (..), R2 (..), R3 (..)
 
        ) where
@@ -39,6 +39,7 @@ import           Linear.V3           as V
 -- Basic R3 types
 
 type P3 = Point V3
+type T3 = Transformation V3
 
 r3Iso :: Iso' (V3 n) (n, n, n)
 r3Iso = iso unr3 r3
