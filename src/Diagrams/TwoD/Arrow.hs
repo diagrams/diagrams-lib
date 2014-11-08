@@ -120,7 +120,7 @@ import           Diagrams.Core.Types      (QDiaLeaf (..), mkQD')
 
 import           Diagrams.Angle
 import           Diagrams.Attributes
-import           Diagrams.Direction
+import           Diagrams.Direction       hiding (dir)
 import           Diagrams.Located         (Located(..), unLoc)
 import           Diagrams.Parametric
 import           Diagrams.Path

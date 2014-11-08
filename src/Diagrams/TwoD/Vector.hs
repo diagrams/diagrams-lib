@@ -14,11 +14,10 @@ module Diagrams.TwoD.Vector
          unitX, unitY, unit_X, unit_Y
 
          -- * Converting between vectors and angles
-       , e, xDir
+       , e, xDir, angleDir
 
          -- * 2D vector utilities
        , perp, leftTurn
-         -- * Synonym for R2 things
        ) where
 
 import           Control.Lens       (view, (&), (.~))
@@ -46,15 +45,18 @@ unitY = zero & _y .~ 1
 unit_Y :: (R2 v, Additive v, Num n) => v n
 unit_Y = zero & _y .~ (-1)
 
--- | The origin of the direction AffineSpace.  For all d, @d .-. xDir
--- = d^._theta@.
+-- | A 'Direction' pointing in the X direction.
 xDir :: (R1 v, Additive v, Num n) => Direction v n
-xDir = direction unitX
+xDir = dir unitX
 
--- | A unit vector at a specified angle counterclockwise from the
--- positive X axis.
+-- | A unit vector at a specified angle counter-clockwise from the
+--   positive X axis.
 e :: Floating n => Angle n -> V2 n
 e = angle . view rad
+
+-- | A direction at a specified angle counter-clockwise from the 'xDir'.
+angleDir :: Floating n => Angle n -> Direction V2 n
+angleDir = dir . e
 
 -- | @leftTurn v1 v2@ tests whether the direction of @v2@ is a left
 --   turn from @v1@ (that is, if the direction of @v2@ can be obtained
