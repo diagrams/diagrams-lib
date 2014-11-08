@@ -19,10 +19,6 @@ module Diagrams.TwoD.Arc
 
     , arcCCW
     , arcCW
-    , arcTCCW
-    , arcTCW
-    , arcDCCW
-    , arcDCW
 
     , bezierFromSweep
 
@@ -142,36 +138,33 @@ arcTCCW start end
         end'   = end^.turn
         d      = ceiling (start' - end') :: Integer
 
--- | Like 'arcTCCW' but clockwise.
-arcTCW :: (Floating n, RealFrac n) => Angle n -> Angle n -> Trail V2 n
-arcTCW start end = reverseTrail $ arcTCCW end start
-
--- | Given a start angle @s@ and an end angle @e@, @'arcCCW' s e@ is the
+-- | Given a start angle @s@ and an end angle @e@, @'arcAngleCCW' s e@ is the
 --   path of a radius one arc counterclockwise between the two angles.
 --   The origin of the arc is its center.
-arcCCW :: (TrailLike t, V t ~ V2, N t ~ n, RealFrac n) => Angle n -> Angle n -> t
-arcCCW start end = trailLike $ arcTCCW start end `at` (rotate start $ p2 (1,0))
+arcAngleCCW :: (TrailLike t, V t ~ V2, N t ~ n, RealFrac n) => Angle n -> Angle n -> t
+arcAngleCCW start end = trailLike $ arcTCCW start end `at` rotate start (p2 (1,0))
 
--- | Like 'arcCCW' but clockwise.
-arcCW :: (TrailLike t, V t ~ V2, N t ~ n, RealFrac n) => Angle n -> Angle n -> t
-arcCW start end = trailLike $
+-- | Like 'arcAngleCCW' but clockwise.
+arcAngleCW :: (TrailLike t, V t ~ V2, N t ~ n, RealFrac n) => Angle n -> Angle n -> t
+arcAngleCW start end = trailLike $
                             -- flipped arguments to get the path we want
                             -- then reverse the trail to get the cw direction.
-                            (reverseTrail $ arcTCCW end start)
+                            reverseTrail (arcTCCW end start)
                             `at`
-                            (rotate start $ p2 (1,0))
-                   -- We could just have `arcCW = reversePath . flip arcCCW`
+                            rotate start (p2 (1,0))
+                            -- P (e start)
+                   -- We could just have `arcAngleCW = reversePath . flip arcAngleCCW`
                    -- but that wouldn't be `TrailLike`.
 
 -- | Given a start direction @s@ and end direction @e@, @'arcD' s e@ is
 --   the trail of radius one arc counterclockwise starting at @s@ and ending
 --   at @e@.  The origin of the arc is its center.
-arcDCCW :: (RealFloat n, TrailLike t, V t ~ V2, N t ~ n) => Direction V2 n -> Direction V2 n -> t 
-arcDCCW u v = arcCCW (u^._theta) (v^._theta)
+arcCCW :: (RealFloat n, TrailLike t, V t ~ V2, N t ~ n) => Direction V2 n -> Direction V2 n -> t 
+arcCCW u v = arcAngleCCW (u^._theta) (v^._theta)
 
--- | Like 'arcCCW' but clockwise.
-arcDCW :: (RealFloat n, TrailLike t, V t ~ V2, N t ~ n) => Direction V2 n -> Direction V2 n -> t
-arcDCW u v = arcCW (u^._theta) (v^._theta)
+-- | Like 'arcAngleCCW' but clockwise.
+arcCW :: (RealFloat n, TrailLike t, V t ~ V2, N t ~ n) => Direction V2 n -> Direction V2 n -> t
+arcCW u v = arcAngleCW (u^._theta) (v^._theta)
 
 -- | Create a circular wedge of the given radius, beginning at the
 --   given direction and extending through the given angle.

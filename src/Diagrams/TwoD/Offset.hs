@@ -469,8 +469,8 @@ capSquare _r c a b = unLoc $ fromVertices [ a, a .+^ v, b .+^ v, b ]
 capArc :: RealFloat n => n -> Point V2 n -> Point V2 n -> Point V2 n -> Trail V2 n
 capArc r c a b = trailLike . moveTo c $ fs
   where
-    fs | r < 0     = scale (-r) $ arcDCW  (dir a c) (dir b c)
-       | otherwise = scale r    $ arcDCCW (dir a c) (dir b c)
+    fs | r < 0     = scale (-r) $ arcCW  (dir a c) (dir b c)
+       | otherwise = scale r    $ arcCCW (dir a c) (dir b c)
     dir p q = direction $ p .-. q
 
 -- | Join together a list of located trails with the given join style.  The
