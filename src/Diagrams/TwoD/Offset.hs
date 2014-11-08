@@ -52,7 +52,7 @@ import           Data.Default.Class
 import           Diagrams.Core
 
 import           Diagrams.Attributes
-import           Diagrams.Direction      (direction)
+import           Diagrams.Direction
 import           Diagrams.Located
 import           Diagrams.Parametric
 import           Diagrams.Path
@@ -469,9 +469,8 @@ capSquare _r c a b = unLoc $ fromVertices [ a, a .+^ v, b .+^ v, b ]
 capArc :: RealFloat n => n -> Point V2 n -> Point V2 n -> Point V2 n -> Trail V2 n
 capArc r c a b = trailLike . moveTo c $ fs
   where
-    fs | r < 0     = scale (-r) $ arcCW  (dir a c) (dir b c)
-       | otherwise = scale r    $ arcCCW (dir a c) (dir b c)
-    dir p q = direction $ p .-. q
+    fs | r < 0     = scale (-r) $ arcCW  (dirBetween a c) (dirBetween b c)
+       | otherwise = scale r    $ arcCCW (dirBetween a c) (dirBetween b c)
 
 -- | Join together a list of located trails with the given join style.  The
 --   style is given as a function to compute the join given the local information
