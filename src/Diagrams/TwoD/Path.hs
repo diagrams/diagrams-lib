@@ -78,7 +78,6 @@ import           Diagrams.TrailLike
 import           Diagrams.TwoD.Segment
 import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector
-import           Diagrams.TwoD.Points
 import           Diagrams.Util         (tau)
 
 import           Linear.Affine
