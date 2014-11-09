@@ -282,7 +282,6 @@ import           Diagrams.TwoD.Ellipse
 import           Diagrams.TwoD.Image
 import           Diagrams.TwoD.Model
 import           Diagrams.TwoD.Path
-import           Diagrams.TwoD.Points
 import           Diagrams.TwoD.Polygons
 import           Diagrams.TwoD.Shapes
 import           Diagrams.TwoD.Size
