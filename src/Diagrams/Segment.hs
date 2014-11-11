@@ -257,10 +257,10 @@ segOffset (Cubic _ _ (OffsetClosed v)) = v
 -- | The envelope for a segment is based at the segment's start.
 instance (Metric v, OrderedField n) => Enveloped (Segment Closed v n) where
 
-  getEnvelope (s@(Linear {})) = mkEnvelope $ \v ->
+  getEnvelope (s@(Linear {})) = contextual . mkEnvelope $ \v ->
     maximum (map (\t -> (s `atParam` t) `dot` v) [0,1]) / quadrance v
 
-  getEnvelope (s@(Cubic c1 c2 (OffsetClosed x2))) = mkEnvelope $ \v ->
+  getEnvelope (s@(Cubic c1 c2 (OffsetClosed x2))) = contextual . mkEnvelope $ \v ->
     maximum .
     map (\t -> ((s `atParam` t) `dot` v) / quadrance v) $
     [0,1] ++

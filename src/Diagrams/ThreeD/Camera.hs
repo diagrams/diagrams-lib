@@ -126,7 +126,7 @@ mm50Camera = facing_ZCamera mm50
 facing_ZCamera :: (Floating n, Ord n, Typeable n, CameraLens l, Renderable (Camera l n) b) =>
                   l n -> QDiagram b V3 n Any
 facing_ZCamera l = mkQD (Prim $ Camera origin unit_Z unitY l)
-        mempty mempty mempty (Query . const . Any $ False)
+        mempty mempty (Query . const . Any $ False)
 {-# ANN facing_ZCamera ("HLint: ignore Use camelCase" :: String) #-}
 
 mm50, mm50Wide, mm50Narrow :: Floating n => PerspectiveLens n
