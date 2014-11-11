@@ -115,6 +115,7 @@ import           Data.Semigroup
 import qualified Numeric.Interval.Kaucher as I
 
 import           Diagrams.Core            hiding ((|>))
+import           Diagrams.Core.Context
 import           Diagrams.Located
 import           Diagrams.Parametric
 import           Diagrams.Segment
@@ -406,8 +407,8 @@ instance (HasLinearMap v, Metric v, OrderedField n)
 instance (Metric v, OrderedField n) => Enveloped (Trail' l v n) where
   getEnvelope = withTrail' ftEnv (ftEnv . cutLoop)
     where
-      ftEnv :: Trail' Line v n -> Envelope v n
-      ftEnv (Line t) = trailMeasure mempty (view oeEnvelope) t
+      ftEnv :: Trail' Line v n -> Contextual v n (Envelope v n)
+      ftEnv (Line t) = return $ trailMeasure mempty (view oeEnvelope) t
 
 instance (HasLinearMap v, Metric v, OrderedField n)
     => Renderable (Trail' o v n) NullBackend where

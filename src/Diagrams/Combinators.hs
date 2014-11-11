@@ -41,16 +41,16 @@ module Diagrams.Combinators
 
 import           Control.Lens          (Lens', generateSignatures,
                                         lensRules, makeLensesWith, (%~), (&),
-                                        (.~), (^.), _Wrapping)
+                                        (.~), (^.), _Wrapping, view)
 import           Data.Default.Class
 import           Data.Monoid.Deletable (toDeletable)
-import           Data.Monoid.MList     (inj)
+import           Data.Monoid.MList
 import           Data.Proxy
 import           Data.Semigroup
-import qualified Data.Tree.DUAL        as D
+import           Data.Traversable
 
 import           Diagrams.Core
-import           Diagrams.Core.Types   (QDiagram (QD))
+import           Diagrams.Core.Types   (QDiagram (QD), leafS)
 import           Diagrams.Direction
 import           Diagrams.Segment      (straight)
 import           Diagrams.Util
@@ -78,18 +78,18 @@ import           Linear.Vector
 --   > withEnvelopeEx = sqNewEnv # centerXY # pad 1.5
 withEnvelope :: (InSpace v n a, Metric v, OrderedField n, Monoid' m, Enveloped a)
            => a -> QDiagram b v n m -> QDiagram b v n m
-withEnvelope = setEnvelope . getEnvelope
+withEnvelope a d = d & envelope .~ getEnvelope a
 
 -- | Use the trace from some object as the trace for a diagram, in
 --   place of the diagram's default trace.
 withTrace :: (InSpace v n a, Metric v, OrderedField n, Monoid' m, Traced a)
           => a -> QDiagram b v n m -> QDiagram b v n m
-withTrace = setTrace . getTrace
+withTrace a d = d & trace .~ getTrace a
 
 -- | @phantom x@ produces a \"phantom\" diagram, which has the same
 --   envelope and trace as @x@ but produces no output.
 phantom :: (InSpace v n a, Monoid' m, Enveloped a, Traced a) => a -> QDiagram b v n m
-phantom a = QD $ D.leafU ((inj . toDeletable . getEnvelope $ a) <> (inj . toDeletable . getTrace $ a))
+phantom a = withTrace a . withEnvelope a $ leafS empty
 
 -- | @pad s@ \"pads\" a diagram, expanding its envelope by a factor of
 --   @s@ (factors between 0 and 1 can be used to shrink the envelope).
@@ -97,7 +97,7 @@ phantom a = QD $ D.leafU ((inj . toDeletable . getEnvelope $ a) <> (inj . toDele
 --   origin, so if the origin is not centered the padding may appear
 --   \"uneven\".  If this is not desired, the origin can be centered
 --   (using, e.g., 'centerXY' for 2D diagrams) before applying @pad@.
-pad :: (Metric v, OrderedField n, Monoid' m)
+pad :: (Metric v, OrderedField n, Monoid' m, Traversable v)
     => n -> QDiagram b v n m -> QDiagram b v n m
 pad s d = withEnvelope (d # scale s) d
 
@@ -124,8 +124,8 @@ frame s d = setEnvelope (onEnvelope t (d^.envelope)) d
 --   > strutEx = (circle 1 ||| strut unitX ||| circle 1) # centerXY # pad 1.1
 strut :: (Metric v, OrderedField n, Monoid' m)
       => v n -> QDiagram b v n m
-strut v = QD $ D.leafU (inj . toDeletable $ env)
-  where env = translate ((-0.5) *^ v) . getEnvelope $ straight v
+strut v = QD $ leafS (inj . toDeletable $ env)
+  where env = translate ((-0.5) *^ v) . view getEnvelope $ straight v
   -- note we can't use 'phantom' here because it tries to construct a
   -- trace as well, and segments do not have a trace in general (only
   -- in 2D; see Diagrams.TwoD.Segment).  This is a good reason to have

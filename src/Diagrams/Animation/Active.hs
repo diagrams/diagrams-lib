@@ -72,6 +72,7 @@ instance TrailLike t => TrailLike (Active t) where
 --   v a1 a2@ and @liftA2 (juxtapose v) a1 a2@ therefore have
 --   different semantics: the second is an active value whose era is
 --   the /combination/ of the eras of @a1@ and @a2@).
+{- XXX Fix 'Active' first then fix me
 instance Juxtaposable a => Juxtaposable (Active a) where
 
   juxtapose v a1 a2 =
@@ -95,7 +96,7 @@ instance Juxtaposable a => Juxtaposable (Active a) where
           a2
       )
       a1
-
+-}
 -- instance Alignable a => Alignable (Active a) where
 --   alignBy v d a = alignBy v d <$> a
 

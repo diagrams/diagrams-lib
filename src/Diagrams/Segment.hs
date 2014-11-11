@@ -77,6 +77,7 @@ import           Linear.Vector
 
 import           Control.Applicative
 import           Diagrams.Core            hiding (Measured)
+import           Diagrams.Core.Context
 import           Diagrams.Located
 import           Diagrams.Parametric
 import           Diagrams.Solve
@@ -257,10 +258,10 @@ segOffset (Cubic _ _ (OffsetClosed v)) = v
 -- | The envelope for a segment is based at the segment's start.
 instance (Metric v, OrderedField n) => Enveloped (Segment Closed v n) where
 
-  getEnvelope (s@(Linear {})) = contextual . mkEnvelope $ \v ->
+  getEnvelope (s@(Linear {})) = return . mkEnvelope $ \v ->
     maximum (map (\t -> (s `atParam` t) `dot` v) [0,1]) / quadrance v
 
-  getEnvelope (s@(Cubic c1 c2 (OffsetClosed x2))) = contextual . mkEnvelope $ \v ->
+  getEnvelope (s@(Cubic c1 c2 (OffsetClosed x2))) = return . mkEnvelope $ \v ->
     maximum .
     map (\t -> ((s `atParam` t) `dot` v) / quadrance v) $
     [0,1] ++
@@ -509,6 +510,8 @@ instance (Num n, Additive v) => Monoid (TotalOffset v n) where
 --   the offset of the the offset of the first into account.
 data OffsetEnvelope v n = OffsetEnvelope
   { _oeOffset   :: !(TotalOffset v n)
+                   -- XXX perhaps 'Contextual v n (Envelope v n)' but
+                   -- this will cause other difficulties
   , _oeEnvelope :: Envelope v n
   }
 
@@ -518,6 +521,7 @@ instance (Metric v, OrderedField n) => Semigroup (OffsetEnvelope v n) where
   (OffsetEnvelope o1 e1) <> (OffsetEnvelope o2 e2)
     = let !negOff = negated . op TotalOffset $ o1
           e2Off = moveOriginBy negOff e2
+          -- XXX Can this be reinstated somehow?
           !_unused = maybe () (\f -> f `seq` ()) $ appEnvelope e2Off
       in OffsetEnvelope
           (o1 <> o2)
@@ -548,7 +552,7 @@ instance (OrderedField n, Metric v)
                          , Sum . flip arcLengthBounded s               )
 
            *: OffsetEnvelope (TotalOffset . segOffset $ s)
-                             (getEnvelope s)
+                             -- XXX This is an ugly hack
+                             (runContextual (getEnvelope s) emptyContext)
 
            *: ()
-

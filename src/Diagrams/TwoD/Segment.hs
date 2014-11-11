@@ -71,7 +71,7 @@ instance RealFloat n => Traced (FixedSegment V2 n) where
    results in the above formulas for t_i.
 -}
 
-  getTrace (FLinear p0 p0') = mkTrace $ \p1 v1 ->
+  getTrace (FLinear p0 p0') = return . mkTrace $ \p1 v1 ->
     let
       v0     = p0' .-. p0
       det    = perp v1 `dot` v0
@@ -94,7 +94,7 @@ instance RealFloat n => Traced (FixedSegment V2 n) where
    benchmarks.
 -}
 
-  getTrace bez@(FCubic {}) = mkTrace $ \p1 v1 ->
+  getTrace bez@(FCubic {}) = return . mkTrace $ \p1 v1 ->
     let
       bez'@(FCubic x1 c1 c2 x2) =
         bez # moveOriginTo p1

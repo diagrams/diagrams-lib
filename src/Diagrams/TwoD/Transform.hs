@@ -53,6 +53,7 @@ module Diagrams.TwoD.Transform
 
 import           Diagrams.Angle
 import           Diagrams.Core
+import           Diagrams.Core.Context
 import           Diagrams.Core.Transform
 import           Diagrams.Direction
 import           Diagrams.Transform
@@ -147,27 +148,31 @@ scaleY = transform . scalingY
 --   whatever factor required to make its width @w@.  @scaleToX@
 --   should not be applied to diagrams with a width of 0, such as
 --   'vrule'.
-scaleToX :: (InSpace v n t, R2 v, Enveloped t, Transformable t) => n -> t -> t
-scaleToX w d = scaleX (w / diameter unitX d) d
+scaleToX :: (InSpace v n t, R2 v, Enveloped t, Transformable t) 
+         => n -> t -> Contextual v n t
+scaleToX w d = contextual $ \ctx -> scaleX (w / runContextual (diameter unitX d) ctx) d
 
 -- | @scaleToY h@ scales a diagram in the y (vertical) direction by
 --   whatever factor required to make its height @h@.  @scaleToY@
 --   should not be applied to diagrams with a height of 0, such as
 --   'hrule'.
-scaleToY :: (InSpace v n t, R2 v, Enveloped t, Transformable t) => n -> t -> t
-scaleToY h d = scaleY (h / diameter unitY d) d
+scaleToY :: (InSpace v n t, R2 v, Enveloped t, Transformable t) 
+         => n -> t -> Contextual v n t
+scaleToY h d = contextual $ \ctx -> scaleY (h / runContextual (diameter unitY d) ctx) d
 
 -- | @scaleUToX w@ scales a diagram /uniformly/ by whatever factor
 --   required to make its width @w@.  @scaleUToX@ should not be
 --   applied to diagrams with a width of 0, such as 'vrule'.
-scaleUToX :: (InSpace v n t, R1 v, Enveloped t, Transformable t) => n -> t -> t
-scaleUToX w d = scale (w / diameter unitX d) d
+scaleUToX :: (InSpace v n t, R1 v, Enveloped t, Transformable t) 
+          => n -> t -> Contextual v n t
+scaleUToX w d = contextual $ \ctx -> scale (w / runContextual (diameter unitX d) ctx) d
 
 -- | @scaleUToY h@ scales a diagram /uniformly/ by whatever factor
 --   required to make its height @h@.  @scaleUToY@ should not be applied
 --   to diagrams with a height of 0, such as 'hrule'.
-scaleUToY :: (InSpace v n t, R2 v, Enveloped t, Transformable t) => n -> t -> t
-scaleUToY h d = scale (h / diameter unitY d) d
+scaleUToY :: (InSpace v n t, R2 v, Enveloped t, Transformable t) 
+          => n -> t -> Contextual v n t
+scaleUToY h d = contextual $ \ctx -> scale (h / runContextual (diameter unitY d) ctx) d
 
 -- Translation ---------------------------------------------
 

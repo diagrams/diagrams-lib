@@ -182,4 +182,4 @@ instance (V t ~ V2, N t ~ n, RealFloat n, Renderable t b) => Renderable (ScaleIn
 --   query.
 scaleInvPrim :: (V t ~ V2, N t ~ n, RealFloat n, Transformable t, Typeable t, Renderable t b, Monoid m)
              => t -> V2 n -> QDiagram b (V t) (N t) m
-scaleInvPrim t d = mkQD (Prim $ scaleInv t d) mempty mempty mempty mempty
+scaleInvPrim t d = mkQD (Prim $ scaleInv t d) mempty mempty mempty
