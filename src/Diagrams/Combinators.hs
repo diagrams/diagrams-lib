@@ -40,8 +40,8 @@ module Diagrams.Combinators
        ) where
 
 import           Control.Lens          (Lens', generateSignatures,
-                                        lensRules, makeLensesWith, (%~), (&),
-                                        (.~), (^.), _Wrapping)
+                                        lensRules, makeLensesWith, (&),
+                                        (.~), (^.), _Wrapping, over)
 import           Data.Default.Class
 import           Data.Monoid.Deletable (toDeletable)
 import           Data.Monoid.MList     (inj)
@@ -164,7 +164,7 @@ intrudeEnvelope = deformEnvelope (-0.5)
 deformEnvelope
   :: (Metric v, OrderedField n, Monoid' m)
   => n -> v n -> QDiagram b v n m -> QDiagram b v n m
-deformEnvelope s v d = setEnvelope (getEnvelope d & _Wrapping Envelope %~ deformE) d
+deformEnvelope s v = over (envelope . _Wrapping Envelope) deformE
   where
     deformE = Option . fmap deformE' . getOption
     deformE' env v'
