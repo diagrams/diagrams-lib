@@ -65,7 +65,7 @@ module Diagrams.Segment
 
 import           Control.Lens             (Rewrapped, Traversal, Wrapped (..), iso, makeLenses, op,
                                            over)
-import           Data.FingerTree
+import           Data.FingerTree          hiding (empty)
 import           Data.Monoid.MList
 import           Data.Semigroup
 import           Numeric.Interval.Kaucher (Interval (..))
@@ -75,7 +75,7 @@ import           Linear.Affine
 import           Linear.Metric
 import           Linear.Vector
 
-import           Control.Applicative
+import           Control.Applicative      hiding (empty)
 import           Diagrams.Core            hiding (Measured)
 import           Diagrams.Core.Context
 import           Diagrams.Located
@@ -553,6 +553,6 @@ instance (OrderedField n, Metric v)
 
            *: OffsetEnvelope (TotalOffset . segOffset $ s)
                              -- XXX This is an ugly hack
-                             (runContextual (getEnvelope s) emptyContext)
+                             (runContextual (getEnvelope s) empty)
 
            *: ()

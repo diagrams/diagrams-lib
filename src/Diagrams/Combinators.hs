@@ -41,7 +41,7 @@ module Diagrams.Combinators
 
 import           Control.Lens          (Lens', generateSignatures,
                                         lensRules, makeLensesWith, (%~), (&),
-                                        (.~), (^.), _Wrapping, view)
+                                        (.~), (^.), _Wrapping, view, over, set, mapped)
 import           Data.Default.Class
 import           Data.Monoid.Deletable (toDeletable)
 import           Data.Monoid.MList
@@ -50,6 +50,7 @@ import           Data.Semigroup
 import           Data.Traversable
 
 import           Diagrams.Core
+import           Diagrams.Core.Context
 import           Diagrams.Core.Types   (QDiagram (QD), leafS)
 import           Diagrams.Direction
 import           Diagrams.Segment      (straight)
@@ -107,9 +108,7 @@ pad s d = withEnvelope (d # scale s) d
 --   necessary.
 frame :: (Metric v, OrderedField n, Monoid' m)
         => n -> QDiagram b v n m -> QDiagram b v n m
-frame s d = setEnvelope (onEnvelope t (d^.envelope)) d
-  where
-    t f x = f x + s
+frame s = over envelope (fmap $ onEnvelope (\f x -> f x + s))
 
 -- | @strut v@ is a diagram which produces no output, but with respect
 --   to alignment and envelope acts like a 1-dimensional segment
@@ -122,10 +121,9 @@ frame s d = setEnvelope (onEnvelope t (d^.envelope)) d
 --   <<diagrams/src_Diagrams_Combinators_strutEx.svg#diagram=strutEx&width=300>>
 --
 --   > strutEx = (circle 1 ||| strut unitX ||| circle 1) # centerXY # pad 1.1
-strut :: (Metric v, OrderedField n, Monoid' m)
+strut :: (Metric v, OrderedField n, Monoid' m, Traversable v)
       => v n -> QDiagram b v n m
-strut v = QD $ leafS (inj . toDeletable $ env)
-  where env = translate ((-0.5) *^ v) . view getEnvelope $ straight v
+strut v = translate ((-0.5) *^ v) . withEnvelope (straight v) $ leafS empty
   -- note we can't use 'phantom' here because it tries to construct a
   -- trace as well, and segments do not have a trace in general (only
   -- in 2D; see Diagrams.TwoD.Segment).  This is a good reason to have
@@ -164,7 +162,8 @@ intrudeEnvelope = deformEnvelope (-0.5)
 deformEnvelope
   :: (Metric v, OrderedField n, Monoid' m)
   => n -> v n -> QDiagram b v n m -> QDiagram b v n m
-deformEnvelope s v d = setEnvelope (getEnvelope d & _Wrapping Envelope %~ deformE) d
+deformEnvelope s v = --set envelope (view envelope d & mapped . _Wrapping Envelope %~ deformE) d
+  over (envelope . mapped . _Wrapping Envelope) deformE
   where
     deformE = Option . fmap deformE' . getOption
     deformE' env v'
