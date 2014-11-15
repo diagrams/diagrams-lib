@@ -163,7 +163,8 @@ lineSegment eps (viewLoc -> (p,r)) cb = map addPoint params
 -- | Use the Bêzier clipping algorithm to return the parameters at which the
 --   Bêzier curves intersect.
 bezierClip :: OrderedField n => n -> FixedSegment V2 n -> FixedSegment V2 n -> [(n, n)]
-bezierClip eps p_ q_ = go p_ q_ 0 1 0 1 0 False
+bezierClip eps p_ q_ = filter (allOf both inRange) -- sometimes this returns NaN
+                     $ go p_ q_ 0 1 0 1 0 False
   where
   go p q tmin tmax umin umax clip revCurves
     | isNothing chopInterval = []
