@@ -26,7 +26,7 @@ import Linear.Affine
 convexHull2D :: OrderedField n => [P2 n] -> [P2 n]
 convexHull2D ps = init upper ++ reverse (tail lower)
   where
-    (lower, upper) = sortedConvexHull (sort ps)
+    (upper, lower) = sortedConvexHull (sort ps)
 
 -- | Find the convex hull of a set of points already sorted in the x direction. 
 --   The first list of the tuple is the upper hull going clockwise from 
