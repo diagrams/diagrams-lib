@@ -147,7 +147,7 @@ extrudeEnvelope
 extrudeEnvelope = deformEnvelope 0.5
 
 -- | @intrudeEnvelope v d@ asymmetrically \"intrudes\" the envelope of
---   a diagram away from the given direction.  All parts of the envelope
+
 --   within 90 degrees of this direction are modified, offset inwards
 --   by the magnitude of the vector.
 --
@@ -162,8 +162,7 @@ intrudeEnvelope = deformEnvelope (-0.5)
 deformEnvelope
   :: (Metric v, OrderedField n, Monoid' m)
   => n -> v n -> QDiagram b v n m -> QDiagram b v n m
-deformEnvelope s v = --set envelope (view envelope d & mapped . _Wrapping Envelope %~ deformE) d
-  over (envelope . mapped . _Wrapping Envelope) deformE
+deformEnvelope s v = over (envelope . mapped . _Wrapping Envelope) deformE
   where
     deformE = Option . fmap deformE' . getOption
     deformE' env v'
