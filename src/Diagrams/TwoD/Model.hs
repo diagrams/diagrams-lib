@@ -101,10 +101,10 @@ showOrigin = showOrigin' def
 showOrigin' :: (TypeableFloat n, Renderable (Path V2 n) b, Monoid' m)
            => OriginOpts n -> QDiagram b V2 n m -> QDiagram b V2 n m
 showOrigin' oo d = o <> d
-  where o     = stroke (circle sz)
-                  # fc (oo^.oColor)
-                  # lw none
-                  # fmap (const mempty)
+  where o      = strokeP (circle sz)
+                   # fc (oo^.oColor)
+                   # lw none
+                   # fmap (const mempty)
         V2 w h = oo^.oScale *^ size d
         sz     = maximum [w, h, oo^.oMinSize]
 

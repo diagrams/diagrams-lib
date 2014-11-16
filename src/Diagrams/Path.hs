@@ -36,6 +36,7 @@ module Diagrams.Path
          -- * Constructing paths
          -- $construct
 
+       , ToPath (..)
        , pathFromTrail
        , pathFromTrailAt
        , pathFromLocTrail
@@ -61,7 +62,7 @@ module Diagrams.Path
 
 import           Control.Arrow        ((***))
 import           Control.Lens         (Rewrapped, Wrapped (..), iso, mapped, op, over, view, (%~),
-                                       _Unwrapped', _Wrapped)
+                                       _Unwrapped', _Wrapped, Each (..), traversed)
 import qualified Data.Foldable        as F
 import           Data.List            (partition)
 import           Data.Semigroup
@@ -113,6 +114,9 @@ instance Wrapped (Path v n) where
 
 instance Rewrapped (Path v n) (Path v' n')
 
+instance Each (Path v n) (Path v' n') (Located (Trail v n)) (Located (Trail v' n')) where
+  each = _Wrapped . traversed
+
 -- | Extract the located trails making up a 'Path'.
 pathTrails :: Path v n -> [Located (Trail v n)]
 pathTrails = op Path
@@ -138,7 +142,7 @@ instance (HasLinearMap v, Metric v, OrderedField n)
   transform = over _Wrapped . map . transform
 
 instance (Metric v, OrderedField n) => Enveloped (Path v n) where
-  getEnvelope = F.foldMap trailEnvelope . op Path --view pathTrails
+  getEnvelope = F.foldMap trailEnvelope . op Path
           -- this type signature is necessary to work around an apparent bug in ghc 6.12.1
     where trailEnvelope :: Located (Trail v n) -> Envelope v n
           trailEnvelope (viewLoc -> (p, t)) = moveOriginTo ((-1) *. p) (getEnvelope t)
@@ -156,6 +160,43 @@ instance (HasLinearMap v, Metric v, OrderedField n)
 ------------------------------------------------------------
 --  Constructing paths  ------------------------------------
 ------------------------------------------------------------
+
+-- | Type class for things that can be converted to a 'Path'.
+--
+--   Note that this class is very different from 'TrailLike'. 'TrailLike' is
+--   usually the result of a library function to give you a convenient,
+--   polymorphic result ('Path', 'Diagram' etc.).
+--
+class ToPath t where
+  -- | 'toPath' takes something that can be converted to 'Path' and returns
+  --    the 'Path'.
+  toPath :: (Metric (V t), OrderedField (N t)) => t -> Path (V t) (N t)
+
+instance ToPath (Path v n) where
+  toPath = id
+
+instance ToPath (Trail v n) where
+  toPath = pathFromTrail
+
+instance ToPath (Located (Trail v n)) where
+  toPath = pathFromLocTrail
+
+instance ToPath (Located (Trail' l v n)) where
+  toPath = pathFromLocTrail . mapLoc Trail
+
+instance ToPath (Located (Segment Closed v n)) where
+  toPath (viewLoc -> (p,seg))
+    = Path [trailFromSegments [seg] `at` p]
+
+instance ToPath (Located [Segment Closed v n]) where
+  toPath (viewLoc -> (p,segs))
+    = Path [trailFromSegments segs `at` p]
+
+instance ToPath (FixedSegment v n) where
+  toPath = toPath . fromFixedSeg
+
+instance ToPath a => ToPath [a] where
+  toPath = F.foldMap toPath
 
 -- $construct
 -- Since paths are 'TrailLike', any function producing a 'TrailLike'

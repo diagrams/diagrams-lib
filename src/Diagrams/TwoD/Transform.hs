@@ -65,8 +65,6 @@ import           Data.Semigroup
 import           Linear.Affine
 import           Linear.Vector
 
-type T2 = Transformation V2
-
 -- Rotation ------------------------------------------------
 
 -- | Create a transformation which performs a rotation about the local

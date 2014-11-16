@@ -63,8 +63,8 @@ module Diagrams.Segment
 
        ) where
 
-import           Control.Lens             (Rewrapped, Traversal, Wrapped (..), iso, makeLenses, op,
-                                           over)
+import           Control.Lens             (Rewrapped, Wrapped (..), iso, makeLenses, op,
+                                           over, Each (..))
 import           Data.FingerTree
 import           Data.Monoid.MList
 import           Data.Semigroup
@@ -116,9 +116,10 @@ instance Functor v => Functor (Offset c v) where
   fmap _ OffsetOpen       = OffsetOpen
   fmap f (OffsetClosed v) = OffsetClosed (fmap f v)
 
-offsetVector :: Traversal (Offset c v n) (Offset c v' n') (v n) (v' n')
-offsetVector f (OffsetClosed v) = OffsetClosed <$> f v
-offsetVector _ OffsetOpen       = pure OffsetOpen
+instance Each (Offset c v n) (Offset c v' n') (v n) (v' n') where
+  each f (OffsetClosed v) = OffsetClosed <$> f v
+  each _ OffsetOpen       = pure OffsetOpen
+  {-# INLINE each #-}
 
 type instance V (Offset c v n) = v
 type instance N (Offset c v n) = n
@@ -151,21 +152,14 @@ data Segment c v n
 
   deriving (Show, Functor, Eq, Ord)
 
--- this is provided as a replacement of the previous fmap functionality. (Now
--- fmap is only over the number type)
-
--- Prehaps a traversal is overkill. Only really need to map over segment vectors.
-
--- | A traversal of the vectors that make up a segment.
-segmentVectors :: Traversal (Segment c v n) (Segment c v' n') (v n) (v' n')
-segmentVectors f (Linear offset)      = Linear <$> offsetVector f offset
-segmentVectors f (Cubic v1 v2 offset) = Cubic <$> f v1 <*> f v2 <*> offsetVector f offset
+instance Each (Segment c v n) (Segment c v' n') (v n) (v' n') where
+  each f (Linear offset)      = Linear <$> each f offset
+  each f (Cubic v1 v2 offset) = Cubic  <$> f v1 <*> f v2 <*> each f offset
+  {-# INLINE each #-}
 
 -- | Map over the vectors of each segment.
 mapSegmentVectors :: (v n -> v' n') -> Segment c v n -> Segment c v' n'
-mapSegmentVectors = over segmentVectors
--- mapSegmentVectors f (Linear offset) = Linear $ over offsetVector f offset
--- mapSegmentVectors f (Cubic v1 v2 offset) = Cubic (f v1) (f v2) (over offsetVector f offset)
+mapSegmentVectors = over each
 
 -- Note, can't yet have Haddock comments on GADT constructors; see
 -- http://trac.haskell.org/haddock/ticket/43. For now we don't need
@@ -340,31 +334,16 @@ data FixedSegment v n = FLinear (Point v n) (Point v n)
 type instance V (FixedSegment v n) = v
 type instance N (FixedSegment v n) = n
 
-instance (Additive v, Num n) => Transformable (FixedSegment v n) where
-  transform t (FLinear p1 p2)
-    = FLinear
-      (transform t p1)
-      (transform t p2)
+instance Each (FixedSegment v n) (FixedSegment v' n') (Point v n) (Point v' n') where
+  each f (FLinear p0 p1)      = FLinear <$> f p0 <*> f p1
+  each f (FCubic p0 p1 p2 p3) = FCubic  <$> f p0 <*> f p1 <*> f p2 <*> f p3
+  {-# INLINE each #-}
 
-  transform t (FCubic p1 c1 c2 p2)
-    = FCubic
-      (transform t p1)
-      (transform t c1)
-      (transform t c2)
-      (transform t p2)
+instance (Additive v, Num n) => Transformable (FixedSegment v n) where
+  transform t = over each (papply t)
 
 instance (Additive v, Num n) => HasOrigin (FixedSegment v n) where
-  moveOriginTo o (FLinear p1 p2)
-    = FLinear
-      (moveOriginTo o p1)
-      (moveOriginTo o p2)
-
-  moveOriginTo o (FCubic p1 c1 c2 p2)
-    = FCubic
-      (moveOriginTo o p1)
-      (moveOriginTo o c1)
-      (moveOriginTo o c2)
-      (moveOriginTo o p2)
+  moveOriginTo o = over each (moveOriginTo o)
 
 instance (Metric v, OrderedField n) => Enveloped (FixedSegment v n) where
   getEnvelope f = moveTo p (getEnvelope s)

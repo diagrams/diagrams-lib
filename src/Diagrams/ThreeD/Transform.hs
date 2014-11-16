@@ -63,9 +63,6 @@ import           Linear.Metric
 import           Linear.V3               (cross)
 import           Linear.Vector
 
--- | Type alias for transformations in R3.
-type T3 = Transformation V3
-
 -- | Create a transformation which rotates by the given angle about
 --   a line parallel the Z axis passing through the local origin.
 --   A positive angle brings positive x-values towards the positive-y axis.

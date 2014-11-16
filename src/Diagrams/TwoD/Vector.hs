@@ -17,7 +17,7 @@ module Diagrams.TwoD.Vector
        , e, xDir, angleDir
 
          -- * 2D vector utilities
-       , perp, leftTurn
+       , perp, leftTurn, cross2
        ) where
 
 import           Control.Lens       (view, (&), (.~))
@@ -63,4 +63,8 @@ angleDir = dir . e
 --   from that of @v1@ by adding an angle 0 <= theta <= tau/2).
 leftTurn :: (Num n, Ord n) => V2 n -> V2 n -> Bool
 leftTurn v1 v2 = (v1 `dot` perp v2) < 0
+
+-- | Cross product on vectors in R2.
+cross2 :: Num n => V2 n -> V2 n -> n
+cross2 (V2 x1 y1) (V2 x2 y2) = x1 * y2 - y1 * x2
 

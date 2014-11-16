@@ -18,7 +18,6 @@ module Diagrams.Points
        , centroid
        , pointDiagram
        , _Point, lensP
-       , project
        ) where
 
 import           Diagrams.Core        (pointDiagram)
@@ -27,7 +26,6 @@ import           Diagrams.Core.Points
 import           Data.Foldable        as F
 
 import           Linear.Affine
-import           Linear.Metric
 import           Linear.Vector
 
 -- | The centroid of a set of /n/ points is their sum divided by /n/.
