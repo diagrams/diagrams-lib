@@ -40,10 +40,9 @@ module Diagrams.Combinators
        ) where
 
 import           Control.Lens          (Lens', generateSignatures,
-                                        lensRules, makeLensesWith, (%~), (&),
-                                        (.~), (^.), _Wrapping, view, over, set, mapped)
+                                        lensRules, makeLensesWith, (&),
+                                        (.~), _Wrapping, over, mapped)
 import           Data.Default.Class
-import           Data.Monoid.Deletable (toDeletable)
 import           Data.Monoid.MList
 import           Data.Proxy
 import           Data.Semigroup
@@ -51,7 +50,7 @@ import           Data.Traversable
 
 import           Diagrams.Core
 import           Diagrams.Core.Context
-import           Diagrams.Core.Types   (QDiagram (QD), leafS)
+import           Diagrams.Core.Types   (leafS)
 import           Diagrams.Direction
 import           Diagrams.Segment      (straight)
 import           Diagrams.Util
@@ -147,7 +146,7 @@ extrudeEnvelope
 extrudeEnvelope = deformEnvelope 0.5
 
 -- | @intrudeEnvelope v d@ asymmetrically \"intrudes\" the envelope of
-
+--   a diagram away from the given direction. All parts of the envelope
 --   within 90 degrees of this direction are modified, offset inwards
 --   by the magnitude of the vector.
 --
@@ -219,8 +218,8 @@ infixl 6 `beneath`
 --   To get something like @beside v x1 x2@ whose local origin is
 --   identified with that of @x2@ instead of @x1@, use @beside
 --   (negateV v) x2 x1@.
-beside :: (Juxtaposable a, Semigroup a) => Vn a -> a -> a -> a
-beside v d1 d2 = d1 <> juxtapose v d1 d2
+beside :: (Juxtaposable a, Semigroup a) => Vn a -> a -> a -> Contextual (V a) (N a) a
+beside v d1 d2 = contextual $ \ctx -> d1 <> runContextual (juxtapose v d1 d2) ctx
 
 -- | Place two diagrams (or other juxtaposable objects) adjacent to
 --   one another, with the second diagram placed in the direction 'd'
@@ -228,7 +227,7 @@ beside v d1 d2 = d1 <> juxtapose v d1 d2
 --   diagram is the same as the local origin of the first.  See the
 --   documentation of 'beside' for more information.
 atDirection :: (InSpace v n a, Metric v, Floating n, Juxtaposable a, Semigroup a)
-            => Direction v n -> a -> a -> a
+            => Direction v n -> a -> a -> Contextual (V a) (N a) a
 atDirection = beside . fromDirection
 
 ------------------------------------------------------------
@@ -245,8 +244,9 @@ atDirection = beside . fromDirection
 --   > appendsEx = appends c (zip (iterateN 6 (rotateBy (1/6)) unitX) (repeat c))
 --   >             # centerXY # pad 1.1
 --   >   where c = circle 1
-appends :: (Juxtaposable a, Monoid' a) => a -> [(Vn a,a)] -> a
-appends d1 apps = d1 <> mconcat (map (\(v,d) -> juxtapose v d1 d) apps)
+appends :: (Juxtaposable a, Monoid' a) => a -> [(Vn a,a)] -> Contextual (V a) (N a) a
+appends d1 apps = contextual $ \ctx -> (d1 
+               <> mconcat (map (\(v,d) -> runContextual (juxtapose v d1 d) ctx) apps))
 
 -- | Position things absolutely: combine a list of objects
 --   (e.g. diagrams or paths) by assigning them absolute positions in
@@ -325,7 +325,7 @@ instance Num n => Default (CatOpts n) where
 --   See also 'cat'', which takes an extra options record allowing
 --   certain aspects of the operation to be tweaked.
 cat :: (InSpace v n a, Metric v, Floating n, Juxtaposable a, Monoid' a, HasOrigin a)
-       => v n -> [a] -> a
+       => v n -> [Contextual (V a) (N a) a] -> Contextual (V a) (N a) a
 cat v = cat' v def
 
 -- | Like 'cat', but taking an extra 'CatOpts' arguments allowing the
@@ -346,9 +346,9 @@ cat v = cat' v def
 --   (distributing with a separation of 0 is the same as
 --   superimposing).
 cat' :: (InSpace v n a, Metric v, Floating n, Juxtaposable a, Monoid' a, HasOrigin a)
-     => v n -> CatOpts n -> [a] -> a
+     => v n -> CatOpts n -> [Contextual (V a) (N a) a] -> Contextual (V a) (N a) a
 cat' v (CatOpts { _catMethod = Cat, _sep = s }) = foldB comb mempty
-  where comb d1 d2 = d1 <> (juxtapose v d1 d2 # moveOriginBy vs)
+  where comb d1 d2 = d1 <> (juxtaposeContextual v d1 d2 # moveOriginBy vs)
         vs = s *^ signorm (negated v)
 
 cat' v (CatOpts { _catMethod = Distrib, _sep = s }) =
