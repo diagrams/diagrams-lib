@@ -94,19 +94,19 @@ data PolyType n = PolyPolar [Angle n] [n]
 
               | PolySides [Angle n] [n]
                 -- ^ A polygon determined by the distance between
-                --   successive vertices and the angles formed by
-                --   each three successive vertices.  In other
+                --   successive vertices and the external angles formed
+                --   by each three successive vertices. In other
                 --   words, a polygon specified by \"turtle
                 --   graphics\": go straight ahead x1 units; turn by
-                --   angle a1; go straght ahead x2 units; turn by
-                --   angle a2; etc. The polygon will be centered at
-                --   the /centroid/ of its vertices.
+                --   external angle a1; go straight ahead x2 units; turn by
+                --   external angle a2; etc. The polygon will be centered 
+                --   at the /centroid/ of its vertices.
                 --
                 --   * The first argument is a list of /vertex/
-                --     /angles/, giving the angle at each vertex
+                --     /angles/, giving the external angle at each vertex
                 --     from the previous vertex to the next.  The
-                --     first angle in the list is the angle at the
-                --     /second/ vertex; the first edge always starts
+                --     first angle in the list is the external angle at
+                --     the /second/ vertex; the first edge always starts
                 --     out heading in the positive y direction from
                 --     the first vertex.
                 --
