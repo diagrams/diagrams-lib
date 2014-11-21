@@ -19,8 +19,8 @@ import           Linear.Metric
 import Linear.Vector
 
 
--- | Type for holding linear maps. Note that these are not affine transforms so 
---   attemping apply a translation with 'LinearMap' will likely produce incorrect 
+-- | Type for holding linear maps. Note that these are not affine transforms so
+--   attemping apply a translation with 'LinearMap' will likely produce incorrect
 --   results.
 newtype LinearMap v u n = LinearMap { lapply :: v n -> u n }
 
@@ -33,7 +33,7 @@ toLinearMap (Transformation (m :-: _) _ _) = LinearMap m
 -- | Traversal over all the vmap of an object.
 class LinearMappable a b where
   vmap :: (Vn a -> Vn b) -> a -> b
-  -- this uses a function instead of LinearMap so we can also use this class to 
+  -- this uses a function instead of LinearMap so we can also use this class to
   -- change number types
 
 -- | Apply a linear map.
@@ -86,7 +86,7 @@ instance (Metric v, Metric u, OrderedField n, OrderedField m)
   vmap f = over (_Wrapped . mapped) (vmap f)
   {-# INLINE vmap #-}
 
--- | Affine linear maps. Unlike Transformation these do not have to be 
+-- | Affine linear maps. Unlike Transformation these do not have to be
 --   invertable so we can map between spaces.
 data AffineMap v u n = AffineMap (LinearMap v u n) (u n)
 
@@ -121,4 +121,4 @@ instance (Metric v, Metric u, OrderedField n)
     => AffineMappable (Path v n) (Path u n) where
   amap m = _Wrapped . mapped %~ amap m
   {-# INLINE amap #-}
-  
+
