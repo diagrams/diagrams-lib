@@ -1,22 +1,22 @@
-{-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeFamilies          #-}
 module Diagrams.LinearMap where
 
-import           Control.Lens        hiding (lmap)
-import           Data.FingerTree     as FT
+import           Control.Lens            hiding (lmap)
+import           Data.FingerTree         as FT
 
 import           Diagrams.Core
 import           Diagrams.Core.Transform
 import           Diagrams.Located
 import           Diagrams.Path
 import           Diagrams.Segment
-import           Diagrams.Trail      hiding (offset)
+import           Diagrams.Trail          hiding (offset)
 
 import           Linear.Affine
 import           Linear.Metric
-
-import Linear.Vector
+import           Linear.Vector
 
 
 -- | Type for holding linear maps. Note that these are not affine transforms so
@@ -26,9 +26,6 @@ newtype LinearMap v u n = LinearMap { lapply :: v n -> u n }
 
 toLinearMap :: Transformation v n -> LinearMap v v n
 toLinearMap (Transformation (m :-: _) _ _) = LinearMap m
-
--- vmap :: (InSpace v n a, InSpace u n b, LinearMappable a b) => LinearMap v u n -> a -> b
--- vmap (LinearMap m) = over vmap m
 
 -- | Traversal over all the vmap of an object.
 class LinearMappable a b where
