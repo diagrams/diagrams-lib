@@ -137,9 +137,7 @@ import           Linear.Vector
 type instance V (FingerTree m a) = V a
 type instance N (FingerTree m a) = N a
 
-instance ( Metric (V a), OrderedField (N a)
-         , FT.Measured m a, Transformable a
-         )
+instance (Metric (V a), OrderedField (N a) , FT.Measured m a, Transformable a)
     => Transformable (FingerTree m a) where
   transform = FT.fmap' . transform
 
@@ -155,73 +153,68 @@ instance ( Metric (V a), OrderedField (N a)
 --   beginning which have a combined arc length of at least 5).
 
 newtype SegTree v n = SegTree (FingerTree (SegMeasure v n) (Segment Closed v n))
-  deriving (Eq, Ord, Show)
+  deriving (Eq, Ord, Show, Monoid, Transformable, FT.Measured (SegMeasure v n))
 
+instance Rewrapped (SegTree v n) (SegTree v' n')
 instance Wrapped (SegTree v n) where
   type Unwrapped (SegTree v n) = FingerTree (SegMeasure v n) (Segment Closed v n)
   _Wrapped' = iso (\(SegTree x) -> x) SegTree
 
-instance Rewrapped (SegTree v n) (SegTree v' n')
-
 type instance V (SegTree v n) = v
 type instance N (SegTree v n) = n
-
-deriving instance (OrderedField n, Metric v)
-  => Monoid (SegTree v n)
-deriving instance (OrderedField n, Metric v)
-  => FT.Measured (SegMeasure v n) (SegTree v n)
-deriving instance (Metric v, OrderedField n)
-  => Transformable (SegTree v n)
-
 type instance Codomain (SegTree v n) = v
 
-instance (Metric v, OrderedField n, Real n)
-    => Parametric (SegTree v n) where
+instance (Metric v, Floating n, Real n) => Parametric (SegTree v n) where
   atParam t p = offset . fst $ splitAtParam t p
 
 instance Num n => DomainBounds (SegTree v n)
 
-instance (Metric v, OrderedField n, Real n)
-    => EndValues (SegTree v n)
+instance (Metric v, Floating n, Real n) => EndValues (SegTree v n)
 
 type SplitResult v n = ((SegTree v n, n -> n), (SegTree v n, n -> n))
 
-splitAtParam' :: (Metric v, OrderedField n, Real n) => SegTree v n -> n -> SplitResult v n
+splitAtParam' :: (Metric v, Floating n, Real n) => SegTree v n -> n -> SplitResult v n
 splitAtParam' tree@(SegTree t) p
-    | p < 0     = case FT.viewl t of
-                    EmptyL    -> emptySplit
-                    seg :< t' ->
-                      case seg `splitAtParam` (p * tSegs) of
-                        (seg1, seg2) -> ( (SegTree $ FT.singleton seg1, \u -> u * p)
-                                        , (SegTree $ seg2 <| t', \u -> 1 - (1 - u) * tSegs / (tSegs + 1))
-                                        )
-    | p >= 1    = case FT.viewr t of
-                    EmptyR    -> emptySplit
-                    t' :> seg ->
-                      case seg `splitAtParam` (1 - (1 - p)*tSegs) of
-                        (seg1, seg2) -> ( (SegTree $ t' |> seg1, \u -> u * tSegs / (tSegs + 1))
-                                        , (SegTree $ FT.singleton seg2, \u -> (u - p) / (1 - p))
-                                        )
-    | otherwise = case FT.viewl after of
-                    EmptyL    -> emptySplit
-                    seg :< after' ->
-                      let (n, p') = propFrac $ p * tSegs
-                          f p n u | u * tSegs < n = u * tSegs / (n + 1)
-                                  | otherwise     = (n + (u * tSegs - n) / (p * tSegs - n)) / (n+1)
-                      in case seg `splitAtParam` p' of
-                           (seg1, seg2) -> ( ( SegTree $ before |> seg1  , f p n )
-                                           , ( SegTree $ seg2   <| after'
-                                             , \v -> 1 - f (1 - p) (tSegs - n - 1) (1 - v)
-                                             )
-                                           )
+  | p < 0     =
+    case FT.viewl t of
+      EmptyL    -> emptySplit
+      seg :< t' ->
+        case seg `splitAtParam` (p * tSegs) of
+          (seg1, seg2) ->
+            ( (SegTree $ FT.singleton seg1, (*p))
+            , (SegTree $ seg2 <| t', \u -> 1 - (1 - u) * tSegs / (tSegs + 1))
+            )
+  | p >= 1    =
+    case FT.viewr t of
+      EmptyR    -> emptySplit
+      t' :> seg ->
+        case seg `splitAtParam` (1 - (1 - p)*tSegs) of
+          (seg1, seg2) ->
+            ( (SegTree $ t' |> seg1, \u -> u * tSegs / (tSegs + 1))
+            , (SegTree $ FT.singleton seg2, \u -> (u - p) / (1 - p))
+            )
+  | otherwise =
+    case FT.viewl after of
+      EmptyL    -> emptySplit
+      seg :< after' ->
+        let (n, p') = propFrac $ p * tSegs
+            f p n u | u * tSegs < n = u * tSegs / (n + 1)
+                    | otherwise     = (n + (u * tSegs - n) / (p * tSegs - n)) / (n+1)
+        in case seg `splitAtParam` p' of
+             (seg1, seg2) ->
+               ( ( SegTree $ before |> seg1  , f p n )
+               , ( SegTree $ seg2   <| after'
+               , \v -> 1 - f (1 - p) (tSegs - n - 1) (1 - v)
+                 )
+               )
  where
-      (before, after) = FT.split ((p * tSegs <) . numSegs) t
-      tSegs           = numSegs t
-      emptySplit      = let t' = (tree, id) in (t',t')
+   (before, after) = FT.split ((p * tSegs <) . numSegs) t
+   tSegs           = numSegs t
+   emptySplit      = let t' = (tree, id) in (t',t')
 
-      propFrac x = let m = signum x * mod1 x in (x - m, m)
+   propFrac x = let m = signum x * mod1 x in (x - m, m)
 
-instance (Metric v, OrderedField n, Real n) => Sectionable (SegTree v n) where
+instance (Metric v, Floating n, Real n) => Sectionable (SegTree v n) where
   splitAtParam tree p = let ((a,_),(b,_)) = splitAtParam' tree p in (a,b)
 
   reverseDomain (SegTree t) = SegTree $ FT.reverse t'
@@ -230,11 +223,7 @@ instance (Metric v, OrderedField n, Real n) => Sectionable (SegTree v n) where
   section x t1 t2 = let ((a,fa),_) = splitAtParam' x t2
                     in  snd $ splitAtParam a (fa t1)
 
-  -- XXX seems like it should be possible to collapse some of the
-  -- above cases into one?
-
-instance (Metric v, OrderedField n, Real n)
-    => HasArcLength (SegTree v n) where
+instance (Metric v, OrderedField n, Real n) => HasArcLength (SegTree v n) where
   arcLengthBounded eps t
     -- Use the cached value if it is accurate enough; otherwise fall
     -- back to recomputing a more accurate value
@@ -289,16 +278,12 @@ trailMeasure d f = option d f . get . FT.measure
 -- | Compute the number of segments of anything measured by
 --   'SegMeasure' (/e.g./ @SegMeasure@ itself, @Segment@, @SegTree@,
 --   @Trail@s...)
-numSegs :: ( OrderedField n, Num c, Metric v,
-             FT.Measured (SegMeasure v n) a
-           )
+numSegs :: (Metric v, OrderedField n, Num c, FT.Measured (SegMeasure v n) a)
         => a -> c
 numSegs = fromIntegral . trailMeasure 0 (getSum . op SegCount)
 
 -- | Compute the total offset of anything measured by 'SegMeasure'.
-offset :: ( OrderedField n, Metric v,
-            FT.Measured (SegMeasure v n) t
-          )
+offset :: (Metric v, OrderedField n, FT.Measured (SegMeasure v n) t)
        => t -> v n
 offset = trailMeasure zero (op TotalOffset . view oeOffset)
 
@@ -454,8 +439,7 @@ instance (Metric v , OrderedField n, Real n)
         ((`atParam` p) . Tangent)
         tr
 
-instance (Metric v, OrderedField n, Real n)
-    => EndValues (Tangent (Trail v n)) where
+instance (Metric v, Floating n, Real n) => EndValues (Tangent (Trail v n)) where
   atStart (Tangent tr) = withTrail (atStart . Tangent) (atStart . Tangent) tr
   atEnd   (Tangent tr) = withTrail (atEnd   . Tangent) (atEnd   . Tangent) tr
 
@@ -466,19 +450,16 @@ mod1 = (`mod'` 1)
 
 instance Num n => DomainBounds (Trail' l v n)
 
-instance (Metric v, OrderedField n, Real n)
-  => EndValues (Trail' l v n)
+instance (Metric v, OrderedField n, Real n) => EndValues (Trail' l v n)
 
-instance (Metric v, OrderedField n, Real n)
-    => Sectionable (Trail' Line v n) where
+instance (Metric v, OrderedField n, Real n) => Sectionable (Trail' Line v n) where
   splitAtParam (Line t) p = (Line t1, Line t2)
     where
       (t1, t2) = splitAtParam t p
 
   reverseDomain = reverseLine
 
-instance (Metric v, OrderedField n, Real n)
-    => HasArcLength (Trail' l v n) where
+instance (Metric v, OrderedField n, Real n) => HasArcLength (Trail' l v n) where
   arcLengthBounded eps =
     withTrail'
       (\(Line t) -> arcLengthBounded eps t)
@@ -565,8 +546,7 @@ instance (Metric v, OrderedField n) => Parametric (GetSegment (Trail' Line v n))
             seg :< _ -> GetSegmentCodomain $ Just (offset before, seg, reparam (numSegs before))
     where
       n = numSegs ft
-      reparam k = iso (subtract k . (*n))
-                      ((/n) . (+ k))
+      reparam k = iso (subtract k . (*n)) ((/n) . (+ k))
 
 -- | The parameterization for loops wraps around, /i.e./ parameters
 --   are first reduced \"mod 1\".
