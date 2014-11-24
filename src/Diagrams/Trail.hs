@@ -104,8 +104,7 @@ module Diagrams.Trail
        ) where
 
 import           Control.Arrow            ((***))
-import           Control.Lens             (AnIso', Rewrapped, Wrapped (..), cloneIso, iso, op, view,
-                                           (^.))
+import           Control.Lens             hiding (at, transform, (|>), (<|))
 import           Data.FingerTree          (FingerTree, ViewL (..), ViewR (..), (<|), (|>))
 import qualified Data.FingerTree          as FT
 import           Data.Fixed
@@ -141,6 +140,20 @@ instance (Metric (V a), OrderedField (N a) , FT.Measured m a, Transformable a)
     => Transformable (FingerTree m a) where
   transform = FT.fmap' . transform
 
+instance (FT.Measured m a, FT.Measured n b)
+  => Cons (FingerTree m a) (FingerTree n b) a b where
+  _Cons = prism (uncurry (FT.<|)) $ \aas -> case FT.viewl aas of
+    a :< as -> Right (a, as)
+    EmptyL  -> Left mempty
+  {-# INLINE _Cons #-}
+
+instance (FT.Measured m a, FT.Measured n b)
+  => Snoc (FingerTree m a) (FingerTree n b) a b where
+  _Snoc = prism (uncurry (FT.|>)) $ \aas -> case FT.viewr aas of
+    as :> a -> Right (as, a)
+    EmptyR  -> Left mempty
+  {-# INLINE _Snoc #-}
+
 ------------------------------------------------------------
 --  Segment trees  -----------------------------------------
 ------------------------------------------------------------
@@ -159,6 +172,17 @@ instance Rewrapped (SegTree v n) (SegTree v' n')
 instance Wrapped (SegTree v n) where
   type Unwrapped (SegTree v n) = FingerTree (SegMeasure v n) (Segment Closed v n)
   _Wrapped' = iso (\(SegTree x) -> x) SegTree
+  {-# INLINE _Wrapped' #-}
+
+instance (Metric v, OrderedField n, Metric u, OrderedField n')
+  => Cons (SegTree v n) (SegTree u n') (Segment Closed v n) (Segment Closed u n') where
+  _Cons = _Wrapped . _Cons . bimapping id _Unwrapped
+  {-# INLINE _Cons #-}
+
+instance (Metric v, OrderedField n, Metric u, OrderedField n')
+  => Snoc (SegTree v n) (SegTree u n') (Segment Closed v n) (Segment Closed u n') where
+  _Snoc = _Wrapped . _Snoc . bimapping _Unwrapped id
+  {-# INLINE _Snoc #-}
 
 type instance V (SegTree v n) = v
 type instance N (SegTree v n) = n
@@ -471,6 +495,22 @@ instance (Metric v, OrderedField n, Real n) => HasArcLength (Trail' l v n) where
       (\lp -> arcLengthToParam eps (cutLoop lp) l)
       tr
 
+instance Rewrapped (Trail' Line v n) (Trail' Line v' n')
+instance Wrapped (Trail' Line v n) where
+  type Unwrapped (Trail' Line v n) = SegTree v n
+  _Wrapped' = iso (\(Line x) -> x) Line
+  {-# INLINE _Wrapped' #-}
+
+instance (Metric v, OrderedField n, Metric u, OrderedField n')
+  => Cons (Trail' Line v n) (Trail' Line u n') (Segment Closed v n) (Segment Closed u n') where
+  _Cons = _Wrapped . _Cons . bimapping id _Unwrapped
+  {-# INLINE _Cons #-}
+
+instance (Metric v, OrderedField n, Metric u, OrderedField n')
+  => Snoc (Trail' Line v n) (Trail' Line u n') (Segment Closed v n) (Segment Closed u n') where
+  _Snoc = _Wrapped . _Snoc . bimapping _Unwrapped id
+  {-# INLINE _Snoc #-}
+
 --------------------------------------------------
 -- Extracting segments
 
@@ -663,13 +703,12 @@ instance (HasLinearMap v, Metric v, OrderedField n)
 instance (Metric v, OrderedField n) => Enveloped (Trail v n) where
   getEnvelope = withTrail getEnvelope getEnvelope
 
-instance (Metric v, OrderedField n, Real n)
-    => Parametric (Trail v n) where
+instance (Metric v, Floating n, Real n) => Parametric (Trail v n) where
   atParam t p = withTrail (`atParam` p) (`atParam` p) t
 
 instance Num n => DomainBounds (Trail v n)
 
-instance (Metric v, OrderedField n, Real n) => EndValues (Trail v n)
+instance (Metric v, Floating n, Real n) => EndValues (Trail v n)
 
 -- | Note that there is no @Sectionable@ instance for @Trail' Loop@,
 --   because it does not make sense (splitting a loop at a parameter
@@ -680,18 +719,38 @@ instance (Metric v, OrderedField n, Real n) => EndValues (Trail v n)
 --   semantically a bit silly, so please don't rely on it. (*E.g.* if
 --   this is really the behavior you want, consider first calling
 --   'cutLoop' yourself.)
-instance (Metric v, OrderedField n, Real n) => Sectionable (Trail v n) where
+instance (Metric v, Floating n, Real n) => Sectionable (Trail v n) where
   splitAtParam t p = withLine ((wrapLine *** wrapLine) . (`splitAtParam` p)) t
 
   reverseDomain = reverseTrail
 
-instance (Metric v, OrderedField n, Real n)
-    => HasArcLength (Trail v n) where
+instance (Metric v, Floating n, Real n) => HasArcLength (Trail v n) where
   arcLengthBounded = withLine . arcLengthBounded
   arcLengthToParam eps tr al = withLine (\ln -> arcLengthToParam eps ln al) tr
 
 --------------------------------------------------
 -- Constructors and eliminators for Trail
+
+-- | 'Prism' onto a 'Line'. Useful for extracting or mapping over
+--   'Line's only
+_Line :: Prism' (Trail v n) (Trail' Line v n)
+_Line = _Trail . _Left
+
+-- | 'Prism' onto a 'Loop'. Useful for extracting or mapping over
+--   'Loop's only
+_Loop :: Prism' (Trail v n) (Trail' Loop v n)
+_Loop = _Trail . _Right
+
+-- | 'Iso' between a 'Trail' and either a 'Line' or a 'Loop'.
+_Trail :: Iso' (Trail v n) (Either (Trail' Line v n) (Trail' Loop v n))
+_Trail = iso getTrail mkTrail
+  where
+    mkTrail (Right loop) = Trail loop
+    mkTrail (Left line)  = Trail line
+
+    getTrail :: Trail v n -> Either (Trail' Line v n) (Trail' Loop v n)
+    getTrail (Trail t@(Line _))   = Left t
+    getTrail (Trail t@(Loop _ _)) = Right t
 
 -- | A generic eliminator for 'Trail', taking functions specifying
 --   what to do in the case of a line or a loop.
@@ -763,7 +822,7 @@ emptyTrail = wrapLine emptyLine
 
 -- | Construct a line from a list of closed segments.
 lineFromSegments :: (Metric v, OrderedField n)
-                   => [Segment Closed v n] -> Trail' Line v n
+                 => [Segment Closed v n] -> Trail' Line v n
 lineFromSegments = Line . SegTree . FT.fromList
 
 -- | @trailFromSegments === 'wrapTrail' . 'lineFromSegments'@, for
@@ -808,7 +867,7 @@ trailFromOffsets = wrapTrail . lineFromOffsets
 --   > lineFromVerticesEx = pad 1.1 . centerXY . strokeLine
 --   >   $ lineFromVertices [origin, 0 ^& 1, 1 ^& 2, 5 ^& 1]
 lineFromVertices :: (Metric v, OrderedField n)
-                   => [Point v n] -> Trail' Line v n
+                 => [Point v n] -> Trail' Line v n
 lineFromVertices []  = emptyLine
 lineFromVertices [_] = emptyLine
 lineFromVertices ps  = lineFromSegments . map straight $ zipWith (.-.) (tail ps) ps
@@ -991,7 +1050,7 @@ lineOffset :: (Metric v, OrderedField n) => Trail' Line v n -> v n
 lineOffset (Line t) = trailMeasure zero (op TotalOffset . view oeOffset) t
 
 -- | Extract the points of a concretely located trail.  That is the points
---   where one segment ends and the next begings. Note that
+--   where one segment ends and the next begins. Note that
 --   for loops, the starting point will /not/ be repeated at the end.
 --   If you want this behavior, you can use 'cutTrail' to make the
 --   loop into a line first, which happens to repeat the same point
@@ -1085,7 +1144,7 @@ loopVertices = loopVertices' tolerance
 -- The other points connecting segments are included if the slope at the
 -- end of a segment is not equal to the slope at the beginning of the next.
 -- The 'toler' parameter is used to control how close the slopes need to
--- be in order to declatre them equal.
+-- be in order to declare them equal.
 segmentVertices' :: (Metric v, OrderedField n)
              => n -> Point v n -> [Segment Closed v n] -> [Point v n]
 segmentVertices' toler p ts  =
