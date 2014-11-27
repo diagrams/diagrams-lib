@@ -39,6 +39,7 @@ Library
                        Diagrams.CubicSpline,
                        Diagrams.CubicSpline.Internal,
                        Diagrams.Deform
+                       Diagrams.Decorations
                        Diagrams.Direction,
                        Diagrams.Envelope,
                        Diagrams.LinearMap,
@@ -79,6 +80,7 @@ Library
                        Diagrams.TwoD.Attributes,
                        Diagrams.TwoD.Combinators,
                        Diagrams.TwoD.Curvature,
+                       Diagrams.TwoD.Decorations,
                        Diagrams.TwoD.Deform,
                        Diagrams.TwoD.Ellipse,
                        Diagrams.TwoD.Image,
@@ -109,7 +111,6 @@ Library
                        fingertree >= 0.1 && < 0.2,
                        intervals >= 0.7 && < 0.8,
                        lens >= 4.0 && < 4.7,
-                       tagged >= 0.7,
                        optparse-applicative >= 0.11 && < 0.12,
                        filepath,
                        JuicyPixels >= 3.1.5 && < 3.2,
