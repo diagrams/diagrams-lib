@@ -1,4 +1,8 @@
-{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE CPP             #-}
+{-# LANGUAGE TypeFamilies    #-}
+#if __GLASGOW_HASKELL__ >= 708
+{-# LANGUAGE PatternSynonyms #-}
+#endif
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
@@ -21,9 +25,12 @@ module Diagrams.TwoD.Types
        , p2, mkP2, unp2, p2Iso
        , r2polarIso
        , HasR (..)
+#if __GLASGOW_HASKELL__ >= 708
+       , pattern P2
+#endif
        ) where
 
-import           Control.Lens            (Iso', Lens', iso, _1, _2)
+import           Control.Lens            (Iso', Lens', iso, _1, _2,)
 
 import           Diagrams.Angle
 import           Diagrams.Points
@@ -57,6 +64,10 @@ r2Iso = iso unr2 r2
 -- | Construct a 2D point from a pair of coordinates.  See also '^&'.
 p2 :: (n, n) -> P2 n
 p2 = P . uncurry V2
+
+#if __GLASGOW_HASKELL__ >= 708
+pattern P2 x y = P (V2 x y)
+#endif
 
 -- | Convert a 2D point back into a pair of coordinates.  See also 'coords'.
 unp2 :: P2 n -> (n,n)
@@ -92,3 +103,4 @@ instance HasR V2 where
 instance HasTheta V2 where
   _theta = r2polarIso . _2
   {-# INLINE _theta #-}
+

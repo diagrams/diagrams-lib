@@ -1,4 +1,8 @@
-{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE CPP             #-}
+{-# LANGUAGE TypeFamilies    #-}
+#if __GLASGOW_HASKELL__ >= 708
+{-# LANGUAGE PatternSynonyms #-}
+#endif
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 -----------------------------------------------------------------------------
@@ -21,6 +25,9 @@ module Diagrams.ThreeD.Types
        , V3 (..), P3,      T3
        , R1 (..), R2 (..), R3 (..)
 
+#if __GLASGOW_HASKELL__ >= 708
+       , pattern P3
+#endif
        ) where
 
 import           Control.Lens        (Iso', iso, _1, _2, _3)
@@ -70,6 +77,10 @@ p3Iso = iso unp3 p3
 -- | Curried version of `r3`.
 mkP3 :: n -> n -> n -> P3 n
 mkP3 x y z = p3 (x, y, z)
+
+#if __GLASGOW_HASKELL__ >= 708
+pattern P3 x y z = P (V3 x y z)
+#endif
 
 type instance V (V3 n) = V3
 type instance N (V3 n) = n
