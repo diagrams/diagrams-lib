@@ -427,7 +427,7 @@ intersectPoints :: (InSpace V2 n t, SameSpace t s, ToPath t, ToPath s, OrderedFi
   => t -> s -> [P2 n]
 intersectPoints = intersectPoints' 1e-10
 
--- | Find the intersect points of two objects that can be converted to a path 
+-- | Find the intersect points of two objects that can be converted to a path
 --   within the given tolerance.
 intersectPoints' :: (InSpace V2 n t, SameSpace t s, ToPath t, ToPath s, OrderedField n)
   => n -> t -> s -> [P2 n]

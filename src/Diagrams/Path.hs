@@ -178,6 +178,12 @@ instance ToPath (Path v n) where
 instance ToPath (Trail v n) where
   toPath = pathFromTrail
 
+instance ToPath (Trail' l v n) where
+  toPath = pathFromTrail . Trail
+
+instance ToPath (Segment Closed v n) where
+  toPath seg = Path [trailFromSegments [seg] `at` origin]
+
 instance ToPath (Located (Trail v n)) where
   toPath = pathFromLocTrail
 

@@ -1,3 +1,4 @@
+{-# LANGUAGE ConstraintKinds      #-}
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE StandaloneDeriving   #-}
 {-# LANGUAGE TypeFamilies         #-}
@@ -84,11 +85,11 @@ viewLoc (Loc p a) = (p,a)
 --   @Located@ is a little-f (endo)functor on the category of types
 --   with associated vector space @v@; but that is not covered by the
 --   standard @Functor@ class.)
-mapLoc :: (V a ~ V b, N a ~ N b) => (a -> b) -> Located a -> Located b
+mapLoc :: SameSpace a b => (a -> b) -> Located a -> Located b
 mapLoc f (Loc p a) = Loc p (f a)
 
 -- | A lens giving access to the object within a 'Located' wrapper.
-located :: (V a ~ V a', N a ~ N a') => Lens (Located a) (Located a') a a'
+located :: SameSpace a b => Lens (Located a) (Located b) a b
 located f (Loc p a) = Loc p <$> f a
 
 deriving instance (Eq   (V a (N a)), Eq a  ) => Eq   (Located a)
@@ -101,7 +102,7 @@ type instance N (Located a) = N a
 -- | @Located a@ is an instance of @HasOrigin@ whether @a@ is or not.
 --   In particular, translating a @Located a@ simply translates the
 --   associated point (and does /not/ affect the value of type @a@).
-instance (Num (N a), Additive (V a)) => HasOrigin (Located a) where
+instance (Additive (V a), Num (N a)) => HasOrigin (Located a) where
   moveOriginTo o (Loc p a) = Loc (moveOriginTo o p) a
 
 -- | Applying a transformation @t@ to a @Located a@ results in the
