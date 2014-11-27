@@ -1,4 +1,5 @@
 {-# LANGUAGE BangPatterns               #-}
+{-# LANGUAGE ConstraintKinds            #-}
 {-# LANGUAGE DeriveFunctor              #-}
 {-# LANGUAGE EmptyDataDecls             #-}
 {-# LANGUAGE FlexibleContexts           #-}
@@ -64,7 +65,7 @@ module Diagrams.Segment
        ) where
 
 import           Control.Lens             (Rewrapped, Wrapped (..), iso, makeLenses, op,
-                                           over, Each (..))
+                                           over, Each (..), Reversing (..))
 import           Data.FingerTree
 import           Data.Monoid.MList
 import           Data.Semigroup
@@ -80,7 +81,6 @@ import           Diagrams.Core            hiding (Measured)
 import           Diagrams.Located
 import           Diagrams.Parametric
 import           Diagrams.Solve
-
 
 ------------------------------------------------------------
 --  Open/closed type tags  ---------------------------------
@@ -106,7 +106,7 @@ data Closed
 --   a fixed offset from its start.
 data Offset c v n where
   OffsetOpen   :: Offset Open v n
-  OffsetClosed :: v n -> Offset Closed v n
+  OffsetClosed :: !(v n) -> Offset Closed v n
 
 deriving instance Show (v n) => Show (Offset c v n)
 deriving instance Eq   (v n) => Eq   (Offset c v n)
@@ -127,6 +127,9 @@ type instance N (Offset c v n) = n
 instance Transformable (Offset c v n) where
   transform _ OffsetOpen       = OffsetOpen
   transform t (OffsetClosed v) = OffsetClosed (apply t v)
+
+instance (Functor v, Num n) => Reversing (Offset Closed v n) where
+  reversing (OffsetClosed off) = OffsetClosed $ negated off
 
 ------------------------------------------------------------
 --  Constructing segments  ---------------------------------
@@ -203,9 +206,9 @@ type instance Codomain (Segment Closed v n) = v
 --   It is designed to be used infix, like @seg ``atParam`` 0.5@.
 instance (Additive v, Num n) => Parametric (Segment Closed v n) where
   atParam (Linear (OffsetClosed x)) t       = t *^ x
-  atParam (Cubic c1 c2 (OffsetClosed x2)) t =     (3 * t'*t'*t ) *^ c1
-                                              ^+^ (3 * t'*t *t ) *^ c2
-                                              ^+^ (    t *t *t ) *^ x2
+  atParam (Cubic c1 c2 (OffsetClosed x2)) t =  (3 * t'*t'*t ) *^ c1
+                                           ^+^ (3 * t'*t *t ) *^ c2
+                                           ^+^ (    t *t *t ) *^ x2
     where t' = 1-t
 
 instance Num n => DomainBounds (Segment Closed v n)
@@ -285,12 +288,14 @@ instance (Additive v, Fractional n) => Sectionable (Segment Closed v n) where
   reverseDomain = reverseSegment
 
 -- | Reverse the direction of a segment.
-reverseSegment :: (Num n, Additive v) => Segment Closed v n -> Segment Closed v n
+reverseSegment :: (Additive v, Num n) => Segment Closed v n -> Segment Closed v n
 reverseSegment (Linear (OffsetClosed v))       = straight (negated v)
 reverseSegment (Cubic c1 c2 (OffsetClosed x2)) = bezier3 (c2 ^-^ x2) (c1 ^-^ x2) (negated x2)
 
-instance (Metric v, Floating n, Ord n, Additive v)
-      => HasArcLength (Segment Closed v n) where
+instance (Additive v, Num n) => Reversing (Segment Closed v n) where
+  reversing = reverseSegment
+
+instance (Metric v, OrderedField n) => HasArcLength (Segment Closed v n) where
 
   arcLengthBounded _ (Linear (OffsetClosed x1)) = I.singleton $ norm x1
   arcLengthBounded m s@(Cubic c1 c2 (OffsetClosed x2))
@@ -327,8 +332,8 @@ instance (Metric v, Floating n, Ord n, Additive v)
 --   (Segment Closed v)@, as witnessed by 'mkFixedSeg' and
 --   'fromFixedSeg', but @FixedSegment@ is convenient when one needs
 --   the absolute locations of the vertices and control points.
-data FixedSegment v n = FLinear (Point v n) (Point v n)
-                      | FCubic (Point v n) (Point v n) (Point v n) (Point v n)
+data FixedSegment v n = FLinear !(Point v n) !(Point v n)
+                      | FCubic !(Point v n) !(Point v n) !(Point v n) !(Point v n)
   deriving Show
 
 type instance V (FixedSegment v n) = v
@@ -406,8 +411,11 @@ instance (Additive v, Fractional n) => Sectionable (FixedSegment v n) where
           -- final round
           cut = lerp t c b
 
-  reverseDomain (FLinear p0 p1) = FLinear p1 p0
-  reverseDomain (FCubic p0 c1 c2 p1) = FCubic p1 c2 c1 p0
+  reverseDomain = reversing
+
+instance Reversing (FixedSegment v n) where
+  reversing (FLinear p0 p1)      = FLinear p1 p0
+  reversing (FCubic p0 p1 p2 p3) = FCubic p3 p2 p1 p0
 
 ------------------------------------------------------------
 --  Segment measures  --------------------------------------
@@ -422,8 +430,8 @@ newtype SegCount = SegCount (Sum Int)
   deriving (Semigroup, Monoid)
 
 instance Wrapped SegCount where
-    type Unwrapped SegCount = Sum Int
-    _Wrapped' = iso (\(SegCount x) -> x) SegCount
+  type Unwrapped SegCount = Sum Int
+  _Wrapped' = iso (\(SegCount x) -> x) SegCount
 
 instance Rewrapped SegCount SegCount
 
@@ -469,16 +477,15 @@ deriving instance (Num n, Ord n) => Monoid    (ArcLength n)
 --   segments.
 newtype TotalOffset v n = TotalOffset (v n)
 
-instance Wrapped (TotalOffset v n) where
-    type Unwrapped (TotalOffset v n) = v n
-    _Wrapped' = iso (\(TotalOffset x) -> x) TotalOffset
-
 instance Rewrapped (TotalOffset v n) (TotalOffset v' n')
+instance Wrapped (TotalOffset v n) where
+  type Unwrapped (TotalOffset v n) = v n
+  _Wrapped' = iso (\(TotalOffset x) -> x) TotalOffset
 
-instance (Num n, Additive v) => Semigroup (TotalOffset v n) where
+instance (Additive v, Num n) => Semigroup (TotalOffset v n) where
   TotalOffset v1 <> TotalOffset v2 = TotalOffset (v1 ^+^ v2)
 
-instance (Num n, Additive v) => Monoid (TotalOffset v n) where
+instance (Additive v, Num n) => Monoid (TotalOffset v n) where
   mempty  = TotalOffset zero
   mappend = (<>)
 
@@ -515,7 +522,7 @@ instance (Metric v, OrderedField n)
     => Measured (SegMeasure v n) (SegMeasure v n) where
   measure = id
 
-instance (OrderedField n, Metric v)
+instance (Metric v, OrderedField n)
     => Measured (SegMeasure v n) (Segment Closed v n) where
   measure s = (SegCount . Sum) 1
 
@@ -526,8 +533,8 @@ instance (OrderedField n, Metric v)
             *: ArcLength ( Sum $ arcLengthBounded (stdTolerance/100) s
                          , Sum . flip arcLengthBounded s               )
 
-           *: OffsetEnvelope (TotalOffset . segOffset $ s)
-                             (getEnvelope s)
+            *: OffsetEnvelope (TotalOffset . segOffset $ s)
+                              (getEnvelope s)
 
-           *: ()
+            *: ()
 
