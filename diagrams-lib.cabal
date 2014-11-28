@@ -38,8 +38,8 @@ Library
                        Diagrams.Coordinates,
                        Diagrams.CubicSpline,
                        Diagrams.CubicSpline.Internal,
-                       Diagrams.Deform
-                       Diagrams.Decorations
+                       Diagrams.Deform,
+                       Diagrams.Decorations,
                        Diagrams.Direction,
                        Diagrams.Envelope,
                        Diagrams.LinearMap,
@@ -109,6 +109,7 @@ Library
                        colour >= 2.3.2 && < 2.4,
                        data-default-class < 0.1,
                        fingertree >= 0.1 && < 0.2,
+                       tagged >= 0.7,
                        intervals >= 0.7 && < 0.8,
                        lens >= 4.0 && < 4.7,
                        optparse-applicative >= 0.11 && < 0.12,
