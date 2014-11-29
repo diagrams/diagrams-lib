@@ -44,6 +44,7 @@ Library
                        Diagrams.Envelope,
                        Diagrams.LinearMap,
                        Diagrams.Located,
+                       Diagrams.Measured,
                        Diagrams.Names,
                        Diagrams.Parametric,
                        Diagrams.Parametric.Adjust,
