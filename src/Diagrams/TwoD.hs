@@ -260,7 +260,7 @@ module Diagrams.TwoD
          -- * Visual aids for understanding the internal model
        , showOrigin
        , showOrigin'
-       , OriginOpts(..), oColor, oScale, oMinSize
+       , OriginOpts(..), oColor, oMeasure
        , showEnvelope
        , showEnvelope'
        , EnvelopeOpts(..), eColor, eLineWidth, ePoints
