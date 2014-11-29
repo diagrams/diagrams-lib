@@ -12,9 +12,10 @@
 module Diagrams.TwoD.Vector
        ( -- * Special 2D vectors
          unitX, unitY, unit_X, unit_Y
+       , xDir, yDir
 
          -- * Converting between vectors and angles
-       , e, xDir, angleDir
+       , e, angleDir
 
          -- * 2D vector utilities
        , perp, leftTurn, cross2
@@ -48,6 +49,10 @@ unit_Y = zero & _y .~ (-1)
 -- | A 'Direction' pointing in the X direction.
 xDir :: (R1 v, Additive v, Num n) => Direction v n
 xDir = dir unitX
+
+-- | A 'Direction' pointing in the X direction.
+yDir :: (R2 v, Additive v, Num n) => Direction v n
+yDir = dir unitY
 
 -- | A unit vector at a specified angle counter-clockwise from the
 --   positive X axis.
