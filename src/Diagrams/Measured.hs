@@ -1,5 +1,6 @@
 module Diagrams.Measured where
 
+import Data.Functor
 import Data.Semigroup
 import Data.Monoid.Coproduct
 import Data.Typeable
@@ -30,9 +31,10 @@ measuredLeaf :: (Metric v, Traversable v, OrderedField n, Typeable n, Monoid' m)
 measuredLeaf md = DelayedLeaf delayedPrim
   where
     delayedPrim da g n = unmeasure md (l,g,n)
-                           # transform tr
+                           # transform tr'
                            # applyStyle sty
       where
+        tr'       = tr <> scaling (1/l)
         (tr, sty) = option mempty untangle . fst $ da
         l         = avgScale tr
 
