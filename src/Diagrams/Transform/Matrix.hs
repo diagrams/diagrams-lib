@@ -28,7 +28,7 @@ import           Linear.Vector
 
 -- | Build a matrix from a 'Transformation', ignoring the translation.
 mkMat :: (HasBasis v, Num n) => Transformation v n -> v (v n)
-mkMat t = tabulate $ apply t . unit . el
+mkMat t = distribute . tabulate $ apply t . unit . el
 
 -- | Build a transformation matrix from a 'Transformation'.
 mkMatHomo :: Num n => Transformation V3 n -> M44 n
