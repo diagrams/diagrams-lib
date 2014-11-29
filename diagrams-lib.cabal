@@ -61,6 +61,7 @@ Library
                        Diagrams.ThreeD.Shapes,
                        Diagrams.ThreeD.Size,
                        Diagrams.ThreeD.Transform,
+                       Diagrams.ThreeD.Projection,
                        Diagrams.ThreeD.Types,
                        Diagrams.ThreeD.Vector,
                        Diagrams.Trace,
