@@ -2,19 +2,30 @@
 {-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE ImpredicativeTypes    #-}
+{-# LANGUAGE ConstraintKinds            #-}
+{-# LANGUAGE FunctionalDependencies            #-}
+{-# LANGUAGE FlexibleInstances            #-}
+{-# LANGUAGE UndecidableInstances            #-}
 module Diagrams.LinearMap where
 
+-- import           Control.Applicative
 import           Control.Lens            hiding (lmap)
 import           Data.FingerTree         as FT
+import           Data.Foldable           (Foldable)
+-- import           Data.Semigroup
 
 import           Diagrams.Core
 import           Diagrams.Core.Transform
 import           Diagrams.Located
 import           Diagrams.Path
 import           Diagrams.Segment
+-- import           Diagrams.Transform.Matrix
 import           Diagrams.Trail          hiding (offset)
 
 import           Linear.Affine
+-- import           Linear.Matrix
 import           Linear.Metric
 import           Linear.Vector
 
@@ -22,10 +33,32 @@ import           Linear.Vector
 -- | Type for holding linear maps. Note that these are not affine transforms so
 --   attemping apply a translation with 'LinearMap' will likely produce incorrect
 --   results.
+-- data LinearMap v u n = LinearMap (v (v n)) (PlaneLens v u)
 newtype LinearMap v u n = LinearMap { lapply :: v n -> u n }
 
 toLinearMap :: Transformation v n -> LinearMap v v n
 toLinearMap (Transformation (m :-: _) _ _) = LinearMap m
+
+-- | Lens onto the plane LinearMap is mapped to. This is usually '_xy',
+--   '_xz' or '_xz'. Can also be 'id' to stay in same space.
+type PlaneLens v u = forall x. Lens' (v x) (u x)
+
+-- mapProj :: Lens (LinearMap v u n) (LinearMap v w n)
+--                 (PlaneLens v u) (PlaneLens v w)
+-- mapProj f (LinearMap m l) = LinearMap m <$> f l
+
+-- keep projection first second map
+-- instance (Additive v, Foldable v, Num n) => Semigroup (LinearMap v u n) where
+--   (LinearMap f l) <> (LinearMap g _) = LinearMap (f !*! g) l
+
+
+-- toLinearMap :: (HasBasis v, Num n)
+--             => Transformation v n -> PlaneLens v u -> LinearMap v u n
+-- toLinearMap t = LinearMap (mkMat t)
+
+-- -- | LinearMap compose.
+-- (*.*) :: LinearMap v w n -> LinearMap u v n -> LinearMap u w n
+-- LinearMap vw *.* LinearMap uv = LinearMap (vw . uv)
 
 -- | Traversal over all the vmap of an object.
 class LinearMappable a b where
@@ -33,33 +66,42 @@ class LinearMappable a b where
   -- this uses a function instead of LinearMap so we can also use this class to
   -- change number types
 
+-- Note: instances need to be of the form
+--
+-- r ~ A u m => LinearMappable (A v n) r
+--
+-- so ghc knows there's only one possible result from calling vmap.
+-- I can't think of a better way to set up the class.
+
 -- | Apply a linear map.
-lmap :: (LinearMappable a b, N a ~ N b) => LinearMap (V a) (V b) (N a) -> a -> b
+lmap :: (InSpace v n a, Foldable v, LinearMappable a b, N b ~ n)
+     => LinearMap v (V b) n -> a -> b
+-- lmap (LinearMap mat l) = vmap $ view l . (mat !*)
 lmap = vmap . lapply
 
-instance LinearMappable (Offset c v n) (Offset c u m) where
+instance r ~ Offset c u m => LinearMappable (Offset c v n) r where
   vmap f (OffsetClosed v) = OffsetClosed (f v)
   vmap _ OffsetOpen       = OffsetOpen
   {-# INLINE vmap #-}
 
-instance LinearMappable (Segment c v n) (Segment c u m) where
+instance r ~ Segment c u m => LinearMappable (Segment c v n) r where
   vmap f (Linear offset)      = Linear (vmap f offset)
   vmap f (Cubic v1 v2 offset) = Cubic (f v1) (f v2) (vmap f offset)
   {-# INLINE vmap #-}
 
-instance (Metric v, Metric u, OrderedField n, OrderedField m)
-    => LinearMappable (SegTree v n) (SegTree u m) where
+instance (Metric v, Metric u, OrderedField n, OrderedField m, r ~ SegTree u m)
+    => LinearMappable (SegTree v n) r where
   vmap f = over _Wrapped (fmap' (vmap f))
   {-# INLINE vmap #-}
 
-instance (Metric v, Metric u, OrderedField n, OrderedField m)
-    => LinearMappable (Trail' l v n) (Trail' l u m) where
+instance (Metric v, Metric u, OrderedField n, OrderedField m, r ~ Trail' l u m)
+    => LinearMappable (Trail' l v n) r where
   vmap f (Line st)        = Line (vmap f st)
   vmap f (Loop st offset) = Loop (vmap f st) (vmap f offset)
   {-# INLINE vmap #-}
 
-instance (Metric v, Metric u, OrderedField n, OrderedField m)
-    => LinearMappable (Trail v n) (Trail u m) where
+instance (Metric v, Metric u, OrderedField n, OrderedField m, r ~ Trail u m)
+    => LinearMappable (Trail v n) r where
   vmap f (Trail (Line st))        = Trail $ Line (vmap f st)
   vmap f (Trail (Loop st offset)) = Trail $ Loop (vmap f st) (vmap f offset)
   {-# INLINE vmap #-}
@@ -68,54 +110,60 @@ instance LinearMappable (Point v n) (Point u m) where
   vmap f (P v) = P  (f v)
   {-# INLINE vmap #-}
 
-instance LinearMappable (FixedSegment v n) (FixedSegment u m) where
+instance r ~ FixedSegment u m => LinearMappable (FixedSegment v n) r where
   vmap f (FLinear p0 p1)      = FLinear (vmap f p0) (vmap f p1)
   vmap f (FCubic p0 p1 p2 p3) = FCubic (vmap f p0) (vmap f p1)
                                        (vmap f p2) (vmap f p3)
   {-# INLINE vmap #-}
 
-instance LinearMappable a b => LinearMappable (Located a) (Located b) where
+instance (LinearMappable a b, r ~ Located b) => LinearMappable (Located a) r where
   vmap f (Loc p a) = Loc (vmap f p) (vmap f a)
   {-# INLINE vmap #-}
 
-instance (Metric v, Metric u, OrderedField n, OrderedField m)
-    => LinearMappable (Path v n) (Path u m) where
-  vmap f = over (_Wrapped . mapped) (vmap f)
+instance (Metric v, Metric u, OrderedField n, OrderedField m, r ~ Path u m)
+    => LinearMappable (Path v n) r where
+  vmap f = _Wrapped . mapped %~ vmap f
   {-# INLINE vmap #-}
 
 -- | Affine linear maps. Unlike Transformation these do not have to be
 --   invertable so we can map between spaces.
 data AffineMap v u n = AffineMap (LinearMap v u n) (u n)
 
-toAffineMap :: Transformation v n -> AffineMap v v n
-toAffineMap (Transformation (m :-: _) _ v) = AffineMap (LinearMap m) v
+-- mkAffineMap :: (v n -> u n) -> u n -> AffineMap v u n
+-- mkAffineMap f = AffineMap (LinearMap f)
+
+toAffineMap :: (HasBasis v, Num n)
+            => Transformation v n -> AffineMap v v n
+-- toAffineMap t = AffineMap (toLinearMap t id) (transl t)
+toAffineMap t = AffineMap (toLinearMap t) (transl t)
 
 class (LinearMappable a b, N a ~ N b) => AffineMappable a b where
-  amap :: (Additive (V b), Num (N b)) => AffineMap (V a) (V b) (N b) -> a -> b
+  amap :: (Additive (V a), Foldable (V a), Additive (V b), Num (N b))
+       => AffineMap (V a) (V b) (N b) -> a -> b
   amap (AffineMap f _) = lmap f
   {-# INLINE amap #-}
 
-instance AffineMappable (Offset c v n) (Offset c u n)
-instance AffineMappable (Segment c v n) (Segment c u n)
-instance (Metric v, Metric u, OrderedField n) => AffineMappable (SegTree v n) (SegTree u n)
-instance (Metric v, Metric u, OrderedField n) => AffineMappable (Trail' l v n) (Trail' l u n)
-instance (Metric v, Metric u, OrderedField n) => AffineMappable (Trail v n) (Trail u n)
+instance r ~ Offset c u n => AffineMappable (Offset c v n) r
+instance r ~ Segment c u n => AffineMappable (Segment c v n) r
+instance (Metric v, Metric u, OrderedField n, r ~ SegTree u n) => AffineMappable (SegTree v n) r
+instance (Metric v, Metric u, OrderedField n, r ~ Trail' l u n) => AffineMappable (Trail' l v n) r
+instance (Metric v, Metric u, OrderedField n, r ~ Trail u n) => AffineMappable (Trail v n) r
 
-instance AffineMappable (Point v n) (Point u n) where
-  amap (AffineMap f v) (P p) = P (lapply f p ^+^ v)
+instance (Additive v, Foldable v, Num n, r ~ Point u n) => AffineMappable (Point v n) r where
+  amap (AffineMap f v) p = lmap f p .+^ v
   {-# INLINE amap #-}
 
-instance AffineMappable (FixedSegment v n) (FixedSegment u n) where
+instance r ~ FixedSegment u n => AffineMappable (FixedSegment v n) r where
   amap m (FLinear p0 p1)      = FLinear (amap m p0) (amap m p1)
   amap m (FCubic p0 p1 p2 p3) = FCubic (amap m p0) (amap m p1) (amap m p2) (amap m p3)
   {-# INLINE amap #-}
 
-instance AffineMappable a b => AffineMappable (Located a) (Located b) where
-  amap m (Loc p x) = Loc (amap m p) (amap m x)
+instance (LinearMappable a b, N a ~ N b, r ~ Located b) => AffineMappable (Located a) r where
+  amap m@(AffineMap l _) (Loc p x) = Loc (amap m p) (lmap l x)
   {-# INLINE amap #-}
 
-instance (Metric v, Metric u, OrderedField n)
-    => AffineMappable (Path v n) (Path u n) where
+instance (Metric v, Metric u, OrderedField n, r ~ Path u n)
+    => AffineMappable (Path v n) r where
   amap m = _Wrapped . mapped %~ amap m
   {-# INLINE amap #-}
 
