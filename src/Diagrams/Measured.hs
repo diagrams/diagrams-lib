@@ -1,6 +1,5 @@
 module Diagrams.Measured where
 
-import Data.Functor
 import Data.Semigroup
 import Data.Monoid.Coproduct
 import Data.Typeable

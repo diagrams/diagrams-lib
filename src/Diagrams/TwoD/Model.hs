@@ -1,6 +1,8 @@
 {-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE ViewPatterns          #-}
 {-# LANGUAGE TypeFamilies          #-}
 -----------------------------------------------------------------------------
 -- |
@@ -18,13 +20,26 @@ module Diagrams.TwoD.Model
          showOrigin
        , showOrigin'
        , OriginOpts(..), oColor, oMeasure
+
+         -- * Approximating the envelope
        , showEnvelope
        , showEnvelope'
        , EnvelopeOpts(..), eColor, eLineWidth, ePoints
+
+         -- * Approximating the trace
        , showTrace
        , showTrace'
        , TraceOpts(..), tColor, tScale, tMinSize, tPoints
+
+         -- * Show labels
        , showLabels
+
+         -- * Path control points
+       , illustratePath, illustratePath'
+       , IllustratePathOpts (..)
+       , endPtStyle, endPtVisible, endPtMeasure
+       , ctrlPtStyle, ctrlPtVisible, ctrlPtMeasure
+       , ctrlLnStyle
        ) where
 
 import           Control.Arrow            (second)
@@ -35,11 +50,14 @@ import           Data.Default.Class
 import qualified Data.Map                 as M
 import           Data.Maybe               (catMaybes)
 import           Data.Semigroup
+import           Data.Foldable            (foldMap)
 import           Data.Functor
 
 import           Diagrams.Attributes
 import           Diagrams.Combinators     (atPoints)
 import           Diagrams.Core
+import           Diagrams.Segment
+import           Diagrams.TrailLike
 import           Diagrams.CubicSpline
 import           Diagrams.Measured
 import           Diagrams.Path
@@ -48,7 +66,7 @@ import           Diagrams.TwoD.Ellipse
 import           Diagrams.TwoD.Path      (strokeP)
 import           Diagrams.TwoD.Text
 import           Diagrams.TwoD.Transform (rotateBy)
-import           Diagrams.TwoD.Types
+import           Diagrams.TwoD.Types     (V2 (..))
 import           Diagrams.TwoD.Vector    (unitX)
 import           Diagrams.Util
 
@@ -114,7 +132,6 @@ showEnvelope' opts d = cubicSpline True pts # lc (opts^.eColor)
     inc = 1 / fromIntegral (opts^.ePoints)
     top = 1 - inc
 
-
 -- | Mark the envelope with an approximating cubic spline
 --   using 32 points, medium line width and red line color.
 showEnvelope :: (Enum n, TypeableFloat n, Renderable (Path V2 n) b)
@@ -177,3 +194,62 @@ showLabels d =
              fmap (const (Any False)) d
   where
     SubMap m = d^.subMap
+
+------------------------------------------------------------
+-- Labeling path control points
+------------------------------------------------------------
+
+data IllustratePathOpts n =
+  IllustratePathOpts
+    { _endPtStyle    :: Style V2 n
+    , _endPtMeasure  :: Measure n
+    , _endPtVisible  :: Bool
+    , _ctrlPtStyle   :: Style V2 n
+    , _ctrlLnStyle   :: Style V2 n
+    , _ctrlPtMeasure :: Measure n
+    , _ctrlPtVisible :: Bool
+    }
+
+makeLenses ''IllustratePathOpts
+
+instance TypeableFloat n => Default (IllustratePathOpts n) where
+  def = IllustratePathOpts
+    { _endPtStyle    = mempty # fc orange
+    , _endPtMeasure  = output 4
+    , _endPtVisible  = True
+    , _ctrlPtStyle   = mempty # fc dodgerblue # lw ultraThin
+    , _ctrlLnStyle   = mempty # lw thin # fc grey
+    , _ctrlPtMeasure = output 3
+    , _ctrlPtVisible = True
+    }
+
+drawSegs
+  :: (TypeableFloat n, Renderable (Path V2 n) b)
+  => IllustratePathOpts n -> [FixedSegment V2 n] -> QDiagram b V2 n Any
+drawSegs opts segs
+  = foldMap (place endPt) ends             # applyStyle (opts^.endPtStyle)
+ <> foldMap (place ctrlPt) (map snd ctrls) # applyStyle (opts^.ctrlPtStyle)
+ <> foldMap (uncurry (~~)) ctrls           # applyStyle (opts^.ctrlLnStyle)
+  where
+    endPt  = measuredDiagram $ circle <$> opts^.endPtMeasure
+    ctrlPt = measuredDiagram $ circle <$> opts^.ctrlPtMeasure
+    --
+    ends  | opts^.endPtVisible  = map getEnd segs
+          | otherwise           = []
+    ctrls | opts^.ctrlPtVisible = foldMap getCtrl segs
+          | otherwise           = []
+    --
+    getEnd (FLinear _ p1)        = p1
+    getEnd (FCubic _ _ _ p3)     = p3
+    getCtrl (FCubic p0 p1 p2 p3) = [(p0, p1), (p3,p2)]
+    getCtrl _                    = []
+
+illustratePath :: (Renderable (Path V2 n) b, TypeableFloat n)
+               => Path V2 n -> QDiagram b V2 n Any
+illustratePath = illustratePath' def
+
+illustratePath' :: (Renderable (Path V2 n) b, TypeableFloat n)
+                => IllustratePathOpts n -> Path V2 n -> QDiagram b V2 n Any
+illustratePath' opts p
+  = strokeP p <> (drawSegs opts . concat . fixPath . toPath) p
+
