@@ -1,36 +1,9 @@
-{-# LANGUAGE ConstraintKinds            #-}
-{-# LANGUAGE FlexibleContexts           #-}
-{-# LANGUAGE FlexibleInstances          #-}
-{-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE RankNTypes                 #-}
-{-# LANGUAGE TypeFamilies               #-}
-
-module Diagrams.ThreeD.Projection
-  ( -- * Orthographic projections
-
-    -- $orthographic
-    -- ** Parallel projections
-    facingXY
-  , facingXZ
-  , facingYZ
-
-    -- ** Isometric projections
-  , isometricApply
-  , isometric
-
-  , lookingAt
-
-    -- ** Affine maps
-  , m44AffineApply
-  , m44AffineMap
-  , m33AffineApply
-  , m33AffineMap
-
-   -- * Perspective projections
-   -- ** Perspective deformations
-  , m44Deformation
-  , module Linear.Projection
-  ) where
+{-# LANGUAGE ConstraintKinds       #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE TypeFamilies          #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -42,23 +15,58 @@ module Diagrams.ThreeD.Projection
 -- 3D projections are a way of viewing a three-dimensional objects on a
 -- two-dimensional plane.
 --
--- This module can be used with the functions in "Linear.Project".
+-- This module can be used with the functions in "Linear.Projection".
+--
+-- Disclaimer: This module should be considered experimental and is
+-- likely to change.
 --
 -----------------------------------------------------------------------------
 
-import           Control.Lens       hiding (transform)
+module Diagrams.ThreeD.Projection
+  ( -- * Orthographic projections
+
+    -- $orthographic
+    -- ** Parallel projections
+    facingXY
+  , facingXZ
+  , facingYZ
+
+    -- ** axonometric
+    -- $axonometric
+
+    -- *** Isometric projections
+    -- $isometric
+  , isometricApply
+  , isometric
+
+  , lookingAt
+
+    -- ** Affine maps
+  , m44AffineApply
+  , m44AffineMap
+  , m33AffineApply
+  , m33AffineMap
+
+    -- * Perspective projections
+    -- $perspective
+    -- ** Perspective deformations
+  , m44Deformation
+  , module Linear.Projection
+  ) where
+
+import           Control.Lens           hiding (transform)
 import           Data.Functor.Rep
 
 import           Diagrams.Core
 import           Diagrams.Deform
 import           Diagrams.Direction
 import           Diagrams.LinearMap
+import           Diagrams.ThreeD.Types  (P3)
 import           Diagrams.ThreeD.Vector
-import           Diagrams.ThreeD.Types (P3)
 
-import           Linear             as L
-import           Linear.Projection
+import           Linear                 as L
 import           Linear.Affine
+import           Linear.Projection
 
 ------------------------------------------------------------------------
 -- Orthographic projections
