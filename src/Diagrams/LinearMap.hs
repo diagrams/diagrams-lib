@@ -1,31 +1,39 @@
+{-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE ImpredicativeTypes    #-}
-{-# LANGUAGE ConstraintKinds            #-}
-{-# LANGUAGE FunctionalDependencies            #-}
-{-# LANGUAGE FlexibleInstances            #-}
-{-# LANGUAGE UndecidableInstances            #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE UndecidableInstances  #-}
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  Diagrams.ThreeD.Projection
+-- Copyright   :  (c) 2014 diagrams team (see LICENSE)
+-- License     :  BSD-style (see LICENSE)
+-- Maintainer  :  diagrams-discuss@googlegroups.com
+--
+-- Linear maps. Unlike 'Transformation's these are not restricted to the
+-- same space. In practice these are used for projections in
+-- "Diagrams.ThreeD.Projection".
+--
+-----------------------------------------------------------------------------
+
 module Diagrams.LinearMap where
 
--- import           Control.Applicative
 import           Control.Lens            hiding (lmap)
 import           Data.FingerTree         as FT
 import           Data.Foldable           (Foldable)
--- import           Data.Semigroup
 
 import           Diagrams.Core
 import           Diagrams.Core.Transform
 import           Diagrams.Located
 import           Diagrams.Path
 import           Diagrams.Segment
--- import           Diagrams.Transform.Matrix
 import           Diagrams.Trail          hiding (offset)
 
 import           Linear.Affine
--- import           Linear.Matrix
 import           Linear.Metric
 import           Linear.Vector
 
@@ -33,38 +41,16 @@ import           Linear.Vector
 -- | Type for holding linear maps. Note that these are not affine transforms so
 --   attemping apply a translation with 'LinearMap' will likely produce incorrect
 --   results.
--- data LinearMap v u n = LinearMap (v (v n)) (PlaneLens v u)
 newtype LinearMap v u n = LinearMap { lapply :: v n -> u n }
 
 toLinearMap :: Transformation v n -> LinearMap v v n
 toLinearMap (Transformation (m :-: _) _ _) = LinearMap m
 
--- | Lens onto the plane LinearMap is mapped to. This is usually '_xy',
---   '_xz' or '_xz'. Can also be 'id' to stay in same space.
-type PlaneLens v u = forall x. Lens' (v x) (u x)
-
--- mapProj :: Lens (LinearMap v u n) (LinearMap v w n)
---                 (PlaneLens v u) (PlaneLens v w)
--- mapProj f (LinearMap m l) = LinearMap m <$> f l
-
--- keep projection first second map
--- instance (Additive v, Foldable v, Num n) => Semigroup (LinearMap v u n) where
---   (LinearMap f l) <> (LinearMap g _) = LinearMap (f !*! g) l
-
-
--- toLinearMap :: (HasBasis v, Num n)
---             => Transformation v n -> PlaneLens v u -> LinearMap v u n
--- toLinearMap t = LinearMap (mkMat t)
-
--- -- | LinearMap compose.
--- (*.*) :: LinearMap v w n -> LinearMap u v n -> LinearMap u w n
--- LinearMap vw *.* LinearMap uv = LinearMap (vw . uv)
-
 -- | Traversal over all the vmap of an object.
 class LinearMappable a b where
   vmap :: (Vn a -> Vn b) -> a -> b
-  -- this uses a function instead of LinearMap so we can also use this class to
-  -- change number types
+  -- this uses a function instead of LinearMap so we can also use this
+  -- class to change number types
 
 -- Note: instances need to be of the form
 --
@@ -76,7 +62,6 @@ class LinearMappable a b where
 -- | Apply a linear map.
 lmap :: (InSpace v n a, Foldable v, LinearMappable a b, N b ~ n)
      => LinearMap v (V b) n -> a -> b
--- lmap (LinearMap mat l) = vmap $ view l . (mat !*)
 lmap = vmap . lapply
 
 instance r ~ Offset c u m => LinearMappable (Offset c v n) r where
@@ -129,8 +114,9 @@ instance (Metric v, Metric u, OrderedField n, OrderedField m, r ~ Path u m)
 --   invertable so we can map between spaces.
 data AffineMap v u n = AffineMap (LinearMap v u n) (u n)
 
--- mkAffineMap :: (v n -> u n) -> u n -> AffineMap v u n
--- mkAffineMap f = AffineMap (LinearMap f)
+-- | Make an affine map from a linear function and a translation.
+mkAffineMap :: (v n -> u n) -> u n -> AffineMap v u n
+mkAffineMap f = AffineMap (LinearMap f)
 
 toAffineMap :: (HasBasis v, Num n)
             => Transformation v n -> AffineMap v v n
