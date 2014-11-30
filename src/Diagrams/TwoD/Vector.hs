@@ -50,7 +50,7 @@ unit_Y = zero & _y .~ (-1)
 xDir :: (R1 v, Additive v, Num n) => Direction v n
 xDir = dir unitX
 
--- | A 'Direction' pointing in the X direction.
+-- | A 'Direction' pointing in the Y direction.
 yDir :: (R2 v, Additive v, Num n) => Direction v n
 yDir = dir unitY
 

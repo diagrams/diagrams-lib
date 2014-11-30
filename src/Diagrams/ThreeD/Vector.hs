@@ -30,6 +30,6 @@ unitZ = zero & _z .~ 1
 unit_Z :: (R3 v, Additive v, Num n) => v n
 unit_Z = zero & _z .~ (-1)
 
--- | A 'Direction' pointing in the X direction.
+-- | A 'Direction' pointing in the Z direction.
 zDir :: (R3 v, Additive v, Num n) => Direction v n
 zDir = dir unitZ
