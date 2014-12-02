@@ -163,5 +163,3 @@ m44Deformation :: Fractional n => M44 n -> Deformation V3 V2 n
 m44Deformation m =
   Deformation (P . view _xy . normalizePoint . (m !*) . point . view _Point)
 
-
-

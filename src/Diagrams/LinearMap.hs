@@ -9,7 +9,7 @@
 {-# LANGUAGE UndecidableInstances  #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Diagrams.ThreeD.Projection
+-- Module      :  Diagrams.LinearMap
 -- Copyright   :  (c) 2014 diagrams team (see LICENSE)
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
@@ -120,7 +120,6 @@ mkAffineMap f = AffineMap (LinearMap f)
 
 toAffineMap :: (HasBasis v, Num n)
             => Transformation v n -> AffineMap v v n
--- toAffineMap t = AffineMap (toLinearMap t id) (transl t)
 toAffineMap t = AffineMap (toLinearMap t) (transl t)
 
 class (LinearMappable a b, N a ~ N b) => AffineMappable a b where
