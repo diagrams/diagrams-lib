@@ -13,6 +13,8 @@ module Diagrams.TwoD.Decorations
     RoundCorners
   , roundCorners
   , roundCorners'
+  , roundingCorners
+  , roundingCorners'
   , roundingRadii
   ) where
 
@@ -37,7 +39,9 @@ import           Linear.Vector
 -- Rounded corners
 ------------------------------------------------------------------------
 
--- In the future this will likely change to have more options
+-- | Type that holds parameters for rounding corners. For now this is
+--   just the radius of the arc joining the segments (not exactly true
+--   for cubic segments).
 newtype RoundCorners n = RoundCorners [n]
   deriving Functor
 
@@ -52,6 +56,15 @@ roundCorners = RoundCorners . repeat
 -- | 'RoundCorners' decoration with the chosen rounding radii.
 roundCorners' :: [n] -> RoundCorners n
 roundCorners' = RoundCorners
+
+-- | Round the corners of something 'Morphable'.
+roundingCorners :: (InSpace V2 n t, Morphable t, RealFloat n) => n -> t -> t
+roundingCorners x = morph (roundCorners x)
+
+-- | Round the corners of something 'Morphable' with a list of rounding
+--   radii.
+roundingCorners' :: (InSpace V2 n t, Morphable t, RealFloat n) => [n] -> t -> t
+roundingCorners' xs = morph (roundCorners' xs)
 
 -- | 'Lens'' onto the radii of a 'RoundCorners'.
 roundingRadii :: Lens' (RoundCorners n) [n]
@@ -100,18 +113,18 @@ roundSegmentsLooped _ []    = []
 roundSegmentsLooped xs segs = last ss : init ss
   where (s:ss) = roundSegments xs (segs ++ [s])
 
-instance RealFloat n => Decorating (RoundCorners n) where
-  decLine (RoundCorners xs) = lineFromSegments . roundSegments xs . lineSegments
-  decLoop (RoundCorners xs) = glueLine . lineFromSegments
-                            . roundSegmentsLooped xs
-                            . lineSegments . cutLoop
+instance RealFloat n => Morphing (RoundCorners n) where
+  morphLine (RoundCorners xs) = lineFromSegments . roundSegments xs . lineSegments
+  morphLoop (RoundCorners xs) = glueLine . lineFromSegments
+                              . roundSegmentsLooped xs
+                              . lineSegments . cutLoop
 
 arcInOut :: RealFloat n => Direction V2 n -> Direction V2 n -> Trail V2 n
 arcInOut start end = arc (start & rotate theta) (negateRight $ angleBetweenDirs start end)
   where
     theta = negateLeft quarterTurn
     isLeft = leftTurn (fromDir start) (fromDir end)
-    negateLeft = whenever isLeft negated
+    negateLeft  = whenever isLeft negated
     negateRight = whenever (not isLeft) negated
 
 whenever :: Bool -> (a -> a) -> a -> a
