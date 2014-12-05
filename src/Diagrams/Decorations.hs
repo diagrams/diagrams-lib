@@ -7,22 +7,22 @@
 {-# LANGUAGE MultiParamTypeClasses     #-}
 
 module Diagrams.Decorations
-  ( -- * Decorating class
-    Decorating (..)
-  , decTrail
-  , decLocLine
-  , decLocLoop
-  , decLocTrail
-  , decPath
-  , decToPath
+  ( -- * Morphing class
+    Morphing (..)
+  , morphTrail
+  , morphLocLine
+  , morphLocLoop
+  , morphLocTrail
+  , morphPath
+  , morphToPath
 
-  -- * Decoratable class
-  , Decorateable (..)
+  -- * Morphable class
+  , Morphable (..)
 
-  -- * Decoration type
-  , Decoration (..)
-  , mkDecoration
-  , fromDecorating
+  -- * Morph type
+  , TrailMorph (..)
+  , mkMorph
+  , fromMorphing
   ) where
 
 import           Data.Semigroup
@@ -40,80 +40,80 @@ import           Linear.Metric
 -- Decoration class
 ------------------------------------------------------------------------
 
--- | Class of things that can be used to decorate a trail while
---   preserving its type.
-class Decorating d where
-  decLine :: d -> Trail' Line (V d) (N d) -> Trail' Line (V d) (N d)
-  decLoop :: d -> Trail' Loop (V d) (N d) -> Trail' Loop (V d) (N d)
+-- | Class of things that can be used to morph a trail while preserving
+--   its type (keeping 'Line's 'Line's and 'Loop's 'Loop's).
+class Morphing d where
+  morphLine :: d -> Trail' Line (V d) (N d) -> Trail' Line (V d) (N d)
+  morphLoop :: d -> Trail' Loop (V d) (N d) -> Trail' Loop (V d) (N d)
 
-decTrail :: (InSpace v n d, Decorating d) => d -> Trail v n -> Trail v n
-decTrail d = onTrail (decLine d) (decLoop d)
+morphTrail :: (InSpace v n d, Morphing d) => d -> Trail v n -> Trail v n
+morphTrail d = onTrail (morphLine d) (morphLoop d)
 
-decLocLine :: (InSpace v n d, Decorating d)
+morphLocLine :: (InSpace v n d, Morphing d)
            => d -> Located (Trail' Line v n) -> Located (Trail' Line v n)
-decLocLine d = mapLoc (decLine d)
+morphLocLine d = mapLoc (morphLine d)
 
-decLocLoop :: (InSpace v n d, Decorating d)
+morphLocLoop :: (InSpace v n d, Morphing d)
            => d -> Located (Trail' Loop v n) -> Located (Trail' Loop v n)
-decLocLoop d = mapLoc (decLoop d)
+morphLocLoop d = mapLoc (morphLoop d)
 
-decLocTrail :: (InSpace v n d, Decorating d)
+morphLocTrail :: (InSpace v n d, Morphing d)
             => d -> Located (Trail v n) -> Located (Trail v n)
-decLocTrail d = mapLoc (decTrail d)
+morphLocTrail d = mapLoc (morphTrail d)
 
-decPath :: (InSpace v n d, Decorating d) => d -> Path v n -> Path v n
-decPath d = each %~ decLocTrail d
+morphPath :: (InSpace v n d, Morphing d) => d -> Path v n -> Path v n
+morphPath d = each %~ morphLocTrail d
 
-decToPath :: (InSpace v n d, SameSpace d t, Decorating d, ToPath t, Metric v, OrderedField n) => d -> t -> Path v n
-decToPath d = decPath d . toPath
+morphToPath :: (InSpace v n d, SameSpace d t, Morphing d, ToPath t, Metric v, OrderedField n) => d -> t -> Path v n
+morphToPath d = morphPath d . toPath
 
 ------------------------------------------------------------------------
--- Decorateable class
+-- Morphable class
 ------------------------------------------------------------------------
 
 -- | Class of things that can be decorated while preserving type.
-class Decorateable t where
-  decorate :: (SameSpace d t, Decorating d) => d -> t -> t
+class Morphable t where
+  morph :: (SameSpace d t, Morphing d) => d -> t -> t
 
-instance (Additive v, Num n) => Decorateable (Trail' l v n) where
-  decorate d t@(Line _)   = decLine d t
-  decorate d t@(Loop _ _) = decLoop d t
+instance (Additive v, Num n) => Morphable (Trail' l v n) where
+  morph d t@(Line _)   = morphLine d t
+  morph d t@(Loop _ _) = morphLoop d t
 
-instance (Additive v, Num n) => Decorateable (Trail v n) where
-  decorate = decTrail
+instance (Additive v, Num n) => Morphable (Trail v n) where
+  morph = morphTrail
 
-instance Decorateable t => Decorateable (Located t) where
-  decorate d = mapLoc (decorate d)
+instance Morphable t => Morphable (Located t) where
+  morph d = mapLoc (morph d)
 
-instance (Additive v, Num n) => Decorateable (Path v n) where
-  decorate = decPath
+instance (Additive v, Num n) => Morphable (Path v n) where
+  morph = morphPath
 
 ------------------------------------------------------------------------
 -- Decorateable type
 ------------------------------------------------------------------------
 
 -- | General decoration type. Useful for composing decorations.
-data Decoration v n =
-  D (Trail' Line v n -> Trail' Line v n)
+data TrailMorph v n =
+  M (Trail' Line v n -> Trail' Line v n)
     (Trail' Loop v n -> Trail' Loop v n)
 
-type instance V (Decoration v n) = v
-type instance N (Decoration v n) = n
+type instance V (TrailMorph v n) = v
+type instance N (TrailMorph v n) = n
 
-instance Semigroup (Decoration v n) where
-  D f1 g1 <> D f2 g2 = D (f1 . f2) (g1 . g2)
+instance Semigroup (TrailMorph v n) where
+  M f1 g1 <> M f2 g2 = M (f1 . f2) (g1 . g2)
 
-instance Monoid (Decoration v n) where
+instance Monoid (TrailMorph v n) where
   mappend = (<>)
-  mempty  = D id id
+  mempty  = M id id
 
-instance InSpace v n (v n) => Decorating (Decoration v n) where
-  decLine (D f _) = f
-  decLoop (D _ g) = g
+instance InSpace v n (v n) => Morphing (TrailMorph v n) where
+  morphLine (M f _) = f
+  morphLoop (M _ g) = g
 
-mkDecoration :: (Trail' Line v n -> Trail' Line v n) -> (Trail' Loop v n -> Trail' Loop v n) -> Decoration v n
-mkDecoration = D
+mkMorph :: (Trail' Line v n -> Trail' Line v n) -> (Trail' Loop v n -> Trail' Loop v n) -> TrailMorph v n
+mkMorph = M
 
-fromDecorating :: (InSpace v n d, Decorating d) => d -> Decoration v n
-fromDecorating d = D (decLine d) (decLoop d)
+fromMorphing :: (InSpace v n d, Morphing d) => d -> TrailMorph v n
+fromMorphing d = M (morphLine d) (morphLoop d)
 
