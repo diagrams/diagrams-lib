@@ -5,7 +5,23 @@
 {-# LANGUAGE GADTs                     #-}
 {-# LANGUAGE TypeFamilies              #-}
 {-# LANGUAGE MultiParamTypeClasses     #-}
-
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  Diagrams.Decorations
+-- Copyright   :  (c) 2014 diagrams-lib team (see LICENSE)
+-- License     :  BSD-style (see LICENSE)
+-- Maintainer  :  diagrams-discuss@googlegroups.com
+--
+-- There are two main kinds of \"decorations\". The first are called
+-- \"Morphs\". These 'morph' trail-like objects, preserving whether
+-- the 'Trail' is a 'Line' or a 'Loop'. These are useful because they can
+-- be implemented by the 'Morphing' class to work in many different
+-- types.
+--
+-- The other kind of decorations take a path and return whatever they
+-- like (usually a 'Diagram' or 'Path') using that path.
+--
+-----------------------------------------------------------------------------
 module Diagrams.Decorations
   ( -- * Morphing class
     Morphing (..)
@@ -67,9 +83,9 @@ morphPath d = each %~ morphLocTrail d
 morphToPath :: (InSpace v n d, SameSpace d t, Morphing d, ToPath t, Metric v, OrderedField n) => d -> t -> Path v n
 morphToPath d = morphPath d . toPath
 
-------------------------------------------------------------------------
+-------------------
 -- Morphable class
-------------------------------------------------------------------------
+-------------------
 
 -- | Class of things that can be decorated while preserving type.
 class Morphable t where
@@ -88,9 +104,9 @@ instance Morphable t => Morphable (Located t) where
 instance (Additive v, Num n) => Morphable (Path v n) where
   morph = morphPath
 
-------------------------------------------------------------------------
--- Decorateable type
-------------------------------------------------------------------------
+------------------
+-- Morphable type
+------------------
 
 -- | General decoration type. Useful for composing decorations.
 data TrailMorph v n =
@@ -116,4 +132,10 @@ mkMorph = M
 
 fromMorphing :: (InSpace v n d, Morphing d) => d -> TrailMorph v n
 fromMorphing d = M (morphLine d) (morphLoop d)
+
+------------------------------------------------------------------------
+-- Decorations
+------------------------------------------------------------------------
+
+-- todo
 
