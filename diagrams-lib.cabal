@@ -33,6 +33,7 @@ Library
                        Diagrams.Attributes,
                        Diagrams.Attributes.Compile,
                        Diagrams.Backend.CmdLine,
+                       Diagrams.Backend.Build,
                        Diagrams.BoundingBox,
                        Diagrams.Combinators,
                        Diagrams.Coordinates,
