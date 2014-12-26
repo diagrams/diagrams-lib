@@ -1,6 +1,5 @@
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE GADTs                #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies         #-}

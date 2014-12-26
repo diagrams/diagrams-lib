@@ -1,4 +1,3 @@
-{-# LANGUAGE ConstraintKinds            #-}
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
