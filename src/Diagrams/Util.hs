@@ -10,23 +10,42 @@
 -----------------------------------------------------------------------------
 
 module Diagrams.Util
-       ( -- * Utilities for users
+  ( -- * Utilities for users
 
-         with
-       , applyAll
-       , (#)
+    with
+  , applyAll
+  , (#)
 
-       , iterateN
+  , iterateN
 
-       , tau
+  , tau
 
-         -- * Internal utilities
-       , foldB
+    -- * Finding sandboxes
+  , findSandbox
+  , ghcPackagePath
 
-       ) where
+    -- * Internal utilities
+  , foldB
+
+  ) where
 
 import           Data.Default.Class
 import           Data.Monoid
+
+import           Control.Applicative
+import           Control.Lens              hiding (( # ))
+import           Control.Monad
+import           Control.Monad.Catch
+import           Control.Monad.Trans
+import           Control.Monad.Trans.Maybe
+import           Data.List
+import           Data.List.Lens
+import           Data.Maybe
+import           System.Directory
+import           System.Environment
+import           System.FilePath
+import           System.FilePath.Lens
+import           System.Process
 
 -- | Several functions exported by the diagrams library take a number
 --   of arguments giving the user control to \"tweak\" various aspects
@@ -102,3 +121,107 @@ foldB f _ as = foldB' as
         go []         = []
         go [x]        = [x]
         go (x1:x2:xs) = f x1 x2 : go xs
+
+------------------------------------------------------------------------
+-- Sandbox
+------------------------------------------------------------------------
+
+-- | Parse cabal config file to find the location of the package
+--   database.
+parseConfig :: FilePath -> MaybeT IO FilePath
+parseConfig file = do
+  config <- maybeIO $ readFile file
+  hoistMaybe $ config ^? lined . prefixed "package-db: "
+
+-- | Seach the given directory and all parent directories until a cabal
+--   config file is found. First search for \"cabal.config\", then
+--   \"cabal.sandbox.config\". Return the location of the package
+--   database in the config file.
+configSearch :: FilePath -> MaybeT IO FilePath
+configSearch p0 = do
+  p0' <- maybeIO $ canonicalizePath p0
+
+  let mkPaths p
+        | all isPathSeparator p || p == "."
+                    = []
+        | otherwise = map (p </>) ["cabal.config", "cabal.sandbox.config"]
+                   ++ mkPaths (p ^. directory)
+
+  foldMaybeT parseConfig (mkPaths p0')
+
+-- | Check if the folder is a database, or if it contains a database.
+--   Returns the database location if it's found.
+isDB :: FilePath -> MaybeT IO FilePath
+isDB path =
+  if isConf path
+    then return path
+    else maybeIO (getDirectoryContents path) >>= hoistMaybe . find isConf
+    where
+      isConf = isSuffixOf ".conf.d"
+
+-- | Search for a sandbox in the following order:
+--
+--   * Test given FilePaths if they point directly to a database or
+--     contain a cabal config file (or any parent directory containing a
+--     config file).
+--
+--   * Same test for @DIAGRAMS_SANDBOX@ environment value
+--
+--   * Environment values of @GHC_PACKAGE_PATH@, @HSENV@ and
+--     @PACKAGE_DB_FOR_GHC@ that point to a database.
+--
+--   * Test for config file in current directory (or any parents).
+--
+findSandbox :: [FilePath] -> IO (Maybe FilePath)
+findSandbox paths = runMaybeT $ pathsTest <|> diaSB <|> envDB <|> wdConfig
+  where
+    lookEnv = MaybeT . lookupEnv
+    ghcPkg  = lookEnv "GHC_PACKAGE_PATH"
+    hsenv   = lookEnv "HSENV"
+    pkgDB   = lookEnv "PACKAGE_DB_FOR_GHC"
+    envDB   = ghcPkg <|> hsenv <|> pkgDB
+
+    -- test if path points directly to db or contains a config file
+    test x    = isDB x <|> configSearch x
+    pathsTest = foldMaybeT test paths
+    diaSB     = lookEnv "DIAGRAMS_SANDBOX" >>= test
+    wdConfig  = maybeIO getCurrentDirectory >>= configSearch
+
+-- | Use the given path for the sandbox in the @GHC_PACKAGE_PATH@
+--   environment (appending the ghc global package database from @ghc
+--   --info@. @GHC_PACKAGE_PATH@ if the variable ghc and other tools use
+--   to find the package database. (This is what @cabal exec@ sets)
+ghcPackagePath :: FilePath -> IO ()
+ghcPackagePath db = do
+  gdb <- globalPackage
+  let dbs = intercalate [searchPathSeparator] [db,gdb]
+  setEnv "GHC_PACKAGE_PATH" dbs
+
+-- MaybeT utilities
+
+-- | Lift an 'IO' action. If any exceptions are raised, return Nothing.
+maybeIO :: (MonadCatch m, MonadIO m) => IO a -> MaybeT m a
+maybeIO io = liftIO io `catchAll` const mzero
+
+-- | Lift a maybe value to a MaybeT of any monad.
+hoistMaybe :: Monad m => Maybe a -> MaybeT m a
+hoistMaybe = MaybeT . return
+
+-- | Fold a list of 'MaybeT's that short-circuits as soon as a Just value
+--   is found (instead going through the whole list).
+foldMaybeT :: Monad m => (a -> MaybeT m b) -> [a] -> MaybeT m b
+foldMaybeT _ []     = mzero
+foldMaybeT f (a:as) = MaybeT $ do
+  x <- runMaybeT (f a)
+  if isJust x
+    then return x
+    else runMaybeT (foldMaybeT f as)
+
+-- | Find ghc's global package database. Throws in error if it isn't
+--   found.
+globalPackage :: IO FilePath
+globalPackage = do
+  info <- read <$> readProcess "ghc" ["--info"] ""
+  return $ fromMaybe (error "Unable to parse ghc --info.")
+                     (lookup "Global Package DB" info)
+
