@@ -580,12 +580,12 @@ defaultLoopRender opts = when (opts ^. loop) $ do
                      ++ "Specify source file with '-s' or '--src'")
   srcPath' <- canonicalizePath srcPath
 
-  sandbox <- findSandbox []
-  case sandbox of
-    Nothing -> return ()
+  sandbox     <- findSandbox []
+  sandboxArgs <- case sandbox of
+    Nothing -> return []
     Just sb -> do
-      ghcPackagePath sb
       putStrLn ("Using sandbox " ++ takeDirectory sb)
+      return ["-package-db", sb]
 
   let srcFilePath = fromText $ T.pack srcPath'
       args'       = delete "-l" . delete "--loop" $ args
@@ -600,7 +600,7 @@ defaultLoopRender opts = when (opts ^. loop) $ do
              (existsEvents (== srcFilePath))
              -- Call the new program without the looping option
              (\ev -> putStrF ("Modified " ++ show (eventTime ev) ++ " ... ")
-                 >> recompile srcPath newProg >>= run newProg args')
+                  >> recompile srcPath newProg sandboxArgs >>= run newProg args')
       putStrLn $ "Watching source file " ++ srcPath
       putStrLn $ "Compiling target: " ++ newProg
       putStrLn $ "Program args: " ++ unwords args'
@@ -609,9 +609,9 @@ defaultLoopRender opts = when (opts ^. loop) $ do
         "darwin" -> 5000000000000
         _        -> maxBound
 
-recompile :: FilePath -> FilePath -> IO ExitCode
-recompile srcFile outFile = do
-  let ghcArgs = ["--make", srcFile, "-o", outFile]
+recompile :: FilePath -> FilePath -> [String] -> IO ExitCode
+recompile srcFile outFile args = do
+  let ghcArgs = ["--make", srcFile, "-o", outFile] ++ args
   putStrF "compiling ... "
   (exit, _, stderr) <- readProcessWithExitCode "ghc" ghcArgs ""
   when (exit /= ExitSuccess) $ putStrLn ('\n':stderr)

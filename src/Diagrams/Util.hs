@@ -22,7 +22,7 @@ module Diagrams.Util
 
     -- * Finding sandboxes
   , findSandbox
-  , ghcPackagePath
+  , globalPackage
 
     -- * Internal utilities
   , foldB
@@ -175,11 +175,9 @@ isDB path =
 findSandbox :: [FilePath] -> IO (Maybe FilePath)
 findSandbox paths = runMaybeT $ pathsTest <|> diaSB <|> envDB <|> wdConfig
   where
-    lookEnv = MaybeT . lookupEnv
-    ghcPkg  = lookEnv "GHC_PACKAGE_PATH"
-    hsenv   = lookEnv "HSENV"
-    pkgDB   = lookEnv "PACKAGE_DB_FOR_GHC"
-    envDB   = ghcPkg <|> hsenv <|> pkgDB
+    -- first path in environment
+    lookEnv = MaybeT . (fmap . fmap) (head . splitSearchPath) . lookupEnv
+    envDB   = foldMaybeT lookEnv ["GHC_PACKAGE_PATH", "HSENV", "PACKAGE_DB_FOR_GHC"]
 
     -- test if path points directly to db or contains a config file
     test x    = isDB x <|> configSearch x
@@ -191,11 +189,22 @@ findSandbox paths = runMaybeT $ pathsTest <|> diaSB <|> envDB <|> wdConfig
 --   environment (appending the ghc global package database from @ghc
 --   --info@. @GHC_PACKAGE_PATH@ if the variable ghc and other tools use
 --   to find the package database. (This is what @cabal exec@ sets)
-ghcPackagePath :: FilePath -> IO ()
-ghcPackagePath db = do
-  gdb <- globalPackage
-  let dbs = intercalate [searchPathSeparator] [db,gdb]
-  setEnv "GHC_PACKAGE_PATH" dbs
+-- ghcPackagePath :: FilePath -> IO ()
+-- ghcPackagePath db = do
+--   gdb <- globalPackage
+--   let dbs = intercalate [searchPathSeparator] [db,gdb]
+--   setEnv "GHC_PACKAGE_PATH" dbs
+--
+-- setEnv is only in base > 4.7, either need to use setenv package or
+-- -package-db flag
+
+-- | Find ghc's global package database. Throws an error if it isn't
+--   found.
+globalPackage :: IO FilePath
+globalPackage = do
+  info <- read <$> readProcess "ghc" ["--info"] ""
+  return $ fromMaybe (error "Unable to parse ghc --info.")
+                     (lookup "Global Package DB" info)
 
 -- MaybeT utilities
 
@@ -216,12 +225,4 @@ foldMaybeT f (a:as) = MaybeT $ do
   if isJust x
     then return x
     else runMaybeT (foldMaybeT f as)
-
--- | Find ghc's global package database. Throws in error if it isn't
---   found.
-globalPackage :: IO FilePath
-globalPackage = do
-  info <- read <$> readProcess "ghc" ["--info"] ""
-  return $ fromMaybe (error "Unable to parse ghc --info.")
-                     (lookup "Global Package DB" info)
 
