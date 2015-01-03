@@ -16,12 +16,17 @@
 --
 -----------------------------------------------------------------------------
 module Diagrams.Tangent
-    ( tangentAtParam
+    ( -- ** Tangents
+      tangentAtParam
     , tangentAtStart
     , tangentAtEnd
-    -- , normalAtParam
-    -- , normalAtStart
-    -- , normalAtEnd
+
+      -- ** Normals
+    , normalAtParam
+    , normalAtStart
+    , normalAtEnd
+
+      -- ** Tangent newtype
     , Tangent(..)
     )
     where
@@ -32,6 +37,8 @@ import           Diagrams.Parametric
 import           Diagrams.Segment
 
 import           Linear.Vector
+import           Linear.Metric
+import           Linear.V2
 
 ------------------------------------------------------------
 -- Tangent
@@ -43,12 +50,11 @@ newtype Tangent t = Tangent t
 
 type instance V (Tangent t) = V t
 type instance N (Tangent t) = N t
+type instance Codomain (Tangent t) = V t
 
 instance DomainBounds t => DomainBounds (Tangent t) where
   domainLower (Tangent t) = domainLower t
   domainUpper (Tangent t) = domainUpper t
-
-type instance Codomain (Tangent (Located t)) = Codomain (Tangent t)
 
 instance Parametric (Tangent t) => Parametric (Tangent (Located t)) where
   Tangent l `atParam` p = Tangent (unLoc l) `atParam` p
@@ -63,11 +69,11 @@ instance (DomainBounds t, EndValues (Tangent t))
 --
 --   Examples of more specific types this function can have include
 --
---   * @Segment Closed R2 -> Double -> R2@
+--   * @Segment Closed V2 -> Double -> V2 Double@
 --
---   * @Trail' Line R2 -> Double -> R2@
+--   * @Trail' Line V2 -> Double -> V2 Double@
 --
---   * @Located (Trail R2) -> Double -> R2@
+--   * @Located (Trail V2) -> Double -> V2 Double@
 --
 --   See the instances listed for the 'Tangent' newtype for more.
 tangentAtParam :: Parametric (Tangent t) => t -> N t -> Codomain (Tangent t) (N t)
@@ -83,8 +89,6 @@ tangentAtEnd = atEnd . Tangent
 
 --------------------------------------------------
 -- Segment
-
-type instance Codomain (Tangent (Segment Closed v n)) = Codomain (Segment Closed v n)
 
 instance (Additive v, Num n)
     => Parametric (Tangent (Segment Closed v n)) where
@@ -108,30 +112,30 @@ instance (Additive v, Num n)
 --
 --   Examples of more specific types this function can have include
 --
---   * @Segment Closed R2 -> Double -> R2@
+--   * @Segment Closed V2 Double -> Double -> V2 Double@
 --
---   * @Trail' Line R2 -> Double -> R2@
+--   * @Trail' Line V2 Double -> Double -> V2 Double@
 --
---   * @Located (Trail R2) -> Double -> P2@
+--   * @Located (Trail V2 Double) -> Double -> V2 Double@
 --
 --   See the instances listed for the 'Tangent' newtype for more.
--- normalAtParam
---   :: (R2Ish (Codomain (Tangent t)), Parametric (Tangent t))
---   => t -> Scalar (V t) -> Codomain (Tangent t)
--- normalAtParam t p = normize (t `tangentAtParam` p)
---
--- -- | Compute the normal vector at the start of a segment or trail.
--- normalAtStart
---   :: (R2Ish (Codomain (Tangent t)), EndValues (Tangent t))
---   => t -> Codomain (Tangent t)
--- normalAtStart = normize . tangentAtStart
---
--- -- | Compute the normal vector at the end of a segment or trail.
--- normalAtEnd
---   :: (R2Ish (Codomain (Tangent t)), EndValues (Tangent t))
---   => t -> Codomain (Tangent t)
--- normalAtEnd = normize . tangentAtEnd
---
+normalAtParam
+  :: (Codomain (Tangent t) ~ V2, Parametric (Tangent t), Floating (N t))
+  => t -> N t -> Codomain (Tangent t) (N t)
+normalAtParam t p = normize (t `tangentAtParam` p)
+
+-- | Compute the normal vector at the start of a segment or trail.
+normalAtStart
+  :: (Codomain (Tangent t) ~ V2, EndValues (Tangent t), Floating (N t))
+  => t -> Codomain (Tangent t) (N t)
+normalAtStart = normize . tangentAtStart
+
+-- | Compute the normal vector at the end of a segment or trail.
+normalAtEnd
+  :: (Codomain (Tangent t) ~ V2, EndValues (Tangent t), Floating (N t))
+  => t -> Codomain (Tangent t) (N t)
+normalAtEnd = normize . tangentAtEnd
+
 -- | Construct a normal vector from a tangent.
--- normize :: (Additive v, Num n) => v n -> v n
--- normize = negated . perp . normalize
+normize :: Floating n => V2 n -> V2 n
+normize = negated . perp . signorm

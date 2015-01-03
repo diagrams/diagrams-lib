@@ -420,8 +420,6 @@ instance (Metric v, OrderedField n, Real n)
                   (\l -> cutLoop l `atParam` mod1 p)
                   t
 
-type instance Codomain (Tangent (Trail' c v n)) = Codomain (Trail' c v n)
-
 instance (Parametric (GetSegment (Trail' c v n)), Additive v, Num n)
     => Parametric (Tangent (Trail' c v n)) where
   Tangent tr `atParam` p =
@@ -443,8 +441,6 @@ instance ( Parametric (GetSegment (Trail' c v n))
     case atEnd (GetSegment tr) of
       GetSegmentCodomain Nothing            -> zero
       GetSegmentCodomain (Just (_, seg, _)) -> atEnd (Tangent seg)
-
-type instance Codomain (Tangent (Trail v n)) = Codomain (Trail v n)
 
 instance (Metric v , OrderedField n, Real n)
     => Parametric (Tangent (Trail v n)) where
