@@ -13,12 +13,12 @@
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
--- Convenient creation of command-line-driven executables for
--- rendering diagrams.  This module provides a general framework
--- and default behaviors for parsing command-line arguments,
--- records for diagram creation options in various forms, and
--- classes and instances for a unified entry point to command-line-driven
--- diagram creation executables.
+-- Convenient creation of command-line-driven executables for rendering
+-- diagrams.  This module provides a general framework and default
+-- behaviors for parsing command-line arguments, records for diagram
+-- creation options in various forms, and classes and instances for a
+-- unified entry point to command-line-driven diagram creation
+-- executables.
 --
 -- For a tutorial on command-line diagram creation see
 -- <http://projects.haskell.org/diagrams/doc/cmdline.html>.
@@ -338,6 +338,9 @@ instance (Parseable a, Parseable b) => Parseable (a,b) where
 instance (Parseable a, Parseable b, Parseable c) => Parseable (a, b, c) where
   parser = (,,) <$> parser <*> parser <*> parser
 
+instance (Parseable a, Parseable b, Parseable c, Parseable d) => Parseable (a, b, c, d) where
+  parser = (,,,) <$> parser <*> parser <*> parser <*> parser
+
 -- | This class allows us to abstract over functions that take some arguments
 --   and produce a final value.  When some @d@ is an instance of
 --   'ToResult' we get a type @'Args' d@ that is a type of /all/ the arguments
@@ -576,7 +579,7 @@ defaultLoopRender opts = when (opts ^. loop) $ do
         else do
           lhsExists <- doesFileExist lhsFile
           if lhsExists then return lhsFile
-            else error ("Unable to guess source file\n  "
+            else error ("Unable to guess source file. "
                      ++ "Specify source file with '-s' or '--src'")
   srcPath' <- canonicalizePath srcPath
 
@@ -590,16 +593,14 @@ defaultLoopRender opts = when (opts ^. loop) $ do
   let srcFilePath = fromText $ T.pack srcPath'
       args'       = delete "-l" . delete "--loop" $ args
       newProg     = newProgName (takeFileName srcPath) prog
+      timeOfDay   = take 8 . drop 11 . show . eventTime
 
   -- Polling is only used on Windows
   withManagerConf defaultConfig { confPollInterval = opts ^. interval } $
     \mgr -> do
-      _ <- watchDir
-             mgr
-             (directory srcFilePath)
-             (existsEvents (== srcFilePath))
+      _ <- watchDir mgr (directory srcFilePath) (existsEvents (== srcFilePath))
              -- Call the new program without the looping option
-             (\ev -> putStrF ("Modified " ++ show (eventTime ev) ++ " ... ")
+             (\ev -> putStrF ("Modified " ++ timeOfDay ev ++ " ... ")
                   >> recompile srcPath newProg sandboxArgs >>= run newProg args')
       putStrLn $ "Watching source file " ++ srcPath
       putStrLn $ "Compiling target: " ++ newProg
