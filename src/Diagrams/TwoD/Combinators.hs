@@ -247,7 +247,7 @@ view p (V2 w h) = withEnvelope (rect w h # alignBL # moveTo p :: Path V2 n)
 
 -- | Construct a bounding rectangle for an enveloped object, that is,
 --   the smallest axis-aligned rectangle which encloses the object.
-boundingRect :: ( InSpace V2 n a, SameSpace a t, Num n
+boundingRect :: ( InSpace V2 n a, SameSpace a t
                 , Enveloped t, Transformable t, TrailLike t, Monoid t
                 , Enveloped a)
              => a -> t

@@ -304,13 +304,13 @@ makeLensesWith (lensRules & generateSignatures .~ False) ''CatOpts
 
 -- | Which 'CatMethod' should be used:
 --   normal catenation (default), or distribution?
-catMethod :: forall n. Lens' (CatOpts n) CatMethod
+catMethod :: Lens' (CatOpts n) CatMethod
 
 -- | How much separation should be used between successive diagrams
 --   (default: 0)?  When @catMethod = Cat@, this is the distance between
 --   /envelopes/; when @catMethod = Distrib@, this is the distance
 --   between /origins/.
-sep :: forall n. Lens' (CatOpts n) n
+sep :: Lens' (CatOpts n) n
 
 instance Num n => Default (CatOpts n) where
   def = CatOpts { _catMethod    = Cat

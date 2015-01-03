@@ -46,22 +46,24 @@ data AdjustSide = Start  -- ^ Adjust only the beginning
   deriving (Show, Read, Eq, Ord, Bounded, Enum)
 
 -- | How should a segment, trail, or path be adjusted?
-data AdjustOpts v n = AO { _adjMethod    :: AdjustMethod n
-                         , _adjSide      :: AdjustSide
-                         , _adjEps       :: n
-                         , adjOptsvProxy :: Proxy (v n)
-                         }
+data AdjustOpts n = AO { _adjMethod    :: AdjustMethod n
+                       , _adjSide      :: AdjustSide
+                       , _adjEps       :: n
+                       , adjOptsvProxy :: Proxy n
+                       }
+
+-- See Diagrams.Combinators for reasoning behind 'Proxy'.
 
 makeLensesWith (lensRules & generateSignatures .~ False) ''AdjustOpts
 
 -- | Which method should be used for adjusting?
-adjMethod :: Lens' (AdjustOpts v n) (AdjustMethod n)
+adjMethod :: Lens' (AdjustOpts n) (AdjustMethod n)
 
 -- | Which end(s) of the object should be adjusted?
-adjSide :: Lens' (AdjustOpts v n) AdjustSide
+adjSide :: Lens' (AdjustOpts n) AdjustSide
 
 -- | Tolerance to use when doing adjustment.
-adjEps :: Lens' (AdjustOpts v n) n
+adjEps :: Lens' (AdjustOpts n) n
 
 instance Fractional n => Default (AdjustMethod n) where
   def = ByParam 0.2
@@ -69,7 +71,7 @@ instance Fractional n => Default (AdjustMethod n) where
 instance Default AdjustSide where
   def = Both
 
-instance Fractional n => Default (AdjustOpts v n) where
+instance Fractional n => Default (AdjustOpts n) where
   def = AO { _adjMethod    = def
            , _adjSide      = def
            , _adjEps       = stdTolerance
@@ -79,8 +81,8 @@ instance Fractional n => Default (AdjustOpts v n) where
 -- | Adjust the length of a parametric object such as a segment or
 --   trail.  The second parameter is an option record which controls how
 --   the adjustment should be performed; see 'AdjustOpts'.
-adjust :: (V a ~ v, N a ~ n, DomainBounds a, Sectionable a, HasArcLength a, Fractional n)
-       => a -> AdjustOpts v n -> a
+adjust :: (V t ~ v, N t ~ n, DomainBounds t, Sectionable t, HasArcLength t, Fractional n)
+       => t -> AdjustOpts n -> t
 adjust s opts = section s
   (if opts^.adjSide == End   then domainLower s else getParam s)
   (if opts^.adjSide == Start then domainUpper s else domainUpper s - getParam (reverseDomain s))
