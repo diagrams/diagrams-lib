@@ -20,7 +20,7 @@
 --
 -- Diagrams may have /attributes/ which affect the way they are
 -- rendered. This module defines /Textures/ (Gradients and Colors) in two
--- dimensions. Like the attriubtes defined in the Diagrams.Attributes module,
+-- dimensions. Like the attributes defined in the Diagrams.Attributes module,
 -- all attributes defined here use the 'Last' or 'Recommend' /semigroup/ structure.
 -- 'FillColor' and 'LineColor' attributes are provided so that backends that
 -- don't support gradients need not be concerned with using textures. Backends
