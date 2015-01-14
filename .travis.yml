@@ -6,15 +6,15 @@ env:
     - HPVER=2014.2.0.0
     - GHCVER=7.4.2
     - GHCVER=7.6.3
-    - GHCVER=7.8.3
-    - GHCVER=head
+    - GHCVER=7.8.4
+    - GHCVER=7.10.1
   global:
     - CABALVER=1.20
     - HEAD_DEPS="diagrams-core active"
 
 matrix:
   allow_failures:
-    - env: GHCVER=head
+    - env: GHCVER=7.10.1
     - env: GHCVER=7.4.2
 
 before_install:
