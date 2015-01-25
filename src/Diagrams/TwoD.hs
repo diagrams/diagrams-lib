@@ -73,7 +73,9 @@ module Diagrams.TwoD
 
          -- * Paths
          -- ** Stroking
-       , stroke, stroke', strokeTrail, strokeT, strokeTrail', strokeT'
+       , stroke, stroke'
+       , strokePath, strokeP, strokePath', strokeP'
+       , strokeTrail, strokeT, strokeTrail', strokeT'
        , strokeLine, strokeLoop
        , strokeLocTrail, strokeLocT, strokeLocLine, strokeLocLoop
        , FillRule(..), fillRule
