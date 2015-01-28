@@ -90,13 +90,14 @@ import           Data.Colour.Names
 import           Data.Colour.SRGB
 import           Data.Data
 import           Data.List                 (delete)
+import           Data.Maybe                (fromMaybe)
 import           Data.Monoid
 import qualified Data.Text                 as T
 import           Numeric
 
 import           Control.Concurrent        (threadDelay)
 import           Filesystem.Path.CurrentOS (directory, fromText)
-import           System.Directory          (canonicalizePath, doesFileExist)
+import           System.Directory          (canonicalizePath)
 import           System.Environment        (getArgs, getProgName)
 import           System.Exit               (ExitCode (..))
 import           System.FilePath           (addExtension, dropExtension,
@@ -569,18 +570,13 @@ defaultLoopRender opts = when (opts ^. loop) $ do
   prog <- getProgName
   args <- getArgs
 
-  srcPath <- case opts ^. src of
-    Just path -> return path
-    Nothing   -> do
-      let hsFile  = replaceExtension prog "hs"
-          lhsFile = replaceExtension prog "lhs"
-      hsExists <- doesFileExist hsFile
-      if hsExists then return hsFile
-        else do
-          lhsExists <- doesFileExist lhsFile
-          if lhsExists then return lhsFile
-            else error ("Unable to guess source file. "
-                     ++ "Specify source file with '-s' or '--src'")
+  srcPath <- do
+    let p1 = fromMaybe prog (opts ^. src)
+    mPath <- findHsFile p1
+    case mPath of
+      Just path -> pure path
+      Nothing   -> error ("Unable to guess source file. "
+                       ++ "Specify source file with '-s' or '--src'")
   srcPath' <- canonicalizePath srcPath
 
   sandbox     <- findSandbox []
@@ -642,3 +638,4 @@ run prog args ExitSuccess = do
       unless (null stdOut) $ putStrLn "stdout:" >> putStrLn stdOut
       unless (null stdErr) $ putStrLn "stderr:" >> putStrLn stdErr
 run _ _ _ = return ()
+
