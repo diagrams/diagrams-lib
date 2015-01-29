@@ -89,6 +89,7 @@ import           Data.Colour
 import           Data.Colour.Names
 import           Data.Colour.SRGB
 import           Data.Data
+import           Data.IORef
 import           Data.List                 (delete)
 import           Data.Maybe                (fromMaybe)
 import           Data.Monoid
@@ -594,10 +595,18 @@ defaultLoopRender opts = when (opts ^. loop) $ do
   -- Polling is only used on Windows
   withManagerConf defaultConfig { confPollInterval = opts ^. interval } $
     \mgr -> do
+      lock <- newIORef False
+
       _ <- watchDir mgr (directory srcFilePath) (existsEvents (== srcFilePath))
-             -- Call the new program without the looping option
-             (\ev -> putStrF ("Modified " ++ timeOfDay ev ++ " ... ")
-                  >> recompile srcPath newProg sandboxArgs >>= run newProg args')
+        $ \ev -> do
+          running <- atomicModifyIORef lock ((,) True)
+          unless running $ do
+            putStrF ("Modified " ++ timeOfDay ev ++ " ... ")
+            exitCode <- recompile srcPath newProg sandboxArgs
+            -- Call the new program without the looping option
+            run newProg args' exitCode
+            atomicWriteIORef lock False
+
       putStrLn $ "Watching source file " ++ srcPath
       putStrLn $ "Compiling target: " ++ newProg
       putStrLn $ "Program args: " ++ unwords args'
