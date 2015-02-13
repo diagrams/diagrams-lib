@@ -9,6 +9,8 @@
 --
 -----------------------------------------------------------------------------
 
+{-# LANGUAGE TypeFamilies #-}
+
 module Diagrams.TwoD.Points where
 
 import Data.List
