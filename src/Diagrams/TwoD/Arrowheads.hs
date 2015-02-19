@@ -22,6 +22,7 @@ module Diagrams.TwoD.Arrowheads
        -- ** Standard arrowheads
          tri
        , dart
+       , halfDart
        , spike
        , thorn
        , lineHead
@@ -33,6 +34,7 @@ module Diagrams.TwoD.Arrowheads
        --   left point of the arrowhead.
        , arrowheadTriangle
        , arrowheadDart
+       , arrowheadHalfDart
        , arrowheadSpike
        , arrowheadThorn
 
@@ -40,6 +42,7 @@ module Diagrams.TwoD.Arrowheads
        -- ** Standard arrow tails
        , tri'
        , dart'
+       , halfDart'
        , spike'
        , thorn'
        , lineTail
@@ -123,6 +126,24 @@ arrowheadDart theta len shaftWidth = (hd # scale sz, jt)
     [b1, b2] = map (reflectY . negated) [t1, t2]
     psi = pi - negated t2 ^. _theta . rad
     jLength = shaftWidth / (2 * tan psi)
+
+    -- If the shaft if too wide, set the size to a default value of 1.
+    sz = max 1 ((len - jLength) / 1.5)
+
+-- | Top half of an 'arrowheadDart'.
+arrowheadHalfDart :: RealFloat n => Angle n -> ArrowHT n
+arrowheadHalfDart theta len shaftWidth = (hd, jt)
+  where
+    hd = fromOffsets [t1, t2]
+       # closeTrail # pathFromTrail
+       # translateX 1.5 # scale sz
+       # translateY (-shaftWidth/2)
+       # snugL
+    jt = snugR . translateY (-shaftWidth/2) . pathFromTrail . closeTrail $ fromOffsets [V2 (-jLength) 0, V2 0 shaftWidth]
+    v = rotate theta unitX
+    (t1, t2) = (unit_X ^+^ v, (0.5 *^ unit_X) ^-^ v)
+    psi = pi - negated t2 ^. _theta . rad
+    jLength = shaftWidth / tan psi
 
     -- If the shaft if too wide, set the size to a default value of 1.
     sz = max 1 ((len - jLength) / 1.5)
@@ -215,6 +236,12 @@ thorn = arrowheadThorn (3/8 @@ turn)
 dart :: RealFloat n => ArrowHT n
 dart = arrowheadDart (2/5 @@ turn)
 
+-- | <<#diagram=halfDartEx&width=100>>
+
+--   > halfDartEx = drawHead halfDart
+halfDart :: RealFloat n => ArrowHT n
+halfDart = arrowheadHalfDart (2/5 @@ turn)
+
 -- Tails ------------------------------------------------------------------
 --   > drawTail t = arrowAt' (with  & arrowTail .~ t & shaftStyle %~ lw none & arrowHead .~ noHead)
 --   >         origin (r2 (0.001, 0))
@@ -295,6 +322,12 @@ thorn' = headToTail thorn
 --   > dart'Ex = drawTail dart'
 dart' :: RealFloat n => ArrowHT n
 dart' = headToTail dart
+
+-- | <<#diagram=halfDart'Ex&width=100>>
+
+--   > halfDart'Ex = drawTail halfDart'
+halfDart' :: RealFloat n => ArrowHT n
+halfDart' = headToTail halfDart
 
 -- | <<diagrams/src_Diagrams_TwoD_Arrowheads_quillEx.svg#diagram=quillEx&width=100>>
 
