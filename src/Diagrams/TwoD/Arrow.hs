@@ -129,7 +129,7 @@ import           Diagrams.Trail
 import           Diagrams.TwoD.Arrowheads
 import           Diagrams.TwoD.Attributes
 import           Diagrams.TwoD.Path       (stroke, strokeT)
-import           Diagrams.TwoD.Transform  (rotate, translateX)
+import           Diagrams.TwoD.Transform  (rotate, translateX, reflectY)
 import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector     (unitX, unit_X)
 import           Diagrams.Util            (( # ))
@@ -289,9 +289,13 @@ widthOfJoint sStyle gToO nToO =
 --   and move the origin to the attachment point. Return the diagram
 --   and its width.
 mkHead :: (TypeableFloat n, Renderable (Path V2 n) b) =>
-          n -> ArrowOpts n -> n -> n -> (QDiagram b V2 n Any, n)
-mkHead sz opts gToO nToO = ( (j <> h) # moveOriginBy (jWidth *^ unit_X) # lwO 0
-                             , hWidth + jWidth)
+          n -> ArrowOpts n -> n -> n -> Bool -> (QDiagram b V2 n Any, n)
+mkHead sz opts gToO nToO reflect
+    = ( (j <> h)
+        # (if reflect then reflectY else id)
+        # moveOriginBy (jWidth *^ unit_X) # lwO 0
+      , hWidth + jWidth
+      )
   where
     (h', j') = (opts^.arrowHead) sz
                (widthOfJoint (shaftSty opts) gToO nToO)
@@ -300,11 +304,15 @@ mkHead sz opts gToO nToO = ( (j <> h) # moveOriginBy (jWidth *^ unit_X) # lwO 0
     h = stroke h' # applyStyle (headSty opts)
     j = stroke j' # applyStyle (colorJoint (opts^.shaftStyle))
 
--- | Just like mkHead only the attachment point is on the right.
+-- | Just like 'mkHead' only the attachment point is on the right.
 mkTail :: (TypeableFloat n, Renderable (Path V2 n) b) =>
-          n -> ArrowOpts n -> n -> n -> (QDiagram b V2 n Any, n)
-mkTail sz opts gToO nToO = ((t <> j) # moveOriginBy (jWidth *^ unitX) # lwO 0
-              , tWidth + jWidth)
+          n -> ArrowOpts n -> n -> n -> Bool -> (QDiagram b V2 n Any, n)
+mkTail sz opts gToO nToO reflect
+    = ( (t <> j)
+        # (if reflect then reflectY else id)
+        # moveOriginBy (jWidth *^ unitX) # lwO 0
+      , tWidth + jWidth
+      )
   where
     (t', j') = (opts^.arrowTail) sz
                (widthOfJoint (shaftSty opts) gToO nToO)
@@ -426,8 +434,8 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
         tGap  = scaleFromMeasure $ opts ^. tailGap
 
         -- Make the head and tail and save their widths.
-        (h, hWidth') = mkHead hSize opts' gToO nToO
-        (t, tWidth') = mkTail tSize opts' gToO nToO
+        (h, hWidth') = mkHead hSize opts' gToO nToO (isReflection tr)
+        (t, tWidth') = mkTail tSize opts' gToO nToO (isReflection tr)
 
         rawShaftTrail = opts^.arrowShaft
         shaftTrail
