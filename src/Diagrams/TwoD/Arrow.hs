@@ -114,6 +114,7 @@ import           Data.Typeable
 
 import           Data.Colour              hiding (atop)
 import           Diagrams.Core
+import           Diagrams.Core.Style      (unmeasureAttrs)
 import           Diagrams.Core.Types      (QDiaLeaf (..), mkQD')
 
 import           Diagrams.Angle
@@ -280,9 +281,9 @@ colorJoint sStyle =
 -- | Get line width from a style.
 widthOfJoint :: forall n. TypeableFloat n => Style V2 n -> n -> n -> n
 widthOfJoint sStyle gToO nToO =
-  maybe (fromMeasured gToO nToO medium) -- should be same as default line width
-        (fromMeasured gToO nToO)
-        (fmap getLineWidth . getAttr $ sStyle :: Maybe (Measure n))
+  fromMaybe
+    (fromMeasured gToO nToO medium) -- should be same as default line width
+    (fmap getLineWidth . getAttr . unmeasureAttrs gToO nToO $ sStyle)
 
 -- | Combine the head and its joint into a single scale invariant diagram
 --   and move the origin to the attachment point. Return the diagram
