@@ -409,12 +409,13 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
 
         -- Use the existing line color for head, tail, and shaft by
         -- default (can be overridden by explicitly setting headStyle,
-        -- tailStyle, or shaftStyle).
+        -- tailStyle, or shaftStyle).  Also use existing global line width
+        -- for shaft if not explicitly set in shaftStyle.
         globalLC = getLineTexture <$> getAttr sty
         opts' = opts
           & headStyle  %~ maybe id fillTexture globalLC
           & tailStyle  %~ maybe id fillTexture globalLC
-          & shaftStyle %~ maybe id lineTexture globalLC
+          & shaftStyle %~ applyStyle sty
 
         -- The head size, tail size, head gap, and tail gap are obtained
         -- from the style and converted to output units.
@@ -451,7 +452,7 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
         -- shaft into a Diagram with using its style.
         sf = scaleFactor shaftTrail tWidth hWidth (norm (q .-. p))
         shaftTrail' = shaftTrail # scale sf
-        shaft = strokeT shaftTrail' # applyStyle (shaftSty opts)
+        shaft = strokeT shaftTrail' # applyStyle (shaftSty opts')
 
         -- Adjust the head and tail to point in the directions of the shaft ends.
         h' = h # rotate hAngle
