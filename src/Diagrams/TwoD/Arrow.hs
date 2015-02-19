@@ -290,36 +290,25 @@ widthOfJoint sStyle gToO nToO =
 --   and its width.
 mkHead :: (TypeableFloat n, Renderable (Path V2 n) b) =>
           n -> ArrowOpts n -> n -> n -> Bool -> (QDiagram b V2 n Any, n)
-mkHead sz opts gToO nToO reflect
-    = ( (j <> h)
-        # (if reflect then reflectY else id)
-        # moveOriginBy (jWidth *^ unit_X) # lwO 0
-      , hWidth + jWidth
-      )
-  where
-    (h', j') = (opts^.arrowHead) sz
-               (widthOfJoint (shaftSty opts) gToO nToO)
-    hWidth = xWidth h'
-    jWidth = xWidth j'
-    h = stroke h' # applyStyle (headSty opts)
-    j = stroke j' # applyStyle (colorJoint (opts^.shaftStyle))
+mkHead = mkHT unit_X arrowHead headSty
 
--- | Just like 'mkHead' only the attachment point is on the right.
 mkTail :: (TypeableFloat n, Renderable (Path V2 n) b) =>
           n -> ArrowOpts n -> n -> n -> Bool -> (QDiagram b V2 n Any, n)
-mkTail sz opts gToO nToO reflect
-    = ( (t <> j)
+mkTail = mkHT unitX arrowTail tailSty
+
+mkHT xDir htProj styProj sz opts gToO nToO reflect
+    = ( (j <> ht)
         # (if reflect then reflectY else id)
-        # moveOriginBy (jWidth *^ unitX) # lwO 0
-      , tWidth + jWidth
+        # moveOriginBy (jWidth *^ xDir) # lwO 0
+      , htWidth + jWidth
       )
   where
-    (t', j') = (opts^.arrowTail) sz
-               (widthOfJoint (shaftSty opts) gToO nToO)
-    tWidth = xWidth t'
-    jWidth = xWidth j'
-    t = stroke t' # applyStyle (tailSty opts)
-    j = stroke j' # applyStyle (colorJoint (opts^.shaftStyle))
+    (ht', j') = (opts^.htProj) sz
+                (widthOfJoint (shaftSty opts) gToO nToO)
+    htWidth = xWidth ht'
+    jWidth  = xWidth j'
+    ht = stroke ht' # applyStyle (styProj opts)
+    j  = stroke j'  # applyStyle (colorJoint (opts^.shaftStyle))
 
 -- | Make a trail with the same angles and offset as an arrow with tail width
 --   tw, head width hw and shaft of tr, such that the magnituted of the shaft
