@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE RankNTypes                 #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
 {-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeFamilies               #-}
@@ -296,6 +297,10 @@ mkTail :: (TypeableFloat n, Renderable (Path V2 n) b) =>
           n -> ArrowOpts n -> n -> n -> Bool -> (QDiagram b V2 n Any, n)
 mkTail = mkHT unitX arrowTail tailSty
 
+mkHT
+  :: (TypeableFloat n, Renderable (Path V2 n) b)
+  => V2 n -> Lens' (ArrowOpts n) (ArrowHT n) -> (ArrowOpts n -> Style V2 n)
+  -> n -> ArrowOpts n -> n -> n -> Bool -> (QDiagram b V2 n Any, n)
 mkHT xDir htProj styProj sz opts gToO nToO reflect
     = ( (j <> ht)
         # (if reflect then reflectY else id)
