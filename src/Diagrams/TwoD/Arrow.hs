@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE RankNTypes                 #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
 {-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeFamilies               #-}
@@ -114,6 +115,7 @@ import           Data.Typeable
 
 import           Data.Colour              hiding (atop)
 import           Diagrams.Core
+import           Diagrams.Core.Style      (unmeasureAttrs)
 import           Diagrams.Core.Types      (QDiaLeaf (..), mkQD')
 
 import           Diagrams.Angle
@@ -128,7 +130,7 @@ import           Diagrams.Trail
 import           Diagrams.TwoD.Arrowheads
 import           Diagrams.TwoD.Attributes
 import           Diagrams.TwoD.Path       (stroke, strokeT)
-import           Diagrams.TwoD.Transform  (rotate, translateX)
+import           Diagrams.TwoD.Transform  (rotate, translateX, reflectY)
 import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector     (unitX, unit_X)
 import           Diagrams.Util            (( # ))
@@ -280,37 +282,38 @@ colorJoint sStyle =
 -- | Get line width from a style.
 widthOfJoint :: forall n. TypeableFloat n => Style V2 n -> n -> n -> n
 widthOfJoint sStyle gToO nToO =
-  maybe (fromMeasured gToO nToO medium) -- should be same as default line width
-        (fromMeasured gToO nToO)
-        (fmap getLineWidth . getAttr $ sStyle :: Maybe (Measure n))
+  fromMaybe
+    (fromMeasured gToO nToO medium) -- should be same as default line width
+    (fmap getLineWidth . getAttr . unmeasureAttrs gToO nToO $ sStyle)
 
 -- | Combine the head and its joint into a single scale invariant diagram
 --   and move the origin to the attachment point. Return the diagram
 --   and its width.
 mkHead :: (TypeableFloat n, Renderable (Path V2 n) b) =>
-          n -> ArrowOpts n -> n -> n -> (QDiagram b V2 n Any, n)
-mkHead sz opts gToO nToO = ( (j <> h) # moveOriginBy (jWidth *^ unit_X) # lwO 0
-                             , hWidth + jWidth)
-  where
-    (h', j') = (opts^.arrowHead) sz
-               (widthOfJoint (shaftSty opts) gToO nToO)
-    hWidth = xWidth h'
-    jWidth = xWidth j'
-    h = stroke h' # applyStyle (headSty opts)
-    j = stroke j' # applyStyle (colorJoint (opts^.shaftStyle))
+          n -> ArrowOpts n -> n -> n -> Bool -> (QDiagram b V2 n Any, n)
+mkHead = mkHT unit_X arrowHead headSty
 
--- | Just like mkHead only the attachment point is on the right.
 mkTail :: (TypeableFloat n, Renderable (Path V2 n) b) =>
-          n -> ArrowOpts n -> n -> n -> (QDiagram b V2 n Any, n)
-mkTail sz opts gToO nToO = ((t <> j) # moveOriginBy (jWidth *^ unitX) # lwO 0
-              , tWidth + jWidth)
+          n -> ArrowOpts n -> n -> n -> Bool -> (QDiagram b V2 n Any, n)
+mkTail = mkHT unitX arrowTail tailSty
+
+mkHT
+  :: (TypeableFloat n, Renderable (Path V2 n) b)
+  => V2 n -> Lens' (ArrowOpts n) (ArrowHT n) -> (ArrowOpts n -> Style V2 n)
+  -> n -> ArrowOpts n -> n -> n -> Bool -> (QDiagram b V2 n Any, n)
+mkHT xDir htProj styProj sz opts gToO nToO reflect
+    = ( (j <> ht)
+        # (if reflect then reflectY else id)
+        # moveOriginBy (jWidth *^ xDir) # lwO 0
+      , htWidth + jWidth
+      )
   where
-    (t', j') = (opts^.arrowTail) sz
-               (widthOfJoint (shaftSty opts) gToO nToO)
-    tWidth = xWidth t'
-    jWidth = xWidth j'
-    t = stroke t' # applyStyle (tailSty opts)
-    j = stroke j' # applyStyle (colorJoint (opts^.shaftStyle))
+    (ht', j') = (opts^.htProj) sz
+                (widthOfJoint (shaftSty opts) gToO nToO)
+    htWidth = xWidth ht'
+    jWidth  = xWidth j'
+    ht = stroke ht' # applyStyle (styProj opts)
+    j  = stroke j'  # applyStyle (colorJoint (opts^.shaftStyle))
 
 -- | Make a trail with the same angles and offset as an arrow with tail width
 --   tw, head width hw and shaft of tr, such that the magnituted of the shaft
@@ -408,12 +411,13 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
 
         -- Use the existing line color for head, tail, and shaft by
         -- default (can be overridden by explicitly setting headStyle,
-        -- tailStyle, or shaftStyle).
+        -- tailStyle, or shaftStyle).  Also use existing global line width
+        -- for shaft if not explicitly set in shaftStyle.
         globalLC = getLineTexture <$> getAttr sty
         opts' = opts
           & headStyle  %~ maybe id fillTexture globalLC
           & tailStyle  %~ maybe id fillTexture globalLC
-          & shaftStyle %~ maybe id lineTexture globalLC
+          & shaftStyle %~ applyStyle sty
 
         -- The head size, tail size, head gap, and tail gap are obtained
         -- from the style and converted to output units.
@@ -424,8 +428,8 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
         tGap  = scaleFromMeasure $ opts ^. tailGap
 
         -- Make the head and tail and save their widths.
-        (h, hWidth') = mkHead hSize opts' gToO nToO
-        (t, tWidth') = mkTail tSize opts' gToO nToO
+        (h, hWidth') = mkHead hSize opts' gToO nToO (isReflection tr)
+        (t, tWidth') = mkTail tSize opts' gToO nToO (isReflection tr)
 
         rawShaftTrail = opts^.arrowShaft
         shaftTrail
@@ -450,7 +454,7 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
         -- shaft into a Diagram with using its style.
         sf = scaleFactor shaftTrail tWidth hWidth (norm (q .-. p))
         shaftTrail' = shaftTrail # scale sf
-        shaft = strokeT shaftTrail' # applyStyle (shaftSty opts)
+        shaft = strokeT shaftTrail' # applyStyle (shaftSty opts')
 
         -- Adjust the head and tail to point in the directions of the shaft ends.
         h' = h # rotate hAngle
