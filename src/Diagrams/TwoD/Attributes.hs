@@ -262,6 +262,12 @@ newtype LineTexture n = LineTexture (Last (Texture n))
   deriving (Typeable, Semigroup)
 instance (Typeable n) => AttributeClass (LineTexture n)
 
+instance Rewrapped (LineTexture n) (LineTexture n')
+instance Wrapped (LineTexture n) where
+  type Unwrapped (LineTexture n) = Texture n
+  _Wrapped' = iso getLineTexture mkLineTexture
+  {-# INLINE _Wrapped' #-}
+
 type instance V (LineTexture n) = V2
 type instance N (LineTexture n) = n
 
@@ -291,9 +297,6 @@ lineTextureA = applyTAttr
 
 _lineTexture :: (Floating n, Typeable n) => Lens' (Style V2 n) (Texture n)
 _lineTexture = atTAttr . anon def isDef . _LineTexture
-  where
-    isDef (LineTexture (Last (SC sc))) = toAlphaColour sc == opaque black
-    isDef _                            = False
 
 -- | Set the line (stroke) color.  This function is polymorphic in the
 --   color type (so it can be used with either 'Colour' or
@@ -329,6 +332,12 @@ lineRGradient g = lineTexture (RG g)
 --   is that of 'Recommed . Last'.
 newtype FillTexture n = FillTexture (Recommend (Last (Texture n)))
   deriving (Typeable, Semigroup)
+
+instance Rewrapped (FillTexture n) (FillTexture n')
+instance Wrapped (FillTexture n) where
+  type Unwrapped (FillTexture n) = Texture n
+  _Wrapped' = iso getFillTexture mkFillTexture
+  {-# INLINE _Wrapped' #-}
 
 instance Typeable n => AttributeClass (FillTexture n)
 
