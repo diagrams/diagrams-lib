@@ -26,7 +26,7 @@ import           Data.Semigroup      ((<>))
 import           Data.Tree           (Tree (..))
 
 import           Diagrams.Core
-import           Diagrams.Core.Style (Style (..), attrToStyle)
+import           Diagrams.Core.Style (Style (..), attributeToStyle)
 import           Diagrams.Core.Types (RNode (..), RTree)
 
 ------------------------------------------------------------
@@ -119,4 +119,4 @@ splitAttr code = fst . splitAttr' Nothing
   -- Nothing.
   applyMattr :: Maybe (AttrType code) -> RTree b v n a -> RTree b v n a
   applyMattr Nothing  t = t
-  applyMattr (Just a) t = Node (RStyle $ attrToStyle a) [t]
+  applyMattr (Just a) t = Node (RStyle $ attributeToStyle (Attribute a)) [t]

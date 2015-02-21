@@ -5,6 +5,7 @@
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
 {-# LANGUAGE StandaloneDeriving         #-}
 {-# LANGUAGE TemplateHaskell            #-}
@@ -14,7 +15,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Attributes
--- Copyright   :  (c) 2013 diagrams-lib team (see LICENSE)
+-- Copyright   :  (c) 2013-2015 diagrams-lib team (see LICENSE)
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
@@ -45,14 +46,14 @@ module Diagrams.TwoD.Attributes (
 
   -- ** Line texture
   ,  LineTexture(..), getLineTexture, lineTexture, lineTextureA
-  ,  mkLineTexture, styleLineTexture
+  ,  mkLineTexture, _LineTexture
 
   -- ** Line color
   , lineColor, lc, lcA
 
   -- ** Fill texture
   , FillTexture(..), getFillTexture, fillTexture
-  , mkFillTexture, styleFillTexture
+  , mkFillTexture, _FillTexture
 
   -- ** Fill color
   , fillColor, fc, fcA, recommendFillColor
@@ -62,19 +63,16 @@ module Diagrams.TwoD.Attributes (
 
   ) where
 
-import           Control.Lens                (Lens', Setter', generateSignatures, lensRules,
-                                              makeLensesWith, makePrisms, over, sets, (&), (.~))
+import           Control.Lens                hiding (transform)
 import           Data.Colour                 hiding (AffineSpace, over)
 import           Data.Data
 import           Data.Default.Class
-import           Data.Maybe                  (fromMaybe)
 import           Data.Monoid.Recommend
 import           Data.Semigroup
 
 import           Diagrams.Attributes
 import           Diagrams.Attributes.Compile
 import           Diagrams.Core
-import           Diagrams.Core.Style         (setAttr)
 import           Diagrams.Core.Types         (RTree)
 import           Diagrams.Located            (unLoc)
 import           Diagrams.Path               (Path, pathTrails)
@@ -120,7 +118,7 @@ type instance N (LGradient n) = n
 makeLensesWith (lensRules & generateSignatures .~ False) ''LGradient
 
 instance Fractional n => Transformable (LGradient n) where
-	transform = over lGradTrans . transform
+  transform = over lGradTrans . transform
 
 -- | A list of stops (colors and fractions).
 lGradStops :: Lens' (LGradient n) [GradientStop n]
@@ -262,6 +260,12 @@ newtype LineTexture n = LineTexture (Last (Texture n))
   deriving (Typeable, Semigroup)
 instance (Typeable n) => AttributeClass (LineTexture n)
 
+instance Rewrapped (LineTexture n) (LineTexture n')
+instance Wrapped (LineTexture n) where
+  type Unwrapped (LineTexture n) = Texture n
+  _Wrapped' = iso getLineTexture mkLineTexture
+  {-# INLINE _Wrapped' #-}
+
 type instance V (LineTexture n) = V2
 type instance N (LineTexture n) = n
 
@@ -285,16 +289,11 @@ lineTextureA = applyTAttr
 mkLineTexture :: Texture v -> LineTexture v
 mkLineTexture = LineTexture . Last
 
-styleLineTexture :: Typeable n => Setter' (Style V2 n) (Texture n)
-styleLineTexture = sets modifyLineTexture
+_LineTexture :: (Floating n, Typeable n) => Lens' (Style V2 n) (Texture n)
+_LineTexture = atTAttr . anon def isDef . _Wrapping mkLineTexture
   where
-    modifyLineTexture f s
-      = flip setAttr s
-      . mkLineTexture
-      . f
-      . getLineTexture
-      . fromMaybe def . getAttr
-      $ s
+    isDef (LineTexture (Last (SC sc))) = toAlphaColour sc == opaque black
+    isDef _                            = False
 
 -- | Set the line (stroke) color.  This function is polymorphic in the
 --   color type (so it can be used with either 'Colour' or
@@ -329,6 +328,12 @@ lineRGradient g = lineTexture (RG g)
 newtype FillTexture n = FillTexture (Recommend (Last (Texture n)))
   deriving (Typeable, Semigroup)
 
+instance Rewrapped (FillTexture n) (FillTexture n')
+instance Wrapped (FillTexture n) where
+  type Unwrapped (FillTexture n) = Texture n
+  _Wrapped' = iso getFillTexture mkFillTexture
+  {-# INLINE _Wrapped' #-}
+
 instance Typeable n => AttributeClass (FillTexture n)
 
 type instance V (FillTexture n) = V2
@@ -353,16 +358,11 @@ fillTexture = applyTAttr . FillTexture . Commit . Last
 mkFillTexture :: Texture n -> FillTexture n
 mkFillTexture = FillTexture . Commit . Last
 
-styleFillTexture :: (Typeable n) => Setter' (Style V2 n) (Texture n)
-styleFillTexture = sets modifyFillTexture
+_FillTexture :: (Typeable n, Floating n) => Lens' (Style V2 n) (Texture n)
+_FillTexture = atTAttr . anon def isDef . _Wrapping mkFillTexture
   where
-    modifyFillTexture f s
-      = flip setAttr s
-      . mkFillTexture
-      . f
-      . getFillTexture
-      . fromMaybe def . getAttr
-      $ s
+    isDef (FillTexture (Recommend (Last (SC sc)))) = toAlphaColour sc == transparent
+    isDef _                                        = False
 
 -- | Set the fill color.  This function is polymorphic in the color
 --   type (so it can be used with either 'Colour' or 'AlphaColour'),
