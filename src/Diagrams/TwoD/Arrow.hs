@@ -220,10 +220,8 @@ tailLength :: Lens' (ArrowOpts n) (Measure n)
 
 -- | Set both the @headLength@ and @tailLength@ simultaneously.
 lengths :: Traversal' (ArrowOpts n) (Measure n)
-lengths f opts =
-  (\h t -> opts & headLength .~ h & tailLength .~ t)
-    <$> f (opts ^. headLength)
-    <*> f (opts ^. tailLength)
+lengths f opts = (\h t -> opts & headLength .~ h & tailLength .~ t) <$> f (opts ^. headLength)
+             <*> f (opts ^. tailLength)
 
 -- | A lens for setting or modifying the texture of an arrowhead. For
 --   example, one may write @... (with & headTexture .~ grad)@ to get an
@@ -235,7 +233,7 @@ headTexture :: TypeableFloat n => Lens' (ArrowOpts n) (Texture n)
 headTexture = headStyle . _FillTexture
 
 -- | A lens for setting or modifying the texture of an arrow
---   tail.
+--   tail. This is *not* a valid lens (see 'committed').
 tailTexture :: TypeableFloat n => Lens' (ArrowOpts n) (Texture n)
 tailTexture = tailStyle . _FillTexture
 

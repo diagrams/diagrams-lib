@@ -86,8 +86,8 @@ import           Diagrams.TwoD.Types
 
 -- | A gradient stop contains a color and fraction (usually between 0 and 1)
 data GradientStop d = GradientStop
-     { _stopColor    :: SomeColor
-     , _stopFraction :: d}
+  { _stopColor    :: SomeColor
+  , _stopFraction :: d}
 
 makeLensesWith (lensRules & generateSignatures .~ False) ''GradientStop
 
@@ -106,11 +106,11 @@ data SpreadMethod = GradPad | GradReflect | GradRepeat
 
 -- | Linear Gradient
 data LGradient n = LGradient
-    { _lGradStops        :: [GradientStop n]
-    , _lGradStart        :: Point V2 n
-    , _lGradEnd          :: Point V2 n
-    , _lGradTrans        :: Transformation V2 n
-    , _lGradSpreadMethod :: SpreadMethod }
+  { _lGradStops        :: [GradientStop n]
+  , _lGradStart        :: Point V2 n
+  , _lGradEnd          :: Point V2 n
+  , _lGradTrans        :: Transformation V2 n
+  , _lGradSpreadMethod :: SpreadMethod }
 
 type instance V (LGradient n) = V2
 type instance N (LGradient n) = n
@@ -141,13 +141,13 @@ lGradSpreadMethod :: Lens' (LGradient n) SpreadMethod
 
 -- | Radial Gradient
 data RGradient n = RGradient
-    { _rGradStops        :: [GradientStop n]
-    , _rGradCenter0      :: Point V2 n
-    , _rGradRadius0      :: n
-    , _rGradCenter1      :: Point V2 n
-    , _rGradRadius1      :: n
-    , _rGradTrans        :: Transformation V2 n
-    , _rGradSpreadMethod :: SpreadMethod }
+  { _rGradStops        :: [GradientStop n]
+  , _rGradCenter0      :: Point V2 n
+  , _rGradRadius0      :: n
+  , _rGradCenter1      :: Point V2 n
+  , _rGradRadius1      :: n
+  , _rGradTrans        :: Transformation V2 n
+  , _rGradSpreadMethod :: SpreadMethod }
 
 makeLensesWith (lensRules & generateSignatures .~ False) ''RGradient
 
@@ -230,7 +230,7 @@ defaultRG = RG RGradient
   , _rGradRadius1      = 0.5
   , _rGradTrans        = mempty
   , _rGradSpreadMethod = GradPad
-}
+  }
 
 -- | A convenient function for making gradient stops from a list of triples.
 --   (An opaque color, a stop fraction, an opacity).
@@ -328,10 +328,16 @@ lineRGradient g = lineTexture (RG g)
 newtype FillTexture n = FillTexture (Recommend (Last (Texture n)))
   deriving (Typeable, Semigroup)
 
+-- This isn't valid since it ignores Recommend!
 instance Rewrapped (FillTexture n) (FillTexture n')
 instance Wrapped (FillTexture n) where
-  type Unwrapped (FillTexture n) = Texture n
-  _Wrapped' = iso getFillTexture mkFillTexture
+  type Unwrapped (FillTexture n) = Recommend (Texture n)
+  _Wrapped' = iso getter setter -- == coerce
+    where
+      getter (FillTexture (Recommend (Last t))) = Recommend t
+      getter (FillTexture (Commit    (Last t))) = Commit t
+      setter (Recommend t) = FillTexture (Recommend (Last t))
+      setter (Commit t)    = FillTexture (Commit (Last t))
   {-# INLINE _Wrapped' #-}
 
 instance Typeable n => AttributeClass (FillTexture n)
@@ -342,8 +348,7 @@ type instance N (FillTexture n) = n
 -- Only gradients get transformed. The transform is applied to the gradients
 -- transform field. Colors are left unchanged.
 instance Floating n => Transformable (FillTexture n) where
-  transform _ tx@(FillTexture (Recommend _))   = tx
-  transform t (FillTexture (Commit (Last tx))) = FillTexture (Commit (Last $ transform t tx))
+  transform = over (_Wrapped' . _recommend) . transform
 
 instance Default (FillTexture n) where
   def = FillTexture (Recommend (Last (SC
@@ -358,11 +363,17 @@ fillTexture = applyTAttr . FillTexture . Commit . Last
 mkFillTexture :: Texture n -> FillTexture n
 mkFillTexture = FillTexture . Commit . Last
 
-_FillTexture :: (Typeable n, Floating n) => Lens' (Style V2 n) (Texture n)
-_FillTexture = atTAttr . anon def isDef . _Wrapping mkFillTexture
+-- | Lens onto the 'Recommend' of a fill texture.
+_RFillTexture :: (Typeable n, Floating n) => Lens' (Style V2 n) (Recommend (Texture n))
+_RFillTexture = atTAttr . anon def isDef . _Wrapping (mkFillTexture . getRecommend)
   where
     isDef (FillTexture (Recommend (Last (SC sc)))) = toAlphaColour sc == transparent
     isDef _                                        = False
+
+-- | Commit a fill texture in a style. To extract the fill texture
+--   use '_RFillTexture'. This is *not* a valid lens (see 'committed').
+_FillTexture :: (Typeable n, Floating n) => Lens' (Style V2 n) (Texture n)
+_FillTexture = _RFillTexture . committed
 
 -- | Set the fill color.  This function is polymorphic in the color
 --   type (so it can be used with either 'Colour' or 'AlphaColour'),

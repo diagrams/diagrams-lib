@@ -1,9 +1,9 @@
+{-# LANGUAGE ConstraintKinds            #-}
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE ConstraintKinds            #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE UndecidableInstances       #-}
 
@@ -35,17 +35,19 @@ module Diagrams.TwoD.Text (
   , FontWeight(..), FontWeightA, getFontWeight, fontWeight, bold
   ) where
 
+import           Control.Lens             hiding (transform)
+import           Diagrams.Attributes      (committed)
 import           Diagrams.Core
 import           Diagrams.Core.Envelope   (pointEnvelope)
 import           Diagrams.TwoD.Attributes (recommendFillColor)
 import           Diagrams.TwoD.Types
 
-import           Data.Colour
-import           Data.Functor
-import           Data.Typeable
+import           Data.Colour              hiding (over)
 import           Data.Default.Class
-import           Data.Semigroup
+import           Data.Functor
 import           Data.Monoid.Recommend
+import           Data.Semigroup
+import           Data.Typeable
 
 import           Linear.Affine
 
@@ -167,6 +169,15 @@ baselineText = mkText BaselineText
 newtype Font = Font (Last String)
   deriving (Typeable, Semigroup, Eq)
 
+instance Rewrapped Font Font
+instance Wrapped Font where
+  type Unwrapped Font = String
+  _Wrapped' = iso getFont (Font . Last)
+  {-# INLINE _Wrapped' #-}
+
+_Font :: (Typeable n, OrderedField n) => Lens' (Style v n) (Maybe String)
+_Font = atAttr . mapping (_Wrapping (Font . Last))
+
 instance AttributeClass Font
 
 -- | Extract the font family name from a @Font@ attribute.
@@ -190,7 +201,26 @@ instance Functor FontSize where
   fmap f (FontSize (Recommend (Last a))) = FontSize (Recommend (Last (f a)))
   fmap f (FontSize (Commit (Last a)))    = FontSize (Commit (Last (f a)))
 
--- (Recommend (Last (Texture n)))
+instance Rewrapped (FontSize n) (FontSize n')
+instance Wrapped (FontSize n) where
+  type Unwrapped (FontSize n) = Recommend n
+  _Wrapped' = iso getter setter
+    where getter (FontSize (Recommend (Last a))) = Recommend a
+          getter (FontSize (Commit    (Last a))) = Commit a
+          setter (Recommend a) = FontSize $ Recommend (Last a)
+          setter (Commit    a) = FontSize $ Commit (Last a)
+  {-# INLINE _Wrapped' #-}
+
+_RFontSize :: (Typeable n, OrderedField n) => Lens' (Style v n) (Measured n (Recommend n))
+_RFontSize = atMAttr . mapping (mapping (_Wrapping setter)) . anon (Recommend <$> local 1) (const False)
+  where
+    setter (Recommend a) = FontSize $ Recommend (Last a)
+    setter (Commit    a) = FontSize $ Commit (Last a)
+
+-- | Lens to commit a font size. This is *not* a valid lens (see
+--   'commited'.
+_FontSize :: (Typeable n, OrderedField n) => Lens' (Style v n) (Measure n)
+_FontSize = _RFontSize . mapping committed
 
 type FontSizeM n = Measured n (FontSize n)
 
@@ -248,6 +278,18 @@ newtype FontSlantA = FontSlantA (Last FontSlant)
   deriving (Typeable, Semigroup, Eq)
 instance AttributeClass FontSlantA
 
+instance Rewrapped FontSlantA FontSlantA
+instance Wrapped FontSlantA where
+  type Unwrapped FontSlantA = FontSlant
+  _Wrapped' = iso getFontSlant (FontSlantA . Last)
+  {-# INLINE _Wrapped' #-}
+
+instance Default FontSlant where
+  def = FontSlantNormal
+
+_FontSlant :: (Typeable n, OrderedField n) => Lens' (Style v n) FontSlant
+_FontSlant = atAttr . mapping (_Wrapping (FontSlantA . Last)) . non def
+
 -- | Extract the font slant from a 'FontSlantA' attribute.
 getFontSlant :: FontSlantA -> FontSlant
 getFontSlant (FontSlantA (Last s)) = s
@@ -279,6 +321,18 @@ data FontWeight = FontWeightNormal
 newtype FontWeightA = FontWeightA (Last FontWeight)
   deriving (Typeable, Semigroup, Eq)
 instance AttributeClass FontWeightA
+
+instance Rewrapped FontWeightA FontWeightA
+instance Wrapped FontWeightA where
+  type Unwrapped FontWeightA = FontWeight
+  _Wrapped' = iso getFontWeight (FontWeightA . Last)
+  {-# INLINE _Wrapped' #-}
+
+instance Default FontWeight where
+  def = FontWeightNormal
+
+_FontWeight :: (Typeable n, OrderedField n) => Lens' (Style v n) FontWeight
+_FontWeight = atAttr . mapping (_Wrapping (FontWeightA . Last)) . non def
 
 -- | Extract the font weight from a 'FontWeightA' attribute.
 getFontWeight :: FontWeightA -> FontWeight
