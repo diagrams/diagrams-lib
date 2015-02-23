@@ -1,4 +1,3 @@
-{-# LANGUAGE ConstraintKinds     #-}
 {-# LANGUAGE DeriveFunctor       #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -98,7 +97,7 @@ data PolyType n = PolyPolar [Angle n] [n]
                 --   words, a polygon specified by \"turtle
                 --   graphics\": go straight ahead x1 units; turn by
                 --   external angle a1; go straight ahead x2 units; turn by
-                --   external angle a2; etc. The polygon will be centered 
+                --   external angle a2; etc. The polygon will be centered
                 --   at the /centroid/ of its vertices.
                 --
                 --   * The first argument is a list of /vertex/

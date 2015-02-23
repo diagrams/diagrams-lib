@@ -1,4 +1,3 @@
-{-# LANGUAGE ConstraintKinds #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Transform

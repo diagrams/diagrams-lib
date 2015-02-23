@@ -1,4 +1,3 @@
-{-# LANGUAGE ConstraintKinds            #-}
 {-# LANGUAGE DeriveFunctor              #-}
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE FlexibleInstances          #-}
@@ -185,19 +184,19 @@ boxExtents = maybe zero (\(l,u) -> u .-. l) . getCorners
 boxCenter :: (Additive v, Fractional n) => BoundingBox v n -> Maybe (Point v n)
 boxCenter = fmap (uncurry (lerp 0.5)) . getCorners
 
--- | Get the center of a the bounding box of an enveloped object, return 
+-- | Get the center of a the bounding box of an enveloped object, return
 --   'Nothing' for object with empty envelope.
 mCenterPoint :: (InSpace v n a, HasBasis v, Num n, Enveloped a)
             => a -> Maybe (Point v n)
 mCenterPoint = boxCenter . boundingBox
 
--- | Get the center of a the bounding box of an enveloped object, return 
+-- | Get the center of a the bounding box of an enveloped object, return
 --   the origin for object with empty envelope.
 centerPoint :: (InSpace v n a, HasBasis v, Num n, Enveloped a)
             => a -> Point v n
 centerPoint = fromMaybe origin . mCenterPoint
 
--- | Create a transformation mapping points from one bounding box to the 
+-- | Create a transformation mapping points from one bounding box to the
 --   other. Returns 'Nothing' if either of the boxes are empty.
 boxTransform
   :: (Additive v, Fractional n)
@@ -209,7 +208,7 @@ boxTransform u v = do
       s = liftU2 (*) . uncurry (liftU2 (/)) . mapT boxExtents
   return $ Transformation i i (vl ^-^ s (v, u) ul)
 
--- | Transforms an enveloped thing to fit within a @BoundingBox@.  If the 
+-- | Transforms an enveloped thing to fit within a @BoundingBox@.  If the
 --   bounding box is empty, then the result is also @mempty@.
 boxFit
   :: (InSpace v n a, HasBasis v, Enveloped a, Transformable a, Monoid a, Num n)
