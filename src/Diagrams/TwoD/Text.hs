@@ -24,14 +24,19 @@ module Diagrams.TwoD.Text (
 
   -- * Text attributes
   -- ** Font family
-  , Font(..), getFont, font
+  , Font(..), _Font
+  , getFont, font, _font
   -- ** Font size
-  , FontSize(..), getFontSize, fontSizeM, fontSize
+  , FontSize(..), _FontSize
+  , getFontSize, fontSizeM, fontSize
   , fontSizeN, fontSizeO, fontSizeL, fontSizeG
+  , _fontSizeR, _fontSize
   -- ** Font slant
-  , FontSlant(..), FontSlantA, getFontSlant, fontSlant, italic, oblique
+  , FontSlant(..), FontSlantA, _FontSlant
+  , getFontSlant, fontSlant, italic, oblique, _fontSlant
   -- ** Font weight
-  , FontWeight(..), FontWeightA, getFontWeight, fontWeight, bold
+  , FontWeight(..), FontWeightA, _FontWeight
+  , getFontWeight, fontWeight, bold, _fontWeight
   ) where
 
 import           Control.Lens             hiding (transform)
@@ -172,10 +177,9 @@ instance Rewrapped Font Font
 instance Wrapped Font where
   type Unwrapped Font = String
   _Wrapped' = iso getFont (Font . Last)
-  {-# INLINE _Wrapped' #-}
 
-_Font :: (Typeable n, OrderedField n) => Lens' (Style v n) (Maybe String)
-_Font = atAttr . mapping (_Wrapping (Font . Last))
+_Font :: Iso' Font String
+_Font = iso getFont (Font . Last)
 
 instance AttributeClass Font
 
@@ -186,6 +190,9 @@ getFont (Font (Last f)) = f
 -- | Specify a font family to be used for all text within a diagram.
 font :: HasStyle a => String -> a -> a
 font = applyAttr . Font . Last
+
+_font :: (Typeable n, OrderedField n) => Lens' (Style v n) (Maybe String)
+_font = atAttr . mapping (_Wrapping (Font . Last))
 
 --------------------------------------------------
 -- Font size
@@ -210,16 +217,11 @@ instance Wrapped (FontSize n) where
           setter (Commit    a) = FontSize $ Commit (Last a)
   {-# INLINE _Wrapped' #-}
 
-_RFontSize :: (Typeable n, OrderedField n) => Lens' (Style v n) (Measured n (Recommend n))
-_RFontSize = atMAttr . mapping (mapping (_Wrapping setter)) . anon (Recommend <$> local 1) (const False)
-  where
-    setter (Recommend a) = FontSize $ Recommend (Last a)
-    setter (Commit    a) = FontSize $ Commit (Last a)
+_FontSize :: Iso' (FontSize n) (Recommend n)
+_FontSize = _Wrapped'
 
--- | Lens to commit a font size. This is *not* a valid lens (see
---   'commited'.
-_FontSize :: (Typeable n, OrderedField n) => Lens' (Style v n) (Measure n)
-_FontSize = _RFontSize . mapping committed
+_FontSizeM :: Iso' (FontSizeM n) (Measured n (Recommend n))
+_FontSizeM = mapping _FontSize
 
 type FontSizeM n = Measured n (FontSize n)
 
@@ -262,6 +264,14 @@ fontSizeM = applyMAttr
 recommendFontSize :: (N a ~ n, Typeable n, HasStyle a) => Measure n -> a -> a
 recommendFontSize = applyMAttr . fmap (FontSize . Recommend . Last)
 
+_fontSizeR :: (Typeable n, OrderedField n) => Lens' (Style v n) (Measured n (Recommend n))
+_fontSizeR = atMAttr . anon def (const False) . _FontSizeM
+
+-- | Lens to commit a font size. This is *not* a valid lens (see
+--   'commited'.
+_fontSize :: (Typeable n, OrderedField n) => Lens' (Style v n) (Measure n)
+_fontSize = _fontSizeR . mapping committed
+
 --------------------------------------------------
 -- Font slant
 
@@ -286,8 +296,8 @@ instance Wrapped FontSlantA where
 instance Default FontSlant where
   def = FontSlantNormal
 
-_FontSlant :: (Typeable n, OrderedField n) => Lens' (Style v n) FontSlant
-_FontSlant = atAttr . mapping (_Wrapping (FontSlantA . Last)) . non def
+_FontSlant :: Iso' FontSlantA FontSlant
+_FontSlant = _Wrapped'
 
 -- | Extract the font slant from a 'FontSlantA' attribute.
 getFontSlant :: FontSlantA -> FontSlant
@@ -298,6 +308,10 @@ getFontSlant (FontSlantA (Last s)) = s
 --   'oblique' for useful special cases.
 fontSlant :: HasStyle a => FontSlant -> a -> a
 fontSlant = applyAttr . FontSlantA . Last
+
+-- | Lens onto the font slant in a style.
+_fontSlant :: (Typeable n, OrderedField n) => Lens' (Style v n) FontSlant
+_fontSlant = atAttr . mapping _FontSlant . non def
 
 -- | Set all text in italics.
 italic :: HasStyle a => a -> a
@@ -330,8 +344,8 @@ instance Wrapped FontWeightA where
 instance Default FontWeight where
   def = FontWeightNormal
 
-_FontWeight :: (Typeable n, OrderedField n) => Lens' (Style v n) FontWeight
-_FontWeight = atAttr . mapping (_Wrapping (FontWeightA . Last)) . non def
+_FontWeight :: Iso' FontWeightA FontWeight
+_FontWeight = _Wrapped'
 
 -- | Extract the font weight from a 'FontWeightA' attribute.
 getFontWeight :: FontWeightA -> FontWeight
@@ -346,3 +360,7 @@ fontWeight = applyAttr . FontWeightA . Last
 -- | Set all text using a bold font weight.
 bold :: HasStyle a => a -> a
 bold = fontWeight FontWeightBold
+
+-- | Lens onto the font weight in a style.
+_fontWeight :: (Typeable n, OrderedField n) => Lens' (Style v n) FontWeight
+_fontWeight = atAttr . mapping _FontWeight . non def

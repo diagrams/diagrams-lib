@@ -230,17 +230,17 @@ lengths f opts = (\h t -> opts & headLength .~ h & tailLength .~ t) <$> f (opts 
 --   color to blue. For more general control over the style of arrowheads,
 --   see 'headStyle'.
 headTexture :: TypeableFloat n => Lens' (ArrowOpts n) (Texture n)
-headTexture = headStyle . _FillTexture
+headTexture = headStyle . _fillTexture
 
 -- | A lens for setting or modifying the texture of an arrow
 --   tail. This is *not* a valid lens (see 'committed').
 tailTexture :: TypeableFloat n => Lens' (ArrowOpts n) (Texture n)
-tailTexture = tailStyle . _FillTexture
+tailTexture = tailStyle . _fillTexture
 
 -- | A lens for setting or modifying the texture of an arrow
 --   shaft.
 shaftTexture :: TypeableFloat n => Lens' (ArrowOpts n) (Texture n)
-shaftTexture = shaftStyle . _LineTexture
+shaftTexture = shaftStyle . _lineTexture
 
 -- Set the default shaft style of an `ArrowOpts` record by applying the
 -- default style after all other styles have been applied.

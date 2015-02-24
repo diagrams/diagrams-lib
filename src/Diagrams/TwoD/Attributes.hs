@@ -44,15 +44,15 @@ module Diagrams.TwoD.Attributes (
   , rGradSpreadMethod, mkRadialGradient
 
   -- ** Line texture
-  ,  LineTexture(..), getLineTexture, lineTexture, lineTextureA
-  ,  mkLineTexture, _LineTexture
+  , LineTexture(..), _LineTexture, getLineTexture, lineTexture, lineTextureA
+  , mkLineTexture, _lineTexture
 
   -- ** Line color
   , lineColor, lc, lcA
 
   -- ** Fill texture
-  , FillTexture(..), getFillTexture, fillTexture
-  , mkFillTexture, _FillTexture
+  , FillTexture(..), _FillTexture, getFillTexture, fillTexture
+  , mkFillTexture, _fillTexture, _fillTextureR
 
   -- ** Fill color
   , fillColor, fc, fcA, recommendFillColor
@@ -86,7 +86,8 @@ import           Diagrams.TwoD.Types
 -- | A gradient stop contains a color and fraction (usually between 0 and 1)
 data GradientStop d = GradientStop
   { _stopColor    :: SomeColor
-  , _stopFraction :: d}
+  , _stopFraction :: d
+  }
 
 makeLensesWith (lensRules & generateSignatures .~ False) ''GradientStop
 
@@ -251,6 +252,8 @@ mkRadialGradient :: Num n => [GradientStop n] -> Point V2 n -> n
 mkRadialGradient stops c0 r0 c1 r1 spreadMethod
   = RG (RGradient stops c0 r0 c1 r1 mempty spreadMethod)
 
+-- Line Texture --------------------------------------------------------
+
 -- | The texture with which lines are drawn.  Note that child
 --   textures always override parent textures.
 --   More precisely, the semigroup structure on line texture attributes
@@ -259,14 +262,18 @@ newtype LineTexture n = LineTexture (Last (Texture n))
   deriving (Typeable, Semigroup)
 instance (Typeable n) => AttributeClass (LineTexture n)
 
+type instance V (LineTexture n) = V2
+type instance N (LineTexture n) = n
+
 instance Rewrapped (LineTexture n) (LineTexture n')
 instance Wrapped (LineTexture n) where
   type Unwrapped (LineTexture n) = Texture n
-  _Wrapped' = iso getLineTexture mkLineTexture
+  _Wrapped' = iso getLineTexture (LineTexture . Last)
   {-# INLINE _Wrapped' #-}
 
-type instance V (LineTexture n) = V2
-type instance N (LineTexture n) = n
+_LineTexture :: Iso (LineTexture n) (LineTexture n')
+                    (Texture n)     (Texture n')
+_LineTexture = _Wrapped
 
 -- Only gradients get transformed. The transform is applied to the gradients
 -- transform field. Colors are left unchanged.
@@ -275,6 +282,9 @@ instance Floating n => Transformable (LineTexture n) where
 
 instance Default (LineTexture n) where
   def = LineTexture (Last (SC (SomeColor (black :: Colour Double))))
+
+mkLineTexture :: Texture n -> LineTexture n
+mkLineTexture = LineTexture . Last
 
 getLineTexture :: LineTexture n -> Texture n
 getLineTexture (LineTexture (Last t)) = t
@@ -285,11 +295,8 @@ lineTexture = applyTAttr . LineTexture . Last
 lineTextureA :: (Typeable n, Floating n, HasStyle a, V a ~ V2, N a ~ n) => LineTexture n -> a -> a
 lineTextureA = applyTAttr
 
-mkLineTexture :: Texture v -> LineTexture v
-mkLineTexture = LineTexture . Last
-
-_LineTexture :: (Floating n, Typeable n) => Lens' (Style V2 n) (Texture n)
-_LineTexture = atTAttr . anon def isDef . _Wrapping mkLineTexture
+_lineTexture :: (Floating n, Typeable n) => Lens' (Style V2 n) (Texture n)
+_lineTexture = atTAttr . anon def isDef . _LineTexture
   where
     isDef (LineTexture (Last (SC sc))) = toAlphaColour sc == opaque black
     isDef _                            = False
@@ -321,6 +328,8 @@ lineLGradient g = lineTexture (LG g)
 lineRGradient :: (Typeable n, Floating n, HasStyle a, V a ~ V2, N a ~ n) => RGradient n -> a -> a
 lineRGradient g = lineTexture (RG g)
 
+-- Fill Texture --------------------------------------------------------
+
 -- | The texture with which objects are filled.
 --   The semigroup structure on fill texture attributes
 --   is that of 'Recommed . Last'.
@@ -341,13 +350,16 @@ instance Wrapped (FillTexture n) where
 
 instance Typeable n => AttributeClass (FillTexture n)
 
+_FillTexture :: Iso' (FillTexture n) (Recommend (Texture n))
+_FillTexture = _Wrapped'
+
 type instance V (FillTexture n) = V2
 type instance N (FillTexture n) = n
 
 -- Only gradients get transformed. The transform is applied to the gradients
 -- transform field. Colors are left unchanged.
 instance Floating n => Transformable (FillTexture n) where
-  transform = over (_Wrapped' . _recommend) . transform
+  transform = over (_FillTexture . _recommend) . transform
 
 instance Default (FillTexture n) where
   def = FillTexture (Recommend (Last (SC
@@ -357,22 +369,22 @@ getFillTexture :: FillTexture n -> Texture n
 getFillTexture (FillTexture tx) = getLast . getRecommend $ tx
 
 fillTexture :: (HasStyle a, V a ~ V2, N a ~ n, Typeable n, Floating n) => Texture n -> a -> a
-fillTexture = applyTAttr . FillTexture . Commit . Last
+fillTexture = applyTAttr . mkFillTexture
 
 mkFillTexture :: Texture n -> FillTexture n
 mkFillTexture = FillTexture . Commit . Last
 
--- | Lens onto the 'Recommend' of a fill texture.
-_RFillTexture :: (Typeable n, Floating n) => Lens' (Style V2 n) (Recommend (Texture n))
-_RFillTexture = atTAttr . anon def isDef . _Wrapping (mkFillTexture . getRecommend)
+-- | Lens onto the 'Recommend' of a fill texture in a style.
+_fillTextureR :: (Typeable n, Floating n) => Lens' (Style V2 n) (Recommend (Texture n))
+_fillTextureR = atTAttr . anon def isDef . _FillTexture
   where
     isDef (FillTexture (Recommend (Last (SC sc)))) = toAlphaColour sc == transparent
     isDef _                                        = False
 
--- | Commit a fill texture in a style. To extract the fill texture
---   use '_RFillTexture'. This is *not* a valid lens (see 'committed').
-_FillTexture :: (Typeable n, Floating n) => Lens' (Style V2 n) (Texture n)
-_FillTexture = _RFillTexture . committed
+-- | Commit a fill texture in a style. This is *not* a valid lens
+--   because the resulting texture is always 'Commit' (see 'committed').
+_fillTexture :: (Typeable n, Floating n) => Lens' (Style V2 n) (Texture n)
+_fillTexture = _fillTextureR . committed
 
 -- | Set the fill color.  This function is polymorphic in the color
 --   type (so it can be used with either 'Colour' or 'AlphaColour'),
@@ -397,7 +409,8 @@ fc = fillColor
 --   (i.e. colors with transparency). See comment after 'fillColor' about backends.
 fcA :: (HasStyle a, V a ~ V2, N a ~ n, Floating n, Typeable n) => AlphaColour Double -> a -> a
 fcA = fillColor
-------------------------------------------------------------
+
+-- Split fills ---------------------------------------------------------
 
 data FillTextureLoops n = FillTextureLoops
 

@@ -37,38 +37,42 @@ module Diagrams.Attributes (
   , lw, lwN, lwO, lwL, lwG
 
     -- ** Dashing
-  , Dashing(..), DashingA, getDashing
-  , dashing, dashingN, dashingO, dashingL, dashingG
+  , Dashing(..), DashingA, _Dashing, _DashingM, getDashing
+  , dashing, dashingN, dashingO, dashingL, dashingG, _dashing
 
 
   -- * Color
   -- $color
 
-  , Color(..), SomeColor(..), someToAlpha
+  , Color(..), SomeColor(..), _SomeColor, someToAlpha
 
   -- ** Opacity
-  , Opacity, getOpacity, opacity
+  , Opacity, _Opacity
+  , getOpacity, opacity, _opacity
 
   -- ** Converting colors
   , colorToSRGBA, colorToRGBA
 
   -- * Line stuff
   -- ** Cap style
-  , LineCap(..), LineCapA, getLineCap, lineCap
+  , LineCap(..), LineCapA, _LineCap
+  , getLineCap, lineCap, _lineCap
 
   -- ** Join style
-  , LineJoin(..), LineJoinA, getLineJoin, lineJoin
+  , LineJoin(..), LineJoinA, _LineJoin
+  , getLineJoin, lineJoin, _lineJoin
 
   -- ** Miter limit
-  , LineMiterLimit(..), getLineMiterLimit, lineMiterLimit, lineMiterLimitA
+  , LineMiterLimit(..), _LineMiterLimit
+  , getLineMiterLimit, lineMiterLimit, lineMiterLimitA, _lineMiterLimit
 
   -- * Recommend optics
 
   , _Recommend
   , _Commit
   , _recommend
-  , committed
   , isCommitted
+  , committed
 
   ) where
 
@@ -122,11 +126,12 @@ instance Rewrapped (LineWidth n) (LineWidth n')
 instance Wrapped (LineWidth n) where
   type Unwrapped (LineWidth n) = n
   _Wrapped' = iso getLineWidth (LineWidth . Last)
-  {-# INLINE _Wrapped' #-}
 
-_LineWidth :: (Typeable n, OrderedField n) => Lens' (Style v n) (Measure n)
-_LineWidth = atMAttr . mapping (mapping (_Wrapping (LineWidth . Last)))
-           . anon medium (const False)
+_LineWidth :: (Typeable n, OrderedField n) => Iso' (LineWidth n) n
+_LineWidth = iso getLineWidth (LineWidth . Last)
+
+_LineWidthM :: (Typeable n, OrderedField n) => Iso' (LineWidthM n) (Measure n)
+_LineWidthM = mapping _LineWidth
 
 instance Typeable n => AttributeClass (LineWidth n)
 
@@ -166,6 +171,11 @@ lwO = lw . output
 lwL :: (N a ~ n, HasStyle a, Typeable n, Num n) => n -> a -> a
 lwL = lw . local
 
+-- | Lens onto a measured line width in a style.
+_lineWidth, _lw :: (Typeable n, OrderedField n) => Lens' (Style v n) (Measure n)
+_lineWidth = atMAttr . anon def (const False) . _LineWidthM
+_lw = _lineWidth
+
 ------------------------------------------------------------------------
 -- Dashing
 ------------------------------------------------------------------------
@@ -183,9 +193,11 @@ instance Wrapped (DashingA n) where
   _Wrapped' = iso getDashing (DashingA . Last)
   {-# INLINE _Wrapped' #-}
 
-_Dashing :: (Typeable n, OrderedField n)
-         => Lens' (Style v n) (Maybe (Measured n (Dashing n)))
-_Dashing = atMAttr . mapping (mapping (_Wrapping (DashingA . Last)))
+_Dashing :: Iso' (DashingA n) (Dashing n)
+_Dashing = iso getDashing (DashingA . Last)
+
+_DashingM :: Iso' (Measured n (DashingA n)) (Measured n (Dashing n))
+_DashingM = mapping _Dashing
 
 instance Typeable n => AttributeClass (DashingA n)
 
@@ -218,6 +230,11 @@ dashingO w v = dashing (map output w) (output v)
 dashingL :: (N a ~ n, HasStyle a, Typeable n, Num n) => [n] -> n -> a -> a
 dashingL w v = dashing (map local w) (local v)
 
+-- | Lens onto a measured dashing attribute in a style.
+_dashing :: (Typeable n, OrderedField n)
+         => Lens' (Style v n) (Maybe (Measured n (Dashing n)))
+_dashing = atMAttr . mapping _DashingM
+
 ------------------------------------------------------------------------
 -- Color
 ------------------------------------------------------------------------
@@ -246,6 +263,10 @@ class Color c where
 -- | An existential wrapper for instances of the 'Color' class.
 data SomeColor = forall c. Color c => SomeColor c
   deriving Typeable
+
+-- | Isomorphism between 'SomeColor' and 'AlphaColour' 'Double'.
+_SomeColor :: Iso' SomeColor (AlphaColour Double)
+_SomeColor = iso toAlphaColour fromAlphaColour
 
 someToAlpha :: SomeColor -> AlphaColour Double
 someToAlpha (SomeColor c) = toAlphaColour c
@@ -297,11 +318,10 @@ instance AttributeClass Opacity
 instance Rewrapped Opacity Opacity
 instance Wrapped Opacity where
   type Unwrapped Opacity = Double
-  _Wrapped' = iso getOpacity (Opacity . Product)
-  {-# INLINE _Wrapped' #-}
+  _Wrapped' = _Opacity
 
-_Opacity :: Lens' (Style v n) Double
-_Opacity = atAttr . mapping (_Wrapping (Opacity . Product)) . non 1
+_Opacity :: Iso' Opacity Double
+_Opacity = iso getOpacity (Opacity . Product)
 
 getOpacity :: Opacity -> Double
 getOpacity (Opacity (Product d)) = d
@@ -311,6 +331,10 @@ getOpacity (Opacity (Product d)) = d
 --   80% of its previous opacity\".
 opacity :: HasStyle a => Double -> a -> a
 opacity = applyAttr . Opacity . Product
+
+-- | Lens onto the opacity in a style.
+_opacity :: Lens' (Style v n) Double
+_opacity = atAttr . mapping _Opacity . non 1
 
 ------------------------------------------------------------------------
 -- Line stuff
@@ -333,11 +357,11 @@ instance AttributeClass LineCapA
 instance Rewrapped LineCapA LineCapA
 instance Wrapped LineCapA where
   type Unwrapped LineCapA = LineCap
-  _Wrapped' = iso getLineCap (LineCapA . Last)
+  _Wrapped' = _LineCap
   {-# INLINE _Wrapped' #-}
 
-_LineCap :: Lens' (Style v n) LineCap
-_LineCap = atAttr . mapping (_Wrapping (LineCapA . Last)) . non def
+_LineCap :: Iso' LineCapA LineCap
+_LineCap = iso getLineCap (LineCapA . Last)
 
 instance Default LineCap where
   def = LineCapButt
@@ -348,6 +372,10 @@ getLineCap (LineCapA (Last c)) = c
 -- | Set the line end cap attribute.
 lineCap :: HasStyle a => LineCap -> a -> a
 lineCap = applyAttr . LineCapA . Last
+
+-- | Lens onto the line cap in a style
+_lineCap :: Lens' (Style v n) LineCap
+_lineCap = atAttr . mapping _LineCap . non def
 
 -- line join -----------------------------------------------------------
 
@@ -366,11 +394,10 @@ instance AttributeClass LineJoinA
 instance Rewrapped LineJoinA LineJoinA
 instance Wrapped LineJoinA where
   type Unwrapped LineJoinA = LineJoin
-  _Wrapped' = iso getLineJoin (LineJoinA . Last)
-  {-# INLINE _Wrapped' #-}
+  _Wrapped' = _LineJoin
 
-_LineJoin :: Lens' (Style v n) LineJoin
-_LineJoin = atAttr . mapping (_Wrapping (LineJoinA . Last)) . non def
+_LineJoin :: Iso' LineJoinA LineJoin
+_LineJoin = iso getLineJoin (LineJoinA . Last)
 
 instance Default LineJoin where
   def = LineJoinMiter
@@ -381,6 +408,9 @@ getLineJoin (LineJoinA (Last j)) = j
 -- | Set the segment join style.
 lineJoin :: HasStyle a => LineJoin -> a -> a
 lineJoin = applyAttr . LineJoinA . Last
+
+_lineJoin :: Lens' (Style v n) LineJoin
+_lineJoin = atAttr . mapping _LineJoin . non def
 
 -- miter limit ---------------------------------------------------------
 
@@ -393,11 +423,10 @@ instance AttributeClass LineMiterLimit
 instance Rewrapped LineMiterLimit LineMiterLimit
 instance Wrapped LineMiterLimit where
   type Unwrapped LineMiterLimit = Double
-  _Wrapped' = iso getLineMiterLimit (LineMiterLimit . Last)
-  {-# INLINE _Wrapped' #-}
+  _Wrapped' = _LineMiterLimit
 
-_LineMiterLimit :: Lens' (Style v n) Double
-_LineMiterLimit = atAttr . mapping (_Wrapping (LineMiterLimit . Last)) . non 10
+_LineMiterLimit :: Iso' LineMiterLimit Double
+_LineMiterLimit = iso getLineMiterLimit (LineMiterLimit . Last)
 
 instance Default LineMiterLimit where
   def = LineMiterLimit (Last 10)
@@ -412,6 +441,9 @@ lineMiterLimit = applyAttr . LineMiterLimit . Last
 -- | Apply a 'LineMiterLimit' attribute.
 lineMiterLimitA :: HasStyle a => LineMiterLimit -> a -> a
 lineMiterLimitA = applyAttr
+
+_lineMiterLimit :: Lens' (Style v n) Double
+_lineMiterLimit = atAttr . mapping _LineMiterLimit . non 10
 
 ------------------------------------------------------------------------
 -- Recommend optics
@@ -431,7 +463,7 @@ _recommend :: Lens (Recommend a) (Recommend b) a b
 _recommend f (Recommend a) = Recommend <$> f a
 _recommend f (Commit a)    = Commit <$> f a
 
--- | Lens onto weather something is commited or not.
+-- | Lens onto weather something is committed or not.
 isCommitted :: Lens' (Recommend a) Bool
 isCommitted f r@(Recommend a) = f False <&> \b -> if b then Commit a else r
 isCommitted f r@(Commit a)    = f True  <&> \b -> if b then r else Recommend a
