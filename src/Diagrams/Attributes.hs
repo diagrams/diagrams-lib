@@ -122,11 +122,6 @@ huge      = normalized 0.10
 newtype LineWidth n = LineWidth (Last n)
   deriving (Typeable, Semigroup)
 
-instance Rewrapped (LineWidth n) (LineWidth n')
-instance Wrapped (LineWidth n) where
-  type Unwrapped (LineWidth n) = n
-  _Wrapped' = iso getLineWidth (LineWidth . Last)
-
 _LineWidth :: (Typeable n, OrderedField n) => Iso' (LineWidth n) n
 _LineWidth = iso getLineWidth (LineWidth . Last)
 
@@ -186,12 +181,6 @@ data Dashing n = Dashing [n] n
 
 newtype DashingA n = DashingA (Last (Dashing n))
   deriving (Functor, Typeable, Semigroup)
-
-instance Rewrapped (DashingA n) (DashingA n')
-instance Wrapped (DashingA n) where
-  type Unwrapped (DashingA n) = Dashing n
-  _Wrapped' = iso getDashing (DashingA . Last)
-  {-# INLINE _Wrapped' #-}
 
 _Dashing :: Iso' (DashingA n) (Dashing n)
 _Dashing = iso getDashing (DashingA . Last)
@@ -315,11 +304,6 @@ newtype Opacity = Opacity (Product Double)
   deriving (Typeable, Semigroup)
 instance AttributeClass Opacity
 
-instance Rewrapped Opacity Opacity
-instance Wrapped Opacity where
-  type Unwrapped Opacity = Double
-  _Wrapped' = _Opacity
-
 _Opacity :: Iso' Opacity Double
 _Opacity = iso getOpacity (Opacity . Product)
 
@@ -354,12 +338,6 @@ newtype LineCapA = LineCapA (Last LineCap)
   deriving (Typeable, Semigroup, Eq)
 instance AttributeClass LineCapA
 
-instance Rewrapped LineCapA LineCapA
-instance Wrapped LineCapA where
-  type Unwrapped LineCapA = LineCap
-  _Wrapped' = _LineCap
-  {-# INLINE _Wrapped' #-}
-
 _LineCap :: Iso' LineCapA LineCap
 _LineCap = iso getLineCap (LineCapA . Last)
 
@@ -391,11 +369,6 @@ newtype LineJoinA = LineJoinA (Last LineJoin)
   deriving (Typeable, Semigroup, Eq)
 instance AttributeClass LineJoinA
 
-instance Rewrapped LineJoinA LineJoinA
-instance Wrapped LineJoinA where
-  type Unwrapped LineJoinA = LineJoin
-  _Wrapped' = _LineJoin
-
 _LineJoin :: Iso' LineJoinA LineJoin
 _LineJoin = iso getLineJoin (LineJoinA . Last)
 
@@ -419,11 +392,6 @@ _lineJoin = atAttr . mapping _LineJoin . non def
 newtype LineMiterLimit = LineMiterLimit (Last Double)
   deriving (Typeable, Semigroup)
 instance AttributeClass LineMiterLimit
-
-instance Rewrapped LineMiterLimit LineMiterLimit
-instance Wrapped LineMiterLimit where
-  type Unwrapped LineMiterLimit = Double
-  _Wrapped' = _LineMiterLimit
 
 _LineMiterLimit :: Iso' LineMiterLimit Double
 _LineMiterLimit = iso getLineMiterLimit (LineMiterLimit . Last)

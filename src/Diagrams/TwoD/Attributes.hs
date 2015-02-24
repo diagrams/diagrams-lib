@@ -265,15 +265,9 @@ instance (Typeable n) => AttributeClass (LineTexture n)
 type instance V (LineTexture n) = V2
 type instance N (LineTexture n) = n
 
-instance Rewrapped (LineTexture n) (LineTexture n')
-instance Wrapped (LineTexture n) where
-  type Unwrapped (LineTexture n) = Texture n
-  _Wrapped' = iso getLineTexture (LineTexture . Last)
-  {-# INLINE _Wrapped' #-}
-
 _LineTexture :: Iso (LineTexture n) (LineTexture n')
                     (Texture n)     (Texture n')
-_LineTexture = _Wrapped
+_LineTexture = iso getLineTexture (LineTexture . Last)
 
 -- Only gradients get transformed. The transform is applied to the gradients
 -- transform field. Colors are left unchanged.
@@ -336,22 +330,17 @@ lineRGradient g = lineTexture (RG g)
 newtype FillTexture n = FillTexture (Recommend (Last (Texture n)))
   deriving (Typeable, Semigroup)
 
--- This isn't valid since it ignores Recommend!
-instance Rewrapped (FillTexture n) (FillTexture n')
-instance Wrapped (FillTexture n) where
-  type Unwrapped (FillTexture n) = Recommend (Texture n)
-  _Wrapped' = iso getter setter -- == coerce
-    where
-      getter (FillTexture (Recommend (Last t))) = Recommend t
-      getter (FillTexture (Commit    (Last t))) = Commit t
-      setter (Recommend t) = FillTexture (Recommend (Last t))
-      setter (Commit t)    = FillTexture (Commit (Last t))
-  {-# INLINE _Wrapped' #-}
-
 instance Typeable n => AttributeClass (FillTexture n)
 
 _FillTexture :: Iso' (FillTexture n) (Recommend (Texture n))
-_FillTexture = _Wrapped'
+_FillTexture = iso getter setter
+  where
+    getter (FillTexture (Recommend (Last t))) = Recommend t
+    getter (FillTexture (Commit    (Last t))) = Commit t
+    setter (Recommend t) = FillTexture (Recommend (Last t))
+    setter (Commit t)    = FillTexture (Commit (Last t))
+  -- = iso (\(FillTexture a) -> a) FillTexture . mapping _Wrapped
+  -- -- once we depend on monoid-extras-0.4
 
 type instance V (FillTexture n) = V2
 type instance N (FillTexture n) = n
@@ -362,8 +351,7 @@ instance Floating n => Transformable (FillTexture n) where
   transform = over (_FillTexture . _recommend) . transform
 
 instance Default (FillTexture n) where
-  def = FillTexture (Recommend (Last (SC
-                    (SomeColor (transparent :: AlphaColour Double)))))
+  def = review (_FillTexture . _Recommend . _SC . _SomeColor) transparent
 
 getFillTexture :: FillTexture n -> Texture n
 getFillTexture (FillTexture tx) = getLast . getRecommend $ tx

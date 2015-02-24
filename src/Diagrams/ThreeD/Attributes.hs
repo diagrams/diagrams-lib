@@ -42,10 +42,6 @@ newtype SurfaceColor = SurfaceColor (Last (Colour Double))
 
 instance AttributeClass SurfaceColor
 
-instance Wrapped SurfaceColor where
-  type Unwrapped SurfaceColor = Colour Double
-  _Wrapped' = _SurfaceColor
-
 _SurfaceColor :: Iso' SurfaceColor (Colour Double)
 _SurfaceColor = iso (\(SurfaceColor (Last c)) -> c) (SurfaceColor . Last)
 
@@ -66,10 +62,6 @@ newtype Diffuse = Diffuse (Last Double)
   deriving (Typeable, Semigroup)
 
 instance AttributeClass Diffuse
-
-instance Wrapped Diffuse where
-  type Unwrapped Diffuse = Double
-  _Wrapped' = _Diffuse
 
 -- | Isomorphism between 'Diffuse' and 'Double'
 _Diffuse :: Iso' Diffuse Double
@@ -94,12 +86,8 @@ newtype Ambient = Ambient (Last Double)
 
 instance AttributeClass Ambient
 
-instance Wrapped Ambient where
-  type Unwrapped Ambient = Double
-  _Wrapped' = iso (\(Ambient (Last d)) -> d) (Ambient . Last)
-
 _Ambient :: Iso' Ambient Double
-_Ambient = _Wrapped'
+_Ambient = iso (\(Ambient (Last d)) -> d) (Ambient . Last)
 
 -- | Set the emittance due to ambient light.
 ambient :: HasStyle d => Double -> d -> d
@@ -127,10 +115,6 @@ newtype Highlight = Highlight (Last Specular)
   deriving (Typeable, Semigroup)
 
 instance AttributeClass Highlight
-
-instance Wrapped Highlight where
-  type Unwrapped Highlight = Specular
-  _Wrapped' = _Highlight
 
 _Highlight :: Iso' Highlight Specular
 _Highlight = iso (\(Highlight (Last s)) -> s) (Highlight . Last)

@@ -173,11 +173,6 @@ baselineText = mkText BaselineText
 newtype Font = Font (Last String)
   deriving (Typeable, Semigroup, Eq)
 
-instance Rewrapped Font Font
-instance Wrapped Font where
-  type Unwrapped Font = String
-  _Wrapped' = iso getFont (Font . Last)
-
 _Font :: Iso' Font String
 _Font = iso getFont (Font . Last)
 
@@ -192,7 +187,7 @@ font :: HasStyle a => String -> a -> a
 font = applyAttr . Font . Last
 
 _font :: (Typeable n, OrderedField n) => Lens' (Style v n) (Maybe String)
-_font = atAttr . mapping (_Wrapping (Font . Last))
+_font = atAttr . mapping _Font
 
 --------------------------------------------------
 -- Font size
@@ -207,18 +202,14 @@ instance Functor FontSize where
   fmap f (FontSize (Recommend (Last a))) = FontSize (Recommend (Last (f a)))
   fmap f (FontSize (Commit (Last a)))    = FontSize (Commit (Last (f a)))
 
-instance Rewrapped (FontSize n) (FontSize n')
-instance Wrapped (FontSize n) where
-  type Unwrapped (FontSize n) = Recommend n
-  _Wrapped' = iso getter setter
-    where getter (FontSize (Recommend (Last a))) = Recommend a
-          getter (FontSize (Commit    (Last a))) = Commit a
-          setter (Recommend a) = FontSize $ Recommend (Last a)
-          setter (Commit    a) = FontSize $ Commit (Last a)
-  {-# INLINE _Wrapped' #-}
-
 _FontSize :: Iso' (FontSize n) (Recommend n)
-_FontSize = _Wrapped'
+_FontSize = iso getter setter
+  where getter (FontSize (Recommend (Last a))) = Recommend a
+        getter (FontSize (Commit    (Last a))) = Commit a
+        setter (Recommend a) = FontSize $ Recommend (Last a)
+        setter (Commit    a) = FontSize $ Commit (Last a)
+      -- = iso (\(FontSize a) -> a) FontSize . mapping _Wrapped
+      -- once we depend on monoid-extras-0.4
 
 _FontSizeM :: Iso' (FontSizeM n) (Measured n (Recommend n))
 _FontSizeM = mapping _FontSize
@@ -287,17 +278,11 @@ newtype FontSlantA = FontSlantA (Last FontSlant)
   deriving (Typeable, Semigroup, Eq)
 instance AttributeClass FontSlantA
 
-instance Rewrapped FontSlantA FontSlantA
-instance Wrapped FontSlantA where
-  type Unwrapped FontSlantA = FontSlant
-  _Wrapped' = iso getFontSlant (FontSlantA . Last)
-  {-# INLINE _Wrapped' #-}
-
 instance Default FontSlant where
   def = FontSlantNormal
 
 _FontSlant :: Iso' FontSlantA FontSlant
-_FontSlant = _Wrapped'
+_FontSlant = iso getFontSlant (FontSlantA . Last)
 
 -- | Extract the font slant from a 'FontSlantA' attribute.
 getFontSlant :: FontSlantA -> FontSlant
@@ -335,17 +320,11 @@ newtype FontWeightA = FontWeightA (Last FontWeight)
   deriving (Typeable, Semigroup, Eq)
 instance AttributeClass FontWeightA
 
-instance Rewrapped FontWeightA FontWeightA
-instance Wrapped FontWeightA where
-  type Unwrapped FontWeightA = FontWeight
-  _Wrapped' = iso getFontWeight (FontWeightA . Last)
-  {-# INLINE _Wrapped' #-}
-
 instance Default FontWeight where
   def = FontWeightNormal
 
 _FontWeight :: Iso' FontWeightA FontWeight
-_FontWeight = _Wrapped'
+_FontWeight = iso getFontWeight (FontWeightA . Last)
 
 -- | Extract the font weight from a 'FontWeightA' attribute.
 getFontWeight :: FontWeightA -> FontWeight
