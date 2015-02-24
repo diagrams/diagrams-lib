@@ -78,12 +78,15 @@ import           Linear.Projection
 
 -- Parallel projections
 
+-- | Look at the xy-plane with y as the up direction.
 facingXY :: (Epsilon n, Floating n) => AffineMap V3 V2 n
-facingXY = lookingAt unitX origin zDir
+facingXY = lookingAt unitZ origin yDir
 
+-- | Look at the xz-plane with z as the up direction.
 facingXZ :: (Epsilon n, Floating n) => AffineMap V3 V2 n
-facingXZ = lookingAt unitY origin yDir
+facingXZ = lookingAt unitY origin zDir
 
+-- | Look at the yz-plane with z as the up direction.
 facingYZ :: (Epsilon n, Floating n) => AffineMap V3 V2 n
 facingYZ = lookingAt unitX origin zDir
 

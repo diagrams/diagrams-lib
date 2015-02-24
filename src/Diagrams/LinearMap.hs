@@ -22,7 +22,7 @@
 
 module Diagrams.LinearMap where
 
-import           Control.Lens            hiding (lmap)
+import           Control.Lens
 import           Data.FingerTree         as FT
 import           Data.Foldable           (Foldable)
 
@@ -57,12 +57,11 @@ class LinearMappable a b where
 -- r ~ A u m => LinearMappable (A v n) r
 --
 -- so ghc knows there's only one possible result from calling vmap.
--- I can't think of a better way to set up the class.
 
 -- | Apply a linear map.
-lmap :: (InSpace v n a, Foldable v, LinearMappable a b, N b ~ n)
+linmap :: (InSpace v n a, Foldable v, LinearMappable a b, N b ~ n)
      => LinearMap v (V b) n -> a -> b
-lmap = vmap . lapply
+linmap = vmap . lapply
 
 instance r ~ Offset c u m => LinearMappable (Offset c v n) r where
   vmap f (OffsetClosed v) = OffsetClosed (f v)
@@ -125,7 +124,7 @@ toAffineMap t = AffineMap (toLinearMap t) (transl t)
 class (LinearMappable a b, N a ~ N b) => AffineMappable a b where
   amap :: (Additive (V a), Foldable (V a), Additive (V b), Num (N b))
        => AffineMap (V a) (V b) (N b) -> a -> b
-  amap (AffineMap f _) = lmap f
+  amap (AffineMap f _) = linmap f
   {-# INLINE amap #-}
 
 instance r ~ Offset c u n => AffineMappable (Offset c v n) r
@@ -135,7 +134,7 @@ instance (Metric v, Metric u, OrderedField n, r ~ Trail' l u n) => AffineMappabl
 instance (Metric v, Metric u, OrderedField n, r ~ Trail u n) => AffineMappable (Trail v n) r
 
 instance (Additive v, Foldable v, Num n, r ~ Point u n) => AffineMappable (Point v n) r where
-  amap (AffineMap f v) p = lmap f p .+^ v
+  amap (AffineMap f v) p = linmap f p .+^ v
   {-# INLINE amap #-}
 
 instance r ~ FixedSegment u n => AffineMappable (FixedSegment v n) r where
@@ -144,7 +143,7 @@ instance r ~ FixedSegment u n => AffineMappable (FixedSegment v n) r where
   {-# INLINE amap #-}
 
 instance (LinearMappable a b, N a ~ N b, r ~ Located b) => AffineMappable (Located a) r where
-  amap m@(AffineMap l _) (Loc p x) = Loc (amap m p) (lmap l x)
+  amap m@(AffineMap l _) (Loc p x) = Loc (amap m p) (linmap l x)
   {-# INLINE amap #-}
 
 instance (Metric v, Metric u, OrderedField n, r ~ Path u n)
