@@ -362,14 +362,17 @@ fillTexture = applyTAttr . mkFillTexture
 mkFillTexture :: Texture n -> FillTexture n
 mkFillTexture = FillTexture . Commit . Last
 
--- | Lens onto the possible recommend of a fill texture in a style.
-_fillTextureR :: (Typeable n, Floating n) => Lens' (Style V2 n) (Maybe (Recommend (Texture n)))
-_fillTextureR = atTAttr . mapping _FillTexture
+-- | Lens onto the 'Recommend' of a fill texture in a style.
+_fillTextureR :: (Typeable n, Floating n) => Lens' (Style V2 n) (Recommend (Texture n))
+_fillTextureR = atTAttr . anon def isDef . _FillTexture
+  where
+    isDef (FillTexture (Recommend (Last (SC sc)))) = toAlphaColour sc == transparent
+    isDef _                                        = False
 
 -- | Commit a fill texture in a style. This is *not* a valid lens
 --   because the resulting texture is always 'Commit' (see 'committed').
-_fillTexture :: (Typeable n, Floating n) => Lens' (Style V2 n) (Maybe (Texture n))
-_fillTexture = _fillTextureR . mapping committed
+_fillTexture :: (Typeable n, Floating n) => Lens' (Style V2 n) (Texture n)
+_fillTexture = _fillTextureR . committed
 
 -- | Set the fill color.  This function is polymorphic in the color
 --   type (so it can be used with either 'Colour' or 'AlphaColour'),
