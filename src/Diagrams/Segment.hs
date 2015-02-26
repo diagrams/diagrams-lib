@@ -63,23 +63,23 @@ module Diagrams.Segment
 
        ) where
 
-import           Control.Lens             (Rewrapped, Wrapped (..), iso, makeLenses, op,
-                                           over, Each (..))
+import           Control.Lens              (Each (..), Rewrapped, Wrapped (..),
+                                            iso, makeLenses, op, over)
 import           Data.FingerTree
 import           Data.Monoid.MList
 import           Data.Semigroup
-import           Numeric.Interval.Kaucher (Interval (..))
-import qualified Numeric.Interval.Kaucher as I
+import           Numeric.Interval.Kaucher  (Interval (..))
+import qualified Numeric.Interval.Kaucher  as I
 
 import           Linear.Affine
 import           Linear.Metric
 import           Linear.Vector
 
 import           Control.Applicative
-import           Diagrams.Core            hiding (Measured)
+import           Diagrams.Core             hiding (Measured)
 import           Diagrams.Located
 import           Diagrams.Parametric
-import           Diagrams.Solve
+import           Diagrams.Solve.Polynomial
 
 
 ------------------------------------------------------------
