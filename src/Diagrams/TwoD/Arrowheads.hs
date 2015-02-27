@@ -1,8 +1,10 @@
+{-# LANGUAGE CPP                        #-}
 {-# LANGUAGE ConstraintKinds           #-}
 {-# LANGUAGE FlexibleContexts          #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE ScopedTypeVariables       #-}
 {-# LANGUAGE TypeFamilies              #-}
+{-# OPTIONS_GHC -fno-warn-unused-imports       #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Arrowheads
@@ -340,4 +342,3 @@ quill = arrowtailQuill (2/5 @@ turn)
 --   > blockEx = drawTail block
 block :: RealFloat n => ArrowHT n
 block = arrowtailBlock (7/16 @@ turn)
-

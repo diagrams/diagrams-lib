@@ -3,13 +3,13 @@
 
 module Diagrams.TwoD.Segment.Bernstein
   ( BernsteinPoly (..)
-	, listToBernstein
-	, evaluateBernstein
+  , listToBernstein
+  , evaluateBernstein
 
-	, degreeElevate
-	, bernsteinDeriv
-	, evaluateBernsteinDerivs
-	) where
+  , degreeElevate
+  , bernsteinDeriv
+  , evaluateBernsteinDerivs
+  ) where
 
 import           Data.List           (tails)
 import           Diagrams.Core.V
@@ -78,12 +78,12 @@ bernsteinDeriv (BernsteinPoly lp p) =
   BernsteinPoly (lp-1) $ zipWith (\a b -> (a - b) * fromIntegral lp) (tail p) p
 
 instance Fractional n => Parametric (BernsteinPoly n) where
-	atParam b = V1 . evaluateBernstein b
+    atParam b = V1 . evaluateBernstein b
 instance Num n        => DomainBounds (BernsteinPoly n)
 instance Fractional n => EndValues    (BernsteinPoly n)
 instance Fractional n => Sectionable  (BernsteinPoly n) where
-	splitAtParam  = bernsteinSplit
-	reverseDomain (BernsteinPoly i xs) = BernsteinPoly i (reverse xs)
+    splitAtParam  = bernsteinSplit
+    reverseDomain (BernsteinPoly i xs) = BernsteinPoly i (reverse xs)
 
 -- | Split a bernstein polynomial
 bernsteinSplit :: Num n => BernsteinPoly n -> n -> (BernsteinPoly n, BernsteinPoly n)
@@ -114,7 +114,7 @@ instance Fractional n => Num (BernsteinPoly n) where
     zipWith (flip (/)) (binomials (la + lb)) $
                    init $ map sum $
                    map (zipWith (*) a') (down b') ++
-									 map (zipWith (*) (reverse b')) (tail $ tails a')
+                   map (zipWith (*) (reverse b')) (tail $ tails a')
                    -- zipWith (zipWith (*)) (tail $ tails a') (repeat $ reverse b')
     where down l = tail $ scanl (flip (:)) [] l -- [[1], [2, 1], [3, 2, 1], ...
           a' = zipWith (*) a (binomials la)
@@ -126,5 +126,3 @@ instance Fractional n => Num (BernsteinPoly n) where
   signum (BernsteinPoly _ (a:_)) = BernsteinPoly 0 [signum a]
 
   abs = fmap abs
-
-

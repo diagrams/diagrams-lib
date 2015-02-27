@@ -104,12 +104,11 @@ aboutY (view rad -> a) = fromOrthogonal r where
 
 -- | @rotationAbout p d a@ is a rotation about a line parallel to @d@
 --   passing through @p@.
-rotationAbout
-  :: Floating n
-	=> Point V3 n         -- ^ origin of rotation
-  -> Direction V3 n     -- ^ direction of rotation axis
-  -> Angle n            -- ^ angle of rotation
-  -> Transformation V3 n
+rotationAbout :: Floating n
+                 => Point V3 n         -- ^ origin of rotation
+              -> Direction V3 n     -- ^ direction of rotation axis
+              -> Angle n            -- ^ angle of rotation
+              -> Transformation V3 n
 rotationAbout (P t) d (view rad -> a)
   = mconcat [translation (negated t),
              fromOrthogonal r,
@@ -130,7 +129,7 @@ rotationAbout (P t) d (view rad -> a)
 -- ± 1/4 turn.
 pointAt :: Floating n
         => Direction V3 n -> Direction V3 n -> Direction V3 n
-				-> Transformation V3 n
+        -> Transformation V3 n
 pointAt a i f = pointAt' (fromDirection a) (fromDirection i) (fromDirection f)
 
 -- | pointAt' has the same behavior as 'pointAt', but takes vectors
@@ -193,14 +192,13 @@ reflectionAcross :: (Metric v, R3 v, Fractional n)
   => Point v n -> v n -> Transformation v n
 reflectionAcross p v =
   conjugate (translation (origin .-. p)) reflect
-	  where
-			reflect = fromLinear t (linv t)
-			t       = f v <-> f (negated v)
-			f u w   = w ^-^ 2 *^ project u w
+  where
+    reflect = fromLinear t (linv t)
+    t       = f v <-> f (negated v)
+    f u w   = w ^-^ 2 *^ project u w
 
 -- | @reflectAcross p v@ reflects a diagram across the plane though
 --   the point @p@ and the vector @v@.
 reflectAcross :: (InSpace v n t, Metric v, R3 v, Fractional n, Transformable t)
   => Point v n -> v n -> t -> t
 reflectAcross p v = transform (reflectionAcross p v)
-
