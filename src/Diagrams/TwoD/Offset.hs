@@ -42,6 +42,7 @@ module Diagrams.TwoD.Offset
 
 import           Control.Applicative
 import           Control.Lens            hiding (at)
+import           Prelude
 
 import           Data.Maybe              (catMaybes)
 import           Data.Monoid
@@ -558,4 +559,3 @@ joinSegmentIntersect miterLimit r e a b =
     miter v = abs (miterLimit * r) *^ v
     clip = joinSegmentClip miterLimit r e a b
     cross = let (xa,ya) = unr2 va; (xb,yb) = unr2 vb in abs (xa * yb - xb * ya)
-

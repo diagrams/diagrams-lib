@@ -26,7 +26,6 @@ module Diagrams.Transform.ScaleInv
     where
 
 import           Control.Lens            (makeLenses, view, (^.))
-import           Data.Semigroup
 import           Data.Typeable
 
 import           Diagrams.Angle

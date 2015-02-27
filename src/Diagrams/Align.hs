@@ -39,13 +39,14 @@ module Diagrams.Align
 import           Diagrams.Core
 import           Diagrams.Util (applyAll)
 
-import           Data.Maybe    (fromMaybe)
-import           Data.Ord      (comparing)
+import           Data.Maybe (fromMaybe)
+import           Data.Ord (comparing)
 import           Data.Traversable
+import           Prelude
 
 import qualified Data.Foldable as F
-import qualified Data.Map      as M
-import qualified Data.Set      as S
+import qualified Data.Map as M
+import qualified Data.Set as S
 
 import           Linear.Affine
 import           Linear.Metric
@@ -79,7 +80,7 @@ alignBy'Default boundary v d a = moveOriginTo (lerp ((d + 1) / 2)
                                                     (boundary (negated v) a)
                                               ) a
 {-# ANN alignBy'Default ("HLint: ignore Use camelCase" :: String) #-}
-                                              
+
 
 -- | Some standard functions which can be used as the `boundary` argument to
 --  `alignBy'`.
@@ -168,4 +169,3 @@ snugCenter = applyAll fs
     fs = map snugCenterV basis
 
 {-# ANN module ("HLint: ignore Use camelCase" :: String) #-}
-

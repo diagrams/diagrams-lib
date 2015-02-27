@@ -11,20 +11,21 @@ module Diagrams.Deform
        , asDeformation
        ) where
 
-import           Control.Lens        (over, _Wrapped, mapped)
-import           Data.Monoid         hiding ((<>))
-import           Data.Semigroup
+import Control.Lens (over, _Wrapped, mapped)
+import Data.Monoid hiding ((<>))
+import Data.Semigroup
+import Prelude
 
-import           Diagrams.Core
-import           Diagrams.Located
-import           Diagrams.Parametric
-import           Diagrams.Path
-import           Diagrams.Segment
-import           Diagrams.Trail
+import Diagrams.Core
+import Diagrams.Located
+import Diagrams.Parametric
+import Diagrams.Path
+import Diagrams.Segment
+import Diagrams.Trail
 
-import           Linear.Affine
-import           Linear.Metric
-import           Linear.Vector
+import Linear.Affine
+import Linear.Metric
+import Linear.Vector
 
 ------------------------------------------------------------
 -- Deformations
@@ -124,4 +125,3 @@ instance (Metric v, Metric u, OrderedField n)
 instance (Metric v, Metric u, OrderedField n) => Deformable (Path v n) (Path u n) where
   deform' eps p = over (_Wrapped . mapped) (deform' eps p)
   deform p      = over (_Wrapped . mapped) (deform p)
-

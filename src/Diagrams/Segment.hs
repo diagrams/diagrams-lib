@@ -169,7 +169,7 @@ type instance V (Segment c v n) = v
 type instance N (Segment c v n) = n
 
 instance Transformable (Segment c v n) where
-	transform = mapSegmentVectors . apply
+    transform = mapSegmentVectors . apply
 
 instance Renderable (Segment c v n) NullBackend where
   render _ _ = mempty
@@ -530,4 +530,3 @@ instance (OrderedField n, Metric v)
                              (getEnvelope s)
 
            *: ()
-

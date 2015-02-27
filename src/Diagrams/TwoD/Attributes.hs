@@ -120,7 +120,7 @@ type instance N (LGradient n) = n
 makeLensesWith (lensRules & generateSignatures .~ False) ''LGradient
 
 instance Fractional n => Transformable (LGradient n) where
-	transform = over lGradTrans . transform
+    transform = over lGradTrans . transform
 
 -- | A list of stops (colors and fractions).
 lGradStops :: Lens' (LGradient n) [GradientStop n]
@@ -413,4 +413,3 @@ splitTextureFills
 
                      , Typeable n) => RTree b v n a -> RTree b v n a
 splitTextureFills = splitAttr (FillTextureLoops :: FillTextureLoops n)
-

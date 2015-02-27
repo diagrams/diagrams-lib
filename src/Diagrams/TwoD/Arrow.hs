@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                        #-}
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
@@ -103,7 +104,9 @@ module Diagrams.TwoD.Arrow
        , module Diagrams.TwoD.Arrowheads
        ) where
 
+#if __GLASGOW_HASKELL__ < 710
 import           Control.Applicative       ((<*>))
+#endif
 import           Control.Lens              (Lens', Setter', Traversal',
                                             generateSignatures, lensRules,
                                             makeLensesWith, view, (%~), (&),
