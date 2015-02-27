@@ -9,7 +9,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Text
--- Copyright   :  (c) 2011 diagrams-lib team (see LICENSE)
+-- Copyright   :  (c) 2011-2015 diagrams-lib team (see LICENSE)
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
@@ -20,7 +20,7 @@
 module Diagrams.TwoD.Text (
   -- * Creating text diagrams
     Text(..), TextAlignment(..)
-  , text, topLeftText, alignedText, baselineText
+  , text, topLeftText, alignedText, baselineText, mkText
 
   -- * Text attributes
   -- ** Font family
@@ -186,6 +186,7 @@ getFont (Font (Last f)) = f
 font :: HasStyle a => String -> a -> a
 font = applyAttr . Font . Last
 
+-- | Lens onto the font name of a style.
 _font :: (Typeable n, OrderedField n) => Lens' (Style v n) (Maybe String)
 _font = atAttr . mapping _Font
 

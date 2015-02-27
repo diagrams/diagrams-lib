@@ -351,7 +351,7 @@ getLineCap (LineCapA (Last c)) = c
 lineCap :: HasStyle a => LineCap -> a -> a
 lineCap = applyAttr . LineCapA . Last
 
--- | Lens onto the line cap in a style
+-- | Lens onto the line cap in a style.
 _lineCap :: Lens' (Style v n) LineCap
 _lineCap = atAttr . mapping _LineCap . non def
 
@@ -382,6 +382,7 @@ getLineJoin (LineJoinA (Last j)) = j
 lineJoin :: HasStyle a => LineJoin -> a -> a
 lineJoin = applyAttr . LineJoinA . Last
 
+-- | Lens onto the line join type in a style.
 _lineJoin :: Lens' (Style v n) LineJoin
 _lineJoin = atAttr . mapping _LineJoin . non def
 
@@ -410,6 +411,7 @@ lineMiterLimit = applyAttr . LineMiterLimit . Last
 lineMiterLimitA :: HasStyle a => LineMiterLimit -> a -> a
 lineMiterLimitA = applyAttr
 
+-- | Lens onto the line miter limit in a style.
 _lineMiterLimit :: Lens' (Style v n) Double
 _lineMiterLimit = atAttr . mapping _LineMiterLimit . non 10
 
@@ -431,7 +433,7 @@ _recommend :: Lens (Recommend a) (Recommend b) a b
 _recommend f (Recommend a) = Recommend <$> f a
 _recommend f (Commit a)    = Commit <$> f a
 
--- | Lens onto weather something is committed or not.
+-- | Lens onto whether something is committed or not.
 isCommitted :: Lens' (Recommend a) Bool
 isCommitted f r@(Recommend a) = f False <&> \b -> if b then Commit a else r
 isCommitted f r@(Commit a)    = f True  <&> \b -> if b then r else Recommend a
