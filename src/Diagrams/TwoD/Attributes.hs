@@ -424,4 +424,3 @@ splitTextureFills
 
                      , Typeable n) => RTree b v n a -> RTree b v n a
 splitTextureFills = splitAttr (FillTextureLoops :: FillTextureLoops n)
-

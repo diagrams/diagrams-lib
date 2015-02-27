@@ -126,4 +126,3 @@ instance Fractional n => Num (BernsteinPoly n) where
   signum (BernsteinPoly _ (a:_)) = BernsteinPoly 0 [signum a]
 
   abs = fmap abs
-
