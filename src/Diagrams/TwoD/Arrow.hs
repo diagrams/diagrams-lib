@@ -103,37 +103,39 @@ module Diagrams.TwoD.Arrow
        , module Diagrams.TwoD.Arrowheads
        ) where
 
-import           Control.Applicative      ((<*>))
-import           Control.Lens             (Lens', Setter', Traversal', generateSignatures,
-                                           lensRules, makeLensesWith, view, (%~), (&), (.~), (^.))
+import           Control.Applicative       ((<*>))
+import           Control.Lens              (Lens', Setter', Traversal',
+                                            generateSignatures, lensRules,
+                                            makeLensesWith, view, (%~), (&),
+                                            (.~), (^.))
 import           Data.Default.Class
-import           Data.Functor             ((<$>))
-import           Data.Maybe               (fromMaybe)
-import           Data.Monoid.Coproduct    (untangle)
+import           Data.Functor              ((<$>))
+import           Data.Maybe                (fromMaybe)
+import           Data.Monoid.Coproduct     (untangle)
 import           Data.Semigroup
 import           Data.Typeable
 
-import           Data.Colour              hiding (atop)
+import           Data.Colour               hiding (atop)
 import           Diagrams.Core
-import           Diagrams.Core.Style      (unmeasureAttrs)
-import           Diagrams.Core.Types      (QDiaLeaf (..), mkQD')
+import           Diagrams.Core.Style       (unmeasureAttrs)
+import           Diagrams.Core.Types       (QDiaLeaf (..), mkQD')
 
 import           Diagrams.Angle
 import           Diagrams.Attributes
-import           Diagrams.Direction       hiding (dir)
-import           Diagrams.Located         (Located(..), unLoc)
+import           Diagrams.Direction        hiding (dir)
+import           Diagrams.Located          (Located (..), unLoc)
 import           Diagrams.Parametric
 import           Diagrams.Path
-import           Diagrams.Solve           (quadForm)
-import           Diagrams.Tangent         (tangentAtEnd, tangentAtStart)
+import           Diagrams.Solve.Polynomial (quadForm)
+import           Diagrams.Tangent          (tangentAtEnd, tangentAtStart)
 import           Diagrams.Trail
 import           Diagrams.TwoD.Arrowheads
 import           Diagrams.TwoD.Attributes
-import           Diagrams.TwoD.Path       (stroke, strokeT)
-import           Diagrams.TwoD.Transform  (rotate, translateX, reflectY)
+import           Diagrams.TwoD.Path        (stroke, strokeT)
+import           Diagrams.TwoD.Transform   (reflectY, rotate, translateX)
 import           Diagrams.TwoD.Types
-import           Diagrams.TwoD.Vector     (unitX, unit_X)
-import           Diagrams.Util            (( # ))
+import           Diagrams.TwoD.Vector      (unitX, unit_X)
+import           Diagrams.Util             (( # ))
 
 import           Linear.Affine
 import           Linear.Metric
@@ -380,7 +382,7 @@ arrow = arrow' def
 arrow' :: (TypeableFloat n, Renderable (Path V2 n) b) => ArrowOpts n -> n -> QDiagram b V2 n Any
 arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
 
-      -- Currently we approximate the envelope of an arrow by using the 
+      -- Currently we approximate the envelope of an arrow by using the
       -- envelope of its shaft (see 'arrowEnv'). The trace of an arrow is empty.
       (arrowEnv opts len) mempty mempty mempty
 

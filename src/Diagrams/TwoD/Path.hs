@@ -55,30 +55,32 @@ module Diagrams.TwoD.Path
        , intersectPointsT, intersectPointsT'
        ) where
 
-import           Control.Applicative   (liftA2)
-import           Control.Lens          (Lens, Lens', generateSignatures, lensRules, makeLensesWith,
-                                        makeWrapped, op, (.~), (^.), _Wrapped')
-import qualified Data.Foldable         as F
+import           Control.Applicative       (liftA2)
+import           Control.Lens              (Lens, Lens', generateSignatures,
+                                            lensRules, makeLensesWith,
+                                            makeWrapped, op, (.~), (^.),
+                                            _Wrapped')
+import qualified Data.Foldable             as F
 import           Data.Semigroup
 import           Data.Typeable
 
 import           Data.Default.Class
 
 import           Diagrams.Angle
-import           Diagrams.Combinators  (withEnvelope, withTrace)
+import           Diagrams.Combinators      (withEnvelope, withTrace)
 import           Diagrams.Core
 import           Diagrams.Core.Trace
-import           Diagrams.Located      (Located, mapLoc, unLoc)
+import           Diagrams.Located          (Located, mapLoc, unLoc)
 import           Diagrams.Parametric
 import           Diagrams.Path
 import           Diagrams.Segment
-import           Diagrams.Solve
+import           Diagrams.Solve.Polynomial
 import           Diagrams.Trail
 import           Diagrams.TrailLike
 import           Diagrams.TwoD.Segment
 import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector
-import           Diagrams.Util         (tau)
+import           Diagrams.Util             (tau)
 
 import           Linear.Affine
 import           Linear.Vector
@@ -427,7 +429,7 @@ intersectPoints :: (InSpace V2 n t, SameSpace t s, ToPath t, ToPath s, OrderedFi
   => t -> s -> [P2 n]
 intersectPoints = intersectPoints' 1e-10
 
--- | Find the intersect points of two objects that can be converted to a path 
+-- | Find the intersect points of two objects that can be converted to a path
 --   within the given tolerance.
 intersectPoints' :: (InSpace V2 n t, SameSpace t s, ToPath t, ToPath s, OrderedField n)
   => n -> t -> s -> [P2 n]
