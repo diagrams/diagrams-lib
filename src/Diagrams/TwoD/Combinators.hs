@@ -31,7 +31,7 @@ module Diagrams.TwoD.Combinators
 
     , extrudeLeft, extrudeRight, extrudeBottom, extrudeTop
 
-    , view
+    , rectEnvelope
 
     , boundingRect, bg, bgFrame
 
@@ -235,14 +235,14 @@ extrudeTop s
   | s >= 0    = extrudeEnvelope $ unitY ^* s
   | otherwise = intrudeEnvelope $ unitY ^* s
 
--- | @view p v@ sets the envelope of a diagram to a rectangle whose
+-- | @boxEnvelope p v@ sets the envelope of a diagram to a rectangle whose
 --   lower-left corner is at @p@ and whose upper-right corner is at @p
 --   .+^ v@.  Useful for selecting the rectangular portion of a
 --   diagram which should actually be \"viewed\" in the final render,
 --   if you don't want to see the entire diagram.
-view :: forall b n m. (OrderedField n, Monoid' m)
+rectEnvelope :: forall b n m. (OrderedField n, Monoid' m)
      => Point V2 n -> V2 n -> QDiagram b V2 n m -> QDiagram b V2 n m
-view p (V2 w h) = withEnvelope (rect w h # alignBL # moveTo p :: Path V2 n)
+rectEnvelope p (V2 w h) = withEnvelope (rect w h # alignBL # moveTo p :: Path V2 n)
 
 -- | Construct a bounding rectangle for an enveloped object, that is,
 --   the smallest axis-aligned rectangle which encloses the object.

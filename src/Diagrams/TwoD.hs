@@ -214,7 +214,7 @@ module Diagrams.TwoD
 
        , extrudeLeft, extrudeRight, extrudeBottom, extrudeTop
 
-       , view
+       , rectEnvelope
 
          -- ** Background
 
