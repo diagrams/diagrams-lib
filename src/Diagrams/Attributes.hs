@@ -260,13 +260,13 @@ _SomeColor = iso toAlphaColour fromAlphaColour
 someToAlpha :: SomeColor -> AlphaColour Double
 someToAlpha (SomeColor c) = toAlphaColour c
 
-instance (Floating a, Real a) => Color (Colour a) where
-  toAlphaColour   = opaque . colourConvert
-  fromAlphaColour = colourConvert . (`over` black)
+instance a ~ Double => Color (Colour a) where
+  toAlphaColour   = opaque
+  fromAlphaColour = (`over` black)
 
-instance (Floating a, Real a) => Color (AlphaColour a) where
-  toAlphaColour   = alphaColourConvert
-  fromAlphaColour = alphaColourConvert
+instance a ~ Double => Color (AlphaColour a) where
+  toAlphaColour   = id
+  fromAlphaColour = id
 
 instance Color SomeColor where
   toAlphaColour (SomeColor c) = toAlphaColour c
@@ -284,7 +284,7 @@ colorToSRGBA col = (r, g, b, a)
 colorToRGBA = colorToSRGBA
 {-# DEPRECATED colorToRGBA "Renamed to colorToSRGBA." #-}
 
-alphaToColour :: (Floating a, Ord a, Fractional a) => AlphaColour a -> Colour a
+alphaToColour :: (Floating a, Ord a) => AlphaColour a -> Colour a
 alphaToColour ac | alphaChannel ac == 0 = ac `over` black
                  | otherwise = darken (recip (alphaChannel ac)) (ac `over` black)
 

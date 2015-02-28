@@ -84,9 +84,10 @@ instance Floating n => Renderable (Text n) NullBackend where
 -- | @TextAlignment@ specifies the alignment of the text's origin.
 data TextAlignment n = BaselineText | BoxAlignedText n n
 
+-- | Make a text from a 'TextAlignment'.
 mkText :: (TypeableFloat n, Renderable (Text n) b)
   => TextAlignment n -> String -> QDiagram b V2 n Any
-mkText a t = recommendFillColor (black :: Colour Double)
+mkText a t = recommendFillColor black
              -- See Note [recommendFillColor]
            . recommendFontSize (local 1)
              -- See Note [recommendFontSize]
@@ -344,3 +345,4 @@ bold = fontWeight FontWeightBold
 -- | Lens onto the font weight in a style.
 _fontWeight :: (Typeable n, OrderedField n) => Lens' (Style v n) FontWeight
 _fontWeight = atAttr . mapping _FontWeight . non def
+

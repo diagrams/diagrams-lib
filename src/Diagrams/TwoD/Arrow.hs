@@ -275,9 +275,9 @@ colorJoint sStyle =
       o = fmap getOpacity . getAttr $ sStyle
   in
   case (c, o) of
-      (Nothing, Nothing) -> fillColor (black :: Colour Double) mempty
+      (Nothing, Nothing) -> fillColor black mempty
       (Just t, Nothing)  -> fillTexture t mempty
-      (Nothing, Just o') -> opacity o' . fillColor (black :: Colour Double) $ mempty
+      (Nothing, Just o') -> opacity o' . fillColor black $ mempty
       (Just t, Just o')  -> opacity o' . fillTexture t $ mempty
 
 -- | Get line width from a style.
