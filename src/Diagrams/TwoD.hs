@@ -256,7 +256,7 @@ module Diagrams.TwoD
        , rGradTrans, rGradSpreadMethod, defaultRG, _RG, mkRadialGradient
 
          -- ** Colors
-       , fillColor, _SC, fc, fcA, recommendFillColor
+       , fillColor, _SC, _AC, fc, fcA, recommendFillColor
        , lineColor, lc, lcA
 
          -- * Visual aids for understanding the internal model
