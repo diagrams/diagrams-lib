@@ -26,6 +26,9 @@ module Diagrams.Prelude
          -- | Alignment of diagrams relative to their envelopes.
        , module Diagrams.Align
 
+         -- | Creating and using bounding boxes.
+       , module Diagrams.BoundingBox
+
          -- | Combining multiple diagrams into one.
        , module Diagrams.Combinators
 
@@ -144,6 +147,7 @@ import           Diagrams.Align
 import           Diagrams.Angle
 import           Diagrams.Animation
 import           Diagrams.Attributes
+import           Diagrams.BoundingBox       hiding (intersection, union)
 import           Diagrams.Combinators
 import           Diagrams.Coordinates
 import           Diagrams.CubicSpline
