@@ -3,14 +3,13 @@
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE ConstraintKinds            #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE UndecidableInstances       #-}
 
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Text
--- Copyright   :  (c) 2011 diagrams-lib team (see LICENSE)
+-- Copyright   :  (c) 2011-2015 diagrams-lib team (see LICENSE)
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
@@ -21,31 +20,38 @@
 module Diagrams.TwoD.Text (
   -- * Creating text diagrams
     Text(..), TextAlignment(..)
-  , text, topLeftText, alignedText, baselineText
+  , text, topLeftText, alignedText, baselineText, mkText
 
   -- * Text attributes
   -- ** Font family
-  , Font(..), getFont, font
+  , Font(..), _Font
+  , getFont, font, _font
   -- ** Font size
-  , FontSize(..), getFontSize, fontSizeM, fontSize
+  , FontSize(..), _FontSize
+  , getFontSize, fontSizeM, fontSize
   , fontSizeN, fontSizeO, fontSizeL, fontSizeG
+  , _fontSizeR, _fontSize
   -- ** Font slant
-  , FontSlant(..), FontSlantA, getFontSlant, fontSlant, italic, oblique
+  , FontSlant(..), FontSlantA, _FontSlant
+  , getFontSlant, fontSlant, italic, oblique, _fontSlant
   -- ** Font weight
-  , FontWeight(..), FontWeightA, getFontWeight, fontWeight, bold
+  , FontWeight(..), FontWeightA, _FontWeight
+  , getFontWeight, fontWeight, bold, _fontWeight
   ) where
 
+import           Control.Lens             hiding (transform)
+import           Diagrams.Attributes      (committed)
 import           Diagrams.Core
 import           Diagrams.Core.Envelope   (pointEnvelope)
 import           Diagrams.TwoD.Attributes (recommendFillColor)
 import           Diagrams.TwoD.Types
 
-import           Data.Colour
-import           Data.Functor
-import           Data.Typeable
+import           Data.Colour              hiding (over)
 import           Data.Default.Class
-import           Data.Semigroup
+import           Data.Functor
 import           Data.Monoid.Recommend
+import           Data.Semigroup
+import           Data.Typeable
 
 import           Linear.Affine
 
@@ -167,6 +173,9 @@ baselineText = mkText BaselineText
 newtype Font = Font (Last String)
   deriving (Typeable, Semigroup, Eq)
 
+_Font :: Iso' Font String
+_Font = iso getFont (Font . Last)
+
 instance AttributeClass Font
 
 -- | Extract the font family name from a @Font@ attribute.
@@ -176,6 +185,10 @@ getFont (Font (Last f)) = f
 -- | Specify a font family to be used for all text within a diagram.
 font :: HasStyle a => String -> a -> a
 font = applyAttr . Font . Last
+
+-- | Lens onto the font name of a style.
+_font :: (Typeable n, OrderedField n) => Lens' (Style v n) (Maybe String)
+_font = atAttr . mapping _Font
 
 --------------------------------------------------
 -- Font size
@@ -190,7 +203,17 @@ instance Functor FontSize where
   fmap f (FontSize (Recommend (Last a))) = FontSize (Recommend (Last (f a)))
   fmap f (FontSize (Commit (Last a)))    = FontSize (Commit (Last (f a)))
 
--- (Recommend (Last (Texture n)))
+_FontSize :: Iso' (FontSize n) (Recommend n)
+_FontSize = iso getter setter
+  where getter (FontSize (Recommend (Last a))) = Recommend a
+        getter (FontSize (Commit    (Last a))) = Commit a
+        setter (Recommend a) = FontSize $ Recommend (Last a)
+        setter (Commit    a) = FontSize $ Commit (Last a)
+      -- = iso (\(FontSize a) -> a) FontSize . mapping _Wrapped
+      -- once we depend on monoid-extras-0.4
+
+_FontSizeM :: Iso' (FontSizeM n) (Measured n (Recommend n))
+_FontSizeM = mapping _FontSize
 
 type FontSizeM n = Measured n (FontSize n)
 
@@ -233,6 +256,14 @@ fontSizeM = applyMAttr
 recommendFontSize :: (N a ~ n, Typeable n, HasStyle a) => Measure n -> a -> a
 recommendFontSize = applyMAttr . fmap (FontSize . Recommend . Last)
 
+_fontSizeR :: (Typeable n, OrderedField n) => Lens' (Style v n) (Measured n (Recommend n))
+_fontSizeR = atMAttr . anon def (const False) . _FontSizeM
+
+-- | Lens to commit a font size. This is *not* a valid lens (see
+--   'commited'.
+_fontSize :: (Typeable n, OrderedField n) => Lens' (Style v n) (Measure n)
+_fontSize = _fontSizeR . mapping committed
+
 --------------------------------------------------
 -- Font slant
 
@@ -248,6 +279,12 @@ newtype FontSlantA = FontSlantA (Last FontSlant)
   deriving (Typeable, Semigroup, Eq)
 instance AttributeClass FontSlantA
 
+instance Default FontSlant where
+  def = FontSlantNormal
+
+_FontSlant :: Iso' FontSlantA FontSlant
+_FontSlant = iso getFontSlant (FontSlantA . Last)
+
 -- | Extract the font slant from a 'FontSlantA' attribute.
 getFontSlant :: FontSlantA -> FontSlant
 getFontSlant (FontSlantA (Last s)) = s
@@ -257,6 +294,10 @@ getFontSlant (FontSlantA (Last s)) = s
 --   'oblique' for useful special cases.
 fontSlant :: HasStyle a => FontSlant -> a -> a
 fontSlant = applyAttr . FontSlantA . Last
+
+-- | Lens onto the font slant in a style.
+_fontSlant :: (Typeable n, OrderedField n) => Lens' (Style v n) FontSlant
+_fontSlant = atAttr . mapping _FontSlant . non def
 
 -- | Set all text in italics.
 italic :: HasStyle a => a -> a
@@ -280,6 +321,12 @@ newtype FontWeightA = FontWeightA (Last FontWeight)
   deriving (Typeable, Semigroup, Eq)
 instance AttributeClass FontWeightA
 
+instance Default FontWeight where
+  def = FontWeightNormal
+
+_FontWeight :: Iso' FontWeightA FontWeight
+_FontWeight = iso getFontWeight (FontWeightA . Last)
+
 -- | Extract the font weight from a 'FontWeightA' attribute.
 getFontWeight :: FontWeightA -> FontWeight
 getFontWeight (FontWeightA (Last w)) = w
@@ -293,3 +340,7 @@ fontWeight = applyAttr . FontWeightA . Last
 -- | Set all text using a bold font weight.
 bold :: HasStyle a => a -> a
 bold = fontWeight FontWeightBold
+
+-- | Lens onto the font weight in a style.
+_fontWeight :: (Typeable n, OrderedField n) => Lens' (Style v n) FontWeight
+_fontWeight = atAttr . mapping _FontWeight . non def

@@ -1,4 +1,3 @@
-{-# LANGUAGE ConstraintKinds  #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ViewPatterns     #-}
 {-# LANGUAGE TypeFamilies     #-}

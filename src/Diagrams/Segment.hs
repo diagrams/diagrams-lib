@@ -169,7 +169,7 @@ type instance V (Segment c v n) = v
 type instance N (Segment c v n) = n
 
 instance Transformable (Segment c v n) where
-	transform = mapSegmentVectors . apply
+  transform = mapSegmentVectors . apply
 
 instance Renderable (Segment c v n) NullBackend where
   render _ _ = mempty
@@ -422,8 +422,8 @@ newtype SegCount = SegCount (Sum Int)
   deriving (Semigroup, Monoid)
 
 instance Wrapped SegCount where
-    type Unwrapped SegCount = Sum Int
-    _Wrapped' = iso (\(SegCount x) -> x) SegCount
+  type Unwrapped SegCount = Sum Int
+  _Wrapped' = iso (\(SegCount x) -> x) SegCount
 
 instance Rewrapped SegCount SegCount
 
@@ -470,8 +470,8 @@ deriving instance (Num n, Ord n) => Monoid    (ArcLength n)
 newtype TotalOffset v n = TotalOffset (v n)
 
 instance Wrapped (TotalOffset v n) where
-    type Unwrapped (TotalOffset v n) = v n
-    _Wrapped' = iso (\(TotalOffset x) -> x) TotalOffset
+  type Unwrapped (TotalOffset v n) = v n
+  _Wrapped' = iso (\(TotalOffset x) -> x) TotalOffset
 
 instance Rewrapped (TotalOffset v n) (TotalOffset v' n')
 
@@ -526,8 +526,8 @@ instance (OrderedField n, Metric v)
             *: ArcLength ( Sum $ arcLengthBounded (stdTolerance/100) s
                          , Sum . flip arcLengthBounded s               )
 
-           *: OffsetEnvelope (TotalOffset . segOffset $ s)
-                             (getEnvelope s)
+            *: OffsetEnvelope (TotalOffset . segOffset $ s)
+                              (getEnvelope s)
 
-           *: ()
+            *: ()
 
