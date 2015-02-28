@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveFunctor              #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE RankNTypes                 #-}
 {-# LANGUAGE TypeFamilies               #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Angle
@@ -35,19 +35,19 @@ module Diagrams.Angle
        , HasPhi(..)
        ) where
 
-import Control.Applicative
-import Control.Lens (Iso', Lens', iso, review, (^.), over)
-import Data.Fixed
-import Data.Monoid hiding ((<>))
-import Data.Semigroup
-import Prelude
+import           Control.Applicative
+import           Control.Lens        (Iso', Lens', iso, over, review, (^.))
+import           Data.Fixed
+import           Data.Monoid         hiding ((<>))
+import           Data.Semigroup
+import           Prelude
 
-import Diagrams.Core.V
-import Diagrams.Core (OrderedField)
-import Diagrams.Points
+import           Diagrams.Core       (OrderedField)
+import           Diagrams.Core.V
+import           Diagrams.Points
 
-import Linear.Metric
-import Linear.Vector
+import           Linear.Metric
+import           Linear.Vector
 
 -- | Angles can be expressed in a variety of units.  Internally,
 --   they are represented in radians.

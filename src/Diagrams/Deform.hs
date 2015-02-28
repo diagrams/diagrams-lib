@@ -1,9 +1,9 @@
-{-# LANGUAGE FlexibleContexts     #-}
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE ScopedTypeVariables  #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TypeFamilies         #-}
-{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE UndecidableInstances  #-}
 
 module Diagrams.Deform
        ( Deformation(..)
@@ -11,21 +11,21 @@ module Diagrams.Deform
        , asDeformation
        ) where
 
-import Control.Lens (over, _Wrapped, mapped)
-import Data.Monoid hiding ((<>))
-import Data.Semigroup
-import Prelude
+import           Control.Lens        (mapped, over, _Wrapped)
+import           Data.Monoid         hiding ((<>))
+import           Data.Semigroup
+import           Prelude
 
-import Diagrams.Core
-import Diagrams.Located
-import Diagrams.Parametric
-import Diagrams.Path
-import Diagrams.Segment
-import Diagrams.Trail
+import           Diagrams.Core
+import           Diagrams.Located
+import           Diagrams.Parametric
+import           Diagrams.Path
+import           Diagrams.Segment
+import           Diagrams.Trail
 
-import Linear.Affine
-import Linear.Metric
-import Linear.Vector
+import           Linear.Affine
+import           Linear.Metric
+import           Linear.Vector
 
 ------------------------------------------------------------
 -- Deformations
