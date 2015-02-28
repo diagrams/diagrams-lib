@@ -15,6 +15,7 @@ module Diagrams.Util
          with
        , applyAll
        , (#)
+       , (##)
 
        , iterateN
 
@@ -27,6 +28,7 @@ module Diagrams.Util
 
 import           Data.Default.Class
 import           Data.Monoid
+import           Control.Lens hiding (( # ))
 
 -- | Several functions exported by the diagrams library take a number
 --   of arguments giving the user control to \"tweak\" various aspects
@@ -66,6 +68,13 @@ infixl 8 #
 --   like @(|||)@ or @(\<\>)@ without needing parentheses.
 (#) :: a -> (a -> b) -> b
 (#) = flip ($)
+
+-- | A replacement for lenses' @#@ operator. @(##) = 'review'@.
+(##) :: AReview t b -> b -> t
+(##) = review
+{-# INLINE (##) #-}
+infixr 8 ##
+
 
 -- | @iterateN n f x@ returns the list of the first @n@ iterates of
 --   @f@ starting at @x@, that is, the list @[x, f x, f (f x), ...]@
