@@ -41,6 +41,7 @@ Library
                        Diagrams.Deform
                        Diagrams.Direction,
                        Diagrams.Envelope,
+                       Diagrams.LinearMap,
                        Diagrams.Located,
                        Diagrams.Names,
                        Diagrams.Parametric,
@@ -60,6 +61,7 @@ Library
                        Diagrams.ThreeD.Shapes,
                        Diagrams.ThreeD.Size,
                        Diagrams.ThreeD.Transform,
+                       Diagrams.ThreeD.Projection,
                        Diagrams.ThreeD.Types,
                        Diagrams.ThreeD.Vector,
                        Diagrams.Trace,
@@ -67,6 +69,7 @@ Library
                        Diagrams.TrailLike,
                        Diagrams.Transform,
                        Diagrams.Transform.ScaleInv,
+                       Diagrams.Transform.Matrix,
                        Diagrams.TwoD,
                        Diagrams.TwoD.Adjust,
                        Diagrams.TwoD.Align,

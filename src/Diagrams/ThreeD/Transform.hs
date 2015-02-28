@@ -129,7 +129,7 @@ rotationAbout (P t) d (view rad -> a)
 -- ± 1/4 turn.
 pointAt :: Floating n
         => Direction V3 n -> Direction V3 n -> Direction V3 n
-				-> Transformation V3 n
+        -> Transformation V3 n
 pointAt a i f = pointAt' (fromDirection a) (fromDirection i) (fromDirection f)
 
 -- | pointAt' has the same behavior as 'pointAt', but takes vectors
@@ -192,10 +192,10 @@ reflectionAcross :: (Metric v, R3 v, Fractional n)
   => Point v n -> v n -> Transformation v n
 reflectionAcross p v =
   conjugate (translation (origin .-. p)) reflect
-	  where
-			reflect = fromLinear t (linv t)
-			t       = f v <-> f (negated v)
-			f u w   = w ^-^ 2 *^ project u w
+    where
+      reflect = fromLinear t (linv t)
+      t       = f v <-> f (negated v)
+      f u w   = w ^-^ 2 *^ project u w
 
 -- | @reflectAcross p v@ reflects a diagram across the plane though
 --   the point @p@ and the vector @v@.

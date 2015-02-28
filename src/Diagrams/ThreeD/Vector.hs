@@ -10,13 +10,15 @@
 -----------------------------------------------------------------------------
 module Diagrams.ThreeD.Vector
        ( -- * Special 3D vectors
-         unitX, unitY, unitZ, unit_X, unit_Y, unit_Z,
+         unitX, unitY, unitZ, unit_X, unit_Y, unit_Z
+       , xDir, yDir, zDir
        ) where
 
 import           Control.Lens          ((&), (.~))
 
 import           Diagrams.ThreeD.Types
 import           Diagrams.TwoD.Vector
+import           Diagrams.Direction
 
 import           Linear.Vector
 
@@ -28,3 +30,6 @@ unitZ = zero & _z .~ 1
 unit_Z :: (R3 v, Additive v, Num n) => v n
 unit_Z = zero & _z .~ (-1)
 
+-- | A 'Direction' pointing in the Z direction.
+zDir :: (R3 v, Additive v, Num n) => Direction v n
+zDir = dir unitZ

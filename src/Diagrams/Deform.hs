@@ -64,7 +64,7 @@ asDeformation t = Deformation (papply t)
 ------------------------------------------------------------
 -- Instances
 
-instance Deformable (Point v n) (Point u n) where
+instance r ~ Point u n => Deformable (Point v n) r where
   deform' = const deform
 
   deform (Deformation l) = l
@@ -101,8 +101,8 @@ goodEnough e t s =
     all (< e) [norm $ deform t (s `atParam` u) .-. approx t s `atParam` u
               | u <- [0.25, 0.5, 0.75]]
 
-instance (Metric v, Metric u, OrderedField n)
-    => Deformable (Located (Trail v n)) (Located (Trail u n)) where
+instance (Metric v, Metric u, OrderedField n, r ~ Located (Trail u n))
+    => Deformable (Located (Trail v n)) r where
   deform' eps p t
     | isLine $ unLoc t  = line `at` p0
     | otherwise = glueTrail line `at` p0
@@ -121,7 +121,7 @@ instance (Metric v, Metric u, OrderedField n)
       extent = maximum . map dist . trailVertices $ t
       dist pt = norm $ pt .-. loc t
 
-instance (Metric v, Metric u, OrderedField n) => Deformable (Path v n) (Path u n) where
+instance (Metric v, Metric u, OrderedField n, r ~ Path u n) => Deformable (Path v n) r where
   deform' eps p = over (_Wrapped . mapped) (deform' eps p)
   deform p      = over (_Wrapped . mapped) (deform p)
 
