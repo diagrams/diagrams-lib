@@ -2,7 +2,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Prelude
--- Copyright   :  (c) 2011 diagrams-lib team (see LICENSE)
+-- Copyright   :  (c) 2011-2015 diagrams-lib team (see LICENSE)
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
@@ -114,6 +114,7 @@ module Diagrams.Prelude
        , module Diagrams.Util
 
          -- * Convenience re-exports
+
          -- | For representing and operating on colors.
        , module Data.Colour
 
@@ -139,8 +140,11 @@ module Diagrams.Prelude
          -- | For working with 'Active' (i.e. animated) things.
        , module Data.Active
 
-         -- | Essential Lens Combinators
-       , (&), (.~), (%~)
+         -- | This exports most of the lens module, excluding the
+         --   following functions that can cause collisions with diagrams:
+         -- @contains@, @inside@, @outside@, @none@, @transform@, @(#)@
+         -- (replaced by @##@) and @.>@ (which is just '.' anyway).
+       , module Control.Lens
 
        , Applicative(..), (*>), (<*), (<$>), (<$), liftA, liftA2, liftA3
        ) where
@@ -151,7 +155,7 @@ import           Diagrams.Align
 import           Diagrams.Angle
 import           Diagrams.Animation
 import           Diagrams.Attributes
-import           Diagrams.BoundingBox       hiding (intersection, union)
+import           Diagrams.BoundingBox       hiding (intersection, union, inside, outside, contains)
 import           Diagrams.Combinators
 import           Diagrams.Coordinates
 import           Diagrams.CubicSpline
@@ -170,22 +174,20 @@ import           Diagrams.Size
 import           Diagrams.Tangent
 import           Diagrams.ThreeD
 import           Diagrams.Trace
-import           Diagrams.Trail             hiding (linePoints, loopPoints, trailPoints)
+import           Diagrams.Trail             hiding (linePoints, loopPoints,
+                                             trailPoints)
 import           Diagrams.TrailLike
 import           Diagrams.Transform
 import           Diagrams.TwoD
 import           Diagrams.Util
 
 import           Control.Applicative
-import           Control.Lens               ((%~), (&), (.~))
+import           Control.Lens               hiding (at, backwards, beside,
+                                             contains, inside, none, outside,
+                                             transform, ( # ), (.>))
 import           Data.Active
-<<<<<<< HEAD
 import           Data.Colour                hiding (AffineSpace (..), atop, over)
-=======
-import           Data.Colour                hiding (AffineSpace (..), atop,
-                                             over)
 import           Data.Colour.SRGB
->>>>>>> 8bd62e5... SomeColor Show instance.
 import           Data.Colour.Names          hiding (tan)
 import           Data.Semigroup
 
