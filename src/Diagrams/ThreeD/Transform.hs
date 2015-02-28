@@ -22,8 +22,9 @@ module Diagrams.ThreeD.Transform
        ( T3
 
          -- * Rotation
-        ,aboutX, aboutY, aboutZ
-       , rotationAbout, pointAt, pointAt'
+       , aboutX, aboutY, aboutZ
+       , rotationAbout, rotateAbout
+       , pointAt, pointAt'
 
        -- * Scaling
        , scalingX, scalingY, scalingZ
@@ -105,7 +106,7 @@ aboutY (view rad -> a) = fromOrthogonal r where
 --   passing through @p@.
 rotationAbout
   :: Floating n
-	=> Point V3 n         -- ^ origin of rotation
+  => Point V3 n         -- ^ origin of rotation
   -> Direction V3 n     -- ^ direction of rotation axis
   -> Angle n            -- ^ angle of rotation
   -> Transformation V3 n
@@ -119,6 +120,16 @@ rotationAbout (P t) d (view rad -> a)
     rot θ v =          v ^* cos θ
            ^+^ cross w v ^* sin θ
            ^+^         w ^* ((w `dot` v) * (1 - cos θ))
+
+-- | @rotationAbout p d a@ is a rotation about a line parallel to @d@
+--   passing through @p@.
+rotateAbout
+  :: (InSpace V3 n t, Floating n, Transformable t)
+  => Point V3 n         -- ^ origin of rotation
+  -> Direction V3 n     -- ^ direction of rotation axis
+  -> Angle n            -- ^ angle of rotation
+  -> t -> t
+rotateAbout p d theta = transform (rotationAbout p d theta)
 
 -- | @pointAt about initial final@ produces a rotation which brings
 -- the direction @initial@ to point in the direction @final@ by first
@@ -187,8 +198,10 @@ reflectZ :: (InSpace v n t, R3 v, Transformable t) => t -> t
 reflectZ = transform reflectionZ
 
 -- | @reflectionAcross p v@ is a reflection across the plane through
---   the point @p@ and normal to vector @v@.
-reflectionAcross :: (Metric v, R3 v, Fractional n)
+--   the point @p@ and normal to vector @v@. This also works as a 2D
+--   transform where @v@ is the normal to the line passing through point
+--   @p@.
+reflectionAcross :: (Metric v, Fractional n)
   => Point v n -> v n -> Transformation v n
 reflectionAcross p v =
   conjugate (translation (origin .-. p)) reflect
@@ -198,8 +211,9 @@ reflectionAcross p v =
       f u w   = w ^-^ 2 *^ project u w
 
 -- | @reflectAcross p v@ reflects a diagram across the plane though
---   the point @p@ and the vector @v@.
-reflectAcross :: (InSpace v n t, Metric v, R3 v, Fractional n, Transformable t)
+--   the point @p@ and the vector @v@. This also works as a 2D transform
+--   where @v@ is the normal to the line passing through point @p@.
+reflectAcross :: (InSpace v n t, Metric v, Fractional n, Transformable t)
   => Point v n -> v n -> t -> t
 reflectAcross p v = transform (reflectionAcross p v)
 

@@ -61,8 +61,7 @@ module Diagrams.Path
        ) where
 
 import           Control.Arrow        ((***))
-import           Control.Lens         (Rewrapped, Wrapped (..), iso, mapped, op, over, view, (%~),
-                                       _Unwrapped', _Wrapped, Each (..), traversed)
+import           Control.Lens         hiding ((#), transform, at)
 import qualified Data.Foldable        as F
 import           Data.List            (partition)
 import           Data.Semigroup
@@ -77,7 +76,6 @@ import           Diagrams.Trail
 import           Diagrams.TrailLike
 import           Diagrams.Transform
 
-import           Linear.Affine
 import           Linear.Metric
 import           Linear.Vector
 
@@ -261,7 +259,7 @@ partitionPath p = (view _Unwrapped' *** view _Unwrapped') . partition p . op Pat
 -- | Scale a path using its centroid (see 'pathCentroid') as the base
 --   point for the scale.
 scalePath :: (HasLinearMap v, Metric v, OrderedField n) => n -> Path v n -> Path v n
-scalePath d p = (scale d `under` translation (origin .-. pathCentroid p)) p
+scalePath d p = under (movedFrom (pathCentroid p)) (scale d) p
 
 -- | Reverse all the component trails of a path.
 reversePath :: (Metric v, OrderedField n) => Path v n -> Path v n
