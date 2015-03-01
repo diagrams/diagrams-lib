@@ -10,7 +10,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.BoundingBox
--- Copyright   :  (c) 2011 diagrams-lib team (see LICENSE)
+-- Copyright   :  (c) 2011-2015 diagrams-lib team (see LICENSE)
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
@@ -23,29 +23,30 @@
 -----------------------------------------------------------------------------
 
 module Diagrams.BoundingBox
-       ( -- * Bounding boxes
-         BoundingBox
+  ( -- * Bounding boxes
+    BoundingBox
 
-         -- * Constructing bounding boxes
-       , emptyBox, fromCorners, fromPoint, fromPoints
-       , boundingBox
+    -- * Constructing bounding boxes
+  , emptyBox, fromCorners, fromPoint, fromPoints
+  , boundingBox
 
-         -- * Queries on bounding boxes
-       , isEmptyBox
-       , getCorners, getAllCorners
-       , boxExtents, boxCenter
-       , mCenterPoint, centerPoint
-       , boxTransform, boxFit
-       , contains, contains', boundingBoxQuery
-       , inside, inside', outside, outside'
+    -- * Queries on bounding boxes
+  , isEmptyBox
+  , getCorners, getAllCorners
+  , boxExtents, boxCenter
+  , mCenterPoint, centerPoint
+  , boxTransform, boxFit
+  , contains, contains', boundingBoxQuery
+  , inside, inside', outside, outside'
 
-         -- * Operations on bounding boxes
-       , union, intersection
-       ) where
+    -- * Operations on bounding boxes
+  , union, intersection
+  ) where
 
 import           Data.Foldable           as F
 import           Data.Maybe              (fromMaybe)
 import           Data.Semigroup
+import           Text.Read
 
 import           Diagrams.Align
 import           Diagrams.Core
@@ -125,9 +126,23 @@ instance (Metric v, Traversable v, OrderedField n) => Alignable (BoundingBox v n
   defaultBoundary = envelopeP
 
 instance Show (v n) => Show (BoundingBox v n) where
-  show
-    = maybe "emptyBox" (\(l, u) -> "fromCorners " ++ show l ++ " " ++ show u)
-    . getCorners
+  showsPrec d b = case getCorners b of
+    Just (l, u) -> showParen (d > 10) $
+      showString "fromCorners " . showsPrec 11 l . showChar ' ' . showsPrec 11 u
+    Nothing     -> showString "emptyBox"
+
+instance Read (v n) => Read (BoundingBox v n) where
+  readPrec = parens $
+    (do
+      Ident "emptyBox" <- lexP
+      pure emptyBox
+    ) <|>
+    (prec 10 $ do
+      Ident "fromCorners" <- lexP
+      l <- step readPrec
+      h <- step readPrec
+      pure . fromNonEmpty $ NonEmptyBoundingBox (l, h)
+    )
 
 -- | An empty bounding box.  This is the same thing as @mempty@, but it doesn't
 --   require the same type constraints that the @Monoid@ instance does.
