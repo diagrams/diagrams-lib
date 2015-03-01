@@ -127,7 +127,7 @@ arrowheadDart theta len shaftWidth = (hd # scale sz, jt)
     psi = pi - negated t2 ^. _theta . rad
     jLength = shaftWidth / (2 * tan psi)
 
-    -- If the shaft if too wide, set the size to a default value of 1.
+    -- If the shaft is too wide, set the size to a default value of 1.
     sz = max 1 ((len - jLength) / 1.5)
 
 -- | Top half of an 'arrowheadDart'.
@@ -145,7 +145,7 @@ arrowheadHalfDart theta len shaftWidth = (hd, jt)
     psi = pi - negated t2 ^. _theta . rad
     jLength = shaftWidth / tan psi
 
-    -- If the shaft if too wide, set the size to a default value of 1.
+    -- If the shaft is too wide, set the size to a default value of 1.
     sz = max 1 ((len - jLength) / 1.5)
 
 -- | Isoceles triangle with curved concave base. Inkscape type 2.
@@ -340,4 +340,3 @@ quill = arrowtailQuill (2/5 @@ turn)
 --   > blockEx = drawTail block
 block :: RealFloat n => ArrowHT n
 block = arrowtailBlock (7/16 @@ turn)
-
