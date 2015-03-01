@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                        #-}
 {-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE DeriveDataTypeable    #-}
 {-# LANGUAGE FlexibleContexts      #-}
@@ -26,6 +27,9 @@ module Diagrams.Transform.ScaleInv
     where
 
 import           Control.Lens            (makeLenses, view, (^.))
+#if __GLASGOW_HASKELL__ < 710
+import           Data.Semigroup
+#endif
 import           Data.Typeable
 
 import           Diagrams.Angle
