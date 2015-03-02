@@ -25,6 +25,7 @@ module Diagrams.Located
 
 import           Control.Lens            (Lens, Lens')
 import           Data.Functor            ((<$>))
+import           Text.Read
 
 import           Linear.Affine
 import           Linear.Vector
@@ -86,7 +87,7 @@ mapLoc :: SameSpace a b => (a -> b) -> Located a -> Located b
 mapLoc f (Loc p a) = Loc p (f a)
 
 -- | A lens giving access to the object within a 'Located' wrapper.
-located ::SameSpace a b => Lens (Located a) (Located b) a b
+located :: SameSpace a b => Lens (Located a) (Located b) a b
 located f (Loc p a) = Loc p <$> f a
 
 -- | Lens onto the location of something 'Located'.
@@ -96,7 +97,20 @@ _loc f (Loc p a) = flip Loc a <$> f p
 
 deriving instance (Eq   (V a (N a)), Eq a  ) => Eq   (Located a)
 deriving instance (Ord  (V a (N a)), Ord a ) => Ord  (Located a)
-deriving instance (Show (V a (N a)), Show a) => Show (Located a)
+-- deriving instance (Show (V a (N a)), Show a) => Show (Located a)
+
+instance (Show (V a (N a)), Show a) => Show (Located a) where
+  showsPrec d (Loc p a) = showParen (d > 5) $
+    showsPrec 6 a . showString " `at` " . showsPrec 6 p
+
+instance (Read (V a (N a)), Read a) => Read (Located a) where
+  readPrec = parens . prec 5 $ do
+    a <- readPrec
+    Punc "`"   <- lexP
+    Ident "at" <- lexP
+    Punc "`"   <- lexP
+    p <- readPrec
+    return (Loc p a)
 
 type instance V (Located a) = V a
 type instance N (Located a) = N a
