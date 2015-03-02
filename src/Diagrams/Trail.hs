@@ -54,6 +54,7 @@ module Diagrams.Trail
          -- ** Generic trails
 
        , Trail(..)
+       , _Line, _Loop
        , wrapTrail, wrapLine, wrapLoop
        , onTrail, onLine
 
@@ -65,6 +66,7 @@ module Diagrams.Trail
        , lineFromVertices, trailFromVertices
        , lineFromOffsets,  trailFromOffsets
        , lineFromSegments, trailFromSegments
+       , loopFromSegments
 
          -- * Eliminating trails
 
@@ -104,8 +106,7 @@ module Diagrams.Trail
        ) where
 
 import           Control.Arrow            ((***))
-import           Control.Lens             (AnIso', Rewrapped, Wrapped (..), cloneIso, iso, op, view,
-                                           (^.))
+import           Control.Lens             hiding ((|>), (<|), transform, at)
 import           Data.FingerTree          (FingerTree, ViewL (..), ViewR (..), (<|), (|>))
 import qualified Data.FingerTree          as FT
 import           Data.Fixed
@@ -143,6 +144,20 @@ instance ( Metric (V a), OrderedField (N a)
     => Transformable (FingerTree m a) where
   transform = FT.fmap' . transform
 
+instance (FT.Measured m a, FT.Measured n b)
+  => Cons (FingerTree m a) (FingerTree n b) a b where
+  _Cons = prism (uncurry (FT.<|)) $ \aas -> case FT.viewl aas of
+    a :< as -> Right (a, as)
+    EmptyL  -> Left mempty
+  {-# INLINE _Cons #-}
+
+instance (FT.Measured m a, FT.Measured n b)
+  => Snoc (FingerTree m a) (FingerTree n b) a b where
+  _Snoc = prism (uncurry (FT.|>)) $ \aas -> case FT.viewr aas of
+    as :> a -> Right (as, a)
+    EmptyR  -> Left mempty
+  {-# INLINE _Snoc #-}
+
 ------------------------------------------------------------
 --  Segment trees  -----------------------------------------
 ------------------------------------------------------------
@@ -155,23 +170,27 @@ instance ( Metric (V a), OrderedField (N a)
 --   beginning which have a combined arc length of at least 5).
 
 newtype SegTree v n = SegTree (FingerTree (SegMeasure v n) (Segment Closed v n))
-  deriving (Eq, Ord, Show)
+  deriving (Eq, Ord, Show, Monoid, Transformable, FT.Measured (SegMeasure v n))
 
 instance Wrapped (SegTree v n) where
   type Unwrapped (SegTree v n) = FingerTree (SegMeasure v n) (Segment Closed v n)
   _Wrapped' = iso (\(SegTree x) -> x) SegTree
+  {-# INLINE _Wrapped' #-}
+
+instance (Metric v, OrderedField n, Metric u, OrderedField n')
+  => Cons (SegTree v n) (SegTree u n') (Segment Closed v n) (Segment Closed u n') where
+  _Cons = _Wrapped . _Cons . bimapping id _Unwrapped
+  {-# INLINE _Cons #-}
+
+instance (Metric v, OrderedField n, Metric u, OrderedField n')
+  => Snoc (SegTree v n) (SegTree u n') (Segment Closed v n) (Segment Closed u n') where
+  _Snoc = _Wrapped . _Snoc . bimapping _Unwrapped id
+  {-# INLINE _Snoc #-}
 
 instance Rewrapped (SegTree v n) (SegTree v' n')
 
 type instance V (SegTree v n) = v
 type instance N (SegTree v n) = n
-
-deriving instance (OrderedField n, Metric v)
-  => Monoid (SegTree v n)
-deriving instance (OrderedField n, Metric v)
-  => FT.Measured (SegMeasure v n) (SegTree v n)
-deriving instance (Metric v, OrderedField n)
-  => Transformable (SegTree v n)
 
 type instance Codomain (SegTree v n) = v
 
@@ -188,38 +207,44 @@ type SplitResult v n = ((SegTree v n, n -> n), (SegTree v n, n -> n))
 
 splitAtParam' :: (Metric v, OrderedField n, Real n) => SegTree v n -> n -> SplitResult v n
 splitAtParam' tree@(SegTree t) p
-    | p < 0     = case FT.viewl t of
-                    EmptyL    -> emptySplit
-                    seg :< t' ->
-                      case seg `splitAtParam` (p * tSegs) of
-                        (seg1, seg2) -> ( (SegTree $ FT.singleton seg1, \u -> u * p)
-                                        , (SegTree $ seg2 <| t', \u -> 1 - (1 - u) * tSegs / (tSegs + 1))
-                                        )
-    | p >= 1    = case FT.viewr t of
-                    EmptyR    -> emptySplit
-                    t' :> seg ->
-                      case seg `splitAtParam` (1 - (1 - p)*tSegs) of
-                        (seg1, seg2) -> ( (SegTree $ t' |> seg1, \u -> u * tSegs / (tSegs + 1))
-                                        , (SegTree $ FT.singleton seg2, \u -> (u - p) / (1 - p))
-                                        )
-    | otherwise = case FT.viewl after of
-                    EmptyL    -> emptySplit
-                    seg :< after' ->
-                      let (n, p') = propFrac $ p * tSegs
-                          f p n u | u * tSegs < n = u * tSegs / (n + 1)
-                                  | otherwise     = (n + (u * tSegs - n) / (p * tSegs - n)) / (n+1)
-                      in case seg `splitAtParam` p' of
-                           (seg1, seg2) -> ( ( SegTree $ before |> seg1  , f p n )
-                                           , ( SegTree $ seg2   <| after'
-                                             , \v -> 1 - f (1 - p) (tSegs - n - 1) (1 - v)
-                                             )
-                                           )
+  | p < 0     =
+    case FT.viewl t of
+      EmptyL    -> emptySplit
+      seg :< t' ->
+        case seg `splitAtParam` (p * tSegs) of
+          (seg1, seg2) ->
+            ( (SegTree $ FT.singleton seg1, (*p))
+            , (SegTree $ seg2 <| t', \u -> 1 - (1 - u) * tSegs / (tSegs + 1))
+            )
+  | p >= 1    =
+    case FT.viewr t of
+      EmptyR    -> emptySplit
+      t' :> seg ->
+        case seg `splitAtParam` (1 - (1 - p)*tSegs) of
+          (seg1, seg2) ->
+            ( (SegTree $ t' |> seg1, \u -> u * tSegs / (tSegs + 1))
+            , (SegTree $ FT.singleton seg2, \u -> (u - p) / (1 - p))
+            )
+  | otherwise =
+    case FT.viewl after of
+      EmptyL    -> emptySplit
+      seg :< after' ->
+        let (n, p') = propFrac $ p * tSegs
+            f p n u | u * tSegs < n = u * tSegs / (n + 1)
+                    | otherwise     = (n + (u * tSegs - n) / (p * tSegs - n)) / (n+1)
+        in case seg `splitAtParam` p' of
+             (seg1, seg2) ->
+               ( ( SegTree $ before |> seg1  , f p n )
+               , ( SegTree $ seg2   <| after'
+               , \v -> 1 - f (1 - p) (tSegs - n - 1) (1 - v)
+                 )
+               )
  where
-      (before, after) = FT.split ((p * tSegs <) . numSegs) t
-      tSegs           = numSegs t
-      emptySplit      = let t' = (tree, id) in (t',t')
+   (before, after) = FT.split ((p * tSegs <) . numSegs) t
+   tSegs           = numSegs t
+   emptySplit      = let t' = (tree, id) in (t',t')
 
-      propFrac x = let m = signum x * mod1 x in (x - m, m)
+   propFrac x = let m = signum x * mod1 x in (x - m, m)
 
 instance (Metric v, OrderedField n, Real n) => Sectionable (SegTree v n) where
   splitAtParam tree p = let ((a,_),(b,_)) = splitAtParam' tree p in (a,b)
@@ -378,9 +403,16 @@ withTrail' :: (Trail' Line v n -> r) -> (Trail' Loop v n -> r) -> Trail' l v n -
 withTrail' line _    t@(Line{}) = line t
 withTrail' _    loop t@(Loop{}) = loop t
 
-deriving instance Show (v n) => Show (Trail' l v n)
-deriving instance Eq   (v n) => Eq   (Trail' l v n)
-deriving instance Ord  (v n) => Ord  (Trail' l v n)
+deriving instance Eq  (v n) => Eq   (Trail' l v n)
+deriving instance Ord (v n) => Ord  (Trail' l v n)
+
+instance Show (v n) => Show (Trail' l v n) where
+  showsPrec d (Line (SegTree ft)) = showParen (d > 10) $
+    showString "lineFromSegments " . showList (F.toList ft)
+
+  showsPrec d (Loop (SegTree ft) o) = showParen (d > 10) $
+    showString "loopFromSegments " . showList (F.toList ft) .
+    showChar ' ' . showsPrec 11 o
 
 type instance V (Trail' l v n) = v
 type instance N (Trail' l v n) = n
@@ -485,6 +517,22 @@ instance (Metric v, OrderedField n, Real n)
       (\(Line t) -> arcLengthToParam eps t l)
       (\lp -> arcLengthToParam eps (cutLoop lp) l)
       tr
+
+instance Rewrapped (Trail' Line v n) (Trail' Line v' n')
+instance Wrapped (Trail' Line v n) where
+  type Unwrapped (Trail' Line v n) = SegTree v n
+  _Wrapped' = iso (\(Line x) -> x) Line
+  {-# INLINE _Wrapped' #-}
+
+instance (Metric v, OrderedField n, Metric u, OrderedField n')
+  => Cons (Trail' Line v n) (Trail' Line u n') (Segment Closed v n) (Segment Closed u n') where
+  _Cons = _Wrapped . _Cons . bimapping id _Unwrapped
+  {-# INLINE _Cons #-}
+
+instance (Metric v, OrderedField n, Metric u, OrderedField n')
+  => Snoc (Trail' Line v n) (Trail' Line u n') (Segment Closed v n) (Segment Closed u n') where
+  _Snoc = _Wrapped . _Snoc . bimapping _Unwrapped id
+  {-# INLINE _Snoc #-}
 
 --------------------------------------------------
 -- Extracting segments
@@ -706,6 +754,25 @@ instance (Metric v, OrderedField n, Real n)
   arcLengthBounded = withLine . arcLengthBounded
   arcLengthToParam eps tr al = withLine (\ln -> arcLengthToParam eps ln al) tr
 
+-- lens instrances -----------------------------------------------------
+
+-- | Prism onto a 'Line'.
+_Line :: Prism' (Trail v n) (Trail' Line v n)
+_Line = _Wrapped' . _Left
+
+-- | Prism onto a 'Loop'.
+_Loop :: Prism' (Trail v n) (Trail' Loop v n)
+_Loop = _Wrapped' . _Right
+
+instance Rewrapped (Trail v n) (Trail v' n')
+instance Wrapped (Trail v n) where
+  type Unwrapped (Trail v n) = Either (Trail' Line v n) (Trail' Loop v n)
+  _Wrapped' = iso getTrail (either Trail Trail)
+    where
+      getTrail :: Trail v n -> Either (Trail' Line v n) (Trail' Loop v n)
+      getTrail (Trail t@(Line {})) = Left t
+      getTrail (Trail t@(Loop {})) = Right t
+
 --------------------------------------------------
 -- Constructors and eliminators for Trail
 
@@ -781,6 +848,11 @@ emptyTrail = wrapLine emptyLine
 lineFromSegments :: (Metric v, OrderedField n)
                    => [Segment Closed v n] -> Trail' Line v n
 lineFromSegments = Line . SegTree . FT.fromList
+
+-- | @trailFromSegments === 'wrapTrail' . 'lineFromSegments'@, for
+loopFromSegments :: (Metric v, OrderedField n)
+                  => [Segment Closed v n] -> Segment Open v n -> Trail' Loop v n
+loopFromSegments segs = Loop (SegTree (FT.fromList segs))
 
 -- | @trailFromSegments === 'wrapTrail' . 'lineFromSegments'@, for
 --   conveniently constructing a @Trail@ instead of a @Trail'@.
