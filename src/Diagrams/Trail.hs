@@ -115,7 +115,7 @@ import           Data.Monoid.MList
 import           Data.Semigroup
 import qualified Numeric.Interval.Kaucher as I
 
-import           Diagrams.Core            hiding ((|>))
+import           Diagrams.Core
 import           Diagrams.Located
 import           Diagrams.Parametric
 import           Diagrams.Segment

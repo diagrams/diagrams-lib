@@ -143,7 +143,7 @@ instance (Traced a, Num (N a)) => Traced (Located a) where
   getTrace (Loc p a) = moveTo p (getTrace a)
 
 instance Qualifiable a => Qualifiable (Located a) where
-  n |> (Loc p a) = Loc p (n |> a)
+  n >| (Loc p a) = Loc p (n >| a)
 
 type instance Codomain (Located a) = Point (Codomain a)
 

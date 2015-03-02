@@ -91,7 +91,7 @@ instance (Metric v, Metric u, OrderedField n, OrderedField m, r ~ Trail u m)
   {-# INLINE vmap #-}
 
 instance LinearMappable (Point v n) (Point u m) where
-  vmap f (P v) = P  (f v)
+  vmap f (P v) = P (f v)
   {-# INLINE vmap #-}
 
 instance r ~ FixedSegment u m => LinearMappable (FixedSegment v n) r where
