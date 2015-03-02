@@ -70,6 +70,8 @@ module Diagrams.TwoD
 
          -- * Angles
        , tau
+       , angleV
+       , angleDir
 
          -- * Paths
          -- ** Stroking

@@ -15,7 +15,7 @@ module Diagrams.TwoD.Vector
        , xDir, yDir
 
          -- * Converting between vectors and angles
-       , e, angleDir
+       , angleV, angleDir, e
 
          -- * 2D vector utilities
        , perp, leftTurn, cross2
@@ -54,14 +54,19 @@ xDir = dir unitX
 yDir :: (R2 v, Additive v, Num n) => Direction v n
 yDir = dir unitY
 
+-- | A direction at a specified angle counter-clockwise from the 'xDir'.
+angleDir :: Floating n => Angle n -> Direction V2 n
+angleDir = dir . angleV
+
+-- | A unit vector at a specified angle counter-clockwise from the
+--   positive x-axis
+angleV :: Floating n => Angle n -> V2 n
+angleV = angle . view rad
+
 -- | A unit vector at a specified angle counter-clockwise from the
 --   positive X axis.
 e :: Floating n => Angle n -> V2 n
-e = angle . view rad
-
--- | A direction at a specified angle counter-clockwise from the 'xDir'.
-angleDir :: Floating n => Angle n -> Direction V2 n
-angleDir = dir . e
+e = angleV
 
 -- | @leftTurn v1 v2@ tests whether the direction of @v2@ is a left
 --   turn from @v1@ (that is, if the direction of @v2@ can be obtained
