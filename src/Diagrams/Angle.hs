@@ -40,6 +40,7 @@ import           Control.Lens        (Iso', Lens', iso, review, (^.), over)
 import           Data.Monoid         hiding ((<>))
 import           Data.Fixed
 import           Data.Semigroup
+import           Text.Read
 
 import           Diagrams.Core.V
 import           Diagrams.Core       (OrderedField)
@@ -51,7 +52,18 @@ import           Linear.Vector
 -- | Angles can be expressed in a variety of units.  Internally,
 --   they are represented in radians.
 newtype Angle n = Radians n
-  deriving (Read, Show, Eq, Ord, Enum, Functor)
+  deriving (Eq, Ord, Enum, Functor)
+
+instance Show n => Show (Angle n) where
+  showsPrec d (Radians a) = showParen (d > 5) $
+    showsPrec 6 a . showString " @@ rad"
+
+instance Read n => Read (Angle n) where
+  readPrec = parens . prec 5 $ do
+    x <- readPrec
+    Symbol "@@" <- lexP
+    Ident "rad" <- lexP
+    pure (Radians x)
 
 type instance N (Angle n) = n
 
