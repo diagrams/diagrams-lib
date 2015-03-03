@@ -46,6 +46,7 @@ module Diagrams.Segment
          -- * Constructing and modifying segments
 
        , Segment(..), straight, bezier3, bézier3, reverseSegment, mapSegmentVectors
+       , openLinear, openCubic
 
          -- * Fixed (absolutely located) segments
        , FixedSegment(..)
@@ -150,7 +151,21 @@ data Segment c v n
       --   second control point, and ending
       --   point, respectively.
 
-  deriving (Show, Functor, Eq, Ord)
+  deriving (Functor, Eq, Ord)
+
+instance Show (v n) => Show (Segment c v n) where
+  showsPrec d seg = case seg of
+    Linear (OffsetClosed v)       -> showParen (d > 10) $
+      showString "straight " . showsPrec 11 v
+    Cubic v1 v2 (OffsetClosed v3) -> showParen (d > 10) $
+      showString "bézier3  " . showsPrec 11 v1 . showChar ' '
+                             . showsPrec 11 v2 . showChar ' '
+                             . showsPrec 11 v3
+    Linear OffsetOpen             -> showString "openLinear"
+    Cubic v1 v2 OffsetOpen        -> showParen (d > 10) $
+      showString "openCubic " . showsPrec 11 v1 . showChar ' '
+                              . showsPrec 11 v2
+
 
 instance Each (Segment c v n) (Segment c v' n') (v n) (v' n') where
   each f (Linear offset)      = Linear <$> each f offset
@@ -221,6 +236,16 @@ instance (Additive v, Num n) => EndValues (Segment Closed v n) where
 segOffset :: Segment Closed v n -> v n
 segOffset (Linear (OffsetClosed v))    = v
 segOffset (Cubic _ _ (OffsetClosed v)) = v
+
+-- | An open linear segment. This means the trail makes a straight line
+-- from the last segment the beginning to form a loop.
+openLinear :: Segment Open v n
+openLinear = Linear OffsetOpen
+
+-- | An open cubic segment. This means the trail makes a cubic bézier
+-- with control vectors @v1@ and @v2@ to form a loop.
+openCubic :: v n -> v n -> Segment Open v n
+openCubic v1 v2 = Cubic v1 v2 OffsetOpen
 
 ------------------------------------------------------------
 --  Computing segment envelope  ------------------------------
