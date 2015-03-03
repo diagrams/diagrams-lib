@@ -1247,3 +1247,17 @@ reverseLocLoop :: (Metric v, OrderedField n)
                => Located (Trail' Loop v n) -> Located (Trail' Loop v n)
 reverseLocLoop = mapLoc reverseLoop
 
+instance (Metric v, OrderedField n) => Reversing (Trail' l v n) where
+  reversing t@(Line _)   = onLineSegments (reverse . map reversing) t
+  reversing t@(Loop _ _) = glueLine . reversing . cutLoop $ t
+
+instance (Metric v, OrderedField n) => Reversing (Trail v n) where
+  reversing (Trail t) = Trail (reversing t)
+
+instance (Metric v, OrderedField n) => Reversing (Located (Trail' l v n)) where
+  reversing l@(Loc _ Line {}) = reverseLocLine l
+  reversing l@(Loc _ Loop {}) = reverseLocLoop l
+
+instance (Metric v, OrderedField n) => Reversing (Located (Trail v n)) where
+  reversing = reverseLocTrail
+

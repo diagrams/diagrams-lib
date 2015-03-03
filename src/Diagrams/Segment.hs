@@ -64,8 +64,7 @@ module Diagrams.Segment
 
        ) where
 
-import           Control.Lens              (Each (..), Rewrapped, Wrapped (..),
-                                            iso, makeLenses, op, over)
+import           Control.Lens              hiding (at, transform)
 import           Data.FingerTree
 import           Data.Monoid.MList
 import           Data.Semigroup
@@ -122,6 +121,10 @@ instance Each (Offset c v n) (Offset c v' n') (v n) (v' n') where
   each _ OffsetOpen       = pure OffsetOpen
   {-# INLINE each #-}
 
+instance (Additive v, Num n) => Reversing (Offset c v n) where
+  reversing (OffsetClosed off) = OffsetClosed $ negated off
+  reversing a@OffsetOpen       = a
+
 type instance V (Offset c v n) = v
 type instance N (Offset c v n) = n
 
@@ -171,6 +174,9 @@ instance Each (Segment c v n) (Segment c v' n') (v n) (v' n') where
   each f (Linear offset)      = Linear <$> each f offset
   each f (Cubic v1 v2 offset) = Cubic  <$> f v1 <*> f v2 <*> each f offset
   {-# INLINE each #-}
+
+instance (Additive v, Num n) => Reversing (Segment Closed v n) where
+  reversing = reverseSegment
 
 -- | Map over the vectors of each segment.
 mapSegmentVectors :: (v n -> v' n') -> Segment c v n -> Segment c v' n'
@@ -314,7 +320,7 @@ reverseSegment :: (Num n, Additive v) => Segment Closed v n -> Segment Closed v 
 reverseSegment (Linear (OffsetClosed v))       = straight (negated v)
 reverseSegment (Cubic c1 c2 (OffsetClosed x2)) = bezier3 (c2 ^-^ x2) (c1 ^-^ x2) (negated x2)
 
-instance (Metric v, Floating n, Ord n, Additive v)
+instance (Metric v, OrderedField n)
       => HasArcLength (Segment Closed v n) where
 
   arcLengthBounded _ (Linear (OffsetClosed x1)) = I.singleton $ norm x1
@@ -363,6 +369,10 @@ instance Each (FixedSegment v n) (FixedSegment v' n') (Point v n) (Point v' n') 
   each f (FLinear p0 p1)      = FLinear <$> f p0 <*> f p1
   each f (FCubic p0 p1 p2 p3) = FCubic  <$> f p0 <*> f p1 <*> f p2 <*> f p3
   {-# INLINE each #-}
+
+instance Reversing (FixedSegment v n) where
+  reversing (FLinear p0 p1)      = FLinear p1 p0
+  reversing (FCubic p0 p1 p2 p3) = FCubic p3 p2 p1 p0
 
 instance (Additive v, Num n) => Transformable (FixedSegment v n) where
   transform t = over each (papply t)
