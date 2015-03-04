@@ -7,6 +7,7 @@
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
 {-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE ViewPatterns               #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Attributes
@@ -252,6 +253,18 @@ class Color c where
 -- | An existential wrapper for instances of the 'Color' class.
 data SomeColor = forall c. Color c => SomeColor c
   deriving Typeable
+
+instance Show SomeColor where
+  showsPrec d (colorToSRGBA -> (r,g,b,a)) =
+    showParen (d > 10) $ showString "SomeColor " .
+      if a == 0
+        then showString "transparent"
+        else showString "(sRGB " . showsPrec 11 r . showChar ' '
+                                 . showsPrec 11 g . showChar ' '
+                                 . showsPrec 11 b .
+                        (if a /= 1
+                           then showString " `withOpacity` " . showsPrec 11 a
+                           else id) . showChar ')'
 
 -- | Isomorphism between 'SomeColor' and 'AlphaColour' 'Double'.
 _SomeColor :: Iso' SomeColor (AlphaColour Double)

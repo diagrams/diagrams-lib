@@ -119,6 +119,10 @@ module Diagrams.Prelude
 
          -- | A large list of color names.
        , module Data.Colour.Names
+
+         -- | Specify your own colours.
+       , module Data.Colour.SRGB
+
          -- | Semigroups and monoids show up all over the place, so things from
          --   Data.Semigroup and Data.Monoid often come in handy.
        , module Data.Semigroup
@@ -175,7 +179,13 @@ import           Diagrams.Util
 import           Control.Applicative
 import           Control.Lens               ((%~), (&), (.~))
 import           Data.Active
+<<<<<<< HEAD
 import           Data.Colour                hiding (AffineSpace (..), atop, over)
+=======
+import           Data.Colour                hiding (AffineSpace (..), atop,
+                                             over)
+import           Data.Colour.SRGB
+>>>>>>> 8bd62e5... SomeColor Show instance.
 import           Data.Colour.Names          hiding (tan)
 import           Data.Semigroup
 
