@@ -19,7 +19,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Trail
--- Copyright   :  (c) 2013 diagrams-lib team (see LICENSE)
+-- Copyright   :  (c) 2013-2015 diagrams-lib team (see LICENSE)
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
@@ -856,7 +856,8 @@ lineFromSegments :: (Metric v, OrderedField n)
                    => [Segment Closed v n] -> Trail' Line v n
 lineFromSegments = Line . SegTree . FT.fromList
 
--- | @trailFromSegments === 'wrapTrail' . 'lineFromSegments'@, for
+-- | Contruct a loop from a list of close segments and an open segment
+--   that completes the loop.
 loopFromSegments :: (Metric v, OrderedField n)
                   => [Segment Closed v n] -> Segment Open v n -> Trail' Loop v n
 loopFromSegments segs = Loop (SegTree (FT.fromList segs))
