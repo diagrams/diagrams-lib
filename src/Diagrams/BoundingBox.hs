@@ -43,6 +43,7 @@ module Diagrams.BoundingBox
   , union, intersection
   ) where
 
+import           Control.Lens            (AsEmpty (..), nearly)
 import           Data.Foldable           as F
 import           Data.Maybe              (fromMaybe)
 import           Data.Semigroup
@@ -93,6 +94,9 @@ newtype BoundingBox v n = BoundingBox (Option (NonEmptyBoundingBox v n))
 
 deriving instance (Additive v, Ord n) => Semigroup (BoundingBox v n)
 deriving instance (Additive v, Ord n) => Monoid (BoundingBox v n)
+
+instance AsEmpty (BoundingBox v n) where
+  _Empty = nearly emptyBox isEmptyBox
 
 type instance V (BoundingBox v n) = v
 type instance N (BoundingBox v n) = n

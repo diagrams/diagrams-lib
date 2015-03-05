@@ -10,6 +10,7 @@
 {-# LANGUAGE TypeOperators              #-}
 {-# LANGUAGE UndecidableInstances       #-}
 {-# LANGUAGE ViewPatterns               #-}
+{-# LANGUAGE LambdaCase                 #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# OPTIONS_GHC -fno-warn-name-shadowing #-}
@@ -429,6 +430,9 @@ instance (Metric v, OrderedField n) => Monoid (Trail' Line v n) where
   mempty  = emptyLine
   mappend = (<>)
 
+instance (Metric v, OrderedField n) => AsEmpty (Trail' Line v n) where
+  _Empty = nearly emptyLine isLineEmpty
+
 instance (HasLinearMap v, Metric v, OrderedField n)
     => Transformable (Trail' l v n) where
   transform tr (Line t  ) = Line (transform tr t)
@@ -711,9 +715,12 @@ instance (OrderedField n, Metric v) => Semigroup (Trail v n) where
 --   strange.  Mostly it is provided for convenience, so one can work
 --   directly with @Trail@s instead of working with @Trail' Line@s and
 --   then wrapping.
-instance (OrderedField n, Metric v) => Monoid (Trail v n) where
+instance (Metric v, OrderedField n) => Monoid (Trail v n) where
   mempty  = wrapLine emptyLine
   mappend = (<>)
+
+instance (Metric v, OrderedField n) => AsEmpty (Trail v n) where
+  _Empty = nearly emptyTrail isTrailEmpty
 
 type instance V (Trail v n) = v
 type instance N (Trail v n) = n

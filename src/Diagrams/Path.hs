@@ -113,7 +113,10 @@ instance Wrapped (Path v n) where
 instance Rewrapped (Path v n) (Path v' n')
 
 instance Each (Path v n) (Path v' n') (Located (Trail v n)) (Located (Trail v' n')) where
-  each = _Wrapped . traversed
+  each = _Wrapped . traverse
+
+instance AsEmpty (Path v n) where
+  _Empty = _Wrapped' . _Empty
 
 -- | Extract the located trails making up a 'Path'.
 pathTrails :: Path v n -> [Located (Trail v n)]
