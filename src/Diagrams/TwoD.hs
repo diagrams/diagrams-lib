@@ -84,7 +84,7 @@ module Diagrams.TwoD
        , intersectPointsP, intersectPointsP'
 
          -- ** Clipping
-       , clipBy, clipTo, clipped
+       , clipBy, clipTo, clipped, _clip
 
          -- * Shapes
          -- ** Rules

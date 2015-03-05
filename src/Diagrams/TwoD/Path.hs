@@ -45,7 +45,8 @@ module Diagrams.TwoD.Path
 
          -- * Clipping
 
-       , Clip(..), clipBy, clipTo, clipped
+       , Clip(..), _Clip, _clip
+       , clipBy, clipTo, clipped
 
          -- * Intersections
 
@@ -55,10 +56,7 @@ module Diagrams.TwoD.Path
        ) where
 
 import           Control.Applicative       (liftA2)
-import           Control.Lens              (Lens, Lens', generateSignatures,
-                                            lensRules, makeLensesWith,
-                                            makeWrapped, op, (.~), (^.),
-                                            _Wrapped')
+import           Control.Lens              hiding (transform, at)
 import qualified Data.Foldable             as F
 import           Data.Semigroup
 import           Data.Typeable
@@ -374,11 +372,21 @@ makeWrapped ''Clip
 
 instance Typeable n => AttributeClass (Clip n)
 
+instance AsEmpty (Clip n) where
+  _Empty = _Clip . _Empty
+
 type instance V (Clip n) = V2
 type instance N (Clip n) = n
 
 instance (OrderedField n) => Transformable (Clip n) where
   transform t (Clip ps) = Clip (transform t ps)
+
+_Clip :: Iso (Clip n) (Clip n') [Path V2 n] [Path V2 n']
+_Clip = _Wrapped
+
+-- | Lens onto the Clip in a style. An empty list means no clipping.
+_clip :: Typeable n => Lens' (Style v n) [Path V2 n]
+_clip = atAttr . non' _Empty . _Clip
 
 -- | Clip a diagram by the given path:
 --
