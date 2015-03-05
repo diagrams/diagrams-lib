@@ -339,12 +339,14 @@ data LineCap = LineCapButt   -- ^ Lines end precisely at their endpoints.
                              --   centered on endpoints.
              | LineCapSquare -- ^ Lines are capped with a squares
                              --   centered on endpoints.
-  deriving (Eq,Show,Typeable)
+  deriving (Eq, Ord, Show, Typeable)
 
 instance Default LineCap where
   def = LineCapButt
 
 instance AttributeClass LineCap
+
+-- | Last semigroup structure.
 instance Semigroup LineCap where
   _ <> b = b
 
@@ -367,9 +369,11 @@ data LineJoin = LineJoinMiter    -- ^ Use a \"miter\" shape (whatever that is).
               | LineJoinBevel    -- ^ Use a \"bevel\" shape (whatever
                                  --   that is).  Are these...
                                  --   carpentry terms?
-  deriving (Eq, Show, Typeable)
+  deriving (Eq, Ord, Show, Typeable)
 
 instance AttributeClass LineJoin
+
+-- | Last semigroup structure.
 instance Semigroup LineJoin where
   _ <> b = b
 
@@ -392,7 +396,7 @@ _lineJoin = atAttr . non def
 -- | Miter limit attribute affecting the 'LineJoinMiter' joins.
 --   For some backends this value may have additional effects.
 newtype LineMiterLimit = LineMiterLimit (Last Double)
-  deriving (Typeable, Semigroup, Eq)
+  deriving (Typeable, Semigroup, Eq, Ord)
 instance AttributeClass LineMiterLimit
 
 _LineMiterLimit :: Iso' LineMiterLimit Double
