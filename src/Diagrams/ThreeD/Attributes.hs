@@ -3,6 +3,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE MultiParamTypeClasses               #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.ThreeD.Attributes
@@ -41,12 +42,16 @@ newtype SurfaceColor = SurfaceColor (Last (Colour Double))
 
 instance AttributeClass SurfaceColor
 
-surfaceColor :: Iso' SurfaceColor (Colour Double)
-surfaceColor = iso (\(SurfaceColor (Last c)) -> c) (SurfaceColor . Last)
+_SurfaceColor :: Iso' SurfaceColor (Colour Double)
+_SurfaceColor = iso (\(SurfaceColor (Last c)) -> c) (SurfaceColor . Last)
 
 -- | Set the surface color.
 sc :: HasStyle d => Colour Double -> d -> d
-sc = applyAttr . review surfaceColor
+sc = applyAttr . review _SurfaceColor
+
+-- | Lens onto the surface colour of a style.
+_sc :: Lens' (Style v n) (Maybe (Colour Double))
+_sc = atAttr . mapping _SurfaceColor
 
 -- | @Diffuse@ is the fraction of incident light reflected diffusely,
 -- that is, in all directions.  The actual light reflected is the
@@ -58,12 +63,17 @@ newtype Diffuse = Diffuse (Last Double)
 
 instance AttributeClass Diffuse
 
+-- | Isomorphism between 'Diffuse' and 'Double'
 _Diffuse :: Iso' Diffuse Double
 _Diffuse = iso (\(Diffuse (Last d)) -> d) (Diffuse . Last)
 
 -- | Set the diffuse reflectance.
 diffuse :: HasStyle d => Double -> d -> d
 diffuse = applyAttr . review _Diffuse
+
+-- | Lens onto the possible diffuse reflectance in a style.
+_diffuse :: Lens' (Style v n) (Maybe Double)
+_diffuse = atAttr . mapping _Diffuse
 
 -- | @Ambient@ is an ad-hoc representation of indirect lighting.  The
 -- product of @Ambient@ and @SurfaceColor@ is added to the light
@@ -83,6 +93,10 @@ _Ambient = iso (\(Ambient (Last d)) -> d) (Ambient . Last)
 ambient :: HasStyle d => Double -> d -> d
 ambient = applyAttr . review _Ambient
 
+-- | Lens onto the possible ambience in a style.
+_ambient :: Lens' (Style v n) (Maybe Double)
+_ambient = atAttr . mapping _Ambient
+
 -- | A specular highlight has two terms, the intensity, between 0 and
 -- 1, and the size.  The highlight size is assumed to be the exponent
 -- in a Phong shading model (though Backends are free to use a
@@ -90,9 +104,10 @@ ambient = applyAttr . review _Ambient
 -- between 1 and 50 or so, with higher values for shinier objects.
 -- Physically, the intensity and the value of @Diffuse@ must add up to
 -- less than 1; this is not enforced.
-data Specular = Specular { _specularIntensity :: Double
-                         , _specularSize      :: Double
-                         }
+data Specular = Specular
+  { _specularIntensity :: Double
+  , _specularSize      :: Double
+  }
 
 makeLenses ''Specular
 
@@ -107,4 +122,18 @@ _Highlight = iso (\(Highlight (Last s)) -> s) (Highlight . Last)
 -- | Set the specular highlight.
 highlight :: HasStyle d => Specular -> d -> d
 highlight = applyAttr . review _Highlight
+
+-- | Lens onto the possible specular highlight in a style
+_highlight :: Lens' (Style v n) (Maybe Specular)
+_highlight = atAttr . mapping _Highlight
+
+-- | Traversal over the highlight intensity of a style. If the style has
+--   no 'Specular', setting this will do nothing.
+highlightIntensity :: Traversal' (Style v n) Double
+highlightIntensity = _highlight . _Just . specularSize
+
+-- | Traversal over the highlight size in a style. If the style has no
+--   'Specular', setting this will do nothing.
+highlightSize :: Traversal' (Style v n) Double
+highlightSize = _highlight . _Just . specularSize
 

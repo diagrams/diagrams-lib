@@ -1,4 +1,3 @@
-{-# LANGUAGE ConstraintKinds  #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TypeFamilies     #-}
 
@@ -35,7 +34,7 @@ import           Diagrams.ThreeD.Vector
 ------------------------------------------------------------
 
 -- | Compute the absolute z-coordinate range of an enveloped object in
---   the form @(lo,hi)@. Return @Nothing@ for objects with an empty 
+--   the form @(lo,hi)@. Return @Nothing@ for objects with an empty
 --   envelope.
 extentZ :: (InSpace v n a, R3 v, Enveloped a) => a -> Maybe (n, n)
 extentZ = extent unitZ

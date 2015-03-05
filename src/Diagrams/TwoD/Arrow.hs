@@ -11,7 +11,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Arrow
--- Copyright   :  (c) 2013 diagrams-lib team (see LICENSE)
+-- Copyright   :  (c) 2013-2015 diagrams-lib team (see LICENSE)
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
@@ -104,36 +104,35 @@ module Diagrams.TwoD.Arrow
        ) where
 
 import           Control.Applicative      ((<*>))
-import           Control.Lens             (Lens', Setter', Traversal', generateSignatures,
-                                           lensRules, makeLensesWith, view, (%~), (&), (.~), (^.))
+import           Control.Lens             hiding (transform, none, (#))
 import           Data.Default.Class
-import           Data.Functor             ((<$>))
-import           Data.Maybe               (fromMaybe)
-import           Data.Monoid.Coproduct    (untangle)
+import           Data.Functor              ((<$>))
+import           Data.Maybe                (fromMaybe)
+import           Data.Monoid.Coproduct     (untangle)
 import           Data.Semigroup
 import           Data.Typeable
 
-import           Data.Colour              hiding (atop)
+import           Data.Colour               hiding (atop)
 import           Diagrams.Core
-import           Diagrams.Core.Style      (unmeasureAttrs)
-import           Diagrams.Core.Types      (QDiaLeaf (..), mkQD')
+import           Diagrams.Core.Style       (unmeasureAttrs)
+import           Diagrams.Core.Types       (QDiaLeaf (..), mkQD')
 
 import           Diagrams.Angle
 import           Diagrams.Attributes
 import           Diagrams.Direction       hiding (dir)
-import           Diagrams.Located         (Located(..), unLoc)
+import           Diagrams.Located         (Located (..), unLoc)
 import           Diagrams.Parametric
 import           Diagrams.Path
-import           Diagrams.Solve           (quadForm)
-import           Diagrams.Tangent         (tangentAtEnd, tangentAtStart)
+import           Diagrams.Solve.Polynomial (quadForm)
+import           Diagrams.Tangent          (tangentAtEnd, tangentAtStart)
 import           Diagrams.Trail
 import           Diagrams.TwoD.Arrowheads
 import           Diagrams.TwoD.Attributes
-import           Diagrams.TwoD.Path       (stroke, strokeT)
-import           Diagrams.TwoD.Transform  (rotate, translateX, reflectY)
+import           Diagrams.TwoD.Path        (stroke, strokeT)
+import           Diagrams.TwoD.Transform   (reflectY, rotate, translateX)
 import           Diagrams.TwoD.Types
-import           Diagrams.TwoD.Vector     (unitX, unit_X)
-import           Diagrams.Util            (( # ))
+import           Diagrams.TwoD.Vector      (unitX, unit_X)
+import           Diagrams.Util             (( # ))
 
 import           Linear.Affine
 import           Linear.Metric
@@ -230,18 +229,18 @@ lengths f opts = (\h t -> opts & headLength .~ h & tailLength .~ t) <$> f (opts 
 --   defined. Or @... (with & headTexture .~ solid blue@ to set the head
 --   color to blue. For more general control over the style of arrowheads,
 --   see 'headStyle'.
-headTexture :: TypeableFloat n => Setter' (ArrowOpts n) (Texture n)
-headTexture = headStyle . styleFillTexture
+headTexture :: TypeableFloat n => Lens' (ArrowOpts n) (Texture n)
+headTexture = headStyle . _fillTexture
 
 -- | A lens for setting or modifying the texture of an arrow
---   tail.
-tailTexture :: TypeableFloat n => Setter' (ArrowOpts n) (Texture n)
-tailTexture = tailStyle . styleFillTexture
+--   tail. This is *not* a valid lens (see 'committed').
+tailTexture :: TypeableFloat n => Lens' (ArrowOpts n) (Texture n)
+tailTexture = tailStyle . _fillTexture
 
 -- | A lens for setting or modifying the texture of an arrow
 --   shaft.
-shaftTexture :: TypeableFloat n => Setter' (ArrowOpts n) (Texture n)
-shaftTexture = shaftStyle . styleLineTexture
+shaftTexture :: TypeableFloat n => Lens' (ArrowOpts n) (Texture n)
+shaftTexture = shaftStyle . _lineTexture
 
 -- Set the default shaft style of an `ArrowOpts` record by applying the
 -- default style after all other styles have been applied.
@@ -380,7 +379,7 @@ arrow = arrow' def
 arrow' :: (TypeableFloat n, Renderable (Path V2 n) b) => ArrowOpts n -> n -> QDiagram b V2 n Any
 arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
 
-      -- Currently we approximate the envelope of an arrow by using the 
+      -- Currently we approximate the envelope of an arrow by using the
       -- envelope of its shaft (see 'arrowEnv'). The trace of an arrow is empty.
       (arrowEnv opts len) mempty mempty mempty
 

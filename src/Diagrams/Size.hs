@@ -2,7 +2,6 @@
 #if __GLASGOW_HASKELL__ >= 707
 {-# LANGUAGE DeriveDataTypeable         #-}
 #endif
-{-# LANGUAGE ConstraintKinds            #-}
 {-# LANGUAGE DeriveFunctor              #-}
 {-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE FlexibleContexts           #-}
@@ -30,18 +29,18 @@ module Diagrams.Size
 
     -- ** Making size spec
   , mkSizeSpec
-	, dims
-	, absolute
+  , dims
+  , absolute
 
     -- ** Extracting size specs
-	, getSpec
+  , getSpec
   , specToSize
 
     -- ** Functions on size specs
-	, requiredScale
+  , requiredScale
   , requiredScaling
-	, sized
-	, sizedAs
+  , sized
+  , sizedAs
   , sizeAdjustment
   ) where
 
@@ -146,8 +145,8 @@ sizedAs :: (InSpace v n a, SameSpace a b, HasLinearMap v, HasBasis v, Transforma
         => b -> a -> a
 sizedAs other = sized (dims $ size other)
 
--- | Get the adjustment to fit a 'BoundingBox' in the given 'SizeSpec'. The 
---   vector is the new size and the transformation  to position the lower 
+-- | Get the adjustment to fit a 'BoundingBox' in the given 'SizeSpec'. The
+--   vector is the new size and the transformation  to position the lower
 --   corner at the origin and scale to the size spec.
 sizeAdjustment :: (Additive v, Foldable v, OrderedField n)
   => SizeSpec v n -> BoundingBox v n -> (v n, Transformation v n)

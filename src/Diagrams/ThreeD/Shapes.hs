@@ -23,16 +23,16 @@ module Diagrams.ThreeD.Shapes
        ) where
 
 import           Control.Applicative
-import           Control.Lens           (review, (^.), _1)
+import           Control.Lens              (review, (^.), _1)
 import           Data.Typeable
 
 import           Data.Semigroup
 import           Diagrams.Angle
 import           Diagrams.Core
-import           Diagrams.Solve
+import           Diagrams.Points
+import           Diagrams.Solve.Polynomial
 import           Diagrams.ThreeD.Types
 import           Diagrams.ThreeD.Vector
-import           Diagrams.Points
 
 import           Linear.Affine
 import           Linear.Metric

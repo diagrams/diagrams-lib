@@ -4,7 +4,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD
--- Copyright   :  (c) 2011 diagrams-lib team (see LICENSE)
+-- Copyright   :  (c) 2011-2015 diagrams-lib team (see LICENSE)
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
@@ -162,6 +162,7 @@ module Diagrams.TwoD
          -- * Text
        , text, topLeftText, alignedText, baselineText
        , font, italic, oblique, bold, fontSize
+       , _font, _fontSizeR, _fontSize
        , fontSizeO, fontSizeL, fontSizeN, fontSizeG
 
          -- * Images
@@ -242,20 +243,21 @@ module Diagrams.TwoD
 
          -- * Textures
        , Texture(..), solid
-       , SpreadMethod(..), GradientStop(..), mkStops, getFillTexture
-       , fillTexture, getLineTexture, lineTexture, lineTextureA
-       , stopFraction, stopColor
+       , SpreadMethod(..), GradientStop(..)
+       , _FillTexture, fillTexture, _fillTexture, getFillTexture
+       , _LineTexture, lineTexture, _lineTexture, lineTextureA, getLineTexture
+       , stopFraction, stopColor, mkStops
 
-       , LGradient(..), lGradStops, lGradTrans, lGradStart, lGradEnd
-       , lGradSpreadMethod, defaultLG, _LG, mkLinearGradient
+       , LGradient(..), _LG, lGradStops, lGradTrans, lGradStart, lGradEnd
+       , lGradSpreadMethod, defaultLG, mkLinearGradient
 
        , RGradient(..)
        , rGradStops, rGradCenter0, rGradRadius0, rGradCenter1, rGradRadius1
        , rGradTrans, rGradSpreadMethod, defaultRG, _RG, mkRadialGradient
 
          -- ** Colors
-       , fillColor, fc, fcA, recommendFillColor
-       , lineColor, lc, lcA, _SC
+       , fillColor, _SC, fc, fcA, recommendFillColor
+       , lineColor, lc, lcA
 
          -- * Visual aids for understanding the internal model
        , showOrigin

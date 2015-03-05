@@ -3,12 +3,14 @@
 {-# LANGUAGE ExistentialQuantification  #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE LambdaCase                 #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
 {-# LANGUAGE TypeFamilies               #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Attributes
--- Copyright   :  (c) 2011 diagrams-lib team (see LICENSE)
+-- Copyright   :  (c) 2011-2015 diagrams-lib team (see LICENSE)
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
@@ -35,47 +37,61 @@ module Diagrams.Attributes (
   , lw, lwN, lwO, lwL, lwG
 
     -- ** Dashing
-  , Dashing(..), DashingA, getDashing
-  , dashing, dashingN, dashingO, dashingL, dashingG
+  , Dashing(..), DashingA, _Dashing, _DashingM, getDashing
+  , dashing, dashingN, dashingO, dashingL, dashingG, _dashing
 
 
   -- * Color
   -- $color
 
-  , Color(..), SomeColor(..), someToAlpha
+  , Color(..), SomeColor(..), _SomeColor, someToAlpha
 
   -- ** Opacity
-  , Opacity, getOpacity, opacity
+  , Opacity, _Opacity
+  , getOpacity, opacity, _opacity
 
   -- ** Converting colors
   , colorToSRGBA, colorToRGBA
 
   -- * Line stuff
   -- ** Cap style
-  , LineCap(..), LineCapA, getLineCap, lineCap
+  , LineCap(..), LineCapA, _LineCap
+  , getLineCap, lineCap, _lineCap
 
   -- ** Join style
-  , LineJoin(..), LineJoinA, getLineJoin, lineJoin
+  , LineJoin(..), LineJoinA, _LineJoin
+  , getLineJoin, lineJoin, _lineJoin
 
   -- ** Miter limit
-  , LineMiterLimit(..), getLineMiterLimit, lineMiterLimit, lineMiterLimitA
+  , LineMiterLimit(..), _LineMiterLimit
+  , getLineMiterLimit, lineMiterLimit, lineMiterLimitA, _lineMiterLimit
+
+  -- * Recommend optics
+
+  , _Recommend
+  , _Commit
+  , _recommend
+  , isCommitted
+  , committed
 
   ) where
 
+import           Control.Applicative
+import           Control.Lens          hiding (none, over)
 import           Data.Colour
-import           Data.Colour.RGBSpace (RGB (..))
-import           Data.Colour.SRGB     (toSRGB)
+import           Data.Colour.RGBSpace  (RGB (..))
+import           Data.Colour.SRGB      (toSRGB)
 import           Data.Default.Class
 import           Data.Distributive
+import           Data.Monoid.Recommend
 import           Data.Semigroup
 import           Data.Typeable
 
 import           Diagrams.Core
 
-
------------------------------------------------------------------
---  Standard Measures -------------------------------------------
------------------------------------------------------------------
+------------------------------------------------------------------------
+-- Standard measures
+------------------------------------------------------------------------
 
 none, ultraThin, veryThin, thin, medium, thick, veryThick, ultraThick,
   tiny, verySmall, small, normal, large, veryLarge, huge
@@ -97,14 +113,20 @@ large     = normalized 0.05
 veryLarge = normalized 0.07
 huge      = normalized 0.10
 
------------------------------------------------------------------
---  Line Width  -------------------------------------------------
------------------------------------------------------------------
+------------------------------------------------------------------------
+-- Line width
+------------------------------------------------------------------------
 
 -- | Line widths specified on child nodes always override line widths
 --   specified at parent nodes.
 newtype LineWidth n = LineWidth (Last n)
   deriving (Typeable, Semigroup)
+
+_LineWidth :: (Typeable n, OrderedField n) => Iso' (LineWidth n) n
+_LineWidth = iso getLineWidth (LineWidth . Last)
+
+_LineWidthM :: (Typeable n, OrderedField n) => Iso' (LineWidthM n) (Measure n)
+_LineWidthM = mapping _LineWidth
 
 instance Typeable n => AttributeClass (LineWidth n)
 
@@ -144,9 +166,14 @@ lwO = lw . output
 lwL :: (N a ~ n, HasStyle a, Typeable n, Num n) => n -> a -> a
 lwL = lw . local
 
------------------------------------------------------------------
---  Dashing  ----------------------------------------------------
------------------------------------------------------------------
+-- | Lens onto a measured line width in a style.
+_lineWidth, _lw :: (Typeable n, OrderedField n) => Lens' (Style v n) (Measure n)
+_lineWidth = atMAttr . anon def (const False) . _LineWidthM
+_lw = _lineWidth
+
+------------------------------------------------------------------------
+-- Dashing
+------------------------------------------------------------------------
 
 -- | Create lines that are dashing... er, dashed.
 data Dashing n = Dashing [n] n
@@ -154,6 +181,12 @@ data Dashing n = Dashing [n] n
 
 newtype DashingA n = DashingA (Last (Dashing n))
   deriving (Functor, Typeable, Semigroup)
+
+_Dashing :: Iso' (DashingA n) (Dashing n)
+_Dashing = iso getDashing (DashingA . Last)
+
+_DashingM :: Iso' (Measured n (DashingA n)) (Measured n (Dashing n))
+_DashingM = mapping _Dashing
 
 instance Typeable n => AttributeClass (DashingA n)
 
@@ -186,9 +219,14 @@ dashingO w v = dashing (map output w) (output v)
 dashingL :: (N a ~ n, HasStyle a, Typeable n, Num n) => [n] -> n -> a -> a
 dashingL w v = dashing (map local w) (local v)
 
-------------------------------------------------------------
---  Color  -------------------------------------------------
-------------------------------------------------------------
+-- | Lens onto a measured dashing attribute in a style.
+_dashing :: (Typeable n, OrderedField n)
+         => Lens' (Style v n) (Maybe (Measured n (Dashing n)))
+_dashing = atMAttr . mapping _DashingM
+
+------------------------------------------------------------------------
+-- Color
+------------------------------------------------------------------------
 
 -- $color
 -- Diagrams outsources all things color-related to Russell O\'Connor\'s
@@ -214,6 +252,10 @@ class Color c where
 -- | An existential wrapper for instances of the 'Color' class.
 data SomeColor = forall c. Color c => SomeColor c
   deriving Typeable
+
+-- | Isomorphism between 'SomeColor' and 'AlphaColour' 'Double'.
+_SomeColor :: Iso' SomeColor (AlphaColour Double)
+_SomeColor = iso toAlphaColour fromAlphaColour
 
 someToAlpha :: SomeColor -> AlphaColour Double
 someToAlpha (SomeColor c) = toAlphaColour c
@@ -246,8 +288,9 @@ alphaToColour :: (Floating a, Ord a, Fractional a) => AlphaColour a -> Colour a
 alphaToColour ac | alphaChannel ac == 0 = ac `over` black
                  | otherwise = darken (recip (alphaChannel ac)) (ac `over` black)
 
-------------------------------------------------------------
+------------------------------------------------------------------------
 -- Opacity
+------------------------------------------------------------------------
 
 -- | Although the individual colors in a diagram can have
 --   transparency, the opacity/transparency of a diagram as a whole
@@ -261,6 +304,9 @@ newtype Opacity = Opacity (Product Double)
   deriving (Typeable, Semigroup)
 instance AttributeClass Opacity
 
+_Opacity :: Iso' Opacity Double
+_Opacity = iso getOpacity (Opacity . Product)
+
 getOpacity :: Opacity -> Double
 getOpacity (Opacity (Product d)) = d
 
@@ -270,9 +316,15 @@ getOpacity (Opacity (Product d)) = d
 opacity :: HasStyle a => Double -> a -> a
 opacity = applyAttr . Opacity . Product
 
-------------------------------------------------------------
---  Line stuff    -------------------------------------
-------------------------------------------------------------
+-- | Lens onto the opacity in a style.
+_opacity :: Lens' (Style v n) Double
+_opacity = atAttr . mapping _Opacity . non 1
+
+------------------------------------------------------------------------
+-- Line stuff
+------------------------------------------------------------------------
+
+-- line cap ------------------------------------------------------------
 
 -- | What sort of shape should be placed at the endpoints of lines?
 data LineCap = LineCapButt   -- ^ Lines end precisely at their endpoints.
@@ -286,6 +338,9 @@ newtype LineCapA = LineCapA (Last LineCap)
   deriving (Typeable, Semigroup, Eq)
 instance AttributeClass LineCapA
 
+_LineCap :: Iso' LineCapA LineCap
+_LineCap = iso getLineCap (LineCapA . Last)
+
 instance Default LineCap where
   def = LineCapButt
 
@@ -295,6 +350,12 @@ getLineCap (LineCapA (Last c)) = c
 -- | Set the line end cap attribute.
 lineCap :: HasStyle a => LineCap -> a -> a
 lineCap = applyAttr . LineCapA . Last
+
+-- | Lens onto the line cap in a style.
+_lineCap :: Lens' (Style v n) LineCap
+_lineCap = atAttr . mapping _LineCap . non def
+
+-- line join -----------------------------------------------------------
 
 -- | How should the join points between line segments be drawn?
 data LineJoin = LineJoinMiter    -- ^ Use a \"miter\" shape (whatever that is).
@@ -308,8 +369,11 @@ newtype LineJoinA = LineJoinA (Last LineJoin)
   deriving (Typeable, Semigroup, Eq)
 instance AttributeClass LineJoinA
 
+_LineJoin :: Iso' LineJoinA LineJoin
+_LineJoin = iso getLineJoin (LineJoinA . Last)
+
 instance Default LineJoin where
-    def = LineJoinMiter
+  def = LineJoinMiter
 
 getLineJoin :: LineJoinA -> LineJoin
 getLineJoin (LineJoinA (Last j)) = j
@@ -318,14 +382,23 @@ getLineJoin (LineJoinA (Last j)) = j
 lineJoin :: HasStyle a => LineJoin -> a -> a
 lineJoin = applyAttr . LineJoinA . Last
 
+-- | Lens onto the line join type in a style.
+_lineJoin :: Lens' (Style v n) LineJoin
+_lineJoin = atAttr . mapping _LineJoin . non def
+
+-- miter limit ---------------------------------------------------------
+
 -- | Miter limit attribute affecting the 'LineJoinMiter' joins.
 --   For some backends this value may have additional effects.
 newtype LineMiterLimit = LineMiterLimit (Last Double)
   deriving (Typeable, Semigroup)
 instance AttributeClass LineMiterLimit
 
+_LineMiterLimit :: Iso' LineMiterLimit Double
+_LineMiterLimit = iso getLineMiterLimit (LineMiterLimit . Last)
+
 instance Default LineMiterLimit where
-    def = LineMiterLimit (Last 10)
+  def = LineMiterLimit (Last 10)
 
 getLineMiterLimit :: LineMiterLimit -> Double
 getLineMiterLimit (LineMiterLimit (Last l)) = l
@@ -337,4 +410,41 @@ lineMiterLimit = applyAttr . LineMiterLimit . Last
 -- | Apply a 'LineMiterLimit' attribute.
 lineMiterLimitA :: HasStyle a => LineMiterLimit -> a -> a
 lineMiterLimitA = applyAttr
+
+-- | Lens onto the line miter limit in a style.
+_lineMiterLimit :: Lens' (Style v n) Double
+_lineMiterLimit = atAttr . mapping _LineMiterLimit . non 10
+
+------------------------------------------------------------------------
+-- Recommend optics
+------------------------------------------------------------------------
+
+-- | Prism onto a 'Recommend'.
+_Recommend :: Prism' (Recommend a) a
+_Recommend = prism' Recommend $ \case (Recommend a) -> Just a; _ -> Nothing
+
+-- | Prism onto a 'Commit'.
+_Commit :: Prism' (Recommend a) a
+_Commit = prism' Commit $ \case (Commit a) -> Just a; _ -> Nothing
+
+-- | Lens onto the value inside either a 'Recommend' or 'Commit'. Unlike
+--   'committed', this is a valid lens.
+_recommend :: Lens (Recommend a) (Recommend b) a b
+_recommend f (Recommend a) = Recommend <$> f a
+_recommend f (Commit a)    = Commit <$> f a
+
+-- | Lens onto whether something is committed or not.
+isCommitted :: Lens' (Recommend a) Bool
+isCommitted f r@(Recommend a) = f False <&> \b -> if b then Commit a else r
+isCommitted f r@(Commit a)    = f True  <&> \b -> if b then r else Recommend a
+
+-- | 'Commit' a value for any 'Recommend'. This is *not* a valid 'Iso'
+--   because the resulting @Recommend b@ is always a 'Commit'. This is
+--   useful because it means any 'Recommend' styles set with a lens will
+--   not be accidentally overridden. If you want a valid lens onto a
+--   recommend value use '_recommend'.
+--
+--   Other lenses that use this are labeled with a warning.
+committed :: Iso (Recommend a) (Recommend b) a b
+committed = iso getRecommend Commit
 
