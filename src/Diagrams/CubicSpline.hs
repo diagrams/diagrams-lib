@@ -50,8 +50,9 @@ import           Linear.Metric
 --
 --   For more information, see <http://mathworld.wolfram.com/CubicSpline.html>.
 cubicSpline :: (V t ~ v, N t ~ n, TrailLike t, Fractional (v n)) => Bool -> [Point v n] -> t
-cubicSpline closed [] = trailLike . closeIf closed $ emptyLine `at` origin
-cubicSpline closed ps = flattenBeziers . map f . solveCubicSplineCoefficients closed . map (view lensP) $ ps
+cubicSpline closed []  = trailLike . closeIf closed $ emptyLine `at` origin
+cubicSpline closed [p] = trailLike . closeIf closed $ emptyLine `at` p
+cubicSpline closed ps  = flattenBeziers . map f . solveCubicSplineCoefficients closed . map (view lensP) $ ps
   where
     f [a,b,c,d] = [a, (3*a+b)/3, (3*a+2*b+c)/3, a+b+c+d]
     flattenBeziers bs@((b:_):_)
