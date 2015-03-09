@@ -91,7 +91,8 @@ getSpec :: (Functor v, Num n, Ord n) => SizeSpec v n -> v (Maybe n)
 getSpec (SizeSpec sp) = mfilter (>0) . Just <$> sp
 
 -- | Make a 'SizeSpec' from a vector of maybe values. Any negative values will
---   be ignored.
+--   be ignored. For 2D 'SizeSpec's see 'mkWidth' and 'mkHeight' from
+--   "Diagrams.TwoD.Size".
 mkSizeSpec :: (Functor v, Num n) => v (Maybe n) -> SizeSpec v n
 mkSizeSpec = dims . fmap (fromMaybe 0)
 
@@ -146,7 +147,7 @@ sizedAs :: (InSpace v n a, SameSpace a b, HasLinearMap v, HasBasis v, Transforma
 sizedAs other = sized (dims $ size other)
 
 -- | Get the adjustment to fit a 'BoundingBox' in the given 'SizeSpec'. The
---   vector is the new size and the transformation  to position the lower
+--   vector is the new size and the transformation to position the lower
 --   corner at the origin and scale to the size spec.
 sizeAdjustment :: (Additive v, Foldable v, OrderedField n)
   => SizeSpec v n -> BoundingBox v n -> (v n, Transformation v n)
