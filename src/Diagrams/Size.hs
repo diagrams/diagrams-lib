@@ -53,6 +53,7 @@ import           Data.Semigroup
 import           Data.Maybe
 import           Data.Typeable
 import           GHC.Generics        (Generic)
+import           Prelude
 
 import           Diagrams.Core
 import           Diagrams.BoundingBox
@@ -163,4 +164,3 @@ sizeAdjustment spec bb = (sz', t)
     s = requiredScale spec sz
 
     t = translation v <> scaling s
-

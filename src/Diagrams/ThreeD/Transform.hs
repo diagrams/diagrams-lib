@@ -216,4 +216,3 @@ reflectionAcross p v =
 reflectAcross :: (InSpace v n t, Metric v, Fractional n, Transformable t)
   => Point v n -> v n -> t -> t
 reflectAcross p v = transform (reflectionAcross p v)
-

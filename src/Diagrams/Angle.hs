@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveFunctor              #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE RankNTypes                 #-}
 {-# LANGUAGE TypeFamilies               #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Angle
@@ -36,14 +36,15 @@ module Diagrams.Angle
        ) where
 
 import           Control.Applicative
-import           Control.Lens        (Iso', Lens', iso, review, (^.), over)
-import           Data.Monoid         hiding ((<>))
+import           Control.Lens        (Iso', Lens', iso, over, review, (^.))
 import           Data.Fixed
+import           Data.Monoid         hiding ((<>))
 import           Data.Semigroup
 import           Text.Read
+import           Prelude
 
-import           Diagrams.Core.V
 import           Diagrams.Core       (OrderedField)
+import           Diagrams.Core.V
 import           Diagrams.Points
 
 import           Linear.Metric
@@ -208,4 +209,3 @@ instance HasTheta v => HasTheta (Point v) where
 instance HasPhi v => HasPhi (Point v) where
   _phi = lensP . _phi
   {-# INLINE _phi #-}
-

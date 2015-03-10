@@ -36,15 +36,16 @@ module Diagrams.Align
        ) where
 
 import           Diagrams.Core
-import           Diagrams.Util (applyAll)
+import           Diagrams.Util    (applyAll)
 
-import           Data.Maybe    (fromMaybe)
-import           Data.Ord      (comparing)
+import           Data.Maybe       (fromMaybe)
+import           Data.Ord         (comparing)
 import           Data.Traversable
+import           Prelude
 
-import qualified Data.Foldable as F
-import qualified Data.Map      as M
-import qualified Data.Set      as S
+import qualified Data.Foldable    as F
+import qualified Data.Map         as M
+import qualified Data.Set         as S
 
 import           Linear.Affine
 import           Linear.Metric
@@ -167,4 +168,3 @@ snugCenter = applyAll fs
     fs = map snugCenterV basis
 
 {-# ANN module ("HLint: ignore Use camelCase" :: String) #-}
-

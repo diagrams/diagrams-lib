@@ -15,7 +15,7 @@ import           Control.Applicative
 import           Control.Arrow ((&&&))
 import           Control.Lens
 import           Data.Distributive
-import           Data.Foldable
+import qualified Data.Foldable as F
 import           Data.Functor.Rep
 
 import           Diagrams.Core.Transform as D
@@ -46,9 +46,8 @@ fromMat22 m v = flip (fromMatWithInv m) v <$> inv22 m
 fromMat33 :: (Epsilon n, Floating n) => M33 n -> V3 n -> Maybe (T3 n)
 fromMat33 m v = flip (fromMatWithInv m) v <$> inv33 m
 
--- | Build a transform with a maxtrix along with its inverse (this is
---   not checked).
-fromMatWithInv :: (Additive v, Distributive v, Foldable v, Num n)
+-- | Build a transform with a maxtrix along with its inverse.
+fromMatWithInv :: (Additive v, Distributive v, F.Foldable v, Num n)
   => v (v n) -- ^ matrix
   -> v (v n) -- ^ inverse
   -> v n     -- ^ translation
@@ -67,4 +66,3 @@ mat22 = prism' (mkMat &&& transl) (uncurry fromMat22)
 --   translation vector.
 mat33 :: (Epsilon n, Floating n) => Prism' (M33 n, V3 n) (T3 n)
 mat33 = prism' (mkMat &&& transl) (uncurry fromMat33)
-

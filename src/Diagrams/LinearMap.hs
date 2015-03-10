@@ -24,7 +24,7 @@ module Diagrams.LinearMap where
 
 import           Control.Lens
 import           Data.FingerTree         as FT
-import           Data.Foldable           (Foldable)
+import qualified Data.Foldable as F
 
 import           Diagrams.Core
 import           Diagrams.Core.Transform
@@ -59,7 +59,7 @@ class LinearMappable a b where
 -- so ghc knows there's only one possible result from calling vmap.
 
 -- | Apply a linear map.
-linmap :: (InSpace v n a, Foldable v, LinearMappable a b, N b ~ n)
+linmap :: (InSpace v n a, F.Foldable v, LinearMappable a b, N b ~ n)
      => LinearMap v (V b) n -> a -> b
 linmap = vmap . lapply
 
@@ -122,7 +122,7 @@ toAffineMap :: (HasBasis v, Num n)
 toAffineMap t = AffineMap (toLinearMap t) (transl t)
 
 class (LinearMappable a b, N a ~ N b) => AffineMappable a b where
-  amap :: (Additive (V a), Foldable (V a), Additive (V b), Num (N b))
+  amap :: (Additive (V a), F.Foldable (V a), Additive (V b), Num (N b))
        => AffineMap (V a) (V b) (N b) -> a -> b
   amap (AffineMap f _) = linmap f
   {-# INLINE amap #-}
@@ -133,7 +133,7 @@ instance (Metric v, Metric u, OrderedField n, r ~ SegTree u n) => AffineMappable
 instance (Metric v, Metric u, OrderedField n, r ~ Trail' l u n) => AffineMappable (Trail' l v n) r
 instance (Metric v, Metric u, OrderedField n, r ~ Trail u n) => AffineMappable (Trail v n) r
 
-instance (Additive v, Foldable v, Num n, r ~ Point u n) => AffineMappable (Point v n) r where
+instance (Additive v, F.Foldable v, Num n, r ~ Point u n) => AffineMappable (Point v n) r where
   amap (AffineMap f v) p = linmap f p .+^ v
   {-# INLINE amap #-}
 
@@ -150,4 +150,3 @@ instance (Metric v, Metric u, OrderedField n, r ~ Path u n)
     => AffineMappable (Path v n) r where
   amap m = _Wrapped . mapped %~ amap m
   {-# INLINE amap #-}
-
