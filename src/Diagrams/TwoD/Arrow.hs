@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                        #-}
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
@@ -103,8 +104,13 @@ module Diagrams.TwoD.Arrow
        , module Diagrams.TwoD.Arrowheads
        ) where
 
-import           Control.Applicative      ((<*>))
-import           Control.Lens             hiding (transform, none, (#))
+#if __GLASGOW_HASKELL__ < 710
+import           Control.Applicative       ((<*>))
+#endif
+import           Control.Lens              (Lens', Traversal',
+                                            generateSignatures, lensRules,
+                                            makeLensesWith, view, (%~), (&),
+                                            (.~), (^.))
 import           Data.Default.Class
 import           Data.Functor              ((<$>))
 import           Data.Maybe                (fromMaybe)

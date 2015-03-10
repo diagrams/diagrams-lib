@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP       #-}
 {-# LANGUAGE DeriveFunctor       #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -45,15 +46,18 @@ module Diagrams.TwoD.Polygons(
 
     ) where
 
-import           Control.Lens            (Lens', generateSignatures, lensRules, makeLensesWith,
-                                          view, (.~), (^.))
+import           Control.Lens            (Lens', generateSignatures, lensRules,
+                                          makeLensesWith, view, (.~), (^.))
 import           Control.Monad           (forM, liftM)
 import           Control.Monad.ST        (ST, runST)
-import           Data.Array.ST           (STUArray, newArray, readArray, writeArray)
+import           Data.Array.ST           (STUArray, newArray, readArray,
+                                          writeArray)
 import           Data.Default.Class
 import           Data.List               (maximumBy, minimumBy)
 import           Data.Maybe              (catMaybes)
+#if __GLASGOW_HASKELL__ < 710
 import           Data.Monoid             (mconcat, mempty)
+#endif
 import           Data.Ord                (comparing)
 
 import           Diagrams.Angle

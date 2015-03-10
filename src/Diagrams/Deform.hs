@@ -1,9 +1,9 @@
-{-# LANGUAGE FlexibleContexts     #-}
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE ScopedTypeVariables  #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TypeFamilies         #-}
-{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE UndecidableInstances  #-}
 
 module Diagrams.Deform
        ( Deformation(..)
@@ -11,9 +11,10 @@ module Diagrams.Deform
        , asDeformation
        ) where
 
-import           Control.Lens        (over, _Wrapped, mapped)
+import           Control.Lens        (mapped, over, _Wrapped)
 import           Data.Monoid         hiding ((<>))
 import           Data.Semigroup
+import           Prelude
 
 import           Diagrams.Core
 import           Diagrams.Located
@@ -124,4 +125,3 @@ instance (Metric v, Metric u, OrderedField n, r ~ Located (Trail u n))
 instance (Metric v, Metric u, OrderedField n, r ~ Path u n) => Deformable (Path v n) r where
   deform' eps p = over (_Wrapped . mapped) (deform' eps p)
   deform p      = over (_Wrapped . mapped) (deform p)
-

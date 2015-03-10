@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                        #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
@@ -37,7 +38,11 @@
 
 module Diagrams.Animation.Active where
 
+#if __GLASGOW_HASKELL__ < 710
 import           Control.Applicative (pure, (<$>))
+#else
+import           Control.Applicative ((<$>))  -- should be in Prelude soon
+#endif
 
 import           Diagrams.Core
 import           Diagrams.TrailLike
@@ -98,4 +103,3 @@ instance Juxtaposable a => Juxtaposable (Active a) where
 
 -- instance Alignable a => Alignable (Active a) where
 --   alignBy v d a = alignBy v d <$> a
-

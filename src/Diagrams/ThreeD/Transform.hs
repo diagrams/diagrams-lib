@@ -103,12 +103,11 @@ aboutY (view rad -> a) = fromOrthogonal r where
 
 -- | @rotationAbout p d a@ is a rotation about a line parallel to @d@
 --   passing through @p@.
-rotationAbout
-  :: Floating n
-	=> Point V3 n         -- ^ origin of rotation
-  -> Direction V3 n     -- ^ direction of rotation axis
-  -> Angle n            -- ^ angle of rotation
-  -> Transformation V3 n
+rotationAbout :: Floating n
+                 => Point V3 n         -- ^ origin of rotation
+              -> Direction V3 n     -- ^ direction of rotation axis
+              -> Angle n            -- ^ angle of rotation
+              -> Transformation V3 n
 rotationAbout (P t) d (view rad -> a)
   = mconcat [translation (negated t),
              fromOrthogonal r,
@@ -202,4 +201,3 @@ reflectionAcross p v =
 reflectAcross :: (InSpace v n t, Metric v, R3 v, Fractional n, Transformable t)
   => Point v n -> v n -> t -> t
 reflectAcross p v = transform (reflectionAcross p v)
-
