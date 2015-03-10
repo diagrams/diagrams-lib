@@ -268,5 +268,6 @@ scalePath d p = under (movedFrom (pathCentroid p)) (scale d) p
 reversePath :: (Metric v, OrderedField n) => Path v n -> Path v n
 reversePath = _Wrapped . mapped %~ reverseLocTrail
 
+-- | Same as 'reversePath'.
 instance (Metric v, OrderedField n) => Reversing (Path v n) where
   reversing = _Wrapped' . mapped %~ reversing

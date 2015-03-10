@@ -121,6 +121,7 @@ instance Each (Offset c v n) (Offset c v' n') (v n) (v' n') where
   each _ OffsetOpen       = pure OffsetOpen
   {-# INLINE each #-}
 
+-- | Reverses the direction of closed offsets.
 instance (Additive v, Num n) => Reversing (Offset c v n) where
   reversing (OffsetClosed off) = OffsetClosed $ negated off
   reversing a@OffsetOpen       = a
@@ -175,6 +176,7 @@ instance Each (Segment c v n) (Segment c v' n') (v n) (v' n') where
   each f (Cubic v1 v2 offset) = Cubic  <$> f v1 <*> f v2 <*> each f offset
   {-# INLINE each #-}
 
+-- | Reverse the direction of a segment.
 instance (Additive v, Num n) => Reversing (Segment Closed v n) where
   reversing = reverseSegment
 
@@ -370,6 +372,7 @@ instance Each (FixedSegment v n) (FixedSegment v' n') (Point v n) (Point v' n') 
   each f (FCubic p0 p1 p2 p3) = FCubic  <$> f p0 <*> f p1 <*> f p2 <*> f p3
   {-# INLINE each #-}
 
+-- | Reverses the control points.
 instance Reversing (FixedSegment v n) where
   reversing (FLinear p0 p1)      = FLinear p1 p0
   reversing (FCubic p0 p1 p2 p3) = FCubic p3 p2 p1 p0
