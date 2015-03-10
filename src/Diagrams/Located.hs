@@ -94,10 +94,8 @@ located f (Loc p a) = Loc p <$> f a
 _loc :: Lens' (Located a) (Point (V a) (N a))
 _loc f (Loc p a) = flip Loc a <$> f p
 
-
 deriving instance (Eq   (V a (N a)), Eq a  ) => Eq   (Located a)
 deriving instance (Ord  (V a (N a)), Ord a ) => Ord  (Located a)
--- deriving instance (Show (V a (N a)), Show a) => Show (Located a)
 
 instance (Show (V a (N a)), Show a) => Show (Located a) where
   showsPrec d (Loc p a) = showParen (d > 5) $
@@ -143,7 +141,7 @@ instance (Traced a, Num (N a)) => Traced (Located a) where
   getTrace (Loc p a) = moveTo p (getTrace a)
 
 instance Qualifiable a => Qualifiable (Located a) where
-  n >| (Loc p a) = Loc p (n >| a)
+  n .>> (Loc p a) = Loc p (n .>> a)
 
 type instance Codomain (Located a) = Point (Codomain a)
 
