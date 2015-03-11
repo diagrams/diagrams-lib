@@ -47,19 +47,22 @@ conjugate :: (Additive v, Num n, Functor v)
           => Transformation v n -> Transformation v n -> Transformation v n
 conjugate t1 t2 = inv t1 <> t2 <> t1
 
--- | Carry out some transformation \"under\" another one: @f ``under``
+-- | Carry out some transformation \"under\" another one: @f ``underT``
 --   t@ first applies @t@, then @f@, then the inverse of @t@.  For
---   example, @'scaleX' 2 ``under`` 'rotation' (-1/8 \@\@ Turn)@
+--   example, @'scaleX' 2 ``underT`` 'rotation' (-1/8 \@\@ Turn)@
 --   is the transformation which scales by a factor of 2 along the
 --   diagonal line y = x.
 --
 --   Note that
 --
 -- @
--- (transform t2) `under` t1 == transform (conjugate t1 t2)
+-- (transform t2) `underT` t1 == transform (conjugate t1 t2)
 -- @
 --
 --   for all transformations @t1@ and @t2@.
+--
+--   See also the isomorphisms like 'transformed', 'movedTo',
+--   'movedFrom', and 'translated'.
 underT :: (InSpace v n a, SameSpace a b, Transformable a, Transformable b)
       => (a -> b) -> Transformation v n -> a -> b
 f `underT` t = transform (inv t) . f . transform t

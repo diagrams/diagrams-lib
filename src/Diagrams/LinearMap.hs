@@ -24,7 +24,7 @@ module Diagrams.LinearMap where
 
 import           Control.Lens
 import           Data.FingerTree         as FT
-import qualified Data.Foldable as F
+import qualified Data.Foldable           as F
 
 import           Diagrams.Core
 import           Diagrams.Core.Transform
@@ -109,8 +109,8 @@ instance (Metric v, Metric u, OrderedField n, OrderedField m, r ~ Path u m)
   vmap f = _Wrapped . mapped %~ vmap f
   {-# INLINE vmap #-}
 
--- | Affine linear maps. Unlike Transformation these do not have to be
---   invertable so we can map between spaces.
+-- | Affine linear maps. Unlike 'Transformation' these do not have to be
+--   invertible so we can map between spaces.
 data AffineMap v u n = AffineMap (LinearMap v u n) (u n)
 
 -- | Make an affine map from a linear function and a translation.

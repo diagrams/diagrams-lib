@@ -3,6 +3,7 @@
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GADTs                      #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE LambdaCase                 #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
 {-# LANGUAGE StandaloneDeriving         #-}
@@ -10,7 +11,6 @@
 {-# LANGUAGE TypeOperators              #-}
 {-# LANGUAGE UndecidableInstances       #-}
 {-# LANGUAGE ViewPatterns               #-}
-{-# LANGUAGE LambdaCase                 #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# OPTIONS_GHC -fno-warn-name-shadowing #-}
@@ -107,8 +107,9 @@ module Diagrams.Trail
        ) where
 
 import           Control.Arrow            ((***))
-import           Control.Lens             hiding ((|>), (<|), transform, at)
-import           Data.FingerTree          (FingerTree, ViewL (..), ViewR (..), (<|), (|>))
+import           Control.Lens             hiding (at, transform, (<|), (|>))
+import           Data.FingerTree          (FingerTree, ViewL (..), ViewR (..),
+                                           (<|), (|>))
 import qualified Data.FingerTree          as FT
 import           Data.Fixed
 import qualified Data.Foldable            as F
@@ -856,7 +857,7 @@ lineFromSegments :: (Metric v, OrderedField n)
                    => [Segment Closed v n] -> Trail' Line v n
 lineFromSegments = Line . SegTree . FT.fromList
 
--- | Contruct a loop from a list of close segments and an open segment
+-- | Construct a loop from a list of closed segments and an open segment
 --   that completes the loop.
 loopFromSegments :: (Metric v, OrderedField n)
                   => [Segment Closed v n] -> Segment Open v n -> Trail' Loop v n
@@ -1181,7 +1182,7 @@ loopVertices = loopVertices' tolerance
 -- The other points connecting segments are included if the slope at the
 -- end of a segment is not equal to the slope at the beginning of the next.
 -- The 'toler' parameter is used to control how close the slopes need to
--- be in order to declatre them equal.
+-- be in order to declare them equal.
 segmentVertices' :: (Metric v, OrderedField n)
              => n -> Point v n -> [Segment Closed v n] -> [Point v n]
 segmentVertices' toler p ts  =

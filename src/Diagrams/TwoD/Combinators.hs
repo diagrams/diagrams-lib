@@ -60,8 +60,8 @@ import           Diagrams.TwoD.Vector
 import           Diagrams.Util            (( # ))
 
 import           Linear.Affine
-import           Linear.Vector
 import           Linear.Metric
+import           Linear.Vector
 
 infixl 6 ===
 infixl 6 |||
@@ -235,7 +235,7 @@ extrudeTop s
   | s >= 0    = extrudeEnvelope $ unitY ^* s
   | otherwise = intrudeEnvelope $ unitY ^* s
 
--- | @boxEnvelope p v@ sets the envelope of a diagram to a rectangle whose
+-- | @rectEnvelope p v@ sets the envelope of a diagram to a rectangle whose
 --   lower-left corner is at @p@ and whose upper-right corner is at @p
 --   .+^ v@.  Useful for selecting the rectangular portion of a
 --   diagram which should actually be \"viewed\" in the final render,
