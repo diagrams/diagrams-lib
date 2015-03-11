@@ -25,7 +25,8 @@ Source-repository head
   location: http://github.com/diagrams/diagrams-lib.git
 
 Library
-  Exposed-modules:     Diagrams.Prelude,
+  Exposed-modules:     Diagrams,
+                       Diagrams.Prelude,
                        Diagrams.Align,
                        Diagrams.Angle,
                        Diagrams.Animation,
