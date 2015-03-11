@@ -44,10 +44,28 @@ module Diagrams.Prelude
     -- | For working with 'Active' (i.e. animated) things.
   , module Data.Active
 
-    -- | This exports most of the lens module, excluding the
-    --   following functions that can cause collisions with diagrams:
-    -- @contains@, @inside@, @outside@, @none@, @transform@, @(#)@
-    -- (replaced by @##@) and @.>@ (which is just '.' anyway).
+    -- | Most of the lens package. The following functions are not
+    --   exported from lens because they either conflict with
+    --   diagrams or may conflict with other libraries:
+    --
+    --   * 'Control.Lens....'
+    --   * 'Control.Lens..>'
+    --   * 'Control.Lens.<.>'
+    --   * 'Control.Lens.argument'
+    --   * 'Control.Lens.at'
+    --   * 'Control.Lens.beside'
+    --   * 'Control.Lens.children'
+    --   * 'Control.Lens.coerce'
+    --   * 'Control.Lens.contains'
+    --   * 'Control.Lens.index'
+    --   * 'Control.Lens.indexed'
+    --   * 'Control.Lens.indices'
+    --   * 'Control.Lens.inside'
+    --   * 'Control.Lens.levels'
+    --   * 'Control.Lens.none'
+    --   * 'Control.Lens.outside'
+    --   * 'Control.Lens.singular'
+    --   * 'Control.Lens.transform'
   , module Control.Lens
 
   , Applicative(..), (*>), (<*), (<$>), (<$), liftA, liftA2, liftA3
@@ -56,13 +74,16 @@ module Diagrams.Prelude
 import           Diagrams
 
 import           Control.Applicative
-import           Control.Lens               hiding (at, backwards, beside,
-                                             contains, inside, none, outside,
-                                             transform, ( # ), (.>))
+import           Control.Lens               hiding (argument, at, backwards,
+                                             beside, children, coerce, contains,
+                                             indexed, indices, inside, levels,
+                                             none, outside, singular, transform,
+                                             ( # ), (...), (.>), (<.>))
 import           Data.Active
-import           Data.Colour                hiding (AffineSpace (..), atop, over)
-import           Data.Colour.SRGB
+import           Data.Colour                hiding (AffineSpace (..), atop,
+                                             over)
 import           Data.Colour.Names          hiding (tan)
+import           Data.Colour.SRGB
 import           Data.Semigroup
 
 import           Linear.Affine
