@@ -13,12 +13,12 @@
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
--- Convenient creation of command-line-driven executables for
--- rendering diagrams.  This module provides a general framework
--- and default behaviors for parsing command-line arguments,
--- records for diagram creation options in various forms, and
--- classes and instances for a unified entry point to command-line-driven
--- diagram creation executables.
+-- Convenient creation of command-line-driven executables for rendering
+-- diagrams.  This module provides a general framework and default
+-- behaviors for parsing command-line arguments, records for diagram
+-- creation options in various forms, and classes and instances for a
+-- unified entry point to command-line-driven diagram creation
+-- executables.
 --
 -- For a tutorial on command-line diagram creation see
 -- <http://projects.haskell.org/diagrams/doc/cmdline.html>.
@@ -75,44 +75,41 @@ module Diagrams.Backend.CmdLine
 import           Control.Lens              (Lens', makeLenses, (&), (.~), (^.))
 import           Diagrams.Animation
 import           Diagrams.Attributes
-import           Diagrams.Core             hiding (value, output)
+import           Diagrams.Core             hiding (output, value)
+import           Diagrams.Util
 
 import           Options.Applicative
 import           Options.Applicative.Types (readerAsk)
 
-import           Prelude
-
-import           Control.Monad             (forM_, forever, when)
+import           Control.Monad             (forM_, forever, unless, when)
 
 import           Data.Active               hiding (interval)
-import           Data.Char                 (isDigit, isSpace)
+import           Data.Char                 (isDigit)
 import           Data.Colour
 import           Data.Colour.Names
 import           Data.Colour.SRGB
 import           Data.Data
-import           Data.Maybe                (fromMaybe)
+import           Data.IORef
+import           Data.List                 (delete)
 import           Data.Monoid
 import qualified Data.Text                 as T
 import           Numeric
 
 import           Control.Concurrent        (threadDelay)
 import           Filesystem.Path.CurrentOS (directory, fromText)
-import           System.Directory          (canonicalizePath,
-                                            doesDirectoryExist,
-                                            getCurrentDirectory)
+import           System.Directory          (canonicalizePath, doesFileExist)
 import           System.Environment        (getArgs, getProgName)
 import           System.Exit               (ExitCode (..))
 import           System.FilePath           (addExtension, dropExtension,
-                                            dropExtensions, replaceExtension,
-                                            splitExtension, takeFileName, (</>))
+                                            replaceExtension, splitExtension,
+                                            takeDirectory, takeFileName, (</>))
 import           System.FSNotify           (WatchConfig (..), defaultConfig,
-                                            watchDir, withManagerConf)
+                                            eventTime, watchDir,
+                                            withManagerConf)
 import           System.FSNotify.Devel     (existsEvents)
 import           System.Info               (os)
-import           System.IO                 (IOMode (..), withFile)
-import           System.Process            (readProcess,
-                                            readProcessWithExitCode, runProcess,
-                                            waitForProcess)
+import           System.IO                 (hFlush, stdout)
+import           System.Process            (readProcessWithExitCode)
 
 import           Text.Printf
 
@@ -321,7 +318,7 @@ readHexColor cs = case cs of
         _                 -> fail $ "could not parse as a colour" ++ cs
     handle _ = fail $ "could not parse as a colour: " ++ cs
 
-    isHexDigit c = isDigit c|| c `elem` "abcdef"
+    isHexDigit c = isDigit c || c `elem` "abcdef"
 
     hex a b = (/ 255) <$> case readHex [a,b] of
                 [(h,"")] -> return h
@@ -341,6 +338,9 @@ instance (Parseable a, Parseable b) => Parseable (a,b) where
 -- | Triples of Parsebales should also be Parseable.
 instance (Parseable a, Parseable b, Parseable c) => Parseable (a, b, c) where
   parser = (,,) <$> parser <*> parser <*> parser
+
+instance (Parseable a, Parseable b, Parseable c, Parseable d) => Parseable (a, b, c, d) where
+  parser = (,,,) <$> parser <*> parser <*> parser <*> parser
 
 -- | This class allows us to abstract over functions that take some arguments
 --   and produce a final value.  When some @d@ is an instance of
@@ -370,7 +370,7 @@ instance ToResult [QDiagram b v n Any] where
 
 -- | A list of named diagrams can give the multi-diagram interface.
 instance ToResult [(String, QDiagram b v n Any)] where
-  type Args [(String,QDiagram b v n Any)]  = ()
+  type Args [(String,QDiagram b v n Any)] = ()
   type ResultOf [(String,QDiagram b v n Any)] = [(String,QDiagram b v n Any)]
 
   toResult ds _ = ds
@@ -544,14 +544,13 @@ showDiaList ds = do
 defaultAnimMainRender ::
     (opts -> QDiagram b v n Any -> IO ())
     -> Lens' opts FilePath -- ^ A lens into the output path.
-    -> (opts ,DiagramAnimOpts)
+    -> (opts, DiagramAnimOpts)
     -> Animation b v n
     -> IO ()
 defaultAnimMainRender renderF out (opts,animOpts) anim = do
- let
-     frames  = simulate (toRational $ animOpts^.fpu) anim
-     nDigits = length . show . length $ frames
- forM_ (zip [1..] frames) $ \(i,d) -> renderF (indexize out nDigits i opts) d
+  let frames  = simulate (toRational $ animOpts^.fpu) anim
+      nDigits = length . show . length $ frames
+  forM_ (zip [1..] frames) $ \(i,d) -> renderF (indexize out nDigits i opts) d
 
 -- | @indexize d n@ adds the integer index @n@ to the end of the
 --   output file name, padding with zeros if necessary so that it uses
@@ -562,97 +561,93 @@ indexize out nDigits i opts = opts & out .~ output'
         output'     = addExtension (base ++ printf fmt i) ext
         (base, ext) = splitExtension (opts^.out)
 
+putStrF :: String -> IO ()
+putStrF s = putStr s >> hFlush stdout
+
 defaultLoopRender :: DiagramLoopOpts -> IO ()
 defaultLoopRender opts = when (opts ^. loop) $ do
-  putStrLn "Looping is turned on."
+  putStrLn "Looping turned on"
   prog <- getProgName
-  putStrLn $ "program is named: " ++ prog
   args <- getArgs
-  srcPath <- canonicalizePath $
-          fromMaybe (addExtension (dropExtensions prog) ".hs") (opts ^. src)
-  let newProg = newProgName (takeFileName srcPath) prog
-  putStrLn $ "canonical name is: " ++ srcPath
+
+  srcPath <- case opts ^. src of
+    Just path -> return path
+    Nothing   -> do
+      let hsFile  = replaceExtension prog "hs"
+          lhsFile = replaceExtension prog "lhs"
+      hsExists <- doesFileExist hsFile
+      if hsExists then return hsFile
+        else do
+          lhsExists <- doesFileExist lhsFile
+          if lhsExists then return lhsFile
+            else error ("Unable to guess source file. "
+                     ++ "Specify source file with '-s' or '--src'")
+  srcPath' <- canonicalizePath srcPath
+
+  sandbox     <- findSandbox []
+  sandboxArgs <- case sandbox of
+    Nothing -> return []
+    Just sb -> do
+      putStrLn ("Using sandbox " ++ takeDirectory sb)
+      return ["-package-db", sb]
+
+  let srcFilePath = fromText $ T.pack srcPath'
+      args'       = delete "-l" . delete "--loop" $ args
+      newProg     = newProgName (takeFileName srcPath) prog
+      timeOfDay   = take 8 . drop 11 . show . eventTime
+
   -- Polling is only used on Windows
   withManagerConf defaultConfig { confPollInterval = opts ^. interval } $
-      \mgr -> do
-          _stop <- watchDir
-                   mgr
-                   (directory . fromText . T.pack $ srcPath)
-                   (existsEvents $ \fp -> fromText (T.pack srcPath) ==  fp)
-                   -- Call the new program without the looping option
-                   (\ev -> print ev >> recompile srcPath newProg  >>= run newProg (filter (/= "-l") args))
-          putStrLn "entering infinite loop"
-          forever . threadDelay $ case os of
-              -- https://ghc.haskell.org/trac/ghc/ticket/7325
-                                   "darwin" -> 1000000000000
-                                   _        -> maxBound
+    \mgr -> do
+      lock <- newIORef False
 
-recompile :: FilePath -> FilePath -> IO ExitCode
-recompile srcFile outFile = do
-  let errFile = srcFile ++ ".errors"
-  putStr "Recompiling..."
+      _ <- watchDir mgr (directory srcFilePath) (existsEvents (== srcFilePath))
+        $ \ev -> do
+          running <- atomicModifyIORef lock ((,) True)
+          unless running $ do
+            putStrF ("Modified " ++ timeOfDay ev ++ " ... ")
+            exitCode <- recompile srcPath newProg sandboxArgs
+            -- Call the new program without the looping option
+            run newProg args' exitCode
+            atomicWriteIORef lock False
 
-  status <- withFile errFile WriteMode $ \h -> do
-    sargs <- sandboxArgs
-    let ghcArgs = ["--make", srcFile, "-o", outFile] ++ sargs
-    print $ "passing ghc args: " ++ unwords ghcArgs
-    p <- runProcess "ghc" ghcArgs
-         Nothing Nothing Nothing Nothing (Just h)
-    waitForProcess p
+      putStrLn $ "Watching source file " ++ srcPath
+      putStrLn $ "Compiling target: " ++ newProg
+      putStrLn $ "Program args: " ++ unwords args'
+      forever . threadDelay $ case os of
+         -- https://ghc.haskell.org/trac/ghc/ticket/7325
+        "darwin" -> 5000000000000
+        _        -> maxBound
 
-  if status /= ExitSuccess
-      then putStrLn "" >> putStrLn (replicate 75 '-') >> readFile errFile >>= putStr
-      else putStrLn "done."
-  return status
-
-sandboxArgs :: IO [String]
-sandboxArgs = do
-  cur <- getCurrentDirectory
-  let sandbox = cur </> ".cabal-sandbox"
-  exists <- doesDirectoryExist sandbox
-  if exists
-    then do
-      let strip = reverse . dropWhile isSpace . reverse . dropWhile isSpace
-      ghcV <- strip <$> readProcess "ghc" ["--numeric-version"] ""
-      uname <- case os of
-               "linux" -> strip <$> readProcess "uname" ["-m"] ""
-               _ -> return ""
-      let pdb = case os of
-              "linux" -> sandbox </> (uname ++ "-linux-ghc-" ++ ghcV ++ "-packages.conf.d")
-              "mingw32" -> sandbox </> "i386-windows-ghc-" ++ ghcV ++ "-packages.conf.d"
-              "darwin" -> sandbox </> "x86_64-osx-ghc-" ++ ghcV ++ "-packages.conf.d"
-              _ -> error "I don't know how to handle cabal sandbox on this OS"
-      return ["-no-user-package-db", "-package-db", pdb]
-  else return []
+recompile :: FilePath -> FilePath -> [String] -> IO ExitCode
+recompile srcFile outFile args = do
+  let ghcArgs = ["--make", srcFile, "-o", outFile] ++ args
+  putStrF "compiling ... "
+  (exit, _, stderr) <- readProcessWithExitCode "ghc" ghcArgs ""
+  when (exit /= ExitSuccess) $ putStrLn ('\n':stderr)
+  return exit
 
 -- | On Windows, the next compilation must have a different output
 --   than the currently running program.
 newProgName :: FilePath -> String -> String
 newProgName srcFile oldName = case os of
-    "mingw32" ->
-        if oldName == replaceExtension srcFile "exe"
+  "mingw32" ->
+      if oldName == replaceExtension srcFile "exe"
         then replaceExtension srcFile ".1.exe"
         else replaceExtension srcFile "exe"
-    _ -> dropExtension srcFile
+  _ -> dropExtension srcFile
 
 -- | Run the given program with specified arguments, if and only if
 --   the previous command returned ExitSuccess.
 run :: String -> [String] -> ExitCode -> IO ()
 run prog args ExitSuccess = do
   let path = "." </> prog
-  putStrLn $ unwords $ ["calling as", path] ++ args
-  (exit, stdout, stderr) <- readProcessWithExitCode path args ""
+  putStrF "running ... "
+  (exit, stdOut, stdErr) <- readProcessWithExitCode path args ""
   case exit of
-   ExitSuccess -> return ()
-   ExitFailure r -> do
-       putStr $ prog ++ " failed with exit code: "
-       print r
-       when (stdout /= "") $ do
-           putStrLn "---------------------------------------- STDOUT"
-           putStrLn stdout
-       when (stderr /= "") $ do
-           putStrLn "---------------------------------------- STDERR"
-           putStrLn stderr
-       when ((stdout ++ stderr) /= "") $
-           putStrLn "----------------------------------------"
+    ExitSuccess   -> putStrLn "done."
+    ExitFailure r -> do
+      putStrLn $ prog ++ " failed with exit code " ++ show r
+      unless (null stdOut) $ putStrLn "stdout:" >> putStrLn stdOut
+      unless (null stdErr) $ putStrLn "stderr:" >> putStrLn stdErr
 run _ _ _ = return ()
