@@ -19,6 +19,10 @@ module Diagrams.Prelude
 
     -- * Convenience re-exports
 
+    -- | For working with default values. Diagrams also exports 'with',
+    --   an alias for 'def'.
+  , module Data.Default.Class
+
     -- | For representing and operating on colors.
   , module Data.Colour
 
@@ -80,6 +84,7 @@ import           Control.Lens               hiding (argument, at, backwards,
                                              none, outside, singular, transform,
                                              ( # ), (...), (.>), (<.>))
 import           Data.Active
+import           Data.Default.Class
 import           Data.Colour                hiding (AffineSpace (..), atop,
                                              over)
 import           Data.Colour.Names          hiding (tan)
