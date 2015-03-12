@@ -35,7 +35,7 @@ module Diagrams.TwoD.Text (
   , FontSlant(..), FontSlantA, _FontSlant
   , getFontSlant, fontSlant, italic, oblique, _fontSlant
   -- ** Font weight
-  , FontWeight(..), FontWeightA, _FontWeight
+  , FontWeight(..)
   , getFontWeight, fontWeight, bold, _fontWeight
   ) where
 
@@ -84,9 +84,10 @@ instance Floating n => Renderable (Text n) NullBackend where
 -- | @TextAlignment@ specifies the alignment of the text's origin.
 data TextAlignment n = BaselineText | BoxAlignedText n n
 
+-- | Make a text from a 'TextAlignment'.
 mkText :: (TypeableFloat n, Renderable (Text n) b)
   => TextAlignment n -> String -> QDiagram b V2 n Any
-mkText a t = recommendFillColor (black :: Colour Double)
+mkText a t = recommendFillColor black
              -- See Note [recommendFillColor]
            . recommendFontSize (local 1)
              -- See Note [recommendFontSize]
@@ -310,32 +311,31 @@ oblique = fontSlant FontSlantOblique
 --------------------------------------------------
 -- Font weight
 
-data FontWeight = FontWeightNormal
-                | FontWeightBold
-    deriving (Eq, Show)
-
 -- | The @FontWeightA@ attribute specifies the weight (normal or bold)
 --   that should be used for all text within a diagram.  Inner
 --   @FontWeightA@ attributes override outer ones.
-newtype FontWeightA = FontWeightA (Last FontWeight)
-  deriving (Typeable, Semigroup, Eq)
-instance AttributeClass FontWeightA
+data FontWeight = FontWeightNormal
+                | FontWeightBold
+    deriving (Eq, Ord, Show, Typeable)
+
+instance AttributeClass FontWeight
+
+-- | Last semigroup structure
+instance Semigroup FontWeight where
+  _ <> b = b
 
 instance Default FontWeight where
   def = FontWeightNormal
 
-_FontWeight :: Iso' FontWeightA FontWeight
-_FontWeight = iso getFontWeight (FontWeightA . Last)
-
--- | Extract the font weight from a 'FontWeightA' attribute.
-getFontWeight :: FontWeightA -> FontWeight
-getFontWeight (FontWeightA (Last w)) = w
+-- | Extract the font weight.
+getFontWeight :: FontWeight -> FontWeight
+getFontWeight = id
 
 -- | Specify the weight (normal or bold) that should be
 --   used for all text within a diagram.  See also 'bold'
 --   for a useful special case.
 fontWeight :: HasStyle a => FontWeight -> a -> a
-fontWeight = applyAttr . FontWeightA . Last
+fontWeight = applyAttr
 
 -- | Set all text using a bold font weight.
 bold :: HasStyle a => a -> a
@@ -343,4 +343,5 @@ bold = fontWeight FontWeightBold
 
 -- | Lens onto the font weight in a style.
 _fontWeight :: (Typeable n, OrderedField n) => Lens' (Style v n) FontWeight
-_fontWeight = atAttr . mapping _FontWeight . non def
+_fontWeight = atAttr . non def
+

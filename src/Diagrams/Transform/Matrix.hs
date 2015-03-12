@@ -12,10 +12,10 @@
 module Diagrams.Transform.Matrix where
 
 import           Control.Applicative
-import           Control.Arrow ((&&&))
+import           Control.Arrow           ((&&&))
 import           Control.Lens
 import           Data.Distributive
-import qualified Data.Foldable as F
+import qualified Data.Foldable           as F
 import           Data.Functor.Rep
 
 import           Diagrams.Core.Transform as D
@@ -34,9 +34,15 @@ mkMat t = distribute . tabulate $ apply t . unit . el
 mkMatHomo :: Num n => Transformation V3 n -> M44 n
 mkMatHomo t = mkTransformationMat (mkMat t) (transl t)
 
+-- | Make a 2D transformation from a 2x2 transform matrix and a
+--   translation vector. If the matrix is not invertible, 'Nothing' is
+--   returned.
 fromMat22 :: (Epsilon n, Floating n) => M22 n -> V2 n -> Maybe (T2 n)
 fromMat22 m v = flip (fromMatWithInv m) v <$> inv22 m
 
+-- | Make a 3D transformation from a 3x3 transform matrix and a
+--   translation vector. If the matrix is not invertible, 'Nothing' is
+--   returned.
 fromMat33 :: (Epsilon n, Floating n) => M33 n -> V3 n -> Maybe (T3 n)
 fromMat33 m v = flip (fromMatWithInv m) v <$> inv33 m
 
@@ -51,9 +57,12 @@ fromMatWithInv m m_ v =
                  ((*! distribute m) <-> (*! distribute m_))
                  v
 
--- are these useful?
+-- | Prism onto a 2D transformation from a 2x2 transform matrix and
+--   translation vector.
 mat22 :: (Epsilon n, Floating n) => Prism' (M22 n, V2 n) (T2 n)
 mat22 = prism' (mkMat &&& transl) (uncurry fromMat22)
 
+-- | Prism onto a 2D transformation from a 2x2 transform matrix and
+--   translation vector.
 mat33 :: (Epsilon n, Floating n) => Prism' (M33 n, V3 n) (T3 n)
 mat33 = prism' (mkMat &&& transl) (uncurry fromMat33)

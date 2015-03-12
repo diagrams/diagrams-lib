@@ -70,6 +70,8 @@ module Diagrams.TwoD
 
          -- * Angles
        , tau
+       , angleV
+       , angleDir
 
          -- * Paths
          -- ** Stroking
@@ -82,7 +84,7 @@ module Diagrams.TwoD
        , intersectPointsP, intersectPointsP'
 
          -- ** Clipping
-       , clipBy, clipTo, clipped
+       , clipBy, clipTo, clipped, _clip
 
          -- * Shapes
          -- ** Rules
@@ -214,7 +216,7 @@ module Diagrams.TwoD
 
        , extrudeLeft, extrudeRight, extrudeBottom, extrudeTop
 
-       , view
+       , rectEnvelope
 
          -- ** Background
 
@@ -256,7 +258,7 @@ module Diagrams.TwoD
        , rGradTrans, rGradSpreadMethod, defaultRG, _RG, mkRadialGradient
 
          -- ** Colors
-       , fillColor, _SC, fc, fcA, recommendFillColor
+       , fillColor, _SC, _AC, fc, fcA, recommendFillColor
        , lineColor, lc, lcA
 
          -- * Visual aids for understanding the internal model

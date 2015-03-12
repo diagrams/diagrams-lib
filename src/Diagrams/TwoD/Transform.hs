@@ -1,13 +1,14 @@
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE ViewPatterns          #-}
+{-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE ViewPatterns          #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Transform
--- Copyright   :  (c) 2011 diagrams-lib team (see LICENSE)
+-- Copyright   :  (c) 2011-2015 diagrams-lib team (see LICENSE)
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
@@ -21,7 +22,7 @@ module Diagrams.TwoD.Transform
        (
          T2
          -- * Rotation
-       , rotation, rotate, rotateBy
+       , rotation, rotate, rotateBy, rotated
 
        , rotationAround, rotateAround
        , rotationTo, rotateTo
@@ -58,7 +59,7 @@ import           Diagrams.Transform
 import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector
 
-import           Control.Lens            (review, view, (&), (*~), (.~), (//~))
+import           Control.Lens            hiding (at, transform)
 import           Data.Semigroup
 
 import           Linear.Affine
@@ -97,20 +98,35 @@ rotate = transform . rotation
 rotateBy :: (InSpace V2 n t, Transformable t, Floating n) => n -> t -> t
 rotateBy = transform . rotation . review turn
 
+-- | Use an 'Angle' to make an 'Iso' between an object
+--   rotated and unrotated. This us useful for performing actions
+--   'under' a rotation:
+--
+-- @
+-- under (rotated t) f = rotate (negated t) . f . rotate t
+-- rotated t ## a      = rotate t a
+-- a ^. rotated t      = rotate (-t) a
+-- over (rotated t) f  = rotate t . f . rotate (negated t)
+-- @
+rotated :: (InSpace V2 n a, Floating n, SameSpace a b, Transformable a, Transformable b)
+        => Angle n -> Iso a b a b
+rotated = transformed . rotation
+
 -- | @rotationAbout p@ is a rotation about the point @p@ (instead of
 --   around the local origin).
 rotationAround :: Floating n => P2 n -> Angle n -> T2 n
-rotationAround p angle = conjugate (translation (origin .-. p)) (rotation angle)
+rotationAround p theta =
+  conjugate (translation (origin .-. p)) (rotation theta)
 
 -- | @rotateAbout p@ is like 'rotate', except it rotates around the
 --   point @p@ instead of around the local origin.
-rotateAround :: (InSpace V2 n t, Transformable t, Floating n) => P2 n -> Angle n -> t -> t
-rotateAround p angle = rotate angle `under` translation (origin .-. p)
+rotateAround :: (InSpace V2 n t, Transformable t, Floating n)
+             => P2 n -> Angle n -> t -> t
+rotateAround p theta = transform (rotationAround p theta)
 
--- | The rotation that aligns the x-axis with the given non-zero vector.
+-- | The rotation that aligns the x-axis with the given direction.
 rotationTo :: OrderedField n => Direction V2 n -> T2 n
 rotationTo (view _Dir -> V2 x y) = rotation (atan2A' y x)
--- could be done with Direction
 
 -- | Rotate around the local origin such that the x axis aligns with the
 --   given direction.
@@ -211,16 +227,17 @@ reflectionY = fromSymmetric $ (_y *~ (-1)) <-> (_y *~ (-1))
 reflectY :: (InSpace v n t, R2 v, Transformable t) => t -> t
 reflectY = transform reflectionY
 
--- | @reflectionAbout p v@ is a reflection in the line determined by
---   the point @p@ and vector @v@.
-reflectionAbout :: OrderedField n => P2 n -> V2 n -> T2 n
-reflectionAbout p v =
-  conjugate (rotationTo (direction $ negated v) <> translation (origin .-. p))
+-- | @reflectionAbout p d@ is a reflection in the line determined by
+--   the point @p@ and direction @d@.
+reflectionAbout :: OrderedField n => P2 n -> Direction V2 n -> T2 n
+reflectionAbout p d =
+  conjugate (rotationTo d <> translation (origin .-. p))
             reflectionY
 
--- | @reflectAbout p v@ reflects a diagram in the line determined by
---   the point @p@ and the vector @v@.
-reflectAbout :: (InSpace V2 n t, OrderedField n, Transformable t) => P2 n -> V2 n -> t -> t
+-- | @reflectAbout p d@ reflects a diagram in the line determined by
+--   the point @p@ and direction @d@.
+reflectAbout :: (InSpace V2 n t, OrderedField n, Transformable t)
+             => P2 n -> Direction V2 n -> t -> t
 reflectAbout p v = transform (reflectionAbout p v)
 
 -- Shears --------------------------------------------------

@@ -36,10 +36,11 @@ module Diagrams.Angle
        ) where
 
 import           Control.Applicative
-import           Control.Lens        (Iso', Lens', iso, over, review, (^.))
+import           Control.Lens        (AReview, Iso', Lens', iso, over, review, (^.))
 import           Data.Fixed
 import           Data.Monoid         hiding ((<>))
 import           Data.Semigroup
+import           Text.Read
 import           Prelude
 
 import           Diagrams.Core       (OrderedField)
@@ -52,7 +53,18 @@ import           Linear.Vector
 -- | Angles can be expressed in a variety of units.  Internally,
 --   they are represented in radians.
 newtype Angle n = Radians n
-  deriving (Read, Show, Eq, Ord, Enum, Functor)
+  deriving (Eq, Ord, Enum, Functor)
+
+instance Show n => Show (Angle n) where
+  showsPrec d (Radians a) = showParen (d > 5) $
+    showsPrec 6 a . showString " @@ rad"
+
+instance Read n => Read (Angle n) where
+  readPrec = parens . prec 5 $ do
+    x <- readPrec
+    Symbol "@@" <- lexP
+    Ident "rad" <- lexP
+    pure (Radians x)
 
 type instance N (Angle n) = n
 
@@ -74,21 +86,22 @@ instance Num n => Monoid (Angle n) where
   mappend = (<>)
   mempty  = Radians 0
 
--- | The radian measure of an @Angle@ @a@ can be accessed as @a
---   ^. rad@.  A new @Angle@ can be defined in radians as @pi \@\@ rad@.
+-- | The radian measure of an 'Angle' @a@ can be accessed as @a '^.'
+--   rad@. A new 'Angle' can be defined in radians as @pi \@\@
+--   rad@.
 rad :: Iso' (Angle n) n
 rad = iso (\(Radians r) -> r) Radians
 {-# INLINE rad #-}
 
--- | The measure of an @Angle@ @a@ in full circles can be accessed as
---   @a ^. turn@.  A new @Angle@ of one-half circle can be defined in as
+-- | The measure of an 'Angle' @a@ in full circles can be accessed as
+--   @a '^.' turn@.  A new 'Angle' of one-half circle can be defined in as
 --   @1/2 \@\@ turn@.
 turn :: Floating n => Iso' (Angle n) n
 turn = iso (\(Radians r) -> r / (2*pi)) (Radians . (*(2*pi)))
 {-# INLINE turn #-}
 
--- | The degree measure of an @Angle@ @a@ can be accessed as @a
---   ^. deg@.  A new @Angle@ can be defined in degrees as @180 \@\@
+-- | The degree measure of an 'Angle' @a@ can be accessed as @a
+--   '^.' deg@. A new 'Angle' can be defined in degrees as @180 \@\@
 --   deg@.
 deg :: Floating n => Iso' (Angle n) n
 deg = iso (\(Radians r) -> r / (2*pi/360)) (Radians . ( * (2*pi/360)))
@@ -141,7 +154,7 @@ atan2A y x = Radians $ atan2 y x
 
 -- | Similar to 'atan2A' but without the 'RealFloat' constraint. This means it
 --   doesn't handle negative zero cases. However, for most geometric purposes,
---   outcome will be the same.
+--   the outcome will be the same.
 atan2A' :: OrderedField n => n -> n -> Angle n
 atan2A' y x = atan2' y x @@ rad
 
@@ -156,13 +169,30 @@ atan2' y x
   | x==0 && y==0     =  y     -- must be after the other double zero tests
   | otherwise        =  x + y -- x or y is a NaN, return a NaN (via +)
 
--- | @30 \@\@ deg@ is an @Angle@ of the given measure and units.
+-- | @30 \@\@ deg@ is an 'Angle' of the given measure and units.
 --
---   More generally, @\@\@@ reverses the @Iso\'@ on its right, and
---   applies the @Iso\'@ to the value on the left.  @Angle@s are the
---   motivating example where this order improves readability.
-(@@) :: b -> Iso' a b -> a
--- The signature above is slightly specialized, in favor of readability
+-- >>> pi @@ rad
+-- 3.141592653589793 @@ rad
+--
+-- >>> 1 @@ turn
+-- 6.283185307179586 @@ rad
+--
+-- >>> 30 @@ deg
+-- 0.5235987755982988 @@ rad
+--
+--   For 'Iso''s, ('@@') reverses the 'Iso'' on its right, and applies
+--   the 'Iso'' to the value on the left. 'Angle's are the motivating
+--   example where this order improves readability.
+--
+--   This is the same as a flipped 'review'.
+--
+-- @
+-- ('@@') :: a -> 'Iso''      s a -> s
+-- ('@@') :: a -> 'Prism''    s a -> s
+-- ('@@') :: a -> 'Review'    s a -> s
+-- ('@@') :: a -> 'Equality'' s a -> s
+-- @
+(@@) :: b -> AReview a b -> a
 a @@ i = review i a
 
 infixl 5 @@
@@ -180,12 +210,12 @@ normalizeAngle = over rad (`mod'` (2 * pi))
 ------------------------------------------------------------
 -- Polar Coordinates
 
--- | The class of types with at least one angle coordinate, called _theta.
+-- | The class of types with at least one angle coordinate, called '_theta'.
 class HasTheta t where
   _theta :: RealFloat n => Lens' (t n) (Angle n)
 
 -- | The class of types with at least two angle coordinates, the second called
---   _phi. _phi is the positive angle measured from the z axis.
+--   '_phi'. '_phi' is the positive angle measured from the z axis.
 class HasTheta t => HasPhi t where
   _phi :: RealFloat n => Lens' (t n) (Angle n)
 

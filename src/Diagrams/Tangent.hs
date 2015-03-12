@@ -75,15 +75,15 @@ instance (DomainBounds t, EndValues (Tangent t))
 --   * @Located (Trail V2) -> Double -> V2 Double@
 --
 --   See the instances listed for the 'Tangent' newtype for more.
-tangentAtParam :: Parametric (Tangent t) => t -> N t -> Codomain (Tangent t) (N t)
+tangentAtParam :: Parametric (Tangent t) => t -> N t -> Vn t
 tangentAtParam t p = Tangent t `atParam` p
 
 -- | Compute the tangent vector at the start of a segment or trail.
-tangentAtStart :: EndValues (Tangent t) => t -> Codomain (Tangent t) (N t)
+tangentAtStart :: EndValues (Tangent t) => t -> Vn t
 tangentAtStart = atStart . Tangent
 
 -- | Compute the tangent vector at the end of a segment or trail.
-tangentAtEnd :: EndValues (Tangent t) => t -> Codomain (Tangent t) (N t)
+tangentAtEnd :: EndValues (Tangent t) => t -> Vn t
 tangentAtEnd = atEnd . Tangent
 
 --------------------------------------------------
@@ -102,6 +102,15 @@ instance (Additive v, Num n)
   atEnd   (Tangent (Linear (OffsetClosed v)))      = v
   atEnd   (Tangent (Cubic _ c2 (OffsetClosed x2))) = x2 ^-^ c2
 
+instance (Additive v, Num n)
+    => Parametric (Tangent (FixedSegment v n)) where
+  atParam (Tangent fSeg) = atParam $ Tangent (fromFixedSeg fSeg)
+
+instance (Additive v, Num n)
+    => EndValues (Tangent (FixedSegment v n)) where
+  atStart (Tangent fSeg) = atStart $ Tangent (fromFixedSeg fSeg)
+  atEnd (Tangent fSeg)   = atEnd $ Tangent (fromFixedSeg fSeg)
+
 ------------------------------------------------------------
 -- Normal
 ------------------------------------------------------------
@@ -119,20 +128,20 @@ instance (Additive v, Num n)
 --
 --   See the instances listed for the 'Tangent' newtype for more.
 normalAtParam
-  :: (Codomain (Tangent t) ~ V2, Parametric (Tangent t), Floating (N t))
-  => t -> N t -> Codomain (Tangent t) (N t)
+  :: (InSpace V2 n t, Parametric (Tangent t), Floating n)
+  => t -> n -> V2 n
 normalAtParam t p = normize (t `tangentAtParam` p)
 
 -- | Compute the normal vector at the start of a segment or trail.
 normalAtStart
-  :: (Codomain (Tangent t) ~ V2, EndValues (Tangent t), Floating (N t))
-  => t -> Codomain (Tangent t) (N t)
+  :: (InSpace V2 n t, EndValues (Tangent t), Floating n)
+  => t -> V2 n
 normalAtStart = normize . tangentAtStart
 
 -- | Compute the normal vector at the end of a segment or trail.
 normalAtEnd
-  :: (Codomain (Tangent t) ~ V2, EndValues (Tangent t), Floating (N t))
-  => t -> Codomain (Tangent t) (N t)
+  :: (InSpace V2 n t, EndValues (Tangent t), Floating n)
+  => t -> V2 n
 normalAtEnd = normize . tangentAtEnd
 
 -- | Construct a normal vector from a tangent.

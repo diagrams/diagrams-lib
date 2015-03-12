@@ -32,7 +32,7 @@ import           Linear.Vector
 
 -- | @Deformations@ are a superset of the affine transformations
 --   represented by the 'Transformation' type.  In general they are not
---   invertable.  @Deformation@s include projective transformations.
+--   invertible.  @Deformation@s include projective transformations.
 --   @Deformation@ can represent other functions from points to points
 --   which are "well-behaved", in that they do not introduce small wiggles.
 newtype Deformation v u n = Deformation (Point v n -> Point u n)

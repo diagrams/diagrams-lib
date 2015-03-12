@@ -226,8 +226,10 @@ tailLength :: Lens' (ArrowOpts n) (Measure n)
 
 -- | Set both the @headLength@ and @tailLength@ simultaneously.
 lengths :: Traversal' (ArrowOpts n) (Measure n)
-lengths f opts = (\h t -> opts & headLength .~ h & tailLength .~ t) <$> f (opts ^. headLength)
-             <*> f (opts ^. tailLength)
+lengths f opts =
+  (\h t -> opts & headLength .~ h & tailLength .~ t)
+    <$> f (opts ^. headLength)
+    <*> f (opts ^. tailLength)
 
 -- | A lens for setting or modifying the texture of an arrowhead. For
 --   example, one may write @... (with & headTexture .~ grad)@ to get an
@@ -279,9 +281,9 @@ colorJoint sStyle =
       o = fmap getOpacity . getAttr $ sStyle
   in
   case (c, o) of
-      (Nothing, Nothing) -> fillColor (black :: Colour Double) mempty
+      (Nothing, Nothing) -> fillColor black mempty
       (Just t, Nothing)  -> fillTexture t mempty
-      (Nothing, Just o') -> opacity o' . fillColor (black :: Colour Double) $ mempty
+      (Nothing, Just o') -> opacity o' . fillColor black $ mempty
       (Just t, Just o')  -> opacity o' . fillTexture t $ mempty
 
 -- | Get line width from a style.

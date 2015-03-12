@@ -10,6 +10,7 @@
 {-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE UndecidableInstances       #-}
+{-# LANGUAGE ViewPatterns               #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -30,7 +31,7 @@
 
 module Diagrams.TwoD.Attributes (
   -- * Textures
-    Texture(..), solid, _SC, _LG, _RG, defaultLG, defaultRG
+    Texture(..), solid, _SC, _AC, _LG, _RG, defaultLG, defaultRG
   , GradientStop(..), stopColor, stopFraction, mkStops
   , SpreadMethod(..), lineLGradient, lineRGradient
 
@@ -77,6 +78,7 @@ import           Diagrams.Located            (unLoc)
 import           Diagrams.Path               (Path, pathTrails)
 import           Diagrams.Trail              (isLoop)
 import           Diagrams.TwoD.Types
+import           Diagrams.Util
 
 
 -----------------------------------------------------------------
@@ -195,6 +197,10 @@ type instance N (Texture n) = n
 
 makePrisms ''Texture
 
+-- | Prism onto an 'AlphaColour' 'Double' of a 'SC' texture.
+_AC :: Prism' (Texture n) (AlphaColour Double)
+_AC = _SC . _SomeColor
+
 instance Floating n => Transformable (Texture n) where
   transform t (LG lg) = LG $ transform t lg
   transform t (RG rg) = RG $ transform t rg
@@ -275,7 +281,7 @@ instance Floating n => Transformable (LineTexture n) where
   transform t (LineTexture (Last tx)) = LineTexture (Last $ transform t tx)
 
 instance Default (LineTexture n) where
-  def = LineTexture (Last (SC (SomeColor (black :: Colour Double))))
+  def = _LineTexture . _SC ## SomeColor black
 
 mkLineTexture :: Texture n -> LineTexture n
 mkLineTexture = LineTexture . Last
@@ -283,43 +289,42 @@ mkLineTexture = LineTexture . Last
 getLineTexture :: LineTexture n -> Texture n
 getLineTexture (LineTexture (Last t)) = t
 
-lineTexture :: (Typeable n, Floating n, HasStyle a, V a ~ V2, N a ~ n) => Texture n -> a -> a
+lineTexture :: (InSpace V2 n a, Typeable n, Floating n, HasStyle a) => Texture n -> a -> a
 lineTexture = applyTAttr . LineTexture . Last
 
-lineTextureA :: (Typeable n, Floating n, HasStyle a, V a ~ V2, N a ~ n) => LineTexture n -> a -> a
+lineTextureA :: (InSpace V2 n a, Typeable n, Floating n, HasStyle a) => LineTexture n -> a -> a
 lineTextureA = applyTAttr
 
 _lineTexture :: (Floating n, Typeable n) => Lens' (Style V2 n) (Texture n)
 _lineTexture = atTAttr . anon def isDef . _LineTexture
   where
-    isDef (LineTexture (Last (SC sc))) = toAlphaColour sc == opaque black
-    isDef _                            = False
+    isDef = anyOf (_LineTexture . _AC) (== opaque black)
 
 -- | Set the line (stroke) color.  This function is polymorphic in the
 --   color type (so it can be used with either 'Colour' or
 --   'AlphaColour'), but this can sometimes create problems for type
 --   inference, so the 'lc' and 'lcA' variants are provided with more
 --   concrete types.
-lineColor :: (Typeable n, Floating n, Color c, HasStyle a, V a ~ V2, N a ~ n) => c -> a -> a
+lineColor :: (InSpace V2 n a, Color c, Typeable n, Floating n, HasStyle a) => c -> a -> a
 lineColor = lineTexture . SC . SomeColor
 
 -- | A synonym for 'lineColor', specialized to @'Colour' Double@
 --   (i.e. opaque colors).  See comment in 'lineColor' about backends.
-lc :: (Typeable n, Floating n, HasStyle a, V a ~ V2, N a ~ n) => Colour Double -> a -> a
+lc :: (InSpace V2 n a, Typeable n, Floating n, HasStyle a) => Colour Double -> a -> a
 lc = lineColor
 
 -- | A synonym for 'lineColor', specialized to @'AlphaColour' Double@
 --   (i.e. colors with transparency).  See comment in 'lineColor'
 --   about backends.
-lcA :: (Typeable n, Floating n, HasStyle a, V a ~ V2, N a ~ n) => AlphaColour Double -> a -> a
+lcA :: (InSpace V2 n a, Typeable n, Floating n, HasStyle a) => AlphaColour Double -> a -> a
 lcA = lineColor
 
 -- | Apply a linear gradient.
-lineLGradient :: (Typeable n, Floating n, HasStyle a, V a ~ V2, N a ~ n) => LGradient n -> a -> a
+lineLGradient :: (InSpace V2 n a, Typeable n, Floating n, HasStyle a) => LGradient n -> a -> a
 lineLGradient g = lineTexture (LG g)
 
 -- | Apply a radial gradient.
-lineRGradient :: (Typeable n, Floating n, HasStyle a, V a ~ V2, N a ~ n) => RGradient n -> a -> a
+lineRGradient :: (InSpace V2 n a, Typeable n, Floating n, HasStyle a) => RGradient n -> a -> a
 lineRGradient g = lineTexture (RG g)
 
 -- Fill Texture --------------------------------------------------------
@@ -351,12 +356,12 @@ instance Floating n => Transformable (FillTexture n) where
   transform = over (_FillTexture . _recommend) . transform
 
 instance Default (FillTexture n) where
-  def = review (_FillTexture . _Recommend . _SC . _SomeColor) transparent
+  def = mkFillTexture $ _AC ## transparent
 
 getFillTexture :: FillTexture n -> Texture n
 getFillTexture (FillTexture tx) = getLast . getRecommend $ tx
 
-fillTexture :: (HasStyle a, V a ~ V2, N a ~ n, Typeable n, Floating n) => Texture n -> a -> a
+fillTexture :: (InSpace V2 n a, Typeable n, Floating n, HasStyle a) => Texture n -> a -> a
 fillTexture = applyTAttr . mkFillTexture
 
 mkFillTexture :: Texture n -> FillTexture n
@@ -366,11 +371,10 @@ mkFillTexture = FillTexture . Commit . Last
 _fillTextureR :: (Typeable n, Floating n) => Lens' (Style V2 n) (Recommend (Texture n))
 _fillTextureR = atTAttr . anon def isDef . _FillTexture
   where
-    isDef (FillTexture (Recommend (Last (SC sc)))) = toAlphaColour sc == transparent
-    isDef _                                        = False
+    isDef = anyOf (_FillTexture . _Recommend . _AC) (== transparent)
 
--- | Commit a fill texture in a style. This is *not* a valid lens
---   because the resulting texture is always 'Commit' (see 'committed').
+-- | Commit a fill texture in a style. This is /not/ a valid setter
+--   because it doesn't abide the functor law (see 'committed').
 _fillTexture :: (Typeable n, Floating n) => Lens' (Style V2 n) (Texture n)
 _fillTexture = _fillTextureR . committed
 
@@ -378,24 +382,24 @@ _fillTexture = _fillTextureR . committed
 --   type (so it can be used with either 'Colour' or 'AlphaColour'),
 --   but this can sometimes create problems for type inference, so the
 --   'fc' and 'fcA' variants are provided with more concrete types.
-fillColor :: (Color c, HasStyle a, V a ~ V2, N a ~ n, Typeable n, Floating n) => c -> a -> a
+fillColor :: (InSpace V2 n a, Color c, Typeable n, Floating n, HasStyle a) => c -> a -> a
 fillColor = fillTexture . SC . SomeColor
 
 -- | Set a \"recommended\" fill color, to be used only if no explicit
 --   calls to 'fillColor' (or 'fc', or 'fcA') are used.
 --   See comment after 'fillColor' about backends.
-recommendFillColor :: (Color c, HasStyle a, V a ~ V2, N a ~ n, Typeable n, Floating n) => c -> a -> a
+recommendFillColor :: (InSpace V2 n a, Color c, Typeable n, Floating n, HasStyle a) => c -> a -> a
 recommendFillColor =
   applyTAttr . FillTexture . Recommend . Last . SC . SomeColor
 
 -- | A synonym for 'fillColor', specialized to @'Colour' Double@
 --   (i.e. opaque colors). See comment after 'fillColor' about backends.
-fc :: (HasStyle a, V a ~ V2, N a ~ n, Floating n, Typeable n) => Colour Double -> a -> a
+fc :: (InSpace V2 n a, Floating n, Typeable n, HasStyle a) => Colour Double -> a -> a
 fc = fillColor
 
 -- | A synonym for 'fillColor', specialized to @'AlphaColour' Double@
 --   (i.e. colors with transparency). See comment after 'fillColor' about backends.
-fcA :: (HasStyle a, V a ~ V2, N a ~ n, Floating n, Typeable n) => AlphaColour Double -> a -> a
+fcA :: (InSpace V2 n a, Floating n, Typeable n, HasStyle a) => AlphaColour Double -> a -> a
 fcA = fillColor
 
 -- Split fills ---------------------------------------------------------

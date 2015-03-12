@@ -7,6 +7,7 @@
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
 {-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE ViewPatterns               #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Attributes
@@ -37,7 +38,7 @@ module Diagrams.Attributes (
   , lw, lwN, lwO, lwL, lwG
 
     -- ** Dashing
-  , Dashing(..), DashingA, _Dashing, _DashingM, getDashing
+  , Dashing(..), getDashing
   , dashing, dashingN, dashingO, dashingL, dashingG, _dashing
 
 
@@ -55,11 +56,11 @@ module Diagrams.Attributes (
 
   -- * Line stuff
   -- ** Cap style
-  , LineCap(..), LineCapA, _LineCap
+  , LineCap(..)
   , getLineCap, lineCap, _lineCap
 
   -- ** Join style
-  , LineJoin(..), LineJoinA, _LineJoin
+  , LineJoin(..)
   , getLineJoin, lineJoin, _lineJoin
 
   -- ** Miter limit
@@ -177,21 +178,15 @@ _lw = _lineWidth
 
 -- | Create lines that are dashing... er, dashed.
 data Dashing n = Dashing [n] n
-  deriving (Functor, Typeable)
+  deriving (Functor, Typeable, Eq)
 
-newtype DashingA n = DashingA (Last (Dashing n))
-  deriving (Functor, Typeable, Semigroup)
+instance Semigroup (Dashing n) where
+  _ <> b = b
 
-_Dashing :: Iso' (DashingA n) (Dashing n)
-_Dashing = iso getDashing (DashingA . Last)
+instance Typeable n => AttributeClass (Dashing n)
 
-_DashingM :: Iso' (Measured n (DashingA n)) (Measured n (Dashing n))
-_DashingM = mapping _Dashing
-
-instance Typeable n => AttributeClass (DashingA n)
-
-getDashing :: DashingA n -> Dashing n
-getDashing (DashingA (Last d)) = d
+getDashing :: Dashing n -> Dashing n
+getDashing = id
 
 -- | Set the line dashing style.
 dashing :: (N a ~ n, HasStyle a, Typeable n)
@@ -201,7 +196,7 @@ dashing :: (N a ~ n, HasStyle a, Typeable n)
         -> Measure n    -- ^ An offset into the dash pattern at which the
                         --   stroke should start.
         -> a -> a
-dashing ds offs = applyMAttr . distribute $ DashingA (Last (Dashing ds offs))
+dashing ds offs = applyMAttr . distribute $ Dashing ds offs
 
 -- | A convenient synonym for 'dashing (global w)'.
 dashingG :: (N a ~ n, HasStyle a, Typeable n, Num n) => [n] -> n -> a -> a
@@ -222,7 +217,7 @@ dashingL w v = dashing (map local w) (local v)
 -- | Lens onto a measured dashing attribute in a style.
 _dashing :: (Typeable n, OrderedField n)
          => Lens' (Style v n) (Maybe (Measured n (Dashing n)))
-_dashing = atMAttr . mapping _DashingM
+_dashing = atMAttr
 
 ------------------------------------------------------------------------
 -- Color
@@ -253,6 +248,18 @@ class Color c where
 data SomeColor = forall c. Color c => SomeColor c
   deriving Typeable
 
+instance Show SomeColor where
+  showsPrec d (colorToSRGBA -> (r,g,b,a)) =
+    showParen (d > 10) $ showString "SomeColor " .
+      if a == 0
+        then showString "transparent"
+        else showString "(sRGB " . showsPrec 11 r . showChar ' '
+                                 . showsPrec 11 g . showChar ' '
+                                 . showsPrec 11 b .
+                        (if a /= 1
+                           then showString " `withOpacity` " . showsPrec 11 a
+                           else id) . showChar ')'
+
 -- | Isomorphism between 'SomeColor' and 'AlphaColour' 'Double'.
 _SomeColor :: Iso' SomeColor (AlphaColour Double)
 _SomeColor = iso toAlphaColour fromAlphaColour
@@ -260,13 +267,13 @@ _SomeColor = iso toAlphaColour fromAlphaColour
 someToAlpha :: SomeColor -> AlphaColour Double
 someToAlpha (SomeColor c) = toAlphaColour c
 
-instance (Floating a, Real a) => Color (Colour a) where
-  toAlphaColour   = opaque . colourConvert
-  fromAlphaColour = colourConvert . (`over` black)
+instance a ~ Double => Color (Colour a) where
+  toAlphaColour   = opaque
+  fromAlphaColour = (`over` black)
 
-instance (Floating a, Real a) => Color (AlphaColour a) where
-  toAlphaColour   = alphaColourConvert
-  fromAlphaColour = alphaColourConvert
+instance a ~ Double => Color (AlphaColour a) where
+  toAlphaColour   = id
+  fromAlphaColour = id
 
 instance Color SomeColor where
   toAlphaColour (SomeColor c) = toAlphaColour c
@@ -284,7 +291,7 @@ colorToSRGBA col = (r, g, b, a)
 colorToRGBA = colorToSRGBA
 {-# DEPRECATED colorToRGBA "Renamed to colorToSRGBA." #-}
 
-alphaToColour :: (Floating a, Ord a, Fractional a) => AlphaColour a -> Colour a
+alphaToColour :: (Floating a, Ord a) => AlphaColour a -> Colour a
 alphaToColour ac | alphaChannel ac == 0 = ac `over` black
                  | otherwise = darken (recip (alphaChannel ac)) (ac `over` black)
 
@@ -332,28 +339,27 @@ data LineCap = LineCapButt   -- ^ Lines end precisely at their endpoints.
                              --   centered on endpoints.
              | LineCapSquare -- ^ Lines are capped with a squares
                              --   centered on endpoints.
-  deriving (Eq,Show,Typeable)
-
-newtype LineCapA = LineCapA (Last LineCap)
-  deriving (Typeable, Semigroup, Eq)
-instance AttributeClass LineCapA
-
-_LineCap :: Iso' LineCapA LineCap
-_LineCap = iso getLineCap (LineCapA . Last)
+  deriving (Eq, Ord, Show, Typeable)
 
 instance Default LineCap where
   def = LineCapButt
 
-getLineCap :: LineCapA -> LineCap
-getLineCap (LineCapA (Last c)) = c
+instance AttributeClass LineCap
+
+-- | Last semigroup structure.
+instance Semigroup LineCap where
+  _ <> b = b
+
+getLineCap :: LineCap -> LineCap
+getLineCap = id
 
 -- | Set the line end cap attribute.
 lineCap :: HasStyle a => LineCap -> a -> a
-lineCap = applyAttr . LineCapA . Last
+lineCap = applyAttr
 
 -- | Lens onto the line cap in a style.
 _lineCap :: Lens' (Style v n) LineCap
-_lineCap = atAttr . mapping _LineCap . non def
+_lineCap = atAttr . non def
 
 -- line join -----------------------------------------------------------
 
@@ -363,35 +369,34 @@ data LineJoin = LineJoinMiter    -- ^ Use a \"miter\" shape (whatever that is).
               | LineJoinBevel    -- ^ Use a \"bevel\" shape (whatever
                                  --   that is).  Are these...
                                  --   carpentry terms?
-  deriving (Eq, Show, Typeable)
+  deriving (Eq, Ord, Show, Typeable)
 
-newtype LineJoinA = LineJoinA (Last LineJoin)
-  deriving (Typeable, Semigroup, Eq)
-instance AttributeClass LineJoinA
+instance AttributeClass LineJoin
 
-_LineJoin :: Iso' LineJoinA LineJoin
-_LineJoin = iso getLineJoin (LineJoinA . Last)
+-- | Last semigroup structure.
+instance Semigroup LineJoin where
+  _ <> b = b
 
 instance Default LineJoin where
   def = LineJoinMiter
 
-getLineJoin :: LineJoinA -> LineJoin
-getLineJoin (LineJoinA (Last j)) = j
+getLineJoin :: LineJoin -> LineJoin
+getLineJoin = id
 
 -- | Set the segment join style.
 lineJoin :: HasStyle a => LineJoin -> a -> a
-lineJoin = applyAttr . LineJoinA . Last
+lineJoin = applyAttr
 
 -- | Lens onto the line join type in a style.
 _lineJoin :: Lens' (Style v n) LineJoin
-_lineJoin = atAttr . mapping _LineJoin . non def
+_lineJoin = atAttr . non def
 
 -- miter limit ---------------------------------------------------------
 
 -- | Miter limit attribute affecting the 'LineJoinMiter' joins.
 --   For some backends this value may have additional effects.
 newtype LineMiterLimit = LineMiterLimit (Last Double)
-  deriving (Typeable, Semigroup)
+  deriving (Typeable, Semigroup, Eq, Ord)
 instance AttributeClass LineMiterLimit
 
 _LineMiterLimit :: Iso' LineMiterLimit Double
@@ -413,7 +418,7 @@ lineMiterLimitA = applyAttr
 
 -- | Lens onto the line miter limit in a style.
 _lineMiterLimit :: Lens' (Style v n) Double
-_lineMiterLimit = atAttr . mapping _LineMiterLimit . non 10
+_lineMiterLimit = atAttr . non def . _LineMiterLimit
 
 ------------------------------------------------------------------------
 -- Recommend optics

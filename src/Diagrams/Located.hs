@@ -5,7 +5,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Located
--- Copyright   :  (c) 2013 diagrams-lib team (see LICENSE)
+-- Copyright   :  (c) 2013-2015 diagrams-lib team (see LICENSE)
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
@@ -19,21 +19,20 @@
 
 module Diagrams.Located
     ( Located (..)
-    , at, viewLoc, mapLoc, located,
+    , at, viewLoc, mapLoc, located, _loc
     )
     where
 
-import           Control.Lens            (Lens)
+import           Control.Lens            (Lens, Lens')
 import           Data.Functor            ((<$>))
+import           Text.Read
 
 import           Linear.Affine
 import           Linear.Vector
 
 import           Diagrams.Core
-import           Diagrams.Core.Points    ()
 import           Diagrams.Core.Transform
 import           Diagrams.Parametric
-  -- for GHC 7.4 type family bug
 
 -- | \"Located\" things, /i.e./ things with a concrete location:
 --   intuitively, @Located a ~ (Point, a)@.  Wrapping a translationally
@@ -84,16 +83,32 @@ viewLoc (Loc p a) = (p,a)
 --   @Located@ is a little-f (endo)functor on the category of types
 --   with associated vector space @v@; but that is not covered by the
 --   standard @Functor@ class.)
-mapLoc :: (V a ~ V b, N a ~ N b) => (a -> b) -> Located a -> Located b
+mapLoc :: SameSpace a b => (a -> b) -> Located a -> Located b
 mapLoc f (Loc p a) = Loc p (f a)
 
 -- | A lens giving access to the object within a 'Located' wrapper.
-located :: (V a ~ V a', N a ~ N a') => Lens (Located a) (Located a') a a'
+located :: SameSpace a b => Lens (Located a) (Located b) a b
 located f (Loc p a) = Loc p <$> f a
+
+-- | Lens onto the location of something 'Located'.
+_loc :: Lens' (Located a) (Point (V a) (N a))
+_loc f (Loc p a) = flip Loc a <$> f p
 
 deriving instance (Eq   (V a (N a)), Eq a  ) => Eq   (Located a)
 deriving instance (Ord  (V a (N a)), Ord a ) => Ord  (Located a)
-deriving instance (Show (V a (N a)), Show a) => Show (Located a)
+
+instance (Show (V a (N a)), Show a) => Show (Located a) where
+  showsPrec d (Loc p a) = showParen (d > 5) $
+    showsPrec 6 a . showString " `at` " . showsPrec 6 p
+
+instance (Read (V a (N a)), Read a) => Read (Located a) where
+  readPrec = parens . prec 5 $ do
+    a <- readPrec
+    Punc "`"   <- lexP
+    Ident "at" <- lexP
+    Punc "`"   <- lexP
+    p <- readPrec
+    return (Loc p a)
 
 type instance V (Located a) = V a
 type instance N (Located a) = N a
@@ -126,7 +141,7 @@ instance (Traced a, Num (N a)) => Traced (Located a) where
   getTrace (Loc p a) = moveTo p (getTrace a)
 
 instance Qualifiable a => Qualifiable (Located a) where
-  n |> (Loc p a) = Loc p (n |> a)
+  n .>> (Loc p a) = Loc p (n .>> a)
 
 type instance Codomain (Located a) = Point (Codomain a)
 
