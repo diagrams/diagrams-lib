@@ -33,19 +33,17 @@ module Diagrams.Util
 
   ) where
 
-import           Data.Default.Class
-import           Data.Monoid
-import           Control.Lens hiding (( # ))
-
 import           Control.Applicative
 import           Control.Lens              hiding (( # ))
 import           Control.Monad
 import           Control.Monad.Catch
 import           Control.Monad.Trans
 import           Control.Monad.Trans.Maybe
+import           Data.Default.Class
 import           Data.List
 import           Data.List.Lens
 import           Data.Maybe
+import           Data.Monoid
 import           System.Directory
 import           System.Environment
 import           System.FilePath
