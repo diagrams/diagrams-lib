@@ -139,9 +139,8 @@ foldB f _ as = foldB' as
 -- | Given some file (no extension or otherwise) try to find a haskell
 --   source file.
 findHsFile :: FilePath -> IO (Maybe FilePath)
-findHsFile file = runMaybeT $ self <|> hs <|> lhs
+findHsFile file = runMaybeT $ hs <|> lhs
   where
-    self    = guard (hasExtension file) >> check file
     hs      = check (addExtension file "hs")
     lhs     = check (addExtension file "lhs")
     check f = do
