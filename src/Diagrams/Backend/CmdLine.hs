@@ -91,13 +91,14 @@ import           Data.Colour.SRGB
 import           Data.Data
 import           Data.IORef
 import           Data.List                 (delete)
+import           Data.Maybe                (fromMaybe)
 import           Data.Monoid
 import qualified Data.Text                 as T
 import           Numeric
 
 import           Control.Concurrent        (threadDelay)
 import           Filesystem.Path.CurrentOS (directory, fromText)
-import           System.Directory          (canonicalizePath, doesFileExist)
+import           System.Directory          (canonicalizePath)
 import           System.Environment        (getArgs, getProgName)
 import           System.Exit               (ExitCode (..))
 import           System.FilePath           (addExtension, dropExtension,
@@ -572,16 +573,10 @@ defaultLoopRender opts = when (opts ^. loop) $ do
 
   srcPath <- case opts ^. src of
     Just path -> return path
-    Nothing   -> do
-      let hsFile  = replaceExtension prog "hs"
-          lhsFile = replaceExtension prog "lhs"
-      hsExists <- doesFileExist hsFile
-      if hsExists then return hsFile
-        else do
-          lhsExists <- doesFileExist lhsFile
-          if lhsExists then return lhsFile
-            else error ("Unable to guess source file. "
-                     ++ "Specify source file with '-s' or '--src'")
+    Nothing   -> fromMaybe (error nosrc) <$> findHsFile prog
+      where
+        nosrc = "Unable to find Haskell source file.\n"
+             ++ "Specify source file with '-s' or '--src'"
   srcPath' <- canonicalizePath srcPath
 
   sandbox     <- findSandbox []
