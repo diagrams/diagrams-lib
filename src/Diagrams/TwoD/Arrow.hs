@@ -105,14 +105,13 @@ module Diagrams.TwoD.Arrow
        ) where
 
 #if __GLASGOW_HASKELL__ < 710
-import           Control.Applicative       ((<*>))
+import           Control.Applicative       ((<$>), (<*>))
 #endif
 import           Control.Lens              (Lens', Traversal',
                                             generateSignatures, lensRules,
                                             makeLensesWith, view, (%~), (&),
                                             (.~), (^.))
 import           Data.Default.Class
-import           Data.Functor              ((<$>))
 import           Data.Maybe                (fromMaybe)
 import           Data.Monoid.Coproduct     (untangle)
 import           Data.Semigroup
@@ -125,8 +124,8 @@ import           Diagrams.Core.Types       (QDiaLeaf (..), mkQD')
 
 import           Diagrams.Angle
 import           Diagrams.Attributes
-import           Diagrams.Direction       hiding (dir)
-import           Diagrams.Located         (Located (..), unLoc)
+import           Diagrams.Direction        hiding (dir)
+import           Diagrams.Located          (Located (..), unLoc)
 import           Diagrams.Parametric
 import           Diagrams.Path
 import           Diagrams.Solve.Polynomial (quadForm)

@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                   #-}
 {-# LANGUAGE DeriveDataTypeable    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -22,7 +23,9 @@ module Diagrams.ThreeD.Shapes
        , Frustum(..) , frustum, cone, cylinder
        ) where
 
+#if __GLASGOW_HASKELL__ < 710
 import           Control.Applicative
+#endif
 import           Control.Lens              (review, (^.), _1)
 import           Data.Typeable
 

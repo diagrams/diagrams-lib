@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP           #-}
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE StandaloneDeriving   #-}
 {-# LANGUAGE TypeFamilies         #-}
@@ -24,7 +25,9 @@ module Diagrams.Located
     where
 
 import           Control.Lens            (Lens, Lens')
+#if __GLASGOW_HASKELL__ < 710
 import           Data.Functor            ((<$>))
+#endif
 import           Text.Read
 
 import           Linear.Affine
@@ -168,4 +171,3 @@ instance (V a ~ v, N a ~ n, Codomain a ~ v, Additive v, Fractional n, HasArcLeng
     => HasArcLength (Located a) where
   arcLengthBounded eps (Loc _ a) = arcLengthBounded eps a
   arcLengthToParam eps (Loc _ a) = arcLengthToParam eps a
-

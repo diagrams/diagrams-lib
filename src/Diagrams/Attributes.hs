@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                        #-}
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE DeriveFunctor              #-}
 {-# LANGUAGE ExistentialQuantification  #-}
@@ -77,7 +78,9 @@ module Diagrams.Attributes (
 
   ) where
 
+#if __GLASGOW_HASKELL__ < 710
 import           Control.Applicative
+#endif
 import           Control.Lens          hiding (none, over)
 import           Data.Colour
 import           Data.Colour.RGBSpace  (RGB (..))
@@ -452,4 +455,3 @@ isCommitted f r@(Commit a)    = f True  <&> \b -> if b then r else Recommend a
 --   Other lenses that use this are labeled with a warning.
 committed :: Iso (Recommend a) (Recommend b) a b
 committed = iso getRecommend Commit
-
