@@ -32,6 +32,7 @@ import           Control.Lens             (makeLenses, (^.))
 import           Data.Colour              (Colour)
 import           Data.Colour.Names
 import           Data.Default.Class
+import           Data.List                (intercalate)
 import qualified Data.Map                 as M
 import           Data.Maybe               (catMaybes)
 import           Data.Semigroup
@@ -39,6 +40,7 @@ import           Data.Semigroup
 import           Diagrams.Attributes
 import           Diagrams.Combinators     (atPoints)
 import           Diagrams.Core
+import           Diagrams.Core.Names
 import           Diagrams.CubicSpline
 import           Diagrams.Path
 import           Diagrams.TwoD.Attributes
@@ -158,7 +160,7 @@ showLabels :: (TypeableFloat n, Renderable (Text n) b, Semigroup m)
            => QDiagram b V2 n m -> QDiagram b V2 n Any
 showLabels d =
              ( mconcat
-             . map (\(n,p) -> text (show n) # translate (p .-. origin))
+             . map (\(n,p) -> text (simpleName n) # translate (p .-. origin))
              . concatMap (\(n,ps) -> zip (repeat n) ps)
              . (map . second . map) location
              . M.assocs
@@ -167,3 +169,5 @@ showLabels d =
              fmap (const (Any False)) d
   where
     SubMap m = d^.subMap
+    simpleName (Name ns) = intercalate " .> " $ map simpleAName ns
+    simpleAName (AName n) = show n
