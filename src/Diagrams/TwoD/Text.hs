@@ -62,13 +62,14 @@ import           Linear.Affine
 -- Text diagrams
 ------------------------------------------------------------
 
--- | A text primitive consists of the string contents and alignment
---   specification, along with two transformations: the first
---   accumulates all transformations which have been applied to the
---   text; the second accumulates normalized, "anti-scaled" versions
---   of the transformations which have had their average scaling
---   component removed.
-data Text n = Text (Transformation V2 n) (TextAlignment n) String
+-- | A 'Text' primitive consists of the string contents, text alignment
+--   and the transformation to be applied. The transformation is scale
+--   invarient, the average scale of the transform should always be 1.
+--   All text scaling is obtained from the 'FontSize' attribute.
+--
+--   This constructor should not be used directly. Use 'text',
+--   'alignedText' or 'baselineText'.
+data Text n = Text (T2 n) (TextAlignment n) String
   deriving Typeable
 
 type instance V (Text n) = V2

@@ -89,7 +89,7 @@ infixl 8 #
 (#) :: a -> (a -> b) -> b
 (#) = flip ($)
 
--- | A replacement for lenses' @#@ operator. @(##) = 'review'@.
+-- | A replacement for lenses' 'Control.Lens.Review.#' operator.
 (##) :: AReview t b -> b -> t
 (##) = review
 {-# INLINE (##) #-}
@@ -195,7 +195,8 @@ isDB path =
 --   * Environment values of @GHC_PACKAGE_PATH@, @HSENV@ and
 --     @PACKAGE_DB_FOR_GHC@ that point to a database.
 --
---   * Test for config file in current directory (or any parents).
+--   * Test for config file (cabal.sandbox.config) in the current
+--     directory and its parents.
 --
 findSandbox :: [FilePath] -> IO (Maybe FilePath)
 findSandbox paths = runMaybeT $ pathsTest <|> diaSB <|> envDB <|> wdConfig
@@ -210,18 +211,17 @@ findSandbox paths = runMaybeT $ pathsTest <|> diaSB <|> envDB <|> wdConfig
     diaSB     = lookEnv "DIAGRAMS_SANDBOX" >>= test
     wdConfig  = maybeIO getCurrentDirectory >>= configSearch
 
--- | Use the given path for the sandbox in the @GHC_PACKAGE_PATH@
---   environment (appending the ghc global package database from @ghc
---   --info@. @GHC_PACKAGE_PATH@ if the variable ghc and other tools use
---   to find the package database. (This is what @cabal exec@ sets)
+-- -- | Use the given path for the sandbox in the @GHC_PACKAGE_PATH@
+-- --   environment (appending the ghc global package database from @ghc
+-- --   --info@. @GHC_PACKAGE_PATH@ if the variable ghc and other tools use
+-- --   to find the package database. (This is what @cabal exec@ sets)
 -- ghcPackagePath :: FilePath -> IO ()
 -- ghcPackagePath db = do
 --   gdb <- globalPackage
 --   let dbs = intercalate [searchPathSeparator] [db,gdb]
 --   setEnv "GHC_PACKAGE_PATH" dbs
---
--- setEnv is only in base > 4.7, either need to use setenv package or
--- -package-db flag
+-- -- setEnv is only in base > 4.7, either need to use setenv package or
+-- -- -package-db flag
 
 -- | Find ghc's global package database. Throws an error if it isn't
 --   found.

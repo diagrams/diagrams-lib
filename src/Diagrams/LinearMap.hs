@@ -10,17 +10,35 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.LinearMap
--- Copyright   :  (c) 2014 diagrams team (see LICENSE)
+-- Copyright   :  (c) 2014-2015 diagrams team (see LICENSE)
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
 -- Linear maps. Unlike 'Transformation's these are not restricted to the
 -- same space. In practice these are used for projections in
--- "Diagrams.ThreeD.Projection".
+-- "Diagrams.ThreeD.Projection". Unless you want to work with
+-- projections you're probably better off using 'Diagrams.Transform'.
+--
+-- Currently only path-like things can be projected. In the future we
+-- hope to support projecting diagrams.
 --
 -----------------------------------------------------------------------------
 
-module Diagrams.LinearMap where
+module Diagrams.LinearMap
+  ( -- * Linear maps
+    LinearMap (..)
+  , LinearMappable (..)
+    -- ** Applying linear maps
+  , linmap
+
+    -- * Affine maps
+  , AffineMap (..)
+  , AffineMappable (..)
+
+    -- ** Constructing affine maps
+  , mkAffineMap
+  , toAffineMap
+  ) where
 
 import           Control.Lens
 import           Data.FingerTree         as FT
@@ -46,8 +64,10 @@ newtype LinearMap v u n = LinearMap { lapply :: v n -> u n }
 toLinearMap :: Transformation v n -> LinearMap v v n
 toLinearMap (Transformation (m :-: _) _ _) = LinearMap m
 
--- | Traversal over all the vmap of an object.
+-- | Class of things that have vectors that can be mapped over.
 class LinearMappable a b where
+  -- | Apply a linear map to an object. If the map is not linear,
+  --   behaviour will likely be wrong.
   vmap :: (Vn a -> Vn b) -> a -> b
   -- this uses a function instead of LinearMap so we can also use this
   -- class to change number types
@@ -122,6 +142,8 @@ toAffineMap :: (HasBasis v, Num n)
 toAffineMap t = AffineMap (toLinearMap t) (transl t)
 
 class (LinearMappable a b, N a ~ N b) => AffineMappable a b where
+  -- | Affine map over an object. Has a default implimentation of only
+  --   applying the linear map
   amap :: (Additive (V a), F.Foldable (V a), Additive (V b), Num (N b))
        => AffineMap (V a) (V b) (N b) -> a -> b
   amap (AffineMap f _) = linmap f

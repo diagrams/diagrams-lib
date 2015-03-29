@@ -36,15 +36,15 @@ import           Data.Semigroup
 -- | Set default attributes of a 2D diagram (in case they have not
 --   been set):
 --
---       * Line width 0.01
+--       * 'LineWidth':  0.01
 --
---       * Line color black
+--       * 'LineTexture': solid black
 --
---       * Line cap LineCapButt
+--       * 'LineCap': LineCapButt
 --
---       * line join miter
+--       * 'LineJoin': miter
 --
---       * Miter limit 10
+--       * 'MiterLimit': 10
 setDefault2DAttributes :: (TypeableFloat n, Semigroup m)
   => QDiagram b V2 n m -> QDiagram b V2 n m
 setDefault2DAttributes d
