@@ -66,7 +66,7 @@ module Diagrams.TwoD
        , r2, unr2, mkR2
        , p2, unp2, mkP2
        , unitX, unitY, unit_X, unit_Y
-       , xDir
+       , xDir, yDir
 
          -- * Angles
        , tau
@@ -86,7 +86,7 @@ module Diagrams.TwoD
        , intersectPointsP, intersectPointsP'
 
          -- ** Clipping
-       , clipBy, clipTo, clipped, _clip
+       , clipBy, clipTo, clipped, _Clip, _clip
 
          -- * Shapes
          -- ** Rules
@@ -99,6 +99,8 @@ module Diagrams.TwoD
        , ellipseXY
        , arc
        , arc'
+       , arcCW
+       , arcCCW
        , wedge
        , arcBetween
        , annularWedge
