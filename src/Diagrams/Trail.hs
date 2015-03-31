@@ -1087,13 +1087,16 @@ loopOffsets = lineOffsets . cutLoop
 lineOffset :: (Metric v, OrderedField n) => Trail' Line v n -> v n
 lineOffset (Line t) = trailMeasure zero (op TotalOffset . view oeOffset) t
 
--- | Extract the points of a concretely located trail.  That is the points
---   where one segment ends and the next begings. Note that
---   for loops, the starting point will /not/ be repeated at the end.
---   If you want this behavior, you can use 'cutTrail' to make the
---   loop into a line first, which happens to repeat the same point
---   at the start and end, /e.g./ with @trailPoints . mapLoc
---   cutTrail@.
+-- | Extract the points of a concretely located trail, /i.e./ the points
+--   where one segment ends and the next begins. Note that for loops,
+--   the starting point will /not/ be repeated at the end.  If you
+--   want this behavior, you can use 'cutTrail' to make the loop into
+--   a line first, which happens to repeat the same point at the start
+--   and end, /e.g./ with @trailPoints . mapLoc cutTrail@.
+--
+--   For a version which only yields vertices at which there is a
+--   sharp corner, excluding vertices where the trail is
+--   differentiable, see 'trailVertices'.
 --
 --   Note that it does not make sense to ask for the points of a
 --   'Trail' by itself; if you want the points of a trail
@@ -1104,14 +1107,14 @@ trailPoints :: (Metric v, OrderedField n)
 trailPoints (viewLoc -> (p,t))
   = withTrail (linePoints . (`at` p)) (loopPoints . (`at` p)) t
 
--- | Extract the vertices of a concretely located line.  See
+-- | Extract the points of a concretely located line.  See
 --   'trailPoints' for more information.
 linePoints :: (Metric v, OrderedField n)
              => Located (Trail' Line v n) -> [Point v n]
 linePoints (viewLoc -> (p,t))
   = segmentPoints p . lineSegments $ t
 
--- | Extract the vertices of a concretely located loop.  Note that the
+-- | Extract the points of a concretely located loop.  Note that the
 --   initial vertex is not repeated at the end.  See 'trailPoints' for
 --   more information.
 loopPoints :: (Metric v, OrderedField n)
@@ -1125,23 +1128,30 @@ segmentPoints p = scanl (.+^) p . map segOffset
 tolerance :: OrderedField a => a
 tolerance = 10e-16
 
--- | Extract the vertices of a concretely located trail.  Note that
---   for loops, the starting vertex will /not/ be repeated at the end.
---   If you want this behavior, you can use 'cutTrail' to make the
---   loop into a line first, which happens to repeat the same vertex
---   at the start and end, /e.g./ with @trailVertices . mapLoc
+-- | Extract the vertices of a concretely located trail.  Here a /vertex/
+--   is defined as a non-differentiable point on the trail, /i.e./ a
+--   sharp corner.  (Vertices are thus a subset of the places where
+--   segments join; if you want all joins between segments, see
+--   'trailPoints'.)  The tolerance determines how close the tangents
+--   of two segments must be at their endpoints to consider the
+--   transition point to be differentiable.
+--
+--   Note that for loops, the starting vertex will /not/ be repeated
+--   at the end.  If you want this behavior, you can use 'cutTrail' to
+--   make the loop into a line first, which happens to repeat the same
+--   vertex at the start and end, /e.g./ with @trailVertices . mapLoc
 --   cutTrail@.
 --
---   Note that it does not make sense to ask for the vertices of a
---   'Trail' by itself; if you want the vertices of a trail
---   with the first vertex at, say, the origin, you can use
---   @trailVertices . (\`at\` origin)@.
+--   It does not make sense to ask for the vertices of a 'Trail' by
+--   itself; if you want the vertices of a trail with the first vertex
+--   at, say, the origin, you can use @trailVertices . (\`at\`
+--   origin)@.
 trailVertices' :: (Metric v, OrderedField n)
               => n ->  Located (Trail v n) -> [Point v n]
 trailVertices' toler (viewLoc -> (p,t))
   = withTrail (lineVertices' toler . (`at` p)) (loopVertices' toler . (`at` p)) t
 
--- : Like trailVertices' but the tolerance is set to tolerance
+-- | Like 'trailVertices'', with a default tolerance.
 trailVertices :: (Metric v, OrderedField n)
               => Located (Trail v n) -> [Point v n]
 trailVertices = trailVertices' tolerance
@@ -1153,7 +1163,7 @@ lineVertices' :: (Metric v, OrderedField n)
 lineVertices' toler (viewLoc -> (p,t))
   = segmentVertices' toler p . lineSegments $ t
 
--- | Like lineVertices' with tolerance set to tolerance.
+-- | Like 'lineVertices'', with a default tolerance.
 lineVertices :: (Metric v, OrderedField n)
              => Located (Trail' Line v n) -> [Point v n]
 lineVertices = lineVertices' tolerance
@@ -1172,17 +1182,18 @@ loopVertices' toler (viewLoc -> (p,t))
     segs = lineSegments . cutLoop $ t
     ps = segmentVertices' toler p segs
 
--- | Same as loopVertices' with tolerance set to tolerance.
+-- | Same as 'loopVertices'', with a default tolerance.
 loopVertices :: (Metric v, OrderedField n)
              => Located (Trail' Loop v n) -> [Point v n]
 loopVertices = loopVertices' tolerance
 
--- The vertices of a list of segments laid end to end.
--- The start and end points are always included in the list of vertices.
--- The other points connecting segments are included if the slope at the
--- end of a segment is not equal to the slope at the beginning of the next.
--- The 'toler' parameter is used to control how close the slopes need to
--- be in order to declare them equal.
+-- | The vertices of a list of segments laid end to end.
+--   The start and end points are always included in the list of
+--   vertices.  The other points connecting segments are included if
+--   the slope at the end of a segment is not equal to the slope at
+--   the beginning of the next.  The 'toler' parameter is used to
+--   control how close the slopes need to be in order to declare them
+--   equal.
 segmentVertices' :: (Metric v, OrderedField n)
              => n -> Point v n -> [Segment Closed v n] -> [Point v n]
 segmentVertices' toler p ts  =
