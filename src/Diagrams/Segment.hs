@@ -523,7 +523,7 @@ instance (Num n, Additive v) => Monoid (TotalOffset v n) where
 -- | A type to represent the offset and envelope of a chain of
 --   segments.  They have to be paired into one data structure, since
 --   combining the envelopes of two consecutive chains needs to take
---   the offset of the the offset of the first into account.
+--   the offset of the first into account.
 data OffsetEnvelope v n = OffsetEnvelope
   { _oeOffset   :: !(TotalOffset v n)
   , _oeEnvelope :: Envelope v n
