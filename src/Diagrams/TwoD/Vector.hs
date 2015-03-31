@@ -1,4 +1,3 @@
-
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Vector
@@ -15,16 +14,18 @@ module Diagrams.TwoD.Vector
        , xDir, yDir
 
          -- * Converting between vectors and angles
-       , angleV, angleDir, e
+       , angleV, angleDir, e, signedAngleBetween, signedAngleBetweenDirs
 
          -- * 2D vector utilities
        , perp, leftTurn, cross2
+
        ) where
 
-import           Control.Lens       (view, (&), (.~))
+import           Control.Lens        (view, (&), (.~), (^.))
 
 import           Diagrams.Angle
 import           Diagrams.Direction
+import           Diagrams.TwoD.Types
 
 import           Linear.Metric
 import           Linear.V2
@@ -78,3 +79,8 @@ leftTurn v1 v2 = (v1 `dot` perp v2) < 0
 cross2 :: Num n => V2 n -> V2 n -> n
 cross2 (V2 x1 y1) (V2 x2 y2) = x1 * y2 - y1 * x2
 
+signedAngleBetween :: RealFloat n => V2 n -> V2 n -> Angle n
+signedAngleBetween u v = (u ^. _theta) ^-^ (v ^. _theta)
+
+signedAngleBetweenDirs :: RealFloat n => Direction V2 n -> Direction V2 n -> Angle n
+signedAngleBetweenDirs u v = (u ^. _theta) ^-^ (v ^. _theta)

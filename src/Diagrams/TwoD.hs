@@ -72,6 +72,7 @@ module Diagrams.TwoD
        , tau
        , angleV
        , angleDir
+       , signedAngleBetween , signedAngleBetweenDirs
 
          -- * Paths
          -- ** Stroking
@@ -299,4 +300,4 @@ import           Diagrams.TwoD.Transform
 import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector
 
-import           Diagrams.Util              (tau)
+import           Diagrams.Util             (tau)
