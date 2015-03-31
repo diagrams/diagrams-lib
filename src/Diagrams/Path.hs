@@ -43,6 +43,8 @@ module Diagrams.Path
 
          -- * Eliminating paths
 
+       , pathPoints
+       , pathVertices'
        , pathVertices
        , pathOffsets
        , pathCentroid
@@ -223,16 +225,32 @@ pathFromLocTrail = trailLike
 ------------------------------------------------------------
 
 -- | Extract the vertices of a path, resulting in a separate list of
---   vertices for each component trail (see 'trailVertices').
+--   vertices for each component trail.  Here a /vertex/ is defined as
+--   a non-differentiable point on the trail, /i.e./ a sharp corner.
+--   (Vertices are thus a subset of the places where segments join; if
+--   you want all joins between segments, see 'pathPoints'.)  The
+--   tolerance determines how close the tangents of two segments must be
+--   at their endpoints to consider the transition point to be
+--   differentiable.  See 'trailVertices' for more information.
+pathVertices' :: (Metric v, OrderedField n) => n -> Path v n -> [[Point v n]]
+pathVertices' toler = map (trailVertices' toler) . op Path
+
+-- | Like 'pathVertices'', with a default tolerance.
 pathVertices :: (Metric v, OrderedField n) => Path v n -> [[Point v n]]
 pathVertices = map trailVertices . op Path
+
+-- | Extract the points of a path, resulting in a separate list of
+--   points for each component trail.  Here a /point/ is any place
+--   where two segments join; see also 'pathVertices' and 'trailPoints'.
+pathPoints :: (Metric v, OrderedField n) => Path v n -> [[Point v n]]
+pathPoints = map trailPoints . op Path
 
 -- | Compute the total offset of each trail comprising a path (see 'trailOffset').
 pathOffsets :: (Metric v, OrderedField n) => Path v n -> [v n]
 pathOffsets = map (trailOffset . unLoc) . op Path
 
 -- | Compute the /centroid/ of a path (/i.e./ the average location of
---   its vertices).
+--   its /vertices/; see 'pathVertices').
 pathCentroid :: (Metric v, OrderedField n) => Path v n -> Point v n
 pathCentroid = centroid . concat . pathVertices
 
