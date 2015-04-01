@@ -120,6 +120,14 @@ instance Each (Path v n) (Path v' n') (Located (Trail v n)) (Located (Trail v' n
 instance AsEmpty (Path v n) where
   _Empty = _Wrapped' . _Empty
 
+instance Cons (Path v n) (Path v' n') (Located (Trail v n)) (Located (Trail v' n')) where
+  _Cons = _Wrapped . _Cons . bimapping id _Unwrapped
+  {-# INLINE _Cons #-}
+
+instance Snoc (Path v n) (Path v' n') (Located (Trail v n)) (Located (Trail v' n')) where
+  _Snoc = _Wrapped . _Snoc . bimapping _Unwrapped id
+  {-# INLINE _Snoc #-}
+
 -- | Extract the located trails making up a 'Path'.
 pathTrails :: Path v n -> [Located (Trail v n)]
 pathTrails = op Path

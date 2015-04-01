@@ -38,7 +38,7 @@
 
     - `AsEmpty` instances for `BoundingBox`, `Trail` and `Path`.
 
-    - `Cons` and `Snoc` instances for `Line`.
+    - `Cons` and `Snoc` instances for `Path` and `Line`.
 
     - New `Show` instances for `Angle`, `Segment`, `SomeColor`, `Trail'`
       and `at`.
