@@ -2,10 +2,12 @@
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE NoMonomorphismRestriction  #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
 {-# LANGUAGE StandaloneDeriving         #-}
 {-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE ViewPatterns               #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -43,7 +45,7 @@ module Diagrams.BoundingBox
   , union, intersection
   ) where
 
-import           Control.Lens            (AsEmpty (..), nearly)
+import           Control.Lens            (AsEmpty (..), Each (..), nearly)
 import           Data.Foldable           as F
 import           Data.Maybe              (fromMaybe)
 import           Data.Semigroup
@@ -97,6 +99,12 @@ deriving instance (Additive v, Ord n) => Monoid (BoundingBox v n)
 
 instance AsEmpty (BoundingBox v n) where
   _Empty = nearly emptyBox isEmptyBox
+
+-- | Only valid if the second point is not smaller than the first.
+instance (Additive v', Foldable v', Ord n') =>
+    Each (BoundingBox v n) (BoundingBox v' n') (Point v n) (Point v' n') where
+  each f (getCorners -> Just (l, u)) = fromCorners <$> f l <*> f u
+  each _ _                           = pure emptyBox
 
 type instance V (BoundingBox v n) = v
 type instance N (BoundingBox v n) = n

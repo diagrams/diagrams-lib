@@ -32,7 +32,8 @@
 
 * **New instances**
 
-    - `Each` instances for `Offset`, `Segment`, `FixedSegment` and `Path`.
+    - `Each` instances for `BoundingBox`, `Offset`, `Segment`,
+      `FixedSegment` and `Path`.
     - `Reversing` instances for `Offset`, `Segment`, `FixedSegment`,
       `Trail` and `Path`.
 
