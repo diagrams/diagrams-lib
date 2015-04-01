@@ -1,3 +1,101 @@
+1.3
+-----------------
+
+* **New features**
+
+    - Native image type that backends can specify.
+
+    - Affine maps between spaces for path-like objects. A new
+      `Diagrams.ThreeD.Projections` has some helper functions for
+      orthographic and perspective projections.
+
+    - Intersections for path-like objects using Bézier clipping.
+
+    - Helper functions in `Diagrams.Matrix` for converting between
+      transforms and matrices.
+
+    - New `Diagrams` module that only exports functions defined in
+      diagrams.
+
+    - New `Direction` type. `Direction` is a vector that's forgot it's
+      magnitude. Some functions have changed their type from `R2` to
+      `Direction V2 n` to make it clear that magnitude has no effect.
+
+    - Use the [`fsnotify`](https://hackage.haskell.org/package/fsnotify)
+      package for command line looping. Command line looping now works
+      on Windows.
+
+    - `groupOpacity` function added for lowering the opacity of a
+      diagram as a whole.
+
+    - New `ToPath` class for converting path-like things to a `Path`.
+
+* **New instances**
+
+    - `Each` instances for `Offset`, `Segment`, `FixedSegment` and `Path`.
+    - `Reversing` instances for `Offset`, `Segment`, `FixedSegment`,
+      `Trail` and `Path`.
+
+    - `AsEmpty` instances for `BoundingBox`, `Trail` and `Path`.
+
+    - `Cons` and `Snoc` instances for `Line`.
+
+    - New `Show` instances for `Angle`, `Segment`, `SomeColor`, `Trail'`
+      and `at`.
+
+    - `Tangent` instance for `(FixedSegment v n)`.
+
+    - `Ord` instances for `LineMiterLimit`, `LineJoin` and `LineCap`.
+
+* **New helper functions**
+
+    - `_Line` and `_Loop` prisms.
+    - Style lenses: `_fontSize`, `_lineWidth`, `_fillTexture`,
+      `_lineTexture`, `_opacity`, `_font`, `_lineCap`, `_lineJoin`
+      `_dashing`.
+    - `_SomeColor` iso and `_AC` prism onto an `AlphaColour`.
+    - `atPoints` function to zip points with diagrams.
+
+* **API changes**
+
+    - `Diagram` type synonym now only takes a backend token: `Diagram B`
+
+    - Types that previously had a `v` variable now have `v` and `n`.
+
+    - `Control.Lens` and `Data.Default.Class` are now exported from from
+      `Diagrams.Prelude`
+
+    - `Measure` has a new internal representation. `Local`, `Global`,
+      `Normalized`, and `Output` have been renamed to `local`, `global`,
+      `normalized` and `output` respectivly.
+
+    - `SizeSpec2D` has moved to `SizeSpec v n` in `Diagrams.SizeSpec`.
+      `Dims, Height, Width and `Absolute` have moved to `dims2D`,
+      `mkHeight`, `mkWidth` and `absolute` respectively.
+
+    - `Color` instances for `Colour` and `AlphaColour` are limited to
+      `Double` for better type inference.
+
+    - `under` has been renamed to `underT`. New `transformed`,
+      `translated`, `movedTo`, `movedFrom` and `rotated` isomorphisms to
+      use with lens's `under` function.
+
+    - `stroke` is now polymorphic. Use `strokePath` or `strokeP` to get
+      old `stroke` behaviour.
+
+    - `angleBetween` now works for any vector space, which means the
+      angle is always positive. The old behaviour can be retrieved from
+      `signedAngleBetween`
+
+    - `arc` now takes a starting `Direction` and a sweep `Angle`.
+      `arcCW` and `arcCCW` take a start and finish `Direction`.
+
+* **Dependency/version changes**
+
+  - Allow `lens-4.9`
+  - Allow `lens-1.18`
+
+
 1.2.0.8 (13 Jan 2015)
 ---------------------
 
