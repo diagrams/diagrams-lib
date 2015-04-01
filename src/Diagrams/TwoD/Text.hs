@@ -146,7 +146,8 @@ topLeftText = alignedText 0 1
 -- | Create a primitive text diagram from the given string, with the
 --   origin set to a point interpolated within the bounding box.  The
 --   first parameter varies from 0 (left) to 1 (right), and the second
---   parameter from 0 (bottom) to 1 (top).
+--   parameter from 0 (bottom) to 1 (top). Some backends do not
+--   implement this and instead snap to closest corner or the center.
 --
 --   The height of this box is determined by the font's potential ascent
 --   and descent, rather than the height of the particular string.
