@@ -93,9 +93,13 @@
 
 * **Dependency/version changes**
 
-  - Allow `lens-4.9`
-  - Allow `lens-1.18`
+  - use `linear` instead of `vector-space`
 
+1.2.0.9 (2 April 2015)
+----------------------
+
+ - allow `lens-4.9`
+ - allow `vector-space-0.10`
 
 1.2.0.8 (13 Jan 2015)
 ---------------------
