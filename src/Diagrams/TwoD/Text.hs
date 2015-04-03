@@ -31,7 +31,7 @@ module Diagrams.TwoD.Text (
   , FontSize(..), _FontSize
   , getFontSize, fontSizeM, fontSize
   , fontSizeN, fontSizeO, fontSizeL, fontSizeG
-  , _fontSizeR, _fontSize
+  , _fontSizeR, _fontSize, _fontSizeU
   -- ** Font slant
   , FontSlant(..)
   , getFontSlant, fontSlant, italic, oblique, _fontSlant
@@ -269,6 +269,9 @@ _fontSizeR = atMAttr . anon def (const False) . _FontSizeM
 --   'commited'.
 _fontSize :: (Typeable n, OrderedField n) => Lens' (Style v n) (Measure n)
 _fontSize = _fontSizeR . mapping committed
+
+_fontSizeU :: (Typeable n, OrderedField n) => Lens' (Style v n) (Maybe n)
+_fontSizeU = atAttr . mapping (_FontSize . committed)
 
 --------------------------------------------------
 -- Font slant

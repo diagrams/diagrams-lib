@@ -35,13 +35,16 @@ module Diagrams.Attributes (
   , tiny, verySmall, small, normal, large, veryLarge, huge
 
     -- ** Line width
-  , LineWidth, getLineWidth, lineWidth, lineWidthM, _lineWidth, _lw
+  , LineWidth, getLineWidth
+  , _LineWidth, _LineWidthM
+  , lineWidth, lineWidthM
+  , _lineWidth, _lw, _lineWidthU
   , lw, lwN, lwO, lwL, lwG
 
     -- ** Dashing
   , Dashing(..), getDashing
-  , dashing, dashingN, dashingO, dashingL, dashingG, _dashing
-
+  , dashing, dashingN, dashingO, dashingL, dashingG
+  , _dashing, _dashingU
 
   -- * Color
   -- $color
@@ -175,6 +178,12 @@ _lineWidth, _lw :: (Typeable n, OrderedField n) => Lens' (Style v n) (Measure n)
 _lineWidth = atMAttr . anon def (const False) . _LineWidthM
 _lw = _lineWidth
 
+-- | Lens onto the unmeasured linewith attribute. This is useful for
+--   backends to use on styles once they have been unmeasured. Using on
+--   a diagram style could lead to unexpected results.
+_lineWidthU :: (Typeable n, OrderedField n) => Lens' (Style v n) (Maybe n)
+_lineWidthU = atAttr . mapping _LineWidth
+
 ------------------------------------------------------------------------
 -- Dashing
 ------------------------------------------------------------------------
@@ -221,6 +230,12 @@ dashingL w v = dashing (map local w) (local v)
 _dashing :: (Typeable n, OrderedField n)
          => Lens' (Style v n) (Maybe (Measured n (Dashing n)))
 _dashing = atMAttr
+
+-- | Lens onto the unmeasured 'Dashing' attribute. This is useful for
+--   backends to use on styles once they have been unmeasured. Using on
+--   a diagram style could lead to unexpected results.
+_dashingU :: (Typeable n, OrderedField n) => Lens' (Style v n) (Maybe (Dashing n))
+_dashingU = atAttr
 
 ------------------------------------------------------------------------
 -- Color

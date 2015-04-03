@@ -81,7 +81,7 @@ module Diagrams.TwoD
        , strokeTrail, strokeT, strokeTrail', strokeT'
        , strokeLine, strokeLoop
        , strokeLocTrail, strokeLocT, strokeLocLine, strokeLocLoop
-       , FillRule(..), fillRule
+       , FillRule(..), fillRule, _fillRule
        , StrokeOpts(..), vertexNames, queryFillRule
        , intersectPoints, intersectPoints'
        , intersectPointsP, intersectPointsP'
