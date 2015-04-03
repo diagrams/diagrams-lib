@@ -385,8 +385,8 @@ _Clip :: Iso (Clip n) (Clip n') [Path V2 n] [Path V2 n']
 _Clip = _Wrapped
 
 -- | Lens onto the Clip in a style. An empty list means no clipping.
-_clip :: Typeable n => Lens' (Style v n) [Path V2 n]
-_clip = atAttr . non' _Empty . _Clip
+_clip :: (Typeable n, OrderedField n) => Lens' (Style V2 n) [Path V2 n]
+_clip = atTAttr . non' _Empty . _Clip
 
 -- | Clip a diagram by the given path:
 --
