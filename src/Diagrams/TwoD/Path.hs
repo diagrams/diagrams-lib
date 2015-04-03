@@ -36,7 +36,7 @@ module Diagrams.TwoD.Path
          -- ** Stroke options
 
        , FillRule(..)
-       , FillRuleA(..), getFillRule, fillRule
+       , getFillRule, fillRule, _fillRule
        , StrokeOpts(..), vertexNames, queryFillRule
 
          -- ** Inside/outside testing
@@ -115,7 +115,11 @@ data FillRule = Winding  -- ^ Interior points are those with a nonzero
                          --   direction crosses the path an odd number
                          --   of times. See
                          --   <http://en.wikipedia.org/wiki/Even-odd_rule>.
-    deriving (Eq, Show)
+    deriving (Show, Typeable, Eq, Ord)
+
+instance AttributeClass FillRule
+instance Semigroup FillRule where
+  _ <> b = b
 
 instance Default FillRule where
   def = Winding
@@ -279,21 +283,18 @@ runFillRule :: RealFloat n => FillRule -> Point V2 n -> Path V2 n -> Bool
 runFillRule Winding = isInsideWinding
 runFillRule EvenOdd = isInsideEvenOdd
 
-newtype FillRuleA = FillRuleA (Last FillRule)
-  deriving (Typeable, Semigroup, Show)
-instance AttributeClass FillRuleA
-
-instance Default FillRuleA where
-  def = FillRuleA $ Last def
-
 -- | Extract the fill rule from a 'FillRuleA' attribute.
-getFillRule :: FillRuleA -> FillRule
-getFillRule (FillRuleA (Last r)) = r
+getFillRule :: FillRule -> FillRule
+getFillRule = id
 
 -- | Specify the fill rule that should be used for determining which
 --   points are inside a path.
 fillRule :: HasStyle a => FillRule -> a -> a
-fillRule = applyAttr . FillRuleA . Last
+fillRule = applyAttr
+
+-- | Lens onto the fill rule of a style.
+_fillRule :: Lens' (Style V2 n) FillRule
+_fillRule = atAttr . non def
 
 -- XXX link to more info on this
 
