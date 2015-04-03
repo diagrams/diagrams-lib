@@ -33,7 +33,7 @@ module Diagrams.TwoD.Text (
   , fontSizeN, fontSizeO, fontSizeL, fontSizeG
   , _fontSizeR, _fontSize
   -- ** Font slant
-  , FontSlant(..), FontSlantA, _FontSlant
+  , FontSlant(..)
   , getFontSlant, fontSlant, italic, oblique, _fontSlant
   -- ** Font weight
   , FontWeight(..)
@@ -273,37 +273,34 @@ _fontSize = _fontSizeR . mapping committed
 --------------------------------------------------
 -- Font slant
 
-data FontSlant = FontSlantNormal
-               | FontSlantItalic
-               | FontSlantOblique
-    deriving (Eq, Show)
-
 -- | The @FontSlantA@ attribute specifies the slant (normal, italic,
 --   or oblique) that should be used for all text within a diagram.
 --   Inner @FontSlantA@ attributes override outer ones.
-newtype FontSlantA = FontSlantA (Last FontSlant)
-  deriving (Typeable, Semigroup, Eq)
-instance AttributeClass FontSlantA
+data FontSlant = FontSlantNormal
+               | FontSlantItalic
+               | FontSlantOblique
+  deriving (Eq, Show, Typeable, Ord)
+
+instance AttributeClass FontSlant where
+instance Semigroup FontSlant where
+  _ <> b = b
 
 instance Default FontSlant where
   def = FontSlantNormal
 
-_FontSlant :: Iso' FontSlantA FontSlant
-_FontSlant = iso getFontSlant (FontSlantA . Last)
-
 -- | Extract the font slant from a 'FontSlantA' attribute.
-getFontSlant :: FontSlantA -> FontSlant
-getFontSlant (FontSlantA (Last s)) = s
+getFontSlant :: FontSlant -> FontSlant
+getFontSlant = id
 
 -- | Specify the slant (normal, italic, or oblique) that should be
 --   used for all text within a diagram.  See also 'italic' and
 --   'oblique' for useful special cases.
 fontSlant :: HasStyle a => FontSlant -> a -> a
-fontSlant = applyAttr . FontSlantA . Last
+fontSlant = applyAttr
 
 -- | Lens onto the font slant in a style.
 _fontSlant :: (Typeable n, OrderedField n) => Lens' (Style v n) FontSlant
-_fontSlant = atAttr . mapping _FontSlant . non def
+_fontSlant = atAttr . non def
 
 -- | Set all text in italics.
 italic :: HasStyle a => a -> a
