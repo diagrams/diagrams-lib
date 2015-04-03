@@ -35,7 +35,7 @@ module Diagrams.Attributes (
   , tiny, verySmall, small, normal, large, veryLarge, huge
 
     -- ** Line width
-  , LineWidth, getLineWidth, lineWidth, lineWidthM
+  , LineWidth, getLineWidth, lineWidth, lineWidthM, _lineWidth, _lw
   , lw, lwN, lwO, lwL, lwG
 
     -- ** Dashing
