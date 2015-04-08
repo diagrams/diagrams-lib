@@ -386,6 +386,14 @@
 
 - Gradient [\#136](https://github.com/diagrams/diagrams-lib/pull/136) ([jeffreyrosenbluth](https://github.com/jeffreyrosenbluth))
 
+## [v1.1.0.7]() (2014-05-15)
+
+- Allow `semigroups-0.14`
+
+## [v1.1.0.6]() (2014-04-10)
+
+- Allow `semigroups-0.13`
+
 ## [v1.1.0.4](https://github.com/diagrams/diagrams-lib/tree/v1.1.0.4) (2014-04-04)
 
 [Full Changelog](https://github.com/diagrams/diagrams-lib/compare/v1.1.0.2...v1.1.0.4)
@@ -397,6 +405,10 @@
 - Rework of units [\#169](https://github.com/diagrams/diagrams-lib/pull/169) ([byorgey](https://github.com/byorgey))
 
 - Make Diagrams.Transform.under more polymorphic [\#168](https://github.com/diagrams/diagrams-lib/pull/168) ([FlorentBecker](https://github.com/FlorentBecker))
+
+## [v1.1.0.3]() (2014-03-19)
+
+- Allow `lens-4.1`
 
 ## [v1.1.0.2](https://github.com/diagrams/diagrams-lib/tree/v1.1.0.2) (2014-03-19)
 
@@ -413,6 +425,14 @@
 ## [v1.1.0.1](https://github.com/diagrams/diagrams-lib/tree/v1.1.0.1) (2014-03-09)
 
 [Full Changelog](https://github.com/diagrams/diagrams-lib/compare/v1.1...v1.1.0.1)
+
+- Depend on `hashable` package, and add `Hashable` instance for
+  `SizeSpec2D`.
+
+  Technically, the PVP specifies that adding a new instance
+  requires a major version bump.  However, I highly doubt anyone
+  was making their own orphan `Hashable` instances before.  Feel
+  free to yell at Brent if this breaks your build.
 
 ## [v1.1](https://github.com/diagrams/diagrams-lib/tree/v1.1) (2014-03-09)
 
@@ -688,6 +708,8 @@
 
 - `wedge` from `Diagrams.TwoD.Arc` is now a Loop ([#99](https://github.com/diagrams/diagrams-lib/issues/99))
 
+- Arrows do not behave correctly under scaling [\#112](https://github.com/diagrams/diagrams-lib/issues/112)
+
 **Performance improvements**
 
 - `R2` is now strict and `UNPACK`ed
@@ -699,11 +721,6 @@
 
 - Use a specialized `HasTrie` instance for `R2`.
 
-**Fixed bugs:**
-
-- Example where offsetTrail does not work as expected [\#118](https://github.com/diagrams/diagrams-lib/issues/118)
-
-- Arrows do not behave correctly under scaling [\#112](https://github.com/diagrams/diagrams-lib/issues/112)
 
 **Closed issues:**
 
@@ -860,19 +877,19 @@
 
 - A big refactoring of segments and trails:
 
-- Segments can now be either "closed" or "open".
+  - Segments can now be either "closed" or "open".
 
-- There are now two types of trails: "lines" (which travel
-  from point A to point B) or "loops" (closed curves which end
-  where they started). `Trail` is now a wrapper type which can
-  contain both loops and lines.
+  - There are now two types of trails: "lines" (which travel
+    from point A to point B) or "loops" (closed curves which end
+      where they started). `Trail` is now a wrapper type which can
+      contain both loops and lines.
 
-- There is a new `Located` wrapper type for adding locations to
-  translation-invariant things.  `Path`s now consist of a
-  collection of `Located Trail`s.
+  - There is a new `Located` wrapper type for adding locations to
+    translation-invariant things.  `Path`s now consist of a
+    collection of `Located Trail`s.
 
-- The `PathLike` class is now renamed to `TrailLike`; the
-  `trailLike` function takes a `Located Trail` as input.
+  - The `PathLike` class is now renamed to `TrailLike`; the
+    `trailLike` function takes a `Located Trail` as input.
 
 - New convenience functions `boundaryFrom` and `boundaryFromMay`,
   for computing boundaries of subdiagrams.
@@ -1203,11 +1220,11 @@
 
 - New module enabling nice syntax for constructing and pattern-matching literal points and vectors [\#1](https://github.com/diagrams/diagrams-lib/pull/1) ([byorgey](https://github.com/byorgey))
 
-## [0_5_0_1](https://github.com/diagrams/diagrams-lib/tree/0_5_0_1) (2012-07-24)
+## [v0.5.0.1](https://github.com/diagrams/diagrams-lib/tree/0_5_0_1) (2012-07-24)
 
 [Full Changelog](https://github.com/diagrams/diagrams-lib/compare/0_5...0_5_0_1)
 
-## [0_5](https://github.com/diagrams/diagrams-lib/tree/0_5) (2012-03-09)
+## [v0.5](https://github.com/diagrams/diagrams-lib/tree/0_5) (2012-03-09)
 
 [Full Changelog](https://github.com/diagrams/diagrams-lib/compare/0_4...0_5)
 
@@ -1337,12 +1354,12 @@
 - Avoid scale by zero error in `showOrigin`.
 - Base `adjustDia2D` translation on output size rather than diagram size.
 
-0.4.0.1: 30 October 2011
+## [v0.4.0.1] () (30 October 2011)
 ------------------------
 
 - bump `data-default` dependency to allow version 0.3
 
-0.4: 23 October 2011
+## [v0.4]() (23 October 2011)
 --------------------
 
 **documentation fixes**
@@ -1376,7 +1393,7 @@
 
 + fix incorrect `reverseTrail` function
 
-0.3: 18 June 2011
+## [v0.3]() (18 June 2011)
 -----------------
 
 **New features**
@@ -1404,7 +1421,7 @@
 
 + Issue 32 (`mempty` not behaving correctly within concatenations)
 
-0.2: 3 June 2011
+## [v0.2]() (3 June 2011)
 ----------------
 
 **New functions and primitives**
@@ -1437,14 +1454,14 @@
 + `withBounds` now properly uses the new bounds instead of just combining
       them with the old
 
-0.1.1: 18 May 2011
+## [v0.1.1]() (18 May 2011)
 ------------------
 
 * minor documentation fixes
 
 * link to new website
 
-0.1: 17 May 2011
+## [v0.1]() [17 May 2011]
 ----------------
 
 * initial preview release
