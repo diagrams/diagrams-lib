@@ -74,6 +74,9 @@ module Diagrams.TwoD
        , angleDir
        , signedAngleBetween , signedAngleBetweenDirs
 
+       -- * Polar Coördinates
+       , HasR(..), r2PolarIso
+
          -- * Paths
          -- ** Stroking
        , stroke, stroke'

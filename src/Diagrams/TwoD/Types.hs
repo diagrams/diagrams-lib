@@ -19,7 +19,7 @@ module Diagrams.TwoD.Types
        , P2, T2
        , r2, unr2, mkR2, r2Iso
        , p2, mkP2, unp2, p2Iso
-       , r2polarIso
+       , r2PolarIso
        , HasR (..)
        ) where
 
@@ -72,10 +72,10 @@ p2Iso = iso unp2 p2
 instance Transformable (V2 n) where
   transform = apply
 
-r2polarIso :: RealFloat n => Iso' (V2 n) (n, Angle n)
-r2polarIso = iso (\v@(V2 x y) -> (norm v, atan2A y x))
+r2PolarIso :: RealFloat n => Iso' (V2 n) (n, Angle n)
+r2PolarIso = iso (\v@(V2 x y) -> (norm v, atan2A y x))
               (\(r,θ)      -> V2 (r * cosA θ) (r * sinA θ))
-{-# INLINE r2polarIso #-}
+{-# INLINE r2PolarIso #-}
 
 -- | A space which has magnitude '_r' that can be calculated numerically.
 class HasR t where
@@ -86,9 +86,9 @@ instance HasR v => HasR (Point v) where
   {-# INLINE _r #-}
 
 instance HasR V2 where
-  _r = r2polarIso . _1
+  _r = r2PolarIso . _1
   {-# INLINE _r #-}
 
 instance HasTheta V2 where
-  _theta = r2polarIso . _2
+  _theta = r2PolarIso . _2
   {-# INLINE _theta #-}
