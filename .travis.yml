@@ -15,7 +15,7 @@ env:
 matrix:
   allow_failures:
     - env: GHCVER=7.4.2 CABALVER=1.18
-    - env: GHCVER=head CABALVER=head SKIP_HADDOCK=true
+    - env: GHCVER=head CABALVER=head
 
 before_install:
   - git clone http://github.com/diagrams/diagrams-travis travis
