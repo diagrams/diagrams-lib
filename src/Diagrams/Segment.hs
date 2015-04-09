@@ -51,6 +51,7 @@ module Diagrams.Segment
          -- * Fixed (absolutely located) segments
        , FixedSegment(..)
        , mkFixedSeg, fromFixedSeg
+       , fixedSegIso
 
          -- * Segment measures
          -- $segmeas
@@ -392,6 +393,11 @@ instance (Metric v, OrderedField n) => Enveloped (FixedSegment v n) where
     -- Envelope, and implement the Segment instance in terms of it,
     -- instead of the other way around
 
+instance (Metric v, OrderedField n)
+      => HasArcLength (FixedSegment v n) where
+  arcLengthBounded m s = arcLengthBounded m (fromFixedSeg s)
+  arcLengthToParam m s = arcLengthToParam m (fromFixedSeg s)
+
 -- | Create a 'FixedSegment' from a located 'Segment'.
 mkFixedSeg :: (Num n, Additive v) => Located (Segment Closed v n) -> FixedSegment v n
 mkFixedSeg ls =
@@ -403,6 +409,11 @@ mkFixedSeg ls =
 fromFixedSeg :: (Num n, Additive v) => FixedSegment v n -> Located (Segment Closed v n)
 fromFixedSeg (FLinear p1 p2)      = straight (p2 .-. p1) `at` p1
 fromFixedSeg (FCubic x1 c1 c2 x2) = bezier3 (c1 .-. x1) (c2 .-. x1) (x2 .-. x1) `at` x1
+
+-- | Use a 'FixedSegment' to make an 'Iso' between an
+-- a fixed segment and a located segment.
+fixedSegIso :: (Num n, Additive v) => Iso' (FixedSegment v n) (Located (Segment Closed v n))
+fixedSegIso = iso fromFixedSeg mkFixedSeg
 
 type instance Codomain (FixedSegment v n) = Point v
 

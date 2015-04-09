@@ -88,6 +88,7 @@ module Diagrams.TwoD
        , StrokeOpts(..), vertexNames, queryFillRule
        , intersectPoints, intersectPoints'
        , intersectPointsP, intersectPointsP'
+       , intersectPointsT, intersectPointsT'
 
          -- ** Clipping
        , clipBy, clipTo, clipped, _Clip, _clip
