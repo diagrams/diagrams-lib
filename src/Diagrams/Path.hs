@@ -259,6 +259,9 @@ pathVertices = map trailVertices . op Path
 --   unproblematic version which only yields vertices at which there
 --   is a sharp corner, excluding points differentiable points, see
 --   'pathVertices'.
+--
+--   This function is not re-exported from "Diagrams.Prelude"; to use
+--   it, import "Diagrams.Path".
 pathPoints :: (Metric v, OrderedField n) => Path v n -> [[Point v n]]
 pathPoints = map trailPoints . op Path
 

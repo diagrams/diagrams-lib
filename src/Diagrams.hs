@@ -133,7 +133,7 @@ import           Diagrams.Located
 import           Diagrams.Names
 import           Diagrams.Parametric
 import           Diagrams.Parametric.Adjust
-import           Diagrams.Path
+import           Diagrams.Path              hiding (pathPoints)
 import           Diagrams.Points
 import           Diagrams.Query
 import           Diagrams.Segment

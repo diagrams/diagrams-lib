@@ -1094,6 +1094,11 @@ lineOffset (Line t) = trailMeasure zero (op TotalOffset . view oeOffset) t
 --   a line first, which happens to repeat the same point at the start
 --   and end, /e.g./ with @trailPoints . mapLoc cutTrail@.
 --
+--   Note that it does not make sense to ask for the points of a
+--   'Trail' by itself; if you want the points of a trail
+--   with the first point at, say, the origin, you can use
+--   @trailPoints . (\`at\` origin)@.
+--
 --   This function allows you "observe" the fact that trails are
 --   implemented as lists of segments, which may be problematic if we
 --   want to think of trails as parametric vector functions. This also
@@ -1103,10 +1108,8 @@ lineOffset (Line t) = trailMeasure zero (op TotalOffset . view oeOffset) t
 --   is a sharp corner, excluding points where the trail is
 --   differentiable, see 'trailVertices'.
 --
---   Note that it does not make sense to ask for the points of a
---   'Trail' by itself; if you want the points of a trail
---   with the first point at, say, the origin, you can use
---   @trailPoints . (\`at\` origin)@.
+--   This function is not re-exported from "Diagrams.Prelude"; to use
+--   it, import "Diagrams.Trail".
 trailPoints :: (Metric v, OrderedField n)
               => Located (Trail v n) -> [Point v n]
 trailPoints (viewLoc -> (p,t))
@@ -1123,6 +1126,9 @@ trailPoints (viewLoc -> (p,t))
 --   unproblematic version which only yields vertices at which there
 --   is a sharp corner, excluding points where the trail is
 --   differentiable, see 'lineVertices'.
+--
+--   This function is not re-exported from "Diagrams.Prelude"; to use
+--   it, import "Diagrams.Trail".
 linePoints :: (Metric v, OrderedField n)
              => Located (Trail' Line v n) -> [Point v n]
 linePoints (viewLoc -> (p,t))
@@ -1140,6 +1146,9 @@ linePoints (viewLoc -> (p,t))
 --   unproblematic version which only yields vertices at which there
 --   is a sharp corner, excluding points where the trail is
 --   differentiable, see 'lineVertices'.
+--
+--   This function is not re-exported from "Diagrams.Prelude"; to use
+--   it, import "Diagrams.Trail".
 loopPoints :: (Metric v, OrderedField n)
              => Located (Trail' Loop v n) -> [Point v n]
 loopPoints (viewLoc -> (p,t))
