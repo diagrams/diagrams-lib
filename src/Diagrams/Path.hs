@@ -250,6 +250,15 @@ pathVertices = map trailVertices . op Path
 -- | Extract the points of a path, resulting in a separate list of
 --   points for each component trail.  Here a /point/ is any place
 --   where two segments join; see also 'pathVertices' and 'trailPoints'.
+--
+--   This function allows you "observe" the fact that trails are
+--   implemented as lists of segments, which may be problematic if we
+--   want to think of trails as parametric vector functions. This also
+--   means that the behavior of this function may not be stable under
+--   future changes to the implementation of trails and paths.  For an
+--   unproblematic version which only yields vertices at which there
+--   is a sharp corner, excluding points differentiable points, see
+--   'pathVertices'.
 pathPoints :: (Metric v, OrderedField n) => Path v n -> [[Point v n]]
 pathPoints = map trailPoints . op Path
 

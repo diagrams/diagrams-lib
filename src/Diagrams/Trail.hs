@@ -1094,8 +1094,13 @@ lineOffset (Line t) = trailMeasure zero (op TotalOffset . view oeOffset) t
 --   a line first, which happens to repeat the same point at the start
 --   and end, /e.g./ with @trailPoints . mapLoc cutTrail@.
 --
---   For a version which only yields vertices at which there is a
---   sharp corner, excluding vertices where the trail is
+--   This function allows you "observe" the fact that trails are
+--   implemented as lists of segments, which may be problematic if we
+--   want to think of trails as parametric vector functions. This also
+--   means that the behavior of this function may not be stable under
+--   future changes to the implementation of trails.  For an
+--   unproblematic version which only yields vertices at which there
+--   is a sharp corner, excluding points where the trail is
 --   differentiable, see 'trailVertices'.
 --
 --   Note that it does not make sense to ask for the points of a
@@ -1107,16 +1112,34 @@ trailPoints :: (Metric v, OrderedField n)
 trailPoints (viewLoc -> (p,t))
   = withTrail (linePoints . (`at` p)) (loopPoints . (`at` p)) t
 
--- | Extract the points of a concretely located line.  See
+-- | Extract the segment join points of a concretely located line.  See
 --   'trailPoints' for more information.
+--
+--   This function allows you "observe" the fact that lines are
+--   implemented as lists of segments, which may be problematic if we
+--   want to think of lines as parametric vector functions. This also
+--   means that the behavior of this function may not be stable under
+--   future changes to the implementation of trails.  For an
+--   unproblematic version which only yields vertices at which there
+--   is a sharp corner, excluding points where the trail is
+--   differentiable, see 'lineVertices'.
 linePoints :: (Metric v, OrderedField n)
              => Located (Trail' Line v n) -> [Point v n]
 linePoints (viewLoc -> (p,t))
   = segmentPoints p . lineSegments $ t
 
--- | Extract the points of a concretely located loop.  Note that the
+-- | Extract the segment join points of a concretely located loop.  Note that the
 --   initial vertex is not repeated at the end.  See 'trailPoints' for
 --   more information.
+--
+--   This function allows you "observe" the fact that lines are
+--   implemented as lists of segments, which may be problematic if we
+--   want to think of lines as parametric vector functions. This also
+--   means that the behavior of this function may not be stable under
+--   future changes to the implementation of trails.  For an
+--   unproblematic version which only yields vertices at which there
+--   is a sharp corner, excluding points where the trail is
+--   differentiable, see 'lineVertices'.
 loopPoints :: (Metric v, OrderedField n)
              => Located (Trail' Loop v n) -> [Point v n]
 loopPoints (viewLoc -> (p,t))
