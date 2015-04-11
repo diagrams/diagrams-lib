@@ -25,9 +25,16 @@
 --     specialized to two dimensions (see also "Diagrams.Combinators"
 --     for more general combining).
 --
+--   * "Diagrams.TwoD.Attributes" defines attributes specific to two
+--     dimensions, *e.g.* fill color, line color, and gradients.
+--
 --   * "Diagrams.TwoD.Transform" defines R^2-specific transformations
 --     such as rotation by an angle, and scaling, translation, and
 --     reflection in the X and Y directions.
+--
+--   * "Diagrams.TwoD.Deform" defines some non-affine transformations
+--     specific to two dimensions, *e.g.* parallel and perspective
+--     projections.
 --
 --   * "Diagrams.TwoD.Ellipse" defines circles and ellipses.
 --
@@ -43,7 +50,8 @@
 --     e.g. various polygons.
 --
 --   * "Diagrams.TwoD.Arrow" contains tools for drawing arrows between
---     things.
+--     things, and "Diagrams.TwoD.Arrowheads" defines a collection of
+--     arrowheads.
 --
 --   * "Diagrams.TwoD.Text" defines primitive text diagrams.
 --
