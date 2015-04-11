@@ -13,10 +13,11 @@
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
--- Importing external images into diagrams.
--- Usage: To create a diagram from an embedded image with width 1 and height
---   set according to the aspect ratio: 'image img # scaleUToX 1`
---   where 'img' is a 'DImage v Embedded'
+-- Importing external images into diagrams.  Usage example: To create
+-- a diagram from an embedded image with width 1 and height set
+-- according to the aspect ratio, use @image img # scaleUToX 1@, where
+-- @img@ is a value of type @DImage n e@, created with a function like
+-- 'loadImageEmb', 'loadImageExt', or 'raster'.
 -----------------------------------------------------------------------------
 
 module Diagrams.TwoD.Image
