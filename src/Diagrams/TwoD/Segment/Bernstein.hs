@@ -1,6 +1,16 @@
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE TypeFamilies  #-}
-
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  Diagrams.TwoD.Segment.Bernstein
+-- Copyright   :  (c) 2014-2015 diagrams-lib team (see LICENSE)
+-- License     :  BSD-style (see LICENSE)
+-- Maintainer  :  diagrams-discuss@googlegroups.com
+--
+-- Bernstein polynomials, used internally by code to find
+-- intersections of paths.  This module is probably not of any
+-- relevance to most users of diagrams.
+-----------------------------------------------------------------------------
 module Diagrams.TwoD.Segment.Bernstein
   ( BernsteinPoly (..)
   , listToBernstein
@@ -16,7 +26,7 @@ import           Diagrams.Core.V
 import           Diagrams.Parametric
 import           Linear.V1
 
--- find the binomial coefficients of degree n.
+-- | Compute the binomial coefficients of degree n.
 binomials :: Num n => Int -> [n]
 binomials n = map fromIntegral $ scanl (\x m -> x * (n - m+1) `quot` m) 1 [1..n]
 
@@ -85,7 +95,7 @@ instance Fractional n => Sectionable  (BernsteinPoly n) where
   splitAtParam  = bernsteinSplit
   reverseDomain (BernsteinPoly i xs) = BernsteinPoly i (reverse xs)
 
--- | Split a bernstein polynomial
+-- | Split a bernstein polynomial.
 bernsteinSplit :: Num n => BernsteinPoly n -> n -> (BernsteinPoly n, BernsteinPoly n)
 bernsteinSplit (BernsteinPoly lp p) t =
   (BernsteinPoly lp $ map head controls,
