@@ -66,6 +66,7 @@ module Diagrams.TwoD
        , r2, unr2, mkR2
        , p2, unp2, mkP2
        , unitX, unitY, unit_X, unit_Y
+       , perp, leftTurn
        , xDir, yDir
 
          -- * Angles
