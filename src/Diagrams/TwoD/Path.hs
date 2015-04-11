@@ -56,7 +56,7 @@ module Diagrams.TwoD.Path
        ) where
 
 import           Control.Applicative       (liftA2)
-import           Control.Lens              hiding (transform, at)
+import           Control.Lens              hiding (at, transform)
 import qualified Data.Foldable             as F
 import           Data.Semigroup
 import           Data.Typeable
@@ -106,7 +106,7 @@ instance RealFloat n => Traced (Path V2 n) where
 
 -- | Enumeration of algorithms or \"rules\" for determining which
 --   points lie in the interior of a (possibly self-intersecting)
---   closed path.
+--   path.
 data FillRule = Winding  -- ^ Interior points are those with a nonzero
                          --   /winding/ /number/.  See
                          --   <http://en.wikipedia.org/wiki/Nonzero-rule>.
@@ -298,18 +298,19 @@ _fillRule = atAttr . non def
 
 -- XXX link to more info on this
 
--- | Test whether the given point is inside the given (closed) path,
+-- | Test whether the given point is inside the given path,
 --   by testing whether the point's /winding number/ is nonzero. Note
---   that @False@ is /always/ returned for /open/ paths, regardless of
---   the winding number.
+--   that @False@ is /always/ returned for paths consisting of lines
+--   (as opposed to loops), regardless of the winding number.
 isInsideWinding :: RealFloat n => Point V2 n -> Path V2 n -> Bool
 isInsideWinding p = (/= 0) . crossings p
 
--- | Test whether the given point is inside the given (closed) path,
+-- | Test whether the given point is inside the given path,
 --   by testing whether a ray extending from the point in the positive
 --   x direction crosses the path an even (outside) or odd (inside)
 --   number of times.  Note that @False@ is /always/ returned for
---   /open/ paths, regardless of the number of crossings.
+--   paths consisting of lines (as opposed to loops), regardless of
+--   the number of crossings.
 isInsideEvenOdd :: RealFloat n => Point V2 n -> Path V2 n -> Bool
 isInsideEvenOdd p = odd . crossings p
 
