@@ -88,16 +88,17 @@ instance OrderedField n => Default (EnvelopeOpts n) where
   def = EnvelopeOpts red medium 32
 
 data TraceOpts n = TraceOpts
-  { _tColor   :: Colour Double
-  , _tScale   :: n
-  , _tMinSize :: n
-  , _tPoints  :: Int
+  { _tColor     :: Colour Double
+  , _tScale     :: n
+  , _tMinSize   :: n
+  , _tPoints    :: Int
+  , _tBasePoint :: P2 n
   }
 
 makeLenses ''TraceOpts
 
 instance Floating n => Default (TraceOpts n) where
-  def = TraceOpts red (1/100) 0.001 64
+  def = TraceOpts red (1/100) 0.001 64 origin
 
 -- | Mark the origin of a diagram by placing a red dot 1/50th its size.
 showOrigin :: (TypeableFloat n, Renderable (Path V2 n) b, Monoid' m)
@@ -116,9 +117,9 @@ showOrigin' oo d = o <> d
         V2 w h = oo^.oScale *^ size d
         sz     = maximum [w, h, oo^.oMinSize]
 
--- | Mark the envelope with an approximating cubic spline with control 
+-- | Mark the envelope with an approximating cubic spline with control
 --   over the color, line width and number of points.
-showEnvelope' :: (Enum n, TypeableFloat n, Renderable (Path V2 n) b) 
+showEnvelope' :: (Enum n, TypeableFloat n, Renderable (Path V2 n) b)
               => EnvelopeOpts n -> QDiagram b V2 n Any -> QDiagram b V2 n Any
 showEnvelope' opts d = cubicSpline True pts # lc (opts^.eColor)
                                             # lw w <> d
@@ -136,8 +137,9 @@ showEnvelope :: (Enum n, TypeableFloat n, Renderable (Path V2 n) b)
 showEnvelope = showEnvelope' def
 
 -- | Mark the trace of a diagram, with control over colour and scale
--- of marker dot and the number of points on the trace.
-showTrace' :: (Enum n, TypeableFloat n, Renderable (Path V2 n) b) 
+--   of marker dot, the number of points on the trace, and the base
+--   point from which the rays are cast.
+showTrace' :: (Enum n, TypeableFloat n, Renderable (Path V2 n) b)
           => TraceOpts n -> QDiagram b V2 n Any -> QDiagram b V2 n Any
 showTrace' opts d =  atPoints ps (repeat pt) <> d
   where
@@ -145,16 +147,16 @@ showTrace' opts d =  atPoints ps (repeat pt) <> d
     ts = zip rs vs
     p (r, v) = [origin .+^ (s *^ v) | s <- r]
     vs = map (`rotateBy` unitX) [0, inc..top]
-    rs = [getSortedList $ (appTrace . getTrace) d origin v | v <- vs]
+    rs = [getSortedList $ (appTrace . getTrace) d (opts^.tBasePoint) v | v <- vs]
     pt = circle sz # fc (opts^.tColor) # lw none
     V2 w h = opts^.tScale *^ size d
     sz     = maximum [w, h, opts^.tMinSize]
     inc = 1 / fromIntegral (opts^.tPoints)
     top = 1 - inc
 
--- | Mark the trace of a diagram by placing 64 red dots 1/100th its size
---   along the trace.
-showTrace :: (Enum n, TypeableFloat n, Renderable (Path V2 n) b) 
+-- | Mark the trace of a diagram, as seen from the origin, by placing 64
+--   red dots 1/100th its size along the trace.
+showTrace :: (Enum n, TypeableFloat n, Renderable (Path V2 n) b)
           => QDiagram b V2 n Any -> QDiagram b V2 n Any
 showTrace = showTrace' def
 
