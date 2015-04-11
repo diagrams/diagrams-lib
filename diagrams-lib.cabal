@@ -7,7 +7,9 @@ Description:         Diagrams is a flexible, extensible EDSL for creating
                      multiple backends.  diagrams-lib provides a
                      standard library of primitives and operations for
                      creating diagrams.  To get started using it, see
-                     the "Diagrams" module.
+                     the "Diagrams" module, and refer to the tutorials and
+                     documentation on the diagrams website,
+                     <http://projects.haskell.org/diagrams>.
 Homepage:            http://projects.haskell.org/diagrams
 License:             BSD3
 License-file:        LICENSE
