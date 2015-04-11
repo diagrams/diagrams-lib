@@ -13,4 +13,5 @@ history
 TAGS
 .diagrams-cache
 /cabal.sandbox.config
+/cabal.config
 /.cabal-sandbox/
