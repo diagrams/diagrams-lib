@@ -6,9 +6,11 @@
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
--- This module only contains exports defined in "diagrams-lib" or
--- "diagrams-core". This module is less likely conflict with any
--- other modules but importing "Diagrams.Prelude" is often more convenient.
+-- This module only contains exports defined in @diagrams-lib@ or
+-- @diagrams-core@. This module can be used if you want to avoid some
+-- potential conflicts with other modules, but importing
+-- "Diagrams.Prelude" (which includes re-exports from other packages)
+-- is often more convenient.
 --
 -----------------------------------------------------------------------------
 
@@ -122,7 +124,8 @@ import           Diagrams.Align
 import           Diagrams.Angle
 import           Diagrams.Animation
 import           Diagrams.Attributes
-import           Diagrams.BoundingBox       hiding (intersection, union, inside, outside, contains)
+import           Diagrams.BoundingBox       hiding (contains, inside,
+                                             intersection, outside, union)
 import           Diagrams.Combinators
 import           Diagrams.Coordinates
 import           Diagrams.CubicSpline
