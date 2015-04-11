@@ -34,7 +34,8 @@ import           Linear.Vector
 mkMat :: (HasBasis v, Num n) => Transformation v n -> v (v n)
 mkMat t = distribute . tabulate $ apply t . unit . el
 
--- | Build a transformation matrix from a 'Transformation'.
+-- | Build a 3D transformation matrix in homogeneous coordinates from
+--   a 'Transformation V3'.
 mkMatHomo :: Num n => Transformation V3 n -> M44 n
 mkMatHomo t = mkTransformationMat (mkMat t) (transl t)
 
