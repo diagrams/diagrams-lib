@@ -10,7 +10,7 @@
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
 -- Tools for visualizing diagrams' internal model: local origins,
--- envelopes, /etc./
+-- envelopes, traces, /etc./
 --
 -----------------------------------------------------------------------------
 module Diagrams.TwoD.Model
@@ -18,12 +18,18 @@ module Diagrams.TwoD.Model
          showOrigin
        , showOrigin'
        , OriginOpts(..), oColor, oScale, oMinSize
+
+         -- * Showing an approximation of the envelope
        , showEnvelope
        , showEnvelope'
        , EnvelopeOpts(..), eColor, eLineWidth, ePoints
+
+         -- * Showing an approximation of the trace
        , showTrace
        , showTrace'
        , TraceOpts(..), tColor, tScale, tMinSize, tPoints
+
+         -- * Showing labels of all named subdiagrams
        , showLabels
        ) where
 
@@ -47,9 +53,9 @@ import           Diagrams.TwoD.Attributes
 import           Diagrams.TwoD.Ellipse
 import           Diagrams.TwoD.Path
 import           Diagrams.TwoD.Text
-import           Diagrams.TwoD.Transform (rotateBy)
+import           Diagrams.TwoD.Transform  (rotateBy)
 import           Diagrams.TwoD.Types
-import           Diagrams.TwoD.Vector    (unitX)
+import           Diagrams.TwoD.Vector     (unitX)
 import           Diagrams.Util
 
 import           Linear.Affine
