@@ -17,7 +17,7 @@ module Diagrams.Prelude
     -- | Exports from this library for working with diagrams.
     module Diagrams
 
-    -- * Convenience re-exports
+    -- * Convenience re-exports from other packages
 
     -- | For working with default values. Diagrams also exports 'with',
     --   an alias for 'def'.
@@ -78,17 +78,16 @@ module Diagrams.Prelude
 import           Diagrams
 
 import           Control.Applicative
-import           Control.Lens               hiding (argument, at, backwards,
-                                             beside, children, coerce, contains,
-                                             indexed, indices, inside, levels,
-                                             none, outside, singular, transform,
-                                             ( # ), (...), (.>), (<.>))
+import           Control.Lens        hiding (argument, at, backwards, beside,
+                                      children, coerce, contains, indexed,
+                                      indices, inside, levels, none, outside,
+                                      singular, transform, ( # ), (...), (.>),
+                                      (<.>))
 import           Data.Active
-import           Data.Default.Class
-import           Data.Colour                hiding (AffineSpace (..), atop,
-                                             over)
-import           Data.Colour.Names          hiding (tan)
+import           Data.Colour         hiding (AffineSpace (..), atop, over)
+import           Data.Colour.Names   hiding (tan)
 import           Data.Colour.SRGB
+import           Data.Default.Class
 import           Data.Semigroup
 
 import           Linear.Affine
