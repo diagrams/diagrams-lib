@@ -17,9 +17,11 @@
 --     diagrams, including types representing the 3D Euclidean vector
 --     space and various systems of representing directions.
 --
---   * "Diagrams.ThreeD.Transform" defines R^3-specific transformations
---     such as rotation by an angle, and scaling, translation, and
---     reflection in the X, Y, and Z directions.
+--   * "Diagrams.ThreeD.Transform" defines R^3-specific
+--     transformations such as rotation by an angle, and scaling,
+--     translation, and reflection in the X, Y, and Z directions.
+--     "Diagrams.ThreeD.Deform" defines several R^3-specific
+--     non-affine transformations, such as projections.
 --
 --   * "Diagrams.ThreeD.Shapes" defines three-dimensional solids,
 --     e.g. spheres and cubes.
@@ -29,6 +31,13 @@
 --
 --   * "Diagrams.ThreeD.Light" and "Diagrams.ThreeD.Camera" define types needed
 --     for rendering 3D geometry to (2D) images.
+--
+--   * "Diagrams.ThreeD.Align" defines many alignment combinators
+--     specialized to three dimensions.
+--
+--   * "Diagrams.ThreeD.Attributes" defines 3D-specific attributes
+--     such as surface color, diffuse reflectance, and specular
+--     highlights.
 -----------------------------------------------------------------------------
 module Diagrams.ThreeD
        (
