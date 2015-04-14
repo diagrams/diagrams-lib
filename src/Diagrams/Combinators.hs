@@ -38,9 +38,7 @@ module Diagrams.Combinators
 
        ) where
 
-import           Control.Lens          (Lens', generateSignatures,
-                                        lensRules, makeLensesWith, (&),
-                                        (.~), (^.), _Wrapping, over)
+import           Control.Lens          hiding (( # ), beside)
 import           Data.Default.Class
 import           Data.Monoid.Deletable (toDeletable)
 import           Data.Monoid.MList     (inj)
@@ -106,9 +104,7 @@ pad s d = withEnvelope (d # scale s) d
 --   necessary.
 frame :: (Metric v, OrderedField n, Monoid' m)
         => n -> QDiagram b v n m -> QDiagram b v n m
-frame s d = setEnvelope (onEnvelope t (d^.envelope)) d
-  where
-    t f x = f x + s
+frame s = over envelope (onEnvelope $ \f x -> f x + s)
 
 -- | @strut v@ is a diagram which produces no output, but with respect
 --   to alignment and envelope acts like a 1-dimensional segment
