@@ -1,8 +1,9 @@
-{-# LANGUAGE CPP           #-}
-{-# LANGUAGE FlexibleContexts     #-}
-{-# LANGUAGE StandaloneDeriving   #-}
-{-# LANGUAGE TypeFamilies         #-}
-{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE CPP                   #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE StandaloneDeriving    #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE UndecidableInstances  #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Located
@@ -144,22 +145,21 @@ instance (Traced a, Num (N a)) => Traced (Located a) where
   getTrace (Loc p a) = moveTo p (getTrace a)
 
 instance Qualifiable a => Qualifiable (Located a) where
-  n .>> (Loc p a) = Loc p (n .>> a)
+  n .>> Loc p a = Loc p (n .>> a)
 
 type instance Codomain (Located a) = Point (Codomain a)
 
-instance (V a ~ v, N a ~ n, Codomain a ~ v, Additive v, Num n, Parametric a)
+instance (InSpace v n a, Parametric a, Codomain a ~ v)
     => Parametric (Located a) where
-  (Loc x a) `atParam` p = x .+^ (a `atParam` p)
+  Loc x a `atParam` p = x .+^ (a `atParam` p)
 
 instance DomainBounds a => DomainBounds (Located a) where
   domainLower (Loc _ a) = domainLower a
   domainUpper (Loc _ a) = domainUpper a
 
-instance (V a ~ v, N a ~ n, Codomain a ~ v, Additive v, Num n, EndValues a)
-    => EndValues (Located a)
+instance (InSpace v n a, EndValues a, Codomain a ~ v) => EndValues (Located a)
 
-instance (V a ~ v, N a ~ n, Codomain a ~ v, Fractional n, Additive v, Sectionable a, Parametric a)
+instance (InSpace v n a, Fractional n, Parametric a, Sectionable a, Codomain a ~ v)
     => Sectionable (Located a) where
   splitAtParam (Loc x a) p = (Loc x a1, Loc (x .+^ (a `atParam` p)) a2)
     where (a1,a2) = splitAtParam a p
@@ -167,7 +167,7 @@ instance (V a ~ v, N a ~ n, Codomain a ~ v, Fractional n, Additive v, Sectionabl
   reverseDomain (Loc x a) = Loc (x .+^ y) (reverseDomain a)
     where y = a `atParam` domainUpper a
 
-instance (V a ~ v, N a ~ n, Codomain a ~ v, Additive v, Fractional n, HasArcLength a)
+instance (InSpace v n a, Fractional n, HasArcLength a, Codomain a ~ v)
     => HasArcLength (Located a) where
   arcLengthBounded eps (Loc _ a) = arcLengthBounded eps a
   arcLengthToParam eps (Loc _ a) = arcLengthToParam eps a
