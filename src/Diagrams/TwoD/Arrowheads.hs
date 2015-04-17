@@ -236,7 +236,7 @@ thorn = arrowheadThorn (3/8 @@ turn)
 dart :: RealFloat n => ArrowHT n
 dart = arrowheadDart (2/5 @@ turn)
 
--- | <<#diagram=halfDartEx&width=100>>
+-- | <<diagrams/src_Diagrams_TwoD_Arrowheads_halfDartEx.svg#diagram=halfDartEx&width=100>>
 
 --   > halfDartEx = drawHead halfDart
 halfDart :: RealFloat n => ArrowHT n
@@ -323,7 +323,7 @@ thorn' = headToTail thorn
 dart' :: RealFloat n => ArrowHT n
 dart' = headToTail dart
 
--- | <<#diagram=halfDart'Ex&width=100>>
+-- | <<diagrams/src_Diagrams_TwoD_Arrowheads_halfDart'Ex.svg#diagram=halfDart'Ex&width=100>>
 
 --   > halfDart'Ex = drawTail halfDart'
 halfDart' :: RealFloat n => ArrowHT n

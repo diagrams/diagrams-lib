@@ -38,7 +38,7 @@ module Diagrams.Combinators
 
        ) where
 
-import           Control.Lens          hiding (( # ), beside)
+import           Control.Lens          hiding (beside, ( # ))
 import           Data.Default.Class
 import           Data.Monoid.Deletable (toDeletable)
 import           Data.Monoid.MList     (inj)
@@ -69,7 +69,7 @@ import           Linear.Vector
 --   >     circle 1 # fc green
 --   >     |||
 --   >     (    c # dashingG [0.1,0.1] 0 # lc white
---   >       <> square 2 # withEnvelope (c :: D R2) # fc blue
+--   >       <> square 2 # withEnvelope (c :: D V2 Double) # fc blue
 --   >     )
 --   > c = circle 0.8
 --   > withEnvelopeEx = sqNewEnv # centerXY # pad 1.5
@@ -251,9 +251,10 @@ appends d1 apps = d1 <> mconcat (map (\(v,d) -> juxtapose v d1 d) apps)
 --
 --   <<diagrams/src_Diagrams_Combinators_positionEx.svg#diagram=positionEx&height=300>>
 --
---   > positionEx = position (zip (map mkPoint [-3, -2.8 .. 3]) (repeat dot))
---   >   where dot       = circle 0.2 # fc black
---   >         mkPoint x = p2 (x,x^2)
+--   > positionEx = position (zip (map mkPoint [-3, -2.8 .. 3]) (repeat spot))
+--   >   where spot      = circle 0.2 # fc black
+--   >         mkPoint :: Double -> P2 Double
+--   >         mkPoint x = p2 (x,x*x)
 position :: (InSpace v n a, HasOrigin a, Monoid' a) => [(Point v n, a)] -> a
 position = mconcat . map (uncurry moveTo)
 

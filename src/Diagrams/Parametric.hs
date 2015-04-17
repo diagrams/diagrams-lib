@@ -95,10 +95,12 @@ class DomainBounds p => Sectionable p where
   --   portion of @p@ for parameter values from @0@ to @t@ and @r@ for
   --   to that from @t@ to @1@.  The following property should hold:
   --
-  -- > prop_splitAtParam f t u =
-  -- >   | u < t     = atParam f u == atParam l (u / t)
-  -- >   | otherwise = atParam f u == atParam f t ??? atParam l ((u - t) / (domainUpper f - t))
-  -- >   where (l,r) = splitAtParam f t
+  -- @
+  --   prop_splitAtParam f t u =
+  --     | u < t     = atParam f u == atParam l (u / t)
+  --     | otherwise = atParam f u == atParam f t ??? atParam l ((u - t) / (domainUpper f - t))
+  --     where (l,r) = splitAtParam f t
+  -- @
   --
   --   where @(???) = (^+^)@ if the codomain is a vector type, or
   --   @const flip@ if the codomain is a point type.  Stated more

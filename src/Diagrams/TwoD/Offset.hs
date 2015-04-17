@@ -1,5 +1,5 @@
-{-# LANGUAGE GADTs                #-} -- for ghc < 7.8, TypeFamilies covers GADT patten mathcing in > 7.8
 {-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE GADTs                #-}
 {-# LANGUAGE StandaloneDeriving   #-}
 {-# LANGUAGE TemplateHaskell      #-}
 {-# LANGUAGE TypeFamilies         #-}
@@ -218,16 +218,16 @@ offsetSegment epsilon r s@(Cubic a b (OffsetClosed c)) = t `at` origin .+^ va
 
 -- > import Diagrams.TwoD.Offset
 -- >
--- > showExample :: (OrderedField n) => Segment Closed v -> Diagram SVG v
+-- > showExample :: Segment Closed V2 Double -> Diagram SVG
 -- > showExample s = pad 1.1 . centerXY $ d # lc blue # lw thick <> d' # lw thick
 -- >   where
--- >       d  = stroke . fromSegments $ [s]
--- >       d' = mconcat . zipWith lc colors . map stroke . explodeTrail
+-- >       d  = strokeP . fromSegments $ [s]
+-- >       d' = mconcat . zipWith lc colors . map strokeP . explodeTrail
 -- >          $ offsetSegment 0.1 (-1) s
 -- >
 -- >       colors = cycle [green, red]
 -- >
--- > cubicOffsetExample :: (OrderedField n) => Diagram SVG v
+-- > cubicOffsetExample :: Diagram SVG
 -- > cubicOffsetExample = hcat . map showExample $
 -- >         [ bezier3 (10 ^&  0) (  5  ^& 18) (10 ^& 20)
 -- >         , bezier3 ( 0 ^& 20) ( 10  ^& 10) ( 5 ^& 10)
@@ -309,7 +309,7 @@ offsetPath = offsetPath' def
 -- > corner :: (OrderedField n) => Located (Trail V2 n)
 -- > corner = fromVertices (map p2 [(0, 0), (10, 0), (5, 6)]) `at` origin
 -- >
--- > offsetTrailExample :: (OrderedField n) => Diagram SVG v
+-- > offsetTrailExample :: Diagram SVG
 -- > offsetTrailExample = pad 1.1 . centerXY . lwO 3 . hcat' (def & sep .~ 1 )
 -- >                    . map (uncurry showStyle)
 -- >                    $ [ (LineJoinMiter, "LineJoinMiter")
@@ -321,7 +321,7 @@ offsetPath = offsetPath' def
 -- >               <> trailLike (offsetTrail' (def & offsetJoin .~ j) 2 corner) # lc green)
 -- >            === (strutY 3 <> text s # font "Helvetica" # bold)
 -- >
--- > offsetTrailLeftExample :: (OrderedField n) => Diagram SVG v
+-- > offsetTrailLeftExample :: Diagram SVG
 -- > offsetTrailLeftExample = pad 1.1 . centerXY . lwO 3
 -- >                        $ (trailLike c # lc blue)
 -- >                        <> (lc green . trailLike
@@ -329,7 +329,7 @@ offsetPath = offsetPath' def
 -- >   where
 -- >     c = reflectY corner
 -- >
--- > offsetTrailOuterExample :: (OrderedField n) => Diagram SVG v
+-- > offsetTrailOuterExample :: Diagram SVG
 -- > offsetTrailOuterExample = pad 1.1 . centerXY . lwO 3
 -- >                         $ (trailLike c # lc blue)
 -- >                         <> (lc green . trailLike
@@ -406,7 +406,7 @@ expandPath = expandPath' def
 -- > import Diagrams.TwoD.Offset
 -- > import Data.Default.Class
 -- >
--- > expandTrailExample :: (OrderedField n) => Diagram SVG v
+-- > expandTrailExample :: Diagram SVG
 -- > expandTrailExample = pad 1.1 . centerXY . hcat' (def & sep .~ 1)
 -- >                    . map (uncurry showStyle)
 -- >                    $ [ (LineCapButt,   "LineCapButt")
@@ -422,7 +422,7 @@ expandPath = expandPath' def
 -- >                                      # lw none # fc green)
 -- >               === (strutY 3 <> text s # font "Helvetica" # bold)
 -- >
--- > expandLoopExample :: (OrderedField n) => Diagram SVG v
+-- > expandLoopExample :: Diagram SVG
 -- > expandLoopExample = pad 1.1 . centerXY $ ((strokeLocT t # lw veryThick # lc white)
 -- >                                        <> (stroke t' # lw none # fc green))
 -- >   where

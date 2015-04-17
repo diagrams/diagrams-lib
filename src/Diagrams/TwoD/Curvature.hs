@@ -68,9 +68,10 @@ import           Linear.Vector
 -- > import Data.Monoid.Inf
 -- > import Diagrams.Coordinates
 -- >
+-- > segmentA :: Segment Closed V2 Double
 -- > segmentA = Cubic (12 ^& 0) (8 ^& 10) (OffsetClosed (20 ^& 8))
 -- >
--- > curveA = lw thick . stroke . fromSegments $ [segmentA]
+-- > curveA = lw thick . strokeP . fromSegments $ [segmentA]
 -- >
 -- > diagramA = pad 1.1 . centerXY $ curveA
 -- >
@@ -83,9 +84,10 @@ import           Linear.Vector
 -- > diagramWithRadius t = pad 1.1 . centerXY
 -- >          $ curveA
 -- >         <> showCurvature segmentA t
--- >          # withEnvelope (curveA :: D R2)
+-- >          # withEnvelope (curveA :: D V2 Double)
 -- >          # lc red
 -- >
+-- > showCurvature :: Segment Closed V2 Double -> Double -> Diagram SVG
 -- > showCurvature bez@(Cubic b c (OffsetClosed d)) t
 -- >   | v == (0,0) = mempty
 -- >   | otherwise  = go (radiusOfCurvature bez t)
@@ -97,10 +99,10 @@ import           Linear.Vector
 -- >
 -- >     go Infinity   = mempty
 -- >     go (Finite r) = (circle (abs r) # translate vpr
--- >                  <> stroke (origin ~~ (origin .+^ vpr)))
+-- >                  <> strokeP (origin ~~ (origin .+^ vpr)))
 -- >                   # moveTo (origin .+^ atParam bez t)
 -- >       where
--- >         vpr = r2 (normalized vp ^* r)
+-- >         vpr = signorm vp ^* r
 -- >
 --
 curvature :: RealFloat n

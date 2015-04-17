@@ -930,10 +930,10 @@ trailFromVertices = wrapTrail . lineFromVertices
 --
 --   <<diagrams/src_Diagrams_Trail_glueLineEx.svg#diagram=glueLineEx&width=500>>
 --
---   > glueLineEx = pad 1.1 . hcat' (with & sep .~ 1)
+--   > glueLineEx = pad 1.1 . hsep 1
 --   >   $ [almostClosed # strokeLine, almostClosed # glueLine # strokeLoop]
 --   >
---   > almostClosed :: Trail' Line R2
+--   > almostClosed :: Trail' Line V2 Double
 --   > almostClosed = fromOffsets $ map r2 [(2, -1), (-3, -0.5), (-2, 1), (1, 0.5)]
 --
 --   @glueLine@ is left inverse to 'cutLoop', that is,
@@ -1069,7 +1069,7 @@ trailOffsets = withLine lineOffsets
 --
 --   > trailOffsetEx = (strokeLine almostClosed <> showOffset) # centerXY # pad 1.1
 --   >   where showOffset = fromOffsets [trailOffset (wrapLine almostClosed)]
---   >                    # stroke # lc red
+--   >                    # strokeP # lc red
 trailOffset :: (Metric v, OrderedField n) => Trail v n -> v n
 trailOffset = withLine lineOffset
 
