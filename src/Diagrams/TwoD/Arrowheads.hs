@@ -92,17 +92,19 @@ closedPath :: OrderedField n => Trail V2 n -> Path V2 n
 closedPath = pathFromTrail . closeTrail
 
 -- Heads ------------------------------------------------------------------
---   > drawHead h = arrowAt' (with & arrowHead .~ h & shaftStyle %~ lw none)
---   >         origin (r2 (0.001, 0))
---   >      <> square 0.5 # alignL # lw none
+--   > drawHead h = arrowAt' (with & arrowHead .~ h & shaftStyle %~ lw none
+--   >                             & headLength .~ local 0.5)
+--   >         origin (r2 (1, 0))
+--   >      <> square 0.5 # alignL # lw none # frame 0.1
 
 -- | Isoceles triangle style. The above example specifies an angle of `2/5 Turn`.
 
 -- | <<diagrams/src_Diagrams_TwoD_Arrowheads_tri25Ex.svg#diagram=tri25Ex&width=120>>
 
---   > tri25Ex = arrowAt' (with & arrowHead .~ arrowheadTriangle (2/5 @@ turn) & shaftStyle %~ lw none)
---   >           origin (r2 (0.001, 0))
---   >        <> square 0.6 # alignL # lw none
+--   > tri25Ex = arrowAt' (with & arrowHead .~ arrowheadTriangle (2/5 @@ turn)
+--   >                          & shaftStyle %~ lw none & headLength .~ local 0.5)
+--   >           origin (r2 (0.5, 0))
+--   >        <> square 0.6 # alignL # lw none # frame 0.1
 arrowheadTriangle :: RealFloat n => Angle n -> ArrowHT n
 arrowheadTriangle theta = aHead
   where
@@ -243,9 +245,10 @@ halfDart :: RealFloat n => ArrowHT n
 halfDart = arrowheadHalfDart (2/5 @@ turn)
 
 -- Tails ------------------------------------------------------------------
---   > drawTail t = arrowAt' (with  & arrowTail .~ t & shaftStyle %~ lw none & arrowHead .~ noHead)
---   >         origin (r2 (0.001, 0))
---   >      <> square 0.5 # alignL # lw none
+--   > drawTail t = arrowAt' (with  & arrowTail .~ t & shaftStyle %~ lw none
+--   >                              & arrowHead .~ noHead & tailLength .~ local 0.5)
+--   >         origin (r2 (1, 0))
+--   >      <> square 0.5 # alignL # lw none # frame 0.1
 
 -- | Utility function to convert any arrowhead to an arrowtail, i.e.
 --   attached at the start of the trail.
