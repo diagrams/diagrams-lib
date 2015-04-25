@@ -436,7 +436,7 @@ clipped p = withTrace p . withEnvelope p . clipBy p
 -- | Find the intersect points of two objects that can be converted to a path.
 intersectPoints :: (InSpace V2 n t, SameSpace t s, ToPath t, ToPath s, OrderedField n)
   => t -> s -> [P2 n]
-intersectPoints = intersectPoints' 1e-10
+intersectPoints = intersectPoints' 1e-8
 
 -- | Find the intersect points of two objects that can be converted to a path
 --   within the given tolerance.
@@ -446,7 +446,7 @@ intersectPoints' eps t s = intersectPointsP' eps (toPath t) (toPath s)
 
 -- | Compute the intersect points between two paths.
 intersectPointsP :: OrderedField n => Path V2 n -> Path V2 n -> [P2 n]
-intersectPointsP = intersectPointsP' 1e-10
+intersectPointsP = intersectPointsP' 1e-8
 
 -- | Compute the intersect points between two paths within given tolerance.
 intersectPointsP' :: OrderedField n => n -> Path V2 n -> Path V2 n -> [P2 n]
@@ -457,7 +457,7 @@ intersectPointsP' eps as bs = do
 
 -- | Compute the intersect points between two located trails.
 intersectPointsT :: OrderedField n => Located (Trail V2 n) -> Located (Trail V2 n) -> [P2 n]
-intersectPointsT = intersectPointsT' 1e-10
+intersectPointsT = intersectPointsT' 1e-8
 
 -- | Compute the intersect points between two located trails within the given
 --   tolerance.
