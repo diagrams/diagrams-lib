@@ -49,6 +49,7 @@ import           Diagrams.Points
 
 import           Linear.Metric
 import           Linear.Vector
+import           Linear.V2
 
 -- | Angles can be expressed in a variety of units.  Internally,
 --   they are represented in radians.
@@ -197,11 +198,14 @@ a @@ i = review i a
 
 infixl 5 @@
 
--- | Compute the positive angle between the two vectors in their common plane.
+-- | Compute the angle between the two vectors in their common plane.
+--   The angle has a sign depending on the cross product of the vectors.
 --   Returns NaN if either of the vectors are zero.
-angleBetween  :: (Metric v, Floating n) => v n -> v n -> Angle n
-angleBetween v1 v2 = acosA (signorm v1 `dot` signorm v2)
--- N.B.: Currently discards the common plane information.
+angleBetween  :: (Metric v, Floating n, Ord n, R2 v) => v n -> v n -> Angle n
+angleBetween v1 v2 = Radians (crossSign * (acos (signorm v1 `dot` signorm v2))) where
+   cross = v1^._x * v2^._y - v1^._y * v2^._x
+   crossSign | cross >= 0 =  1
+             | otherwise  = -1
 
 -- | Normalize an angle so that it lies in the [0,tau) range.
 normalizeAngle :: (Floating n, Real n) => Angle n -> Angle n
