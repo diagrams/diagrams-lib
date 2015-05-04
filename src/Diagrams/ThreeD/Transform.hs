@@ -138,18 +138,18 @@ rotateAbout p d theta = transform (rotationAbout p d theta)
 -- without tilting, it will be, otherwise if only tilting is
 -- necessary, no panning will occur.  The tilt will always be between
 -- ± 1/4 turn.
-pointAt :: Floating n
+pointAt :: (Floating n, Ord n)
         => Direction V3 n -> Direction V3 n -> Direction V3 n
         -> Transformation V3 n
 pointAt a i f = pointAt' (fromDirection a) (fromDirection i) (fromDirection f)
 
 -- | pointAt' has the same behavior as 'pointAt', but takes vectors
 -- instead of directions.
-pointAt' :: Floating n => V3 n -> V3 n -> V3 n -> Transformation V3 n
+pointAt' :: (Floating n, Ord n) => V3 n -> V3 n -> V3 n -> Transformation V3 n
 pointAt' about initial final = pointAtUnit (signorm about) (signorm initial) (signorm final)
 
 -- | pointAtUnit has the same behavior as @pointAt@, but takes unit vectors.
-pointAtUnit :: Floating n => V3 n -> V3 n -> V3 n -> Transformation V3 n
+pointAtUnit :: (Floating n, Ord n) => V3 n -> V3 n -> V3 n -> Transformation V3 n
 pointAtUnit about initial final = tilt <> pan where
   -- rotating u by (signedAngle rel u v) about rel gives a vector in the direction of v
   signedAngle rel u v = signum (cross u v `dot` rel) *^ angleBetween u v
