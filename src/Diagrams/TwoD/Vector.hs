@@ -79,8 +79,14 @@ leftTurn v1 v2 = (v1 `dot` perp v2) < 0
 cross2 :: Num n => V2 n -> V2 n -> n
 cross2 (V2 x1 y1) (V2 x2 y2) = x1 * y2 - y1 * x2
 
+-- | Signed angle between two vectors. Currently defined as
+--
+-- @
+-- signedAngleBetween u v = (u ^. _theta) ^-^ (v ^. _theta)
+-- @
 signedAngleBetween :: RealFloat n => V2 n -> V2 n -> Angle n
 signedAngleBetween u v = (u ^. _theta) ^-^ (v ^. _theta)
 
+-- | Same as 'signedAngleBetween' but for 'Directions's.
 signedAngleBetweenDirs :: RealFloat n => Direction V2 n -> Direction V2 n -> Angle n
 signedAngleBetweenDirs u v = (u ^. _theta) ^-^ (v ^. _theta)

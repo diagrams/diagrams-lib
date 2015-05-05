@@ -197,7 +197,10 @@ a @@ i = review i a
 
 infixl 5 @@
 
--- | Compute the positive angle between the two vectors in their common plane.
+-- | Compute the positive angle between the two vectors in their common
+--   plane in the [0,pi] range. For a signed angle see
+--   'Diagrams.TwoD.Vector.signedAngleBetween'.
+--
 --   Returns NaN if either of the vectors are zero.
 angleBetween  :: (Metric v, Floating n) => v n -> v n -> Angle n
 angleBetween v1 v2 = acosA (signorm v1 `dot` signorm v2)
