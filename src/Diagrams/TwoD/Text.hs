@@ -24,20 +24,26 @@ module Diagrams.TwoD.Text (
   , text, topLeftText, alignedText, baselineText, mkText
 
   -- * Text attributes
+
   -- ** Font family
   , Font(..), _Font
   , getFont, font, _font
+
   -- ** Font size
   , FontSize(..), _FontSize
-  , getFontSize, fontSizeM, fontSize
+  , fontSize, recommendFontSize
   , fontSizeN, fontSizeO, fontSizeL, fontSizeG
+  , getFontSize, fontSizeM
   , _fontSizeR, _fontSize, _fontSizeU
+
   -- ** Font slant
   , FontSlant(..)
   , getFontSlant, fontSlant, italic, oblique, _fontSlant
+
   -- ** Font weight
   , FontWeight(..)
   , getFontWeight, fontWeight, bold, _fontWeight
+
   ) where
 
 import           Control.Lens             hiding (transform)
@@ -234,10 +240,15 @@ getFontSize (FontSize (Recommend (Last s))) = s
 getFontSize (FontSize (Commit (Last s)))    = s
 
 -- | Set the font size, that is, the size of the font's em-square as
---   measured within the current local vector space.  The default size
---   is @1@.
+--   measured within the current local vector space. The default size
+--   is @local 1@ (which is applied by 'recommendFontSize').
 fontSize :: (N a ~ n, Typeable n, HasStyle a) => Measure n -> a -> a
 fontSize = applyMAttr . fmap (FontSize . Commit . Last)
+
+-- | 'Recommend' a font size. Any use of 'fontSize' above this will
+--   overwrite any recommended size.
+recommendFontSize :: (N a ~ n, Typeable n, HasStyle a) => Measure n -> a -> a
+recommendFontSize = applyMAttr . fmap (FontSize . Recommend . Last)
 
 -- | A convenient synonym for 'fontSize (Global w)'.
 fontSizeG :: (N a ~ n, Typeable n, Num n, HasStyle a) => n -> a -> a
@@ -258,9 +269,6 @@ fontSizeL = fontSize . local
 -- | Apply a 'FontSize' attribute.
 fontSizeM :: (N a ~ n, Typeable n, Num n, HasStyle a) => FontSizeM n -> a -> a
 fontSizeM = applyMAttr
-
-recommendFontSize :: (N a ~ n, Typeable n, HasStyle a) => Measure n -> a -> a
-recommendFontSize = applyMAttr . fmap (FontSize . Recommend . Last)
 
 _fontSizeR :: (Typeable n, OrderedField n) => Lens' (Style v n) (Measured n (Recommend n))
 _fontSizeR = atMAttr . anon def (const False) . _FontSizeM
