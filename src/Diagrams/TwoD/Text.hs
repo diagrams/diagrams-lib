@@ -21,7 +21,8 @@
 module Diagrams.TwoD.Text (
   -- * Creating text diagrams
     Text(..), TextAlignment(..)
-  , text, topLeftText, alignedText, baselineText, mkText
+  , text, topLeftText, alignedText, baselineText
+  , mkText, mkText'
 
   -- * Text attributes
 
@@ -94,19 +95,27 @@ instance Floating n => Renderable (Text n) NullBackend where
 -- | @TextAlignment@ specifies the alignment of the text's origin.
 data TextAlignment n = BaselineText | BoxAlignedText n n
 
--- | Make a text from a 'TextAlignment'.
+-- | Make a text from a 'TextAlignment', recommending a fill colour of
+--   'black' and 'fontSize' of @'local' 1@.
 mkText :: (TypeableFloat n, Renderable (Text n) b)
   => TextAlignment n -> String -> QDiagram b V2 n Any
-mkText a t = recommendFillColor black
-             -- See Note [recommendFillColor]
-           . recommendFontSize (local 1)
-             -- See Note [recommendFontSize]
+mkText a = recommendFillColor black
+           -- See Note [recommendFillColor]
+         . recommendFontSize (local 1)
+           -- See Note [recommendFontSize]
+         . mkText' a
 
-           $ mkQD (Prim $ Text mempty a t)
-                       (pointEnvelope origin)
-                       mempty
-                       mempty
-                       mempty
+-- | Make a text from a 'TextAlignment' without any default size or fill
+--   colour. This is useful is you want to recommend your own using
+--   'recommendFillColor' or 'recommendFontSize'.
+mkText' :: (TypeableFloat n, Renderable (Text n) b)
+  => TextAlignment n -> String -> QDiagram b V2 n Any
+mkText' a t = mkQD (Prim $ Text mempty a t)
+                   (pointEnvelope origin)
+                   mempty
+                   mempty
+                   mempty
+
 
 -- ~~~~ Note [recommendFillColor]
 
@@ -129,9 +138,10 @@ mkText a t = recommendFillColor black
 -- user explicitly sets a fill color later it should override this
 -- recommendation; normally, the innermost occurrence of an attribute
 -- would override all outer occurrences.
---
--- The reason we "recommend" a fill color of black instead of setting
--- it directly (or instead of simply not specifying a fill color at
+
+-- ~~~~ Note [recommendFontSize]
+-- The reason we "recommend" a font size is so any local scales get
+-- recorded.
 
 -- | Create a primitive text diagram from the given string, with center
 --   alignment, equivalent to @'alignedText' 0.5 0.5@.
@@ -246,7 +256,9 @@ fontSize :: (N a ~ n, Typeable n, HasStyle a) => Measure n -> a -> a
 fontSize = applyMAttr . fmap (FontSize . Commit . Last)
 
 -- | 'Recommend' a font size. Any use of 'fontSize' above this will
---   overwrite any recommended size.
+--   overwrite any recommended size. This should only be used with
+--   'mkText'', other text functions already has a recommended font
+--   size so this will be ignored.
 recommendFontSize :: (N a ~ n, Typeable n, HasStyle a) => Measure n -> a -> a
 recommendFontSize = applyMAttr . fmap (FontSize . Recommend . Last)
 
