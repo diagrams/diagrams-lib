@@ -29,7 +29,6 @@ module Diagrams.TwoD.Align
 
       -- ** Align by trace
     , snugL, snugR, snugT, snugB
-    , snugTL, snugTR, snugBL, snugBR
 
       -- * Relative alignment
     , alignX, snugX, alignY, snugY
@@ -83,14 +82,6 @@ alignTR = alignT . alignR
 alignBL = alignB . alignL
 alignBR = alignB . alignR
 
-snugTL, snugTR, snugBL, snugBR
-  :: (InSpace V2 n a, Fractional n, Alignable a, Traced a, HasOrigin a)
-   => a -> a
-snugTL = snugT . snugL
-snugTR = snugT . snugR
-snugBL = snugB . snugL
-snugBR = snugB . snugR
-
 -- | @alignX@ and @snugX@ move the local origin horizontally as follows:
 --
 --   * @alignX (-1)@ moves the local origin to the left edge of the boundary;
@@ -140,5 +131,3 @@ centerXY = centerX . centerY
 
 snugCenterXY :: (InSpace v n a, R2 v, Fractional n, Alignable a, Traced a, HasOrigin a) => a -> a
 snugCenterXY = snugCenterX . snugCenterY
-
-

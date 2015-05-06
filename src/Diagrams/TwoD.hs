@@ -247,7 +247,7 @@ module Diagrams.TwoD
        , centerX, centerY, centerXY
 
          -- * Snugging
-       , snugL, snugR, snugT, snugB, snugTL, snugTR, snugBL, snugBR
+       , snugL, snugR, snugT, snugB
        , snugX, snugY
        , snugCenterX, snugCenterY, snugCenterXY
 
