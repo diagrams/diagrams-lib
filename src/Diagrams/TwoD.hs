@@ -189,8 +189,6 @@ module Diagrams.TwoD
        , DImage(..), ImageData(..)
        , Embedded, External, Native
        , image
-       , loadImageEmb
-       , loadImageExt
        , uncheckedImageRef
        , raster
        , rasterDia
