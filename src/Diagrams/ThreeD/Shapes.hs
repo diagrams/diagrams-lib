@@ -22,6 +22,7 @@ module Diagrams.ThreeD.Shapes
        , Box(..), cube
        , Frustum(..) , frustum, cone, cylinder
        , Skinned(..)
+       , CSG(..), union, intersection, difference
        ) where
 
 #if __GLASGOW_HASKELL__ < 710
@@ -203,3 +204,58 @@ instance (OrderedField n) => Inside (Frustum n) where
 
 instance Skinned (Frustum n) where
     skin s = mkQD (Prim s) (getEnvelope s) (getTrace s) mempty (inside s)
+
+-- The CSG type needs to form a tree to be useful.  This
+-- implementation requires Backends to support all the included
+-- primitives.  If that turns out to be a problem, we have several
+-- options:
+-- a) accept runtime errors for unsupported primitives
+-- b) carry the set of primitives in a row type in the CSG type
+-- c) implement CSG in Haskell, so Backends supporting triangle meshes
+--      can fall back to those.
+-- (c) is worth doing anyway; I'm ambivalent about the others.  -DMB
+
+-- | A tree of Constructive Solid Geometry operations and the primitives that
+-- can be used in them.
+data CSG n = CsgEllipsoid (Ellipsoid n)
+         | CsgBox (Box n)
+         | CsgFrustum (Frustum n)
+         | CsgUnion [CSG n]
+         | CsgIntersection [CSG n]
+         | CsgDifference (CSG n) (CSG n)
+
+type instance V (CSG n) = V3
+type instance N (CSG n) = n
+
+instance Fractional n => Transformable (CSG n) where
+    transform t (CsgEllipsoid p) = CsgEllipsoid $ transform t p
+    transform t (CsgBox p) = CsgBox $ transform t p
+    transform t (CsgFrustum p) = CsgFrustum $ transform t p
+    transform t (CsgUnion ps) = CsgUnion . map (transform t) $ ps
+    transform t (CsgIntersection ps) = CsgIntersection . map (transform t) $ ps
+    transform t (CsgDifference p1 p2) = CsgDifference (transform t p1) (transform t p2)
+
+-- | Types which can be included in CSG trees.
+class CsgPrim a where
+    toCsg :: a n -> CSG n
+
+instance CsgPrim Ellipsoid where
+    toCsg = CsgEllipsoid
+
+instance CsgPrim Box where
+    toCsg = CsgBox
+
+instance CsgPrim Frustum where
+    toCsg = CsgFrustum
+
+instance CsgPrim CSG where
+    toCsg = id
+
+union :: (CsgPrim a, CsgPrim b) => a n -> b n -> CSG n
+union a b = CsgUnion [toCsg a, toCsg b]
+
+intersection :: (CsgPrim a, CsgPrim b) => a n -> b n -> CSG n
+intersection a b = CsgIntersection [toCsg a, toCsg b]
+
+difference :: (CsgPrim a, CsgPrim b) => a n -> b n -> CSG n
+difference a b = CsgDifference (toCsg a) (toCsg b)
