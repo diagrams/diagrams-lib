@@ -34,6 +34,7 @@ import           Data.Typeable
 import           Data.Semigroup
 import           Diagrams.Angle
 import           Diagrams.Core
+import           Diagrams.Core.Trace
 import           Diagrams.Points
 import           Diagrams.Solve.Polynomial
 import           Diagrams.ThreeD.Types
@@ -244,9 +245,46 @@ instance RealFloat n => Enveloped (CSG n) where
     getEnvelope (CsgUnion ps) = foldMap getEnvelope ps
     getEnvelope (CsgIntersection ps) = foldMap getEnvelope ps
     getEnvelope (CsgDifference p1 p2) = getEnvelope p1 <> getEnvelope p2
-
 -- TODO after implementing some approximation scheme, calculate
 -- correct (approximate) envelopes for intersections and difference.
+
+instance (Floating n, Ord n) => Inside (CSG n) where
+    inside (CsgEllipsoid prim) = inside prim
+    inside (CsgBox prim) = inside prim
+    inside (CsgFrustum prim) = inside prim
+    inside (CsgUnion ps) = foldMap inside ps
+    inside (CsgIntersection ps) =
+        Any . getAll <$> foldMap (fmap (All . getAny) . inside) ps
+    inside (CsgDifference p1 p2) = inOut <$> inside p1 <*> inside p2 where
+      inOut (Any a) (Any b) = Any $ a && not b
+
+instance (RealFloat n, Ord n) => Traced (CSG n) where
+    getTrace (CsgEllipsoid p) = getTrace p
+    getTrace (CsgBox p) = getTrace p
+    getTrace (CsgFrustum p) = getTrace p
+    -- on surface of some p, and not inside any of the others
+    getTrace (CsgUnion []) = mempty
+    getTrace (CsgUnion (s:ss)) = mkTrace t where
+      t pt v = onSortedList (filter $ without s) (appTrace (getTrace (CsgUnion ss)) pt v)
+               <> onSortedList (filter $ without (CsgUnion ss)) (appTrace (getTrace s) pt v) where
+        newPt dist = pt .+^ v ^* dist
+        without prim = not . getAny . runQuery (inside prim) . newPt
+    -- on surface of some p, and inside all the others
+    getTrace (CsgIntersection []) = mempty
+    getTrace (CsgIntersection (s:ss)) = mkTrace t where
+      t pt v = onSortedList (filter $ within s) (appTrace (getTrace (CsgIntersection ss)) pt v)
+               <> onSortedList (filter $ within (CsgIntersection ss)) (appTrace (getTrace s) pt v) where
+        newPt dist = pt .+^ v ^* dist
+        within prim = getAny . runQuery (inside prim) . newPt
+    -- on surface of p1, outside p2, or on surface of p2, inside p1
+    getTrace (CsgDifference s1 s2) = mkTrace t where
+        t pt v = onSortedList (filter $ not . within s2) (appTrace (getTrace s1) pt v)
+                 <> onSortedList (filter $ within s1) (appTrace (getTrace s2) pt v) where
+          newPt dist = pt .+^ v ^* dist
+          within prim = getAny . runQuery (inside prim) . newPt
+
+instance (RealFloat n, Ord n) => Skinned (CSG n) where
+    skin s = mkQD (Prim s) (getEnvelope s) (getTrace s) mempty (inside s)
 
 -- | Types which can be included in CSG trees.
 class CsgPrim a where
