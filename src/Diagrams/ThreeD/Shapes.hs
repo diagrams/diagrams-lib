@@ -235,6 +235,19 @@ instance Fractional n => Transformable (CSG n) where
     transform t (CsgIntersection ps) = CsgIntersection . map (transform t) $ ps
     transform t (CsgDifference p1 p2) = CsgDifference (transform t p1) (transform t p2)
 
+-- | The Envelope for an Intersection or Difference is simply the
+-- Envelope of the Union.  This is wrong but easy to implement.
+instance RealFloat n => Enveloped (CSG n) where
+    getEnvelope (CsgEllipsoid p) = getEnvelope p
+    getEnvelope (CsgBox p) = getEnvelope p
+    getEnvelope (CsgFrustum p) = getEnvelope p
+    getEnvelope (CsgUnion ps) = foldMap getEnvelope ps
+    getEnvelope (CsgIntersection ps) = foldMap getEnvelope ps
+    getEnvelope (CsgDifference p1 p2) = getEnvelope p1 <> getEnvelope p2
+
+-- TODO after implementing some approximation scheme, calculate
+-- correct (approximate) envelopes for intersections and difference.
+
 -- | Types which can be included in CSG trees.
 class CsgPrim a where
     toCsg :: a n -> CSG n
