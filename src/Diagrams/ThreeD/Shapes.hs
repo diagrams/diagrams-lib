@@ -27,6 +27,7 @@ module Diagrams.ThreeD.Shapes
 
 #if __GLASGOW_HASKELL__ < 710
 import           Control.Applicative
+import           Data.Foldable             (foldMap)
 #endif
 import           Control.Lens              (review, (^.), _1)
 import           Data.Typeable
@@ -224,6 +225,7 @@ data CSG n = CsgEllipsoid (Ellipsoid n)
      | CsgUnion [CSG n]
      | CsgIntersection [CSG n]
      | CsgDifference (CSG n) (CSG n)
+       deriving Typeable
 
 type instance V (CSG n) = V3
 type instance N (CSG n) = n
