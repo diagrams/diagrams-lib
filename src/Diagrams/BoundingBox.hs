@@ -55,7 +55,7 @@ import           Diagrams.Align
 import           Diagrams.Core
 import           Diagrams.Core.Transform
 import           Diagrams.Path
-import           Diagrams.ThreeD.Shapes  (Box, cube)
+import           Diagrams.ThreeD.Shapes  (cube)
 import           Diagrams.ThreeD.Types
 import           Diagrams.TwoD.Path      ()
 import           Diagrams.TwoD.Shapes
