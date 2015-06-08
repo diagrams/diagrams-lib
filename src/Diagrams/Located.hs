@@ -34,6 +34,7 @@ import           Text.Read
 import           Linear.Affine
 import           Linear.Vector
 
+import           Diagrams.Align
 import           Diagrams.Core
 import           Diagrams.Core.Transform
 import           Diagrams.Parametric
@@ -143,6 +144,9 @@ instance Enveloped a => Juxtaposable (Located a) where
 --   translated to the location.
 instance (Traced a, Num (N a)) => Traced (Located a) where
   getTrace (Loc p a) = moveTo p (getTrace a)
+
+instance Alignable a => Alignable (Located a) where
+  defaultBoundary v = defaultBoundary v . unLoc
 
 instance Qualifiable a => Qualifiable (Located a) where
   n .>> Loc p a = Loc p (n .>> a)
