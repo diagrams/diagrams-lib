@@ -197,13 +197,13 @@ instance OrderedField n => Skinned (Box n) where
 instance (OrderedField n) => Inside (Frustum n) where
   inside (Frustum r0 r1 tr)= transform tr $
     Query $ \p -> let
-      (x, _, z) = unp3 p
+      z = p^._z
       r = r0 + (r1 - r0)*z
       v = p .-. origin
       a = norm $ projectXY v
       projectXY u = u ^-^ project unitZ u
       in
-       Any $ x >= 0 && x <= 1 && a <= r
+       Any $ z >= 0 && z <= 1 && a <= r
 
 instance Skinned (Frustum n) where
   skin s = mkQD (Prim s) (getEnvelope s) (getTrace s) mempty (inside s)
