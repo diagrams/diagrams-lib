@@ -65,7 +65,7 @@ instance OrderedField n => Traced (Ellipsoid n) where
   getTrace (Ellipsoid tr) = transform tr . mkTrace $ \(P p) v -> let
     a  =    v `dot` v
     b  = 2 * (p `dot` v)
-    c  =    p `dot` (p - 1)
+    c  =    (p `dot` p) - 1
     in
      mkSortedList $ quadForm a b c
 
