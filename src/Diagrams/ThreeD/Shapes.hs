@@ -23,6 +23,7 @@ module Diagrams.ThreeD.Shapes
      , Frustum(..) , frustum, cone, cylinder
      , Skinned(..)
      , CSG(..), union, intersection, difference
+     , Inside(..)
      ) where
 
 #if __GLASGOW_HASKELL__ < 710

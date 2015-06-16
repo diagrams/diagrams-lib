@@ -57,8 +57,7 @@ import           Diagrams.ThreeD.Attributes
 import           Diagrams.ThreeD.Camera
 import           Diagrams.ThreeD.Deform
 import           Diagrams.ThreeD.Light
-import           Diagrams.ThreeD.Shapes
+import           Diagrams.ThreeD.Shapes     hiding (Inside)
 import           Diagrams.ThreeD.Transform
 import           Diagrams.ThreeD.Types
 import           Diagrams.ThreeD.Vector
-
