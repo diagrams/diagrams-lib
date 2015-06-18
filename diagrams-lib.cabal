@@ -40,6 +40,7 @@ Library
                        Diagrams.Combinators,
                        Diagrams.Coordinates,
                        Diagrams.CubicSpline,
+                       Diagrams.CubicSpline.Boehm,
                        Diagrams.CubicSpline.Internal,
                        Diagrams.Deform
                        Diagrams.Direction,
