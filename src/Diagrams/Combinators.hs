@@ -35,11 +35,13 @@ module Diagrams.Combinators
        , cat, cat'
        , CatOpts(_catMethod, _sep), catMethod, sep
        , CatMethod(..)
+       , composeAligned
 
        ) where
 
 import           Control.Lens          hiding (beside, ( # ))
 import           Data.Default.Class
+import           Data.Maybe            (fromJust)
 import           Data.Monoid.Deletable (toDeletable)
 import           Data.Monoid.MList     (inj)
 import           Data.Proxy
@@ -49,6 +51,7 @@ import qualified Data.Tree.DUAL        as D
 import           Diagrams.Core
 import           Diagrams.Core.Types   (QDiagram (QD))
 import           Diagrams.Direction
+import           Diagrams.Names        (named)
 import           Diagrams.Segment      (straight)
 import           Diagrams.Util
 
@@ -351,3 +354,38 @@ cat' v (CatOpts { _catMethod = Cat, _sep = s }) = foldB comb mempty
 
 cat' v (CatOpts { _catMethod = Distrib, _sep = s }) =
   position . zip (iterate (.+^ (s *^ signorm v)) origin)
+
+-- | Compose a list of diagrams using the given composition function,
+--   first aligning them all according to the given alignment, *but*
+--   retain the local origin of the first diagram, as it would be if
+--   the composition function were applied directly.  That is,
+--   @composeAligned algn comp@ is equivalent to @translate v . comp
+--   . map algn@ for some appropriate translation vector @v@.
+--
+--   Note that it is not possible to make this an extra optional
+--   parameter for 'cat'' since the types do not work.
+--
+--   XXX diagrams-haddock
+--   examples.  - (hsep 2 # composeAligned alignT) [...]  - (mconcat #
+--   composeAligned alignTL) [...]  - (vcat # composeAligned snugL)
+--   [...]
+--
+--     - something weirder?  Can't really think of anything.
+--
+--     compare some to  comp . map algn
+composeAligned
+  :: (Monoid' m, Floating n, Ord n, Metric v)
+  => (QDiagram b v n m -> QDiagram b v n m)    -- ^ Alignment function
+  -> ([QDiagram b v n m] -> QDiagram b v n m)  -- ^ Composition function
+  -> ([QDiagram b v n m] -> QDiagram b v n m)
+composeAligned _ combine [] = combine []
+composeAligned algn comb (d:ds) = (comb $ map algn (d:ds)) # moveOriginTo l
+  where
+    mss = ( (() .>> d)   -- qualify first to avoid stomping on an existing () name
+          # named ()     -- Mark the origin
+          # algn         -- Apply the alignment function
+          )
+          -- then find out what happened to the origin
+        ^. subMap . _Wrapped . Control.Lens.at (toName ())
+    l   = location . head . fromJust $ mss
+          -- the fromJust is Justified since we put the () name in
