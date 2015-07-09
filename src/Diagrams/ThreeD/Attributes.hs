@@ -1,9 +1,9 @@
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeFamilies               #-}
-{-# LANGUAGE MultiParamTypeClasses               #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.ThreeD.Attributes
@@ -38,7 +38,7 @@ import           Diagrams.Core
 -- | @SurfaceColor@ is the inherent pigment of an object, assumed to
 -- be opaque.
 newtype SurfaceColor = SurfaceColor (Last (Colour Double))
-  deriving (Typeable, Semigroup)
+  deriving (Typeable, Semigroup, Show)
 
 instance AttributeClass SurfaceColor
 
@@ -59,7 +59,7 @@ _sc = atAttr . mapping _SurfaceColor
 -- Attribute.  For physical reasonableness, @Diffuse@ should have a
 -- value between 0 and 1; this is not checked.
 newtype Diffuse = Diffuse (Last Double)
-  deriving (Typeable, Semigroup)
+  deriving (Typeable, Semigroup, Show)
 
 instance AttributeClass Diffuse
 
@@ -82,7 +82,7 @@ _diffuse = atAttr . mapping _Diffuse
 -- indirect lighting incident on that object and the diffuse
 -- reflectance.
 newtype Ambient = Ambient (Last Double)
-  deriving (Typeable, Semigroup)
+  deriving (Typeable, Semigroup, Show)
 
 instance AttributeClass Ambient
 
@@ -107,12 +107,12 @@ _ambient = atAttr . mapping _Ambient
 data Specular = Specular
   { _specularIntensity :: Double
   , _specularSize      :: Double
-  }
+  } deriving Show
 
 makeLenses ''Specular
 
 newtype Highlight = Highlight (Last Specular)
-  deriving (Typeable, Semigroup)
+  deriving (Typeable, Semigroup, Show)
 
 instance AttributeClass Highlight
 
@@ -136,4 +136,3 @@ highlightIntensity = _highlight . _Just . specularSize
 --   'Specular', setting this will do nothing.
 highlightSize :: Traversal' (Style v n) Double
 highlightSize = _highlight . _Just . specularSize
-

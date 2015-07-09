@@ -55,7 +55,7 @@ import           Diagrams.Align
 import           Diagrams.Core
 import           Diagrams.Core.Transform
 import           Diagrams.Path
-import           Diagrams.ThreeD.Shapes
+import           Diagrams.ThreeD.Shapes  (cube)
 import           Diagrams.ThreeD.Types
 import           Diagrams.TwoD.Path      ()
 import           Diagrams.TwoD.Shapes
@@ -130,9 +130,8 @@ instance RealFloat n => Traced (BoundingBox V2 n) where
            . getEnvelope
 
 instance TypeableFloat n => Traced (BoundingBox V3 n) where
-  getTrace = getTrace
-           . ((`boxFit` cube) . boundingBox :: Envelope V3 n -> D V3 n)
-           . getEnvelope
+  getTrace bb = foldMap (\tr -> getTrace $ transform tr cube) $
+                boxTransform (boundingBox cube) bb
 
 instance (Metric v, Traversable v, OrderedField n) => Alignable (BoundingBox v n) where
   defaultBoundary = envelopeP
@@ -310,4 +309,3 @@ intersection u v = maybe mempty (uncurry fromCorners) $ do
 --   function is just an alias for @mappend@.
 union :: (Additive v, Ord n) => BoundingBox v n -> BoundingBox v n -> BoundingBox v n
 union = mappend
-
