@@ -40,14 +40,10 @@ module Diagrams.Combinators
 
 import           Control.Lens          hiding (beside, ( # ))
 import           Data.Default.Class
-import           Data.Monoid.Deletable (toDeletable)
-import           Data.Monoid.MList     (inj)
 import           Data.Proxy
 import           Data.Semigroup
-import qualified Data.Tree.DUAL        as D
 
 import           Diagrams.Core
-import           Diagrams.Core.Types   (QDiagram (QD))
 import           Diagrams.Direction
 import           Diagrams.Segment      (straight)
 import           Diagrams.Util
@@ -86,7 +82,9 @@ withTrace = setTrace . getTrace
 -- | @phantom x@ produces a \"phantom\" diagram, which has the same
 --   envelope and trace as @x@ but produces no output.
 phantom :: (InSpace v n a, Monoid' m, Enveloped a, Traced a) => a -> QDiagram b v n m
-phantom a = QD $ D.leafU ((inj . toDeletable . getEnvelope $ a) <> (inj . toDeletable . getTrace $ a))
+phantom a = mempty & setEnvelope (getEnvelope a)
+                   & setTrace (getTrace a)
+  -- QD $ D.leafU ((inj . toDeletable . getEnvelope $ a) <> (inj . toDeletable . getTrace $ a))
 
 -- | @pad s@ \"pads\" a diagram, expanding its envelope by a factor of
 --   @s@ (factors between 0 and 1 can be used to shrink the envelope).
@@ -119,7 +117,7 @@ frame s = over envelope (onEnvelope $ \f x -> f x + s)
 --   > strutEx = (circle 1 ||| strut unitX ||| circle 1) # centerXY # pad 1.1
 strut :: (Metric v, OrderedField n, Monoid' m)
       => v n -> QDiagram b v n m
-strut v = QD $ D.leafU (inj . toDeletable $ env)
+strut v = mempty & setEnvelope env -- QD $ D.leafU (inj . toDeletable $ env)
   where env = translate ((-0.5) *^ v) . getEnvelope $ straight v
   -- note we can't use 'phantom' here because it tries to construct a
   -- trace as well, and segments do not have a trace in general (only

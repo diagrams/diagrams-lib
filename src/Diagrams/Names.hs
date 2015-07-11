@@ -54,7 +54,7 @@ named = nameSub mkSubdiagram
 -- | Attach an atomic name to a certain point (which may be computed
 --   from the given diagram), treated as a subdiagram with no content
 --   and a point envelope.
-namePoint :: (IsName nm , Metric v, OrderedField n, Semigroup m)
+namePoint :: (IsName nm , Metric v, OrderedField n, Semigroup m, Monoid m)
           => (QDiagram b v n m -> Point v n) -> nm -> QDiagram b v n m -> QDiagram b v n m
 namePoint p = nameSub (subPoint . p)
 
