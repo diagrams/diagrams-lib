@@ -1,4 +1,5 @@
-{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TypeFamilies     #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -26,15 +27,13 @@ module Diagrams.CubicSpline.Boehm
        , bspline
        ) where
 
-import           Control.Arrow       ((***))
-import           Data.List           (sort, tails)
-import           Diagrams.Core       (N, Point, V, origin)
-import           Diagrams.Located    (at, loc, unLoc)
-import           Diagrams.Segment    (FixedSegment (..), fromFixedSeg)
-import           Diagrams.TrailLike  (TrailLike, fromLocSegments)
-import           Diagrams.TwoD.Types (P2, V2)
-import           Diagrams.Util       (iterateN)
-import           Linear.Vector       (Additive, lerp)
+import           Data.List          (sort, tails)
+import           Diagrams.Core      (N, Point, V, origin)
+import           Diagrams.Located   (at, loc, unLoc)
+import           Diagrams.Segment   (FixedSegment (..), fromFixedSeg)
+import           Diagrams.TrailLike (TrailLike, fromLocSegments)
+import           Diagrams.Util      (iterateN)
+import           Linear.Vector      (Additive, lerp)
 
 type BSpline v n = [Point v n]
 
@@ -63,7 +62,7 @@ extend k xs = replicate k (head xs) ++ xs ++ replicate k (last xs)
 --   points may be combined to yield other points of interest.
 --
 --   Invariant: knot values are in nondecreasing order.
-data PolarPt v n = PP { unPP :: Point v n, knots :: [n] }
+data PolarPt v n = PP { unPP :: Point v n, _knots :: [n] }
 
 mkPolarPt :: Ord n => Point v n -> [n] -> PolarPt v n
 mkPolarPt pt kts = PP pt (sort kts)
@@ -105,17 +104,20 @@ bsplineToBeziers controls = beziers
     -- the spline control points.
     bezierControls        = map combineC (windows 2 controls')
     combineC [pabc, pbcd] = (combine 0 pabc pbcd, combine 1 pabc pbcd)
+    combineC _ = error "combineC must be called on a list of length 2"
 
     -- The bezier end points are affine combinations of the bezier
     -- control points.
     bezierEnds                   = map combineE (windows 2 bezierControls)
     combineE [(_,pabb),(pbbc,_)] = combine 0 pabb pbbc
+    combineE _ = error "combineE must be called on a list of length 2"
 
     -- Finally, we actually put together the generated bezier segments.
     beziers                      = zipWith mkBezier (drop 1 bezierControls) (windows 2 bezierEnds)
       where
         mkBezier (paab,pabb) [paaa,pbbb]
           = FCubic (unPP paaa) (unPP paab) (unPP pabb) (unPP pbbb)
+        mkBezier _ _ = error "mkBezier must be called on a list of length 2"
 
     -- Note that the above algorithm works in any dimension but is
     -- very specific to *cubic* splines.  This can of course be
