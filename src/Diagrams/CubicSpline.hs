@@ -13,12 +13,10 @@
 --
 -- The 'cubicSpline' method can be used to create closed or open cubic
 -- splines from a list of points. The resulting splines /pass through/
--- all the control points, but depends on the control points in a
+-- all the control points, but depend on the control points in a
 -- "global" way (that is, changing one control point may alter the
 -- entire curve).  For access to the internals of the spline
--- generation algorithm (including in particular a solver for cyclic
--- tridiagonal systems of linear equations), see
--- "Diagrams.CubicSpline.Internal".
+-- generation algorithm, see "Diagrams.CubicSpline.Internal".
 --
 -- 'bspline' creates a cubic B-spline, which starts and ends at the
 -- first and last control points, but does not necessarily pass

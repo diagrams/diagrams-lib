@@ -10,6 +10,15 @@
 -- Boehm's algorithm for converting a cubic B-spline into a sequence
 -- of cubic Bezier curves.
 --
+-- See
+--
+--   * Thomas W. Sederberg, /An Introduction to B-Spline Curves/,
+--     <http://web.archive.org/web/20120227050519/http://tom.cs.byu.edu/~455/bs.pdf>
+--
+--   * Lyle Ramshaw, /Blossoming: A Connect-the-Dots Approach to
+--   Splines/,
+--   <http://www.hpl.hp.com/techreports/Compaq-DEC/SRC-RR-19.pdf>
+--
 -----------------------------------------------------------------------------
 module Diagrams.CubicSpline.Boehm
        ( BSpline
@@ -48,10 +57,10 @@ extend k xs = replicate k (head xs) ++ xs ++ replicate k (last xs)
 
 -- | A "polar point" is a point along with three knot values.
 --   We consider the "blossom" of a cubic spline, a 3-ary symmetric
---   polynomial (see XXX); a polar point consists of 3 values paired
---   with the output of the blossom at those input values.  Blossoms
---   have nice affine properties so this makes it easy to keep track
---   of how points may be combined to yield other points of interest.
+--   polynomial; a polar point consists of 3 values paired with the
+--   output of the blossom at those input values.  Blossoms have nice
+--   affine properties so this makes it easy to keep track of how
+--   points may be combined to yield other points of interest.
 --
 --   Invariant: knot values are in nondecreasing order.
 data PolarPt v n = PP { unPP :: Point v n, knots :: [n] }
@@ -59,10 +68,10 @@ data PolarPt v n = PP { unPP :: Point v n, knots :: [n] }
 mkPolarPt :: Ord n => Point v n -> [n] -> PolarPt v n
 mkPolarPt pt kts = PP pt (sort kts)
 
--- | Precondition: the knots of the two polar points overlap, like abc and bcd.
---   The Int should be 0 or 1, indicating which knot to replicate (0
---   means to replicate b, yielding bbc, 1 means to replicate c,
---   yielding bcc).
+-- | Precondition: the knots of the two polar points overlap, like abc
+--   and bcd.  The @Int@ should be 0 or 1, indicating which knot to
+--   replicate (0 means to replicate b, yielding bbc, 1 means to
+--   replicate c, yielding bcc).
 combine
   :: (Additive v, Fractional n, Ord n)
   => Int -> PolarPt v n -> PolarPt v n -> PolarPt v n
@@ -107,6 +116,12 @@ bsplineToBeziers controls = beziers
       where
         mkBezier (paab,pabb) [paaa,pbbb]
           = FCubic (unPP paaa) (unPP paab) (unPP pabb) (unPP pbbb)
+
+    -- Note that the above algorithm works in any dimension but is
+    -- very specific to *cubic* splines.  This can of course be
+    -- generalized to higher degree splines but keeping track of
+    -- everything gets a bit more complicated; to be honest I am not
+    -- quite sure how to do it.
 
 -- | Generate a uniform cubic B-spline from the given control points.
 --   The spline starts and ends at the first and last control points,
