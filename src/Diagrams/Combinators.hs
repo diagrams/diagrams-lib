@@ -362,17 +362,22 @@ cat' v (CatOpts { _catMethod = Distrib, _sep = s }) =
 --   @composeAligned algn comp@ is equivalent to @translate v . comp
 --   . map algn@ for some appropriate translation vector @v@.
 --
---   Note that it is not possible to make this an extra optional
---   parameter for 'cat'' since the types do not work.
+--   Unfortunately, this only works for diagrams (and not, say, paths)
+--   because there is no most general type for alignment functions,
+--   and no generic way to find out what an alignment function does to
+--   the origin of things.  (However, it should be possible to make a
+--   version of this function that works /specifically/ on paths, if
+--   such a thing were deemed useful.)
 --
---   XXX diagrams-haddock
---   examples.  - (hsep 2 # composeAligned alignT) [...]  - (mconcat #
---   composeAligned alignTL) [...]  - (vcat # composeAligned snugL)
---   [...]
+--   <<#diagram=alignedEx1&width=400>>
 --
---     - something weirder?  Can't really think of anything.
+--   > alignedEx1 = (hsep 2 # composeAligned alignT) (map circle [1,3,5,2])
+--   >            # showOrigin
 --
---     compare some to  comp . map algn
+--   <<#diagram=alignedEx2&width=400>>
+--
+--   > alignedEx2 = (mconcat # composeAligned alignTL) [circle 1, square 1, triangle 1, pentagon 1]
+--   >            # showOrigin
 composeAligned
   :: (Monoid' m, Floating n, Ord n, Metric v)
   => (QDiagram b v n m -> QDiagram b v n m)    -- ^ Alignment function
