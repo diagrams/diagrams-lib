@@ -8,24 +8,34 @@
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
--- A /cubic spline/ is a smooth, connected sequence of cubic curves
--- passing through a given sequence of points.  This module provides
--- the 'cubicSpline' method, which can be used to create closed or
--- open cubic splines from a list of points.  For access to the
--- internals of the spline generation algorithm (including in
--- particular a solver for cyclic tridiagonal systems of linear
--- equations), see "Diagrams.CubicSpline.Internal".
+-- A /cubic spline/ is a smooth, connected sequence of cubic curves.
+-- This module provides two methods for constructing splines.
+--
+-- The 'cubicSpline' method can be used to create closed or open cubic
+-- splines from a list of points. The resulting splines /pass through/
+-- all the control points, but depend on the control points in a
+-- "global" way (that is, changing one control point may alter the
+-- entire curve).  For access to the internals of the spline
+-- generation algorithm, see "Diagrams.CubicSpline.Internal".
+--
+-- 'bspline' creates a cubic B-spline, which starts and ends at the
+-- first and last control points, but does not necessarily pass
+-- through any of the other control points.  It depends on the control
+-- points in a "local" way, that is, changing one control point will
+-- only affect a local portion of the curve near that control point.
 --
 -----------------------------------------------------------------------------
 module Diagrams.CubicSpline
        (
          -- * Constructing paths from cubic splines
          cubicSpline
+       , bspline
        ) where
 
 import           Control.Lens                  (view)
 
 import           Diagrams.Core
+import           Diagrams.CubicSpline.Boehm
 import           Diagrams.CubicSpline.Internal
 import           Diagrams.Located              (Located, at, mapLoc)
 import           Diagrams.Segment
