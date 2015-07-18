@@ -34,7 +34,6 @@ Library
                        Diagrams.Animation,
                        Diagrams.Animation.Active,
                        Diagrams.Attributes,
-                       Diagrams.Attributes.Compile,
                        Diagrams.Backend.CmdLine,
                        Diagrams.BoundingBox,
                        Diagrams.Combinators,
