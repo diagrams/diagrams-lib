@@ -1,3 +1,7 @@
+## [v1.3.0.2](https://github.com/diagrams/diagrams-lib/tree/v1.3.0.2) (2015-07-19)
+
+[Full Changelog](https://github.com/diagrams/diagrams-lib/compare/v1.3.0.1...v1.3.0.2)
+
 ## [v1.3.0.1](https://github.com/diagrams/diagrams-lib/tree/v1.3.0.1) (2015-05-26)
 
 [Full Changelog](https://github.com/diagrams/diagrams-lib/compare/v1.3...v1.3.0.1)
