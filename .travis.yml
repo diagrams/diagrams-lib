@@ -4,7 +4,6 @@ env:
   matrix:
     - HPVER=2013.2.0.0 CABALVER=1.18
     - HPVER=2014.2.0.0 CABALVER=1.18
-    - GHCVER=7.4.2 CABALVER=1.18
     - GHCVER=7.6.3 CABALVER=1.18
     - GHCVER=7.8.4 CABALVER=1.18
     - GHCVER=7.10.1 CABALVER=1.22
@@ -14,7 +13,6 @@ env:
 
 matrix:
   allow_failures:
-    - env: GHCVER=7.4.2 CABALVER=1.18
     - env: GHCVER=head CABALVER=head
 
 before_install:
