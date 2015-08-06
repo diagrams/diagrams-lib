@@ -96,7 +96,6 @@ import           Data.Monoid
 import           Numeric
 
 import           Control.Concurrent        (threadDelay)
-import           Filesystem.Path.CurrentOS (directory, fromText)
 import           System.Directory          (canonicalizePath)
 import           System.Environment        (getArgs, getProgName)
 import           System.Exit               (ExitCode (..))
@@ -585,8 +584,7 @@ defaultLoopRender opts = when (opts ^. loop) $ do
       putStrLn ("Using sandbox " ++ takeDirectory sb)
       return ["-package-db", sb]
 
-  let srcFilePath = fromText $ T.pack srcPath'
-      args'       = delete "-l" . delete "--loop" $ args
+  let args'       = delete "-l" . delete "--loop" $ args
       newProg     = newProgName (takeFileName srcPath) prog
       timeOfDay   = take 8 . drop 11 . show . eventTime
 
@@ -595,12 +593,12 @@ defaultLoopRender opts = when (opts ^. loop) $ do
     \mgr -> do
       lock <- newIORef False
 
-      _ <- watchDir mgr (directory srcFilePath) (existsEvents (== srcFilePath))
+      _ <- watchDir mgr (takeDirectory srcPath') (existsEvents (== srcPath'))
         $ \ev -> do
           running <- atomicModifyIORef lock ((,) True)
           unless running $ do
             putStrF ("Modified " ++ timeOfDay ev ++ " ... ")
-            exitCode <- recompile srcPath newProg sandboxArgs
+            exitCode <- recompile srcPath' newProg sandboxArgs
             -- Call the new program without the looping option
             run newProg args' exitCode
             atomicWriteIORef lock False
