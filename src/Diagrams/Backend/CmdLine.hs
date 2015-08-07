@@ -93,7 +93,6 @@ import           Data.IORef
 import           Data.List                 (delete)
 import           Data.Maybe                (fromMaybe)
 import           Data.Monoid
-import qualified Data.Text                 as T
 import           Numeric
 
 import           Control.Concurrent        (threadDelay)
