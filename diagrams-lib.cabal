@@ -138,4 +138,5 @@ Library
     DeriveFunctor, DeriveGeneric, EmptyDataDecls, ExistentialQuantification,
     GADTs, GeneralizedNewtypeDeriving, NoMonomorphismRestriction, Rank2Types,
     RankNTypes, ScopedTypeVariables, StandaloneDeriving, TemplateHaskell,
-    TypeOperators, TypeSynonymInstances, UndecidableInstances, ViewPatterns
+    TypeOperators, TypeSynonymInstances, UndecidableInstances, ViewPatterns,
+    LambdaCase
