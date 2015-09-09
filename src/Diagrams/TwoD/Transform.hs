@@ -43,6 +43,7 @@ module Diagrams.TwoD.Transform
          -- * Reflection
        , reflectionX, reflectX
        , reflectionY, reflectY
+       , reflectionXY, reflectXY
        , reflectionAbout, reflectAbout
 
          -- * Shears
@@ -64,6 +65,7 @@ import           Data.Semigroup
 
 import           Linear.Affine
 import           Linear.Vector
+import           Linear.V2
 
 -- Rotation ------------------------------------------------
 
@@ -226,6 +228,15 @@ reflectionY = fromSymmetric $ (_y *~ (-1)) <-> (_y *~ (-1))
 --   (x,-y).
 reflectY :: (InSpace v n t, R2 v, Transformable t) => t -> t
 reflectY = transform reflectionY
+
+-- | Construct a transformation which flips the diagram about x=y, i.e.
+--   sends the point (x,y) to (y,x).
+reflectionXY :: (Additive v, R2 v, Num n) => Transformation v n
+reflectionXY = fromSymmetric $ (_xy %~ view _yx) <-> (_xy %~ view _yx)
+
+-- | Flips the diagram about x=y, i.e. send the point (x,y) to (y,x).
+reflectXY :: (InSpace v n t, R2 v, Transformable t) => t -> t
+reflectXY = transform reflectionXY
 
 -- | @reflectionAbout p d@ is a reflection in the line determined by
 --   the point @p@ and direction @d@.
