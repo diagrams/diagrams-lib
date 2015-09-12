@@ -222,6 +222,8 @@ orient :: OrderedField n => V2 n -> Located (Trail V2 n) -> Transformation V2 n
 orient v = orientPoints v . trailVertices
 
 orientPoints :: OrderedField n => V2 n -> [Point V2 n] -> Transformation V2 n
+orientPoints _ [] = mempty
+orientPoints _ [_] = mempty
 orientPoints v xs = rotation a
   where
     (n1,x,n2) = maximumBy (comparing (distAlong v . sndOf3))
