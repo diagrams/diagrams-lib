@@ -213,6 +213,7 @@ module Diagrams.TwoD
          -- ** Reflection
        , reflectionX, reflectX
        , reflectionY, reflectY
+       , reflectionXY, reflectXY
        , reflectionAbout, reflectAbout
          -- ** Shears
        , shearingX, shearX
