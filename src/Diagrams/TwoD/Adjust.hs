@@ -54,7 +54,6 @@ setDefault2DAttributes d
       # lineJoin def
       # lineMiterLimitA def
 
-
 -- | Adjust the size and position of a 2D diagram to fit within the
 --   requested size. The first argument is a lens into the output
 --   size contained in the rendering options.  Returns an updated
@@ -62,10 +61,13 @@ setDefault2DAttributes d
 --   inverse of which can be used, say, to translate output/device
 --   coordinates back into local diagram coordinates), and the
 --   modified diagram itself.
-adjustSize2D :: (TypeableFloat n, Monoid' m)
-                => Lens' (Options b V2 n) (SizeSpec V2 n)
-                -> b -> Options b V2 n -> QDiagram b V2 n m
-                -> (Options b V2 n, Transformation V2 n, QDiagram b V2 n m)
+adjustSize2D
+  :: (TypeableFloat n, Monoid' m)
+  => Lens' (Options b V2 n) (SizeSpec V2 n)
+  -> b
+  -> Options b V2 n
+  -> QDiagram b V2 n m
+  -> (Options b V2 n, Transformation V2 n, QDiagram b V2 n m)
 adjustSize2D szL _ opts d = (set szL spec opts, t, d # transform t)
   where
     spec    = dims sz
