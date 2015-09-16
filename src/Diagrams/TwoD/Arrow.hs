@@ -321,9 +321,10 @@ mkHT xDir htProj styProj sz opts gToO nToO reflect
     ht = stroke ht' # applyStyle (styProj opts)
     j  = stroke j'  # applyStyle (colorJoint (opts^.shaftStyle))
 
--- | Make a trail with the same angles and offset as an arrow with tail width
---   tw, head width hw and shaft of tr, such that the magnituted of the shaft
---   offset is size. Used for calculating the offset of an arrow.
+-- | @spine tr tw hw sz@ makes a trail with the same angles and offset
+--   as an arrow with tail width @t@w, head width @hw@ and shaft @tr@,
+--   such that the magnitude of the shaft offset is @sz@. Used for
+--   calculating the offset of an arrow.
 spine :: TypeableFloat n => Trail V2 n -> n -> n -> n -> Trail V2 n
 spine tr tw hw sz = tS <> tr # scale sz <> hS
   where
@@ -332,8 +333,9 @@ spine tr tw hw sz = tS <> tr # scale sz <> hS
     hS = if hw > 0 then hSpine else mempty
     tS = if tw > 0 then tSpine else mempty
 
---  | Calculate the amount required to scale a shaft trail so that an arrow with
---    head width hw and tail width tw has offset t.
+-- | @scaleFactor tr tw hw t@ calculates the amount required to scale
+--   a shaft trail @tr@ so that an arrow with head width @hw@ and tail
+--   width @tw@ has offset @t@.
 scaleFactor :: TypeableFloat n => Trail V2 n -> n -> n -> n -> n
 scaleFactor tr tw hw t
 
