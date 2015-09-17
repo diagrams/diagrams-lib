@@ -1,4 +1,12 @@
-## [v1.3.0.3](https://github.com/diagrams/diagrams-lib/tree/v1.3.0.2) (2015-08-10)
+## [v1.3.0.4](https://github.com/diagrams/diagrams-lib/tree/v1.3.0.4) (2015-09-17) ##
+
+**Dependency/version changes**
+
+- Allow `lens-1.13`
+- Allow `semigroups-0.17`
+- Require `linear-1.20`
+
+## [v1.3.0.3](https://github.com/diagrams/diagrams-lib/tree/v1.3.0.3) (2015-08-10)
 
 **Dependency/version changes**
 
