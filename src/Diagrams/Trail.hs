@@ -149,14 +149,14 @@ instance ( Metric (V a), OrderedField (N a)
 instance (FT.Measured m a, FT.Measured n b)
   => Cons (FingerTree m a) (FingerTree n b) a b where
   _Cons = prism (uncurry (FT.<|)) $ \aas -> case FT.viewl aas of
-    a :< as -> Right (a, as)
-    EmptyL  -> Left mempty
+    a FT.:< as -> Right (a, as)
+    EmptyL     -> Left mempty
   {-# INLINE _Cons #-}
 
 instance (FT.Measured m a, FT.Measured n b)
   => Snoc (FingerTree m a) (FingerTree n b) a b where
   _Snoc = prism (uncurry (FT.|>)) $ \aas -> case FT.viewr aas of
-    as :> a -> Right (as, a)
+    as FT.:> a -> Right (as, a)
     EmptyR  -> Left mempty
   {-# INLINE _Snoc #-}
 
@@ -212,7 +212,7 @@ splitAtParam' tree@(SegTree t) p
   | p < 0     =
     case FT.viewl t of
       EmptyL    -> emptySplit
-      seg :< t' ->
+      seg FT.:< t' ->
         case seg `splitAtParam` (p * tSegs) of
           (seg1, seg2) ->
             ( (SegTree $ FT.singleton seg1, (*p))
@@ -221,7 +221,7 @@ splitAtParam' tree@(SegTree t) p
   | p >= 1    =
     case FT.viewr t of
       EmptyR    -> emptySplit
-      t' :> seg ->
+      t' FT.:> seg ->
         case seg `splitAtParam` (1 - (1 - p)*tSegs) of
           (seg1, seg2) ->
             ( (SegTree $ t' |> seg1, \u -> u * tSegs / (tSegs + 1))
@@ -230,7 +230,7 @@ splitAtParam' tree@(SegTree t) p
   | otherwise =
     case FT.viewl after of
       EmptyL    -> emptySplit
-      seg :< after' ->
+      seg FT.:< after' ->
         let (n, p') = propFrac $ p * tSegs
             f p n u | u * tSegs < n = u * tSegs / (n + 1)
                     | otherwise     = (n + (u * tSegs - n) / (p * tSegs - n)) / (n+1)
@@ -278,16 +278,16 @@ instance (Metric v, OrderedField n, Real n)
   arcLengthToParam eps st@(SegTree t) l
     | l < 0        = case FT.viewl t of
                        EmptyL   -> 0
-                       seg :< _ -> arcLengthToParam eps seg l / tSegs
+                       seg FT.:< _ -> arcLengthToParam eps seg l / tSegs
     | l >= totalAL = case FT.viewr t of
                        EmptyR    -> 0
-                       t' :> seg ->
+                       t' FT.:> seg ->
                          let p = arcLengthToParam (eps/2) seg
                                    (l - arcLength (eps/2) (SegTree t'))
                          in  (p - 1)/tSegs + 1
     | otherwise    = case FT.viewl after of
                        EmptyL    -> 0
-                       seg :< _  ->
+                       seg FT.:< _  ->
                          let p = arcLengthToParam (eps/2) seg
                                    (l - arcLength (eps/2) (SegTree before))
                          in  (numSegs before + p) / tSegs
@@ -601,17 +601,17 @@ instance (Metric v, OrderedField n) => Parametric (GetSegment (Trail' Line v n))
   atParam (GetSegment (Line (SegTree ft))) p
     | p <= 0 = case FT.viewl ft of
         EmptyL   -> GetSegmentCodomain Nothing
-        seg :< _ -> GetSegmentCodomain $ Just (zero, seg, reparam 0)
+        seg FT.:< _ -> GetSegmentCodomain $ Just (zero, seg, reparam 0)
 
     | p >= 1 = case FT.viewr ft of
         EmptyR     -> GetSegmentCodomain Nothing
-        ft' :> seg -> GetSegmentCodomain $ Just (offset ft', seg, reparam (n-1))
+        ft' FT.:> seg -> GetSegmentCodomain $ Just (offset ft', seg, reparam (n-1))
 
     | otherwise
     = let (before, after) = FT.split ((p*n <) . numSegs) ft
       in  case FT.viewl after of
             EmptyL   -> GetSegmentCodomain Nothing
-            seg :< _ -> GetSegmentCodomain $ Just (offset before, seg, reparam (numSegs before))
+            seg FT.:< _ -> GetSegmentCodomain $ Just (offset before, seg, reparam (numSegs before))
     where
       n = numSegs ft
       reparam k = iso (subtract k . (*n))
@@ -639,14 +639,14 @@ instance (Metric v, OrderedField n, Real n)
   atStart (GetSegment (Line (SegTree ft)))
     = case FT.viewl ft of
         EmptyL   -> GetSegmentCodomain Nothing
-        seg :< _ ->
+        seg FT.:< _ ->
           let n = numSegs ft
           in  GetSegmentCodomain $ Just (zero, seg, iso (*n) (/n))
 
   atEnd (GetSegment (Line (SegTree ft)))
     = case FT.viewr ft of
         EmptyR     -> GetSegmentCodomain Nothing
-        ft' :> seg ->
+        ft' FT.:> seg ->
           let n = numSegs ft
           in  GetSegmentCodomain $
                 Just (offset ft', seg, iso (subtract (n-1) . (*n))
@@ -945,8 +945,8 @@ glueLine :: (Metric v, OrderedField n) => Trail' Line v n -> Trail' Loop v n
 glueLine (Line (SegTree t)) =
   case FT.viewr t of
     FT.EmptyR           -> Loop mempty (Linear OffsetOpen)
-    t' :> Linear _      -> Loop (SegTree t') (Linear OffsetOpen)
-    t' :> Cubic c1 c2 _ -> Loop (SegTree t') (Cubic c1 c2 OffsetOpen)
+    t' FT.:> Linear _      -> Loop (SegTree t') (Linear OffsetOpen)
+    t' FT.:> Cubic c1 c2 _ -> Loop (SegTree t') (Cubic c1 c2 OffsetOpen)
 
 -- | @glueTrail@ is a variant of 'glueLine' which works on 'Trail's.
 --   It performs 'glueLine' on lines and is the identity on loops.
