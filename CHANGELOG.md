@@ -1,3 +1,9 @@
+## [v1.3.0.6](https://github.com/diagrams/diagrams-lib/tree/v1.3.0.6) (2015-09-29) ##
+
+- Allow `optparse-applicative-0.12`
+
+[Full Changelog](https://github.com/diagrams/diagrams-lib/compare/v1.3.0.5...v1.3.0.6)
+
 ## [v1.3.0.5](https://github.com/diagrams/diagrams-lib/tree/v1.3.0.5) (2015-09-18) ##
 
 - Fix compilation problem with `lens-4.13`
