@@ -30,11 +30,11 @@ tests = test [ "line" ~: offsetTrailVertices
              ]
 
 offsetTrailVertices :: [Point V2 Double] -> [Point V2 Double] -> Test
-offsetTrailVertices orig offset =
-    (trailVertices . offsetTrail 1 . fromVertices $ orig) ~?= offset
+offsetTrailVertices orig off =
+    (trailVertices . offsetTrail 1 . fromVertices $ orig) ~?= off
 
 offsetTrailLoopVertices :: [Point V2 Double] -> [Point V2 Double] -> Test
-offsetTrailLoopVertices orig offset =
-    (trailVertices . offsetTrail 1 . loopTrailFromVertices $ orig) ~?= offset
+offsetTrailLoopVertices orig off =
+    (trailVertices . offsetTrail 1 . loopTrailFromVertices $ orig) ~?= off
   where
     loopTrailFromVertices = (`at` origin) . wrapTrail . glueLine . lineFromVertices
