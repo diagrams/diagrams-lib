@@ -280,8 +280,8 @@ offsetTrail' opts r t = joinSegments eps j isLoop (opts^.offsetMiterLimit) r end
     where
       eps = opts^.offsetEpsilon
       offset = map (bindLoc (offsetSegment eps r)) . locatedTrailSegments
-      ends | isLoop    = (\(a:as) -> as ++ [a]) . trailVertices $ t
-           | otherwise = tail . trailVertices $ t
+      ends | isLoop    = (\(a:as) -> as ++ [a]) . trailPoints $ t
+           | otherwise = tail . trailPoints $ t
       j = fromLineJoin (opts^.offsetJoin)
 
       isLoop = withTrail (const False) (const True) (unLoc t)
