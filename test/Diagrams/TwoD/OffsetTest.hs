@@ -9,32 +9,32 @@ import Diagrams.Prelude
 import Diagrams.TwoD.Offset
 
 tests :: Test
-tests = test [ "line" ~: offsetPathVertices
+tests = test [ "line" ~: offsetTrailVertices
                              [p2 (0, 0), p2 (1, 0)]
                              [p2 (0, -1), p2 (1, -1)]
-             , "square" ~: offsetPathVertices
+             , "square" ~: offsetTrailVertices
                              [p2 (0, 0), p2 (1, 0), p2 (1, 1), p2 (0, 1), p2 (0, 0)]
                              [p2 (0, -1), p2 (2, -1), p2 (2, 2), p2 (-1, 2), p2 (-1, 0)]
-             , "square loop" ~: offsetPathLoopVertices
+             , "square loop" ~: offsetTrailLoopVertices
                              [p2 (0, 0), p2 (1, 0), p2 (1, 1), p2 (0, 1), p2 (0, 0)]
                              [p2 (2, -1), p2 (2, 2), p2 (-1, 2), p2 (-1, -1)]
-             , "redundant line" ~: offsetPathVertices
+             , "redundant line" ~: offsetTrailVertices
                              [p2 (0, 0), p2 (0.5, 0), p2 (1, 0)]
                              [p2 (0, -1), p2 (1, -1)]
-             , "redundant square" ~: offsetPathVertices
+             , "redundant square" ~: offsetTrailVertices
                              [p2 (0, 0), p2 (1, 0), p2 (1, 0.5), p2 (1, 1), p2 (0, 1), p2 (0, 0)]
                              [p2 (0, -1), p2 (2, -1), p2 (2, 2), p2 (-1, 2), p2 (-1, 0)]
-             , "redundant square loop" ~: offsetPathLoopVertices
+             , "redundant square loop" ~: offsetTrailLoopVertices
                              [p2 (0, 0), p2 (1, 0), p2 (1, 0.5), p2 (1, 1), p2 (0, 1), p2 (0, 0)]
                              [p2 (2, -1), p2 (2, 2), p2 (-1, 2), p2 (-1, -1)]
              ]
 
-offsetPathVertices :: [Point V2 Double] -> [Point V2 Double] -> Test
-offsetPathVertices orig offset =
-    (concat . pathVertices . offsetPath 1 . fromVertices $ orig) ~?= offset
+offsetTrailVertices :: [Point V2 Double] -> [Point V2 Double] -> Test
+offsetTrailVertices orig offset =
+    (trailVertices . offsetTrail 1 . fromVertices $ orig) ~?= offset
 
-offsetPathLoopVertices :: [Point V2 Double] -> [Point V2 Double] -> Test
-offsetPathLoopVertices orig offset =
-    (concat . pathVertices . offsetPath 1 . loopPathFromVertices $ orig) ~?= offset
+offsetTrailLoopVertices :: [Point V2 Double] -> [Point V2 Double] -> Test
+offsetTrailLoopVertices orig offset =
+    (trailVertices . offsetTrail 1 . loopTrailFromVertices $ orig) ~?= offset
   where
-    loopPathFromVertices = pathFromTrail . wrapTrail . glueLine . lineFromVertices
+    loopTrailFromVertices = (`at` origin) . wrapTrail . glueLine . lineFromVertices
