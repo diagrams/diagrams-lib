@@ -1,4 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-duplicate-exports #-}
+{-# LANGUAGE CPP #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Prelude
@@ -78,11 +79,20 @@ module Diagrams.Prelude
 import           Diagrams
 
 import           Control.Applicative
+
+#if MIN_VERSION_lens(4,13,0)
+import           Control.Lens        hiding (argument, at, backwards, beside,
+                                      children, contains, indexed, indices,
+                                      inside, levels, none, outside, singular,
+                                      transform, ( # ), (...), (.>), (<.>))
+#else
 import           Control.Lens        hiding (argument, at, backwards, beside,
                                       children, coerce, contains, indexed,
                                       indices, inside, levels, none, outside,
                                       singular, transform, ( # ), (...), (.>),
                                       (<.>))
+#endif
+
 import           Data.Active
 import           Data.Colour         hiding (AffineSpace (..), atop, over)
 import           Data.Colour.Names   hiding (tan)
@@ -93,4 +103,3 @@ import           Data.Semigroup
 import           Linear.Affine
 import           Linear.Metric
 import           Linear.Vector
-
