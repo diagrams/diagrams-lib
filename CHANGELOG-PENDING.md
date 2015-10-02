@@ -3,6 +3,7 @@
 ## [v1.X] (YYYY-MM-DD)
 
 - Add reflectXY and reflectionXY
+- Add _LocLoop and _LocLine prisms
 
 **Dependency/version changes**
 
