@@ -56,6 +56,7 @@ module Diagrams.Trail
 
        , Trail(..)
        , _Line, _Loop
+       , _LocLine, _LocLoop
        , wrapTrail, wrapLine, wrapLoop
        , onTrail, onLine
 
@@ -771,6 +772,14 @@ _Line = _Wrapped' . _Left
 -- | Prism onto a 'Loop'.
 _Loop :: Prism' (Trail v n) (Trail' Loop v n)
 _Loop = _Wrapped' . _Right
+
+-- | Prism onto a 'Located' 'Line'.
+_LocLine :: Prism' (Located (Trail v n)) (Located (Trail' Line v n))
+_LocLine = prism' (mapLoc Trail) $ located (preview _Line)
+
+-- | Prism onto a 'Located' 'Loop'.
+_LocLoop :: Prism' (Located (Trail v n)) (Located (Trail' Loop v n))
+_LocLoop = prism' (mapLoc Trail) $ located (preview _Loop)
 
 instance Rewrapped (Trail v n) (Trail v' n')
 instance Wrapped (Trail v n) where
