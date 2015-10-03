@@ -375,7 +375,7 @@ expandLine opts r (mapLoc wrapLine -> t) = caps cap r s e (f r) (f $ -r)
       offset r' = map (bindLoc (offsetSegment eps r')) . locatedTrailSegments
       f r' = joinSegments eps (fromLineJoin (opts^.expandJoin)) False (opts^.expandMiterLimit) r' ends
            . offset r' $ t
-      ends = tail . trailVertices $ t
+      ends = tail . trailPoints $ t
       s = atStart t
       e = atEnd t
       cap = fromLineCap (opts^.expandCap)
@@ -387,7 +387,7 @@ expandLoop opts r (mapLoc wrapLoop -> t) = trailLike (f r) <> (trailLike . rever
       offset r' = map (bindLoc (offsetSegment eps r')) . locatedTrailSegments
       f r' = joinSegments eps (fromLineJoin (opts^.expandJoin)) True (opts^.expandMiterLimit) r' ends
            . offset r' $ t
-      ends = (\(a:as) -> as ++ [a]) . trailVertices $ t
+      ends = (\(a:as) -> as ++ [a]) . trailPoints $ t
 
 -- | Expand a 'Trail' with the given radius and default options.  See 'expandTrail''.
 expandTrail :: RealFloat n => n -> Located (Trail V2 n) -> Path V2 n
