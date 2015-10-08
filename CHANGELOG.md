@@ -1,3 +1,10 @@
+## [v1.3.0.7](https://github.com/diagrams/diagrams-lib/tree/v1.3.0.7) (2015-10-08) ##
+
+- Add `LambdaCase` extension to `.cabal` file, so `cabal` correctly
+  reports that `diagrams-lib` does not build on `GHC-7.4`.
+
+[Full Changelog](https://github.com/diagrams/diagrams-lib/compare/v1.3.0.6...v1.3.0.7)
+
 ## [v1.3.0.6](https://github.com/diagrams/diagrams-lib/tree/v1.3.0.6) (2015-09-29) ##
 
 - Allow `optparse-applicative-0.12`
