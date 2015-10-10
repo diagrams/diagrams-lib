@@ -31,6 +31,7 @@ import           Control.Applicative
 import           Data.Foldable             (foldMap)
 #endif
 import           Control.Lens              (review, (^.), _1)
+import           Data.Maybe
 import           Data.Typeable
 
 import           Data.Semigroup
@@ -42,6 +43,7 @@ import           Diagrams.Solve.Polynomial
 import           Diagrams.ThreeD.Types
 import           Diagrams.ThreeD.Vector
 
+import qualified Data.Vector               as V
 import           Linear.Affine
 import           Linear.Metric
 import           Linear.Vector
@@ -313,3 +315,52 @@ intersection a b = CsgIntersection [toCsg a, toCsg b]
 
 difference :: (CsgPrim a, CsgPrim b) => a n -> b n -> CSG n
 difference a b = CsgDifference (toCsg a) (toCsg b)
+
+-- | A collection of triangles which bound a solid volume.  The
+-- requirement that they bound a solid is not checked.
+data Mesh n = Mesh
+              (V.Vector (P3 n)) -- ^ vertices
+              (V.Vector (V3 Int)) -- ^ triangles, 3 indices into vertices
+
+type instance V (Mesh n) = V3
+type instance N (Mesh n) = n
+
+-- | The @Vector@ of triangles with explicit coördinates, formed by
+-- looking up each vertex.
+meshTriangles :: Mesh n -> V.Vector (V3 (P3 n))
+meshTriangles (Mesh vs ts) = (fmap . fmap) (\i -> vs V.! i) ts
+
+instance Fractional n => Transformable (Mesh n) where
+  transform t (Mesh vs ts) = Mesh (transform t <$> vs) ts
+
+instance Fractional n => Renderable (Mesh n) NullBackend where
+  render _ _ = mempty
+
+instance (Floating n, Ord n) => Enveloped (Mesh n) where
+  getEnvelope (Mesh vs _) = foldMap getEnvelope vs
+
+-- | Calculate the parameter at which a ray from the origin intersects a
+-- triangle.  That is, the value @t@, if any, such that @t@ times the
+-- ray is on the triangle.
+rayTriangleIntersect :: (Fractional n, Ord n) => P3 n -> V3 n -> V3 (P3 n) -> Maybe n
+rayTriangleIntersect (P ve) vd (V3 (P va) (P vb) (P vc)) = let
+  (V3 a b c) = va - vb
+  (V3 d e f) = va - vc
+  (V3 g h i) = vd
+  (V3 j k l) = va - ve
+  β = (j*(e*i - h*f) + k*(g*f - d*i) + l*(d*h - e*g)) / m
+  γ = (i*(a*k - j*b) + h*(j*c - a*l) + g*(b*l - k*c)) / m
+  t = -(f*(a*k - j*b) + e*(j*c - a*l) + d*(b*l - k*c))/m
+  m = a*(e*i - h*f) + b*(g*f - d*i) + c*(d*h - e*g)
+  in
+    if t < 0 then Nothing
+    else if γ < 0 || γ > 1 then Nothing
+         else if β < 0 || β > 1 then Nothing
+              else Just t
+-- Shirley 2009 has one explanation of this algorithm, which uses Cramer's Rule
+-- Some common subexpressions could be lifted out of the code above
+
+instance (Fractional n, Ord n) => Traced (Mesh n) where
+  getTrace mesh = mkTrace f where
+    f p v = mkSortedList . catMaybes . V.toList $ intersections where
+      intersections = fmap (rayTriangleIntersect p v) . meshTriangles $ mesh
