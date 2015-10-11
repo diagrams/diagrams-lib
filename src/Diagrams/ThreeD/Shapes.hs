@@ -24,6 +24,9 @@ module Diagrams.ThreeD.Shapes
      , Skinned(..)
      , CSG(..), union, intersection, difference
      , Inside(..)
+     , Mesh(..), meshTriangles
+     , ToMesh(..)
+     , icosohedron
      ) where
 
 #if __GLASGOW_HASKELL__ < 710
@@ -42,9 +45,11 @@ import           Diagrams.Points
 import           Diagrams.Solve.Polynomial
 import           Diagrams.ThreeD.Types
 import           Diagrams.ThreeD.Vector
+import           Diagrams.Transform.Matrix
 
 import qualified Data.Vector               as V
 import           Linear.Affine
+import           Linear.Epsilon
 import           Linear.Metric
 import           Linear.Vector
 
@@ -364,3 +369,75 @@ instance (Fractional n, Ord n) => Traced (Mesh n) where
   getTrace mesh = mkTrace f where
     f p v = mkSortedList . catMaybes . V.toList $ intersections where
       intersections = fmap (rayTriangleIntersect p v) . meshTriangles $ mesh
+
+-- | Solids which can be converted to a Mesh, by approximating the surface.
+class ToMesh a where
+  -- | The first argument to @toMesh'@ is the acceptable error.
+  toMesh' :: (Floating n, RealFrac n, Epsilon n) => n -> a n -> Mesh n
+
+instance ToMesh Box where
+  toMesh' _ (Box t) = transform t $ Mesh vs ts where
+    vs = V.fromList $ mkP3 <$> [0,1] <*> [0,1] <*> [0,1]
+    ts = V.fromList $ [
+      V3 0 1 3, V3 3 1 2, -- x = 0
+      V3 4 6 5, V3 6 5 7, -- x = 1
+      V3 0 4 1, V3 4 1 5, -- y = 0
+      V3 2 6 3, V3 6 3 7, -- y = 1
+      V3 0 4 2, V3 4 2 6, -- z = 0
+      V3 1 5 3, V3 5 3 7  -- z = 1
+      ]
+
+-- | An icosohedron inscribed in a sphere of radius 1 centered at the origin.
+icosohedron :: Floating n => Mesh n
+icosohedron = Mesh (V.fromList vs) (V.fromList ts) where
+  vs = concat -- purple, light, dark
+       [ mkP3 0 <$> [-1, 1] <*> [-φ, φ]
+       , mkP3 <$> [-1, 1] <*> [-φ, φ] <*> [0]
+       , mkP3 <$> [-φ, φ] <*> [0] <*> [-1, 1]
+       ]
+  ts =
+       [ V3 1 4 6, V3 1 6 11, V3 1 11 3, V3 1 3 9, V3 1 9 4  -- share pt 1
+       , V3 0 6 4, V3 6 10 11, V3 3 11 7, V3 3 5 9, V3 4 9 8 -- share edges with row above
+       , V3 6 0 10, V3 11 10 7, V3 3 7 5, V3 9 5 8, V3 4 8 0 -- share edges with row below
+       , V3 2 10 0, V3 2 7 10, V3 2 5 7, V3 2 8 5, V3 2 0 8  -- share pt 2
+       ]
+  φ = (1 + sqrt 5) / 2
+
+instance ToMesh Ellipsoid where
+  toMesh' ε (Ellipsoid t) = transform t $ iterate subdivide icosohedron !! n
+    where
+     r = maximum . eigen33 . mkMat $ t
+     n = case ε / r of
+       err
+     -- 0.205 is the distance from the circumcenter of a face of the
+     -- icosohedron to the sphere of radius 1
+         | err > 0.205 -> 0
+         | err > 6.58e-2 -> 1  -- calculated errors after subdivision
+         | err > 1.78e-2 -> 2
+         | err > 4.53e-3 -> 3
+   -- after these first steps, each subdivision reduces the error by a factor of ~4
+         | otherwise -> ceiling (log (4.53e-3 / err) / log 4) + 3
+
+-- | Subdivide each triangle of the Mesh into 4 triangles, by dividing
+-- each edge at the midpoint.
+subdivide :: (Floating n, Epsilon n) => Mesh n -> Mesh n
+-- With a bit more bookkeeping (and time) we could create only one new
+-- vertex per edge, instead of two.  As is, we don't take advantage of
+-- the indexed Mesh representation.
+subdivide (Mesh vs ts) = Mesh vs' ts' where
+  -- keep all prior points, and add 3 points per triangle
+  vs' = vs V.++
+        (V.fromList $ concatMap (map normalize . midpoints . fmap lookupV) ts)
+  -- replace each triangle with 4 new triangles
+  ts' = V.fromList $ concatMap subTris $ V.indexed ts
+  midpoints (V3 a b c) = [ (mid a b), (mid b c), (mid c a) ]
+  mid = lerp 0.5
+  lookupV i = vs V.! i
+  l = V.length vs
+  -- use the index of the triangle to calculate the indices of the midpoints
+  subTris (i, V3 a b c) =
+    [ V3 a (l+4*i+1) (l+4*i+3)
+    , V3 (l+4*i+1) (l+4*i+2) (l+4*i+3)
+    , V3 b (l+4*i+2) (l+4*i+1)
+    , V3 c (l+4*i+3) (l+4*i+2)
+    ]
