@@ -13,13 +13,14 @@
 
 module Diagrams.Transform.Matrix where
 
-import           Control.Arrow           ((&&&))
+import           Control.Arrow             ((&&&))
 import           Control.Lens
 import           Data.Distributive
-import qualified Data.Foldable           as F
+import qualified Data.Foldable             as F
 import           Data.Functor.Rep
 
-import           Diagrams.Core.Transform as D
+import           Diagrams.Core.Transform   as D
+import           Diagrams.Solve.Polynomial
 import           Diagrams.ThreeD.Types
 import           Diagrams.TwoD.Types
 
@@ -68,3 +69,14 @@ mat22 = iso (uncurry fromMat22) (mkMat &&& transl)
 --   translation vector (in which case the 'T3' will be invalid).
 mat33 :: Floating n => Iso' (M33 n, V3 n) (T3 n)
 mat33 = iso (uncurry fromMat33) (mkMat &&& transl)
+
+-- | Find the eigenvalues of a 2x2 matrix.
+eigen22 :: (Floating n, Ord n) => M22 n -> [n]
+eigen22 m@(V2 (V2 a _b) (V2 _c d)) = quadForm 1 (a + d) (det22 m)
+
+-- | Find the eigenvalues of a 3x3 matrix.
+eigen33 :: (Floating n, Ord n) => M33 n -> [n]
+eigen33 m = cubForm 1 b c d where
+  b = trace m
+  c = -0.5 * (trace (m !*! m) - (trace m) ** 2)
+  d = -det33 m
