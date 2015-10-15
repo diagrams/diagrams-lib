@@ -55,6 +55,12 @@ module Diagrams.Attributes (
   , Opacity, _Opacity
   , getOpacity, opacity, _opacity
 
+  , FillOpacity, _FillOpacity
+  , getFillOpacity, fillOpacity, _fillOpacity
+
+  , StrokeOpacity, _StrokeOpacity
+  , getStrokeOpacity, strokeOpacity, _strokeOpacity
+
   -- ** Converting colors
   , colorToSRGBA, colorToRGBA
 
@@ -344,6 +350,58 @@ opacity = applyAttr . Opacity . Product
 -- | Lens onto the opacity in a style.
 _opacity :: Lens' (Style v n) Double
 _opacity = atAttr . mapping _Opacity . non 1
+
+-- fill opacity --------------------------------------------------------
+
+-- | Like 'Opacity', but set the opacity only for fills (as opposed to strokes).
+--   As with 'Opacity', the fill opacity is a value between 1
+--   (completely opaque, the default) and 0 (completely transparent),
+--   and is multiplicative.
+newtype FillOpacity = FillOpacity (Product Double)
+  deriving (Typeable, Semigroup)
+instance AttributeClass FillOpacity
+
+_FillOpacity :: Iso' FillOpacity Double
+_FillOpacity = iso getFillOpacity (FillOpacity . Product)
+
+getFillOpacity :: FillOpacity -> Double
+getFillOpacity (FillOpacity (Product d)) = d
+
+-- | Multiply the fill opacity (see 'FillOpacity') by the given value.  For
+--   example, @fillOpacity 0.8@ means \"decrease this diagram's fill opacity to
+--   80% of its previous value\".
+fillOpacity :: HasStyle a => Double -> a -> a
+fillOpacity = applyAttr . FillOpacity . Product
+
+-- | Lens onto the fill opacity in a style.
+_fillOpacity :: Lens' (Style v n) Double
+_fillOpacity = atAttr . mapping _FillOpacity . non 1
+
+-- stroke opacity --------------------------------------------------------
+
+-- | Like 'Opacity', but set the opacity only for strokes (as opposed to fills).
+--   As with 'Opacity', the fill opacity is a value between 1
+--   (completely opaque, the default) and 0 (completely transparent),
+--   and is multiplicative.
+newtype StrokeOpacity = StrokeOpacity (Product Double)
+  deriving (Typeable, Semigroup)
+instance AttributeClass StrokeOpacity
+
+_StrokeOpacity :: Iso' StrokeOpacity Double
+_StrokeOpacity = iso getStrokeOpacity (StrokeOpacity . Product)
+
+getStrokeOpacity :: StrokeOpacity -> Double
+getStrokeOpacity (StrokeOpacity (Product d)) = d
+
+-- | Multiply the stroke opacity (see 'StrokeOpacity') by the given value.  For
+--   example, @strokeOpacity 0.8@ means \"decrease this diagram's
+--   stroke opacity to 80% of its previous value\".
+strokeOpacity :: HasStyle a => Double -> a -> a
+strokeOpacity = applyAttr . StrokeOpacity . Product
+
+-- | Lens onto the stroke opacity in a style.
+_strokeOpacity :: Lens' (Style v n) Double
+_strokeOpacity = atAttr . mapping _StrokeOpacity . non 1
 
 ------------------------------------------------------------------------
 -- Line stuff
