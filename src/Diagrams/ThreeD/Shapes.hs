@@ -5,6 +5,8 @@
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE InstanceSigs #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.ThreeD.Shapes
@@ -33,7 +35,7 @@ module Diagrams.ThreeD.Shapes
 import           Control.Applicative
 import           Data.Foldable             (foldMap)
 #endif
-import           Control.Lens              (review, (^.), _1)
+import           Control.Lens              (review, view, (^.), _1)
 import           Data.Maybe
 import           Data.Typeable
 
@@ -52,6 +54,8 @@ import           Linear.Affine
 import           Linear.Epsilon
 import           Linear.Metric
 import           Linear.Vector
+import Linear.Quaternion
+import Linear.Matrix
 
 data Ellipsoid n = Ellipsoid (Transformation V3 n)
   deriving Typeable
@@ -373,7 +377,7 @@ instance (Fractional n, Ord n) => Traced (Mesh n) where
 -- | Solids which can be converted to a Mesh, by approximating the surface.
 class ToMesh a where
   -- | The first argument to @toMesh'@ is the acceptable error.
-  toMesh' :: (Floating n, RealFrac n, Epsilon n) => n -> a n -> Mesh n
+  toMesh' :: (Floating n, RealFrac n, Epsilon n, Enum n) => n -> a n -> Mesh n
 
 instance ToMesh Box where
   toMesh' _ (Box t) = transform t $ Mesh vs ts where
@@ -441,3 +445,44 @@ subdivide (Mesh vs ts) = Mesh vs' ts' where
     , V3 b (l+4*i+2) (l+4*i+1)
     , V3 c (l+4*i+3) (l+4*i+2)
     ]
+
+instance ToMesh Frustum where
+  toMesh' :: forall n. (Floating n, RealFrac n, Epsilon n, Enum n) =>
+             n -> Frustum n -> Mesh n
+  toMesh' ε (Frustum r0 r1 tr) =
+    transform tr $ Mesh (V.fromList vs) (V.fromList ts) where
+      vs = concatMap circ [z0, z0+dz .. if r1 == 0 then 1-dz else 1]
+            ++ [mkP3 0 0 0, mkP3 0 0 1]
+      ts = concatMap mkTris [0.. m-1]
+            ++ cap0 ++ cap1
+      z0 = if r0 == 0 then dz else 0
+      -- s is the largest scaling of the radii
+      s = maximum . eigen22 . view _m22 . mkMat $ tr
+      -- dθ is the angle between points small enough to keep the max error < ε
+      dθ = 2 * acos (1- ε / rmax)
+      rmax = s * max r0 r1
+      -- rotθ is a 3x3 matrix which rotates by dθ about the Z axis
+      rotθ = fromQuaternion $ axisAngle unitZ dθ
+      n = ceiling $ 2 * pi / dθ
+      m = if r0 == 0 || r1 == 0  -- should never both be zero - that's a line
+          then ceiling $ 1 / dz - 1
+          else ceiling $ 1 / dz
+      dz = ε / norm (transform tr (unitZ :: V3 n))
+      -- circ makes a circle of equally spaced points at height z
+      circ z = take n $ map P . iterate (rotθ !*) $ V3 r 0 z where
+        r = z * r1 + (1 - z) * r0
+      -- mkTris makes a strip of triangles between rows of points i and i+1,
+      -- matching the order in which pts are generated
+      mkTris i = concatMap go [0..n] where
+        -- go makes 2 triangles which form a quad
+        go j = [ V3 a b c, V3 d c b ] where
+          a = n * i + j
+          b = n * i + j1
+          c = n * (i + 1) + j
+          d = n * (i + 1) + j1
+          j1 = (j + 1) `mod` n
+      -- end cap at z=0
+      -- A circle if r0 > 0, or a cone if r0 == 0, to avoid degenerate points
+      cap0 = [V3 (n * (m-i)) i ((i+1) `mod` n) | i <- [0..n-1]]
+      -- end cap at z=1
+      cap1 = [V3 (n * (m - 1) + 1) i ((i+1) `mod` n) | i <- [(n-1) * (m-1) .. n * (m-1)]]
