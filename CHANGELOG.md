@@ -1,3 +1,9 @@
+## [v1.3.0.8](https://github.com/diagrams/diagrams-lib/tree/v1.3.0.7) (2015-11-10)
+
+- allow `semigroups-0.18`
+
+[Full Changelog](https://github.com/diagrams/diagrams-lib/compare/v1.3.0.7...v1.3.0.8)
+
 ## [v1.3.0.7](https://github.com/diagrams/diagrams-lib/tree/v1.3.0.7) (2015-10-08) ##
 
 - Add `LambdaCase` extension to `.cabal` file, so `cabal` correctly
