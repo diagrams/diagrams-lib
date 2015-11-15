@@ -75,7 +75,7 @@ module Diagrams.Backend.CmdLine
 import           Control.Lens              (Lens', makeLenses, (&), (.~), (^.))
 import           Diagrams.Animation
 import           Diagrams.Attributes
-import           Diagrams.Core             hiding (output, value)
+import           Diagrams.Core             hiding (output)
 import           Diagrams.Util
 
 import           Options.Applicative

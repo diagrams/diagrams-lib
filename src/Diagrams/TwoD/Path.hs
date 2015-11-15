@@ -69,6 +69,7 @@ import           Diagrams.Core
 import           Diagrams.Core.Trace
 import           Diagrams.Located          (Located, mapLoc, unLoc)
 import           Diagrams.Parametric
+import           Diagrams.Query
 import           Diagrams.Path
 import           Diagrams.Segment
 import           Diagrams.Solve.Polynomial
