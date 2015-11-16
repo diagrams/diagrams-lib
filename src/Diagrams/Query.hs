@@ -45,10 +45,24 @@ instance Monoid m => HasQuery (QDiagram b v n m) m where
   getQuery = query
 
 -- | Test if a point is not equal to 'mempty'.
+--
+-- @
+-- 'inside' :: 'QDiagram' b v n 'Any' -> 'Point' v n -> 'Bool'
+-- 'inside' :: 'Query' v n 'Any'      -> 'Point' v n -> 'Bool'
+-- 'inside' :: 'Diagrams.BoundingBox.BoundingBox' v n  -> 'Point' v n -> 'Bool'
+-- 'inside' :: 'Diagrams.Path.Path' 'V2' 'Double'   -> 'Point' v n -> 'Bool'
+-- @
 inside :: (HasQuery t m, Monoid m, Eq m) => t -> Point (V t) (N t) -> Bool
 inside t = (/= mempty) . sample t
 
 -- | Sample a diagram's query function at a given point.
+--
+-- @
+-- 'sample' :: 'QDiagram' b v n m -> 'Point' v n -> m
+-- 'sample' :: 'Query' v n m      -> 'Point' v n -> m
+-- 'sample' :: 'Diagrams.BoundingBox.BoundingBox' v n  -> 'Point' v n -> 'Any'
+-- 'sample' :: 'Diagrams.Path.Path' 'V2' 'Double'   -> 'Point' v n -> 'Diagrams.TwoD.Path.Crossings'
+-- @
 sample :: HasQuery t m => t -> Point (V t) (N t) -> m
 sample = runQuery . getQuery
 

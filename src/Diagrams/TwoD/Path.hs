@@ -168,6 +168,13 @@ instance Default (StrokeOpts a) where
 --
 --   See also 'stroke'', which takes an extra options record allowing
 --   its behaviour to be customized.
+--
+-- @
+-- 'stroke' :: 'Path' 'V2' 'Double'                  -> 'Diagram' b
+-- 'stroke' :: 'Located' ('Trail' 'V2' 'Double')       -> 'Diagram' b
+-- 'stroke' :: 'Located' ('Trail'' 'Loop' 'V2' 'Double') -> 'Diagram' b
+-- 'stroke' :: 'Located' ('Trail'' 'Line' 'V2' 'Double') -> 'Diagram' b
+-- @
 stroke :: (InSpace V2 n t, ToPath t, TypeableFloat n, Renderable (Path V2 n) b)
        => t -> QDiagram b V2 n Any
 stroke = strokeP . toPath
@@ -324,6 +331,12 @@ instance RealFloat n => HasQuery (Path V2 n) Crossings where
 --   by testing whether the point's /winding number/ is nonzero. Note
 --   that @False@ is /always/ returned for paths consisting of lines
 --   (as opposed to loops), regardless of the winding number.
+--
+-- @
+-- 'isInsideWinding' :: 'Path' 'V2' 'Double'                  -> 'Point' 'V2' 'Double' -> 'Bool'
+-- 'isInsideWinding' :: 'Located' ('Trail' 'V2' 'Double')       -> 'Point' 'V2' 'Double' -> 'Bool'
+-- 'isInsideWinding' :: 'Located' ('Trail'' 'Loop' 'V2' 'Double') -> 'Point' 'V2' 'Double' -> 'Bool'
+-- @
 isInsideWinding :: HasQuery t Crossings => t -> Point (V t) (N t) -> Bool
 isInsideWinding t = (/= 0) . sample t
 
@@ -333,6 +346,12 @@ isInsideWinding t = (/= 0) . sample t
 --   number of times.  Note that @False@ is /always/ returned for
 --   paths consisting of lines (as opposed to loops), regardless of
 --   the number of crossings.
+--
+-- @
+-- 'isInsideEvenOdd' :: 'Path' 'V2' 'Double'                  -> 'Point' 'V2' 'Double' -> 'Bool'
+-- 'isInsideEvenOdd' :: 'Located' ('Trail' 'V2' 'Double')       -> 'Point' 'V2' 'Double' -> 'Bool'
+-- 'isInsideEvenOdd' :: 'Located' ('Trail'' 'Loop' 'V2' 'Double') -> 'Point' 'V2' 'Double' -> 'Bool'
+-- @
 isInsideEvenOdd :: HasQuery t Crossings => t -> Point (V t) (N t) -> Bool
 isInsideEvenOdd t = odd . sample t
 
