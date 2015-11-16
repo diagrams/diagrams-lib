@@ -247,8 +247,8 @@ instance Fractional n => Transformable (CSG n) where
   transform t (CsgEllipsoid p) = CsgEllipsoid $ transform t p
   transform t (CsgBox p) = CsgBox $ transform t p
   transform t (CsgFrustum p) = CsgFrustum $ transform t p
-  transform t (CsgUnion ps) = CsgUnion . map (transform t) $ ps
-  transform t (CsgIntersection ps) = CsgIntersection . map (transform t) $ ps
+  transform t (CsgUnion ps) = CsgUnion $ map (transform t) ps
+  transform t (CsgIntersection ps) = CsgIntersection $ map (transform t) ps
   transform t (CsgDifference p1 p2) = CsgDifference (transform t p1) (transform t p2)
 
 -- | The Envelope for an Intersection or Difference is simply the
@@ -283,20 +283,20 @@ instance (RealFloat n, Ord n) => Traced (CSG n) where
     t pt v = onSortedList (filter $ without s) (appTrace (getTrace (CsgUnion ss)) pt v)
          <> onSortedList (filter $ without (CsgUnion ss)) (appTrace (getTrace s) pt v) where
       newPt dist = pt .+^ v ^* dist
-      without prim = not . getAny . runQuery (getQuery prim) . newPt
+      without prim = not . inquire prim . newPt
   -- on surface of some p, and inside all the others
   getTrace (CsgIntersection []) = mempty
   getTrace (CsgIntersection (s:ss)) = mkTrace t where
     t pt v = onSortedList (filter $ within s) (appTrace (getTrace (CsgIntersection ss)) pt v)
          <> onSortedList (filter $ within (CsgIntersection ss)) (appTrace (getTrace s) pt v) where
       newPt dist = pt .+^ v ^* dist
-      within prim = getAny . runQuery (getQuery prim) . newPt
+      within prim = inquire prim . newPt
   -- on surface of p1, outside p2, or on surface of p2, inside p1
   getTrace (CsgDifference s1 s2) = mkTrace t where
     t pt v = onSortedList (filter $ not . within s2) (appTrace (getTrace s1) pt v)
          <> onSortedList (filter $ within s1) (appTrace (getTrace s2) pt v) where
       newPt dist = pt .+^ v ^* dist
-      within prim = getAny . runQuery (getQuery prim) . newPt
+      within prim = inquire prim . newPt
 
 instance (RealFloat n, Ord n) => Skinned (CSG n) where
   skin s = mkQD (Prim s) (getEnvelope s) (getTrace s) mempty (getQuery s)

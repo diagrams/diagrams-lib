@@ -55,7 +55,7 @@ import           Diagrams.Align
 import           Diagrams.Core
 import           Diagrams.Core.Transform
 import           Diagrams.Path
-import           Diagrams.Query          hiding (inside)
+import           Diagrams.Query
 import           Diagrams.ThreeD.Shapes  (cube)
 import           Diagrams.ThreeD.Types
 import           Diagrams.TwoD.Path      ()

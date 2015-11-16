@@ -1,6 +1,7 @@
-{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleContexts       #-}
+{-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses  #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Query
@@ -19,7 +20,7 @@ module Diagrams.Query
     Query(..)
   , HasQuery (..)
   , sample
-  , inside
+  , inquire
 
     -- ** Queries on diagrams
   , query
@@ -32,8 +33,14 @@ import           Data.Monoid
 
 import           Diagrams.Core
 
--- | Types which can answer a Query about points inside the geometric
+-- | Types which can answer a 'Query' about points inquire the geometric
 --   object.
+--
+--   If @t@ and @m@ are both a 'Semigroup's, 'getQuery' should satisfy
+--
+-- @
+-- 'getQuery' (t1 <> t2) = 'getQuery' t1 <> 'getQuery' t2
+-- @
 class HasQuery t m | t -> m where
   -- | Extract the query of an object.
   getQuery :: t -> Query (V t) (N t) m
@@ -47,13 +54,12 @@ instance Monoid m => HasQuery (QDiagram b v n m) m where
 -- | Test if a point is not equal to 'mempty'.
 --
 -- @
--- 'inside' :: 'QDiagram' b v n 'Any' -> 'Point' v n -> 'Bool'
--- 'inside' :: 'Query' v n 'Any'      -> 'Point' v n -> 'Bool'
--- 'inside' :: 'Diagrams.BoundingBox.BoundingBox' v n  -> 'Point' v n -> 'Bool'
--- 'inside' :: 'Diagrams.Path.Path' 'V2' 'Double'   -> 'Point' v n -> 'Bool'
+-- 'inquire' :: 'QDiagram' b v n 'Any' -> 'Point' v n -> 'Bool'
+-- 'inquire' :: 'Query' v n 'Any'      -> 'Point' v n -> 'Bool'
+-- 'inquire' :: 'Diagrams.BoundingBox.BoundingBox' v n  -> 'Point' v n -> 'Bool'
 -- @
-inside :: (HasQuery t m, Monoid m, Eq m) => t -> Point (V t) (N t) -> Bool
-inside t = (/= mempty) . sample t
+inquire :: HasQuery t Any => t -> Point (V t) (N t) -> Bool
+inquire t = getAny . sample t
 
 -- | Sample a diagram's query function at a given point.
 --
@@ -67,7 +73,7 @@ sample :: HasQuery t m => t -> Point (V t) (N t) -> m
 sample = runQuery . getQuery
 
 -- | Set the query value for 'True' points in a diagram (/i.e./ points
---   \"inside\" the diagram); 'False' points will be set to 'mempty'.
+--   \"inquire\" the diagram); 'False' points will be set to 'mempty'.
 value :: Monoid m => m -> QDiagram b v n Any -> QDiagram b v n m
 value m = fmap fromAny
   where fromAny (Any True)  = m

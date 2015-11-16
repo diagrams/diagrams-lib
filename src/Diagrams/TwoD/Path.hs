@@ -13,7 +13,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Path
--- Copyright   :  (c) 2011 diagrams-lib team (see LICENSE)
+-- Copyright   :  (c) 2011-2015 diagrams-lib team (see LICENSE)
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
@@ -42,7 +42,8 @@ module Diagrams.TwoD.Path
     -- ** Inside/outside testing
 
   , Crossings (..)
-  , isInsideWinding, isInsideEvenOdd
+  , isInsideWinding
+  , isInsideEvenOdd
 
     -- * Clipping
 
@@ -70,8 +71,8 @@ import           Diagrams.Core
 import           Diagrams.Core.Trace
 import           Diagrams.Located          (Located, mapLoc, unLoc)
 import           Diagrams.Parametric
-import           Diagrams.Query
 import           Diagrams.Path
+import           Diagrams.Query
 import           Diagrams.Segment
 import           Diagrams.Solve.Polynomial
 import           Diagrams.Trail
@@ -304,10 +305,26 @@ fillRule = applyAttr
 _fillRule :: Lens' (Style V2 n) FillRule
 _fillRule = atAttr . non def
 
--- XXX link to more info on this
-
 -- | The sum of /signed/ crossings of a path as we travel in the
 --   positive x direction from a given point.
+--
+--     - A point is filled according to the 'Winding' fill rule, if the
+--       number of 'Crossings' is non-zero (see 'isInsideWinding').
+--
+--     - A point is filled according to the 'EvenOdd' fill rule, if the
+--       number of 'Crossings' is odd (see 'isInsideEvenOdd').
+--
+--   This is the 'HasQuery' result for 'Path's, 'Located' 'Trail's and
+--   'Located' 'Loops'.
+--
+-- @
+-- 'sample' :: 'Path' 'V2' 'Double'                  -> 'Point' 'V2' 'Double' -> 'Crossings'
+-- 'sample' :: 'Located' ('Trail' 'V2' 'Double')       -> 'Point' 'V2' 'Double' -> 'Crossings'
+-- 'sample' :: 'Located' ('Trail'' 'Loop' 'V2' 'Double') -> 'Point' 'V2' 'Double' -> 'Crossings'
+-- @
+--
+--   Note that 'Line's have no inside or outside, so don't contribute
+--   crossings
 newtype Crossings = Crossings Int
   deriving (Show, Eq, Ord, Num, Enum, Real, Integral)
 
@@ -318,14 +335,14 @@ instance Monoid Crossings where
   mempty  = Crossings 0
   mappend = (<>)
 
-instance RealFloat n => HasQuery (Located (Trail' l V2 n)) Crossings where
-  getQuery trail' = Query $ \p -> trailCrossings p (mapLoc Trail trail')
-
 instance RealFloat n => HasQuery (Located (Trail V2 n)) Crossings where
   getQuery trail = Query $ \p -> trailCrossings p trail
 
+instance RealFloat n => HasQuery (Located (Trail' l V2 n)) Crossings where
+  getQuery trail' = getQuery (mapLoc Trail trail')
+
 instance RealFloat n => HasQuery (Path V2 n) Crossings where
-  getQuery path = Query $ \p -> crossings p path
+  getQuery = foldMapOf each getQuery
 
 -- | Test whether the given point is inside the given path,
 --   by testing whether the point's /winding number/ is nonzero. Note
@@ -354,11 +371,6 @@ isInsideWinding t = (/= 0) . sample t
 -- @
 isInsideEvenOdd :: HasQuery t Crossings => t -> Point (V t) (N t) -> Bool
 isInsideEvenOdd t = odd . sample t
-
--- | Compute the sum of /signed/ crossings of a path as we travel in the
---   positive x direction from a given point.
-crossings :: RealFloat n => Point V2 n -> Path V2 n -> Crossings
-crossings p = F.foldMap (trailCrossings p) . op Path
 
 -- | Compute the sum of signed crossings of a trail starting from the
 --   given point in the positive x direction.
@@ -423,6 +435,12 @@ type instance N (Clip n) = n
 
 instance (OrderedField n) => Transformable (Clip n) where
   transform t (Clip ps) = Clip (transform t ps)
+
+-- | A point inside a clip if the point is in 'All' invididual clipping
+--   paths.
+instance RealFloat n => HasQuery (Clip n) All where
+  getQuery (Clip paths) = Query $ \p ->
+    F.foldMap (All . flip isInsideWinding p) paths
 
 _Clip :: Iso (Clip n) (Clip n') [Path V2 n] [Path V2 n']
 _Clip = _Wrapped
