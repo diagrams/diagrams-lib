@@ -277,21 +277,21 @@ instance (RealFloat n, Ord n) => Traced (CSG n) where
   getTrace (CsgEllipsoid p) = getTrace p
   getTrace (CsgBox p) = getTrace p
   getTrace (CsgFrustum p) = getTrace p
-  -- on surface of some p, and not getQuery any of the others
+  -- on surface of some p, and not inside any of the others
   getTrace (CsgUnion []) = mempty
   getTrace (CsgUnion (s:ss)) = mkTrace t where
     t pt v = onSortedList (filter $ without s) (appTrace (getTrace (CsgUnion ss)) pt v)
          <> onSortedList (filter $ without (CsgUnion ss)) (appTrace (getTrace s) pt v) where
       newPt dist = pt .+^ v ^* dist
       without prim = not . getAny . runQuery (getQuery prim) . newPt
-  -- on surface of some p, and getQuery all the others
+  -- on surface of some p, and inside all the others
   getTrace (CsgIntersection []) = mempty
   getTrace (CsgIntersection (s:ss)) = mkTrace t where
     t pt v = onSortedList (filter $ within s) (appTrace (getTrace (CsgIntersection ss)) pt v)
          <> onSortedList (filter $ within (CsgIntersection ss)) (appTrace (getTrace s) pt v) where
       newPt dist = pt .+^ v ^* dist
       within prim = getAny . runQuery (getQuery prim) . newPt
-  -- on surface of p1, outside p2, or on surface of p2, getQuery p1
+  -- on surface of p1, outside p2, or on surface of p2, inside p1
   getTrace (CsgDifference s1 s2) = mkTrace t where
     t pt v = onSortedList (filter $ not . within s2) (appTrace (getTrace s1) pt v)
          <> onSortedList (filter $ within s1) (appTrace (getTrace s2) pt v) where
