@@ -43,7 +43,9 @@ import           Diagrams.Core
 
 import           Diagrams.Attributes  (colorToSRGBA)
 import           Diagrams.TwoD.Path   (isInsideEvenOdd)
+import           Diagrams.Path        (Path)
 import           Diagrams.TwoD.Shapes (rect)
+import Diagrams.Query
 import           Diagrams.TwoD.Types
 
 import           Linear.Affine
@@ -72,6 +74,12 @@ data DImage :: * -> * -> * where
 type instance V (DImage n a) = V2
 type instance N (DImage n a) = n
 
+instance RealFloat n => HasQuery (DImage n a) Any where
+  getQuery (DImage _ w h _) = -- transform t $
+    Query $ \p -> Any (isInsideEvenOdd r p)
+    where
+    r = rectPath (fromIntegral w) (fromIntegral h)
+
 instance Fractional n => Transformable (DImage n a) where
   transform t1 (DImage iD w h t2) = DImage iD w h (t1 <> t2)
 
@@ -86,10 +94,14 @@ image img
          (getEnvelope r)
          (getTrace r)
          mempty
-         (Query $ \p -> Any (isInsideEvenOdd p r))
+         (Query $ \p -> Any (isInsideEvenOdd r p))
   where
-    r = rect (fromIntegral w) (fromIntegral h)
+    r = rectPath (fromIntegral w) (fromIntegral h)
+    -- should we use the transform here?
     DImage _ w h _ = img
+
+rectPath :: RealFloat n => n -> n -> Path V2 n
+rectPath = rect
 
 -- | Use JuicyPixels to read an image in any format and wrap it in a 'DImage'.
 --   The width and height of the image are set to their actual values.
