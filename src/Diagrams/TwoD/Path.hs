@@ -339,7 +339,7 @@ isInsideEvenOdd t = odd . sample t
 -- | Compute the sum of /signed/ crossings of a path as we travel in the
 --   positive x direction from a given point.
 crossings :: RealFloat n => Point V2 n -> Path V2 n -> Crossings
-crossings p = foldMap (trailCrossings p) . op Path
+crossings p = F.foldMap (trailCrossings p) . op Path
 
 -- | Compute the sum of signed crossings of a trail starting from the
 --   given point in the positive x direction.
@@ -349,7 +349,7 @@ trailCrossings :: RealFloat n => Point V2 n -> Located (Trail V2 n) -> Crossings
 trailCrossings _ t | not (isLoop (unLoc t)) = 0
 
 trailCrossings p@(unp2 -> (x,y)) tr
-  = foldMap test $ fixTrail tr
+  = F.foldMap test $ fixTrail tr
   where
     test (FLinear a@(unp2 -> (_,ay)) b@(unp2 -> (_,by)))
       | ay <= y && by > y && isLeft a b > 0 =  1
