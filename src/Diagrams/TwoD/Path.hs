@@ -13,7 +13,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Path
--- Copyright   :  (c) 2011 diagrams-lib team (see LICENSE)
+-- Copyright   :  (c) 2011-2015 diagrams-lib team (see LICENSE)
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
@@ -25,35 +25,37 @@
 -----------------------------------------------------------------------------
 
 module Diagrams.TwoD.Path
-       ( -- * Constructing path-based diagrams
+  ( -- * Constructing path-based diagrams
 
-         stroke, stroke'
-       , strokePath, strokeP, strokePath', strokeP'
-       , strokeTrail, strokeT, strokeTrail', strokeT'
-       , strokeLine, strokeLoop
-       , strokeLocTrail, strokeLocT, strokeLocLine, strokeLocLoop
+    stroke, stroke'
+  , strokePath, strokeP, strokePath', strokeP'
+  , strokeTrail, strokeT, strokeTrail', strokeT'
+  , strokeLine, strokeLoop
+  , strokeLocTrail, strokeLocT, strokeLocLine, strokeLocLoop
 
-         -- ** Stroke options
+    -- ** Stroke options
 
-       , FillRule(..)
-       , getFillRule, fillRule, _fillRule
-       , StrokeOpts(..), vertexNames, queryFillRule
+  , FillRule(..)
+  , getFillRule, fillRule, _fillRule
+  , StrokeOpts(..), vertexNames, queryFillRule
 
-         -- ** Inside/outside testing
+    -- ** Inside/outside testing
 
-       , isInsideWinding, isInsideEvenOdd
+  , Crossings (..)
+  , isInsideWinding
+  , isInsideEvenOdd
 
-         -- * Clipping
+    -- * Clipping
 
-       , Clip(..), _Clip, _clip
-       , clipBy, clipTo, clipped
+  , Clip(..), _Clip, _clip
+  , clipBy, clipTo, clipped
 
-         -- * Intersections
+    -- * Intersections
 
-       , intersectPoints, intersectPoints'
-       , intersectPointsP, intersectPointsP'
-       , intersectPointsT, intersectPointsT'
-       ) where
+  , intersectPoints, intersectPoints'
+  , intersectPointsP, intersectPointsP'
+  , intersectPointsT, intersectPointsT'
+  ) where
 
 import           Control.Applicative       (liftA2)
 import           Control.Lens              hiding (at, transform)
@@ -70,6 +72,7 @@ import           Diagrams.Core.Trace
 import           Diagrams.Located          (Located, mapLoc, unLoc)
 import           Diagrams.Parametric
 import           Diagrams.Path
+import           Diagrams.Query
 import           Diagrams.Segment
 import           Diagrams.Solve.Polynomial
 import           Diagrams.Trail
@@ -107,14 +110,14 @@ instance RealFloat n => Traced (Path V2 n) where
 -- | Enumeration of algorithms or \"rules\" for determining which
 --   points lie in the interior of a (possibly self-intersecting)
 --   path.
-data FillRule = Winding  -- ^ Interior points are those with a nonzero
-                         --   /winding/ /number/.  See
-                         --   <http://en.wikipedia.org/wiki/Nonzero-rule>.
-              | EvenOdd  -- ^ Interior points are those where a ray
-                         --   extended infinitely in a particular
-                         --   direction crosses the path an odd number
-                         --   of times. See
-                         --   <http://en.wikipedia.org/wiki/Even-odd_rule>.
+data FillRule
+  = Winding  -- ^ Interior points are those with a nonzero
+             --   /winding/ /number/.  See
+             --   <http://en.wikipedia.org/wiki/Nonzero-rule>.
+  | EvenOdd  -- ^ Interior points are those where a ray
+             --   extended infinitely in a particular direction crosses
+             --   the path an odd number of times. See
+             --   <http://en.wikipedia.org/wiki/Even-odd_rule>.
     deriving (Show, Typeable, Eq, Ord)
 
 instance AttributeClass FillRule
@@ -147,14 +150,13 @@ makeLensesWith (generateSignatures .~ False $ lensRules) ''StrokeOpts
 --
 --   The default value is the empty list.
 
-vertexNames :: forall a a'. Lens (StrokeOpts a) (StrokeOpts a') [[a]] [[a']]
+vertexNames :: Lens (StrokeOpts a) (StrokeOpts a') [[a]] [[a']]
 
 -- | The fill rule used for determining which points are inside the path.
 --   The default is 'Winding'.  NOTE: for now, this only affects the resulting
 --   diagram's 'Query', /not/ how it will be drawn!  To set the fill rule
 --   determining how it is to be drawn, use the 'fillRule' function.
-queryFillRule :: forall a. Lens' (StrokeOpts a) FillRule
-
+queryFillRule :: Lens' (StrokeOpts a) FillRule
 
 instance Default (StrokeOpts a) where
   def = StrokeOpts
@@ -167,6 +169,13 @@ instance Default (StrokeOpts a) where
 --
 --   See also 'stroke'', which takes an extra options record allowing
 --   its behaviour to be customized.
+--
+-- @
+-- 'stroke' :: 'Path' 'V2' 'Double'                  -> 'Diagram' b
+-- 'stroke' :: 'Located' ('Trail' 'V2' 'Double')       -> 'Diagram' b
+-- 'stroke' :: 'Located' ('Trail'' 'Loop' 'V2' 'Double') -> 'Diagram' b
+-- 'stroke' :: 'Located' ('Trail'' 'Line' 'V2' 'Double') -> 'Diagram' b
+-- @
 stroke :: (InSpace V2 n t, ToPath t, TypeableFloat n, Renderable (Path V2 n) b)
        => t -> QDiagram b V2 n Any
 stroke = strokeP . toPath
@@ -212,7 +221,7 @@ strokeP' opts path
          (fromNames . concat $
            zipWith zip (opts^.vertexNames) ((map . map) subPoint (pathVertices p))
          )
-         (Query $ Any . flip (runFillRule (opts^.queryFillRule)) p)
+         (Query $ Any . (runFillRule (opts^.queryFillRule)) p)
 
 -- | 'stroke'' specialised to 'Path'.
 strokePath' :: (TypeableFloat n, Renderable (Path V2 n) b, IsName a)
@@ -279,7 +288,7 @@ strokeLocLoop = strokeP . trailLike . mapLoc wrapLoop
 --  Inside/outside testing
 ------------------------------------------------------------
 
-runFillRule :: RealFloat n => FillRule -> Point V2 n -> Path V2 n -> Bool
+runFillRule :: RealFloat n => FillRule -> Path V2 n -> Point V2 n -> Bool
 runFillRule Winding = isInsideWinding
 runFillRule EvenOdd = isInsideEvenOdd
 
@@ -296,14 +305,57 @@ fillRule = applyAttr
 _fillRule :: Lens' (Style V2 n) FillRule
 _fillRule = atAttr . non def
 
--- XXX link to more info on this
+-- | The sum of /signed/ crossings of a path as we travel in the
+--   positive x direction from a given point.
+--
+--     - A point is filled according to the 'Winding' fill rule, if the
+--       number of 'Crossings' is non-zero (see 'isInsideWinding').
+--
+--     - A point is filled according to the 'EvenOdd' fill rule, if the
+--       number of 'Crossings' is odd (see 'isInsideEvenOdd').
+--
+--   This is the 'HasQuery' result for 'Path's, 'Located' 'Trail's and
+--   'Located' 'Loops'.
+--
+-- @
+-- 'sample' :: 'Path' 'V2' 'Double'                  -> 'Point' 'V2' 'Double' -> 'Crossings'
+-- 'sample' :: 'Located' ('Trail' 'V2' 'Double')       -> 'Point' 'V2' 'Double' -> 'Crossings'
+-- 'sample' :: 'Located' ('Trail'' 'Loop' 'V2' 'Double') -> 'Point' 'V2' 'Double' -> 'Crossings'
+-- @
+--
+--   Note that 'Line's have no inside or outside, so don't contribute
+--   crossings
+newtype Crossings = Crossings Int
+  deriving (Show, Eq, Ord, Num, Enum, Real, Integral)
+
+instance Semigroup Crossings where
+  Crossings a <> Crossings b = Crossings (a + b)
+
+instance Monoid Crossings where
+  mempty  = Crossings 0
+  mappend = (<>)
+
+instance RealFloat n => HasQuery (Located (Trail V2 n)) Crossings where
+  getQuery trail = Query $ \p -> trailCrossings p trail
+
+instance RealFloat n => HasQuery (Located (Trail' l V2 n)) Crossings where
+  getQuery trail' = getQuery (mapLoc Trail trail')
+
+instance RealFloat n => HasQuery (Path V2 n) Crossings where
+  getQuery = foldMapOf each getQuery
 
 -- | Test whether the given point is inside the given path,
 --   by testing whether the point's /winding number/ is nonzero. Note
 --   that @False@ is /always/ returned for paths consisting of lines
 --   (as opposed to loops), regardless of the winding number.
-isInsideWinding :: RealFloat n => Point V2 n -> Path V2 n -> Bool
-isInsideWinding p = (/= 0) . crossings p
+--
+-- @
+-- 'isInsideWinding' :: 'Path' 'V2' 'Double'                  -> 'Point' 'V2' 'Double' -> 'Bool'
+-- 'isInsideWinding' :: 'Located' ('Trail' 'V2' 'Double')       -> 'Point' 'V2' 'Double' -> 'Bool'
+-- 'isInsideWinding' :: 'Located' ('Trail'' 'Loop' 'V2' 'Double') -> 'Point' 'V2' 'Double' -> 'Bool'
+-- @
+isInsideWinding :: HasQuery t Crossings => t -> Point (V t) (N t) -> Bool
+isInsideWinding t = (/= 0) . sample t
 
 -- | Test whether the given point is inside the given path,
 --   by testing whether a ray extending from the point in the positive
@@ -311,23 +363,24 @@ isInsideWinding p = (/= 0) . crossings p
 --   number of times.  Note that @False@ is /always/ returned for
 --   paths consisting of lines (as opposed to loops), regardless of
 --   the number of crossings.
-isInsideEvenOdd :: RealFloat n => Point V2 n -> Path V2 n -> Bool
-isInsideEvenOdd p = odd . crossings p
-
--- | Compute the sum of /signed/ crossings of a path as we travel in the
---   positive x direction from a given point.
-crossings :: RealFloat n => Point V2 n -> Path V2 n -> Int
-crossings p = F.sum . map (trailCrossings p) . op Path
+--
+-- @
+-- 'isInsideEvenOdd' :: 'Path' 'V2' 'Double'                  -> 'Point' 'V2' 'Double' -> 'Bool'
+-- 'isInsideEvenOdd' :: 'Located' ('Trail' 'V2' 'Double')       -> 'Point' 'V2' 'Double' -> 'Bool'
+-- 'isInsideEvenOdd' :: 'Located' ('Trail'' 'Loop' 'V2' 'Double') -> 'Point' 'V2' 'Double' -> 'Bool'
+-- @
+isInsideEvenOdd :: HasQuery t Crossings => t -> Point (V t) (N t) -> Bool
+isInsideEvenOdd t = odd . sample t
 
 -- | Compute the sum of signed crossings of a trail starting from the
 --   given point in the positive x direction.
-trailCrossings :: RealFloat n => Point V2 n -> Located (Trail V2 n) -> Int
+trailCrossings :: RealFloat n => Point V2 n -> Located (Trail V2 n) -> Crossings
 
   -- non-loop trails have no inside or outside, so don't contribute crossings
 trailCrossings _ t | not (isLoop (unLoc t)) = 0
 
 trailCrossings p@(unp2 -> (x,y)) tr
-  = sum . map test $ fixTrail tr
+  = F.foldMap test $ fixTrail tr
   where
     test (FLinear a@(unp2 -> (_,ay)) b@(unp2 -> (_,by)))
       | ay <= y && by > y && isLeft a b > 0 =  1
@@ -383,6 +436,12 @@ type instance N (Clip n) = n
 instance (OrderedField n) => Transformable (Clip n) where
   transform t (Clip ps) = Clip (transform t ps)
 
+-- | A point inside a clip if the point is in 'All' invididual clipping
+--   paths.
+instance RealFloat n => HasQuery (Clip n) All where
+  getQuery (Clip paths) = Query $ \p ->
+    F.foldMap (All . flip isInsideWinding p) paths
+
 _Clip :: Iso (Clip n) (Clip n') [Path V2 n] [Path V2 n']
 _Clip = _Wrapped
 
@@ -420,7 +479,7 @@ clipTo p d = setTrace intersectionTrace . toEnvelope $ clipBy p d
         -- or on boundary of p, inside d
         onSortedList (filter dInside) (appTrace (getTrace p) pt v) where
           newPt dist = pt .+^ v ^* dist
-          pInside dDist = runFillRule Winding (newPt dDist) p
+          pInside dDist = runFillRule Winding p (newPt dDist)
           dInside pDist = getAny . sample d $ newPt pDist
 
 -- | Clip a diagram to the clip path taking the envelope and trace of the clip

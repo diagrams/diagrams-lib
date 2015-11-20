@@ -4,7 +4,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.ThreeD
--- Copyright   :  (c) 2013 diagrams-lib team (see LICENSE)
+-- Copyright   :  (c) 2013-2015 diagrams-lib team (see LICENSE)
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
@@ -40,24 +40,23 @@
 --     highlights.
 -----------------------------------------------------------------------------
 module Diagrams.ThreeD
-       (
-         module Diagrams.ThreeD.Align
-       , module Diagrams.ThreeD.Attributes
-       , module Diagrams.ThreeD.Camera
-       , module Diagrams.ThreeD.Deform
-       , module Diagrams.ThreeD.Light
-       , module Diagrams.ThreeD.Shapes
-       , module Diagrams.ThreeD.Transform
-       , module Diagrams.ThreeD.Types
-       , module Diagrams.ThreeD.Vector
-       ) where
+  ( module Diagrams.ThreeD.Align
+  , module Diagrams.ThreeD.Attributes
+  , module Diagrams.ThreeD.Camera
+  , module Diagrams.ThreeD.Deform
+  , module Diagrams.ThreeD.Light
+  , module Diagrams.ThreeD.Shapes
+  , module Diagrams.ThreeD.Transform
+  , module Diagrams.ThreeD.Types
+  , module Diagrams.ThreeD.Vector
+  ) where
 
 import           Diagrams.ThreeD.Align
 import           Diagrams.ThreeD.Attributes
 import           Diagrams.ThreeD.Camera
 import           Diagrams.ThreeD.Deform
 import           Diagrams.ThreeD.Light
-import           Diagrams.ThreeD.Shapes     hiding (Inside)
+import           Diagrams.ThreeD.Shapes
 import           Diagrams.ThreeD.Transform
 import           Diagrams.ThreeD.Types
 import           Diagrams.ThreeD.Vector

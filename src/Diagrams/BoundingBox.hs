@@ -38,7 +38,7 @@ module Diagrams.BoundingBox
   , boxExtents, boxCenter
   , mCenterPoint, centerPoint
   , boxTransform, boxFit
-  , contains, contains', boundingBoxQuery
+  , contains, contains'
   , inside, inside', outside, outside'
 
     -- * Operations on bounding boxes
@@ -55,6 +55,7 @@ import           Diagrams.Align
 import           Diagrams.Core
 import           Diagrams.Core.Transform
 import           Diagrams.Path
+import           Diagrams.Query
 import           Diagrams.ThreeD.Shapes  (cube)
 import           Diagrams.ThreeD.Types
 import           Diagrams.TwoD.Path      ()
@@ -118,8 +119,12 @@ instance (Additive v, Num n, Ord n) => HasOrigin (BoundingBox v n) where
     = fromMaybeEmpty
     (NonEmptyBoundingBox . mapT (moveOriginTo p) <$> getCorners b)
 
+instance (Additive v, Foldable v, Num n, Ord n)
+     => HasQuery (BoundingBox v n) Any where
+  getQuery bb = Query $ Any . contains bb
+
 instance (Metric v, Traversable v, OrderedField n)
-          => Enveloped (BoundingBox v n) where
+     => Enveloped (BoundingBox v n) where
   getEnvelope = getEnvelope . getAllCorners
 
 -- Feels like cheating.
@@ -254,9 +259,6 @@ contains' b p = maybe False check $ getCorners b
   where
     check (l, h) = F.and (liftI2 (<) l p)
                 && F.and (liftI2 (<) p h)
-
-boundingBoxQuery :: (Additive v, Foldable v, Ord n) => BoundingBox v n -> Query v n Any
-boundingBoxQuery bb = Query $ Any . contains bb
 
 -- | Test whether the first bounding box is contained inside
 --   the second.

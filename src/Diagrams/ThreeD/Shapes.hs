@@ -17,14 +17,28 @@
 -----------------------------------------------------------------------------
 
 module Diagrams.ThreeD.Shapes
-     (
-     Ellipsoid(..), sphere
-     , Box(..), cube
-     , Frustum(..) , frustum, cone, cylinder
-     , Skinned(..)
-     , CSG(..), union, intersection, difference
-     , Inside(..)
-     ) where
+  (
+    -- * Skinned class
+    Skinned(..)
+
+    -- * Basic 3D shapes
+  , Ellipsoid(..)
+  , sphere
+
+  , Box(..)
+  , cube
+
+  , Frustum(..)
+  , frustum
+  , cone
+  , cylinder
+
+    -- * Constructive solid geometry
+  , CSG(..)
+  , union
+  , intersection
+  , difference
+  ) where
 
 #if __GLASGOW_HASKELL__ < 710
 import           Control.Applicative
@@ -38,6 +52,7 @@ import           Diagrams.Angle
 import           Diagrams.Core
 import           Diagrams.Core.Trace
 import           Diagrams.Points
+import           Diagrams.Query
 import           Diagrams.Solve.Polynomial
 import           Diagrams.ThreeD.Types
 import           Diagrams.ThreeD.Vector
@@ -171,31 +186,27 @@ cone = frustum 1 0
 cylinder :: Num n => Frustum n
 cylinder = frustum 1 1
 
--- | Types which can answer a Query about points inside the geometric object.
-class Inside t where
-  inside :: t -> Query (V t) (N t) Any
-
 -- | Types which can be rendered as 3D Diagrams.
 class Skinned t where
-  skin :: (Renderable t b, N t ~ n, TypeableFloat n) => t  -> QDiagram b V3 n Any
+  skin :: (Renderable t b, N t ~ n, TypeableFloat n) => t -> QDiagram b V3 n Any
 
-instance (Num n, Ord n) => Inside (Ellipsoid n) where
-  inside (Ellipsoid tr) = transform tr $
-              Query $ \v -> Any $ quadrance (v .-. origin) <= 1
+instance (Num n, Ord n) => HasQuery (Ellipsoid n) Any where
+  getQuery (Ellipsoid tr) = transform tr $
+    Query $ \v -> Any $ quadrance (v .-. origin) <= 1
 
 instance OrderedField n => Skinned (Ellipsoid n) where
-  skin s = mkQD (Prim s) (getEnvelope s) (getTrace s) mempty (inside s)
+  skin s = mkQD (Prim s) (getEnvelope s) (getTrace s) mempty (getQuery s)
 
-instance (Num n, Ord n) => Inside (Box n) where
-  inside (Box tr) = transform tr . Query $ Any . range where
+instance (Num n, Ord n) => HasQuery (Box n) Any where
+  getQuery (Box tr) = transform tr . Query $ Any . range where
     range u = and [x >= 0, x <= 1, y >= 0, y <= 1, z >= 0, z <= 1] where
       (x, y, z) = unp3 u
 
 instance OrderedField n => Skinned (Box n) where
-  skin s = mkQD (Prim s) (getEnvelope s) (getTrace s) mempty (inside s)
+  skin s = mkQD (Prim s) (getEnvelope s) (getTrace s) mempty (getQuery s)
 
-instance (OrderedField n) => Inside (Frustum n) where
-  inside (Frustum r0 r1 tr)= transform tr $
+instance (OrderedField n) => HasQuery (Frustum n) Any where
+  getQuery (Frustum r0 r1 tr)= transform tr $
     Query $ \p -> let
       z = p^._z
       r = r0 + (r1 - r0)*z
@@ -206,7 +217,7 @@ instance (OrderedField n) => Inside (Frustum n) where
        Any $ z >= 0 && z <= 1 && a <= r
 
 instance Skinned (Frustum n) where
-  skin s = mkQD (Prim s) (getEnvelope s) (getTrace s) mempty (inside s)
+  skin s = mkQD (Prim s) (getEnvelope s) (getTrace s) mempty (getQuery s)
 
 -- The CSG type needs to form a tree to be useful.  This
 -- implementation requires Backends to support all the included
@@ -220,13 +231,14 @@ instance Skinned (Frustum n) where
 
 -- | A tree of Constructive Solid Geometry operations and the primitives that
 -- can be used in them.
-data CSG n = CsgEllipsoid (Ellipsoid n)
-     | CsgBox (Box n)
-     | CsgFrustum (Frustum n)
-     | CsgUnion [CSG n]
-     | CsgIntersection [CSG n]
-     | CsgDifference (CSG n) (CSG n)
-       deriving Typeable
+data CSG n
+  = CsgEllipsoid (Ellipsoid n)
+  | CsgBox (Box n)
+  | CsgFrustum (Frustum n)
+  | CsgUnion [CSG n]
+  | CsgIntersection [CSG n]
+  | CsgDifference (CSG n) (CSG n)
+  deriving Typeable
 
 type instance V (CSG n) = V3
 type instance N (CSG n) = n
@@ -235,8 +247,8 @@ instance Fractional n => Transformable (CSG n) where
   transform t (CsgEllipsoid p) = CsgEllipsoid $ transform t p
   transform t (CsgBox p) = CsgBox $ transform t p
   transform t (CsgFrustum p) = CsgFrustum $ transform t p
-  transform t (CsgUnion ps) = CsgUnion . map (transform t) $ ps
-  transform t (CsgIntersection ps) = CsgIntersection . map (transform t) $ ps
+  transform t (CsgUnion ps) = CsgUnion $ map (transform t) ps
+  transform t (CsgIntersection ps) = CsgIntersection $ map (transform t) ps
   transform t (CsgDifference p1 p2) = CsgDifference (transform t p1) (transform t p2)
 
 -- | The Envelope for an Intersection or Difference is simply the
@@ -251,14 +263,14 @@ instance RealFloat n => Enveloped (CSG n) where
 -- TODO after implementing some approximation scheme, calculate
 -- correct (approximate) envelopes for intersections and difference.
 
-instance (Floating n, Ord n) => Inside (CSG n) where
-  inside (CsgEllipsoid prim) = inside prim
-  inside (CsgBox prim) = inside prim
-  inside (CsgFrustum prim) = inside prim
-  inside (CsgUnion ps) = foldMap inside ps
-  inside (CsgIntersection ps) =
-    Any . getAll <$> foldMap (fmap (All . getAny) . inside) ps
-  inside (CsgDifference p1 p2) = inOut <$> inside p1 <*> inside p2 where
+instance (Floating n, Ord n) => HasQuery (CSG n) Any where
+  getQuery (CsgEllipsoid prim) = getQuery prim
+  getQuery (CsgBox prim) = getQuery prim
+  getQuery (CsgFrustum prim) = getQuery prim
+  getQuery (CsgUnion ps) = foldMap getQuery ps
+  getQuery (CsgIntersection ps) =
+    Any . getAll <$> foldMap (fmap (All . getAny) . getQuery) ps
+  getQuery (CsgDifference p1 p2) = inOut <$> getQuery p1 <*> getQuery p2 where
     inOut (Any a) (Any b) = Any $ a && not b
 
 instance (RealFloat n, Ord n) => Traced (CSG n) where
@@ -271,23 +283,23 @@ instance (RealFloat n, Ord n) => Traced (CSG n) where
     t pt v = onSortedList (filter $ without s) (appTrace (getTrace (CsgUnion ss)) pt v)
          <> onSortedList (filter $ without (CsgUnion ss)) (appTrace (getTrace s) pt v) where
       newPt dist = pt .+^ v ^* dist
-      without prim = not . getAny . runQuery (inside prim) . newPt
+      without prim = not . inquire prim . newPt
   -- on surface of some p, and inside all the others
   getTrace (CsgIntersection []) = mempty
   getTrace (CsgIntersection (s:ss)) = mkTrace t where
     t pt v = onSortedList (filter $ within s) (appTrace (getTrace (CsgIntersection ss)) pt v)
          <> onSortedList (filter $ within (CsgIntersection ss)) (appTrace (getTrace s) pt v) where
       newPt dist = pt .+^ v ^* dist
-      within prim = getAny . runQuery (inside prim) . newPt
+      within prim = inquire prim . newPt
   -- on surface of p1, outside p2, or on surface of p2, inside p1
   getTrace (CsgDifference s1 s2) = mkTrace t where
     t pt v = onSortedList (filter $ not . within s2) (appTrace (getTrace s1) pt v)
          <> onSortedList (filter $ within s1) (appTrace (getTrace s2) pt v) where
       newPt dist = pt .+^ v ^* dist
-      within prim = getAny . runQuery (inside prim) . newPt
+      within prim = inquire prim . newPt
 
 instance (RealFloat n, Ord n) => Skinned (CSG n) where
-  skin s = mkQD (Prim s) (getEnvelope s) (getTrace s) mempty (inside s)
+  skin s = mkQD (Prim s) (getEnvelope s) (getTrace s) mempty (getQuery s)
 
 -- | Types which can be included in CSG trees.
 class CsgPrim a where
