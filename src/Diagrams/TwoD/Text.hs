@@ -43,7 +43,8 @@ module Diagrams.TwoD.Text (
 
   -- ** Font weight
   , FontWeight(..)
-  , getFontWeight, fontWeight, bold, bolder, lighter, _fontWeight
+  , getFontWeight, fontWeight, bold, bolder, lighter, _fontWeight, 
+    fontWeight'
 
   ) where
 
