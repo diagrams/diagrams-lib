@@ -43,7 +43,7 @@ module Diagrams.TwoD.Text (
 
   -- ** Font weight
   , FontWeight(..)
-  , getFontWeight, fontWeight, bold, _fontWeight
+  , getFontWeight, fontWeight, bold, bolder, lighter, _fontWeight
 
   ) where
 
@@ -343,6 +343,7 @@ data FontWeight = FontWeightNormal
                 | FontWeightBold
                 | FontWeightBolder
                 | FontWeightLighter
+                | FontWeightInt Int -- user can specify desired font weight
     deriving (Eq, Ord, Show, Typeable)
 
 instance AttributeClass FontWeight
@@ -376,6 +377,9 @@ bolder = fontWeight FontWeightBolder
 lighter :: HasStyle a => a -> a
 lighter = fontWeight FontWeightLighter
 
+-- | Set all text using SVG font weight integer
+fontWeight' :: HasStyle a => Int -> a -> a
+fontWeight' n = fontWeight (FontWeightInt n)
 
 -- | Lens onto the font weight in a style.
 _fontWeight :: (Typeable n, OrderedField n) => Lens' (Style v n) FontWeight
