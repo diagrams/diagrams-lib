@@ -341,6 +341,8 @@ oblique = fontSlant FontSlantOblique
 --   @FontWeightA@ attributes override outer ones.
 data FontWeight = FontWeightNormal
                 | FontWeightBold
+                | FontWeightBolder
+                | FontWeightLighter
     deriving (Eq, Ord, Show, Typeable)
 
 instance AttributeClass FontWeight
@@ -356,7 +358,7 @@ instance Default FontWeight where
 getFontWeight :: FontWeight -> FontWeight
 getFontWeight = id
 
--- | Specify the weight (normal or bold) that should be
+-- | Specify the weight (normal, bolder, lighter or bold) that should be
 --   used for all text within a diagram.  See also 'bold'
 --   for a useful special case.
 fontWeight :: HasStyle a => FontWeight -> a -> a
@@ -365,6 +367,15 @@ fontWeight = applyAttr
 -- | Set all text using a bold font weight.
 bold :: HasStyle a => a -> a
 bold = fontWeight FontWeightBold
+
+-- | Set all text using bolder font weight.
+bolder :: HasStyle a => a -> a
+bolder = fontWeight FontWeightBolder
+
+-- | Set all text using lighter font weight.
+lighter :: HasStyle a => a -> a
+lighter = fontWeight FontWeightLighter
+
 
 -- | Lens onto the font weight in a style.
 _fontWeight :: (Typeable n, OrderedField n) => Lens' (Style v n) FontWeight
