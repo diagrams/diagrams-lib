@@ -350,7 +350,7 @@ data FontWeight = FontWeightNormal
                 | FontWeightMedium
                 | FontWeightSemiBold
                 | FontWeightUltraBold
-                | FontWeightBlack
+                | FontWeightHeavy
     deriving (Eq, Ord, Show, Typeable)
 
 instance AttributeClass FontWeight
@@ -381,8 +381,8 @@ thin :: HasStyle a => a -> a
 thin = fontWeight FontWeightThin
 
 -- | Set all text using a extra light font weight.
-extraLight :: HasStyle a => a -> a
-extraLight = fontWeight FontWeightExtraLight
+ultraLight :: HasStyle a => a -> a
+ultraLight = fontWeight FontWeightUltraLight
 
 -- | Set all text using a light font weight.
 light :: HasStyle a => a -> a
@@ -401,8 +401,8 @@ ultraBold :: HasStyle a => a -> a
 ultraBold = fontWeight FontWeightUltraBold
 
 -- | Set all text using a heavy/black font weight.
-black :: HasStyle a => a -> a
-black = fontWeight FontWeightBlack
+heavy :: HasStyle a => a -> a
+heavy = fontWeight FontWeightHeavy
 
 -- | Set all text to be bolder than the inherited font weight.
 bolder :: HasStyle a => a -> a
@@ -415,3 +415,4 @@ lighter = fontWeight FontWeightLighter
 -- | Lens onto the font weight in a style.
 _fontWeight :: (Typeable n, OrderedField n) => Lens' (Style v n) FontWeight
 _fontWeight = atAttr . non def
+
