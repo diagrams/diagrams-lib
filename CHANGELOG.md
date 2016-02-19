@@ -1,3 +1,9 @@
+## [v1.3.1.1](https://github.com/diagrams/diagrams-lib/tree/v1.3.1.1) (2016-02-19)
+
+  - allow `unordered-containers-0.2.*`
+
+[Full Changelog](https://github.com/diagrams/diagrams-lib/compare/v1.3.1.0...v1.3.1.1)
+
 ## [v1.3.1.0](https://github.com/diagrams/diagrams-lib/tree/v1.3.1.0) (2016-02-14)
 
 - improve path offset calculations
