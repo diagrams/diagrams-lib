@@ -181,7 +181,9 @@ module Diagrams.TwoD
 
          -- * Text
        , text, topLeftText, alignedText, baselineText
-       , font, italic, oblique, bold, fontSize
+       , font, italic, oblique, fontSize
+       , bold, bolder, lighter, thinWeight
+       , ultraLight, light, mediumWeight, heavy, semiBold, ultraBold
        , _font, _fontSizeR, _fontSize
        , fontSizeO, fontSizeL, fontSizeN, fontSizeG
 
