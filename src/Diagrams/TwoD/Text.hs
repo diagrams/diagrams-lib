@@ -43,7 +43,8 @@ module Diagrams.TwoD.Text (
 
   -- ** Font weight
   , FontWeight(..)
-  , getFontWeight, fontWeight, bold, _fontWeight
+  , getFontWeight, fontWeight, bold, bolder, lighter, _fontWeight
+  , thin, ultraLight, light, medium, semiBold, ultraBold, black
 
   ) where
 
@@ -341,6 +342,15 @@ oblique = fontSlant FontSlantOblique
 --   @FontWeightA@ attributes override outer ones.
 data FontWeight = FontWeightNormal
                 | FontWeightBold
+                | FontWeightBolder
+                | FontWeightLighter
+                | FontWeightThin
+                | FontWeightUltraLight
+                | FontWeightLight
+                | FontWeightMedium
+                | FontWeightSemiBold
+                | FontWeightUltraBold
+                | FontWeightHeavy
     deriving (Eq, Ord, Show, Typeable)
 
 instance AttributeClass FontWeight
@@ -356,7 +366,7 @@ instance Default FontWeight where
 getFontWeight :: FontWeight -> FontWeight
 getFontWeight = id
 
--- | Specify the weight (normal or bold) that should be
+-- | Specify the weight (normal, bolder, lighter or bold) that should be
 --   used for all text within a diagram.  See also 'bold'
 --   for a useful special case.
 fontWeight :: HasStyle a => FontWeight -> a -> a
@@ -366,6 +376,43 @@ fontWeight = applyAttr
 bold :: HasStyle a => a -> a
 bold = fontWeight FontWeightBold
 
+-- | Set all text using a thin font weight.
+thin :: HasStyle a => a -> a
+thin = fontWeight FontWeightThin
+
+-- | Set all text using a extra light font weight.
+ultraLight :: HasStyle a => a -> a
+ultraLight = fontWeight FontWeightUltraLight
+
+-- | Set all text using a light font weight.
+light :: HasStyle a => a -> a
+light = fontWeight FontWeightLight
+
+-- | Set all text using a medium font weight.
+medium :: HasStyle a => a -> a
+medium = fontWeight FontWeightMedium
+
+-- | Set all text using a semi-bold font weight.
+semiBold :: HasStyle a => a -> a
+semiBold = fontWeight FontWeightSemiBold
+
+-- | Set all text using an ultra-bold font weight.
+ultraBold :: HasStyle a => a -> a
+ultraBold = fontWeight FontWeightUltraBold
+
+-- | Set all text using a heavy/black font weight.
+heavy :: HasStyle a => a -> a
+heavy = fontWeight FontWeightHeavy
+
+-- | Set all text to be bolder than the inherited font weight.
+bolder :: HasStyle a => a -> a
+bolder = fontWeight FontWeightBolder
+
+-- | Set all text to be lighter than the inherited font weight.
+lighter :: HasStyle a => a -> a
+lighter = fontWeight FontWeightLighter
+
 -- | Lens onto the font weight in a style.
 _fontWeight :: (Typeable n, OrderedField n) => Lens' (Style v n) FontWeight
 _fontWeight = atAttr . non def
+
