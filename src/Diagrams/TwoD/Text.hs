@@ -44,7 +44,7 @@ module Diagrams.TwoD.Text (
   -- ** Font weight
   , FontWeight(..)
   , getFontWeight, fontWeight, bold, bolder, lighter, _fontWeight
-  , thin, ultraLight, light, medium, semiBold, ultraBold, black
+  , thinWeight, ultraLight, light, mediumWeight, heavy, semiBold, ultraBold
 
   ) where
 
@@ -377,8 +377,8 @@ bold :: HasStyle a => a -> a
 bold = fontWeight FontWeightBold
 
 -- | Set all text using a thin font weight.
-thin :: HasStyle a => a -> a
-thin = fontWeight FontWeightThin
+thinWeight :: HasStyle a => a -> a
+thinWeight = fontWeight FontWeightThin
 
 -- | Set all text using a extra light font weight.
 ultraLight :: HasStyle a => a -> a
@@ -389,8 +389,8 @@ light :: HasStyle a => a -> a
 light = fontWeight FontWeightLight
 
 -- | Set all text using a medium font weight.
-medium :: HasStyle a => a -> a
-medium = fontWeight FontWeightMedium
+mediumWeight :: HasStyle a => a -> a
+mediumWeight = fontWeight FontWeightMedium
 
 -- | Set all text using a semi-bold font weight.
 semiBold :: HasStyle a => a -> a
@@ -415,4 +415,3 @@ lighter = fontWeight FontWeightLighter
 -- | Lens onto the font weight in a style.
 _fontWeight :: (Typeable n, OrderedField n) => Lens' (Style v n) FontWeight
 _fontWeight = atAttr . non def
-
