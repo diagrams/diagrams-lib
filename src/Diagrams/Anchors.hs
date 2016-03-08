@@ -46,14 +46,25 @@ module Diagrams.Anchors
        , showAnchor_)
        where
 
+import           Diagrams.Names
+import           Diagrams.Core
+import           Diagrams.Path
+import           Diagrams.TwoD.Model
+
 import qualified Control.Lens     as Lens
+import           Control.Lens     hiding (transform, (.>))
 import           Data.List        (foldl')
 import           Data.Map         (Map)
 import qualified Data.Map         as Map
 import           Data.Maybe       (fromJust, fromMaybe)
 import qualified Data.Set         as Set
 import           Data.Typeable    (Typeable)
-import           Diagrams.Prelude
+import           Data.Semigroup
+
+import           Linear.Vector
+import           Linear.V2
+import           Linear.Affine
+import           Linear.Metric
 
 --------------------------------------------------------------------------------
 --  Anchors

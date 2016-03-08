@@ -31,7 +31,7 @@ module Diagrams.Query
 
 import           Data.Monoid
 
-import           Diagrams.Core hiding (sample, value, resetValue, clearValue)
+import           Diagrams.Core
 
 -- | Types which can answer a 'Query' about points inquire the geometric
 --   object.
