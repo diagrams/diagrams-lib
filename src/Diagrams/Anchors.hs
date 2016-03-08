@@ -1,7 +1,9 @@
-{-# LANGUAGE DefaultSignatures    #-}
-{-# LANGUAGE TemplateHaskell      #-}
-{-# LANGUAGE TypeFamilies         #-}
-{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE DefaultSignatures         #-}
+{-# LANGUAGE TemplateHaskell           #-}
+{-# LANGUAGE TypeFamilies              #-}
+{-# LANGUAGE UndecidableInstances      #-}
+{-# LANGUAGE FlexibleContexts          #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -64,7 +66,6 @@ import           Data.Semigroup
 import           Linear.Vector
 import           Linear.V2
 import           Linear.Affine
-import           Linear.Metric
 
 --------------------------------------------------------------------------------
 --  Anchors
@@ -292,7 +293,7 @@ anchorMany
 anchorMany = foldl' go
   where
     go base (thatAnch, thisAnch, obj)
-      = base # alignAnchor thatAnch <> obj # alignAnchor thisAnch
+      = alignAnchor thatAnch base <> alignAnchor thisAnch obj
 
 -- | As 'anchorMany', but call 'unanchor' on the result. Convenient when you're
 -- not going to be doing any more alignment using anchors with the result.
