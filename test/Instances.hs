@@ -1,8 +1,16 @@
+{-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE GADTs                #-}
+{-# LANGUAGE ScopedTypeVariables  #-}
+{-# LANGUAGE UndecidableInstances #-}
+
 -- | instances for QuickCheck Arbitrary and approximate equality
 
 module Instances where
 
 import           Test.Tasty.QuickCheck
+import Diagrams.Prelude
+import           Numeric.Extras
 
 ------------------------------------------------------------
     -- Approximate Comparison for Doubles, Points

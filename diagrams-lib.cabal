@@ -146,9 +146,10 @@ Library
 test-suite tests
   type: exitcode-stdio-1.0
   main-is: Test.hs
-  other-modules: Diagrams.TwoD.OffsetTest
+  other-modules: Diagrams.Test.TwoD.Offset
+               , Diagrams.Test.TwoD
+               , Diagrams.Test.Angle
                , Instances
-               , Quickcheck
   hs-source-dirs: test
   build-depends:       base >= 4.2 && < 4.10,
                        tasty >= 0.10,

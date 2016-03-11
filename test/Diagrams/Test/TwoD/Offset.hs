@@ -1,4 +1,4 @@
-module Diagrams.TwoD.OffsetTest
+module Diagrams.Test.TwoD.Offset
     (
       tests
     ) where
