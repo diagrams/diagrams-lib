@@ -5,9 +5,10 @@ module Diagrams.Test.TwoD where
 import           Test.Tasty
 import           Test.Tasty.QuickCheck
 import           Diagrams.Prelude
-import           Diagrams.Trail            (isLine, linePoints)
+import           Diagrams.Trail            (linePoints)
 import Instances
 
+tests :: TestTree
 tests = testGroup "TwoD"
     [ testGroup "TwoD.Arc" [
            testProperty "arc start point is at radius 1 in the starting direction" $ \d a ->

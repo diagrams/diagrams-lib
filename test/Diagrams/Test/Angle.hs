@@ -8,6 +8,7 @@ import           Test.Tasty.QuickCheck
 import           Diagrams.Prelude
 import Instances
 
+tests :: TestTree
 tests = testGroup "Angle" [
          testProperty "2π radians per turn" $
            \θ -> θ^.rad =~ θ^.turn*2*(pi :: Double)

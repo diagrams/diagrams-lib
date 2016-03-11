@@ -4,6 +4,8 @@
 {-# LANGUAGE ScopedTypeVariables  #-}
 {-# LANGUAGE UndecidableInstances #-}
 
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+
 -- | instances for QuickCheck Arbitrary and approximate equality
 
 module Instances where
@@ -15,6 +17,7 @@ import           Numeric.Extras
 ------------------------------------------------------------
     -- Approximate Comparison for Doubles, Points
 
+epsilon :: Double
 epsilon = 0.001
 
 class Approx a where
