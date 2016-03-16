@@ -128,10 +128,8 @@ import           Linear.Affine
 import           Linear.Metric
 import           Linear.Vector
 
-import           Data.Serialize (Serialize, Get, Put)
-import qualified Data.Serialize     as Serialize
-import qualified Data.Serialize.Get as Serialize.Get
-import qualified Data.Serialize.Put as Serialize.Put
+import           Data.Serialize            (Serialize)
+import qualified Data.Serialize            as Serialize
 
 -- $internals
 --
@@ -1345,7 +1343,7 @@ instance (Serialize (v n), Serialize (V (v n) (N (v n))), OrderedField n, Metric
         return (Trail (Line segTree))
       False -> do
         segTree <- Serialize.get
-        segment <- getOpenSegment
+        segment <- Serialize.get
         return (Trail (Loop segTree segment))
 
   {-# INLINE put #-}
@@ -1356,58 +1354,11 @@ instance (Serialize (v n), Serialize (V (v n) (N (v n))), OrderedField n, Metric
   put (Trail (Loop segTree segment)) = do
     Serialize.put False
     Serialize.put segTree
-    putOpenSegment segment
+    Serialize.put segment
 
 instance (OrderedField n, Metric v, Serialize (v n)) => Serialize (SegTree v n) where
   {-# INLINE put #-}
-  put (SegTree xs) = Serialize.Put.putListOf putClosedSegment (F.toList xs)
+  put (SegTree xs) = Serialize.put (F.toList xs)
 
   {-# INLINE get #-}
-  get = (SegTree . FT.fromList) <$> Serialize.Get.getListOf getClosedSegment
-
-{-# INLINE putOpenSegment #-}
-putOpenSegment :: (Serialize (v n)) => Segment Open v n -> Put
-putOpenSegment segment = do
-  Serialize.put True
-  case segment of
-    Linear OffsetOpen    -> Serialize.put True
-    Cubic v w OffsetOpen -> Serialize.put False >> Serialize.put v >> Serialize.put w
-
-{-# INLINE getOpenSegment #-}
-getOpenSegment :: (Serialize (v n)) => Get (Segment Open v n)
-getOpenSegment = do
-  isOpen <- Serialize.get
-  if isOpen
-    then do
-      isLinear <- Serialize.get
-      case isLinear of
-        True  -> return (Linear OffsetOpen)
-        False -> do
-          v <- Serialize.get
-          w <- Serialize.get
-          return (Cubic v w OffsetOpen)
-    else error "isOpen should be true"
-
-{-# INLINE putClosedSegment #-}
-putClosedSegment :: (Serialize (v n)) => Segment Closed v n -> Put
-putClosedSegment segment = do
-  Serialize.put False
-  case segment of
-    Linear (OffsetClosed z)    -> Serialize.put z >> Serialize.put True
-    Cubic v w (OffsetClosed z) -> Serialize.put z >> Serialize.put False >> Serialize.put v >> Serialize.put w
-
-{-# INLINE getClosedSegment #-}
-getClosedSegment :: (Serialize (v n)) => Get (Segment Closed v n)
-getClosedSegment = do
-  isOpen <- Serialize.get
-  if isOpen
-    then error "isOpen should be false"
-    else do
-      z <- Serialize.get
-      isLinear <- Serialize.get
-      case isLinear of
-        True  -> return (Linear (OffsetClosed z))
-        False -> do
-          v <- Serialize.get
-          w <- Serialize.get
-          return (Cubic v w (OffsetClosed z))
+  get = (SegTree . FT.fromList) <$> Serialize.get

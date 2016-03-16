@@ -82,6 +82,8 @@ import           Diagrams.Located
 import           Diagrams.Parametric
 import           Diagrams.Solve.Polynomial
 
+import           Data.Serialize            (Serialize)
+import qualified Data.Serialize            as Serialize
 
 ------------------------------------------------------------
 --  Open/closed type tags  ---------------------------------
@@ -580,3 +582,39 @@ instance (OrderedField n, Metric v)
 
             *: ()
 
+------------------------------------------------------------
+--  Serialize instances
+------------------------------------------------------------
+
+instance (Serialize (v n)) => Serialize (Segment Open v n) where
+  {-# INLINE put #-}
+  put segment = case segment of
+    Linear OffsetOpen    -> Serialize.put True
+    Cubic v w OffsetOpen -> Serialize.put False >> Serialize.put v >> Serialize.put w
+
+  {-# INLINE get #-}
+  get = do
+    isLinear <- Serialize.get
+    case isLinear of
+      True  -> return (Linear OffsetOpen)
+      False -> do
+        v <- Serialize.get
+        w <- Serialize.get
+        return (Cubic v w OffsetOpen)
+
+instance (Serialize (v n)) => Serialize (Segment Closed v n) where
+  {-# INLINE put #-}
+  put segment = case segment of
+    Linear (OffsetClosed z)    -> Serialize.put z >> Serialize.put True
+    Cubic v w (OffsetClosed z) -> Serialize.put z >> Serialize.put False >> Serialize.put v >> Serialize.put w
+
+  {-# INLINE get #-}
+  get = do
+    z <- Serialize.get
+    isLinear <- Serialize.get
+    case isLinear of
+      True  -> return (Linear (OffsetClosed z))
+      False -> do
+        v <- Serialize.get
+        w <- Serialize.get
+        return (Cubic v w (OffsetClosed z))
