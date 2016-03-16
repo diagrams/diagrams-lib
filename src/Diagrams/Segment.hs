@@ -590,7 +590,10 @@ instance (Serialize (v n)) => Serialize (Segment Open v n) where
   {-# INLINE put #-}
   put segment = case segment of
     Linear OffsetOpen    -> Serialize.put True
-    Cubic v w OffsetOpen -> Serialize.put False >> Serialize.put v >> Serialize.put w
+    Cubic v w OffsetOpen -> do
+      Serialize.put False
+      Serialize.put v
+      Serialize.put w
 
   {-# INLINE get #-}
   get = do
@@ -605,8 +608,14 @@ instance (Serialize (v n)) => Serialize (Segment Open v n) where
 instance (Serialize (v n)) => Serialize (Segment Closed v n) where
   {-# INLINE put #-}
   put segment = case segment of
-    Linear (OffsetClosed z)    -> Serialize.put z >> Serialize.put True
-    Cubic v w (OffsetClosed z) -> Serialize.put z >> Serialize.put False >> Serialize.put v >> Serialize.put w
+    Linear (OffsetClosed z)    -> do
+      Serialize.put z
+      Serialize.put True
+    Cubic v w (OffsetClosed z) -> do
+      Serialize.put z
+      Serialize.put False
+      Serialize.put v
+      Serialize.put w
 
   {-# INLINE get #-}
   get = do
