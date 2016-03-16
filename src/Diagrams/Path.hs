@@ -11,6 +11,7 @@
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE UndecidableInstances       #-}
 {-# LANGUAGE ViewPatterns               #-}
+{-# LANGUAGE DeriveGeneric              #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Path
@@ -81,6 +82,9 @@ import           Diagrams.Transform
 import           Linear.Metric
 import           Linear.Vector
 
+import           GHC.Generics (Generic)
+import           Data.Serialize (Serialize)
+
 ------------------------------------------------------------
 --  Paths  -------------------------------------------------
 ------------------------------------------------------------
@@ -90,11 +94,15 @@ import           Linear.Vector
 --   and they form a monoid under /superposition/ (placing one path on
 --   top of another) rather than concatenation.
 newtype Path v n = Path [Located (Trail v n)]
-  deriving (Semigroup, Monoid
+  deriving (Semigroup, Monoid, Generic
 #if __GLASGOW_HASKELL__ >= 707
   , Typeable
 #endif
   )
+
+-- instance (OrderedField n, Metric v, Serialize (v n), Serialize (V n (N n))) =>
+instance (OrderedField n, Metric v, Serialize (v n), Serialize (V (v n) (N (v n)))) =>
+  Serialize (Path v n)
 
 #if __GLASGOW_HASKELL__ < 707
 -- This should really be Typeable2 Path but since Path has kind

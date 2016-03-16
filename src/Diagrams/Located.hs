@@ -4,6 +4,7 @@
 {-# LANGUAGE StandaloneDeriving    #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE DeriveGeneric         #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Located
@@ -39,6 +40,9 @@ import           Diagrams.Core
 import           Diagrams.Core.Transform
 import           Diagrams.Parametric
 
+import           GHC.Generics (Generic)
+import           Data.Serialize (Serialize)
+
 -- | \"Located\" things, /i.e./ things with a concrete location:
 --   intuitively, @Located a ~ (Point, a)@.  Wrapping a translationally
 --   invariant thing (/e.g./ a 'Segment' or 'Trail') in 'Located' pins
@@ -63,7 +67,9 @@ data Located a =
                                 --   a @Located a@,
                                 --   discarding the
                                 --   location.
-      }
+      } deriving (Generic)
+
+instance (Serialize a, Serialize (V a (N a))) => Serialize (Located a)
 
 infix 5 `at`
 
