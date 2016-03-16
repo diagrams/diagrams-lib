@@ -131,7 +131,7 @@ Library
                        transformers >= 0.3.0 && < 0.6.0,
                        profunctors >= 5.0 && < 6.0,
                        exceptions >= 0.6 && < 1.0,
-                       cereal
+                       cereal >=0.4.1.1 && <0.6
   if impl(ghc < 7.6)
     Build-depends: ghc-prim
   Hs-source-dirs:      src
