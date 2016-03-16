@@ -1358,7 +1358,9 @@ instance (Serialize (v n), Serialize (V (v n) (N (v n))), OrderedField n, Metric
 
 instance (OrderedField n, Metric v, Serialize (v n)) => Serialize (SegTree v n) where
   {-# INLINE put #-}
-  put (SegTree xs) = Serialize.put (F.toList xs)
+  put (SegTree fingerTree) = Serialize.put (F.toList fingerTree)
 
   {-# INLINE get #-}
-  get = (SegTree . FT.fromList) <$> Serialize.get
+  get = do
+    fingerTree <- Serialize.get
+    return (SegTree (FT.fromList fingerTree))
