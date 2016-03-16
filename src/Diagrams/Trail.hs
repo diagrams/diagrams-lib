@@ -1341,30 +1341,29 @@ instance (Serialize (v n), Serialize (V (v n) (N (v n))), OrderedField n, Metric
     isLine <- Serialize.get
     case isLine of
       True  -> do
-        segTree <- getSegTree
+        segTree <- Serialize.get
         return (Trail (Line segTree))
       False -> do
-        segTree <- getSegTree
+        segTree <- Serialize.get
         segment <- getOpenSegment
         return (Trail (Loop segTree segment))
 
   {-# INLINE put #-}
   put (Trail (Line segTree)) = do
     Serialize.put True
-    putSegTree segTree
+    Serialize.put segTree
 
   put (Trail (Loop segTree segment)) = do
     Serialize.put False
-    putSegTree segTree
+    Serialize.put segTree
     putOpenSegment segment
 
-{-# INLINE putSegTree #-}
-putSegTree :: (Serialize (v n)) => SegTree v n -> Put
-putSegTree (SegTree xs) = Serialize.Put.putListOf putClosedSegment (F.toList xs)
+instance (OrderedField n, Metric v, Serialize (v n)) => Serialize (SegTree v n) where
+  {-# INLINE put #-}
+  put (SegTree xs) = Serialize.Put.putListOf putClosedSegment (F.toList xs)
 
-{-# INLINE getSegTree #-}
-getSegTree :: (Serialize (v n), OrderedField n, Metric v) => Get (SegTree v n)
-getSegTree = (SegTree . FT.fromList) <$> Serialize.Get.getListOf getClosedSegment
+  {-# INLINE get #-}
+  get = (SegTree . FT.fromList) <$> Serialize.Get.getListOf getClosedSegment
 
 {-# INLINE putOpenSegment #-}
 putOpenSegment :: (Serialize (v n)) => Segment Open v n -> Put
