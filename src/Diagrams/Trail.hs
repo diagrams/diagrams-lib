@@ -128,6 +128,9 @@ import           Linear.Affine
 import           Linear.Metric
 import           Linear.Vector
 
+import           Data.Serialize            (Serialize)
+import qualified Data.Serialize            as Serialize
+
 -- $internals
 --
 -- Most users of diagrams should not need to use anything in this
@@ -1326,3 +1329,38 @@ instance (Metric v, OrderedField n) => Reversing (Located (Trail' l v n)) where
 instance (Metric v, OrderedField n) => Reversing (Located (Trail v n)) where
   reversing = reverseLocTrail
 
+------------------------------------------------------------
+--  Serialize instances
+------------------------------------------------------------
+
+instance (Serialize (v n), Serialize (V (v n) (N (v n))), OrderedField n, Metric v) => Serialize (Trail v n) where
+  {-# INLINE get #-}
+  get = do
+    isLine <- Serialize.get
+    case isLine of
+      True  -> do
+        segTree <- Serialize.get
+        return (Trail (Line segTree))
+      False -> do
+        segTree <- Serialize.get
+        segment <- Serialize.get
+        return (Trail (Loop segTree segment))
+
+  {-# INLINE put #-}
+  put (Trail (Line segTree)) = do
+    Serialize.put True
+    Serialize.put segTree
+
+  put (Trail (Loop segTree segment)) = do
+    Serialize.put False
+    Serialize.put segTree
+    Serialize.put segment
+
+instance (OrderedField n, Metric v, Serialize (v n)) => Serialize (SegTree v n) where
+  {-# INLINE put #-}
+  put (SegTree fingerTree) = Serialize.put (F.toList fingerTree)
+
+  {-# INLINE get #-}
+  get = do
+    fingerTree <- Serialize.get
+    return (SegTree (FT.fromList fingerTree))
