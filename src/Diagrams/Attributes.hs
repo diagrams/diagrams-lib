@@ -135,10 +135,10 @@ huge      = normalized 0.10
 newtype LineWidth n = LineWidth (Last n)
   deriving (Typeable, Semigroup)
 
-_LineWidth :: (Typeable n, OrderedField n) => Iso' (LineWidth n) n
+_LineWidth :: Iso' (LineWidth n) n
 _LineWidth = iso getLineWidth (LineWidth . Last)
 
-_LineWidthM :: (Typeable n, OrderedField n) => Iso' (LineWidthM n) (Measure n)
+_LineWidthM :: Iso' (LineWidthM n) (Measure n)
 _LineWidthM = mapping _LineWidth
 
 instance Typeable n => AttributeClass (LineWidth n)
@@ -187,7 +187,7 @@ _lw = _lineWidth
 -- | Lens onto the unmeasured linewith attribute. This is useful for
 --   backends to use on styles once they have been unmeasured. Using on
 --   a diagram style could lead to unexpected results.
-_lineWidthU :: (Typeable n, OrderedField n) => Lens' (Style v n) (Maybe n)
+_lineWidthU :: Typeable n => Lens' (Style v n) (Maybe n)
 _lineWidthU = atAttr . mapping _LineWidth
 
 ------------------------------------------------------------------------
@@ -233,14 +233,14 @@ dashingL :: (N a ~ n, HasStyle a, Typeable n, Num n) => [n] -> n -> a -> a
 dashingL w v = dashing (map local w) (local v)
 
 -- | Lens onto a measured dashing attribute in a style.
-_dashing :: (Typeable n, OrderedField n)
+_dashing :: Typeable n
          => Lens' (Style v n) (Maybe (Measured n (Dashing n)))
 _dashing = atMAttr
 
 -- | Lens onto the unmeasured 'Dashing' attribute. This is useful for
 --   backends to use on styles once they have been unmeasured. Using on
 --   a diagram style could lead to unexpected results.
-_dashingU :: (Typeable n, OrderedField n) => Lens' (Style v n) (Maybe (Dashing n))
+_dashingU :: Typeable n => Lens' (Style v n) (Maybe (Dashing n))
 _dashingU = atAttr
 
 ------------------------------------------------------------------------

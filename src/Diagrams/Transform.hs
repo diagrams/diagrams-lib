@@ -43,7 +43,7 @@ import           Linear.Vector
 -- | Conjugate one transformation by another. @conjugate t1 t2@ is the
 --   transformation which performs first @t1@, then @t2@, then the
 --   inverse of @t1@.
-conjugate :: (Additive v, Num n, Functor v)
+conjugate :: (Additive v, Num n)
           => Transformation v n -> Transformation v n -> Transformation v n
 conjugate t1 t2 = inv t1 <> t2 <> t1
 

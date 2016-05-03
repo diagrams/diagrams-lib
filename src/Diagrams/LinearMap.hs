@@ -79,7 +79,7 @@ class LinearMappable a b where
 -- so ghc knows there's only one possible result from calling vmap.
 
 -- | Apply a linear map.
-linmap :: (InSpace v n a, F.Foldable v, LinearMappable a b, N b ~ n)
+linmap :: (InSpace v n a, LinearMappable a b, N b ~ n)
      => LinearMap v (V b) n -> a -> b
 linmap = vmap . lapply
 
@@ -137,8 +137,7 @@ data AffineMap v u n = AffineMap (LinearMap v u n) (u n)
 mkAffineMap :: (v n -> u n) -> u n -> AffineMap v u n
 mkAffineMap f = AffineMap (LinearMap f)
 
-toAffineMap :: (HasBasis v, Num n)
-            => Transformation v n -> AffineMap v v n
+toAffineMap :: Transformation v n -> AffineMap v v n
 toAffineMap t = AffineMap (toLinearMap t) (transl t)
 
 class (LinearMappable a b, N a ~ N b) => AffineMappable a b where
@@ -155,7 +154,7 @@ instance (Metric v, Metric u, OrderedField n, r ~ SegTree u n) => AffineMappable
 instance (Metric v, Metric u, OrderedField n, r ~ Trail' l u n) => AffineMappable (Trail' l v n) r
 instance (Metric v, Metric u, OrderedField n, r ~ Trail u n) => AffineMappable (Trail v n) r
 
-instance (Additive v, F.Foldable v, Num n, r ~ Point u n) => AffineMappable (Point v n) r where
+instance (Additive v, Num n, r ~ Point u n) => AffineMappable (Point v n) r where
   amap (AffineMap f v) p = linmap f p .+^ v
   {-# INLINE amap #-}
 

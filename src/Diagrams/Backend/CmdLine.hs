@@ -463,7 +463,7 @@ class Mainable d where
 -- | This instance allows functions resulting in something that is 'Mainable' to
 --   be 'Mainable'.  It takes a parse of collected arguments and applies them to
 --   the given function producing the 'Mainable' result.
-instance (Parseable (Args (a -> d)), ToResult d, Mainable (ResultOf d))
+instance (ToResult d, Mainable (ResultOf d))
         => Mainable (a -> d) where
   type MainOpts (a -> d) = (MainOpts (ResultOf (a -> d)), Args (a -> d))
 

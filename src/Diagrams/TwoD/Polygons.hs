@@ -180,7 +180,7 @@ polyTrail po = transform ori tr
             NoOrient     -> mempty
 
 -- | Generate the polygon described by the given options.
-polygon :: (InSpace V2 n t, TrailLike t, OrderedField n) => PolygonOpts n -> t
+polygon :: (InSpace V2 n t, TrailLike t) => PolygonOpts n -> t
 polygon = trailLike . polyTrail
 
 -- | Generate the located trail of a polygon specified by polar data
