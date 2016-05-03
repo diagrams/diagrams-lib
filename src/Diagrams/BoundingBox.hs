@@ -113,7 +113,7 @@ type instance N (BoundingBox v n) = n
 mapT :: (a -> b) -> (a, a) -> (b, b)
 mapT f (x, y) = (f x, f y)
 
-instance (Additive v, Num n, Ord n) => HasOrigin (BoundingBox v n) where
+instance (Additive v, Num n) => HasOrigin (BoundingBox v n) where
   moveOriginTo p b
     = fromMaybeEmpty
     (NonEmptyBoundingBox . mapT (moveOriginTo p) <$> getCorners b)
@@ -179,7 +179,7 @@ fromPoints :: (Additive v, Ord n) => [Point v n] -> BoundingBox v n
 fromPoints = mconcat . map fromPoint
 
 -- | Create a bounding box for any enveloped object (such as a diagram or path).
-boundingBox :: (InSpace v n a, HasBasis v, Num n, Enveloped a)
+boundingBox :: (InSpace v n a, HasBasis v, Enveloped a)
             => a -> BoundingBox v n
 boundingBox a = fromMaybeEmpty $ do
   env <- (appEnvelope . getEnvelope) a
@@ -197,7 +197,7 @@ getCorners :: BoundingBox v n -> Maybe (Point v n, Point v n)
 getCorners (BoundingBox p) = nonEmptyCorners <$> getOption p
 
 -- | Computes all of the corners of the bounding box.
-getAllCorners :: (Additive v, Traversable v, Num n) => BoundingBox v n -> [Point v n]
+getAllCorners :: (Additive v, Traversable v) => BoundingBox v n -> [Point v n]
 getAllCorners (BoundingBox (Option Nothing)) = []
 getAllCorners (BoundingBox (Option (Just (NonEmptyBoundingBox (l, u)))))
   = T.sequence (liftI2 (\a b -> [a,b]) l u)
@@ -213,13 +213,13 @@ boxCenter = fmap (uncurry (lerp 0.5)) . getCorners
 
 -- | Get the center of a the bounding box of an enveloped object, return
 --   'Nothing' for object with empty envelope.
-mCenterPoint :: (InSpace v n a, HasBasis v, Num n, Enveloped a)
+mCenterPoint :: (InSpace v n a, HasBasis v, Enveloped a)
             => a -> Maybe (Point v n)
 mCenterPoint = boxCenter . boundingBox
 
 -- | Get the center of a the bounding box of an enveloped object, return
 --   the origin for object with empty envelope.
-centerPoint :: (InSpace v n a, HasBasis v, Num n, Enveloped a)
+centerPoint :: (InSpace v n a, HasBasis v, Enveloped a)
             => a -> Point v n
 centerPoint = fromMaybe origin . mCenterPoint
 
@@ -238,7 +238,7 @@ boxTransform u v = do
 -- | Transforms an enveloped thing to fit within a @BoundingBox@.  If the
 --   bounding box is empty, then the result is also @mempty@.
 boxFit
-  :: (InSpace v n a, HasBasis v, Enveloped a, Transformable a, Monoid a, Num n)
+  :: (InSpace v n a, HasBasis v, Enveloped a, Transformable a, Monoid a)
   => BoundingBox v n -> a -> a
 boxFit b x = maybe mempty (`transform` x) $ boxTransform (boundingBox x) b
 

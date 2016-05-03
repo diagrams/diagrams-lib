@@ -337,7 +337,7 @@ offsetPath = offsetPath' def
 -- >   where
 -- >     c = hexagon 5
 
-withTrailL :: (OrderedField n) => (Located (Trail' Line V2 n) -> r) -> (Located (Trail' Loop V2 n) -> r) -> Located (Trail V2 n) -> r
+withTrailL :: (Located (Trail' Line V2 n) -> r) -> (Located (Trail' Loop V2 n) -> r) -> Located (Trail V2 n) -> r
 withTrailL f g l = withTrail (f . (`at` p)) (g . (`at` p)) (unLoc l)
   where
     p = loc l

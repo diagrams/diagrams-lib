@@ -46,8 +46,6 @@ import           Diagrams.ThreeD.Types
 import           Diagrams.ThreeD.Vector
 import           Diagrams.TwoD.Align
 
-import           Linear.Vector
-
 -- | Translate the diagram along unitX so that all points have
 --   positive x-values.
 alignXMin :: (InSpace v n a, R1 v, Fractional n, Alignable a, HasOrigin a) => a -> a
@@ -106,7 +104,7 @@ alignZ = alignBy unitZ
 
 -- | See the documentation for 'alignZ'.
 snugZ :: (V a ~ v, N a ~ n, Alignable a, Traced a, HasOrigin a,
-          R3 v, Additive v, Fractional n) => n -> a -> a
+          R3 v, Fractional n) => n -> a -> a
 snugZ = snugBy unitZ
 
 
@@ -138,4 +136,3 @@ centerXYZ = centerX . centerY . centerZ
 
 snugCenterXYZ :: (InSpace v n a, R3 v, Fractional n, Alignable a, HasOrigin a, Traced a) => a -> a
 snugCenterXYZ = snugCenterX . snugCenterY . snugCenterZ
-

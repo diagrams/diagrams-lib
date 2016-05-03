@@ -197,7 +197,7 @@ arrowheadThorn theta len shaftWidth = (hd # scale sz, jt)
     sz = max 1 ((len - jLength) / 1.5)
 
 -- | Make a side for the thorn head.
-curvedSide :: (Floating n, Ord n) => Angle n -> Segment Closed V2 n
+curvedSide :: Floating n => Angle n -> Segment Closed V2 n
 curvedSide theta = bezier3 ctrl1 ctrl2 end
   where
     v0    = unit_X
@@ -211,7 +211,7 @@ curvedSide theta = bezier3 ctrl1 ctrl2 end
 lineHead :: RealFloat n => ArrowHT n
 lineHead s w = (square 1 # scaleX s # scaleY w # alignL, mempty)
 
-noHead :: (Floating n, Ord n) => ArrowHT n
+noHead :: ArrowHT n
 noHead _ _ = (mempty, mempty)
 
 -- | <<diagrams/src_Diagrams_TwoD_Arrowheads_triEx.svg#diagram=triEx&width=100>>
@@ -299,7 +299,7 @@ arrowtailQuill theta = aTail
 lineTail :: RealFloat n => ArrowHT n
 lineTail s w = (square 1 # scaleY w # scaleX s # alignR, mempty)
 
-noTail :: OrderedField n => ArrowHT n
+noTail :: ArrowHT n
 noTail _ _ = (mempty, mempty)
 
 -- | <<diagrams/src_Diagrams_TwoD_Arrowheads_tri'Ex.svg#diagram=tri'Ex&width=100>>

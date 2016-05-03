@@ -193,7 +193,7 @@ font :: HasStyle a => String -> a -> a
 font = applyAttr . Font . Last
 
 -- | Lens onto the font name of a style.
-_font :: (Typeable n, OrderedField n) => Lens' (Style v n) (Maybe String)
+_font :: Lens' (Style v n) (Maybe String)
 _font = atAttr . mapping _Font
 
 --------------------------------------------------
@@ -256,7 +256,7 @@ fontSizeL :: (N a ~ n, Typeable n, Num n, HasStyle a) => n -> a -> a
 fontSizeL = fontSize . local
 
 -- | Apply a 'FontSize' attribute.
-fontSizeM :: (N a ~ n, Typeable n, Num n, HasStyle a) => FontSizeM n -> a -> a
+fontSizeM :: (N a ~ n, Typeable n, HasStyle a) => FontSizeM n -> a -> a
 fontSizeM = applyMAttr
 
 recommendFontSize :: (N a ~ n, Typeable n, HasStyle a) => Measure n -> a -> a
@@ -270,7 +270,7 @@ _fontSizeR = atMAttr . anon def (const False) . _FontSizeM
 _fontSize :: (Typeable n, OrderedField n) => Lens' (Style v n) (Measure n)
 _fontSize = _fontSizeR . mapping committed
 
-_fontSizeU :: (Typeable n, OrderedField n) => Lens' (Style v n) (Maybe n)
+_fontSizeU :: (Typeable n) => Lens' (Style v n) (Maybe n)
 _fontSizeU = atAttr . mapping (_FontSize . committed)
 
 --------------------------------------------------
@@ -302,7 +302,7 @@ fontSlant :: HasStyle a => FontSlant -> a -> a
 fontSlant = applyAttr
 
 -- | Lens onto the font slant in a style.
-_fontSlant :: (Typeable n, OrderedField n) => Lens' (Style v n) FontSlant
+_fontSlant :: Lens' (Style v n) FontSlant
 _fontSlant = atAttr . non def
 
 -- | Set all text in italics.
@@ -347,5 +347,5 @@ bold :: HasStyle a => a -> a
 bold = fontWeight FontWeightBold
 
 -- | Lens onto the font weight in a style.
-_fontWeight :: (Typeable n, OrderedField n) => Lens' (Style v n) FontWeight
+_fontWeight :: Lens' (Style v n) FontWeight
 _fontWeight = atAttr . non def

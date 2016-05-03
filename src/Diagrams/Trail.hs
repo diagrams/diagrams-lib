@@ -140,9 +140,7 @@ import           Linear.Vector
 type instance V (FingerTree m a) = V a
 type instance N (FingerTree m a) = N a
 
-instance ( Metric (V a), OrderedField (N a)
-         , FT.Measured m a, Transformable a
-         )
+instance (FT.Measured m a, Transformable a)
     => Transformable (FingerTree m a) where
   transform = FT.fmap' . transform
 
@@ -307,18 +305,14 @@ instance (Metric v, OrderedField n, Real n)
 --   extract the given measure for a trail and use it to compute a
 --   result.  Put another way, lift a function on a single measure
 --   (along with a default value) to a function on an entire trail.
-trailMeasure :: ( Metric v, OrderedField n
-                , SegMeasure v n :>: m, FT.Measured (SegMeasure v n) t
-                )
+trailMeasure :: ( SegMeasure v n :>: m, FT.Measured (SegMeasure v n) t )
              => a -> (m -> a) -> t -> a
 trailMeasure d f = option d f . get . FT.measure
 
 -- | Compute the number of segments of anything measured by
 --   'SegMeasure' (/e.g./ @SegMeasure@ itself, @Segment@, @SegTree@,
 --   @Trail@s...)
-numSegs :: ( OrderedField n, Num c, Metric v,
-             FT.Measured (SegMeasure v n) a
-           )
+numSegs :: (Num c, FT.Measured (SegMeasure v n) a)
         => a -> c
 numSegs = fromIntegral . trailMeasure 0 (getSum . op SegCount)
 
@@ -634,7 +628,7 @@ instance DomainBounds t => DomainBounds (GetSegment t) where
   domainLower (GetSegment t) = domainLower t
   domainUpper (GetSegment t) = domainUpper t
 
-instance (Metric v, OrderedField n, Real n)
+instance (Metric v, OrderedField n)
     => EndValues (GetSegment (Trail' Line v n)) where
   atStart (GetSegment (Line (SegTree ft)))
     = case FT.viewl ft of
@@ -1074,7 +1068,7 @@ trailOffset :: (Metric v, OrderedField n) => Trail v n -> v n
 trailOffset = withLine lineOffset
 
 -- | Extract the offsets of the segments of a line.
-lineOffsets :: (Metric v, OrderedField n) => Trail' Line v n -> [v n]
+lineOffsets :: Trail' Line v n -> [v n]
 lineOffsets = map segOffset . lineSegments
 
 -- | Extract the offsets of the segments of a loop.

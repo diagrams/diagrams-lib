@@ -80,7 +80,7 @@ infixl 6 |||
 --   combined diagram is the same as the local origin of the first.
 --   @(===)@ is associative and has 'mempty' as an identity.  See the
 --   documentation of 'beside' for more information.
-(===) :: (InSpace V2 n a, Num n, Juxtaposable a, Semigroup a) => a -> a -> a
+(===) :: (InSpace V2 n a, Juxtaposable a, Semigroup a) => a -> a -> a
 (===) = beside unit_Y
 
 -- | Place two diagrams (or other juxtaposable objects) horizontally
@@ -89,7 +89,7 @@ infixl 6 |||
 --   is the same as the local origin of the first.  @(|||)@ is
 --   associative and has 'mempty' as an identity.  See the
 --   documentation of 'beside' for more information.
-(|||) :: (InSpace V2 n a, Num n, Juxtaposable a, Semigroup a) => a -> a -> a
+(|||) :: (InSpace V2 n a, Juxtaposable a, Semigroup a) => a -> a -> a
 (|||) = beside unitX
 
 -- | Lay out a list of juxtaposable objects in a row from left to right,
@@ -164,13 +164,13 @@ strutR2 v = phantom seg
 -- | @strutX w@ is an empty diagram with width @w@, height 0, and a
 --   centered local origin.  Note that @strutX (-w)@ behaves the same as
 --   @strutX w@.
-strutX :: (Metric v, R1 v, OrderedField n, Monoid' m) => n -> QDiagram b v n m
+strutX :: (Metric v, R1 v, OrderedField n) => n -> QDiagram b v n m
 strutX d = strut (zero & _x .~ d)
 
 -- | @strutY h@ is an empty diagram with height @h@, width 0, and a
 --   centered local origin. Note that @strutY (-h)@ behaves the same as
 --   @strutY h@.
-strutY :: (Metric v, R2 v, OrderedField n, Monoid' m) => n -> QDiagram b v n m
+strutY :: (Metric v, R2 v, OrderedField n) => n -> QDiagram b v n m
 strutY d = strut (zero & _y .~ d)
 
 -- | @padX s@ \"pads\" a diagram in the x-direction, expanding its
@@ -263,4 +263,3 @@ bg c d = d <> boundingRect d # lwO 0 # fc c
 bgFrame :: (TypeableFloat n, Renderable (Path V2 n) b)
     => n -> Colour Double -> QDiagram b V2 n Any -> QDiagram b V2 n Any
 bgFrame f c d = d <> boundingRect (frame f d) # lwO 0 # fc c
-

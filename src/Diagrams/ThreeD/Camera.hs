@@ -141,10 +141,10 @@ mm50Wide = PerspectiveLens (43.2 @@ deg)  (27 @@ deg)
 -- aspect ratio of 4:3, for VGA and similar computer resolutions.
 mm50Narrow = PerspectiveLens (36 @@ deg) (27 @@ deg)
 
-camForward :: Fractional n => Camera l n -> Direction V3 n
+camForward :: Camera l n -> Direction V3 n
 camForward = direction . forward
 
-camUp :: Fractional n => Camera l n -> Direction V3 n
+camUp :: Camera l n -> Direction V3 n
 camUp = direction . up
 
 camRight :: Fractional n => Camera l n -> Direction V3 n
@@ -156,4 +156,3 @@ camLens = lens
 
 camAspect :: (Floating n, CameraLens l) => Camera l n -> n
 camAspect = aspect . camLens
-

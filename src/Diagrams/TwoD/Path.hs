@@ -404,7 +404,7 @@ clipBy = applyTAttr . Clip . (:[])
 --   trace consists of those parts of the original diagram's trace
 --   which fall within the clipping path, or parts of the path's trace
 --   within the original diagram.
-clipTo :: (TypeableFloat n, Renderable (Path V2 n) b)
+clipTo :: TypeableFloat n
   => Path V2 n -> QDiagram b V2 n Any -> QDiagram b V2 n Any
 clipTo p d = setTrace intersectionTrace . toEnvelope $ clipBy p d
   where
@@ -425,7 +425,7 @@ clipTo p d = setTrace intersectionTrace . toEnvelope $ clipBy p d
 
 -- | Clip a diagram to the clip path taking the envelope and trace of the clip
 --   path.
-clipped :: (TypeableFloat n, Renderable (Path V2 n) b)
+clipped :: TypeableFloat n
   => Path V2 n -> QDiagram b V2 n Any -> QDiagram b V2 n Any
 clipped p = withTrace p . withEnvelope p . clipBy p
 

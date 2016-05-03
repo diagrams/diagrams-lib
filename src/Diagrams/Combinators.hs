@@ -73,7 +73,7 @@ import           Linear.Vector
 --   >     )
 --   > c = circle 0.8
 --   > withEnvelopeEx = sqNewEnv # centerXY # pad 1.5
-withEnvelope :: (InSpace v n a, Metric v, OrderedField n, Monoid' m, Enveloped a)
+withEnvelope :: (InSpace v n a, Monoid' m, Enveloped a)
            => a -> QDiagram b v n m -> QDiagram b v n m
 withEnvelope = setEnvelope . getEnvelope
 
@@ -117,7 +117,7 @@ frame s = over envelope (onEnvelope $ \f x -> f x + s)
 --   <<diagrams/src_Diagrams_Combinators_strutEx.svg#diagram=strutEx&width=300>>
 --
 --   > strutEx = (circle 1 ||| strut unitX ||| circle 1) # centerXY # pad 1.1
-strut :: (Metric v, OrderedField n, Monoid' m)
+strut :: (Metric v, OrderedField n)
       => v n -> QDiagram b v n m
 strut v = QD $ D.leafU (inj . toDeletable $ env)
   where env = translate ((-0.5) *^ v) . getEnvelope $ straight v

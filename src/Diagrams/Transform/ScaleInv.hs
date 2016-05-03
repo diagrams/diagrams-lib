@@ -183,6 +183,6 @@ instance (V t ~ V2, N t ~ n, RealFloat n, Renderable t b) => Renderable (ScaleIn
 --   scale-invariant things will be used only as \"decorations\" (/e.g./
 --   arrowheads) which should not affect the envelope, trace, and
 --   query.
-scaleInvPrim :: (V t ~ V2, N t ~ n, RealFloat n, Transformable t, Typeable t, Renderable t b, Monoid m)
+scaleInvPrim :: (V t ~ V2, N t ~ n, RealFloat n, Typeable t, Renderable t b, Monoid m)
              => t -> V2 n -> QDiagram b (V t) (N t) m
 scaleInvPrim t d = mkQD (Prim $ scaleInv t d) mempty mempty mempty mempty

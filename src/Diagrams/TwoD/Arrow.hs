@@ -253,7 +253,7 @@ shaftTexture = shaftStyle . _lineTexture
 -- default style after all other styles have been applied.
 -- The semigroup stucture of the lw attribute will insure that the default
 -- is only used if it has not been set in @opts@.
-shaftSty :: Fractional n => ArrowOpts n -> Style V2 n
+shaftSty :: ArrowOpts n -> Style V2 n
 shaftSty opts = opts^.shaftStyle
 
 -- Set the default head style. See `shaftSty`.
