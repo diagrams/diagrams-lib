@@ -98,7 +98,7 @@ mkSizeSpec :: (Functor v, Num n) => v (Maybe n) -> SizeSpec v n
 mkSizeSpec = dims . fmap (fromMaybe 0)
 
 -- | Make a 'SizeSpec' from a vector. Any negative values will be ignored.
-dims :: Functor v => v n -> SizeSpec v n
+dims :: v n -> SizeSpec v n
 dims = SizeSpec
 
 -- | A size spec with no hints to the size.
@@ -135,15 +135,15 @@ requiredScaling spec = scaling . requiredScale spec
 
 -- | Uniformly scale any enveloped object so that it fits within the
 --   given size. For non-uniform scaling see 'boxFit'.
-sized :: (InSpace v n a, HasLinearMap v, HasBasis v, Transformable a, Enveloped a, Fractional n, Ord n)
+sized :: (InSpace v n a, HasLinearMap v, Transformable a, Enveloped a)
       => SizeSpec v n -> a -> a
 sized spec a = transform (requiredScaling spec (size a)) a
 
 -- | Uniformly scale an enveloped object so that it \"has the same
 --   size as\" (fits within the width and height of) some other
 --   object.
-sizedAs :: (InSpace v n a, SameSpace a b, HasLinearMap v, HasBasis v, Transformable a,
-            Enveloped a, Enveloped b, Fractional n, Ord n)
+sizedAs :: (InSpace v n a, SameSpace a b, HasLinearMap v, Transformable a,
+            Enveloped a, Enveloped b)
         => b -> a -> a
 sizedAs other = sized (dims $ size other)
 

@@ -420,11 +420,5 @@ instance Typeable n => SplitAttribute (FillTextureLoops n) where
 --   to loops.
 splitTextureFills
   :: forall b v n a. (
-#if __GLASGOW_HASKELL__ > 707
-                       Typeable v
-#else
-                       Typeable1 v
-#endif
-
-                     , Typeable n) => RTree b v n a -> RTree b v n a
+                     Typeable n) => RTree b v n a -> RTree b v n a
 splitTextureFills = splitAttr (FillTextureLoops :: FillTextureLoops n)

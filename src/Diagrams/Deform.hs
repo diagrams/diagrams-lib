@@ -92,7 +92,7 @@ deformSegment epsilon t = go (0::Int)
 --   where
 --     (s1, s2) = splitAtParam s 0.5
 
-approx :: (Metric v, OrderedField n) => Deformation v u n -> FixedSegment v n -> FixedSegment u n
+approx :: Deformation v u n -> FixedSegment v n -> FixedSegment u n
 approx t (FLinear p0 p1)      = FLinear (deform t p0) (deform t p1)
 approx t (FCubic p0 c1 c2 p1) = FCubic (f p0) (f c1) (f c2) (f p1)
   where f = deform t

@@ -93,7 +93,7 @@ type Animation b v n = QAnimation b v n Any
 --
 --   See also 'animRect' for help constructing a background to go
 --   behind an animation.
-animEnvelope :: (Backend b v n, OrderedField n, Metric v, Monoid' m)
+animEnvelope :: (OrderedField n, Metric v, Monoid' m)
            => QAnimation b v n m -> QAnimation b v n m
 animEnvelope = animEnvelope' 30
 
@@ -101,7 +101,7 @@ animEnvelope = animEnvelope' 30
 --   parameter is the number of samples per time unit to use.  Lower
 --   rates will be faster but less accurate; higher rates are more
 --   accurate but slower.
-animEnvelope' :: (Backend b v n, OrderedField n, Metric v, Monoid' m)
+animEnvelope' :: (OrderedField n, Metric v, Monoid' m)
             => Rational -> QAnimation b v n m -> QAnimation b v n m
 animEnvelope' r a = withEnvelope (simulate r a) <$> a
 
@@ -112,7 +112,7 @@ animEnvelope' r a = withEnvelope (simulate r a) <$> a
 --
 --   Uses 30 samples per time unit by default; to adjust this number
 --   see 'animRect''.
-animRect :: (InSpace V2 n t, Num n, Monoid' m, TrailLike t, Enveloped t, Transformable t, Monoid t)
+animRect :: (InSpace V2 n t, Monoid' m, TrailLike t, Enveloped t, Transformable t, Monoid t)
          => QAnimation b V2 n m -> t
 animRect = animRect' 30
 
@@ -120,7 +120,7 @@ animRect = animRect' 30
 --   parameter is the number of samples per time unit to use.  Lower
 --   rates will be faster but less accurate; higher rates are more
 --   accurate but slower.
-animRect' :: (InSpace V2 n t, Num n, Monoid' m, TrailLike t, Enveloped t, Transformable t, Monoid t)
+animRect' :: (InSpace V2 n t, Monoid' m, TrailLike t, Enveloped t, Transformable t, Monoid t)
           => Rational -> QAnimation b V2 n m -> t
 animRect' r anim
     | null results = rect 1 1

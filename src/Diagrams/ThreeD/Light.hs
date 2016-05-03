@@ -44,7 +44,7 @@ type instance N (ParallelLight n) = n
 instance Fractional n => Transformable (PointLight n) where
   transform t (PointLight p c) = PointLight (transform t p) c
 
-instance Fractional n => Transformable (ParallelLight n) where
+instance Transformable (ParallelLight n) where
   transform t (ParallelLight v c) = ParallelLight (transform t v) c
 
 -- | Construct a Diagram with a single PointLight at the origin, which

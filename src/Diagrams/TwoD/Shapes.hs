@@ -87,7 +87,7 @@ vrule d = trailLike $ trailFromSegments [straight $ r2 (0, -d)] `at` p2 (0,d/2)
 --   oriented parallel to the axes.
 --
 --   <<diagrams/src_Diagrams_TwoD_Shapes_unitSquareEx.svg#diagram=unitSquareEx&width=100>>
-unitSquare :: (InSpace V2 n t, TrailLike t, OrderedField n) => t
+unitSquare :: (InSpace V2 n t, TrailLike t) => t
 unitSquare = polygon (def & polyType   .~ PolyRegular 4 (sqrt 2 / 2)
                           & polyOrient .~ OrientH)
 
@@ -97,7 +97,7 @@ unitSquare = polygon (def & polyType   .~ PolyRegular 4 (sqrt 2 / 2)
 --   length, oriented parallel to the axes.
 --
 --   <<diagrams/src_Diagrams_TwoD_Shapes_squareEx.svg#diagram=squareEx&width=200>>
-square :: (InSpace V2 n t, TrailLike t, OrderedField n) => n -> t
+square :: (InSpace V2 n t, TrailLike t) => n -> t
 square d = rect d d
 
 -- > squareEx = hcat' (with & sep .~ 0.5) [square 1, square 2, square 3]
@@ -107,7 +107,7 @@ square d = rect d d
 --   @h@, centered at the origin.
 --
 --   <<diagrams/src_Diagrams_TwoD_Shapes_rectEx.svg#diagram=rectEx&width=150>>
-rect :: (InSpace V2 n t, TrailLike t, OrderedField n) => n -> n -> t
+rect :: (InSpace V2 n t, TrailLike t) => n -> n -> t
 rect w h = trailLike . head . op Path $ unitSquare # scaleX w # scaleY h
 
 -- > rectEx = rect 1 0.7 # pad 1.1
@@ -139,7 +139,7 @@ rect w h = trailLike . head . op Path $ unitSquare # scaleX w # scaleY h
 --   polygons of a given /radius/).
 --
 --   The polygon will be oriented with one edge parallel to the x-axis.
-regPoly :: (InSpace V2 n t, TrailLike t, OrderedField n) => Int -> n -> t
+regPoly :: (InSpace V2 n t, TrailLike t) => Int -> n -> t
 regPoly n l = polygon (def & polyType .~
                                PolySides
                                  (repeat (1/fromIntegral n @@ turn))
@@ -159,76 +159,76 @@ regPoly n l = polygon (def & polyType .~
 -- > dodecagonEx  = shapeEx dodecagon
 
 -- | A synonym for 'triangle', provided for backwards compatibility.
-eqTriangle :: (InSpace V2 n t, TrailLike t, OrderedField n) => n -> t
+eqTriangle :: (InSpace V2 n t, TrailLike t) => n -> t
 eqTriangle = triangle
 
 -- | An equilateral triangle, with sides of the given length and base
 --   parallel to the x-axis.
 --
 --   <<diagrams/src_Diagrams_TwoD_Shapes_triangleEx.svg#diagram=triangleEx&width=100>>
-triangle :: (InSpace V2 n t, TrailLike t, OrderedField n) => n -> t
+triangle :: (InSpace V2 n t, TrailLike t) => n -> t
 triangle = regPoly 3
 
 -- | A regular pentagon, with sides of the given length and base
 --   parallel to the x-axis.
 --
 --   <<diagrams/src_Diagrams_TwoD_Shapes_pentagonEx.svg#diagram=pentagonEx&width=100>>
-pentagon :: (InSpace V2 n t, TrailLike t, OrderedField n) => n -> t
+pentagon :: (InSpace V2 n t, TrailLike t) => n -> t
 pentagon = regPoly 5
 
 -- | A regular hexagon, with sides of the given length and base
 --   parallel to the x-axis.
 --
 --   <<diagrams/src_Diagrams_TwoD_Shapes_hexagonEx.svg#diagram=hexagonEx&width=100>>
-hexagon :: (InSpace V2 n t, TrailLike t, OrderedField n) => n -> t
+hexagon :: (InSpace V2 n t, TrailLike t) => n -> t
 hexagon = regPoly 6
 
 -- | A regular heptagon, with sides of the given length and base
 --   parallel to the x-axis.
 --
 --   <<diagrams/src_Diagrams_TwoD_Shapes_heptagonEx.svg#diagram=heptagonEx&width=100>>
-heptagon :: (InSpace V2 n t, TrailLike t, OrderedField n) => n -> t
+heptagon :: (InSpace V2 n t, TrailLike t) => n -> t
 heptagon = regPoly 7
 
 -- | A synonym for 'heptagon'.  It is, however, completely inferior,
 --   being a base admixture of the Latin /septum/ (seven) and the
 --   Greek γωνία (angle).
-septagon :: (InSpace V2 n t, TrailLike t, OrderedField n) => n -> t
+septagon :: (InSpace V2 n t, TrailLike t) => n -> t
 septagon = heptagon
 
 -- | A regular octagon, with sides of the given length and base
 --   parallel to the x-axis.
 --
 --   <<diagrams/src_Diagrams_TwoD_Shapes_octagonEx.svg#diagram=octagonEx&width=100>>
-octagon :: (InSpace V2 n t, TrailLike t, OrderedField n) => n -> t
+octagon :: (InSpace V2 n t, TrailLike t) => n -> t
 octagon = regPoly 8
 
 -- | A regular nonagon, with sides of the given length and base
 --   parallel to the x-axis.
 --
 --   <<diagrams/src_Diagrams_TwoD_Shapes_nonagonEx.svg#diagram=nonagonEx&width=100>>
-nonagon :: (InSpace V2 n t, TrailLike t, OrderedField n) => n -> t
+nonagon :: (InSpace V2 n t, TrailLike t) => n -> t
 nonagon = regPoly 9
 
 -- | A regular decagon, with sides of the given length and base
 --   parallel to the x-axis.
 --
 --   <<diagrams/src_Diagrams_TwoD_Shapes_decagonEx.svg#diagram=decagonEx&width=100>>
-decagon :: (InSpace V2 n t, TrailLike t, OrderedField n) => n -> t
+decagon :: (InSpace V2 n t, TrailLike t) => n -> t
 decagon = regPoly 10
 
 -- | A regular hendecagon, with sides of the given length and base
 --   parallel to the x-axis.
 --
 --   <<diagrams/src_Diagrams_TwoD_Shapes_hendecagonEx.svg#diagram=hendecagonEx&width=100>>
-hendecagon :: (InSpace V2 n t, TrailLike t, OrderedField n) => n -> t
+hendecagon :: (InSpace V2 n t, TrailLike t) => n -> t
 hendecagon = regPoly 11
 
 -- | A regular dodecagon, with sides of the given length and base
 --   parallel to the x-axis.
 --
 --   <<diagrams/src_Diagrams_TwoD_Shapes_dodecagonEx.svg#diagram=dodecagonEx&width=100>>
-dodecagon :: (InSpace V2 n t, TrailLike t, OrderedField n) => n -> t
+dodecagon :: (InSpace V2 n t, TrailLike t) => n -> t
 dodecagon = regPoly 12
 
 ------------------------------------------------------------

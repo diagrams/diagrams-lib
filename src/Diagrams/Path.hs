@@ -295,7 +295,7 @@ fixPath = map fixTrail . op Path
 
 -- | \"Explode\" a path by exploding every component trail (see
 --   'explodeTrail').
-explodePath :: (V t ~ v, N t ~ n, Additive v, TrailLike t) => Path v n -> [[t]]
+explodePath :: (V t ~ v, N t ~ n, TrailLike t) => Path v n -> [[t]]
 explodePath = map explodeTrail . op Path
 
 -- | Partition a path into two paths based on a predicate on trails:

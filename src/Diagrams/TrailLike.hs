@@ -197,8 +197,7 @@ p1 ~~ p2 = fromVertices [p1, p2]
 --   >   # explodeTrail  -- generate a list of diagrams
 --   >   # zipWith lc [orange, green, yellow, red, blue]
 --   >   # mconcat # centerXY # pad 1.1
-explodeTrail :: (V t ~ v, N t ~ n, Additive v, TrailLike t) => Located (Trail v n) -> [t]
+explodeTrail :: (V t ~ v, N t ~ n, TrailLike t) => Located (Trail v n) -> [t]
 explodeTrail = map (mkTrail . fromFixedSeg) . fixTrail
   where
     mkTrail = trailLike . mapLoc (trailFromSegments . (:[]))
-
