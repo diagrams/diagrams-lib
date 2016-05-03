@@ -1,3 +1,4 @@
+{-# LANGUAGE ConstrainedClassMethods     #-}
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE UndecidableInstances #-}

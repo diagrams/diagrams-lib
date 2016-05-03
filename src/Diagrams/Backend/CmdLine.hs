@@ -1,3 +1,4 @@
+{-# LANGUAGE ConstrainedClassMethods     #-}
 {-# LANGUAGE DeriveDataTypeable        #-}
 {-# LANGUAGE FlexibleContexts          #-}
 {-# LANGUAGE FlexibleInstances         #-}
