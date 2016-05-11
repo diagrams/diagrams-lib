@@ -83,4 +83,3 @@ angleBetweenDirs d1 d2 = angleBetween (fromDirection d1) (fromDirection d2)
 -- | @dirBetween p q@ returns the directions from @p@ to @q@
 dirBetween :: (Additive v, Num n) => Point v n -> Point v n -> Direction v n
 dirBetween p q = dir $ p .-. q
-
