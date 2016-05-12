@@ -29,6 +29,9 @@ infix 4 =~
 instance Approx Double where
   (=~) a b = abs (a - b) < epsilon
 
+instance Approx Float where
+    (=~) a b = abs (a - b) < 0.001
+
 instance Approx n => Approx (V2 n) where
     z1 =~ z2 = (z1^._x) =~ (z2^._x) && (z1^._y) =~ (z2^._y)
 
