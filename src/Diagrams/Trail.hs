@@ -103,7 +103,7 @@ module Diagrams.Trail
 
          -- ** Extracting segments
 
-       , GetSegment(..), getSegment
+       , GetSegment(..), getSegment, GetSegmentCodomain(..)
 
        ) where
 
@@ -558,9 +558,10 @@ instance (Metric v, OrderedField n, Metric u, OrderedField n')
 --   trail, respectively.
 --
 --   The codomain for 'GetSegment', /i.e./ the result you get from
---   calling 'atParam', 'atStart', or 'atEnd', is @Maybe (v, Segment
---   Closed v, AnIso' n n)@.  @Nothing@ results if
---   the trail is empty; otherwise, you get:
+--   calling 'atParam', 'atStart', or 'atEnd', is
+--   'GetSegmentCodomain', which is a newtype wrapper around @Maybe
+--   (v, Segment Closed v, AnIso' n n)@.  @Nothing@ results if the
+--   trail is empty; otherwise, you get:
 --
 --   * the offset from the start of the trail to the beginning of the
 --     segment,
