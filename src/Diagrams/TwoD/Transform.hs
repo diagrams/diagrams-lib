@@ -45,6 +45,7 @@ module Diagrams.TwoD.Transform
        , reflectionY, reflectY
        , reflectionXY, reflectXY
        , reflectionAbout, reflectAbout
+       , reflectionAbout', reflectAbout'
 
          -- * Shears
        , shearingX, shearX
@@ -71,12 +72,17 @@ import           Linear.V2
 
 -- | Create a transformation which performs a rotation about the local
 --   origin by the given angle.  See also 'rotate'.
+
+
 rotation :: Floating n => Angle n -> T2 n
 rotation theta = fromLinear r (linv r)
-  where
-    r               = rot theta <-> rot (negated theta)
-    rot th (V2 x y) = V2 (cosA th * x - sinA th * y)
-                         (sinA th * x + cosA th * y)
+    where
+    c = cosA theta
+    s = sinA theta
+    r               = rot c s <-> rot c (-s)
+    rot co si (V2 x y) = V2 (co * x - si * y)
+                            (si * x + co * y)
+
 
 -- | Rotate about the local origin by the given angle. Positive angles
 --   correspond to counterclockwise rotation, negative to
@@ -91,6 +97,7 @@ rotation theta = fromLinear r (linv r)
 --   will yield an error since GHC cannot figure out which sort of
 --   angle you want to use.  In this common situation you can use
 --   'rotateBy', which interprets its argument as a number of turns.
+
 rotate :: (InSpace V2 n t, Transformable t, Floating n) => Angle n -> t -> t
 rotate = transform . rotation
 
@@ -207,6 +214,8 @@ translateY :: (InSpace v n t, R2 v, Transformable t)
   => n -> t -> t
 translateY = transform . translationY
 
+
+
 -- Reflection ----------------------------------------------
 
 -- | Construct a transformation which flips a diagram from left to
@@ -245,12 +254,43 @@ reflectionAbout p d =
   conjugate (rotationTo d <> translation (origin .-. p))
             reflectionY
 
+
+reflectionAbout' :: OrderedField n => P2 n -> V2 n -> T2 n
+reflectionAbout' p d  = fromLinear r (linv r)
+              where
+                r                           = refl p d <-> refl p d
+                refl (P (V2 a b )) (V2 c d) =
+                 (combine (translate (V2 a b))
+                 (combine (rotate (atan2A' d c) )
+                 (combine (reflectY)
+                 (combine (rotate((-1) *^ (atan2A' d c) ) )
+                 (translate (V2 (-a) (-b)) )))) )
+combine :: (a -> a) -> (a -> a) -> a -> a
+combine f g c = f (g c)
+--l :: (a -> a) -> (a -> a) -> (a -> a)
+--l f g = f g
+--(combine f g) c != ( f g ) c
+--f (g (c)) = ???
+                 --(translate (V2 a b)   ((rotate (atan2A' d c) )   ((reflectY)  ((rotate(negated (atan2A' d c) ) )  (translate (V2 (-a) (-b)) )))))
+                 --refl (P (V2 a b )) (V2 c d) = translate (V2 a b)  (over (rotated (atan2A' d c)) reflectY) (translate (V2 (-a) (-b)) )
+
+
+reflectAbout' :: (InSpace V2 n t, OrderedField n, Transformable t)
+                             => P2 n -> V2 n -> t -> t
+reflectAbout' p v = transform (reflectionAbout' p v)
+
+--reflectAbout' (P (V2 a b )) (V2 x y) = translate' a b (over (rotated (atan2A' y x)) reflectY) translate' (-a) (-b)
+
+
 -- | @reflectAbout p d@ reflects a diagram in the line determined by
 --   the point @p@ and direction @d@.
 reflectAbout :: (InSpace V2 n t, OrderedField n, Transformable t)
              => P2 n -> Direction V2 n -> t -> t
 reflectAbout p v = transform (reflectionAbout p v)
 
+--reflectAbout' :: (InSpace V2 n t, OrderedField n, Transformable t)
+  --           => P2 n -> V2 n -> t -> t
+--reflectAbout' p v = transform (reflectionAbout' p v)
 -- Shears --------------------------------------------------
 
 -- auxiliary functions for shearingX/shearingY
@@ -291,4 +331,3 @@ shearingY d = fromLinear (sh f g d  <-> sh f g (-d))
 --   @(1,0)@ to @(1,d)@.
 shearY :: (InSpace V2 n t, Transformable t) => n -> t -> t
 shearY = transform . shearingY
-
