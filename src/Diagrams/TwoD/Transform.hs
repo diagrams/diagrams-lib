@@ -267,10 +267,12 @@ reflectionAbout' p d  = fromLinear r (linv r)
                  (translate (V2 (-a) (-b)) )))) )
 combine :: (a -> a) -> (a -> a) -> a -> a
 combine f g c = f (g c)
+
 --l :: (a -> a) -> (a -> a) -> (a -> a)
 --l f g = f g
 --(combine f g) c != ( f g ) c
 --f (g (c)) = ???
+
                  --(translate (V2 a b)   ((rotate (atan2A' d c) )   ((reflectY)  ((rotate(negated (atan2A' d c) ) )  (translate (V2 (-a) (-b)) )))))
                  --refl (P (V2 a b )) (V2 c d) = translate (V2 a b)  (over (rotated (atan2A' d c)) reflectY) (translate (V2 (-a) (-b)) )
 
