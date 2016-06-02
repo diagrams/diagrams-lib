@@ -248,7 +248,7 @@ fontSizeN :: (N a ~ n, Typeable n, Num n, HasStyle a) => n -> a -> a
 fontSizeN = fontSize . normalized
 
 -- | A convenient synonym for 'fontSize (Output w)'.
-fontSizeO :: (N a ~ n, Typeable n, Num n, HasStyle a) => n -> a -> a
+fontSizeO :: (N a ~ n, Typeable n, HasStyle a) => n -> a -> a
 fontSizeO = fontSize . output
 
 -- | A convenient sysnonym for 'fontSize (Local w)'.
