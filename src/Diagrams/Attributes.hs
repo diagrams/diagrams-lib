@@ -172,7 +172,7 @@ lwN :: (N a ~ n, HasStyle a, Typeable n, Num n) => n -> a -> a
 lwN = lw . normalized
 
 -- | A convenient synonym for 'lineWidth (output w)'.
-lwO :: (N a ~ n, HasStyle a, Typeable n, Num n) => n -> a -> a
+lwO :: (N a ~ n, HasStyle a, Typeable n) => n -> a -> a
 lwO = lw . output
 
 -- | A convenient sysnonym for 'lineWidth (local w)'.
@@ -225,7 +225,7 @@ dashingN :: (N a ~ n, HasStyle a, Typeable n, Num n) => [n] -> n -> a -> a
 dashingN w v = dashing (map normalized w) (normalized v)
 
 -- | A convenient synonym for 'dashing (output w)'.
-dashingO :: (N a ~ n, HasStyle a, Typeable n, Num n) => [n] -> n -> a -> a
+dashingO :: (N a ~ n, HasStyle a, Typeable n) => [n] -> n -> a -> a
 dashingO w v = dashing (map output w) (output v)
 
 -- | A convenient sysnonym for 'dashing (local w)'.
