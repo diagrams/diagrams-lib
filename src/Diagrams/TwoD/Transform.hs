@@ -23,7 +23,6 @@ module Diagrams.TwoD.Transform
          T2
          -- * Rotation
        , rotation, rotate, rotateBy, rotated
-
        , rotationAround, rotateAround
        , rotationTo, rotateTo
 
@@ -45,7 +44,6 @@ module Diagrams.TwoD.Transform
        , reflectionY, reflectY
        , reflectionXY, reflectXY
        , reflectionAbout, reflectAbout
-       , reflectionAbout', reflectAbout'
 
          -- * Shears
        , shearingX, shearX
@@ -72,6 +70,7 @@ import           Linear.V2
 
 -- | Create a transformation which performs a rotation about the local
 --   origin by the given angle.  See also 'rotate'.
+
 
 
 rotation :: Floating n => Angle n -> T2 n
@@ -251,37 +250,13 @@ reflectXY = transform reflectionXY
 --   the point @p@ and direction @d@.
 reflectionAbout :: OrderedField n => P2 n -> Direction V2 n -> T2 n
 reflectionAbout p d =
-  conjugate (rotationTo d <> translation (origin .-. p))
+  conjugate (rotationTo (reflectY d) <> translation (origin .-. p))
             reflectionY
 
 
-reflectionAbout' :: OrderedField n => P2 n -> V2 n -> T2 n
-reflectionAbout' p d  = fromLinear r (linv r)
-              where
-                r                           = refl p d <-> refl p d
-                refl (P (V2 a b )) (V2 c d) =
-                 (combine (translate (V2 a b))
-                 (combine (rotate (atan2A' d c) )
-                 (combine (reflectY)
-                 (combine (rotate((-1) *^ (atan2A' d c) ) )
-                 (translate (V2 (-a) (-b)) )))) )
+
 combine :: (a -> a) -> (a -> a) -> a -> a
 combine f g c = f (g c)
-
---l :: (a -> a) -> (a -> a) -> (a -> a)
---l f g = f g
---(combine f g) c != ( f g ) c
---f (g (c)) = ???
-
-                 --(translate (V2 a b)   ((rotate (atan2A' d c) )   ((reflectY)  ((rotate(negated (atan2A' d c) ) )  (translate (V2 (-a) (-b)) )))))
-                 --refl (P (V2 a b )) (V2 c d) = translate (V2 a b)  (over (rotated (atan2A' d c)) reflectY) (translate (V2 (-a) (-b)) )
-
-
-reflectAbout' :: (InSpace V2 n t, OrderedField n, Transformable t)
-                             => P2 n -> V2 n -> t -> t
-reflectAbout' p v = transform (reflectionAbout' p v)
-
---reflectAbout' (P (V2 a b )) (V2 x y) = translate' a b (over (rotated (atan2A' y x)) reflectY) translate' (-a) (-b)
 
 
 -- | @reflectAbout p d@ reflects a diagram in the line determined by

@@ -3,7 +3,6 @@
 
 module Diagrams.Test.Transform where
 
-
 import           Test.Tasty
 import           Test.Tasty.QuickCheck
 import           Diagrams.Prelude
@@ -38,21 +37,14 @@ tests = testGroup "Transform" [
           \a b c d -> translateX (a :: Double) (translateY b (P (V2 c d ))) == P (V2 (a + c) (b + d))
         , testProperty "shear" $
           \a b c d -> shearX (a :: Double) (shearY b (V2 c d)) == V2 ((c*b + d) * a + c) (c*b + d)
-        , testProperty "(0,1) rotateTo some dir will return normalised dir" $
-          \a b -> rotateTo  (dir (V2 (a :: Double) b)) (V2 0 1) =~ signorm (V2 a b)
+        , testProperty "(1,0) rotateTo some dir will return normalised dir" $
+          \(NonZero a) b -> rotateTo  (dir (V2 (a :: Double) b)) (V2 1 0) =~ signorm (V2 a b)
         , testProperty "rotates" $
           \a c -> rotate ((a :: Double)@@ deg) (c :: V2 Double)   == rotate'' ((a :: Double)@@ deg) (c :: V2 Double) && rotate ((a :: Double)@@ deg) (c :: V2 Double)   == rotate' ((a :: Double)@@ deg) (c :: V2 Double)
         , testProperty "reflectAbout works for a vector" $
           \a b c d e f -> reflectAbout (P (V2 (a :: Double) b)) (dir (V2 c d)) (V2 e f) =~  over (rotated (atan2A' d c)) reflectY (V2 e f)
         , testProperty "reflectAbout works for a point" $
           \a b c d e f -> reflectAbout (P (V2 (a :: Double) b)) (dir (V2 c d)) (P (V2 e f)) =~ translate (V2 a b)  ((over (rotated (atan2A' d c)) reflectY) ((translate (V2 (-a) (-b)) )  (P (V2 e f))))
-        , testProperty "reflectAbout' works for a vector" $
-            \a b c d e f -> reflectAbout' (P (V2 (a :: Double) b)) (V2 c d) (V2 e f) =~  over (rotated (atan2A' d c)) reflectY (V2 e f)
-        , testProperty "reflectAbout' works for a point" $
-            \a b c d e f -> reflectAbout' (P (V2 (a :: Double) b)) (V2 c d) (P (V2 e f)) =~ translate (V2 a b)  ((over (rotated (atan2A' d c)) reflectY) ((translate (V2 (-a) (-b)) )  (P (V2 e f))))
-
-          --, testProperty "reflectAcross works for a point" $
-            -- \a b c d e f -> reflectAcross (P (V2 (a :: Double) b)) (dir (V2 c d)) (P (V2 e f)) =~ translate (V2 a b)  ((over (rotated (atan2A' d c)) reflectY) ((translate (V2 (-a) (-b)) )  (P (V2 e f))))
 
 
         ]
