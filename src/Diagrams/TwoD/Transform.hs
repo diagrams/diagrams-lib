@@ -255,9 +255,6 @@ reflectionAbout p d =
 
 
 
-combine :: (a -> a) -> (a -> a) -> a -> a
-combine f g c = f (g c)
-
 
 -- | @reflectAbout p d@ reflects a diagram in the line determined by
 --   the point @p@ and direction @d@.
@@ -265,9 +262,6 @@ reflectAbout :: (InSpace V2 n t, OrderedField n, Transformable t)
              => P2 n -> Direction V2 n -> t -> t
 reflectAbout p v = transform (reflectionAbout p v)
 
---reflectAbout' :: (InSpace V2 n t, OrderedField n, Transformable t)
-  --           => P2 n -> V2 n -> t -> t
---reflectAbout' p v = transform (reflectionAbout' p v)
 -- Shears --------------------------------------------------
 
 -- auxiliary functions for shearingX/shearingY
