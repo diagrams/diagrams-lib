@@ -1,3 +1,11 @@
+## [v1.3.1.3](https://github.com/diagrams/diagrams-lib/tree/v1.3.1.3) (2016-06-05)
+
+- allow `base-4.9`
+- allow `data-default-class-0.1`
+- test with GHC 8.0.1
+
+[Full Changelog](https://github.com/diagrams/diagrams-lib/compare/v1.3.1.2...v1.3.1.3)
+
 ## [v1.3.1.2](https://github.com/diagrams/diagrams-lib/tree/v1.3.1.2) (2016-05-01)
 
 - allow `lens-4.14`
