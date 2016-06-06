@@ -425,7 +425,7 @@ arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
         opts' = opts
           & headStyle  %~ maybe id fillTexture globalLC
           & tailStyle  %~ maybe id fillTexture globalLC
-          & shaftStyle %~ applyStyle sty
+          & shaftStyle %~ applyStyle sty . transform tr
 
         -- The head size, tail size, head gap, and tail gap are obtained
         -- from the style and converted to output units.
