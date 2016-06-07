@@ -4,6 +4,7 @@ import qualified Diagrams.Test.TwoD as TwoD
 import qualified Diagrams.Test.TwoD.Offset as TwoD.Offset
 import qualified Diagrams.Test.Angle as Angle
 import qualified Diagrams.Test.Direction as Direction
+import qualified Diagrams.Test.Transform as Transform
 
 tests :: TestTree
 tests = testGroup "unit tests"
@@ -11,6 +12,8 @@ tests = testGroup "unit tests"
     , TwoD.tests
     , Angle.tests
     , Direction.tests
+    , Transform.tests
+
     ]
 
 main :: IO ()

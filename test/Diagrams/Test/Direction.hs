@@ -32,8 +32,3 @@ anglebetsub :: Direction V2 Float -> Direction V2 Float -> Bool
 anglebetsub a b = (if' (abs (a ^.  _theta^.rad  - b ^. _theta^.rad) < pi)
                        (abs ((a ^.  _theta  ^-^ b ^. _theta)^.rad))
                        (2*pi - abs (a ^.  _theta^.rad  - b ^. _theta^.rad) ) =~ angleBetweenDirs a b ^.rad)
-
--- anglebetsub a b = ((a ^.  _theta^.rad  - b ^. _theta^.rad)  =~ angleBetweenDirs a b ^.rad)
-
--- if (a /= b)  (angleBetweenDirs a b ^.rad) ((a ^.  _theta  ^-^ b ^. _theta) ^.rad)
-      -- \a b -> (mod (abs (((a :: Direction V2 Float) ^.  _theta  ^-^ b ^. _theta) ^.rad)) (pi/2)) ^+^ (0.5 + 0.5* signum (abs ((a^.  _theta  ^-^ b ^. _theta) ^.rad) - pi/2)) * pi/2  =~ angleBetweenDirs a b ^.rad

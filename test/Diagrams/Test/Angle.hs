@@ -21,6 +21,9 @@ tests = testGroup "Angle" [
          , testProperty "Angle vector negation squared is identity" $
            \θ -> negated (negated (θ :: Angle Double)) =~ θ
          , testProperty "A negated angle is the additive inverse of the original" $
-           \θ -> (θ :: Angle Double) ^+^ (negated θ) =~ 0@@turn 
+           \θ -> (θ :: Angle Double) ^+^ (negated θ) =~ 0@@turn
+         , testProperty "A negated angle is the additive inverse of the original" $
+           \θ -> (θ :: Angle Double) ^+^ (negated θ) =~ 0@@turn
+
 
       ]

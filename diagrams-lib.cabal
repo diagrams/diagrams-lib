@@ -162,3 +162,14 @@ test-suite tests
                        numeric-extras,
                        diagrams-solve
   default-language:    Haskell2010
+
+benchmark benchmarks
+  type: exitcode-stdio-1.0
+  main-is:Speed.hs
+  hs-source-dirs:test
+  default-language: Haskell2010
+  build-depends:
+    base < 5,
+    criterion,
+    diagrams-core,
+    diagrams-lib
