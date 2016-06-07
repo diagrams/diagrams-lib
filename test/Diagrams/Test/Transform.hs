@@ -7,7 +7,6 @@ import           Test.Tasty
 import           Test.Tasty.QuickCheck
 import           Diagrams.Prelude
 import           Diagrams.Direction
-import           Diagrams.TwoD.Transform
 import Instances
 
 tests :: TestTree

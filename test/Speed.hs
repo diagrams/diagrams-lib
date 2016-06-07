@@ -6,16 +6,14 @@ import Criterion
 import Criterion.Main (defaultMain)
 
 import Diagrams.Prelude
-import Diagrams.TwoD.Transform
-import Diagrams.Core.Types
 
 
 main :: IO ()
 main = defaultMain
     [ bgroup "rotates"
-        [ bench "rotate"  $ whnf (rotate (90 @@ deg)) (V2 3 3)
-         ,bench "rotate1" $ whnf (rotate' (90 @@ deg)) (V2 3 3)
-         ,bench "rotate2" $ whnf (rotate'' (90 @@ deg)) (V2 3 3)
+        [ bench "rotate"  $ whnf (rotate (90 @@ deg :: Angle Double)) (V2 3 3)
+         ,bench "rotate1" $ whnf (rotate' (90 @@ deg :: Angle Double)) (V2 3 3)
+         ,bench "rotate2" $ whnf (rotate'' (90 @@ deg :: Angle Double)) (V2 3 3)
         ]
     ]
 
