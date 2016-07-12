@@ -1,5 +1,8 @@
 {-# LANGUAGE DeriveFunctor              #-}
+{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE RankNTypes                 #-}
 {-# LANGUAGE TypeFamilies               #-}
 -----------------------------------------------------------------------------
@@ -33,19 +36,26 @@ module Diagrams.Angle
          -- ** Classes
        , HasTheta(..)
        , HasPhi(..)
+
+         -- * Rotation
+       , rotation, rotate
        ) where
 
 import           Control.Applicative
-import           Control.Lens        (AReview, Iso', Lens', iso, over, review, (^.))
+import           Control.Lens            (AReview, Iso', Lens', iso, over,
+                                          review, (^.))
 import           Data.Fixed
-import           Data.Monoid         hiding ((<>))
+import           Data.Monoid             hiding ((<>))
+import           Data.Monoid.Action
 import           Data.Semigroup
-import           Text.Read
 import           Prelude
+import           Text.Read
 
-import           Diagrams.Core       (OrderedField)
+import           Diagrams.Core           (OrderedField)
+import           Diagrams.Core.Transform
 import           Diagrams.Core.V
 import           Diagrams.Points
+import           Linear.V2               (V2 (..))
 
 import           Linear.Metric
 import           Linear.Vector
@@ -209,6 +219,46 @@ angleBetween v1 v2 = acosA (signorm v1 `dot` signorm v2)
 -- | Normalize an angle so that it lies in the [0,tau) range.
 normalizeAngle :: (Floating n, Real n) => Angle n -> Angle n
 normalizeAngle = over rad (`mod'` (2 * pi))
+
+------------------------------------------------------------
+-- Rotation
+
+-- These functions are defined here (instead of in
+-- Diagrams.TwoD.Transform) because the Action instance needs to go
+-- here.
+
+-- | Create a transformation which performs a rotation about the local
+--   origin by the given angle.  See also 'rotate'.
+rotation :: Floating n => Angle n -> Transformation V2 n
+rotation theta = fromLinear r (linv r)
+    where
+    c = cosA theta
+    s = sinA theta
+    r               = rot c s <-> rot c (-s)
+    rot co si (V2 x y) = V2 (co * x - si * y)
+                            (si * x + co * y)
+
+-- | Rotate about the local origin by the given angle. Positive angles
+--   correspond to counterclockwise rotation, negative to
+--   clockwise. The angle can be expressed using any of the 'Iso's on
+--   'Angle'.  For example, @rotate (1\/4 \@\@ 'turn')@, @rotate
+--   (tau\/4 \@\@ rad)@, and @rotate (90 \@\@ deg)@ all
+--   represent the same transformation, namely, a counterclockwise
+--   rotation by a right angle.  To rotate about some point other than
+--   the local origin, see 'rotateAbout'.
+--
+--   Note that writing @rotate (1\/4)@, with no 'Angle' constructor,
+--   will yield an error since GHC cannot figure out which sort of
+--   angle you want to use.  In this common situation you can use
+--   'rotateBy', which interprets its argument as a number of turns.
+
+rotate :: (InSpace V2 n t, Transformable t, Floating n) => Angle n -> t -> t
+rotate = transform . rotation
+
+-- | Angles act on other things by rotation.
+instance (V t ~ V2, N t ~ n, Transformable t, Floating n)
+  => Action (Angle n) t where
+  act = rotate
 
 ------------------------------------------------------------
 -- Polar Coordinates

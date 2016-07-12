@@ -63,42 +63,12 @@ import           Control.Lens            hiding (at, transform)
 import           Data.Semigroup
 
 import           Linear.Affine
-import           Linear.Vector
 import           Linear.V2
+import           Linear.Vector
 
 -- Rotation ------------------------------------------------
 
--- | Create a transformation which performs a rotation about the local
---   origin by the given angle.  See also 'rotate'.
-
-
-
-rotation :: Floating n => Angle n -> T2 n
-rotation theta = fromLinear r (linv r)
-    where
-    c = cosA theta
-    s = sinA theta
-    r               = rot c s <-> rot c (-s)
-    rot co si (V2 x y) = V2 (co * x - si * y)
-                            (si * x + co * y)
-
-
--- | Rotate about the local origin by the given angle. Positive angles
---   correspond to counterclockwise rotation, negative to
---   clockwise. The angle can be expressed using any of the 'Iso's on
---   'Angle'.  For example, @rotate (1\/4 \@\@ 'turn')@, @rotate
---   (tau\/4 \@\@ rad)@, and @rotate (90 \@\@ deg)@ all
---   represent the same transformation, namely, a counterclockwise
---   rotation by a right angle.  To rotate about some point other than
---   the local origin, see 'rotateAbout'.
---
---   Note that writing @rotate (1\/4)@, with no 'Angle' constructor,
---   will yield an error since GHC cannot figure out which sort of
---   angle you want to use.  In this common situation you can use
---   'rotateBy', which interprets its argument as a number of turns.
-
-rotate :: (InSpace V2 n t, Transformable t, Floating n) => Angle n -> t -> t
-rotate = transform . rotation
+-- For the definitions of 'rotation' and 'rotate', see Diagrams.Angle.
 
 -- | A synonym for 'rotate', interpreting its argument in units of
 -- turns; it can be more convenient to write @rotateBy (1\/4)@ than
