@@ -67,7 +67,6 @@ import           Diagrams.Path
 import           Diagrams.Points         (centroid)
 import           Diagrams.Trail
 import           Diagrams.TrailLike
-import           Diagrams.TwoD.Transform
 import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector    (leftTurn, unitX, unitY, unit_Y)
 import           Diagrams.Util           (tau, ( # ))
