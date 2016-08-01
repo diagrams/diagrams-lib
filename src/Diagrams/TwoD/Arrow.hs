@@ -134,7 +134,7 @@ import           Diagrams.Trail
 import           Diagrams.TwoD.Arrowheads
 import           Diagrams.TwoD.Attributes
 import           Diagrams.TwoD.Path        (stroke, strokeT)
-import           Diagrams.TwoD.Transform   (reflectY, rotate, translateX)
+import           Diagrams.TwoD.Transform   (reflectY, translateX)
 import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector      (unitX, unit_X)
 import           Diagrams.Util             (( # ))
