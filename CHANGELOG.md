@@ -1,3 +1,87 @@
+## [v1.4](https://github.com/diagrams/diagrams-lib/tree/v1.4) (YYYY-MM-DD) ##
+
+* **New features**
+
+    - New `mkText'` function, which allows making a text primitive
+      without recommending a fill colour or font size so users can
+      recommend their own (*e.g.* using the `recommendFontSize`
+      function).
+
+    - New functions `reflectXY` and `reflectionXY`
+
+    - New `composeAligned` combinator for doing composition under an
+      alignment while leaving the local origin unaffected.
+
+    - Add `_LocLoop` and `_LocLine` prisms
+
+    - B-spline to Bezier conversion
+
+    - New 3D features:
+        - New `Skinned` class
+        - Improved handling of 3D primitives (061b0725)
+        - CSG
+
+    - New standard attributes for separate fill and stroke opacity
+      (see
+      [#248](https://github.com/diagrams/diagrams-lib/issues/248)).
+
+    - New `HasQuery` class for things which can be spatially queried
+      for values from some monoid.
+
+    - New function `inquire` for testing whether a given point is
+      inside a diagram.
+
+    - New font weights: `bolder`, `lighter`, `thinWeight`,
+      `ultraLight`, `light`, `mediumWeight`, `heavy`, `semiBold`,
+      `ultraBold`.  Note that currently only the SVG backend deals
+      with the new weights.
+
+    - Export `GetSegmentCodomain` and update documentation
+
+    - Improved performance of 2D rotations
+
+* **New instances**
+
+    - `Alignable` instance for `Located`
+
+    - `ToPath` instances for lines and loops
+
+    - `Serialize` instances for `Trail`, `Path`, `Located`, `SegTree`,
+      `Segment`
+
+    - `Generic` instances for `Path`, `Located`
+
+    - `Action` instance for `Angle`: angles act by rotation.
+
+* **API changes**
+
+    - `snugBL`, `snugBR`, `snugTR` and `snugBR` are deprecated.
+      These functions were unintuitive, ad-hoc, and not particularly useful,
+      especially since e.g. `snugL` and `snugB` do not commute. You
+      can use something like `snugB . snugL` directly, or use `snug`
+      with a direction vector.  See
+      [#250](https://github.com/diagrams/diagrams-lib/issues/250) for
+      more details.
+
+* **Dependency/version changes**
+
+    - upgrade `fsnotify` and drop dependency on deprecated
+      `system-filepath`
+    - Many bumped upper bounds, see release notes for minor releases
+      below
+
+* **Bug fixes**
+
+    - fix `orientPoints` function, which was previously generating NaN
+      values with lists of only one or two
+      points. ([#210](https://github.com/diagrams/diagrams-lib/issues/210))
+
+    - Broken offset joins with non-vertices in loops ([#263](https://github.com/diagrams/diagrams-lib/issues/263))
+
+    - Properly transform arrow shaft styles ([#274](https://github.com/diagrams/diagrams-lib/issues/274))
+
+    - Fix sign error in `reflectionAbout`
+
 ## [v1.3.1.3](https://github.com/diagrams/diagrams-lib/tree/v1.3.1.3) (2016-06-05)
 
 - allow `base-4.9`
