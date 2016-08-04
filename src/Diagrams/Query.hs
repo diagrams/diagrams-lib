@@ -33,7 +33,7 @@ import           Data.Monoid
 
 import           Diagrams.Core
 
--- | Types which can answer a 'Query' about points inquire the geometric
+-- | Types which can answer a 'Query' about points inside the geometric
 --   object.
 --
 --   If @t@ and @m@ are both a 'Semigroup's, 'getQuery' should satisfy
