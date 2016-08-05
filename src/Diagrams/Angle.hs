@@ -212,8 +212,8 @@ infixl 5 @@
 --   'Diagrams.TwoD.Vector.signedAngleBetween'.
 --
 --   Returns NaN if either of the vectors are zero.
-angleBetween  :: (Metric v, Floating n) => v n -> v n -> Angle n
-angleBetween v1 v2 = acosA (signorm v1 `dot` signorm v2)
+angleBetween  :: (Metric v, Floating n, Ord n) => v n -> v n -> Angle n
+angleBetween v1 v2 = acosA (min 1 . max (-1) $ signorm v1 `dot` signorm v2)
 -- N.B.: Currently discards the common plane information.
 
 -- | Normalize an angle so that it lies in the [0,tau) range.
