@@ -2,18 +2,26 @@
 
 module Diagrams.Test.TwoD where
 
+import           Diagrams.Prelude
+import           Diagrams.Trail        (linePoints)
+import           Instances
 import           Test.Tasty
 import           Test.Tasty.QuickCheck
-import           Diagrams.Prelude
-import           Diagrams.Trail            (linePoints)
-import Instances
+
+newtype SmallAngle = SmallAngle (Angle Double)
+  deriving (Eq, Ord, Show)
+
+-- Generate random angles within a reasonably small range (+/- 5
+-- turns).
+instance Arbitrary SmallAngle where
+  arbitrary = SmallAngle . (@@turn) <$> choose (-5, 5)
 
 tests :: TestTree
 tests = testGroup "TwoD"
     [ testGroup "TwoD.Arc" [
-           testProperty "arc start point is at radius 1 in the starting direction" $ \d a ->
+           testProperty "arc start point is at radius 1 in the starting direction" $ \d (SmallAngle a) ->
                pathVertices (arc d a :: Path V2 Double) ^? _head . _head =~ Just (origin .+^ fromDirection d )
-           , testProperty "arc end point is at radius 1 in the ending direction" $ \d a ->
+           , testProperty "arc end point is at radius 1 in the ending direction" $ \d (SmallAngle a) ->
                pathVertices (arc d a :: Path V2 Double) ^? _head . _last =~ Just (origin .+^ fromDirection (rotate a d))
          ]
     , testGroup "TwoD.Types" [
