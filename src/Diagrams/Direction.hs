@@ -27,8 +27,8 @@ import           Diagrams.Angle
 import           Diagrams.Core
 
 import           Linear.Affine
-import           Linear.Vector
 import           Linear.Metric
+import           Linear.Vector
 
 --------------------------------------------------------------------------------
 -- Direction
@@ -76,7 +76,7 @@ fromDir :: (Metric v, Floating n) => Direction v n -> v n
 fromDir (Dir v) = signorm v
 
 -- | compute the positive angle between the two directions in their common plane
-angleBetweenDirs :: (Metric v, Floating n)
+angleBetweenDirs :: (Metric v, Floating n, Ord n)
   => Direction v n -> Direction v n -> Angle n
 angleBetweenDirs d1 d2 = angleBetween (fromDirection d1) (fromDirection d2)
 
