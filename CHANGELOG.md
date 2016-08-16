@@ -14,11 +14,11 @@
 
     - Add `_LocLoop` and `_LocLine` prisms
 
-    - B-spline to Bezier conversion
+    - New `bspline` function for creating uniform cubic B-splines
 
     - New 3D features:
         - New `Skinned` class
-        - Improved handling of 3D primitives (061b0725)
+        - Improved handling of 3D primitives
         - CSG
 
     - New standard attributes for separate fill and stroke opacity
