@@ -82,6 +82,10 @@
 
     - Fix sign error in `reflectionAbout`
 
+## [v1.3.1.4](https://github.com/diagrams/diagrams-lib/tree/v1.3.1.4) (2016-08-16) (16 August 2016)
+
+- allow `optparse-applicative-0.13`
+
 ## [v1.3.1.3](https://github.com/diagrams/diagrams-lib/tree/v1.3.1.3) (2016-06-05)
 
 - allow `base-4.9`
