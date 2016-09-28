@@ -4,7 +4,6 @@
 module Diagrams.Test.Trail where
 
 import           Diagrams.Prelude
-import           Diagrams.Trail
 import           Instances
 import           Test.Tasty
 import           Test.Tasty.QuickCheck
