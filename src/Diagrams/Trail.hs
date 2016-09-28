@@ -82,7 +82,7 @@ module Diagrams.Trail
        , trailPoints, linePoints, loopPoints
        , trailVertices', lineVertices', loopVertices'
        , trailVertices, lineVertices, loopVertices
-       , trailLocSegments, fixTrail
+       , trailLocSegments, fixTrail, unfixTrail
 
          -- * Modifying trails
 
@@ -1250,9 +1250,29 @@ select :: [a] -> [Bool] -> [a]
 select xs bs = map fst $ filter snd (zip xs bs)
 
 -- | Convert a concretely located trail into a list of fixed segments.
+--   'unfixTrail' is almost its left inverse.
 fixTrail :: (Metric v, OrderedField n)
          => Located (Trail v n) -> [FixedSegment v n]
 fixTrail t = map mkFixedSeg (trailLocSegments t)
+
+-- | Convert a list of fixed segments into a located trail.  Note that
+--   this may lose information: it throws away the locations of all
+--   but the first @FixedSegment@.  This does not matter precisely
+--   when each @FixedSegment@ begins where the previous one ends.
+--
+--   This is almost left inverse to 'fixTrail', that is, @unfixTrail
+--   . fixTrail == id@, except for the fact that @unfixTrail@ will
+--   never yield a @Loop@.  In the case of a loop, we instead have
+--   @glueTrail . unfixTrail . fixTrail == id@.  On the other hand, it
+--   is not the case that @fixTrail . unfixTrail == id@ since
+--   @unfixTrail@ may lose information.
+unfixTrail
+  :: (Metric v, Ord n, Floating n)
+  => [FixedSegment v n] -> Located (Trail v n)
+unfixTrail = mapLoc trailFromSegments . takeLoc . map fromFixedSeg
+  where
+    takeLoc []       = [] `at` origin
+    takeLoc xs@(x:_) = map unLoc xs `at` loc x
 
 -- | Convert a concretely located trail into a list of located segments.
 trailLocSegments :: (Metric v, OrderedField n)
