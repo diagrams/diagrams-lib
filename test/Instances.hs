@@ -3,6 +3,7 @@
 {-# LANGUAGE GADTs                #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE ViewPatterns         #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
@@ -10,9 +11,9 @@
 
 module Instances where
 
-import           Test.Tasty.QuickCheck
-import Diagrams.Prelude
+import           Diagrams.Prelude
 import           Numeric.Extras
+import           Test.Tasty.QuickCheck
 
 ------------------------------------------------------------
     -- Approximate Comparison for Doubles, Points
@@ -83,9 +84,11 @@ instance (Approx a, Approx b) => Approx (a, b) where
 
 instance Arbitrary n => Arbitrary (V2 n) where
     arbitrary = (^&) <$> arbitrary <*> arbitrary
+    shrink (coords -> x :& y) = (^&) <$> shrink x <*> shrink y
 
 instance Arbitrary (v n) => Arbitrary (Point v n) where
     arbitrary = P <$> arbitrary
+    shrink (P v) = P <$> shrink v
 
 instance Arbitrary n => Arbitrary (Angle n) where
     arbitrary = review rad <$> arbitrary
@@ -97,20 +100,33 @@ instance (Arbitrary n, Floating n) => Arbitrary (Direction V2 n) where
 -- instance (Show n, RealFloat n) => Show (Direction V2 n) where
 --     show d = "Dir" <> ( show $ d ^. _theta . turn )
 
+-- NOTE on shrinks: Adding definitions of 'shrink' below seems to work
+--   in simple tests, but test case failures hang for a very long time
+--   (presumably trying lots and lots of expensive shrinks).  Not sure
+--   how to make shrinking more tractable.
+
 instance (Arbitrary a, Arbitrary (Vn a)) => Arbitrary (Located a) where
     arbitrary = at <$> arbitrary <*> arbitrary
+--    shrink (viewLoc -> (p,a)) = uncurry at <$> shrink (a,p)
 
 instance Arbitrary n => Arbitrary (Offset Closed V2 n) where
     arbitrary = OffsetClosed <$> arbitrary
+--    shrink (OffsetClosed x) = OffsetClosed <$> shrink x
 
 instance Arbitrary n =>  Arbitrary (Segment Closed V2 n) where
     arbitrary = oneof [Linear <$> arbitrary, Cubic <$> arbitrary <*> arbitrary <*> arbitrary]
+    -- shrink (Linear x) = Linear <$> shrink x
+    -- shrink (Cubic x y z) = Linear z
+    --                      : [Cubic x' y' z' | (x',y',z') <- shrink (x,y,z)]
 
 instance (Arbitrary n, Floating n, Ord n) => Arbitrary (Trail' Line V2 n) where
     arbitrary = lineFromSegments <$> arbitrary
+--    shrink (lineSegments -> segs) = lineFromSegments <$> shrink segs
 
 instance (Arbitrary n, Floating n, Ord n) => Arbitrary (Trail' Loop V2 n) where
     arbitrary = closeLine <$> arbitrary
+--    shrink (cutLoop -> l) = closeLine <$> shrink l
 
 instance (Arbitrary n, Floating n, Ord n) => Arbitrary (Trail V2 n) where
     arbitrary = oneof [Trail <$> (arbitrary :: Gen (Trail' Loop V2 n)), Trail <$> (arbitrary :: Gen (Trail' Line V2 n))]
+
