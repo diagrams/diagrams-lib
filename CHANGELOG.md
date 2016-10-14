@@ -67,7 +67,8 @@
 
     - upgrade `fsnotify` and drop dependency on deprecated
       `system-filepath`
-    - Many bumped upper bounds, see release notes for minor releases
+    - Allow `lens-4.15`
+    - Many other bumped upper bounds, see release notes for minor releases
       below
 
 * **Bug fixes**
