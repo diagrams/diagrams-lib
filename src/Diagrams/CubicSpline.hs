@@ -29,6 +29,7 @@ module Diagrams.CubicSpline
        (
          -- * Constructing paths from cubic splines
          cubicSpline
+       , BSpline
        , bspline
        ) where
 
