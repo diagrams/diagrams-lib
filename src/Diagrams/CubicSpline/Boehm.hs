@@ -129,6 +129,17 @@ bsplineToBeziers controls = beziers
 --   and is tangent to the line to the second(-to-last) control point.
 --   It does not necessarily pass through any of the other control
 --   points.
+--
+--   <<diagrams/src_Diagrams_CubicSpline_Boehm_bsplineEx.svg#diagram=bsplineEx&width=300>>
+--
+--   > pts = map p2 [(0,0), (2,3), (5,-2), (-4,1), (0,3)]
+--   > spot = circle 0.2 # fc blue # lw none
+--   > bsplineEx = mconcat
+--   >   [ position (zip pts (repeat spot))
+--   >   , bspline pts
+--   >   ]
+--   >   # frame 0.5
+
 bspline :: (TrailLike t, V t ~ v, N t ~ n) => BSpline v n -> t
 bspline = fromLocSegments . fixup . map fromFixedSeg . bsplineToBeziers
   where
