@@ -356,7 +356,7 @@ cat' v (CatOpts { _catMethod = Distrib, _sep = s }) =
   position . zip (iterate (.+^ (s *^ signorm v)) origin)
 
 -- | Compose a list of diagrams using the given composition function,
---   first aligning them all according to the given alignment, *but*
+--   first aligning them all according to the given alignment, /but/
 --   retain the local origin of the first diagram, as it would be if
 --   the composition function were applied directly.  That is,
 --   @composeAligned algn comp@ is equivalent to @translate v . comp
