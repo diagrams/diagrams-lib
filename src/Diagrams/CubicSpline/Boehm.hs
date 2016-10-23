@@ -16,9 +16,8 @@
 --   * Thomas W. Sederberg, /An Introduction to B-Spline Curves/,
 --     <http://web.archive.org/web/20120227050519/http://tom.cs.byu.edu/~455/bs.pdf>
 --
---   * Lyle Ramshaw, /Blossoming: A Connect-the-Dots Approach to
---   Splines/,
---   <http://www.hpl.hp.com/techreports/Compaq-DEC/SRC-RR-19.pdf>
+--   * Lyle Ramshaw, /Blossoming: A Connect-the-Dots Approach to Splines/,
+--     <http://www.hpl.hp.com/techreports/Compaq-DEC/SRC-RR-19.pdf>
 --
 -----------------------------------------------------------------------------
 module Diagrams.CubicSpline.Boehm
