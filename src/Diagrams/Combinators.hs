@@ -369,15 +369,17 @@ cat' v (CatOpts { _catMethod = Distrib, _sep = s }) =
 --   version of this function that works /specifically/ on paths, if
 --   such a thing were deemed useful.)
 --
---   <<#diagram=alignedEx1&width=400>>
+--   <<diagrams/src_Diagrams_Combinators_alignedEx1.svg#diagram=alignedEx1&width=400>>
 --
 --   > alignedEx1 = (hsep 2 # composeAligned alignT) (map circle [1,3,5,2])
 --   >            # showOrigin
+--   >            # frame 0.5
 --
---   <<#diagram=alignedEx2&width=400>>
+--   <<diagrams/src_Diagrams_Combinators_alignedEx2.svg#diagram=alignedEx2&width=400>>
 --
 --   > alignedEx2 = (mconcat # composeAligned alignTL) [circle 1, square 1, triangle 1, pentagon 1]
 --   >            # showOrigin
+--   >            # frame 0.1
 composeAligned
   :: (Monoid' m, Floating n, Ord n, Metric v)
   => (QDiagram b v n m -> QDiagram b v n m)    -- ^ Alignment function
