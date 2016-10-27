@@ -1,4 +1,4 @@
-## [v1.4](https://github.com/diagrams/diagrams-lib/tree/v1.4) (YYYY-MM-DD) ##
+## [v1.4](https://github.com/diagrams/diagrams-lib/tree/v1.4) (2016-10-26)
 
 * **New features**
 
