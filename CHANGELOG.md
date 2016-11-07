@@ -1,3 +1,7 @@
+## [v1.4.0.1](https://github.com/diagrams/diagrams-lib/tree/v1.4.0.1) (2016-11-07)
+
+- Fix test suite compilation problem ([#286](https://github.com/diagrams/diagrams-lib/issues/286))
+
 ## [v1.4](https://github.com/diagrams/diagrams-lib/tree/v1.4) (2016-10-26)
 
 * **New features**
