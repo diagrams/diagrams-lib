@@ -148,6 +148,7 @@ test-suite tests
   type: exitcode-stdio-1.0
   main-is: Test.hs
   other-modules: Diagrams.Test.Direction
+               , Diagrams.Test.Trail
                , Diagrams.Test.Transform
                , Diagrams.Test.TwoD.Offset
                , Diagrams.Test.TwoD
