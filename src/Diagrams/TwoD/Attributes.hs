@@ -266,7 +266,6 @@ mkRadialGradient stops c0 r0 c1 r1 spreadMethod
 --   is that of 'Last'.
 newtype LineTexture n = LineTexture (Last (Texture n))
   deriving (Typeable, Semigroup)
-instance (Typeable n) => AttributeClass (LineTexture n)
 
 type instance V (LineTexture n) = V2
 type instance N (LineTexture n) = n
@@ -334,8 +333,6 @@ lineRGradient g = lineTexture (RG g)
 --   is that of 'Recommed . Last'.
 newtype FillTexture n = FillTexture (Recommend (Last (Texture n)))
   deriving (Typeable, Semigroup)
-
-instance Typeable n => AttributeClass (FillTexture n)
 
 _FillTexture :: Iso' (FillTexture n) (Recommend (Texture n))
 _FillTexture = iso getter setter

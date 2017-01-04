@@ -141,8 +141,6 @@ _LineWidth = iso getLineWidth (LineWidth . Last)
 _LineWidthM :: Iso' (LineWidthM n) (Measure n)
 _LineWidthM = mapping _LineWidth
 
-instance Typeable n => AttributeClass (LineWidth n)
-
 type LineWidthM n = Measured n (LineWidth n)
 
 instance OrderedField n => Default (LineWidthM n) where
@@ -200,8 +198,6 @@ data Dashing n = Dashing [n] n
 
 instance Semigroup (Dashing n) where
   _ <> b = b
-
-instance Typeable n => AttributeClass (Dashing n)
 
 getDashing :: Dashing n -> Dashing n
 getDashing = id
@@ -333,7 +329,6 @@ alphaToColour ac | alphaChannel ac == 0 = ac `over` black
 --   opacity to 80% of its previous opacity\".
 newtype Opacity = Opacity (Product Double)
   deriving (Typeable, Semigroup)
-instance AttributeClass Opacity
 
 _Opacity :: Iso' Opacity Double
 _Opacity = iso getOpacity (Opacity . Product)
@@ -359,7 +354,6 @@ _opacity = atAttr . mapping _Opacity . non 1
 --   and is multiplicative.
 newtype FillOpacity = FillOpacity (Product Double)
   deriving (Typeable, Semigroup)
-instance AttributeClass FillOpacity
 
 _FillOpacity :: Iso' FillOpacity Double
 _FillOpacity = iso getFillOpacity (FillOpacity . Product)
@@ -385,7 +379,6 @@ _fillOpacity = atAttr . mapping _FillOpacity . non 1
 --   and is multiplicative.
 newtype StrokeOpacity = StrokeOpacity (Product Double)
   deriving (Typeable, Semigroup)
-instance AttributeClass StrokeOpacity
 
 _StrokeOpacity :: Iso' StrokeOpacity Double
 _StrokeOpacity = iso getStrokeOpacity (StrokeOpacity . Product)
@@ -420,8 +413,6 @@ data LineCap = LineCapButt   -- ^ Lines end precisely at their endpoints.
 instance Default LineCap where
   def = LineCapButt
 
-instance AttributeClass LineCap
-
 -- | Last semigroup structure.
 instance Semigroup LineCap where
   _ <> b = b
@@ -447,8 +438,6 @@ data LineJoin = LineJoinMiter    -- ^ Use a \"miter\" shape (whatever that is).
                                  --   carpentry terms?
   deriving (Eq, Ord, Show, Typeable)
 
-instance AttributeClass LineJoin
-
 -- | Last semigroup structure.
 instance Semigroup LineJoin where
   _ <> b = b
@@ -473,7 +462,6 @@ _lineJoin = atAttr . non def
 --   For some backends this value may have additional effects.
 newtype LineMiterLimit = LineMiterLimit (Last Double)
   deriving (Typeable, Semigroup, Eq, Ord)
-instance AttributeClass LineMiterLimit
 
 _LineMiterLimit :: Iso' LineMiterLimit Double
 _LineMiterLimit = iso getLineMiterLimit (LineMiterLimit . Last)
