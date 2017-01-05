@@ -155,7 +155,7 @@ test-suite tests
                , Diagrams.Test.Angle
                , Instances
   hs-source-dirs: test
-  build-depends:       base >= 4.2 && < 4.10,
+  build-depends:       base,
                        tasty >= 0.10 && < 0.12,
                        tasty-hunit >= 0.9.2 && < 0.10,
                        tasty-quickcheck >= 0.8 && < 0.9,
