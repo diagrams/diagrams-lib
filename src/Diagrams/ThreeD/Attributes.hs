@@ -40,8 +40,6 @@ import           Diagrams.Core
 newtype SurfaceColor = SurfaceColor (Last (Colour Double))
   deriving (Typeable, Semigroup, Show)
 
-instance AttributeClass SurfaceColor
-
 _SurfaceColor :: Iso' SurfaceColor (Colour Double)
 _SurfaceColor = iso (\(SurfaceColor (Last c)) -> c) (SurfaceColor . Last)
 
@@ -60,8 +58,6 @@ _sc = atAttr . mapping _SurfaceColor
 -- value between 0 and 1; this is not checked.
 newtype Diffuse = Diffuse (Last Double)
   deriving (Typeable, Semigroup, Show)
-
-instance AttributeClass Diffuse
 
 -- | Isomorphism between 'Diffuse' and 'Double'
 _Diffuse :: Iso' Diffuse Double
@@ -83,8 +79,6 @@ _diffuse = atAttr . mapping _Diffuse
 -- reflectance.
 newtype Ambient = Ambient (Last Double)
   deriving (Typeable, Semigroup, Show)
-
-instance AttributeClass Ambient
 
 _Ambient :: Iso' Ambient Double
 _Ambient = iso (\(Ambient (Last d)) -> d) (Ambient . Last)
@@ -113,8 +107,6 @@ makeLenses ''Specular
 
 newtype Highlight = Highlight (Last Specular)
   deriving (Typeable, Semigroup, Show)
-
-instance AttributeClass Highlight
 
 _Highlight :: Iso' Highlight Specular
 _Highlight = iso (\(Highlight (Last s)) -> s) (Highlight . Last)
