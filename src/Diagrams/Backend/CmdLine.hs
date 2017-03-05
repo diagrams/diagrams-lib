@@ -609,7 +609,7 @@ defaultLoopRender opts = when (opts ^. loop) $ do
       putStrLn $ "Program args: " ++ unwords args'
       forever . threadDelay $ case os of
          -- https://ghc.haskell.org/trac/ghc/ticket/7325
-        "darwin" -> 5000000000000
+        "darwin" -> 2000000000
         _        -> maxBound
 
 recompile :: FilePath -> FilePath -> [String] -> IO ExitCode
