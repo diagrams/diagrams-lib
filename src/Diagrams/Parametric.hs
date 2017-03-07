@@ -55,7 +55,7 @@ class DomainBounds p where
   --   with numeric scalars).
   domainUpper :: p -> N p
 
-  default domainUpper :: Num n => p -> n
+  default domainUpper :: Num (N p) => p -> N p
   domainUpper = const 1
 
 -- | Type class for querying the values of a parametric object at the
