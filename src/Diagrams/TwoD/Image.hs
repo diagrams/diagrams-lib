@@ -26,6 +26,7 @@ module Diagrams.TwoD.Image
     , Embedded, External, Native
     , image
     , loadImageEmb
+    , loadImageEmbBS
     , loadImageExt
     , uncheckedImageRef
     , raster
@@ -47,6 +48,8 @@ import           Diagrams.Path        (Path)
 import           Diagrams.TwoD.Shapes (rect)
 import Diagrams.Query
 import           Diagrams.TwoD.Types
+
+import           Data.ByteString
 
 import           Linear.Affine
 
@@ -109,6 +112,16 @@ loadImageEmb :: Num n => FilePath -> IO (Either String (DImage n Embedded))
 loadImageEmb path = do
   dImg <- readImage path
   return $ case dImg of
+    Left msg  -> Left msg
+    Right img -> Right (DImage (ImageRaster img) w h mempty)
+      where
+        w = dynamicMap imageWidth img
+        h = dynamicMap imageHeight img
+
+-- | A pure variant of 'loadImageEmb'
+loadImageEmbBS :: Num n => ByteString -> Either String (DImage n Embedded)
+loadImageEmbBS bsData =
+  case decodeImage bsData of
     Left msg  -> Left msg
     Right img -> Right (DImage (ImageRaster img) w h mempty)
       where
