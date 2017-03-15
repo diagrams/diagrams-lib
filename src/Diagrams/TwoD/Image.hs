@@ -25,7 +25,9 @@ module Diagrams.TwoD.Image
       DImage(..), ImageData(..)
     , Embedded, External, Native
     , image
+    , embeddedImage
     , loadImageEmb
+    , loadImageEmbBS
     , loadImageExt
     , uncheckedImageRef
     , raster
@@ -47,6 +49,8 @@ import           Diagrams.Path        (Path)
 import           Diagrams.TwoD.Shapes (rect)
 import Diagrams.Query
 import           Diagrams.TwoD.Types
+
+import           Data.ByteString
 
 import           Linear.Affine
 
@@ -103,17 +107,22 @@ image img
 rectPath :: RealFloat n => n -> n -> Path V2 n
 rectPath = rect
 
--- | Use JuicyPixels to read an image in any format and wrap it in a 'DImage'.
+-- | Read a JuicyPixels @DynamicImage@ and wrap it in a 'DImage'.
+--   The width and height of the image are set to their actual values.
+embeddedImage :: Num n => DynamicImage -> DImage n Embedded
+embeddedImage img = DImage (ImageRaster img) w h mempty
+  where
+    w = dynamicMap imageWidth img
+    h = dynamicMap imageHeight img
+
+-- | Use JuicyPixels to read a file in any format and wrap it in a 'DImage'.
 --   The width and height of the image are set to their actual values.
 loadImageEmb :: Num n => FilePath -> IO (Either String (DImage n Embedded))
-loadImageEmb path = do
-  dImg <- readImage path
-  return $ case dImg of
-    Left msg  -> Left msg
-    Right img -> Right (DImage (ImageRaster img) w h mempty)
-      where
-        w = dynamicMap imageWidth img
-        h = dynamicMap imageHeight img
+loadImageEmb path = fmap embeddedImage <$> readImage path
+
+-- | A pure variant of 'loadImageEmb'
+loadImageEmbBS :: Num n => ByteString -> Either String (DImage n Embedded)
+loadImageEmbBS bs = embeddedImage <$> decodeImage bs
 
 -- | Check that a file exists, and use JuicyPixels to figure out
 --   the right size, but save a reference to the image instead
