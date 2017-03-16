@@ -38,7 +38,6 @@ import           Codec.Picture
 import           Codec.Picture.Types  (dynamicMap)
 
 import           Data.Colour          (AlphaColour)
-import           Data.Functor         ((<$>))
 import           Data.Semigroup
 import           Data.Typeable        (Typeable)
 
@@ -119,11 +118,11 @@ embeddedImage img = DImage (ImageRaster img) w h mempty
 -- | Use JuicyPixels to read a file in any format and wrap it in a 'DImage'.
 --   The width and height of the image are set to their actual values.
 loadImageEmb :: Num n => FilePath -> IO (Either String (DImage n Embedded))
-loadImageEmb path = fmap embeddedImage <$> readImage path
+loadImageEmb path = fmap embeddedImage `fmap` readImage path
 
 -- | A pure variant of 'loadImageEmb'
 loadImageEmbBS :: Num n => ByteString -> Either String (DImage n Embedded)
-loadImageEmbBS bs = embeddedImage <$> decodeImage bs
+loadImageEmbBS bs = embeddedImage `fmap` decodeImage bs
 
 -- | Check that a file exists, and use JuicyPixels to figure out
 --   the right size, but save a reference to the image instead
