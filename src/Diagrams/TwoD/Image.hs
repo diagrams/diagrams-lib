@@ -38,6 +38,7 @@ import           Codec.Picture
 import           Codec.Picture.Types  (dynamicMap)
 
 import           Data.Colour          (AlphaColour)
+import           Data.Functor         ((<$>))
 import           Data.Semigroup
 import           Data.Typeable        (Typeable)
 
