@@ -37,11 +37,13 @@ data A = A
   deriving (Typeable, Show, Eq, Ord)
 instance Semigroup A where
   A <> A = A
+instance AttributeClass A
 
 data B = B
   deriving (Typeable, Show, Eq, Ord)
 instance Semigroup B where
   B <> B = B
+instance AttributeClass B
 
 data FillLoopsTest = FillLoopsTest
 

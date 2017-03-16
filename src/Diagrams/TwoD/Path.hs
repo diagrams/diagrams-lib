@@ -120,6 +120,7 @@ data FillRule
              --   <http://en.wikipedia.org/wiki/Even-odd_rule>.
     deriving (Show, Typeable, Eq, Ord)
 
+instance AttributeClass FillRule
 instance Semigroup FillRule where
   _ <> b = b
 
@@ -423,6 +424,8 @@ newtype Clip n = Clip [Path V2 n]
   deriving (Typeable, Semigroup)
 
 makeWrapped ''Clip
+
+instance Typeable n => AttributeClass (Clip n)
 
 instance AsEmpty (Clip n) where
   _Empty = _Clip . _Empty

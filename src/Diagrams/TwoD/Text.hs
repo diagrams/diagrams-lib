@@ -199,6 +199,8 @@ newtype Font = Font (Last String)
 _Font :: Iso' Font String
 _Font = iso getFont (Font . Last)
 
+instance AttributeClass Font
+
 -- | Extract the font family name from a @Font@ attribute.
 getFont :: Font -> String
 getFont (Font (Last f)) = f
@@ -237,6 +239,8 @@ _FontSizeM :: Iso' (FontSizeM n) (Measured n (Recommend n))
 _FontSizeM = mapping _FontSize
 
 type FontSizeM n = Measured n (FontSize n)
+
+instance Typeable n => AttributeClass (FontSize n)
 
 instance Num n => Default (FontSizeM n) where
   def = FontSize . Recommend . Last <$> local 1
@@ -301,6 +305,7 @@ data FontSlant = FontSlantNormal
                | FontSlantOblique
   deriving (Eq, Show, Typeable, Ord)
 
+instance AttributeClass FontSlant where
 instance Semigroup FontSlant where
   _ <> b = b
 
@@ -348,6 +353,8 @@ data FontWeight = FontWeightNormal
                 | FontWeightHeavy
     deriving (Eq,
               Ord, Show, Typeable)
+
+instance AttributeClass FontWeight
 
 -- | Last semigroup structure
 instance Semigroup FontWeight where
