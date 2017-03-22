@@ -113,7 +113,7 @@ frame s = over envelope (onEnvelope $ \f x -> f x + s)
 --   to alignment and envelope acts like a 1-dimensional segment
 --   oriented along the vector @v@, with local origin at its
 --   center. (Note, however, that it has an empty trace; for 2D struts
---   with a nonempty trace see 'strutR2', 'strutX', and 'strutY' from
+--   with a nonempty trace see 'strutR2' from
 --   "Diagrams.TwoD.Combinators".) Useful for manually creating
 --   separation between two diagrams.
 --
