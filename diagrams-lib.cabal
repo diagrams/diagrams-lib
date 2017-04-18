@@ -30,6 +30,7 @@ Library
   Exposed-modules:     Diagrams,
                        Diagrams.Prelude,
                        Diagrams.Align,
+                       Diagrams.Anchors,
                        Diagrams.Angle,
                        Diagrams.Animation,
                        Diagrams.Animation.Active,
