@@ -64,7 +64,8 @@ fromMatWithInv m m_ v =
 mat22 :: Floating n => Iso' (M22 n, V2 n) (T2 n)
 mat22 = iso (uncurry fromMat22) (mkMat &&& transl)
 
--- | Prism onto a 2D transformation from a 2x2 transform matrix and
---   translation vector (in which case the 'T3' will be invalid).
+-- | Prism onto a 3D transformation from a 3x3 transform matrix and
+--   translation vector. Does not check if the matrix is invertible
+--   (in which case the 'T3' will be invalid).
 mat33 :: Floating n => Iso' (M33 n, V3 n) (T3 n)
 mat33 = iso (uncurry fromMat33) (mkMat &&& transl)
