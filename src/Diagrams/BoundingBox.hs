@@ -41,6 +41,8 @@ module Diagrams.BoundingBox
   , contains, contains'
   , inside, inside', outside, outside'
 
+  , boxGrid
+
     -- * Operations on bounding boxes
   , union, intersection
   ) where
@@ -311,3 +313,20 @@ intersection u v = maybe mempty (uncurry fromCorners) $ do
 --   function is just an alias for @mappend@.
 union :: (Additive v, Ord n) => BoundingBox v n -> BoundingBox v n -> BoundingBox v n
 union = mappend
+
+-- | @boxGrid f box@ returns a grid of regularly spaced points inside
+--   the box, such that there are @(1/f)@ points along each dimension.
+--   For example, for a 3D box with corners at (0,0,0) and (2,2,2),
+--   @boxGrid 0.1@ would yield a grid of approximately 1000 points (it
+--   might actually be @11^3@ instead of @10^3@) spaced @0.2@ units
+--   apart.
+boxGrid
+  :: (Traversable v, Applicative v, RealFloat n, Enum n)
+  => n -> BoundingBox v n -> Maybe [Point v n]
+boxGrid f b = (\(c1,c2) -> sequenceA (liftA2 mkRange c1 c2)) <$> getCorners b
+  where
+    mkRange lo hi = [lo, (1-f)*lo + f*hi .. hi]
+
+    -- liftA2 mkRange on the two corner points creates a (Point V2
+    -- [n]), where each component is the range of values for that
+    -- dimension.  sequenceA then yields a grid of type [Point V2 n].
