@@ -321,9 +321,9 @@ union = mappend
 --   might actually be @11^3@ instead of @10^3@) spaced @0.2@ units
 --   apart.
 boxGrid
-  :: (Traversable v, Applicative v, RealFloat n, Enum n)
-  => n -> BoundingBox v n -> Maybe [Point v n]
-boxGrid f b = (\(c1,c2) -> sequenceA (liftA2 mkRange c1 c2)) <$> getCorners b
+  :: (Traversable v, Applicative v, Num n, Enum n)
+  => n -> BoundingBox v n -> [Point v n]
+boxGrid f = maybe [] (sequenceA . uncurry (liftA2 mkRange)) . getCorners
   where
     mkRange lo hi = [lo, (1-f)*lo + f*hi .. hi]
 
