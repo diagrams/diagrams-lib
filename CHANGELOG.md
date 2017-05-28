@@ -1,3 +1,13 @@
+## [v1.4.1](https://github.com/diagrams/diagrams-lib/tree/v1.4.0.1) (2017-05-28)
+
+- New functions `embeddedImage` and `loadImageEmbBS` for loading
+  images.
+- Fix [#289](https://github.com/diagrams/diagrams-lib/issues/289)
+  which could have caused strange behavior in looped compilation mode
+  on 32-bit platforms.
+- Allow `intervals-0.8` and `directory-1.3`.
+- Minor fixes to compile with GHC 8.2.
+
 ## [v1.4.0.1](https://github.com/diagrams/diagrams-lib/tree/v1.4.0.1) (2016-11-07)
 
 - Fix test suite compilation problem ([#286](https://github.com/diagrams/diagrams-lib/issues/286))
