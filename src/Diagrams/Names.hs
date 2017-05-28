@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE MonoLocalBinds   #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Names

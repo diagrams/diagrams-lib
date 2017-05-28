@@ -325,6 +325,11 @@ reverseSegment :: (Num n, Additive v) => Segment Closed v n -> Segment Closed v 
 reverseSegment (Linear (OffsetClosed v))       = straight (negated v)
 reverseSegment (Cubic c1 c2 (OffsetClosed x2)) = bezier3 (c2 ^-^ x2) (c1 ^-^ x2) (negated x2)
 
+-- Imitates I.elem for intervals<0.8 and I.member for intervals>=0.8
+member :: Ord a => a -> I.Interval a -> Bool
+member x (I.I a b) = x >= a && x <= b
+{-# INLINE member #-}
+
 instance (Metric v, OrderedField n)
       => HasArcLength (Segment Closed v n) where
 
@@ -339,9 +344,9 @@ instance (Metric v, OrderedField n)
   arcLengthToParam m s _ | arcLength m s == 0 = 0.5
   arcLengthToParam m s@(Linear {}) len = len / arcLength m s
   arcLengthToParam m s@(Cubic {})  len
-    | len `I.elem` I (-m/2) (m/2) = 0
+    | len `member` I (-m/2) (m/2) = 0
     | len < 0              = - arcLengthToParam m (fst (splitAtParam s (-1))) (-len)
-    | len `I.elem` slen    = 1
+    | len `member` slen    = 1
     | len > I.sup slen     = 2 * arcLengthToParam m (fst (splitAtParam s 2)) len
     | len < I.sup llen     = (*0.5) $ arcLengthToParam m l len
     | otherwise            = (+0.5) . (*0.5)
