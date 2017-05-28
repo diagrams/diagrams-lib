@@ -7,8 +7,9 @@ env:
     - GHCVER=7.4.2 CABALVER=1.18
     - GHCVER=7.6.3 CABALVER=1.18
     - GHCVER=7.8.4 CABALVER=1.18
-    - GHCVER=7.10.2 CABALVER=1.22
-    - GHCVER=8.0.1 CABALVER=1.24
+    - GHCVER=7.10.3 CABALVER=1.22
+    - GHCVER=8.0.2 CABALVER=1.24
+    - GHCVER=8.2.1 CABALVER=1.24
     - GHCVER=head CABALVER=head
   global:
     - HEAD_DEPS="diagrams-core diagrams-solve active monoid-extras"
