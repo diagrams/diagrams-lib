@@ -478,6 +478,11 @@ instance Mainable d => Mainable (IO d) where
 
   mainRender opts dio = dio >>= mainRender opts
 
+-- | Used to implement the 'Mainable' instance for '[(String, d)]'.
+--   This used to be exported so backends could use it to implement
+--   their own instances; now a generic instance is provided.  Hence
+--   backends should no longer use this function, but it is still
+--   exported for now to avoid unnecessary breakage.
 defaultMultiMainRender :: Mainable d => (MainOpts d, DiagramMultiOpts) -> [(String, d)] -> IO ()
 defaultMultiMainRender (opts,multi) ds =
   if multi^.list
