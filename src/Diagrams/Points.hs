@@ -29,8 +29,11 @@ import           Linear.Affine
 import           Linear.Vector
 
 -- | The centroid of a set of /n/ points is their sum divided by /n/.
+--   Returns the origin for an empty list of points.
 centroid :: (Additive v, Fractional n) => [Point v n] -> Point v n
-centroid = meanV
+centroid [] = origin
+centroid ps = meanV ps
+{-# INLINE centroid #-}
 
 meanV :: (Foldable f, Additive v, Fractional a) => f (v a) -> v a
 meanV = uncurry (^/) . F.foldl' (\(s,c) e -> (e ^+^ s,c+1)) (zero,0)
