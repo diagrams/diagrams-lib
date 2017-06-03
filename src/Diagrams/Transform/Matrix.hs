@@ -29,7 +29,7 @@ import           Linear.Vector
 
 -- | Build a matrix from a 'Transformation', ignoring the translation.
 mkMat :: (HasBasis v, Num n) => Transformation v n -> v (v n)
-mkMat t = distribute . tabulate $ apply t . unit . el
+mkMat t = tabulate $ apply t . unit . el
 
 -- | Build a 3D transformation matrix in homogeneous coordinates from
 --   a 'Transformation V3'.
@@ -55,8 +55,8 @@ fromMatWithInv :: (Additive v, Distributive v, F.Foldable v, Num n)
   -> v n     -- ^ translation
   -> Transformation v n
 fromMatWithInv m m_ v =
-  Transformation ((*! m)            <-> (*! m_))
-                 ((*! distribute m) <-> (*! distribute m_))
+  Transformation ((m !*)            <-> (m_ !*))
+                 ((distribute m !*) <-> (distribute m_ !*))
                  v
 
 -- | Prism onto a 2D transformation from a 2x2 transform matrix and
