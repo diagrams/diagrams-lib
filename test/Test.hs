@@ -3,6 +3,7 @@ import           Test.Tasty                (TestTree, defaultMain, testGroup)
 import qualified Diagrams.Test.Angle       as Angle
 import qualified Diagrams.Test.Direction   as Direction
 import qualified Diagrams.Test.Transform   as Transform
+import qualified Diagrams.Test.Transform.Matrix   as TransformMatrix
 import qualified Diagrams.Test.TwoD        as TwoD
 import qualified Diagrams.Test.TwoD.Offset as TwoD.Offset
 
@@ -15,6 +16,7 @@ tests = testGroup "unit tests"
     , Angle.tests
     , Direction.tests
     , Transform.tests
+    , TransformMatrix.tests
     , Trail.tests
     ]
 

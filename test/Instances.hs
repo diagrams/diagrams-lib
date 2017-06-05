@@ -13,7 +13,8 @@ module Instances where
 
 import           Diagrams.Prelude
 import           Numeric.Extras
-import           Test.Tasty.QuickCheck
+import           Test.Tasty.QuickCheck (Arbitrary(..), Gen)
+import qualified Test.Tasty.QuickCheck as QC
 
 ------------------------------------------------------------
     -- Approximate Comparison for Doubles, Points
@@ -35,6 +36,9 @@ instance Approx Float where
 
 instance Approx n => Approx (V2 n) where
     z1 =~ z2 = (z1^._x) =~ (z2^._x) && (z1^._y) =~ (z2^._y)
+
+instance Approx n => Approx (V3 n) where
+    z1 =~ z2 = (z1^._x) =~ (z2^._x) && (z1^._y) =~ (z2^._y) && (z1^._z) =~ (z2^._z)
 
 instance Approx (v n) => Approx (Point v n) where
     p =~ q = view _Point p =~ view _Point q
@@ -86,9 +90,25 @@ instance Arbitrary n => Arbitrary (V2 n) where
     arbitrary = (^&) <$> arbitrary <*> arbitrary
     shrink (coords -> x :& y) = (^&) <$> shrink x <*> shrink y
 
+instance Arbitrary n => Arbitrary (V3 n) where
+    arbitrary = V3 <$> arbitrary <*> arbitrary <*> arbitrary
+    shrink (coords -> x :& y :& z) = V3 <$> shrink x <*> shrink y <*> shrink z
+
 instance Arbitrary (v n) => Arbitrary (Point v n) where
     arbitrary = P <$> arbitrary
     shrink (P v) = P <$> shrink v
+
+instance (Arbitrary n, Floating n, Ord n) => Arbitrary (Transformation V2 n) where
+    arbitrary = QC.sized arbT
+      where
+        arbT 0 = return mempty
+        arbT n = QC.oneof
+          [ rotation    <$> arbitrary
+          , scaling     <$> arbitrary
+          , translation <$> arbitrary
+          , reflectionAbout <$> arbitrary <*> arbitrary
+          , (<>) <$> arbT (n `div` 2) <*> arbT (n `div` 2)
+          ]
 
 instance Arbitrary n => Arbitrary (Angle n) where
     arbitrary = review rad <$> arbitrary
@@ -114,7 +134,7 @@ instance Arbitrary n => Arbitrary (Offset Closed V2 n) where
 --    shrink (OffsetClosed x) = OffsetClosed <$> shrink x
 
 instance Arbitrary n =>  Arbitrary (Segment Closed V2 n) where
-    arbitrary = oneof [Linear <$> arbitrary, Cubic <$> arbitrary <*> arbitrary <*> arbitrary]
+    arbitrary = QC.oneof [Linear <$> arbitrary, Cubic <$> arbitrary <*> arbitrary <*> arbitrary]
     -- shrink (Linear x) = Linear <$> shrink x
     -- shrink (Cubic x y z) = Linear z
     --                      : [Cubic x' y' z' | (x',y',z') <- shrink (x,y,z)]
@@ -128,5 +148,5 @@ instance (Arbitrary n, Floating n, Ord n) => Arbitrary (Trail' Loop V2 n) where
 --    shrink (cutLoop -> l) = closeLine <$> shrink l
 
 instance (Arbitrary n, Floating n, Ord n) => Arbitrary (Trail V2 n) where
-    arbitrary = oneof [Trail <$> (arbitrary :: Gen (Trail' Loop V2 n)), Trail <$> (arbitrary :: Gen (Trail' Line V2 n))]
+    arbitrary = QC.oneof [Trail <$> (arbitrary :: Gen (Trail' Loop V2 n)), Trail <$> (arbitrary :: Gen (Trail' Line V2 n))]
 
