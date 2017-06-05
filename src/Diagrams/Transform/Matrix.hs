@@ -29,7 +29,7 @@ import           Linear.Vector
 
 -- | Build a matrix from a 'Transformation', ignoring the translation.
 mkMat :: (HasBasis v, Num n) => Transformation v n -> v (v n)
-mkMat t = tabulate $ apply t . unit . el
+mkMat t = distribute . tabulate $ apply t . unit . el
 
 -- | Build a 3D transformation matrix in homogeneous coordinates from
 --   a 'Transformation V3'.
@@ -40,13 +40,13 @@ mkMatHomo t = mkTransformationMat (mkMat t) (transl t)
 --   translation vector. Does not check if the matrix is not invertible
 --   (in which case the 'T2' will be invalid).
 fromMat22 :: Floating n => M22 n -> V2 n -> T2 n
-fromMat22 m v = flip (fromMatWithInv m) v $ inv22 m
+fromMat22 m v = fromMatWithInv m (inv22 m) v
 
 -- | Make a 3D transformation from a 3x3 transform matrix and a
 --   translation vector. Does not check if the matrix is not invertible
 --   (in which case the 'T3' will be invalid).
 fromMat33 :: Floating n => M33 n -> V3 n -> T3 n
-fromMat33 m v = flip (fromMatWithInv m) v $ inv33 m
+fromMat33 m v = fromMatWithInv m (inv33 m) v
 
 -- | Build a transform with a maxtrix along with its inverse.
 fromMatWithInv :: (Additive v, Distributive v, F.Foldable v, Num n)
