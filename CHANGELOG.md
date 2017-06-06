@@ -1,4 +1,11 @@
-## [v1.4.1](https://github.com/diagrams/diagrams-lib/tree/v1.4.0.1) (2017-05-28)
+## [v1.4.1.1](https://github.com/diagrams/diagrams-lib/tree/v1.4.1.1) (2017-06-06)
+
+- Fix `Diagrams.Points.centroid` to make it total.
+- Fix bug in `Diagrams.Transform.Matrix.fromMatWithInv` (and hence
+  also related functions which called it, such as `fromMat22` and
+  `fromMat33`).
+
+## [v1.4.1](https://github.com/diagrams/diagrams-lib/tree/v1.4.1) (2017-05-28)
 
 - New functions `embeddedImage` and `loadImageEmbBS` for loading
   images.
