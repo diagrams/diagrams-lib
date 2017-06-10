@@ -151,6 +151,7 @@ test-suite tests
   other-modules: Diagrams.Test.Direction
                , Diagrams.Test.Trail
                , Diagrams.Test.Transform
+               , Diagrams.Test.Transform.Matrix
                , Diagrams.Test.TwoD.Offset
                , Diagrams.Test.TwoD
                , Diagrams.Test.Angle
