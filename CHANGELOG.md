@@ -1,3 +1,7 @@
+## [v1.4.1.2](https://github.com/diagrams/diagrams-lib/tree/v1.4.1.2) (2017-06-10)
+
+- Fix test suite compilation failure [#299](https://github.com/diagrams/diagrams-lib/issues/299).
+
 ## [v1.4.1.1](https://github.com/diagrams/diagrams-lib/tree/v1.4.1.1) (2017-06-06)
 
 - Fix `Diagrams.Points.centroid` to make it total.
