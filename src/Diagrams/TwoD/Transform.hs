@@ -39,6 +39,9 @@ module Diagrams.TwoD.Transform
        , translationY, translateY
        , translation, translate
 
+         -- * Conformal affine maps
+       , scalingRotationTo, scaleRotateTo
+
          -- * Reflection
        , reflectionX, reflectX
        , reflectionY, reflectY
@@ -56,6 +59,7 @@ import           Diagrams.Core
 import           Diagrams.Core.Transform
 import           Diagrams.Direction
 import           Diagrams.Transform
+import           Diagrams.Transform.Matrix
 import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector
 
@@ -65,6 +69,7 @@ import           Data.Semigroup
 import           Linear.Affine
 import           Linear.V2
 import           Linear.Vector
+import           Linear.Metric
 
 -- Rotation ------------------------------------------------
 
@@ -183,7 +188,28 @@ translateY :: (InSpace v n t, R2 v, Transformable t)
   => n -> t -> t
 translateY = transform . translationY
 
+-- Conformal affine maps -----------------------------------
 
+-- | The angle-preserving linear map that aligns the x-axis unit vector
+--   with the given vector.  See also 'scaleRotateTo'.
+scalingRotationTo :: (Floating n) => V2 n -> T2 n
+scalingRotationTo v = fromMatWithInv (conf v) (conf w) zero
+  where
+    w = reflectY (v ^/ quadrance v)
+    conf (V2 a b) = (V2 (V2 a (-b)) (V2 b a))
+
+-- | Rotate and uniformly scale around the local origin such that the
+--   x-axis aligns with the given vector.  This satisfies the equation
+--
+-- @
+-- scaleRotateTo v = rotateTo (dir v) . scale (norm v)
+-- @
+--
+-- up to floating point rounding errors, but is more accurate and
+-- performant since it avoids cancellable uses of trigonometric functions.
+scaleRotateTo :: (InSpace V2 n t, Transformable t, Floating n)
+              => V2 n -> t -> t
+scaleRotateTo = transform . scalingRotationTo
 
 -- Reflection ----------------------------------------------
 
