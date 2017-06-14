@@ -212,6 +212,8 @@ module Diagrams.TwoD
        , translationX, translateX
        , translationY, translateY
        , translation, translate
+         -- ** Conformal affine maps
+       , scalingRotationTo, scaleRotateTo
          -- ** Reflection
        , reflectionX, reflectX
        , reflectionY, reflectY
