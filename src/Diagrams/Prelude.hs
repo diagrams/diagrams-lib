@@ -47,7 +47,7 @@ module Diagrams.Prelude
   , module Linear.Metric
 
     -- | For working with 'Active' (i.e. animated) things.
-  , module Data.Active
+  , module Active
 
     -- | Most of the lens package. The following functions are not
     --   exported from lens because they either conflict with
@@ -93,7 +93,7 @@ import           Control.Lens        hiding (argument, at, backwards, beside,
                                       (<.>))
 #endif
 
-import           Data.Active
+import           Active
 import           Data.Colour         hiding (AffineSpace (..), atop, over)
 import           Data.Colour.Names   hiding (tan)
 import           Data.Colour.SRGB

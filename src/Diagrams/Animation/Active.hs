@@ -1,5 +1,7 @@
-{-# LANGUAGE CPP          #-}
-{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE CPP               #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TypeFamilies      #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 -----------------------------------------------------------------------------
@@ -12,24 +14,24 @@
 -- A few utilities and class instances for 'Active' (from the @active@
 -- package).  In particular, this module defines
 --
---   * An instance of 'V' for 'Active': @'V' ('Active' a) = 'V' a@
+--   * An instance of 'V' for 'Active': @'V' ('Active' d f a) = 'V' a@
 --
 --   * 'HasOrigin', 'Transformable', and 'HasStyle' instances for
 --     'Active' which all work pointwise.
 --
---   * A 'TrailLike' instance for @'Active' p@ where @p@ is also
---     'TrailLike', which simply lifts a pathlike thing to a constant
---     active value.
+--   * A 'TrailLike' instance for @'Active' d I t@ where @t@ is also
+--     'TrailLike', which simply lifts a pathlike thing to an
+--     (infinite) constant active value.
 --
---   * A 'Juxtaposable' instance for @'Active' a@ where @a@ is also
---     'Juxtaposable'.  An active value can be juxtaposed against
---     another by doing the juxtaposition pointwise over time.  The
---     era of @juxtapose v a1 a2@ will be the same as the era of @a2@,
---     unless @a2@ is constant, in which case it will be the era of
---     @a1@.  (Note that @juxtapose v a1 a2@ and @liftA2 (juxtapose v)
---     a1 a2@ therefore have different semantics: the second is an
---     active value whose era is the /combination/ of the eras of @a1@
---     and @a2@).
+--   * 'Juxtaposable' instances for @'Active' d F a@ and @'Active' d I
+--     a@ where @a@ is also 'Juxtaposable'.  An active value can be
+--     juxtaposed against another by doing the juxtaposition pointwise
+--     over time.  The era of @juxtapose v a1 a2@ will be the same as
+--     the era of @a2@, unless @a2@ is constant, in which case it will
+--     be the era of @a1@.  (Note that @juxtapose v a1 a2@ and @liftA2
+--     (juxtapose v) a1 a2@ therefore have different semantics: the
+--     second is an active value whose era is the /combination/ of the
+--     eras of @a1@ and @a2@).
 --
 --   * An 'Alignable' instance for @'Active' a@ where @a@ is also
 --     'Alignable'; the active value is aligned pointwise over time.
@@ -39,16 +41,17 @@
 module Diagrams.Animation.Active where
 
 #if __GLASGOW_HASKELL__ < 710
-import           Control.Applicative (pure, (<$>))
+import           Control.Applicative  (pure, (<$>))
 #endif
 
 import           Diagrams.Core
 import           Diagrams.TrailLike
 
-import           Data.Active
+import           Active
+import           Control.IApplicative
 
-type instance V (Active a) = V a
-type instance N (Active a) = N a
+type instance V (Active d f a) = V a
+type instance N (Active d f a) = N a
 
 -- Yes, these are all orphan instances. Get over it.  We don't want to
 -- put them in the 'active' package because 'active' is supposed to be
@@ -56,48 +59,39 @@ type instance N (Active a) = N a
 -- rather not put them in diagrams-core so that diagrams-core doesn't
 -- have to depend on active.
 
-instance HasOrigin a => HasOrigin (Active a) where
+instance HasOrigin a => HasOrigin (Active d f a) where
   moveOriginTo = fmap . moveOriginTo
 
-instance Transformable a => Transformable (Active a) where
+instance Transformable a => Transformable (Active d f a) where
   transform = fmap . transform
 
-instance HasStyle a => HasStyle (Active a) where
+instance HasStyle a => HasStyle (Active d f a) where
   applyStyle = fmap . applyStyle
 
-instance TrailLike t => TrailLike (Active t) where
-  trailLike = pure . trailLike
+instance (Num d, Ord d, TrailLike t) => TrailLike (Active d 'I t) where
+  trailLike = ipure . trailLike
 
--- | An active value can be juxtaposed against another by doing the
---   juxtaposition pointwise over time.  The era of @juxtapose v a1
---   a2@ will be the same as the era of @a2@, unless @a2@ is constant,
---   in which case it will be the era of @a1@.  (Note that @juxtapose
---   v a1 a2@ and @liftA2 (juxtapose v) a1 a2@ therefore have
---   different semantics: the second is an active value whose era is
---   the /combination/ of the eras of @a1@ and @a2@).
-instance Juxtaposable a => Juxtaposable (Active a) where
+-- | A finite active value can be juxtaposed against another by doing
+--   the juxtaposition pointwise over time.  The duration of the result
+--   is the minimum of the two durations.
+--
+--   Note this is just @'iliftA2' . 'juxtapose'@, with a more
+--   restricted type.  In particular, you can use @'iliftA2'
+--   . 'juxtapose'@ directly to juxtapose two 'Active' values where
+--   one is finite and the other infinite.
+instance (Num d, Ord d, Juxtaposable a) => Juxtaposable (Active d 'F a) where
 
-  juxtapose v a1 a2 =
-    onActive       -- a1
-      (\c1 ->        -- if a1 is constant, just juxtapose a2 pointwise with its value
-        juxtapose v c1 <$> a2
-      )
-                     -- if a1 is dynamic...
-      (onDynamic $ \s1 e1 d1 ->
-        onActive      -- a2
-          (\c2 ->      -- if a2 is constant, juxtapose pointwise with a1.  Since
-                       --   the result will no longer be constant, the result
-                       --   needs an era: we use a1's.
-            mkActive s1 e1 (\t -> juxtapose v (d1 t) c2)
-          )
+  juxtapose = iliftA2 . juxtapose
 
-                       -- otherwise, juxtapose pointwise, without changing a2's era
-          (onDynamic $ \s2 e2 d2 ->
-            mkActive s2 e2 (\t -> juxtapose v (d1 t) (d2 t))
-          )
-          a2
-      )
-      a1
+-- | An infinite active value can be juxtaposed against another by
+--   doing the juxtaposition pointwise over time.
+--
+--   Note this is just @'iliftA2' . 'juxtapose'@, with a more
+--   restricted type.  In particular, you can use @'iliftA2'
+--   . 'juxtapose'@ directly to juxtapose two 'Active' values where
+--   one is finite and the other infinite.
+instance (Num d, Ord d, Juxtaposable a) => Juxtaposable (Active d 'I a) where
+  juxtapose = iliftA2 . juxtapose
 
 -- instance Alignable a => Alignable (Active a) where
 --   alignBy v d a = alignBy v d <$> a

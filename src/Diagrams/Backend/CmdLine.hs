@@ -1,4 +1,4 @@
-{-# LANGUAGE ConstrainedClassMethods     #-}
+{-# LANGUAGE ConstrainedClassMethods   #-}
 {-# LANGUAGE DeriveDataTypeable        #-}
 {-# LANGUAGE FlexibleContexts          #-}
 {-# LANGUAGE FlexibleInstances         #-}
@@ -74,7 +74,6 @@ module Diagrams.Backend.CmdLine
   ) where
 
 import           Control.Lens              (Lens', makeLenses, (&), (.~), (^.))
-import           Diagrams.Animation
 import           Diagrams.Attributes
 import           Diagrams.Core             hiding (output)
 import           Diagrams.Util
@@ -84,7 +83,7 @@ import           Options.Applicative.Types (readerAsk)
 
 import           Control.Monad             (forM_, forever, unless, when)
 
-import           Data.Active               hiding (interval)
+import           Active                    hiding (interval)
 import           Data.Char                 (isDigit)
 import           Data.Colour
 import           Data.Colour.Names
@@ -376,9 +375,9 @@ instance ToResult [(String, QDiagram b v n Any)] where
   toResult ds _ = ds
 
 -- | An animation is another suitable base case.
-instance ToResult (Animation b v n) where
-  type Args (Animation b v n) = ()
-  type ResultOf (Animation b v n) = Animation b v n
+instance ToResult (Active d f (QDiagram b v n Any)) where
+  type Args (Active d f (QDiagram b v n Any)) = ()
+  type ResultOf (Active d f (QDiagram b v n Any)) = Active d f (QDiagram b v n Any)
 
   toResult a _ = a
 
@@ -545,7 +544,7 @@ defaultAnimMainRender ::
     (opts -> QDiagram b v n Any -> IO ())
     -> Lens' opts FilePath -- ^ A lens into the output path.
     -> (opts, DiagramAnimOpts)
-    -> Animation b v n
+    -> Active Rational f (QDiagram b v n Any)
     -> IO ()
 defaultAnimMainRender renderF out (opts,animOpts) anim = do
   let frames  = simulate (toRational $ animOpts^.fpu) anim

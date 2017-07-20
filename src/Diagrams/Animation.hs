@@ -18,24 +18,19 @@
 -----------------------------------------------------------------------------
 
 module Diagrams.Animation
-       ( -- * Types for animations
-         QAnimation
-       , Animation
-
-         -- * Animation combinators and tools
+       ( -- * Animation combinators and tools
          -- $animComb
-       , animEnvelope, animEnvelope'
+         animEnvelope, animEnvelope'
 
        , animRect, animRect'
 
        ) where
 
-import           Data.Active
+import           Active
 #if __GLASGOW_HASKELL__ < 710
 import           Control.Applicative       ((<$>))
 import           Data.Foldable             (foldMap)
 #endif
-import           Data.Semigroup
 
 import           Diagrams.Core
 
@@ -47,21 +42,6 @@ import           Diagrams.TwoD.Shapes
 import           Diagrams.TwoD.Types
 
 import           Linear.Metric
-
--- | A value of type @QAnimation b v m@ is an animation (a
---   time-varying diagram with start and end times) that can be
---   rendered by backspace @b@, with vector space @v@ and monoidal
---   annotations of type @m@.
-type QAnimation b v n m = Active (QDiagram b v n m)
-
--- | A value of type @Animation b v@ is an animation (a time-varying
---   diagram with start and end times) in vector space @v@ that can be
---   rendered by backspace @b@.
---
---   Note that @Animation@ is actually a synonym for @QAnimation@
---   where the type of the monoidal annotations has been fixed to
---   'Any' (the default).
-type Animation b v n = QAnimation b v n Any
 
 -- $animComb
 -- Most combinators for working with animations are to be found in the
@@ -93,16 +73,22 @@ type Animation b v n = QAnimation b v n Any
 --
 --   See also 'animRect' for help constructing a background to go
 --   behind an animation.
-animEnvelope :: (OrderedField n, Metric v, Monoid' m)
-           => QAnimation b v n m -> QAnimation b v n m
+animEnvelope
+  :: ( OrderedField n, Metric v, Monoid' m
+     , Ord d, Fractional d, Enum d
+     )
+  => Active d f (QDiagram b v n m) -> Active d f (QDiagram b v n m)
 animEnvelope = animEnvelope' 30
 
 -- | Like 'animEnvelope', but with an adjustible sample rate.  The first
 --   parameter is the number of samples per time unit to use.  Lower
 --   rates will be faster but less accurate; higher rates are more
 --   accurate but slower.
-animEnvelope' :: (OrderedField n, Metric v, Monoid' m)
-            => Rational -> QAnimation b v n m -> QAnimation b v n m
+animEnvelope'
+  :: ( OrderedField n, Metric v, Monoid' m
+     , Ord d, Fractional d, Enum d
+     )
+  => d -> Active d f (QDiagram b v n m) -> Active d f (QDiagram b v n m)
 animEnvelope' r a = withEnvelope (simulate r a) <$> a
 
 -- | @animRect@ works similarly to 'animEnvelope' for 2D diagrams, but
@@ -112,16 +98,24 @@ animEnvelope' r a = withEnvelope (simulate r a) <$> a
 --
 --   Uses 30 samples per time unit by default; to adjust this number
 --   see 'animRect''.
-animRect :: (InSpace V2 n t, Monoid' m, TrailLike t, Enveloped t, Transformable t, Monoid t)
-         => QAnimation b V2 n m -> t
+animRect
+  :: ( InSpace V2 n t, Monoid' m
+     , TrailLike t, Enveloped t, Transformable t, Monoid t
+     , Fractional d, Ord d, Enum d
+     )
+  => Active d f (QDiagram b V2 n m) -> t
 animRect = animRect' 30
 
 -- | Like 'animRect', but with an adjustible sample rate.  The first
 --   parameter is the number of samples per time unit to use.  Lower
 --   rates will be faster but less accurate; higher rates are more
 --   accurate but slower.
-animRect' :: (InSpace V2 n t, Monoid' m, TrailLike t, Enveloped t, Transformable t, Monoid t)
-          => Rational -> QAnimation b V2 n m -> t
+animRect'
+  :: ( InSpace V2 n t, Monoid' m
+     , TrailLike t, Enveloped t, Transformable t, Monoid t
+     , Ord d, Fractional d, Enum d
+     )
+  => d -> Active d f (QDiagram b V2 n m) -> t
 animRect' r anim
     | null results = rect 1 1
     | otherwise    = boxFit (foldMap boundingBox results) (rect 1 1)
