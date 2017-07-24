@@ -44,6 +44,7 @@ module Diagrams.Animation.Active where
 import           Control.Applicative  (pure, (<$>))
 #endif
 
+import           Diagrams.Align
 import           Diagrams.Core
 import           Diagrams.TrailLike
 
@@ -93,5 +94,7 @@ instance (Num d, Ord d, Juxtaposable a) => Juxtaposable (Active d 'F a) where
 instance (Num d, Ord d, Juxtaposable a) => Juxtaposable (Active d 'I a) where
   juxtapose = iliftA2 . juxtapose
 
--- instance Alignable a => Alignable (Active a) where
---   alignBy v d a = alignBy v d <$> a
+-- | An active value can be aligned by doing the alignment pointwise
+--   over time.
+instance (Alignable a, HasOrigin a) => Alignable (Active d f a) where
+  alignBy v d a = alignBy v d <$> a
