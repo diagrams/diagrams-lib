@@ -16,3 +16,5 @@ TAGS
 /cabal.config
 /.cabal-sandbox/
 \#*
+
+.stack-work
