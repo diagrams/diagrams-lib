@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP                   #-}
+{-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies          #-}
@@ -24,6 +25,8 @@ module Diagrams.Animation
 
        , animRect, animRect'
 
+       , fadeIn, fadeOut
+
        ) where
 
 import           Active
@@ -32,9 +35,12 @@ import           Control.Applicative       ((<$>))
 import           Data.Foldable             (foldMap)
 #endif
 
+import           Data.Semigroup
+
 import           Diagrams.Core
 
 import           Diagrams.Animation.Active ()
+import           Diagrams.Attributes       (opacity)
 import           Diagrams.BoundingBox
 import           Diagrams.Combinators
 import           Diagrams.TrailLike
@@ -121,3 +127,15 @@ animRect' r anim
     | otherwise    = boxFit (foldMap boundingBox results) (rect 1 1)
   where
     results = simulate r anim
+
+-- XXX
+fadeIn
+  :: (Real d, Fractional d, Metric v, Floating n, Ord n, Semigroup m)
+  => d -> Active d F (QDiagram b v n m -> QDiagram b v n m)
+fadeIn d = (opacity . fromRational . toRational) <$> ((/d) <$> interval 0 d)
+
+-- XXX
+fadeOut
+  :: (Real d, Fractional d, Metric v, Floating n, Ord n, Semigroup m)
+  => d -> Active d F (QDiagram b v n m -> QDiagram b v n m)
+fadeOut = backwards . fadeIn
