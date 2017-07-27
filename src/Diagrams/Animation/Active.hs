@@ -51,8 +51,8 @@ import           Diagrams.TrailLike
 import           Active
 import           Control.IApplicative
 
-type instance V (Active d f a) = V a
-type instance N (Active d f a) = N a
+type instance V (Active f a) = V a
+type instance N (Active f a) = N a
 
 -- Yes, these are all orphan instances. Get over it.  We don't want to
 -- put them in the 'active' package because 'active' is supposed to be
@@ -60,16 +60,16 @@ type instance N (Active d f a) = N a
 -- rather not put them in diagrams-core so that diagrams-core doesn't
 -- have to depend on active.
 
-instance HasOrigin a => HasOrigin (Active d f a) where
+instance HasOrigin a => HasOrigin (Active f a) where
   moveOriginTo = fmap . moveOriginTo
 
-instance Transformable a => Transformable (Active d f a) where
+instance Transformable a => Transformable (Active f a) where
   transform = fmap . transform
 
-instance HasStyle a => HasStyle (Active d f a) where
+instance HasStyle a => HasStyle (Active f a) where
   applyStyle = fmap . applyStyle
 
-instance (Num d, Ord d, TrailLike t) => TrailLike (Active d 'I t) where
+instance TrailLike t => TrailLike (Active 'I t) where
   trailLike = ipure . trailLike
 
 -- | A finite active value can be juxtaposed against another by doing
@@ -80,7 +80,7 @@ instance (Num d, Ord d, TrailLike t) => TrailLike (Active d 'I t) where
 --   restricted type.  In particular, you can use @'iliftA2'
 --   . 'juxtapose'@ directly to juxtapose two 'Active' values where
 --   one is finite and the other infinite.
-instance (Num d, Ord d, Juxtaposable a) => Juxtaposable (Active d 'F a) where
+instance Juxtaposable a => Juxtaposable (Active 'F a) where
 
   juxtapose = iliftA2 . juxtapose
 
@@ -91,10 +91,16 @@ instance (Num d, Ord d, Juxtaposable a) => Juxtaposable (Active d 'F a) where
 --   restricted type.  In particular, you can use @'iliftA2'
 --   . 'juxtapose'@ directly to juxtapose two 'Active' values where
 --   one is finite and the other infinite.
-instance (Num d, Ord d, Juxtaposable a) => Juxtaposable (Active d 'I a) where
+instance Juxtaposable a => Juxtaposable (Active 'I a) where
   juxtapose = iliftA2 . juxtapose
 
--- | An active value can be aligned by doing the alignment pointwise
---   over time.
-instance (Alignable a, HasOrigin a) => Alignable (Active d f a) where
-  alignBy v d a = alignBy v d <$> a
+
+-- XXX Alignable is kind of a mess
+
+-- -- | An active value can be aligned by doing the alignment pointwise
+-- --   over time.
+-- instance (Alignable a, HasOrigin a) => Alignable (Active f a) where
+--   alignBy' b v d = fmap (alignBy' (\v a -> b v (  ) v d)
+--   alignBy    v d = fmap (alignBy v d)
+
+--   defaultBoundary v = defaultBoundary v . start

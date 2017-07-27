@@ -80,10 +80,8 @@ import           Linear.Metric
 --   See also 'animRect' for help constructing a background to go
 --   behind an animation.
 animEnvelope
-  :: ( OrderedField n, Metric v, Monoid' m
-     , Ord d, Fractional d, Enum d
-     )
-  => Active d f (QDiagram b v n m) -> Active d f (QDiagram b v n m)
+  :: (OrderedField n, Metric v, Monoid' m)
+  => Active f (QDiagram b v n m) -> Active f (QDiagram b v n m)
 animEnvelope = animEnvelope' 30
 
 -- | Like 'animEnvelope', but with an adjustible sample rate.  The first
@@ -91,10 +89,8 @@ animEnvelope = animEnvelope' 30
 --   rates will be faster but less accurate; higher rates are more
 --   accurate but slower.
 animEnvelope'
-  :: ( OrderedField n, Metric v, Monoid' m
-     , Ord d, Fractional d, Enum d
-     )
-  => d -> Active d f (QDiagram b v n m) -> Active d f (QDiagram b v n m)
+  :: (OrderedField n, Metric v, Monoid' m)
+  => Rational -> Active f (QDiagram b v n m) -> Active f (QDiagram b v n m)
 animEnvelope' r a = withEnvelope (simulate r a) <$> a
 
 -- | @animRect@ works similarly to 'animEnvelope' for 2D diagrams, but
@@ -107,9 +103,8 @@ animEnvelope' r a = withEnvelope (simulate r a) <$> a
 animRect
   :: ( InSpace V2 n t, Monoid' m
      , TrailLike t, Enveloped t, Transformable t, Monoid t
-     , Fractional d, Ord d, Enum d
      )
-  => Active d f (QDiagram b V2 n m) -> t
+  => Active f (QDiagram b V2 n m) -> t
 animRect = animRect' 30
 
 -- | Like 'animRect', but with an adjustible sample rate.  The first
@@ -119,9 +114,8 @@ animRect = animRect' 30
 animRect'
   :: ( InSpace V2 n t, Monoid' m
      , TrailLike t, Enveloped t, Transformable t, Monoid t
-     , Ord d, Fractional d, Enum d
      )
-  => d -> Active d f (QDiagram b V2 n m) -> t
+  => Rational -> Active f (QDiagram b V2 n m) -> t
 animRect' r anim
     | null results = rect 1 1
     | otherwise    = boxFit (foldMap boundingBox results) (rect 1 1)
@@ -130,12 +124,12 @@ animRect' r anim
 
 -- XXX
 fadeIn
-  :: (Real d, Fractional d, Metric v, Floating n, Ord n, Semigroup m)
-  => d -> Active d F (QDiagram b v n m -> QDiagram b v n m)
+  :: (RealFrac d, Metric v, Floating n, Ord n, Semigroup m)
+  => d -> Active 'F (QDiagram b v n m -> QDiagram b v n m)
 fadeIn d = (opacity . fromRational . toRational) <$> ((/d) <$> interval 0 d)
 
 -- XXX
 fadeOut
-  :: (Real d, Fractional d, Metric v, Floating n, Ord n, Semigroup m)
-  => d -> Active d F (QDiagram b v n m -> QDiagram b v n m)
+  :: (RealFrac d, Metric v, Floating n, Ord n, Semigroup m)
+  => d -> Active 'F (QDiagram b v n m -> QDiagram b v n m)
 fadeOut = backwards . fadeIn
