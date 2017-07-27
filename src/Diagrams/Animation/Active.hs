@@ -32,9 +32,6 @@
 --     (juxtapose v) a1 a2@ therefore have different semantics: the
 --     second is an active value whose era is the /combination/ of the
 --     eras of @a1@ and @a2@).
---
---   * An 'Alignable' instance for @'Active' a@ where @a@ is also
---     'Alignable'; the active value is aligned pointwise over time.
 
 -----------------------------------------------------------------------------
 
@@ -44,7 +41,6 @@ module Diagrams.Animation.Active where
 import           Control.Applicative  (pure, (<$>))
 #endif
 
-import           Diagrams.Align
 import           Diagrams.Core
 import           Diagrams.TrailLike
 
