@@ -135,7 +135,7 @@ makeLenses ''DiagramMultiOpts
 
 -- | Extra options for animations.
 data DiagramAnimOpts = DiagramAnimOpts
-  { _fpu :: Double -- ^ Number of frames per unit time to generate for the animation.
+  { _fpu :: Rational -- ^ Number of frames per unit time to generate for the animation.
   }
   deriving (Show, Data, Typeable)
 
@@ -189,7 +189,7 @@ diagramAnimOpts :: Parser DiagramAnimOpts
 diagramAnimOpts = DiagramAnimOpts
   <$> option auto
       ( long "fpu" <> short 'f'
-     <> value 30.0
+     <> value 30
      <> help "Frames per unit time (for animations)")
 
 -- | CommandLine parser for 'DiagramLoopOpts'
@@ -547,7 +547,7 @@ defaultAnimMainRender ::
     -> Active f (QDiagram b v n Any)
     -> IO ()
 defaultAnimMainRender renderF out (opts,animOpts) anim = do
-  let frames  = simulate (toRational $ animOpts^.fpu) anim
+  let frames  = samples (animOpts^.fpu) anim
       nDigits = length . show . length $ frames
   forM_ (zip [1..] frames) $ \(i,d) -> renderF (indexize out nDigits i opts) d
 

@@ -91,7 +91,7 @@ animEnvelope = animEnvelope' 30
 animEnvelope'
   :: (OrderedField n, Metric v, Monoid' m)
   => Rational -> Active f (QDiagram b v n m) -> Active f (QDiagram b v n m)
-animEnvelope' r a = withEnvelope (simulate r a) <$> a
+animEnvelope' r a = withEnvelope (samples r a) <$> a
 
 -- | @animRect@ works similarly to 'animEnvelope' for 2D diagrams, but
 --   instead of adjusting the envelope, simply returns the smallest
@@ -120,13 +120,13 @@ animRect' r anim
     | null results = rect 1 1
     | otherwise    = boxFit (foldMap boundingBox results) (rect 1 1)
   where
-    results = simulate r anim
+    results = samples r anim
 
 -- XXX
 fadeIn
   :: (RealFrac d, Metric v, Floating n, Ord n, Semigroup m)
   => d -> Active 'F (QDiagram b v n m -> QDiagram b v n m)
-fadeIn d = (opacity . fromRational . toRational) <$> ((/d) <$> interval 0 d)
+fadeIn d = (opacity . realToFrac) <$> ((/d) <$> interval 0 d)
 
 -- XXX
 fadeOut
