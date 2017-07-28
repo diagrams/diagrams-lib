@@ -122,14 +122,14 @@ animRect' r anim
   where
     results = samples r anim
 
--- XXX
+-- XXX make it take an Active F Rational as parameter!
 fadeIn
-  :: (RealFrac d, Metric v, Floating n, Ord n, Semigroup m)
-  => d -> Active 'F (QDiagram b v n m -> QDiagram b v n m)
-fadeIn d = (opacity . realToFrac) <$> ((/d) <$> interval 0 d)
+  :: (Metric v, Floating n, Ord n, Semigroup m)
+  => Rational -> Active 'F (QDiagram b v n m -> QDiagram b v n m)
+fadeIn d = (opacity . fromRational) <$> ((/d) <$> interval 0 d)
 
 -- XXX
 fadeOut
-  :: (RealFrac d, Metric v, Floating n, Ord n, Semigroup m)
-  => d -> Active 'F (QDiagram b v n m -> QDiagram b v n m)
+  :: (Metric v, Floating n, Ord n, Semigroup m)
+  => Rational -> Active 'F (QDiagram b v n m -> QDiagram b v n m)
 fadeOut = backwards . fadeIn
