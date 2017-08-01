@@ -1,8 +1,5 @@
 {-# LANGUAGE CPP                   #-}
-{-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TypeFamilies          #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Animation

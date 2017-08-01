@@ -1,5 +1,4 @@
 {-# LANGUAGE CPP               #-}
-{-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeFamilies      #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
