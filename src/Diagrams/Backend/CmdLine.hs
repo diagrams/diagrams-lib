@@ -375,9 +375,9 @@ instance ToResult [(String, QDiagram b v n Any)] where
   toResult ds _ = ds
 
 -- | An animation is another suitable base case.
-instance ToResult (Active f (QDiagram b v n Any)) where
-  type Args (Active f (QDiagram b v n Any)) = ()
-  type ResultOf (Active f (QDiagram b v n Any)) = Active f (QDiagram b v n Any)
+instance ToResult (Active (QDiagram b v n Any)) where
+  type Args (Active (QDiagram b v n Any)) = ()
+  type ResultOf (Active (QDiagram b v n Any)) = Active (QDiagram b v n Any)
 
   toResult a _ = a
 
@@ -544,7 +544,7 @@ defaultAnimMainRender ::
     (opts -> QDiagram b v n Any -> IO ())
     -> Lens' opts FilePath -- ^ A lens into the output path.
     -> (opts, DiagramAnimOpts)
-    -> Active f (QDiagram b v n Any)
+    -> Active (QDiagram b v n Any)
     -> IO ()
 defaultAnimMainRender renderF out (opts,animOpts) anim = do
   let frames  = samples (animOpts^.fpu) anim

@@ -21,7 +21,10 @@
 module Diagrams.Animation
        ( -- * Animation combinators and tools
          -- $animComb
-         animEnvelope, animEnvelope'
+
+         Animation
+
+       , animEnvelope, animEnvelope'
 
        , animRect, animRect'
 
@@ -55,6 +58,9 @@ import           Linear.Metric
 -- defines just a few combinators specifically for working with
 -- animated diagrams.
 
+-- | An animation is just an 'Active', /i.e./ time-varying, diagram.
+type Animation b v n = Active (QDiagram b v n Any)
+
 -- It would be cool to have a variant of animEnvelope that tries to do
 -- some sort of smart adaptive sampling to get good results more
 -- quickly.  One could also imagine trying to use some sort of
@@ -81,7 +87,7 @@ import           Linear.Metric
 --   behind an animation.
 animEnvelope
   :: (OrderedField n, Metric v, Monoid' m)
-  => Active f (QDiagram b v n m) -> Active f (QDiagram b v n m)
+  => Active (QDiagram b v n m) -> Active (QDiagram b v n m)
 animEnvelope = animEnvelope' 30
 
 -- | Like 'animEnvelope', but with an adjustible sample rate.  The first
@@ -90,7 +96,7 @@ animEnvelope = animEnvelope' 30
 --   accurate but slower.
 animEnvelope'
   :: (OrderedField n, Metric v, Monoid' m)
-  => Rational -> Active f (QDiagram b v n m) -> Active f (QDiagram b v n m)
+  => Rational -> Active (QDiagram b v n m) -> Active (QDiagram b v n m)
 animEnvelope' r a = withEnvelope (samples r a) <$> a
 
 -- | @animRect@ works similarly to 'animEnvelope' for 2D diagrams, but
@@ -104,7 +110,7 @@ animRect
   :: ( InSpace V2 n t, Monoid' m
      , TrailLike t, Enveloped t, Transformable t, Monoid t
      )
-  => Active f (QDiagram b V2 n m) -> t
+  => Active (QDiagram b V2 n m) -> t
 animRect = animRect' 30
 
 -- | Like 'animRect', but with an adjustible sample rate.  The first
@@ -115,21 +121,21 @@ animRect'
   :: ( InSpace V2 n t, Monoid' m
      , TrailLike t, Enveloped t, Transformable t, Monoid t
      )
-  => Rational -> Active f (QDiagram b V2 n m) -> t
+  => Rational -> Active (QDiagram b V2 n m) -> t
 animRect' r anim
     | null results = rect 1 1
     | otherwise    = boxFit (foldMap boundingBox results) (rect 1 1)
   where
     results = samples r anim
 
--- XXX make it take an Active F Rational as parameter!
+-- XXX make it take an Active Rational as parameter!
 fadeIn
   :: (Metric v, Floating n, Ord n, Semigroup m)
-  => Rational -> Active 'F (QDiagram b v n m -> QDiagram b v n m)
+  => Rational -> Active (QDiagram b v n m -> QDiagram b v n m)
 fadeIn d = (opacity . fromRational) <$> ((/d) <$> interval 0 d)
 
 -- XXX
 fadeOut
   :: (Metric v, Floating n, Ord n, Semigroup m)
-  => Rational -> Active 'F (QDiagram b v n m -> QDiagram b v n m)
+  => Rational -> Active (QDiagram b v n m -> QDiagram b v n m)
 fadeOut = backwards . fadeIn
