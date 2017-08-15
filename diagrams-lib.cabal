@@ -55,6 +55,7 @@ Library
                        Diagrams.Query,
                        Diagrams.Segment,
                        Diagrams.Size,
+                       Diagrams.Styled,
                        Diagrams.Tangent,
                        Diagrams.ThreeD,
                        Diagrams.ThreeD.Align,
