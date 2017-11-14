@@ -126,10 +126,10 @@ data PolyType n = PolyPolar [Angle n] [n]
 -- | Determine how a polygon should be oriented.
 data PolyOrientation n = NoOrient        -- ^ No special orientation; the first
                                          --   vertex will be at (1,0).
-                                         --   This is the default.
                        | OrientH         -- ^ Orient /horizontally/, so the
                                          --   bottommost edge is parallel to
                                          --   the x-axis.
+                                         --   This is the default.
                        | OrientV         -- ^ Orient /vertically/, so the
                                          --   leftmost edge is parallel to the
                                          --   y-axis.
