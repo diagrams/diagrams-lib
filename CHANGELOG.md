@@ -1,3 +1,16 @@
+## [v1.4.2](https://github.com/diagrams/diagrams-lib/tree/v1.4.2) (2017-12-20)
+
+- New functions:
+    - `boxGrid`, for computing a grid of regularly spaced points.
+    - `scalingRotationTo` and `scaleRotateTo`, for affine conformal 2D
+      transformations.
+- Documentation fixes:
+    - `dirBetween`
+    - `PolyOrientation`
+- Upper bound updates: allow `tasty-0.12`, `tasty-quickcheck-0.9`,
+  `tasty-hunit-0.10`, `optparse-applicative-0.14`
+- Test with GHC 8.2.2
+
 ## [v1.4.1.2](https://github.com/diagrams/diagrams-lib/tree/v1.4.1.2) (2017-06-10)
 
 - Fix test suite compilation failure [#299](https://github.com/diagrams/diagrams-lib/issues/299).
