@@ -1,3 +1,7 @@
+## [v1.4.2-r1](https://github.com/diagrams/diagrams-lib/tree/v1.4.2) (2017-12-20)
+
+Hackage revision to allow `tasty-1.0` in the test suite.
+
 ## [v1.4.2](https://github.com/diagrams/diagrams-lib/tree/v1.4.2) (2017-12-20)
 
 - New functions:
