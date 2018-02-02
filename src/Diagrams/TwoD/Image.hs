@@ -94,15 +94,15 @@ instance Fractional n => HasOrigin (DImage n a) where
 image :: (TypeableFloat n, Typeable a, Renderable (DImage n a) b)
       => DImage n a -> QDiagram b V2 n Any
 image img
-  = mkQD (Prim img)
+  = transform tr
+  $ mkQD (Prim img)
          (getEnvelope r)
          (getTrace r)
          mempty
          (Query $ \p -> Any (isInsideEvenOdd r p))
   where
     r = rectPath (fromIntegral w) (fromIntegral h)
-    -- should we use the transform here?
-    DImage _ w h _ = img
+    DImage _ w h tr = img
 
 rectPath :: RealFloat n => n -> n -> Path V2 n
 rectPath = rect
