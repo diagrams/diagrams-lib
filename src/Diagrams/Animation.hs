@@ -50,7 +50,7 @@ import           Linear.Metric
 
 -- | A value of type @QAnimation b v m@ is an animation (a
 --   time-varying diagram with start and end times) that can be
---   rendered by backspace @b@, with vector space @v@ and monoidal
+--   rendered by backend @b@, with vector space @v@ and monoidal
 --   annotations of type @m@.
 type QAnimation b v n m = Active (QDiagram b v n m)
 
