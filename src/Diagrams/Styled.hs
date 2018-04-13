@@ -6,7 +6,11 @@
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
 -- \"Styled\" things, /i.e./ things paired with an accompanying
---'Style'.
+-- 'Style'.  This is useful for attaching a style to data objects
+-- which can continue to be manipulated and transformed before being
+-- rendered as diagrams using the given style.  Sometimes it is more
+-- convenient to attach a style earlier in the process, before the
+-- final render.
 --
 -----------------------------------------------------------------------------
 
@@ -16,7 +20,13 @@ module Diagrams.Styled
 import Diagrams.Core.Style
 
 -- | \"Styled\" things, /i.e./ things paired with an accompanying
---   'Style'.
+--   'Style'.  This is useful for attaching a style to data objects
+--   which can continue to be manipulated and transformed before being
+--   rendered as diagrams using the given style.  Sometimes it is more
+--   convenient to attach a style earlier in the process, before the
+--   final render.
+--
+--   XXX examples
 data Styled a =
   Styled
     { style   :: Style (V a) (N a)
@@ -26,18 +36,30 @@ data Styled a =
 instance (Serialize a, Serialize (V a (N a))) => Serialize (Styled a)
 
 -- | A lens giving access to the object within a 'Styled' wrapper.
-styled :: SameSpace a b => Lens (Styled a) (Styled b) a b
-styled f (Styled s a) = Styled s <$> f a
+_styled :: SameSpace a b => Lens (Styled a) (Styled b) a b
+_styled f (Styled s a) = Styled s <$> f a
 
 -- | Lens onto the style of something 'Styled'.
 _style :: Lens' (Styled a) (Style (V a) (N a))
 _style f (Styled s a) = flip Styled a <$> f s
 
+-- | Add a default (empty) style.  Use this to inject a value of type
+--   @a@ into @Styled@ before applying functions to manipulate the
+--   style.  For example,
+--
+--   @[1,2,3] # styled # fc red # lw none@
+--
+--   creates a @Styled [Int]@.
+styled :: a -> Styled a
+styled = Styled mempty
+
+-- | Add a given style. XXX
 withStyle :: Style (V a) (N a) -> a -> Styled a
 withStyle = Styled
 
-withDefStyle :: a -> Styled a
-withDefStyle = Styled mempty
+-- | XXX
+drawStyled :: (a -> QDiagram b (V a) (N a)) -> Styled a -> QDiagram b (V a) (N a)
+drawStyled drawA (Styled sty a) = drawA a # applyStyle sty
 
 deriving instance (Eq   (V a (N a)), Eq a  ) => Eq   (Styled a)
 deriving instance (Ord  (V a (N a)), Ord a ) => Ord  (Styled a)
