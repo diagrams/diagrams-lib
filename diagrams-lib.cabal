@@ -100,7 +100,7 @@ Library
                        Diagrams.TwoD.Types,
                        Diagrams.TwoD.Vector,
                        Diagrams.Util
-  Build-depends:       base >= 4.6 && < 4.11,
+  Build-depends:       base >= 4.6 && < 4.12,
                        containers >= 0.3 && < 0.6,
                        array >= 0.3 && < 0.6,
                        semigroups >= 0.3.4 && < 0.19,
