@@ -10,7 +10,6 @@ env:
     - GHCVER=head CABALVER=head
   global:
     - HEAD_DEPS="diagrams-core diagrams-solve active monoid-extras"
-    - EXTRA_DEPS_PRE="Cabal"
 
 matrix:
   allow_failures:
