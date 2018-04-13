@@ -12,6 +12,10 @@
 {-# LANGUAGE UndecidableInstances       #-}
 {-# LANGUAGE ViewPatterns               #-}
 {-# LANGUAGE DeriveGeneric              #-}
+
+{-# OPTIONS_GHC -fno-warn-unused-imports #-}
+  -- for Data.Semigroup
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Path

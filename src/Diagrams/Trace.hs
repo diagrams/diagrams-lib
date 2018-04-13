@@ -1,5 +1,9 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE MonoLocalBinds   #-}
+
+{-# OPTIONS_GHC -fno-warn-unused-imports #-}
+  -- for Data.Semigroup
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Trace

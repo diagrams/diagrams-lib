@@ -6,6 +6,9 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE ViewPatterns         #-}
 
+{-# OPTIONS_GHC -fno-warn-unused-imports #-}
+  -- for Data.Semigroup
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Offset

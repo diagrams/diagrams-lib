@@ -1,6 +1,10 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE TypeFamilies          #-}
+
+{-# OPTIONS_GHC -fno-warn-unused-imports #-}
+  -- for Data.Semigroup
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Transform
