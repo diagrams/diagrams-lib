@@ -67,13 +67,13 @@ import           Diagrams.Transform.Matrix
 import           Diagrams.TwoD.Types
 import           Diagrams.TwoD.Vector
 
-import           Control.Lens            hiding (at, transform)
+import           Control.Lens              hiding (at, transform)
 import           Data.Semigroup
 
 import           Linear.Affine
+import           Linear.Metric
 import           Linear.V2
 import           Linear.Vector
-import           Linear.Metric
 
 -- Rotation ------------------------------------------------
 
