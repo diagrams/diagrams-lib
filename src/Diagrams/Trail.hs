@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                        #-}
 {-# LANGUAGE EmptyDataDecls             #-}
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE FlexibleInstances          #-}
@@ -174,7 +175,19 @@ instance (FT.Measured m a, FT.Measured n b)
 --   beginning which have a combined arc length of at least 5).
 
 newtype SegTree v n = SegTree (FingerTree (SegMeasure v n) (Segment Closed v n))
-  deriving (Eq, Ord, Show, Monoid, Semigroup, Transformable, FT.Measured (SegMeasure v n))
+  deriving (Eq, Ord, Show, Monoid, Transformable, FT.Measured (SegMeasure v n))
+
+-- Only derive the Semigroup instance for versions of base that
+-- include Semigroup.  This is because the fingertree package has
+-- similar CPP to only export a Semigroup instance for those versions
+-- of base, so for GHC 7.10 and earlier we get a 'no instance found'
+-- error when trying to derive the Semigroup instance for SegTree.  It
+-- would also be possible to depend on the 'semigroups' package in
+-- order to get the Semigroup class regardless of base version, but
+-- presumably fingertree didn't want to add a dependency.
+#if MIN_VERSION_base(4,9,0)
+deriving instance (Ord n, Floating n, Metric v) => Semigroup (SegTree v n)
+#endif
 
 instance Wrapped (SegTree v n) where
   type Unwrapped (SegTree v n) = FingerTree (SegMeasure v n) (Segment Closed v n)
