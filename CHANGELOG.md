@@ -1,4 +1,10 @@
-## [v1.4.2-r1](https://github.com/diagrams/diagrams-lib/tree/v1.4.2) (2017-12-20)
+## [v1.4.2.1](https://github.com/diagrams/diagrams-lib/tree/v1.4.2.1) (2018-04-13)
+
+- Allow `base-4.11` (GHC 8.4)
+- Allow `tasty-quickcheck-0.10`
+- Bug fix for `Diagrams.TwoD.Offset.capArc` ([#310](https://github.com/diagrams/diagrams-lib/pull/310))
+
+## [v1.4.2-r1](https://github.com/diagrams/diagrams-lib/tree/v1.4.2-r1) (2017-12-20)
 
 Hackage revision to allow `tasty-1.0` in the test suite.
 
