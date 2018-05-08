@@ -1,3 +1,4 @@
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE GADTs                #-} -- for ghc < 7.8, TypeFamilies covers GADT patten mathcing in > 7.8
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE FlexibleInstances    #-}
