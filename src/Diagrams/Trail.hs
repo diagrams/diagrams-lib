@@ -1,3 +1,4 @@
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE CPP                        #-}
 {-# LANGUAGE EmptyDataDecls             #-}
 {-# LANGUAGE FlexibleContexts           #-}

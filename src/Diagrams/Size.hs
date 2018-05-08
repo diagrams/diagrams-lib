@@ -1,3 +1,4 @@
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE CPP                        #-}
 #if __GLASGOW_HASKELL__ >= 707
 {-# LANGUAGE DeriveDataTypeable         #-}

@@ -1,3 +1,4 @@
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TypeFamilies     #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}

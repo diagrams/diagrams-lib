@@ -1,3 +1,4 @@
+{-# LANGUAGE ConstraintKinds            #-}
 {-# LANGUAGE DeriveFunctor              #-}
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE FlexibleInstances          #-}

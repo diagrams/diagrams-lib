@@ -1,3 +1,4 @@
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE BangPatterns               #-}
 {-# LANGUAGE DeriveFunctor              #-}
 {-# LANGUAGE EmptyDataDecls             #-}
