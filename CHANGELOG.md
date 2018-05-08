@@ -1,3 +1,7 @@
+## [v1.4.2.2](https://github.com/diagrams/diagrams-lib/tree/v1.4.2.2) (2018-05-08)
+
+- Fixes for GHC < 8.0
+
 ## [v1.4.2.1](https://github.com/diagrams/diagrams-lib/tree/v1.4.2.1) (2018-04-13)
 
 - Allow `base-4.11` (GHC 8.4)
