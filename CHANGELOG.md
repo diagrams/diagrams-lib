@@ -1,3 +1,7 @@
+## [v1.4.2.3](https://github.com/diagrams/diagrams-lib/tree/v1.4.2.2) (2018-06-11)
+
+- Bug fix for `extrudeEnvelope` and friends ([#316](https://github.com/diagrams/diagrams-lib/issues/316))
+
 ## [v1.4.2.2](https://github.com/diagrams/diagrams-lib/tree/v1.4.2.2) (2018-05-08)
 
 - Fixes for GHC < 8.0
