@@ -1,4 +1,4 @@
-{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
@@ -32,7 +32,7 @@ module Diagrams.TwoD.Combinators
 
     , extrudeLeft, extrudeRight, extrudeBottom, extrudeTop
 
-    , rectEnvelope
+    , rectEnvelope, crop
 
     , boundingRect, bg, bgFrame
 
@@ -244,6 +244,11 @@ extrudeTop s
 rectEnvelope :: forall b n m. (OrderedField n, Monoid' m)
      => Point V2 n -> V2 n -> QDiagram b V2 n m -> QDiagram b V2 n m
 rectEnvelope p (V2 w h) = withEnvelope (rect w h # alignBL # moveTo p :: Path V2 n)
+
+-- | A synonym for 'rectEnvelope'.
+crop :: forall b n m. (OrderedField n, Monoid' m)
+     => Point V2 n -> V2 n -> QDiagram b V2 n m -> QDiagram b V2 n m
+crop = rectEnvelope
 
 -- | Construct a bounding rectangle for an enveloped object, that is,
 --   the smallest axis-aligned rectangle which encloses the object.
