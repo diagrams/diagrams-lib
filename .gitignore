@@ -18,3 +18,7 @@ TAGS
 \#*
 .stack-work
 dist-newstyle/
+
+# editor-generated files
+.idea/
+*.iml
