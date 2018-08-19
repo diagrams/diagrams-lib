@@ -3,10 +3,11 @@
 module Diagrams.Test.TwoD where
 
 import           Diagrams.Prelude
+import qualified Diagrams.Query as Query (sample)
 import           Diagrams.Trail        (linePoints)
 import           Instances
 import           Test.Tasty
-import           Test.Tasty.QuickCheck
+import           Test.Tasty.QuickCheck as QC
 
 newtype SmallAngle = SmallAngle (Angle Double)
   deriving (Eq, Ord, Show)
@@ -50,4 +51,15 @@ tests = testGroup "TwoD"
           , testProperty "lineSegments . fromSegments === id" $
             \segs -> lineSegments (fromSegments segs) =~ (segs :: [Segment Closed V2 Double])
           ]
-      ]
+    , testGroup "Queries and Backgrounds"
+        (let dia :: QDiagram NullBackend V2 Double [Int]
+             dia = circle 5 # scaleX 2 # rotateBy (1/14) # value [1]
+                   <>
+                   circle 2 # scaleX 5 # rotateBy (-4/14) # value [2]
+         in [
+           testProperty "sample dia pt === sample (dia # bg color) pt" $
+           \pt -> Query.sample dia pt QC.=== Query.sample (dia # bg orange) pt
+         , testProperty "sample dia pt === sample (dia # bgFrame 0.1 color) pt" $
+           \pt -> Query.sample dia pt QC.=== Query.sample (dia # bgFrame 0.1 green) pt
+         ])
+    ]
