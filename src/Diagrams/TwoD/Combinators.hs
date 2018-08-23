@@ -49,6 +49,7 @@ import           Diagrams.Attributes      (lwO)
 import           Diagrams.BoundingBox
 import           Diagrams.Combinators
 import           Diagrams.Path
+import           Diagrams.Query           (value)
 import           Diagrams.Segment
 import           Diagrams.TrailLike
 import           Diagrams.TwoD.Align
@@ -260,12 +261,15 @@ boundingRect = (`boxFit` rect 1 1) . boundingBox
 
 -- | \"Set the background color\" of a diagram.  That is, place a
 --   diagram atop a bounding rectangle of the given color.
-bg :: (TypeableFloat n, Renderable (Path V2 n) b) => Colour Double -> QDiagram b V2 n Any -> QDiagram b V2 n Any
-bg c d = d <> boundingRect d # lwO 0 # fc c
+--   The background does not change the result of queries.
+bg :: (TypeableFloat n, Renderable (Path V2 n) b, Monoid' q)
+    => Colour Double -> QDiagram b V2 n q -> QDiagram b V2 n q
+bg c d = d <> boundingRect d # lwO 0 # fc c # value mempty
 
 -- | Similar to 'bg' but makes the colored background rectangle larger than
 --   the diagram. The first parameter is used to set how far the background
 --   extends beyond the diagram.
-bgFrame :: (TypeableFloat n, Renderable (Path V2 n) b)
-    => n -> Colour Double -> QDiagram b V2 n Any -> QDiagram b V2 n Any
-bgFrame f c d = d <> boundingRect (frame f d) # lwO 0 # fc c
+--   The background does not change the result of queries.
+bgFrame :: (TypeableFloat n, Renderable (Path V2 n) b, Monoid' q)
+    => n -> Colour Double -> QDiagram b V2 n q -> QDiagram b V2 n q
+bgFrame f c d = d <> boundingRect (frame f d) # lwO 0 # fc c # value mempty
