@@ -9,8 +9,8 @@ Description:         Diagrams is a flexible, extensible EDSL for creating
                      creating diagrams.  To get started using it, see
                      the "Diagrams" module, and refer to the tutorials and
                      documentation on the diagrams website,
-                     <http://projects.haskell.org/diagrams>.
-Homepage:            http://projects.haskell.org/diagrams
+                     <http://diagrams.github.io>.
+Homepage:            http://diagrams.github.io
 License:             BSD3
 License-file:        LICENSE
 Author:              Brent Yorgey
