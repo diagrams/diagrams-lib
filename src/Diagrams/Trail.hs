@@ -520,6 +520,8 @@ instance (Metric v, OrderedField n, Real n)
     where
       (t1, t2) = splitAtParam t p
 
+  section (Line t) p1 p2 = Line (section t p1 p2)
+
   reverseDomain = reverseLine
 
 instance (Metric v, OrderedField n, Real n)
@@ -767,6 +769,8 @@ instance (Metric v, OrderedField n, Real n) => EndValues (Trail v n)
 --   'cutLoop' yourself.)
 instance (Metric v, OrderedField n, Real n) => Sectionable (Trail v n) where
   splitAtParam t p = withLine ((wrapLine *** wrapLine) . (`splitAtParam` p)) t
+
+  section t p1 p2 = withLine (wrapLine . (\l -> section l p1 p2)) t
 
   reverseDomain = reverseTrail
 
