@@ -175,6 +175,8 @@ instance (InSpace v n a, Fractional n, Parametric a, Sectionable a, Codomain a ~
   splitAtParam (Loc x a) p = (Loc x a1, Loc (x .+^ (a `atParam` p)) a2)
     where (a1,a2) = splitAtParam a p
 
+  section (Loc x a) p1 p2 = Loc (x .+^ (a `atParam` p1)) (section a p1 p2)
+
   reverseDomain (Loc x a) = Loc (x .+^ y) (reverseDomain a)
     where y = a `atParam` domainUpper a
 
