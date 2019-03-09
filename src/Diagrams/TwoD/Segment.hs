@@ -169,6 +169,9 @@ bezierClip eps p_ q_ = filter (allOf both inRange) -- sometimes this returns NaN
   go p q tmin tmax umin umax clip revCurves
     | isNothing chopInterval = []
 
+    -- This check happens before the subdivision
+    -- test to avoid non-termination as values
+    -- transition to within epsilon.
     | max (umax - umin) (tmax' - tmin') < eps =
       if revCurves -- return parameters in correct order
       then [ (avg umin  umax,  avg tmin' tmax') ]
@@ -283,12 +286,14 @@ chopHull dmin dmax dps = do
       testAbove (p1@(P (V2 _ y1)) : p2@(P (V2 _ y2)) : ps)
         | y1 < y2      = Nothing
         | y2 > dmax    = testAbove (p2:ps)
-        | y2 - y1 == 0 = Nothing
+        | y2 - y1 == 0 = Nothing  -- Check this condition to prevent
+                                  -- division by zero in `intersectPt`.
         | otherwise    = Just $ intersectPt dmax p1 p2
       testAbove _      = Nothing
 
       -- find the x value where the line through the two points
-      -- intersect the line y=d
+      -- intersect the line y=d.  Note that `y2 - y1 != 0` due
+      -- to checks above.
       intersectPt d (P (V2 x1 y1)) (P (V2 x2 y2)) =
           x1 + (d - y1) * (x2 - x1) / (y2 - y1)
 
@@ -306,7 +311,8 @@ bezierToBernstein seg =
 -- Could split this into a separate module.
 
 -- | Returns @(a, b, c, d)@ such that @ax + by + c = 0@ is the line going through
---   @p1@ and @p2@ with @(a^2)/d + (b^2)/d = 1@.
+--   @p1@ and @p2@ with @(a^2)/d + (b^2)/d = 1@.  We delay the division by
+--   @d@ as it may not be needed in all cases and @d@ may be zero.
 lineEquation :: Floating n => P2 n -> P2 n -> (n, n, n, n)
 lineEquation (P (V2 x1 y1)) (P (V2 x2 y2)) = (a, b, c, d)
   where
@@ -318,6 +324,11 @@ lineEquation (P (V2 x1 y1)) (P (V2 x2 y2)) = (a, b, c, d)
 -- | Return the distance from a point to the line.
 lineDistance :: (Ord n, Floating n) => P2 n -> P2 n -> P2 n -> n
 lineDistance p1 p2 p3@(P (V2 x y))
+    -- I have included the check that d' <= 0 in case
+    -- there exists some d > 0 where sqrt d == 0.  I don't
+    -- think this can happen as sqrt is at least recommended
+    -- to be within one value of correct for sqrt and near
+    -- zero values get bigger.
     | d <= 0 || d' <= 0 = norm (p1 .-. p3)
     | otherwise = (a*x + b*y + c) / d'
   where
@@ -350,6 +361,9 @@ segLine :: InSpace v n (v n) => FixedSegment v n -> Located (v n)
 segLine (FLinear p0 p1)    = mkLine p0 p1
 segLine (FCubic p0 _ _ p3) = mkLine p0 p3
 
+-- This function uses `defEps`, but is used in functions
+-- above that take an epsilon parameter.  It would be nice
+-- to clearify the meaning of each of these epsilons.
 inRange :: (Fractional n, Ord n) => n -> Bool
 inRange x = x < (1+defEps) && x > (-defEps)
 
