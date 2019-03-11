@@ -238,11 +238,14 @@ splitAtParam' tree@(SegTree t) p
     case FT.viewr t of
       EmptyR    -> emptySplit
       t' FT.:> seg ->
-        case seg `splitAtParam` (1 - (1 - p)*tSegs) of
-          (seg1, seg2) ->
-            ( (SegTree $ t' |> seg1, \u -> u * tSegs / (tSegs + 1))
-            , (SegTree $ FT.singleton seg2, \u -> (u - p) / (1 - p))
-            )
+        let f u | n < (tSegs - 1) = u
+                | otherwise       = (n + u' / (1 + (p - 1)*tSegs)) / tSegs
+                where (n, u') = propFrac $ u * tSegs
+        in  case seg `splitAtParam` (1 + (p - 1)*tSegs) of
+              (seg1, seg2) ->
+                ( (SegTree $ t' |> seg1       , f)
+                , (SegTree $ FT.singleton seg2, \u -> (u - p) / (1 - p))
+                )
   | otherwise =
     case FT.viewl after of
       EmptyL    -> emptySplit
