@@ -250,8 +250,7 @@ instance (Metric v, OrderedField n, Real n) => Sectionable (SegTree v n) where
 
   section x p1 p2 | p1 <= p2  = let ((a, _), rescale) = splitAtParam' x p2
                                 in  snd $ splitAtParam a (rescale p1)
-                  | otherwise = let (SegTree t) = section x p2 p1
-                                in  SegTree . FT.reverse $ FT.fmap' reverseSegment t
+                  | otherwise = reverseDomain $ section x p2 p1
 
 instance (Metric v, OrderedField n, Real n)
     => HasArcLength (SegTree v n) where
