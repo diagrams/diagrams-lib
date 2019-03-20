@@ -371,7 +371,7 @@ instance (Metric v, OrderedField n)
 --   the absolute locations of the vertices and control points.
 data FixedSegment v n = FLinear (Point v n) (Point v n)
                       | FCubic (Point v n) (Point v n) (Point v n) (Point v n)
-  deriving Show
+  deriving (Eq, Ord, Show)
 
 type instance V (FixedSegment v n) = v
 type instance N (FixedSegment v n) = n
