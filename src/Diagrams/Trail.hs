@@ -238,9 +238,18 @@ splitAtParam' (SegTree t) p
     (treeL, treeR) | pParam == 0 = (before        , seg  <| after)
                    | pParam == 1 = (before |> seg ,         after)
                    | otherwise   = (before |> segL, segR <| after)
-    rescale u | pSegs == uSegs  = (uSegs + uParam / pParam) / (pSegs + 1)
-              | otherwise       = u * tSegs / (pSegs + 1)
-      where (uSegs, uParam) = splitParam u
+    -- section uses rescale to find the new value of p1 after the split at p2
+    rescale u | pSegs' == uSegs = (uSegs + uParam / pParam' {-^1-}) / (pSegs' + 1) {-^2-}
+              | otherwise       = u * tSegs / (pSegs' + 1) {-^3-}
+      where
+        -- param 0 on a segment is param 1 on the previous segment
+        (pSegs', pParam') | pParam == 0 = (pSegs-1, 1)
+                          | otherwise   = (pSegs  , pParam)
+        (uSegs , uParam ) = splitParam u
+        -- ^1 (pParam ≠ 0 → pParam' = pParam) ∧ (pParam = 0 → pParam' = 1) → pParam' ≠ 0
+        -- ^2 uSegs ≥ 0 ∧ pSegs' = uSegs → pSegs' ≥ 0 → pSegs' + 1 > 0
+        -- ^3 pSegs' + 1 = 0 → pSegs' = -1 → pSegs = 0 ∧ pParam = 0 → p = 0
+        --    → rescale is not called
 
 instance (Metric v, OrderedField n, Real n) => Sectionable (SegTree v n) where
   splitAtParam tree p = fst $ splitAtParam' tree p
@@ -248,7 +257,8 @@ instance (Metric v, OrderedField n, Real n) => Sectionable (SegTree v n) where
   reverseDomain (SegTree t) = SegTree $ FT.reverse t'
     where t' = FT.fmap' reverseSegment t
 
-  section x p1 p2 | p1 <= p2  = let ((a, _), rescale) = splitAtParam' x p2
+  section x p1 p2 | p2 == 0   = reverseDomain . fst $ splitAtParam x p1
+                  | p1 <= p2  = let ((a, _), rescale) = splitAtParam' x p2
                                 in  snd $ splitAtParam a (rescale p1)
                   | otherwise = reverseDomain $ section x p2 p1
 

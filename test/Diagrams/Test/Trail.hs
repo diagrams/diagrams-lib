@@ -1,5 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
-
+{-# LANGUAGE TypeFamilies #-}
 
 module Diagrams.Test.Trail where
 
@@ -50,9 +50,27 @@ tests = testGroup "Trail"
 
   , testProperty "section on Trail' Line endpoints match paramaters" $
     \t (Param a) (Param b) ->
-      let t' = section (t :: Located (Trail' Line V2 Double)) a b
-      in  t `atParam` a =~ t' `atParam` 0 &&
-          t `atParam` b =~ t' `atParam` 1
+      let s = section (t :: Located (Trail' Line V2 Double)) a b
+      in  t `atParam` a =~ s `atParam` 0 &&
+          t `atParam` b =~ s `atParam` 1
+
+  , testProperty "section on Trail' Line where a paramater is 0 or 1" $
+    \t (Param a) ->
+      let l = section (t :: Located (Trail' Line V2 Double)) 0 a
+          r = section (t :: Located (Trail' Line V2 Double)) a 1
+      in  t `atParam` 0 =~ l `atParam` 0 &&
+          t `atParam` a =~ l `atParam` 1 &&
+          t `atParam` a =~ r `atParam` 0 &&
+          t `atParam` 1 =~ r `atParam` 1
+
+  , testProperty "section on Trail' Line where a segment paramater is 0 or 1" $
+    \t (Param a) i ->
+      let st = unLoc t # \(Line st) -> st :: SegTree V2 Double
+          b | numSegs st > 0 = (fromIntegral (i `mod` (numSegs st + 1) :: Word)) / numSegs st
+            | otherwise      = 0
+          s = section (t :: Located (Trail' Line V2 Double)) a b
+      in  t `atParam` a =~ s `atParam` 0 &&
+          t `atParam` b =~ s `atParam` 1
 
   , testProperty "section on Trail' Line matches section on FixedSegment" $
     \t (Param a) (Param b) -> sectionTrailSectionFixedSegment t a b
