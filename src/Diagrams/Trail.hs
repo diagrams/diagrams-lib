@@ -112,7 +112,7 @@ module Diagrams.Trail
 import           Control.Arrow            ((***))
 import           Control.Lens             hiding (at, transform, (<|), (|>))
 import           Data.FingerTree          (FingerTree, ViewL (..), ViewR (..),
-                                           (<|), (|>))
+                                           viewl, (<|), (|>))
 import qualified Data.FingerTree          as FT
 import           Data.Fixed
 import qualified Data.Foldable            as F
@@ -221,60 +221,46 @@ instance Num n => DomainBounds (SegTree v n)
 instance (Metric v, OrderedField n, Real n)
     => EndValues (SegTree v n)
 
-type SplitResult v n = ((SegTree v n, n -> n), (SegTree v n, n -> n))
-
-splitAtParam' :: (Metric v, OrderedField n, Real n) => SegTree v n -> n -> SplitResult v n
-splitAtParam' tree@(SegTree t) p
-  | p < 0     =
-    case FT.viewl t of
-      EmptyL    -> emptySplit
-      seg FT.:< t' ->
-        case seg `splitAtParam` (p * tSegs) of
-          (seg1, seg2) ->
-            ( (SegTree $ FT.singleton seg1, (*p))
-            , (SegTree $ seg2 <| t', \u -> 1 - (1 - u) * tSegs / (tSegs + 1))
-            )
-  | p >= 1    =
-    case FT.viewr t of
-      EmptyR    -> emptySplit
-      t' FT.:> seg ->
-        case seg `splitAtParam` (1 - (1 - p)*tSegs) of
-          (seg1, seg2) ->
-            ( (SegTree $ t' |> seg1, \u -> u * tSegs / (tSegs + 1))
-            , (SegTree $ FT.singleton seg2, \u -> (u - p) / (1 - p))
-            )
-  | otherwise =
-    case FT.viewl after of
-      EmptyL    -> emptySplit
-      seg FT.:< after' ->
-        let (n, p') = propFrac $ p * tSegs
-            f p n u | u * tSegs < n = u * tSegs / (n + 1)
-                    | otherwise     = (n + (u * tSegs - n) / (p * tSegs - n)) / (n+1)
-        in case seg `splitAtParam` p' of
-             (seg1, seg2) ->
-               ( ( SegTree $ before |> seg1  , f p n )
-               , ( SegTree $ seg2   <| after'
-               , \v -> 1 - f (1 - p) (tSegs - n - 1) (1 - v)
-                 )
-               )
- where
-   (before, after) = FT.split ((p * tSegs <) . numSegs) t
-   tSegs           = numSegs t
-   emptySplit      = let t' = (tree, id) in (t',t')
-
-   propFrac x = let m = signum x * mod1 x in (x - m, m)
+splitAtParam' :: (Metric v, OrderedField n, Real n)
+              => SegTree v n -> n -> ((SegTree v n, SegTree v n), n -> n)
+splitAtParam' (SegTree t) p
+  | tSegs == 0 = ((mempty       , mempty       ), id)
+  | otherwise  = ((SegTree treeL, SegTree treeR), rescale)
+  where
+    tSegs  = numSegs t
+    splitParam q | q <  0    = (0        , q           * tSegs)
+                 | q >= 1    = (tSegs - 1, 1 + (q - 1) * tSegs)
+                 | otherwise = propFrac $  q           * tSegs
+      where propFrac x = let m = mod1 x in (x - m, m)
+    (pSegs, pParam) = splitParam p
+    (before, viewl -> seg FT.:< after) = FT.split ((pSegs <) . numSegs) t
+    (segL, segR) = seg `splitAtParam` pParam
+    (treeL, treeR) | pParam == 0 = (before        , seg  <| after)
+                   | pParam == 1 = (before |> seg ,         after)
+                   | otherwise   = (before |> segL, segR <| after)
+    -- section uses rescale to find the new value of p1 after the split at p2
+    rescale u | pSegs' == uSegs = (uSegs + uParam / pParam' {-^1-}) / (pSegs' + 1) {-^2-}
+              | otherwise       = u * tSegs / (pSegs' + 1) {-^3-}
+      where
+        -- param 0 on a segment is param 1 on the previous segment
+        (pSegs', pParam') | pParam == 0 = (pSegs-1, 1)
+                          | otherwise   = (pSegs  , pParam)
+        (uSegs , uParam ) = splitParam u
+        -- ^1 (pParam ≠ 0 → pParam' = pParam) ∧ (pParam = 0 → pParam' = 1) → pParam' ≠ 0
+        -- ^2 uSegs ≥ 0 ∧ pSegs' = uSegs → pSegs' ≥ 0 → pSegs' + 1 > 0
+        -- ^3 pSegs' + 1 = 0 → pSegs' = -1 → pSegs = 0 ∧ pParam = 0 → p = 0
+        --    → rescale is not called
 
 instance (Metric v, OrderedField n, Real n) => Sectionable (SegTree v n) where
-  splitAtParam tree p = let ((a,_),(b,_)) = splitAtParam' tree p in (a,b)
+  splitAtParam tree p = fst $ splitAtParam' tree p
 
   reverseDomain (SegTree t) = SegTree $ FT.reverse t'
     where t' = FT.fmap' reverseSegment t
 
-  section x t1 t2 = let ((a,fa),_) = splitAtParam' x t2
-                    in  snd $ splitAtParam a (fa t1)
-
-  -- XXX seems like it should be possible to collapse some of the
-  -- above cases into one?
+  section x p1 p2 | p2 == 0   = reverseDomain . fst $ splitAtParam x p1
+                  | p1 <= p2  = let ((a, _), rescale) = splitAtParam' x p2
+                                in  snd $ splitAtParam a (rescale p1)
+                  | otherwise = reverseDomain $ section x p2 p1
 
 instance (Metric v, OrderedField n, Real n)
     => HasArcLength (SegTree v n) where
