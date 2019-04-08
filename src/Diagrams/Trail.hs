@@ -239,16 +239,16 @@ splitAtParam' (SegTree t) p
                    | pParam == 1 = (before |> seg ,         after)
                    | otherwise   = (before |> segL, segR <| after)
     -- section uses rescale to find the new value of p1 after the split at p2
-    rescale u | pSegs' == uSegs = (uSegs + uParam / pParam' {-^1-}) / (pSegs' + 1) {-^2-}
-              | otherwise       = u * tSegs / (pSegs' + 1) {-^3-}
+    rescale u | pSegs' == uSegs = (uSegs + uParam / pParam' {-'1-}) / (pSegs' + 1) {-'2-}
+              | otherwise       = u * tSegs / (pSegs' + 1) {-'3-}
       where
         -- param 0 on a segment is param 1 on the previous segment
         (pSegs', pParam') | pParam == 0 = (pSegs-1, 1)
                           | otherwise   = (pSegs  , pParam)
         (uSegs , uParam ) = splitParam u
-        -- ^1 (pParam ≠ 0 → pParam' = pParam) ∧ (pParam = 0 → pParam' = 1) → pParam' ≠ 0
-        -- ^2 uSegs ≥ 0 ∧ pSegs' = uSegs → pSegs' ≥ 0 → pSegs' + 1 > 0
-        -- ^3 pSegs' + 1 = 0 → pSegs' = -1 → pSegs = 0 ∧ pParam = 0 → p = 0
+        -- '1 (pParam ≠ 0 → pParam' = pParam) ∧ (pParam = 0 → pParam' = 1) → pParam' ≠ 0
+        -- '2 uSegs ≥ 0 ∧ pSegs' = uSegs → pSegs' ≥ 0 → pSegs' + 1 > 0
+        -- '3 pSegs' + 1 = 0 → pSegs' = -1 → pSegs = 0 ∧ pParam = 0 → p = 0
         --    → rescale is not called
 
 instance (Metric v, OrderedField n, Real n) => Sectionable (SegTree v n) where
