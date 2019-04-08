@@ -383,6 +383,8 @@ trailCrossings _ t | not (isLoop (unLoc t)) = 0
 trailCrossings p@(unp2 -> (x,y)) tr
   = F.foldMap test $ fixTrail tr
   where
+    eps = 1e-8
+
     test (FLinear a@(unp2 -> (_,ay)) b@(unp2 -> (_,by)))
       | ay <= y && by > y && isLeft a b > 0 =  1
       | by <= y && ay > y && isLeft a b < 0 = -1
@@ -394,7 +396,7 @@ trailCrossings p@(unp2 -> (x,y)) tr
                    (P x2@(V2 _ x2y))
            ) =
         sum . map testT $ ts
-      where ts = filter (liftA2 (&&) (>=0) (<=1))
+      where ts = filter (liftA2 (&&) (>=(-eps)) (<=(1+eps)))
                $ cubForm (-  x1y + 3*c1y - 3*c2y + x2y)
                          ( 3*x1y - 6*c1y + 3*c2y)
                          (-3*x1y + 3*c1y)
@@ -406,9 +408,9 @@ trailCrossings p@(unp2 -> (x,y)) tr
                    ^+^ (2*t)   *^ (3*^x1 ^-^ 6*^c1 ^+^ 3*^c2)
                    ^+^            ((-3)*^x1 ^+^ 3*^c1)
                   ang = v ^. _theta . rad
-              in  case () of _ | 0      < ang && ang < tau/2 && t < 1 ->  1
-                               | -tau/2 < ang && ang < 0     && t > 0 -> -1
-                               | otherwise                            ->  0
+              in  case () of _ | 0      < ang && ang < tau/2 && t < (1+eps) ->  1
+                               | -tau/2 < ang && ang < 0     && t > (-eps)  -> -1
+                               | otherwise                                  ->  0
 
     isLeft a b = cross2 (b .-. a) (p .-. a)
 
