@@ -19,7 +19,7 @@ parallelZ0 = Deformation (_z .~ 0)
 -- | The perspective division onto the plane z=1 along lines going
 --   through the origin.
 perspectiveZ1 :: (R3 v, Functor v, Fractional n) => Deformation v v n
-perspectiveZ1 = Deformation $ \p -> p ^/ (p ^. _x)
+perspectiveZ1 = Deformation $ \p -> p ^/ (p ^. _z)
 
 facingZ :: (R3 v, Functor v, Fractional n) => Deformation v v n
 facingZ = Deformation $
