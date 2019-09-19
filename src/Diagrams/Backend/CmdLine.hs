@@ -83,6 +83,7 @@ import           Options.Applicative
 import           Options.Applicative.Types (readerAsk)
 
 import           Control.Monad             (forM_, forever, unless, when)
+import           Control.Monad.Fail        (MonadFail)
 
 import           Data.Active               hiding (interval)
 import           Data.Char                 (isDigit)
@@ -304,7 +305,7 @@ instance Parseable (AlphaColour Double) where
 --   example, @\"0xfc4\"@ is the same as @\"0xffcc44\"@.  When eight or six
 --   digits are given each pair of digits is a color or alpha channel with the
 --   order being red, green, blue, alpha.
-readHexColor :: (Applicative m, Monad m) => String -> m (AlphaColour Double)
+readHexColor :: (Applicative m, MonadFail m) => String -> m (AlphaColour Double)
 readHexColor cs = case cs of
   ('0':'x':hs) -> handle hs
   ('#':hs)     -> handle hs
