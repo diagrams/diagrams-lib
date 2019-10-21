@@ -22,3 +22,5 @@ dist-newstyle/
 # editor-generated files
 .idea/
 *.iml
+
+.ghc.environment.*
