@@ -1,4 +1,4 @@
-{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE DeriveDataTypeable    #-}
 {-# LANGUAGE EmptyDataDecls        #-}
 {-# LANGUAGE FlexibleContexts      #-}
@@ -36,7 +36,6 @@ module Diagrams.TwoD.Image
     ) where
 
 import           Codec.Picture
-import           Codec.Picture.Types  (dynamicMap)
 
 import           Data.Colour          (AlphaColour)
 import           Data.Semigroup
@@ -45,10 +44,10 @@ import           Data.Typeable        (Typeable)
 import           Diagrams.Core
 
 import           Diagrams.Attributes  (colorToSRGBA)
-import           Diagrams.TwoD.Path   (isInsideEvenOdd)
 import           Diagrams.Path        (Path)
+import           Diagrams.Query
+import           Diagrams.TwoD.Path   (isInsideEvenOdd)
 import           Diagrams.TwoD.Shapes (rect)
-import Diagrams.Query
 import           Diagrams.TwoD.Types
 
 import           Data.ByteString
