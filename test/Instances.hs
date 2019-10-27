@@ -13,7 +13,7 @@ module Instances where
 
 import           Diagrams.Prelude
 import           Numeric.Extras
-import           Test.Tasty.QuickCheck (Arbitrary(..), Gen)
+import           Test.Tasty.QuickCheck (Arbitrary (..), Gen)
 import qualified Test.Tasty.QuickCheck as QC
 
 ------------------------------------------------------------
@@ -60,6 +60,7 @@ instance Approx n => Approx (Segment Closed V2 n) where
 instance Approx n => Approx (FixedSegment V2 n) where
     FLinear a0 b0 =~ FLinear a1 b1 = a0 =~ a1 && b0 =~ b1
     FCubic a0 b0 c0 d0 =~ FCubic a1 b1 c1 d1 = a0 =~ a1 && b0 =~ b1 && c0 =~ c1 && d0 =~ d1
+    _ =~ _ = False
 
 instance Approx n => Approx (Trail' Line V2 n) where
     l0 =~ l1 = and $ zipWith (=~) (lineSegments l0) (lineSegments l1)

@@ -1,14 +1,16 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE FlexibleInstances #-}
+
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+
 module Diagrams.Test.TwoD.Segment
     (
       tests
     ) where
 
-import           Test.Tasty (TestTree)
-import           Test.Tasty.HUnit
-import           Test.Tasty.QuickCheck
 import qualified Test.QuickCheck.Property as Q
+import           Test.Tasty               (TestTree)
+import           Test.Tasty.QuickCheck
 
 import           Diagrams.Prelude
 import           Diagrams.TwoD.Segment
@@ -25,9 +27,11 @@ instance Arbitrary (Point V2 Double) where
 instance Arbitrary (FixedSegment V2 Double) where
    arbitrary = oneof [FLinear <$> arbitrary <*> arbitrary, FCubic <$> arbitrary <*> arbitrary <*> arbitrary <*> arbitrary]
 
+epsT, epsE :: Double
 epsT = 1.0e-9 -- parameter space epsilon
 epsE = 1.0e-8 -- Euclidean space epsilon
 
+(.=~.) :: V2 Double -> V2 Double -> Bool
 x .=~. y = norm (x .-. y) < epsE
 
 tests :: [TestTree]
@@ -37,8 +41,8 @@ tests =
     ]
 
 validateIntersections :: FixedSegment V2 Double -> FixedSegment V2 Double -> [(Double, Double, P2 Double)] -> Q.Result
-validateIntersections a b [] = Q.rejected -- TODO: check for false negatives (rasterize both and look for overlap?)
-validateIntersections a b is = go is
+validateIntersections _ _ [] = Q.rejected -- TODO: check for false negatives (rasterize both and look for overlap?)
+validateIntersections a b isects = go isects
   where
     go [] = Q.succeeded
     go ((ta,tb,p):is)
