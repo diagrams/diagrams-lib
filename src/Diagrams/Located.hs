@@ -1,11 +1,10 @@
-{-# LANGUAGE ConstraintKinds #-}
-{-# LANGUAGE CPP                   #-}
+{-# LANGUAGE ConstraintKinds       #-}
+{-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE StandaloneDeriving    #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
-{-# LANGUAGE DeriveGeneric         #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Located
@@ -28,9 +27,6 @@ module Diagrams.Located
     where
 
 import           Control.Lens            (Lens, Lens')
-#if __GLASGOW_HASKELL__ < 710
-import           Data.Functor            ((<$>))
-#endif
 import           Text.Read
 
 import           Linear.Affine
@@ -41,8 +37,8 @@ import           Diagrams.Core
 import           Diagrams.Core.Transform
 import           Diagrams.Parametric
 
-import           GHC.Generics (Generic)
-import           Data.Serialize (Serialize)
+import           Data.Serialize          (Serialize)
+import           GHC.Generics            (Generic)
 
 -- | \"Located\" things, /i.e./ things with a concrete location:
 --   intuitively, @Located a ~ (Point, a)@.  Wrapping a translationally

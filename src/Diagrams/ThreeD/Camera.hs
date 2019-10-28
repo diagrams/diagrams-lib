@@ -1,10 +1,9 @@
-{-# LANGUAGE CPP                   #-}
 {-# LANGUAGE DeriveDataTypeable    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
 -----------------------------------------------------------------------------
@@ -50,23 +49,12 @@ data Camera l n = Camera
     , up      :: V3 n
     , lens    :: l n
     }
-#if __GLASGOW_HASKELL__ >= 707
   deriving Typeable
-#else
-
-instance forall l. Typeable1 l => Typeable1 (Camera l) where
-  typeOf1 _ = mkTyConApp (mkTyCon3 "diagrams-lib" "Diagrams.ThreeD.Camera" "Camera") [] `mkAppTy`
-              typeOf1 (undefined :: l n)
-#endif
 
 type instance V (Camera l n) = V3
 type instance N (Camera l n) = n
 
-#if __GLASGOW_HASKELL__ > 707
 class Typeable l => CameraLens l where
-#else
-class Typeable1 l => CameraLens l where
-#endif
   -- | The natural aspect ratio of the projection.
   aspect :: Floating n => l n -> n
 

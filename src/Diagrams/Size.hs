@@ -1,8 +1,5 @@
-{-# LANGUAGE ConstraintKinds #-}
-{-# LANGUAGE CPP                        #-}
-#if __GLASGOW_HASKELL__ >= 707
+{-# LANGUAGE ConstraintKinds            #-}
 {-# LANGUAGE DeriveDataTypeable         #-}
-#endif
 {-# LANGUAGE DeriveFunctor              #-}
 {-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE FlexibleContexts           #-}
@@ -46,18 +43,18 @@ module Diagrams.Size
   ) where
 
 import           Control.Applicative
-import           Control.Lens        hiding (transform)
+import           Control.Lens         hiding (transform)
 import           Control.Monad
-import           Data.Foldable       as F
+import           Data.Foldable        as F
 import           Data.Hashable
-import           Data.Semigroup
 import           Data.Maybe
+import           Data.Semigroup
 import           Data.Typeable
-import           GHC.Generics        (Generic)
+import           GHC.Generics         (Generic)
 import           Prelude
 
-import           Diagrams.Core
 import           Diagrams.BoundingBox
+import           Diagrams.Core
 
 import           Linear.Affine
 import           Linear.Vector
@@ -70,19 +67,11 @@ import           Linear.Vector
 --   the dimensions.
 newtype SizeSpec v n = SizeSpec (v n)
   deriving (
-#if __GLASGOW_HASKELL__ >= 707
   Typeable,
-#endif
   Functor,
   Generic,
   Hashable,
   Show)
-
-#if __GLASGOW_HASKELL__ < 707
-instance forall v. Typeable1 v => Typeable1 (SizeSpec v) where
-  typeOf1 _ = mkTyConApp (mkTyCon3 "diagrams-lib" "Diagrams.Size" "Size") [] `mkAppTy`
-              typeOf1 (undefined :: v n)
-#endif
 
 type instance V (SizeSpec v n) = v
 type instance N (SizeSpec v n) = n

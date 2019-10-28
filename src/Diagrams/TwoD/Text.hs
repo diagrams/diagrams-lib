@@ -1,5 +1,4 @@
-{-# LANGUAGE ConstraintKinds #-}
-{-# LANGUAGE CPP                        #-}
+{-# LANGUAGE ConstraintKinds            #-}
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE FlexibleInstances          #-}
@@ -58,9 +57,6 @@ import           Diagrams.TwoD.Types
 
 import           Data.Colour              hiding (over)
 import           Data.Default.Class
-#if __GLASGOW_HASKELL__ < 710
-import           Data.Functor
-#endif
 import           Data.Monoid.Recommend
 import           Data.Semigroup
 import           Data.Typeable

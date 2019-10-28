@@ -1,5 +1,4 @@
-{-# LANGUAGE ConstraintKinds #-}
-{-# LANGUAGE CPP                   #-}
+{-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies          #-}
@@ -32,10 +31,6 @@ module Diagrams.Animation
        ) where
 
 import           Data.Active
-#if __GLASGOW_HASKELL__ < 710
-import           Control.Applicative       ((<$>))
-import           Data.Foldable             (foldMap)
-#endif
 import           Data.Semigroup
 
 import           Diagrams.Core
