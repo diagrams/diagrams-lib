@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                       #-}
 {-# LANGUAGE ConstrainedClassMethods   #-}
 {-# LANGUAGE DeriveDataTypeable        #-}
 {-# LANGUAGE FlexibleContexts          #-}
@@ -83,6 +84,11 @@ import           Options.Applicative
 import           Options.Applicative.Types (readerAsk)
 
 import           Control.Monad             (forM_, forever, unless, when)
+
+-- MonadFail comes from Prelude in base-4.13 and up
+#if !MIN_VERSION_base(4,13,0)
+import           Control.Monad.Fail        (MonadFail)
+#endif
 
 import           Data.Active               hiding (interval)
 import           Data.Char                 (isDigit)
