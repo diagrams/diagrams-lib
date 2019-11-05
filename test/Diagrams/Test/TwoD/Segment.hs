@@ -31,7 +31,7 @@ epsT, epsE :: Double
 epsT = 1.0e-9 -- parameter space epsilon
 epsE = 1.0e-8 -- Euclidean space epsilon
 
-(.=~.) :: V2 Double -> V2 Double -> Bool
+(.=~.) :: P2 Double -> P2 Double -> Bool
 x .=~. y = norm (x .-. y) < epsE
 
 tests :: [TestTree]

@@ -1,5 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeFamilies     #-}
 
 module Diagrams.Test.Trail where
 
@@ -65,9 +65,9 @@ tests = testGroup "Trail"
 
   , testProperty "section on Trail' Line where a segment paramater is 0 or 1" $
     \t (Param a) i ->
-      let st = unLoc t # \(Line st) -> st :: SegTree V2 Double
-          b | numSegs st > 0 = (fromIntegral (i `mod` (numSegs st + 1) :: Word)) / numSegs st
-            | otherwise      = 0
+      let st = unLoc t # \(Line st') -> st' :: SegTree V2 Double
+          b | (numSegs st :: Word) > 0 = (fromIntegral (i `mod` (numSegs st + 1) :: Word)) / numSegs st
+            | otherwise                = 0
           s = section (t :: Located (Trail' Line V2 Double)) a b
       in  t `atParam` a =~ s `atParam` 0 &&
           t `atParam` b =~ s `atParam` 1
@@ -83,12 +83,12 @@ instance Arbitrary Param where
   arbitrary = Param <$> choose (-0.5, 1.5)
 
 sectionTrailSectionFixedSegment :: Located (Trail' Line V2 Double) -> Double -> Double -> Bool
-sectionTrailSectionFixedSegment t p1 p2
+sectionTrailSectionFixedSegment t k1 k2
   | null segs = t == t'
   | otherwise = aSecT =~ aSecFS && bSecT =~ bSecFS
   where
-    a = min p1 p2
-    b = max p1 p2
+    a = min k1 k2
+    b = max k1 k2
     t' = section t a b
 
     segs  = fixTrail $ mapLoc wrapLine t
