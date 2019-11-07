@@ -1,4 +1,19 @@
-## [v1.4.2.3](https://github.com/diagrams/diagrams-lib/tree/v1.4.2.2) (2018-06-11)
+## [v1.4.3](https://github.com/diagrams/diagrams-lib/tree/v1.4.3) (2019-11-06)
+
+- Bumps to upper bounds, to allow building with:
+    - `base-4.13` (tested with GHC 8.8.1)
+    - `intervals-0.9`
+    - `semigroups-0.19`
+    - `hashable-1.3`
+- Many bug fixes, including
+    - [#313](https://github.com/diagrams/diagrams-lib/issues/313) (`combineBoundaries`)
+    - [#322](https://github.com/diagrams/diagrams-lib/issues/322), [#329](https://github.com/diagrams/diagrams-lib/issues/329) (`section`)
+    - [#325](https://github.com/diagrams/diagrams-lib/pull/325)
+      (Bezier/Bezier intersection)
+    - [#339](https://github.com/diagrams/diagrams-lib/pull/339) (`perspectiveZ1`)
+- Added derived `Eq` and `Ord` instances for `FixedSegment`
+
+## [v1.4.2.3](https://github.com/diagrams/diagrams-lib/tree/v1.4.2.3) (2018-06-11)
 
 - Bug fix for `extrudeEnvelope` and friends ([#316](https://github.com/diagrams/diagrams-lib/issues/316))
 
