@@ -1,7 +1,6 @@
-{-# LANGUAGE CPP                        #-}
-#if __GLASGOW_HASKELL__ >= 707
+{-# LANGUAGE ConstraintKinds            #-}
 {-# LANGUAGE DeriveDataTypeable         #-}
-#endif
+{-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
@@ -11,7 +10,10 @@
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE UndecidableInstances       #-}
 {-# LANGUAGE ViewPatterns               #-}
-{-# LANGUAGE DeriveGeneric              #-}
+
+{-# OPTIONS_GHC -fno-warn-unused-imports #-}
+  -- for Data.Semigroup
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Path
@@ -63,10 +65,10 @@ module Diagrams.Path
 
        ) where
 
-import           Control.Arrow        ((***))
-import           Control.Lens         hiding ((#), transform, at)
-import qualified Data.Foldable        as F
-import           Data.List            (partition)
+import           Control.Arrow      ((***))
+import           Control.Lens       hiding (at, transform, ( # ))
+import qualified Data.Foldable      as F
+import           Data.List          (partition)
 import           Data.Semigroup
 import           Data.Typeable
 
@@ -82,8 +84,8 @@ import           Diagrams.Transform
 import           Linear.Metric
 import           Linear.Vector
 
-import           GHC.Generics (Generic)
-import           Data.Serialize (Serialize)
+import           Data.Serialize     (Serialize)
+import           GHC.Generics       (Generic)
 
 ------------------------------------------------------------
 --  Paths  -------------------------------------------------
@@ -95,26 +97,12 @@ import           Data.Serialize (Serialize)
 --   top of another) rather than concatenation.
 newtype Path v n = Path [Located (Trail v n)]
   deriving (Semigroup, Monoid, Generic
-#if __GLASGOW_HASKELL__ >= 707
   , Typeable
-#endif
   )
 
 -- instance (OrderedField n, Metric v, Serialize (v n), Serialize (V n (N n))) =>
 instance (OrderedField n, Metric v, Serialize (v n), Serialize (V (v n) (N (v n)))) =>
   Serialize (Path v n)
-
-#if __GLASGOW_HASKELL__ < 707
--- This should really be Typeable2 Path but since Path has kind
---   (* -> *) -> * -> *
--- not
---   * -> * -> *
--- we can only do Typeable1 (Path v). This is why the instance cannot be
--- derived.
-instance forall v. Typeable1 v => Typeable1 (Path v) where
-  typeOf1 _ = mkTyConApp (mkTyCon3 "diagrams-lib" "Diagrams.Path" "Path") [] `mkAppTy`
-              typeOf1 (undefined :: v n)
-#endif
 
 instance Wrapped (Path v n) where
   type Unwrapped (Path v n) = [Located (Trail v n)]

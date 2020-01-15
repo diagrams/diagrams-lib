@@ -1,3 +1,4 @@
+{-# LANGUAGE ConstraintKinds #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Points

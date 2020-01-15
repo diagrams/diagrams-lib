@@ -1,3 +1,49 @@
+## [v1.4.3](https://github.com/diagrams/diagrams-lib/tree/v1.4.3) (2019-11-06)
+
+- Bumps to upper bounds, to allow building with:
+    - `base-4.13` (tested with GHC 8.8.1)
+    - `intervals-0.9`
+    - `semigroups-0.19`
+    - `hashable-1.3`
+- Many bug fixes, including
+    - [#313](https://github.com/diagrams/diagrams-lib/issues/313) (`combineBoundaries`)
+    - [#322](https://github.com/diagrams/diagrams-lib/issues/322), [#329](https://github.com/diagrams/diagrams-lib/issues/329) (`section`)
+    - [#325](https://github.com/diagrams/diagrams-lib/pull/325)
+      (Bezier/Bezier intersection)
+    - [#339](https://github.com/diagrams/diagrams-lib/pull/339) (`perspectiveZ1`)
+- Added derived `Eq` and `Ord` instances for `FixedSegment`
+
+## [v1.4.2.3](https://github.com/diagrams/diagrams-lib/tree/v1.4.2.3) (2018-06-11)
+
+- Bug fix for `extrudeEnvelope` and friends ([#316](https://github.com/diagrams/diagrams-lib/issues/316))
+
+## [v1.4.2.2](https://github.com/diagrams/diagrams-lib/tree/v1.4.2.2) (2018-05-08)
+
+- Fixes for GHC < 8.0
+
+## [v1.4.2.1](https://github.com/diagrams/diagrams-lib/tree/v1.4.2.1) (2018-04-13)
+
+- Allow `base-4.11` (GHC 8.4)
+- Allow `tasty-quickcheck-0.10`
+- Bug fix for `Diagrams.TwoD.Offset.capArc` ([#310](https://github.com/diagrams/diagrams-lib/pull/310))
+
+## [v1.4.2-r1](https://github.com/diagrams/diagrams-lib/tree/v1.4.2-r1) (2017-12-20)
+
+Hackage revision to allow `tasty-1.0` in the test suite.
+
+## [v1.4.2](https://github.com/diagrams/diagrams-lib/tree/v1.4.2) (2017-12-20)
+
+- New functions:
+    - `boxGrid`, for computing a grid of regularly spaced points.
+    - `scalingRotationTo` and `scaleRotateTo`, for affine conformal 2D
+      transformations.
+- Documentation fixes:
+    - `dirBetween`
+    - `PolyOrientation`
+- Upper bound updates: allow `tasty-0.12`, `tasty-quickcheck-0.9`,
+  `tasty-hunit-0.10`, `optparse-applicative-0.14`
+- Test with GHC 8.2.2
+
 ## [v1.4.1.2](https://github.com/diagrams/diagrams-lib/tree/v1.4.1.2) (2017-06-10)
 
 - Fix test suite compilation failure [#299](https://github.com/diagrams/diagrams-lib/issues/299).

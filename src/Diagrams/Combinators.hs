@@ -1,3 +1,4 @@
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE Rank2Types            #-}
@@ -144,7 +145,7 @@ strut v = QD $ D.leafU (inj . toDeletable $ env)
 extrudeEnvelope
   :: (Metric v, OrderedField n, Monoid' m)
   => v n -> QDiagram b v n m -> QDiagram b v n m
-extrudeEnvelope = deformEnvelope 0.5
+extrudeEnvelope = deformEnvelope 1
 
 -- | @intrudeEnvelope v d@ asymmetrically \"intrudes\" the envelope of
 --   a diagram away from the given direction.  All parts of the envelope
@@ -156,7 +157,7 @@ extrudeEnvelope = deformEnvelope 0.5
 intrudeEnvelope
   :: (Metric v, OrderedField n, Monoid' m)
   => v n -> QDiagram b v n m -> QDiagram b v n m
-intrudeEnvelope = deformEnvelope (-0.5)
+intrudeEnvelope = deformEnvelope (-1)
 
 -- Utility for extrudeEnvelope / intrudeEnvelope
 deformEnvelope
@@ -166,7 +167,7 @@ deformEnvelope s v = over (envelope . _Wrapping Envelope) deformE
   where
     deformE = Option . fmap deformE' . getOption
     deformE' env v'
-        | dp > 0 = Max $ getMax (env v') + (dp * s) / norm v'
+        | dp > 0    = Max $ getMax (env v') + (dp * s) / quadrance v'
         | otherwise = env v'
       where
         dp = v' `dot` v

@@ -1,10 +1,10 @@
-{-# LANGUAGE CPP                   #-}
+{-# LANGUAGE ConstraintKinds       #-}
+{-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE StandaloneDeriving    #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
-{-# LANGUAGE DeriveGeneric         #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Located
@@ -27,9 +27,6 @@ module Diagrams.Located
     where
 
 import           Control.Lens            (Lens, Lens')
-#if __GLASGOW_HASKELL__ < 710
-import           Data.Functor            ((<$>))
-#endif
 import           Text.Read
 
 import           Linear.Affine
@@ -40,8 +37,8 @@ import           Diagrams.Core
 import           Diagrams.Core.Transform
 import           Diagrams.Parametric
 
-import           GHC.Generics (Generic)
-import           Data.Serialize (Serialize)
+import           Data.Serialize          (Serialize)
+import           GHC.Generics            (Generic)
 
 -- | \"Located\" things, /i.e./ things with a concrete location:
 --   intuitively, @Located a ~ (Point, a)@.  Wrapping a translationally
@@ -173,6 +170,8 @@ instance (InSpace v n a, Fractional n, Parametric a, Sectionable a, Codomain a ~
     => Sectionable (Located a) where
   splitAtParam (Loc x a) p = (Loc x a1, Loc (x .+^ (a `atParam` p)) a2)
     where (a1,a2) = splitAtParam a p
+
+  section (Loc x a) p1 p2 = Loc (x .+^ (a `atParam` p1)) (section a p1 p2)
 
   reverseDomain (Loc x a) = Loc (x .+^ y) (reverseDomain a)
     where y = a `atParam` domainUpper a

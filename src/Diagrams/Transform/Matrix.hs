@@ -1,5 +1,6 @@
-{-# LANGUAGE CPP            #-}
-{-# LANGUAGE MonoLocalBinds #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE MonoLocalBinds  #-}
+{-# LANGUAGE TypeFamilies    #-}
 
 -----------------------------------------------------------------------------
 -- |

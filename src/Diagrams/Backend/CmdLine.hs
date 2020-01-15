@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                       #-}
 {-# LANGUAGE ConstrainedClassMethods   #-}
 {-# LANGUAGE DeriveDataTypeable        #-}
 {-# LANGUAGE FlexibleContexts          #-}
@@ -83,12 +84,18 @@ import           Options.Applicative.Types (readerAsk)
 
 import           Control.Monad             (forM_, forever, unless, when)
 
+-- MonadFail comes from Prelude in base-4.13 and up
+#if !MIN_VERSION_base(4,13,0)
+import           Control.Monad.Fail        (MonadFail)
+#endif
+
 import           Active                    hiding (interval)
 import           Data.Char                 (isDigit)
 import           Data.Colour
 import           Data.Colour.Names
 import           Data.Colour.SRGB
 import           Data.Data
+import           Data.Functor.Identity
 import           Data.IORef
 import           Data.List                 (delete)
 import           Data.Maybe                (fromMaybe)
@@ -302,7 +309,7 @@ instance Parseable (AlphaColour Double) where
 --   example, @\"0xfc4\"@ is the same as @\"0xffcc44\"@.  When eight or six
 --   digits are given each pair of digits is a color or alpha channel with the
 --   order being red, green, blue, alpha.
-readHexColor :: (Applicative m, Monad m) => String -> m (AlphaColour Double)
+readHexColor :: (Applicative m, MonadFail m) => String -> m (AlphaColour Double)
 readHexColor cs = case cs of
   ('0':'x':hs) -> handle hs
   ('#':hs)     -> handle hs
@@ -428,10 +435,7 @@ class Mainable d where
   -- value or ending the program with an error or help message.
   -- Typically the default instance will work.  If a different help message
   -- or parsing behavior is desired a new implementation is appropriate.
-  --
-  -- Note the @d@ argument should only be needed to fix the type @d@.  Its
-  -- value should not be relied on as a parameter.
-  mainArgs :: Parseable (MainOpts d) => d -> IO (MainOpts d)
+  mainArgs :: Parseable (MainOpts d) => proxy d -> IO (MainOpts d)
   mainArgs _ = defaultOpts parser
 
   -- | Backend specific work of rendering with the given options and mainable
@@ -456,7 +460,7 @@ class Mainable d where
   -- implementation should be used to handle more complex interactions with the user.
   mainWith :: Parseable (MainOpts d) => d -> IO ()
   mainWith d = do
-    opts <- mainArgs d
+    opts <- mainArgs (Identity d)
     mainRender opts d
 
 -- | This instance allows functions resulting in something that is 'Mainable' to

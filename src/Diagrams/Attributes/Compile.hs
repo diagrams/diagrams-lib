@@ -2,6 +2,10 @@
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies        #-}
+
+{-# OPTIONS_GHC -fno-warn-unused-imports #-}
+  -- for Data.Semigroup
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Attributes.Compile
@@ -22,7 +26,7 @@ import           Data.Typeable
 import           Control.Arrow       (second)
 import           Control.Lens        ((%~), (&), _Wrapping')
 import qualified Data.HashMap.Strict as HM
-import           Data.Semigroup      ((<>))
+import           Data.Semigroup
 import           Data.Tree           (Tree (..))
 
 import           Diagrams.Core

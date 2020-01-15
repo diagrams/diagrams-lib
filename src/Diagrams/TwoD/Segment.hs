@@ -1,3 +1,4 @@
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE TypeFamilies         #-}
@@ -168,6 +169,14 @@ bezierClip eps p_ q_ = filter (allOf both inRange) -- sometimes this returns NaN
   go p q tmin tmax umin umax clip revCurves
     | isNothing chopInterval = []
 
+    -- This check happens before the subdivision
+    -- test to avoid non-termination as values
+    -- transition to within epsilon.
+    | max (umax - umin) (tmax' - tmin') < eps =
+      if revCurves -- return parameters in correct order
+      then [ (avg umin  umax,  avg tmin' tmax') ]
+      else [ (avg tmin' tmax', avg umin  umax ) ]
+
     -- split the curve if there isn't enough reduction
     | clip > 0.8 && clip' > 0.8 =
       if tmax' - tmin' > umax - umin -- split the longest segment
@@ -179,11 +188,6 @@ bezierClip eps p_ q_ = filter (allOf both inRange) -- sometimes this returns NaN
                umid = avg umin umax
            in  go ql p' umin umid tmin' tmax' clip' (not revCurves) ++
                go qr p' umid umax tmin' tmax' clip' (not revCurves)
-
-    | max (umax - umin) (tmax' - tmin') < eps =
-      if revCurves -- return parameters in correct order
-      then [ (avg umin  umax,  avg tmin' tmax') ]
-      else [ (avg tmin' tmax', avg umin  umax ) ]
 
     -- iterate with the curves reversed.
     | otherwise = go q p' umin umax tmin' tmax' clip' (not revCurves)
@@ -280,10 +284,20 @@ chopHull dmin dmax dps = do
         | otherwise = continue
 
       testAbove (p1@(P (V2 _ y1)) : p2@(P (V2 _ y2)) : ps)
-        | y1 < y2   = Nothing
-        | y2 > dmax = testAbove (p2:ps)
-        | otherwise = Just $ intersectPt dmax p1 p2
-      testAbove _   = Nothing
+        | y1 < y2      = Nothing
+        | y2 > dmax    = testAbove (p2:ps)
+        | y2 - y1 == 0 = Nothing  -- Check this condition to prevent
+                                  -- division by zero in `intersectPt`.
+        | otherwise    = Just $ intersectPt dmax p1 p2
+      testAbove _      = Nothing
+
+      -- find the x value where the line through the two points
+      -- intersect the line y=d.  Note that `y2 - y1 != 0` due
+      -- to checks above.
+      intersectPt d (P (V2 x1 y1)) (P (V2 x2 y2)) =
+          x1 + (d - y1) * (x2 - x1) / (y2 - y1)
+
+
 
 bezierToBernstein :: Fractional n => FixedSegment V2 n -> (BernsteinPoly n, BernsteinPoly n)
 bezierToBernstein seg =
@@ -296,28 +310,30 @@ bezierToBernstein seg =
 
 -- Could split this into a separate module.
 
--- | Returns @(a, b, c)@ such that @ax + by + c = 0@ is the line going through
---   @p1@ and @p2@ with @a^2 + b^2 = 1@.
-lineEquation :: Floating n => P2 n -> P2 n -> (n, n, n)
-lineEquation (P (V2 x1 y1)) (P (V2 x2 y2)) = (a, b, c)
+-- | Returns @(a, b, c, d)@ such that @ax + by + c = 0@ is the line going through
+--   @p1@ and @p2@ with @(a^2)/d + (b^2)/d = 1@.  We delay the division by
+--   @d@ as it may not be needed in all cases and @d@ may be zero.
+lineEquation :: Floating n => P2 n -> P2 n -> (n, n, n, n)
+lineEquation (P (V2 x1 y1)) (P (V2 x2 y2)) = (a, b, c, d)
   where
-    a  = a' / d
-    b  = b' / d
-    c  = -(x1*a' + y1*b') / d
-    a' = y1 - y2
-    b' = x2 - x1
-    d  = sqrt $ a'*a' + b'*b'
+    c  = -(x1*a + y1*b)
+    a = y1 - y2
+    b = x2 - x1
+    d  = a*a + b*b
 
 -- | Return the distance from a point to the line.
-lineDistance :: Floating n => P2 n -> P2 n -> P2 n -> n
-lineDistance p1 p2 (P (V2 x y)) = a*x + b*y + c
-  where (a, b, c) = lineEquation p1 p2
-
--- find the x value where the line through the two points
--- intersect the line y=d
-intersectPt :: OrderedField n => n -> P2 n -> P2 n -> n
-intersectPt d (P (V2 x1 y1)) (P (V2 x2 y2)) =
-  x1 + (d - y1) * (x2 - x1) / (y2 - y1)
+lineDistance :: (Ord n, Floating n) => P2 n -> P2 n -> P2 n -> n
+lineDistance p1 p2 p3@(P (V2 x y))
+    -- I have included the check that d' <= 0 in case
+    -- there exists some d > 0 where sqrt d == 0.  I don't
+    -- think this can happen as sqrt is at least recommended
+    -- to be within one value of correct for sqrt and near
+    -- zero values get bigger.
+    | d <= 0 || d' <= 0 = norm (p1 .-. p3)
+    | otherwise = (a*x + b*y + c) / d'
+  where
+    (a, b, c, d) = lineEquation p1 p2
+    d' = sqrt d
 
 -- clockwise :: (Num n, Ord n) => V2 n -> V2 n -> Bool
 -- clockwise a b = a `cross2` b <= 0
@@ -345,6 +361,9 @@ segLine :: InSpace v n (v n) => FixedSegment v n -> Located (v n)
 segLine (FLinear p0 p1)    = mkLine p0 p1
 segLine (FCubic p0 _ _ p3) = mkLine p0 p3
 
+-- This function uses `defEps`, but is used in functions
+-- above that take an epsilon parameter.  It would be nice
+-- to clearify the meaning of each of these epsilons.
 inRange :: (Fractional n, Ord n) => n -> Bool
 inRange x = x < (1+defEps) && x > (-defEps)
 

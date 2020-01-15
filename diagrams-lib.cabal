@@ -1,5 +1,5 @@
 Name:                diagrams-lib
-Version:             1.4.1.1
+Version:             1.4.3
 Synopsis:            Embedded domain-specific language for declarative graphics
 Description:         Diagrams is a flexible, extensible EDSL for creating
                      graphics of many types.  Graphics can be created
@@ -9,8 +9,8 @@ Description:         Diagrams is a flexible, extensible EDSL for creating
                      creating diagrams.  To get started using it, see
                      the "Diagrams" module, and refer to the tutorials and
                      documentation on the diagrams website,
-                     <http://projects.haskell.org/diagrams>.
-Homepage:            http://projects.haskell.org/diagrams
+                     <http://diagrams.github.io>.
+Homepage:            http://diagrams.github.io
 License:             BSD3
 License-file:        LICENSE
 Author:              Brent Yorgey
@@ -18,10 +18,10 @@ Maintainer:          diagrams-discuss@googlegroups.com
 Bug-reports:         http://github.com/diagrams/diagrams-lib/issues
 Category:            Graphics
 Build-type:          Simple
-Cabal-version:       >=1.10
+Cabal-version:       1.18
 Extra-source-files:  CHANGELOG.md, README.markdown, diagrams/*.svg
 Extra-doc-files:     diagrams/*.svg
-Tested-with:         GHC == 7.6.3, GHC == 7.8.4, GHC == 7.10.2, GHC == 8.0.1
+Tested-with:         GHC ==7.10.3 || ==8.0.2 || ==8.2.2 || ==8.4.3 || ==8.6.5 || ==8.8.1
 Source-repository head
   type:     git
   location: http://github.com/diagrams/diagrams-lib.git
@@ -100,11 +100,11 @@ Library
                        Diagrams.TwoD.Types,
                        Diagrams.TwoD.Vector,
                        Diagrams.Util
-  Build-depends:       base >= 4.6 && < 4.11,
-                       containers >= 0.3 && < 0.6,
+  Build-depends:       base >= 4.8 && < 4.14,
+                       containers >= 0.3 && < 0.7,
                        array >= 0.3 && < 0.6,
-                       semigroups >= 0.3.4 && < 0.19,
-                       monoid-extras >= 0.3 && < 0.5,
+                       semigroups >= 0.3.4 && < 0.20,
+                       monoid-extras >= 0.3 && < 0.6,
                        dual-tree >= 0.2 && < 0.3,
                        diagrams-core >= 1.4 && < 1.5,
                        diagrams-solve >= 0.1 && < 0.2,
@@ -112,18 +112,18 @@ Library
                        colour >= 2.3.2 && < 2.4,
                        data-default-class < 0.2,
                        fingertree >= 0.1 && < 0.2,
-                       intervals >= 0.7 && < 0.9,
-                       lens >= 4.6 && < 4.16,
+                       intervals >= 0.7 && < 0.10,
+                       lens >= 4.6 && < 4.19,
                        tagged >= 0.7,
-                       optparse-applicative >= 0.11 && < 0.15,
+                       optparse-applicative >= 0.11 && < 0.16,
                        filepath,
-                       JuicyPixels >= 3.1.5 && < 3.3,
-                       hashable >= 1.1 && < 1.3,
+                       JuicyPixels >= 3.3.4 && < 3.4,
+                       hashable >= 1.1 && < 1.4,
                        linear >= 1.20.1 && < 1.21,
                        adjunctions >= 4.0 && < 5.0,
                        distributive >=0.2.2 && < 1.0,
                        process >= 1.1 && < 1.7,
-                       fsnotify >= 0.2.1 && < 0.3,
+                       fsnotify >= 0.2.1 && < 0.4,
                        directory >= 1.2 && < 1.4,
                        unordered-containers >= 0.2 && < 0.3,
                        text >= 0.7.1 && < 1.3,
@@ -135,6 +135,8 @@ Library
                        bytestring >=0.9 && <0.11
   if impl(ghc < 7.6)
     Build-depends: ghc-prim
+  if !impl(ghc >= 8.0)
+    build-depends: fail >= 4.9.0.0 && <4.10
   Hs-source-dirs:      src
   ghc-options: -Wall
   default-language:    Haskell2010
@@ -153,14 +155,16 @@ test-suite tests
                , Diagrams.Test.Transform
                , Diagrams.Test.Transform.Matrix
                , Diagrams.Test.TwoD.Offset
+               , Diagrams.Test.TwoD.Segment
                , Diagrams.Test.TwoD
                , Diagrams.Test.Angle
                , Instances
   hs-source-dirs: test
   build-depends:       base,
-                       tasty >= 0.10 && < 0.12,
-                       tasty-hunit >= 0.9.2 && < 0.10,
-                       tasty-quickcheck >= 0.8 && < 0.10,
+                       tasty >= 0.10 && < 1.3,
+                       tasty-hunit >= 0.9.2 && < 0.11,
+                       tasty-quickcheck >= 0.8 && < 0.11,
+                       QuickCheck >= 2.7,
                        deepseq >= 1.3 && < 1.5,
                        diagrams-lib,
                        lens,

@@ -240,7 +240,7 @@ module Diagrams.TwoD
 
        , extrudeLeft, extrudeRight, extrudeBottom, extrudeTop
 
-       , rectEnvelope
+       , rectEnvelope, crop
 
          -- ** Background
 

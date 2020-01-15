@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP               #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeFamilies      #-}
+
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 -----------------------------------------------------------------------------
@@ -29,12 +30,6 @@
 -----------------------------------------------------------------------------
 
 module Diagrams.Animation.Active where
-
-#if __GLASGOW_HASKELL__ < 710
-import           Control.Applicative (liftA2, pure, (<$>))
-#else
-import           Control.Applicative (liftA2)
-#endif
 
 import           Diagrams.Core
 import           Diagrams.TrailLike

@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP                        #-}
+{-# LANGUAGE ConstraintKinds            #-}
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE DeriveFunctor              #-}
 {-# LANGUAGE ExistentialQuantification  #-}
@@ -87,9 +87,6 @@ module Diagrams.Attributes (
 
   ) where
 
-#if __GLASGOW_HASKELL__ < 710
-import           Control.Applicative
-#endif
 import           Control.Lens          hiding (none, over)
 import           Data.Colour
 import           Data.Colour.RGBSpace  (RGB (..))

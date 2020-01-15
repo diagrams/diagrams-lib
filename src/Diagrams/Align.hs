@@ -1,3 +1,4 @@
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE ConstrainedClassMethods     #-}
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE TypeFamilies         #-}
@@ -94,7 +95,7 @@ combineBoundaries
   :: (InSpace v n a, Metric v, Ord n, F.Foldable f)
   => (v n -> a -> Point v n) -> v n -> f a -> Point v n
 combineBoundaries b v fa
-    = b v $ F.maximumBy (comparing (quadrance . (.-. origin) . b v)) fa
+  = b v $ F.maximumBy (comparing (dot v . (.-.origin) . b v)) fa
 
 instance (Metric v, OrderedField n) => Alignable (Envelope v n) where
   defaultBoundary = envelopeBoundary

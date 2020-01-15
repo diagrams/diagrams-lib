@@ -1,7 +1,12 @@
+{-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TypeFamilies          #-}
+
+{-# OPTIONS_GHC -fno-warn-unused-imports #-}
+  -- for Data.Semigroup
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Combinators
@@ -31,7 +36,7 @@ module Diagrams.TwoD.Combinators
 
     , extrudeLeft, extrudeRight, extrudeBottom, extrudeTop
 
-    , rectEnvelope
+    , rectEnvelope, crop
 
     , boundingRect, bg, bgFrame
 
@@ -48,6 +53,7 @@ import           Diagrams.Attributes      (lwO)
 import           Diagrams.BoundingBox
 import           Diagrams.Combinators
 import           Diagrams.Path
+import           Diagrams.Query           (value)
 import           Diagrams.Segment
 import           Diagrams.TrailLike
 import           Diagrams.TwoD.Align
@@ -244,6 +250,11 @@ rectEnvelope :: forall b n m. (OrderedField n, Monoid' m)
      => Point V2 n -> V2 n -> QDiagram b V2 n m -> QDiagram b V2 n m
 rectEnvelope p (V2 w h) = withEnvelope (rect w h # alignBL # moveTo p :: Path V2 n)
 
+-- | A synonym for 'rectEnvelope'.
+crop :: forall b n m. (OrderedField n, Monoid' m)
+     => Point V2 n -> V2 n -> QDiagram b V2 n m -> QDiagram b V2 n m
+crop = rectEnvelope
+
 -- | Construct a bounding rectangle for an enveloped object, that is,
 --   the smallest axis-aligned rectangle which encloses the object.
 boundingRect :: ( InSpace V2 n a, SameSpace a t
@@ -254,12 +265,15 @@ boundingRect = (`boxFit` rect 1 1) . boundingBox
 
 -- | \"Set the background color\" of a diagram.  That is, place a
 --   diagram atop a bounding rectangle of the given color.
-bg :: (TypeableFloat n, Renderable (Path V2 n) b) => Colour Double -> QDiagram b V2 n Any -> QDiagram b V2 n Any
-bg c d = d <> boundingRect d # lwO 0 # fc c
+--   The background does not change the result of queries.
+bg :: (TypeableFloat n, Renderable (Path V2 n) b, Monoid' q)
+    => Colour Double -> QDiagram b V2 n q -> QDiagram b V2 n q
+bg c d = d <> boundingRect d # lwO 0 # fc c # value mempty
 
 -- | Similar to 'bg' but makes the colored background rectangle larger than
 --   the diagram. The first parameter is used to set how far the background
 --   extends beyond the diagram.
-bgFrame :: (TypeableFloat n, Renderable (Path V2 n) b)
-    => n -> Colour Double -> QDiagram b V2 n Any -> QDiagram b V2 n Any
-bgFrame f c d = d <> boundingRect (frame f d) # lwO 0 # fc c
+--   The background does not change the result of queries.
+bgFrame :: (TypeableFloat n, Renderable (Path V2 n) b, Monoid' q)
+    => n -> Colour Double -> QDiagram b V2 n q -> QDiagram b V2 n q
+bgFrame f c d = d <> boundingRect (frame f d) # lwO 0 # fc c # value mempty

@@ -2,22 +2,18 @@ language: haskell
 
 env:
   matrix:
-    - HPVER=2013.2.0.0 CABALVER=1.18
-    - HPVER=2014.2.0.0 CABALVER=1.18
-    - GHCVER=7.4.2 CABALVER=1.18
-    - GHCVER=7.6.3 CABALVER=1.18
-    - GHCVER=7.8.4 CABALVER=1.18
     - GHCVER=7.10.3 CABALVER=1.22
     - GHCVER=8.0.2 CABALVER=1.24
-    - GHCVER=8.2.1 CABALVER=1.24
+    - GHCVER=8.2.2 CABALVER=2.0
+    - GHCVER=8.4.3 CABALVER=2.2
+    - GHCVER=8.6.5 CABALVER=2.4
+    - GHCVER=8.8.1 CABALVER=3.0
     - GHCVER=head CABALVER=head
   global:
-    - HEAD_DEPS="diagrams-core diagrams-solve active monoid-extras"
-    - EXTRA_DEPS_PRE="Cabal"
+    - HEAD_DEPS="diagrams-core diagrams-solve monoid-extras"
 
 matrix:
   allow_failures:
-    - env: GHCVER=7.4.2 CABALVER=1.18
     - env: GHCVER=head CABALVER=head
 
 before_install:

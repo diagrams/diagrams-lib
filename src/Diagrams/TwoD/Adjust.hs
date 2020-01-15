@@ -1,6 +1,10 @@
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE Rank2Types       #-}
 {-# LANGUAGE TypeFamilies     #-}
+
+{-# OPTIONS_GHC -fno-warn-unused-imports #-}
+  -- for Data.Semigroup
 
 -----------------------------------------------------------------------------
 -- |
@@ -21,14 +25,14 @@ module Diagrams.TwoD.Adjust
     ) where
 
 import           Diagrams.Attributes
+import           Diagrams.BoundingBox
 import           Diagrams.Core
+import           Diagrams.Size
 import           Diagrams.TwoD.Attributes (lineTextureA)
 import           Diagrams.TwoD.Types
 import           Diagrams.Util            (( # ))
-import           Diagrams.Size
-import           Diagrams.BoundingBox
 
-import           Control.Lens             (Lens', (^.),  set)
+import           Control.Lens             (Lens', set, (^.))
 import           Data.Default.Class
 import           Data.Semigroup
 

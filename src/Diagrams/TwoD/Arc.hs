@@ -1,6 +1,11 @@
+{-# LANGUAGE ConstraintKinds  #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE ViewPatterns     #-}
 {-# LANGUAGE TypeFamilies     #-}
+{-# LANGUAGE ViewPatterns     #-}
+
+{-# OPTIONS_GHC -fno-warn-unused-imports #-}
+  -- for Data.Semigroup
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.TwoD.Arc
@@ -36,11 +41,11 @@ import           Diagrams.Trail
 import           Diagrams.TrailLike
 import           Diagrams.TwoD.Transform
 import           Diagrams.TwoD.Types
-import           Diagrams.TwoD.Vector    (unitX, unitY, unit_Y, e)
+import           Diagrams.TwoD.Vector    (e, unitX, unitY, unit_Y)
 import           Diagrams.Util           (( # ))
 
 import           Control.Lens            ((&), (<>~), (^.))
-import           Data.Semigroup          ((<>))
+import           Data.Semigroup
 
 import           Linear.Affine
 import           Linear.Metric
