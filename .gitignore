@@ -25,3 +25,5 @@ dist-newstyle/
 *.iml
 
 .ghc.environment.*
+
+stack.yaml.lock
