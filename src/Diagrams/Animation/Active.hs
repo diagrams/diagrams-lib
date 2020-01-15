@@ -31,6 +31,7 @@
 
 module Diagrams.Animation.Active where
 
+import           Control.Applicative (liftA2)
 import           Diagrams.Core
 import           Diagrams.TrailLike
 
