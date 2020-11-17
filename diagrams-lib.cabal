@@ -115,7 +115,7 @@ Library
                        intervals >= 0.7 && < 0.10,
                        lens >= 4.6 && < 4.20,
                        tagged >= 0.7,
-                       optparse-applicative >= 0.11 && < 0.16,
+                       optparse-applicative >= 0.11 && < 0.17,
                        filepath,
                        JuicyPixels >= 3.3.4 && < 3.4,
                        hashable >= 1.1 && < 1.4,

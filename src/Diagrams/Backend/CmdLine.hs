@@ -220,11 +220,17 @@ diagramLoopOpts = DiagramLoopOpts
 --   Taken from Options.Applicative.Extra but without the
 --   short option 'h'.  We want the 'h' for Height.
 helper' :: Parser (a -> a)
-helper' = abortOption ShowHelpText $ mconcat
+helper' = abortOption param $ mconcat
   [ long "help"
   , short '?'
   , help "Show this help text"
   ]
+  where
+#if MIN_VERSION_optparse_applicative(0,16,0)
+    param = ShowHelpText Nothing
+#else
+    param = ShowHelpText 
+#endif
 
 -- | Apply a parser to the command line that includes the standard
 --   program description and help behavior.  Results in parsed commands
