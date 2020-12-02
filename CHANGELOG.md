@@ -1,3 +1,10 @@
+## *(Unreleased)*
+
+- Bumps to upper bounds, to allow building with:
+    - `optparse-applicative` (tested with GHC 8.8.4 & 8.10.2)
+
+v1.4.3 (2019-11-06)
+
 ## [v1.4.3](https://github.com/diagrams/diagrams-lib/tree/v1.4.3) (2019-11-06)
 
 - Bumps to upper bounds, to allow building with:
