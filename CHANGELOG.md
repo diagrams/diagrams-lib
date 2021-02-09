@@ -1,7 +1,12 @@
 ## *(Unreleased)*
 
 - Bumps to upper bounds, to allow building with:
+    - `base-4.15` (tested with GHC 9.0.1)
     - `optparse-applicative` (tested with GHC 8.8.4 & 8.10.2)
+
+- Updated use of Kinds thoughout the package
+
+- Drop support for GHC-7.10
 
 v1.4.3 (2019-11-06)
 
