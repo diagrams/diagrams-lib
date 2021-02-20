@@ -125,4 +125,4 @@ movedFrom p = iso (moveOriginTo (negated p)) (moveOriginTo p)
 -- @
 translated :: (InSpace v n a, SameSpace a b, Transformable a, Transformable b)
            => v n -> Iso a b a b
-translated = transformed . translation
+translated v = transformed $ translation v

@@ -98,7 +98,7 @@ rotateBy = transform . rotation . review turn
 -- @
 rotated :: (InSpace V2 n a, Floating n, SameSpace a b, Transformable a, Transformable b)
         => Angle n -> Iso a b a b
-rotated = transformed . rotation
+rotated a = transformed $ rotation a
 
 -- | @rotationAbout p@ is a rotation about the point @p@ (instead of
 --   around the local origin).

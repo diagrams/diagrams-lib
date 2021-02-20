@@ -30,7 +30,7 @@ import           Linear.Vector
 
 -- | Build a matrix from a 'Transformation', ignoring the translation.
 mkMat :: (HasBasis v, Num n) => Transformation v n -> v (v n)
-mkMat t = distribute . tabulate $ apply t . unit . el
+mkMat t = distribute . tabulate $ apply t . unit . (\x -> el x)
 
 -- | Build a 3D transformation matrix in homogeneous coordinates from
 --   a 'Transformation V3'.
