@@ -25,6 +25,7 @@ import           Data.Typeable
 
 import           Control.Arrow       (second)
 import           Control.Lens        ((%~), (&), _Wrapping')
+import           Data.Kind           (Type)
 import qualified Data.HashMap.Strict as HM
 import           Data.Semigroup
 import           Data.Tree           (Tree (..))
@@ -39,8 +40,8 @@ import           Diagrams.Core.Types (RNode (..), RTree)
 -- splitFills; it's done this way to facilitate testing.
 
 class (AttributeClass (AttrType code), Typeable (PrimType code)) => SplitAttribute code where
-  type AttrType code :: *
-  type PrimType code :: *
+  type AttrType code :: Type
+  type PrimType code :: Type
 
   primOK :: code -> PrimType code -> Bool
 

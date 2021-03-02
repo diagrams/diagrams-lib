@@ -19,8 +19,8 @@ module Diagrams.Coordinates
     )
     where
 
+import           Data.Kind       (Type)
 import           Diagrams.Points
-
 import           Linear          (V2 (..), V3 (..), V4 (..))
 
 -- | Types which are instances of the @Coordinates@ class can be
@@ -36,13 +36,13 @@ import           Linear          (V2 (..), V3 (..), V4 (..))
 class Coordinates c where
 
   -- | The type of the final coordinate.
-  type FinalCoord c    :: *
+  type FinalCoord c    :: Type
 
   -- | The type of everything other than the final coordinate.
-  type PrevDim c       :: *
+  type PrevDim c       :: Type
 
   -- | Decomposition of @c@ into applications of ':&'.
-  type Decomposition c :: *
+  type Decomposition c :: Type
     -- Decomposition c = Decomposition (PrevDim c) :& FinalCoord c  (essentially)
 
   -- | Construct a value of type @c@ by providing something of one

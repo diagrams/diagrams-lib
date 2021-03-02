@@ -98,6 +98,7 @@ import           Data.Colour.SRGB
 import           Data.Data
 import           Data.Functor.Identity
 import           Data.IORef
+import           Data.Kind                 (Type)
 import           Data.List                 (delete)
 import           Data.Maybe                (fromMaybe)
 import           Data.Monoid
@@ -361,8 +362,8 @@ instance (Parseable a, Parseable b, Parseable c, Parseable d) => Parseable (a, b
 --   at once, and a type @'ResultOf' d@ that is the type of the final result from
 --   some base case instance.
 class ToResult d where
-  type Args d :: *
-  type ResultOf d :: *
+  type Args d :: Type
+  type ResultOf d :: Type
 
   toResult :: d -> Args d -> ResultOf d
 
@@ -436,7 +437,7 @@ instance ToResult d => ToResult (a -> d) where
 class Mainable d where
   -- | Associated type that describes the options which need to be parsed
   -- from the command-line and passed to @mainRender@.
-  type MainOpts d :: *
+  type MainOpts d :: Type
 
   -- | This method invokes the command-line parser resulting in an options
   -- value or ending the program with an error or help message.

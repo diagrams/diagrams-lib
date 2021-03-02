@@ -38,6 +38,7 @@ module Diagrams.TwoD.Image
 import           Codec.Picture
 
 import           Data.Colour          (AlphaColour)
+import           Data.Kind            (Type)
 import           Data.Semigroup
 import           Data.Typeable        (Typeable)
 
@@ -56,12 +57,12 @@ import           Linear.Affine
 
 data Embedded deriving Typeable
 data External deriving Typeable
-data Native (t :: *) deriving Typeable
+data Native (t :: Type) deriving Typeable
 
 -- | 'ImageData' is either a JuicyPixels @DynamicImage@ tagged as 'Embedded' or
 --   a reference tagged as 'External'. Additionally 'Native' is provided for
 --   external libraries to hook into.
-data ImageData :: * -> * where
+data ImageData :: Type -> Type where
   ImageRaster :: DynamicImage -> ImageData Embedded
   ImageRef    :: FilePath -> ImageData External
   ImageNative :: t -> ImageData (Native t)
@@ -71,7 +72,7 @@ data ImageData :: * -> * where
 --   Will typically be created by @loadImageEmb@ or @loadImageExt@ which,
 --   will handle setting the width and height to the actual width and height
 --   of the image.
-data DImage :: * -> * -> * where
+data DImage :: Type -> Type -> Type where
   DImage :: ImageData t -> Int -> Int -> Transformation V2 n -> DImage n t
   deriving Typeable
 
