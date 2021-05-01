@@ -165,7 +165,7 @@ deformEnvelope
   => n -> v n -> QDiagram b v n m -> QDiagram b v n m
 deformEnvelope s v = over (envelope . _Wrapping Envelope) deformE
   where
-    deformE = Option . fmap deformE' . getOption
+    deformE = fmap deformE'
     deformE' env v'
         | dp > 0    = Max $ getMax (env v') + (dp * s) / quadrance v'
         | otherwise = env v'
