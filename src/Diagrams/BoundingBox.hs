@@ -80,7 +80,7 @@ type instance V (NonEmptyBoundingBox v n) = v
 type instance N (NonEmptyBoundingBox v n) = n
 
 fromNonEmpty :: NonEmptyBoundingBox v n -> BoundingBox v n
-fromNonEmpty = BoundingBox . Option . Just
+fromNonEmpty = BoundingBox . Just
 
 fromMaybeEmpty :: Maybe (NonEmptyBoundingBox v n) -> BoundingBox v n
 fromMaybeEmpty = maybe emptyBox fromNonEmpty
@@ -95,7 +95,7 @@ instance (Additive v, Ord n) => Semigroup (NonEmptyBoundingBox v n) where
 -- | A bounding box is an axis-aligned region determined by two points
 --   indicating its \"lower\" and \"upper\" corners.  It can also represent
 --   an empty bounding box - the points are wrapped in @Maybe@.
-newtype BoundingBox v n = BoundingBox (Option (NonEmptyBoundingBox v n))
+newtype BoundingBox v n = BoundingBox (Maybe (NonEmptyBoundingBox v n))
   deriving (Eq, Functor)
 
 deriving instance (Additive v, Ord n) => Semigroup (BoundingBox v n)
@@ -166,7 +166,7 @@ instance Read (v n) => Read (BoundingBox v n) where
 -- | An empty bounding box.  This is the same thing as @mempty@, but it doesn't
 --   require the same type constraints that the @Monoid@ instance does.
 emptyBox :: BoundingBox v n
-emptyBox = BoundingBox $ Option Nothing
+emptyBox = BoundingBox Nothing
 
 -- | Create a bounding box from a point that is component-wise @(<=)@ than the
 --   other.  If this is not the case, then @mempty@ is returned.
@@ -196,17 +196,17 @@ boundingBox a = fromMaybeEmpty $ do
 
 -- | Queries whether the BoundingBox is empty.
 isEmptyBox :: BoundingBox v n -> Bool
-isEmptyBox (BoundingBox (Option Nothing)) = True
+isEmptyBox (BoundingBox Nothing) = True
 isEmptyBox _                              = False
 
 -- | Gets the lower and upper corners that define the bounding box.
 getCorners :: BoundingBox v n -> Maybe (Point v n, Point v n)
-getCorners (BoundingBox p) = nonEmptyCorners <$> getOption p
+getCorners (BoundingBox p) = nonEmptyCorners <$> p
 
 -- | Computes all of the corners of the bounding box.
 getAllCorners :: (Additive v, Traversable v) => BoundingBox v n -> [Point v n]
-getAllCorners (BoundingBox (Option Nothing)) = []
-getAllCorners (BoundingBox (Option (Just (NonEmptyBoundingBox (l, u)))))
+getAllCorners (BoundingBox Nothing) = []
+getAllCorners (BoundingBox (Just (NonEmptyBoundingBox (l, u))))
   = T.sequence (liftI2 (\a b -> [a,b]) l u)
 
 -- | Get the size of the bounding box - the vector from the (component-wise)

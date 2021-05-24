@@ -311,7 +311,7 @@ instance (Metric v, OrderedField n, Real n)
 --   (along with a default value) to a function on an entire trail.
 trailMeasure :: ( SegMeasure v n :>: m, FT.Measured (SegMeasure v n) t )
              => a -> (m -> a) -> t -> a
-trailMeasure d f = option d f . get . FT.measure
+trailMeasure d f = maybe d f . get . FT.measure
 
 -- | Compute the number of segments of anything measured by
 --   'SegMeasure' (/e.g./ @SegMeasure@ itself, @Segment@, @SegTree@,
