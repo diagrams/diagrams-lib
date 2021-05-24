@@ -36,12 +36,6 @@ jobs:
             allow-failure: false
           - ghc: 8.4.4
             allow-failure: false
-          - ghc: 8.2.2
-            allow-failure: false
-          - ghc: 8.0.2
-            allow-failure: false
-          - ghc: 7.10.3
-            allow-failure: false
       fail-fast: false
     steps:
       - name: apt
@@ -137,8 +131,8 @@ jobs:
           touch cabal.project
           touch cabal.project.local
           echo "packages: ${PKGDIR_diagrams_lib}" >> cabal.project
-          if [ $((HCNUMVER >= 80200)) -ne 0 ] ; then echo "package diagrams-lib" >> cabal.project ; fi
-          if [ $((HCNUMVER >= 80200)) -ne 0 ] ; then echo "    ghc-options: -Werror=missing-methods" >> cabal.project ; fi
+          echo "package diagrams-lib" >> cabal.project
+          echo "    ghc-options: -Werror=missing-methods" >> cabal.project
           cat >> cabal.project <<EOF
           EOF
           $HCPKG list --simple-output --names-only | perl -ne 'for (split /\s+/) { print "constraints: $_ installed\n" unless /^(diagrams-lib)$/; }' >> cabal.project.local
