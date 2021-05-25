@@ -1,4 +1,4 @@
-## *(Unreleased)*
+## [v1.4.4](https://github.com/diagrams/diagrams-lib/tree/v1.4.4) (2021-05-24)
 
 - Bumps to upper bounds, to allow building with:
     - `base-4.15` (tested with GHC 9.0.1)
@@ -6,9 +6,7 @@
 
 - Updated use of Kinds thoughout the package
 
-- Drop support for GHC-7.10
-
-v1.4.3 (2019-11-06)
+- Drop support for GHC 8.2 or earlier
 
 ## [v1.4.3](https://github.com/diagrams/diagrams-lib/tree/v1.4.3) (2019-11-06)
 
