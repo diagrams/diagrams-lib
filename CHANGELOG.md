@@ -1,3 +1,9 @@
+## [v1.4.4-r1](https://github.com/diagrams/diagrams-lib/tree/v1.4.4-r1) (2021-06-05)
+
+- Bumps to dependency upper bounds:
+    - Allow `tasty-1.4`
+    - Allow `bytestring-0.11`
+
 ## [v1.4.4](https://github.com/diagrams/diagrams-lib/tree/v1.4.4) (2021-05-24)
 
 - Bumps to upper bounds, to allow building with:
