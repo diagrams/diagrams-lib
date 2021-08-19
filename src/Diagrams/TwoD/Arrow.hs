@@ -18,7 +18,7 @@
 --
 -- Drawing arrows in two dimensions.  For a tutorial on drawing arrows
 -- using this module, see the diagrams website:
--- <http://projects.haskell.org/diagrams/doc/arrow.html>.
+-- <https://diagrams.github.io/doc/arrow.html>.
 --
 -----------------------------------------------------------------------------
 

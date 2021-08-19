@@ -19,7 +19,7 @@
 --
 -- Compute offsets to segments in two dimensions.  More details can be
 -- found in the manual at
--- <http://projects.haskell.org/diagrams/doc/manual.html#offsets-of-segments-trails-and-paths>.
+-- <https://diagrams.github.io/doc/manual.html#offsets-of-segments-trails-and-paths>.
 --
 -----------------------------------------------------------------------------
 module Diagrams.TwoD.Offset
