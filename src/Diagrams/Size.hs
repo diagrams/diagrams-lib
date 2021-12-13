@@ -67,6 +67,7 @@ import           Linear.Vector
 --   the dimensions.
 newtype SizeSpec v n = SizeSpec (v n)
   deriving (
+  Eq,
   Typeable,
   Functor,
   Generic,
