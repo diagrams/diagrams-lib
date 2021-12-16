@@ -1,3 +1,10 @@
+## [v1.4.5](https://github.com/diagrams/diagrams-lib/tree/v1.4.4-r2) (2021-12-16)
+
+- Allow `base-4.16` (tested with GHC 9.2.1)
+- Allow `semigroups-0.20`, `lens-5.1`, `hashable-1.4`,
+  `transformers-0.6`
+- Add `Eq` instance for `SizeSpec`
+
 ## [v1.4.4-r1](https://github.com/diagrams/diagrams-lib/tree/v1.4.4-r1) (2021-06-05)
 
 - Bumps to dependency upper bounds:
