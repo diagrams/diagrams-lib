@@ -1,4 +1,8 @@
-## [v1.4.5](https://github.com/diagrams/diagrams-lib/tree/v1.4.4-r2) (2021-12-16)
+## [v1.4.5.1](https://github.com/diagrams/diagrams-lib/tree/v1.4.5.1) (2021-12-17)
+
+- Bug fix: make things compile again under versions of `lens` before 5.1.
+
+## [v1.4.5](https://github.com/diagrams/diagrams-lib/tree/v1.4.5) (2021-12-16)
 
 - Allow `base-4.16` (tested with GHC 9.2.1)
 - Allow `semigroups-0.20`, `lens-5.1`, `hashable-1.4`,
