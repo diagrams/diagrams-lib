@@ -1,3 +1,7 @@
+## [v1.4.5.1-r1](https://github.com/diagrams/diagrams-lib/tree/v1.4.5.1) (2022-01-08)
+
+- Allow `text-2.0`
+
 ## [v1.4.5.1](https://github.com/diagrams/diagrams-lib/tree/v1.4.5.1) (2021-12-17)
 
 - Bug fix: make things compile again under versions of `lens` before 5.1.
