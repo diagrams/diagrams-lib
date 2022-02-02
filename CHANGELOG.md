@@ -1,4 +1,8 @@
-## [v1.4.5.1-r1](https://github.com/diagrams/diagrams-lib/tree/v1.4.5.1) (2022-01-08)
+## [v1.4.5.1-r2](https://github.com/diagrams/diagrams-lib/tree/v1.4.5.1-r2) (2022-02-01)
+
+- Allow `optparse-applicative-0.17`
+
+## [v1.4.5.1-r1](https://github.com/diagrams/diagrams-lib/tree/v1.4.5.1-r1) (2022-01-08)
 
 - Allow `text-2.0`
 
