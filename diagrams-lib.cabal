@@ -21,7 +21,7 @@ Build-type:          Simple
 Cabal-version:       1.18
 Extra-source-files:  CHANGELOG.md, README.markdown, diagrams/*.svg
 Extra-doc-files:     diagrams/*.svg
-Tested-with:         GHC ==8.4.4 || ==8.6.5 || ==8.8.4 || ==8.10.4 || ==9.0.1 || ==9.2.1
+Tested-with:         GHC ==8.4.4 || ==8.6.5 || ==8.8.4 || ==8.10.7 || ==9.0.2 || ==9.2.4 || ==9.4.2
 Source-repository head
   type:     git
   location: http://github.com/diagrams/diagrams-lib.git
@@ -100,7 +100,7 @@ Library
                        Diagrams.TwoD.Types,
                        Diagrams.TwoD.Vector,
                        Diagrams.Util
-  Build-depends:       base >= 4.9 && < 4.17,
+  Build-depends:       base >= 4.9 && < 4.18,
                        containers >= 0.3 && < 0.7,
                        array >= 0.3 && < 0.6,
                        semigroups >= 0.3.4 && < 0.21,
@@ -113,7 +113,7 @@ Library
                        data-default-class < 0.2,
                        fingertree >= 0.1 && < 0.2,
                        intervals >= 0.7 && < 0.10,
-                       lens >= 4.6 && < 5.2,
+                       lens >= 4.6 && < 5.3,
                        tagged >= 0.7,
                        optparse-applicative >= 0.11 && < 0.18,
                        filepath,
