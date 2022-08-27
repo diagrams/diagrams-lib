@@ -1,3 +1,7 @@
+## [v1.4.5.1-r3](https://github.com/diagrams/diagrams-lib/tree/v1.4.5.1-r3) (2022-08-27)
+
+- Allow `base-4.17` and `lens-5.2`; test with GHC 9.4
+
 ## [v1.4.5.1-r2](https://github.com/diagrams/diagrams-lib/tree/v1.4.5.1-r2) (2022-02-01)
 
 - Allow `optparse-applicative-0.17`
