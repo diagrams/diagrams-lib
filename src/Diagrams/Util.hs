@@ -41,7 +41,6 @@ import           Control.Monad.Trans
 import           Control.Monad.Trans.Maybe
 import           Data.Default.Class
 import           Data.List
-import           Data.List.Lens
 import           Data.Maybe
 import           Data.Monoid
 import           System.Directory
