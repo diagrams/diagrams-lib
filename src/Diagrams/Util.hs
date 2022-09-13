@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.Util
@@ -236,9 +238,13 @@ globalPackage = do
 maybeIO :: (MonadCatch m, MonadIO m) => IO a -> MaybeT m a
 maybeIO io = liftIO io `catchAll` const mzero
 
+-- hoistMaybe is exported from transformers as of version 0.6
+#if MIN_VERSION_transformers(0,6,0)
+#else
 -- | Lift a maybe value to a MaybeT of any monad.
 hoistMaybe :: Monad m => Maybe a -> MaybeT m a
 hoistMaybe = MaybeT . return
+#endif
 
 -- | Fold a list of 'MaybeT's that short-circuits as soon as a Just value
 --   is found (instead going through the whole list).
