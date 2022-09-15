@@ -1,3 +1,7 @@
+## [v1.4.5.3](https://github.com/diagrams/diagrams-lib/tree/v1.4.5.3) (2022-09-15)
+
+- Update to `fsnotify-0.4`
+
 ## [v1.4.5.2](https://github.com/diagrams/diagrams-lib/tree/v1.4.5.2) (2022-09-14)
 
 - Fix build with `transformers-0.6`

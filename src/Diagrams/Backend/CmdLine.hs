@@ -55,7 +55,6 @@ module Diagrams.Backend.CmdLine
   , diagramLoopOpts
   , loop
   , src
-  , interval
 
     -- * Parsing
   , Parseable(..)
@@ -111,9 +110,9 @@ import           System.Exit               (ExitCode (..))
 import           System.FilePath           (addExtension, dropExtension,
                                             replaceExtension, splitExtension,
                                             takeDirectory, takeFileName, (</>))
-import           System.FSNotify           (WatchConfig (..), defaultConfig,
+import           System.FSNotify           (defaultConfig,
                                             eventTime, watchDir,
-                                            withManagerConf)
+                                            withManagerConf, confWatchMode, WatchMode(..))
 import           System.FSNotify.Devel     (existsEvents)
 import           System.Info               (os)
 import           System.IO                 (hFlush, stdout)
@@ -154,7 +153,6 @@ makeLenses ''DiagramAnimOpts
 data DiagramLoopOpts = DiagramLoopOpts
   { _loop     :: Bool            -- ^ Flag to indicate that the program should loop creation.
   , _src      :: Maybe FilePath  -- ^ File path for the source file to recompile.
-  , _interval :: Int             -- ^ Interval in seconds at which to check for recompilation.
   }
 
 makeLenses ''DiagramLoopOpts
@@ -204,18 +202,12 @@ diagramAnimOpts = DiagramAnimOpts
 -- | CommandLine parser for 'DiagramLoopOpts'
 --   Loop is @--loop@ or @-l@.
 --   Source is @--src@ or @-s@.
---   Interval is @-i@ defaulting to one second.
 diagramLoopOpts :: Parser DiagramLoopOpts
 diagramLoopOpts = DiagramLoopOpts
   <$> switch (long "loop" <> short 'l' <> help "Run in a self-recompiling loop")
   <*> (optional . strOption)
       ( long "src" <> short 's'
      <> help "Source file to watch")
-  <*> option auto
-      ( long "interval" <> short 'i'
-     <> value 1
-     <> metavar "INTERVAL"
-     <> help "When running in a loop, check for changes every INTERVAL seconds.")
 
 -- | A hidden \"helper\" option which always fails.
 --   Taken from Options.Applicative.Extra but without the
@@ -600,8 +592,7 @@ defaultLoopRender opts = when (opts ^. loop) $ do
       newProg     = newProgName (takeFileName srcPath) prog
       timeOfDay   = take 8 . drop 11 . show . eventTime
 
-  -- Polling is only used on Windows
-  withManagerConf defaultConfig { confPollInterval = opts ^. interval } $
+  withManagerConf defaultConfig { confWatchMode = WatchModeOS } $
     \mgr -> do
       lock <- newIORef False
 
