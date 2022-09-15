@@ -1,3 +1,8 @@
+## [v1.4.5.2](https://github.com/diagrams/diagrams-lib/tree/v1.4.5.2) (2022-09-14)
+
+- Fix build with `transformers-0.6`
+- Fix some deprecation warnings
+
 ## [v1.4.5.1-r3](https://github.com/diagrams/diagrams-lib/tree/v1.4.5.1-r3) (2022-08-27)
 
 - Allow `base-4.17` and `lens-5.2`; test with GHC 9.4
