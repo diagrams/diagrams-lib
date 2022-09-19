@@ -1,4 +1,4 @@
-## [v1.4.5.3](https://github.com/diagrams/diagrams-lib/tree/v1.4.5.3) (2022-09-15)
+## [v1.4.5.3](https://github.com/diagrams/diagrams-lib/tree/v1.4.5.3) (2022-09-19)
 
 - Update to `fsnotify-0.4`
 
