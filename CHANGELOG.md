@@ -5,6 +5,7 @@
 - Revisions:
   - r1: require `lens-5.1`
   - r2: allow `mtl-2.3`
+  - r3 (3 Dec 2022): allow `linear-1.22`
 
 ## [v1.4.5.2](https://github.com/diagrams/diagrams-lib/tree/v1.4.5.2) (2022-09-14)
 
