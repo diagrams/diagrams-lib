@@ -1,6 +1,7 @@
 {-# LANGUAGE ConstraintKinds  #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TypeFamilies     #-}
+{-# LANGUAGE TypeOperators    #-}
 {-# LANGUAGE ViewPatterns     #-}
 
 {-# OPTIONS_GHC -fno-warn-unused-imports #-}

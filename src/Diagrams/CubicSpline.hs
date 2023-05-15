@@ -1,7 +1,10 @@
-{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE ConstraintKinds  #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TypeFamilies     #-}
+{-# LANGUAGE TypeOperators    #-}
+
 {-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.CubicSpline

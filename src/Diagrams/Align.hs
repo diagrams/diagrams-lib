@@ -1,8 +1,9 @@
-{-# LANGUAGE ConstraintKinds #-}
-{-# LANGUAGE ConstrainedClassMethods     #-}
-{-# LANGUAGE FlexibleContexts     #-}
-{-# LANGUAGE TypeFamilies         #-}
-{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE ConstrainedClassMethods #-}
+{-# LANGUAGE ConstraintKinds         #-}
+{-# LANGUAGE FlexibleContexts        #-}
+{-# LANGUAGE TypeFamilies            #-}
+{-# LANGUAGE TypeOperators           #-}
+{-# LANGUAGE UndecidableInstances    #-}
 
 -----------------------------------------------------------------------------
 -- |
