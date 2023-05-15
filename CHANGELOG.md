@@ -1,3 +1,8 @@
+## [v1.4.6](https://github.com/diagrams/diagrams-lib/tree/v1.4.5.3) (2023-05-15)
+
+- Allow `base-4.18`; test with GHC 9.6 (thanks to @sergv)
+- Fix some warnings (thanks to @sergv)
+
 ## [v1.4.5.3](https://github.com/diagrams/diagrams-lib/tree/v1.4.5.3) (2022-09-19)
 
 - Update to `fsnotify-0.4`
