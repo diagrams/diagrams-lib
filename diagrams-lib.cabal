@@ -19,8 +19,8 @@ Bug-reports:         http://github.com/diagrams/diagrams-lib/issues
 Category:            Graphics
 Build-type:          Simple
 Cabal-version:       1.18
-Extra-source-files:  CHANGELOG.md, README.markdown, diagrams/*.svg
-Extra-doc-files:     diagrams/*.svg
+Extra-source-files:  diagrams/*.svg
+Extra-doc-files:     CHANGELOG.md, README.markdown, diagrams/*.svg
 Tested-with:         GHC ==8.4.4 || ==8.6.5 || ==8.8.4 || ==8.10.7 || ==9.0.2 || ==9.2.4 || ==9.4.1
 Source-repository head
   type:     git
