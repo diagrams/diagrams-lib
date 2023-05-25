@@ -1,3 +1,7 @@
+## [v1.4.6-r1](https://github.com/diagrams/diagrams-lib/tree/v1.4.5.3) (2023-05-25)
+
+- Allow `optparse-applicative-0.18`
+
 ## [v1.4.6](https://github.com/diagrams/diagrams-lib/tree/v1.4.5.3) (2023-05-15)
 
 - Allow `base-4.18`; test with GHC 9.6 (thanks to @sergv)
