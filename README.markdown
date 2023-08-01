@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/diagrams/diagrams-lib.png?branch=master)](https://travis-ci.org/diagrams/diagrams-lib)
+[![Build Status](https://github.com/diagrams/diagrams-lib/actions/workflows/haskell-ci.yml/badge.svg)](https://github.com/diagrams/diagrams-lib/actions/workflows/haskell-ci.yml)
 
 The standard library for
 [diagrams](http://projects.haskell.org/diagrams/), a Haskell embedded
