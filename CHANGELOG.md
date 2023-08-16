@@ -1,4 +1,8 @@
-## [v1.4.6-r1](https://github.com/diagrams/diagrams-lib/tree/v1.4.5.3) (2023-05-25)
+## [v1.4.6-r2](https://github.com/diagrams/diagrams-lib/tree/v1.4.6-r2) (2023-08-16)
+
+- Allow `bytestring-0.12` and `deepseq-1.5`
+
+## [v1.4.6-r1](https://github.com/diagrams/diagrams-lib/tree/v1.4.6-r1) (2023-05-25)
 
 - Allow `optparse-applicative-0.18`
 
