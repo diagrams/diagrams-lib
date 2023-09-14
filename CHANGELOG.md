@@ -1,3 +1,7 @@
+## [v1.4.6-r3](https://github.com/diagrams/diagrams-lib/tree/v1.4.6-r3) (2023-09-14)
+
+- Allow `tasty-1.5`
+
 ## [v1.4.6-r2](https://github.com/diagrams/diagrams-lib/tree/v1.4.6-r2) (2023-08-16)
 
 - Allow `bytestring-0.12` and `deepseq-1.5`
