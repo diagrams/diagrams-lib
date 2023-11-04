@@ -46,6 +46,7 @@ import           Control.Lens             ((&), (.~))
 import           Data.Colour
 import           Data.Default.Class
 import           Data.Semigroup
+import           Data.Typeable
 
 import           Diagrams.Core
 
@@ -186,7 +187,7 @@ strutY d = strut (zero & _y .~ d)
 --   centered horizontally the padding may appear \"uneven\".  If this
 --   is not desired, the origin can be centered (using 'centerX')
 --   before applying @padX@.
-padX :: (Metric v, R2 v, OrderedField n, Monoid' m)
+padX :: (Metric v, R2 v, OrderedField n, Typeable n, Monoid' m)
      => n -> QDiagram b v n m -> QDiagram b v n m
 padX s d = withEnvelope (d # scaleX s) d
 
@@ -197,7 +198,7 @@ padX s d = withEnvelope (d # scaleX s) d
 --   so if the origin is not centered vertically the padding may appear
 --   \"uneven\".  If this is not desired, the origin can be centered
 --   (using 'centerY') before applying @padY@.
-padY :: (Metric v, R2 v, Monoid' m, OrderedField n)
+padY :: (Metric v, R2 v, Monoid' m, OrderedField n, Typeable n)
      => n -> QDiagram b v n m -> QDiagram b v n m
 padY s d = withEnvelope (d # scaleY s) d
 
@@ -206,7 +207,7 @@ padY s d = withEnvelope (d # scaleY s) d
 --   the envelope is inset instead.
 --
 --   See the documentation for 'extrudeEnvelope' for more information.
-extrudeLeft :: (OrderedField n, Monoid' m) => n -> QDiagram b V2 n m -> QDiagram b V2 n m
+extrudeLeft :: (OrderedField n, Typeable n, Monoid' m) => n -> QDiagram b V2 n m -> QDiagram b V2 n m
 extrudeLeft s
   | s >= 0    = extrudeEnvelope $ unitX ^* negate s
   | otherwise = intrudeEnvelope $ unitX ^* negate s
@@ -216,7 +217,7 @@ extrudeLeft s
 --   the envelope is inset instead.
 --
 --   See the documentation for 'extrudeEnvelope' for more information.
-extrudeRight :: (OrderedField n, Monoid' m) => n -> QDiagram b V2 n m -> QDiagram b V2 n m
+extrudeRight :: (OrderedField n, Typeable n, Monoid' m) => n -> QDiagram b V2 n m -> QDiagram b V2 n m
 extrudeRight s
   | s >= 0    = extrudeEnvelope $ unitX ^* s
   | otherwise = intrudeEnvelope $ unitX ^* s
@@ -226,7 +227,7 @@ extrudeRight s
 --   the envelope is inset instead.
 --
 --   See the documentation for 'extrudeEnvelope' for more information.
-extrudeBottom :: (OrderedField n, Monoid' m) => n -> QDiagram b V2 n m -> QDiagram b V2 n m
+extrudeBottom :: (OrderedField n, Typeable n, Monoid' m) => n -> QDiagram b V2 n m -> QDiagram b V2 n m
 extrudeBottom s
   | s >= 0    = extrudeEnvelope $ unitY ^* negate s
   | otherwise = intrudeEnvelope $ unitY ^* negate s
@@ -236,7 +237,7 @@ extrudeBottom s
 --   the envelope is inset instead.
 --
 --   See the documentation for 'extrudeEnvelope' for more information.
-extrudeTop :: (OrderedField n, Monoid' m) => n -> QDiagram b V2 n m -> QDiagram b V2 n m
+extrudeTop :: (OrderedField n, Typeable n, Monoid' m) => n -> QDiagram b V2 n m -> QDiagram b V2 n m
 extrudeTop s
   | s >= 0    = extrudeEnvelope $ unitY ^* s
   | otherwise = intrudeEnvelope $ unitY ^* s
@@ -246,12 +247,12 @@ extrudeTop s
 --   .+^ v@.  Useful for selecting the rectangular portion of a
 --   diagram which should actually be \"viewed\" in the final render,
 --   if you don't want to see the entire diagram.
-rectEnvelope :: forall b n m. (OrderedField n, Monoid' m)
+rectEnvelope :: forall b n m. (OrderedField n, Typeable n, Monoid' m)
      => Point V2 n -> V2 n -> QDiagram b V2 n m -> QDiagram b V2 n m
 rectEnvelope p (V2 w h) = withEnvelope (rect w h # alignBL # moveTo p :: Path V2 n)
 
 -- | A synonym for 'rectEnvelope'.
-crop :: forall b n m. (OrderedField n, Monoid' m)
+crop :: forall b n m. (OrderedField n, Typeable n, Monoid' m)
      => Point V2 n -> V2 n -> QDiagram b V2 n m -> QDiagram b V2 n m
 crop = rectEnvelope
 

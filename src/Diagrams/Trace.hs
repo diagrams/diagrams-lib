@@ -36,10 +36,11 @@ module Diagrams.Trace
 import           Diagrams.Core        (OrderedField, Point, Subdiagram, location,
                                        origin, setTrace, trace)
 import           Diagrams.Core.Trace
+import           Diagrams.Combinators (withTrace)
 
 import           Data.Maybe
 import           Data.Semigroup
-import           Diagrams.Combinators (withTrace)
+import           Data.Typeable
 
 import           Linear.Metric
 import           Linear.Vector
@@ -48,7 +49,7 @@ import           Linear.Vector
 --   beginning from the location (local origin) of the subdiagram and
 --   moving in the direction of the given vector.  If there is no such
 --   point, the origin is returned; see also 'boundaryFromMay'.
-boundaryFrom :: (OrderedField n, Metric v, Semigroup m)
+boundaryFrom :: (OrderedField n, Typeable n, Metric v, Semigroup m)
               => Subdiagram b v n m -> v n -> Point v n
 boundaryFrom s v = fromMaybe origin $ boundaryFromMay s v
 
@@ -56,7 +57,7 @@ boundaryFrom s v = fromMaybe origin $ boundaryFromMay s v
 --   beginning from the location (local origin) of the subdiagram and
 --   moving in the direction of the given vector, or @Nothing@ if
 --   there is no such point.
-boundaryFromMay :: (Metric v, OrderedField n, Semigroup m)
+boundaryFromMay :: (Metric v, OrderedField n, Typeable n, Semigroup m)
                 => Subdiagram b v n m -> v n -> Maybe (Point v n)
 boundaryFromMay s v = traceP (location s) (negated v) s
 

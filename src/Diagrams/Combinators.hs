@@ -48,6 +48,7 @@ import           Data.Monoid.MList     (inj)
 import           Data.Proxy
 import           Data.Semigroup
 import qualified Data.Tree.DUAL        as D
+import           Data.Typeable
 
 import           Diagrams.Core
 import           Diagrams.Core.Types   (QDiagram (QD))
@@ -77,13 +78,13 @@ import           Linear.Vector
 --   >     )
 --   > c = circle 0.8
 --   > withEnvelopeEx = sqNewEnv # centerXY # pad 1.5
-withEnvelope :: (InSpace v n a, Monoid' m, Enveloped a)
+withEnvelope :: (InSpace v n a, Typeable n, Monoid' m, Enveloped a)
            => a -> QDiagram b v n m -> QDiagram b v n m
 withEnvelope = setEnvelope . getEnvelope
 
 -- | Use the trace from some object as the trace for a diagram, in
 --   place of the diagram's default trace.
-withTrace :: (InSpace v n a, Metric v, OrderedField n, Monoid' m, Traced a)
+withTrace :: (InSpace v n a, Metric v, OrderedField n, Typeable n, Monoid' m, Traced a)
           => a -> QDiagram b v n m -> QDiagram b v n m
 withTrace = setTrace . getTrace
 
@@ -98,7 +99,7 @@ phantom a = QD $ D.leafU ((inj . toDeletable . getEnvelope $ a) <> (inj . toDele
 --   origin, so if the origin is not centered the padding may appear
 --   \"uneven\".  If this is not desired, the origin can be centered
 --   (using, e.g., 'centerXY' for 2D diagrams) before applying @pad@.
-pad :: (Metric v, OrderedField n, Monoid' m)
+pad :: (Metric v, OrderedField n, Typeable n, Monoid' m)
     => n -> QDiagram b v n m -> QDiagram b v n m
 pad s d = withEnvelope (d # scale s) d
 
@@ -106,7 +107,7 @@ pad s d = withEnvelope (d # scale s) d
 --   s is in the local units of the diagram. This function is similar to @pad@,
 --   only it takes an absolute quantity and pre-centering should not be
 --   necessary.
-frame :: (Metric v, OrderedField n, Monoid' m)
+frame :: (Metric v, OrderedField n, Typeable n, Monoid' m)
         => n -> QDiagram b v n m -> QDiagram b v n m
 frame s = over envelope (onEnvelope $ \f x -> f x + s)
 
@@ -143,7 +144,7 @@ strut v = QD $ D.leafU (inj . toDeletable $ env)
 --   the cosine of the difference in angle, and leaving it unchanged
 --   when this factor is negative.
 extrudeEnvelope
-  :: (Metric v, OrderedField n, Monoid' m)
+  :: (Metric v, OrderedField n, Typeable n, Monoid' m)
   => v n -> QDiagram b v n m -> QDiagram b v n m
 extrudeEnvelope = deformEnvelope 1
 
@@ -155,13 +156,13 @@ extrudeEnvelope = deformEnvelope 1
 --   Note that this could create strange inverted envelopes, where
 --   @ diameter v d < 0 @.
 intrudeEnvelope
-  :: (Metric v, OrderedField n, Monoid' m)
+  :: (Metric v, OrderedField n, Typeable n, Monoid' m)
   => v n -> QDiagram b v n m -> QDiagram b v n m
 intrudeEnvelope = deformEnvelope (-1)
 
 -- Utility for extrudeEnvelope / intrudeEnvelope
 deformEnvelope
-  :: (Metric v, OrderedField n, Monoid' m)
+  :: (Metric v, OrderedField n, Typeable n, Monoid' m)
   => n -> v n -> QDiagram b v n m -> QDiagram b v n m
 deformEnvelope s v = over (envelope . _Wrapping Envelope) deformE
   where
@@ -179,7 +180,7 @@ deformEnvelope s v = over (envelope . _Wrapping Envelope) deformE
 -- | @beneath@ is just a convenient synonym for @'flip' 'atop'@; that is,
 --   @d1 \`beneath\` d2@ is the diagram with @d2@ superimposed on top of
 --   @d1@.
-beneath :: (Metric v, OrderedField n, Monoid' m)
+beneath :: (Metric v, OrderedField n, Typeable n, Monoid' m)
      => QDiagram b v n m -> QDiagram b v n m -> QDiagram b v n m
 beneath = flip atop
 
@@ -382,7 +383,7 @@ cat' v (CatOpts { _catMethod = Distrib, _sep = s }) =
 --   >            # showOrigin
 --   >            # frame 0.1
 composeAligned
-  :: (Monoid' m, Floating n, Ord n, Metric v)
+  :: (Monoid' m, Floating n, Ord n, Typeable n, Metric v)
   => (QDiagram b v n m -> QDiagram b v n m)    -- ^ Alignment function
   -> ([QDiagram b v n m] -> QDiagram b v n m)  -- ^ Composition function
   -> ([QDiagram b v n m] -> QDiagram b v n m)

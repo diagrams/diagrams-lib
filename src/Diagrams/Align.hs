@@ -44,6 +44,7 @@ import           Diagrams.Util    (applyAll)
 import           Data.Maybe       (fromMaybe)
 import           Data.Ord         (comparing)
 import           Data.Traversable
+import           Data.Typeable
 import           Prelude
 
 import qualified Data.Foldable    as F
@@ -115,7 +116,7 @@ instance (V b ~ v, N b ~ n, Metric v, OrderedField n, Alignable b)
     => Alignable (M.Map k b) where
   defaultBoundary = combineBoundaries defaultBoundary
 
-instance (Metric v, OrderedField n, Monoid' m)
+instance (Metric v, OrderedField n, Typeable n, Monoid' m)
     => Alignable (QDiagram b v n m) where
   defaultBoundary = envelopeBoundary
 
