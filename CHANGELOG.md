@@ -1,3 +1,8 @@
+## [v1.4.6-r4](https://github.com/diagrams/diagrams-lib/tree/v1.4.6-r4) (2024-01-11)
+
+- Allow `base-4.19` and test with GHC 9.8
+- Allow `text-2.1`
+
 ## [v1.4.6-r3](https://github.com/diagrams/diagrams-lib/tree/v1.4.6-r3) (2023-09-14)
 
 - Allow `tasty-1.5`
