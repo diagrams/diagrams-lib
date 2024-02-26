@@ -1,3 +1,7 @@
+## [v1.4.6.1](https://github.com/diagrams/diagrams-lib/tree/v1.4.6.1) (2024-02-26)
+
+- Fix compilation on BSD ([#367](https://github.com/diagrams/diagrams-lib/pull/367), thanks to Finn Espen Gundersen)
+
 ## [v1.4.6-r4](https://github.com/diagrams/diagrams-lib/tree/v1.4.6-r4) (2024-01-11)
 
 - Allow `base-4.19` and test with GHC 9.8
