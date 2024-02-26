@@ -592,7 +592,7 @@ defaultLoopRender opts = when (opts ^. loop) $ do
       newProg     = newProgName (takeFileName srcPath) prog
       timeOfDay   = take 8 . drop 11 . show . eventTime
 
-  withManagerConf defaultConfig { confWatchMode = WatchModeOS } $
+  withManagerConf defaultConfig $
     \mgr -> do
       lock <- newIORef False
 
