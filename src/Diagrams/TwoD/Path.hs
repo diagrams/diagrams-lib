@@ -1,20 +1,22 @@
-{-# LANGUAGE ConstraintKinds            #-}
-{-# LANGUAGE DeriveDataTypeable         #-}
-{-# LANGUAGE FlexibleContexts           #-}
-{-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE Rank2Types                 #-}
-{-# LANGUAGE StandaloneDeriving         #-}
-{-# LANGUAGE TemplateHaskell            #-}
-{-# LANGUAGE TypeFamilies               #-}
-{-# LANGUAGE TypeOperators              #-}
-{-# LANGUAGE UndecidableInstances       #-}
-{-# LANGUAGE ViewPatterns               #-}
-
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 -----------------------------------------------------------------------------
+
+-----------------------------------------------------------------------------
+
 -- |
 -- Module      :  Diagrams.TwoD.Path
 -- Copyright   :  (c) 2011-2015 diagrams-lib team (see LICENSE)
@@ -25,69 +27,82 @@
 -- create a 2D diagram, and (eventually) perform operations such as
 -- intersection and union.  They also have a trace, whereas paths in
 -- higher dimensions do not.
---
------------------------------------------------------------------------------
+module Diagrams.TwoD.Path (
+  -- * Constructing path-based diagrams
+  stroke,
+  stroke',
+  strokePath,
+  strokeP,
+  strokePath',
+  strokeP',
+  strokeTrail,
+  strokeT,
+  strokeTrail',
+  strokeT',
+  strokeLine,
+  strokeLoop,
+  strokeLocTrail,
+  strokeLocT,
+  strokeLocLine,
+  strokeLocLoop,
 
-module Diagrams.TwoD.Path
-  ( -- * Constructing path-based diagrams
+  -- ** Stroke options
+  FillRule (..),
+  getFillRule,
+  fillRule,
+  _fillRule,
+  StrokeOpts (..),
+  vertexNames,
+  queryFillRule,
 
-    stroke, stroke'
-  , strokePath, strokeP, strokePath', strokeP'
-  , strokeTrail, strokeT, strokeTrail', strokeT'
-  , strokeLine, strokeLoop
-  , strokeLocTrail, strokeLocT, strokeLocLine, strokeLocLoop
+  -- ** Inside/outside testing
+  Crossings (..),
+  isInsideWinding,
+  isInsideEvenOdd,
 
-    -- ** Stroke options
+  -- * Clipping
+  Clip (..),
+  _Clip,
+  _clip,
+  clipBy,
+  clipTo,
+  clipped,
 
-  , FillRule(..)
-  , getFillRule, fillRule, _fillRule
-  , StrokeOpts(..), vertexNames, queryFillRule
+  -- * Intersections
+  intersectPoints,
+  intersectPoints',
+  intersectPointsP,
+  intersectPointsP',
+  intersectPointsT,
+  intersectPointsT',
+) where
 
-    -- ** Inside/outside testing
+import Control.Lens hiding (at, transform)
+import qualified Data.Foldable as F
+import Data.Semigroup
+import Data.Typeable
 
-  , Crossings (..)
-  , isInsideWinding
-  , isInsideEvenOdd
+import Data.Default.Class
 
-    -- * Clipping
+import Diagrams.Angle
+import Diagrams.Combinators (withEnvelope, withTrace)
+import Diagrams.Core
+import Diagrams.Core.Trace
+import Diagrams.Located (Located, mapLoc, unLoc)
+import Diagrams.Parametric
+import Diagrams.Path
+import Diagrams.Query
+import Diagrams.Segment
+import Diagrams.Solve.Polynomial
+import Diagrams.Trail
+import Diagrams.TrailLike
+import Diagrams.TwoD.Segment
+import Diagrams.TwoD.Types
+import Diagrams.TwoD.Vector
+import Diagrams.Util (tau)
 
-  , Clip(..), _Clip, _clip
-  , clipBy, clipTo, clipped
-
-    -- * Intersections
-
-  , intersectPoints, intersectPoints'
-  , intersectPointsP, intersectPointsP'
-  , intersectPointsT, intersectPointsT'
-  ) where
-
-import           Control.Applicative       (liftA2)
-import           Control.Lens              hiding (at, transform)
-import qualified Data.Foldable             as F
-import           Data.Semigroup
-import           Data.Typeable
-
-import           Data.Default.Class
-
-import           Diagrams.Angle
-import           Diagrams.Combinators      (withEnvelope, withTrace)
-import           Diagrams.Core
-import           Diagrams.Core.Trace
-import           Diagrams.Located          (Located, mapLoc, unLoc)
-import           Diagrams.Parametric
-import           Diagrams.Path
-import           Diagrams.Query
-import           Diagrams.Segment
-import           Diagrams.Solve.Polynomial
-import           Diagrams.Trail
-import           Diagrams.TrailLike
-import           Diagrams.TwoD.Segment
-import           Diagrams.TwoD.Types
-import           Diagrams.TwoD.Vector
-import           Diagrams.Util             (tau)
-
-import           Linear.Affine
-import           Linear.Vector
+import Linear.Affine
+import Linear.Vector
 
 ------------------------------------------------------------
 --  Trail and path traces  ---------------------------------
@@ -98,11 +113,12 @@ import           Linear.Vector
 -- XXX can the efficiency of this be improved?  See the comment in
 -- Diagrams.Path on the Enveloped instance for Trail.
 instance RealFloat n => Traced (Trail V2 n) where
-  getTrace = withLine $
+  getTrace =
+    withLine $
       foldr
         (\seg bds -> moveOriginBy (negated . atEnd $ seg) bds <> getTrace seg)
         mempty
-    . lineSegments
+        . lineSegments
 
 instance RealFloat n => Traced (Path V2 n) where
   getTrace = F.foldMap getTrace . op Path
@@ -115,14 +131,16 @@ instance RealFloat n => Traced (Path V2 n) where
 --   points lie in the interior of a (possibly self-intersecting)
 --   path.
 data FillRule
-  = Winding  -- ^ Interior points are those with a nonzero
-             --   /winding/ /number/.  See
-             --   <http://en.wikipedia.org/wiki/Nonzero-rule>.
-  | EvenOdd  -- ^ Interior points are those where a ray
-             --   extended infinitely in a particular direction crosses
-             --   the path an odd number of times. See
-             --   <http://en.wikipedia.org/wiki/Even-odd_rule>.
-    deriving (Show, Typeable, Eq, Ord)
+  = -- | Interior points are those with a nonzero
+    --   /winding/ /number/.  See
+    --   <http://en.wikipedia.org/wiki/Nonzero-rule>.
+    Winding
+  | -- | Interior points are those where a ray
+    --   extended infinitely in a particular direction crosses
+    --   the path an odd number of times. See
+    --   <http://en.wikipedia.org/wiki/Even-odd_rule>.
+    EvenOdd
+  deriving (Show, Typeable, Eq, Ord)
 
 instance AttributeClass FillRule
 instance Semigroup FillRule where
@@ -134,13 +152,10 @@ instance Default FillRule where
 -- | A record of options that control how a path is stroked.
 --   @StrokeOpts@ is an instance of 'Default', so a @StrokeOpts@
 --   records can be created using @'with' { ... }@ notation.
-data StrokeOpts a
-  = StrokeOpts
-    { _vertexNames   :: [[a]]
-
-    , _queryFillRule :: FillRule
-
-    }
+data StrokeOpts a = StrokeOpts
+  { _vertexNames :: [[a]]
+  , _queryFillRule :: FillRule
+  }
 
 makeLensesWith (generateSignatures .~ False $ lensRules) ''StrokeOpts
 
@@ -153,7 +168,6 @@ makeLensesWith (generateSignatures .~ False $ lensRules) ''StrokeOpts
 --   so on.
 --
 --   The default value is the empty list.
-
 vertexNames :: Lens (StrokeOpts a) (StrokeOpts a') [[a]] [[a']]
 
 -- | The fill rule used for determining which points are inside the path.
@@ -163,10 +177,11 @@ vertexNames :: Lens (StrokeOpts a) (StrokeOpts a') [[a]] [[a']]
 queryFillRule :: Lens' (StrokeOpts a) FillRule
 
 instance Default (StrokeOpts a) where
-  def = StrokeOpts
-        { _vertexNames    = []
-        , _queryFillRule = def
-        }
+  def =
+    StrokeOpts
+      { _vertexNames = []
+      , _queryFillRule = def
+      }
 
 -- | Convert a 'ToPath' object into a diagram.  The resulting diagram has the
 --   names 0, 1, ... assigned to each of the path's vertices.
@@ -180,8 +195,10 @@ instance Default (StrokeOpts a) where
 -- 'stroke' :: 'Located' ('Trail'' 'Loop' 'V2' 'Double') -> 'Diagram' b
 -- 'stroke' :: 'Located' ('Trail'' 'Line' 'V2' 'Double') -> 'Diagram' b
 -- @
-stroke :: (InSpace V2 n t, ToPath t, TypeableFloat n, Renderable (Path V2 n) b)
-       => t -> QDiagram b V2 n Any
+stroke ::
+  (InSpace V2 n t, ToPath t, TypeableFloat n, Renderable (Path V2 n) b) =>
+  t ->
+  QDiagram b V2 n Any
 stroke = strokeP . toPath
 
 -- | A variant of 'stroke' that takes an extra record of options to
@@ -191,101 +208,139 @@ stroke = strokeP . toPath
 --
 --   'StrokeOpts' is an instance of 'Default', so @stroke' ('with' &
 --   ... )@ syntax may be used.
-stroke' :: (InSpace V2 n t, ToPath t, TypeableFloat n, Renderable (Path V2 n) b, IsName a)
-       => StrokeOpts a -> t -> QDiagram b V2 n Any
+stroke' ::
+  (InSpace V2 n t, ToPath t, TypeableFloat n, Renderable (Path V2 n) b, IsName a) =>
+  StrokeOpts a ->
+  t ->
+  QDiagram b V2 n Any
 stroke' opts = strokeP' opts . toPath
 
 -- | 'stroke' specialised to 'Path'.
-strokeP :: (TypeableFloat n, Renderable (Path V2 n) b)
-        => Path V2 n -> QDiagram b V2 n Any
+strokeP ::
+  (TypeableFloat n, Renderable (Path V2 n) b) =>
+  Path V2 n ->
+  QDiagram b V2 n Any
 strokeP = strokeP' (def :: StrokeOpts ())
 
 -- | 'stroke' specialised to 'Path'.
-strokePath :: (TypeableFloat n, Renderable (Path V2 n) b)
-        => Path V2 n -> QDiagram b V2 n Any
+strokePath ::
+  (TypeableFloat n, Renderable (Path V2 n) b) =>
+  Path V2 n ->
+  QDiagram b V2 n Any
 strokePath = strokeP
 
-instance (TypeableFloat n, Renderable (Path V2 n) b)
-    => TrailLike (QDiagram b V2 n Any) where
+instance
+  (TypeableFloat n, Renderable (Path V2 n) b) =>
+  TrailLike (QDiagram b V2 n Any)
+  where
   trailLike = strokeP . trailLike
 
 -- | 'stroke'' specialised to 'Path'.
-strokeP' :: (TypeableFloat n, Renderable (Path V2 n) b, IsName a)
-    => StrokeOpts a -> Path V2 n -> QDiagram b V2 n Any
+strokeP' ::
+  (TypeableFloat n, Renderable (Path V2 n) b, IsName a) =>
+  StrokeOpts a ->
+  Path V2 n ->
+  QDiagram b V2 n Any
 strokeP' opts path
   | null (pLines ^. _Wrapped') = mkP pLoops
   | null (pLoops ^. _Wrapped') = mkP pLines
-  | otherwise                  = mkP pLines <> mkP pLoops
-  where
-    (pLines,pLoops) = partitionPath (isLine . unLoc) path
-    mkP p
-      = mkQD (Prim p)
-         (getEnvelope p)
-         (getTrace p)
-         (fromNames . concat $
-           zipWith zip (opts^.vertexNames) ((map . map) subPoint (pathVertices p))
-         )
-         (Query $ Any . (runFillRule (opts^.queryFillRule)) p)
+  | otherwise = mkP pLines <> mkP pLoops
+ where
+  (pLines, pLoops) = partitionPath (isLine . unLoc) path
+  mkP p =
+    mkQD
+      (Prim p)
+      (getEnvelope p)
+      (getTrace p)
+      ( fromNames . concat $
+          zipWith zip (opts ^. vertexNames) ((map . map) subPoint (pathVertices p))
+      )
+      (Query $ Any . (runFillRule (opts ^. queryFillRule)) p)
 
 -- | 'stroke'' specialised to 'Path'.
-strokePath' :: (TypeableFloat n, Renderable (Path V2 n) b, IsName a)
-    => StrokeOpts a -> Path V2 n -> QDiagram b V2 n Any
+strokePath' ::
+  (TypeableFloat n, Renderable (Path V2 n) b, IsName a) =>
+  StrokeOpts a ->
+  Path V2 n ->
+  QDiagram b V2 n Any
 strokePath' = strokeP'
 
 -- | 'stroke' specialised to 'Trail'.
-strokeTrail :: (TypeableFloat n, Renderable (Path V2 n) b)
-            => Trail V2 n -> QDiagram b V2 n Any
+strokeTrail ::
+  (TypeableFloat n, Renderable (Path V2 n) b) =>
+  Trail V2 n ->
+  QDiagram b V2 n Any
 strokeTrail = stroke . pathFromTrail
 
 -- | 'stroke' specialised to 'Trail'.
-strokeT :: (TypeableFloat n, Renderable (Path V2 n) b)
-        => Trail V2 n -> QDiagram b V2 n Any
+strokeT ::
+  (TypeableFloat n, Renderable (Path V2 n) b) =>
+  Trail V2 n ->
+  QDiagram b V2 n Any
 strokeT = strokeTrail
 
 -- | A composition of 'stroke'' and 'pathFromTrail' for conveniently
 --   converting a trail directly into a diagram.
-strokeTrail' :: (TypeableFloat n, Renderable (Path V2 n) b, IsName a)
-             => StrokeOpts a -> Trail V2 n -> QDiagram b V2 n Any
+strokeTrail' ::
+  (TypeableFloat n, Renderable (Path V2 n) b, IsName a) =>
+  StrokeOpts a ->
+  Trail V2 n ->
+  QDiagram b V2 n Any
 strokeTrail' opts = stroke' opts . pathFromTrail
 
 -- | Deprecated synonym for 'strokeTrail''.
-strokeT' :: (TypeableFloat n, Renderable (Path V2 n) b, IsName a)
-         => StrokeOpts a -> Trail V2 n -> QDiagram b V2 n Any
+strokeT' ::
+  (TypeableFloat n, Renderable (Path V2 n) b, IsName a) =>
+  StrokeOpts a ->
+  Trail V2 n ->
+  QDiagram b V2 n Any
 strokeT' = strokeTrail'
 
 -- | A composition of 'strokeT' and 'wrapLine' for conveniently
 --   converting a line directly into a diagram.
-strokeLine :: (TypeableFloat n, Renderable (Path V2 n) b)
-           => Trail' Line V2 n -> QDiagram b V2 n Any
+strokeLine ::
+  (TypeableFloat n, Renderable (Path V2 n) b) =>
+  Trail' Line V2 n ->
+  QDiagram b V2 n Any
 strokeLine = strokeT . wrapLine
 
 -- | A composition of 'strokeT' and 'wrapLoop' for conveniently
 --   converting a loop directly into a diagram.
-strokeLoop :: (TypeableFloat n, Renderable (Path V2 n) b)
-           => Trail' Loop V2 n -> QDiagram b V2 n Any
+strokeLoop ::
+  (TypeableFloat n, Renderable (Path V2 n) b) =>
+  Trail' Loop V2 n ->
+  QDiagram b V2 n Any
 strokeLoop = strokeT . wrapLoop
 
 -- | A convenience function for converting a @Located Trail@ directly
 --   into a diagram; @strokeLocTrail = stroke . trailLike@.
-strokeLocTrail :: (TypeableFloat n, Renderable (Path V2 n) b)
-               => Located (Trail V2 n) -> QDiagram b V2 n Any
+strokeLocTrail ::
+  (TypeableFloat n, Renderable (Path V2 n) b) =>
+  Located (Trail V2 n) ->
+  QDiagram b V2 n Any
 strokeLocTrail = strokeP . trailLike
 
 -- | Deprecated synonym for 'strokeLocTrail'.
-strokeLocT :: (TypeableFloat n, Renderable (Path V2 n) b)
-           => Located (Trail V2 n) -> QDiagram b V2 n Any
+strokeLocT ::
+  (TypeableFloat n, Renderable (Path V2 n) b) =>
+  Located (Trail V2 n) ->
+  QDiagram b V2 n Any
 strokeLocT = strokeLocTrail
 
 -- | A convenience function for converting a @Located@ line directly
 --   into a diagram; @strokeLocLine = stroke . trailLike . mapLoc wrapLine@.
-strokeLocLine :: (TypeableFloat n, Renderable (Path V2 n) b)
-              => Located (Trail' Line V2 n) -> QDiagram b V2 n Any
+strokeLocLine ::
+  (TypeableFloat n, Renderable (Path V2 n) b) =>
+  Located (Trail' Line V2 n) ->
+  QDiagram b V2 n Any
 strokeLocLine = strokeP . trailLike . mapLoc wrapLine
 
 -- | A convenience function for converting a @Located@ loop directly
 --   into a diagram; @strokeLocLoop = stroke . trailLike . mapLoc wrapLoop@.
-strokeLocLoop :: (TypeableFloat n, Renderable (Path V2 n) b)
-              => Located (Trail' Loop V2 n) -> QDiagram b V2 n Any
+strokeLocLoop ::
+  (TypeableFloat n, Renderable (Path V2 n) b) =>
+  Located (Trail' Loop V2 n) ->
+  QDiagram b V2 n Any
 strokeLocLoop = strokeP . trailLike . mapLoc wrapLoop
 
 ------------------------------------------------------------
@@ -336,7 +391,7 @@ instance Semigroup Crossings where
   Crossings a <> Crossings b = Crossings (a + b)
 
 instance Monoid Crossings where
-  mempty  = Crossings 0
+  mempty = Crossings 0
   mappend = (<>)
 
 instance RealFloat n => HasQuery (Located (Trail V2 n)) Crossings where
@@ -379,41 +434,49 @@ isInsideEvenOdd t = odd . sample t
 -- | Compute the sum of signed crossings of a trail starting from the
 --   given point in the positive x direction.
 trailCrossings :: RealFloat n => Point V2 n -> Located (Trail V2 n) -> Crossings
-
-  -- non-loop trails have no inside or outside, so don't contribute crossings
+-- non-loop trails have no inside or outside, so don't contribute crossings
 trailCrossings _ t | not (isLoop (unLoc t)) = 0
+trailCrossings p@(unp2 -> (x, y)) tr =
+  F.foldMap test $ fixTrail tr
+ where
+  test (FLinear a@(unp2 -> (_, ay)) b@(unp2 -> (_, by)))
+    | ay <= y && by > y && isLeft a b > 0 = 1
+    | by <= y && ay > y && isLeft a b < 0 = -1
+    | otherwise = 0
+  test
+    c@( FCubic
+          (P x1@(V2 _ x1y))
+          (P c1@(V2 _ c1y))
+          (P c2@(V2 _ c2y))
+          (P x2@(V2 _ x2y))
+        ) =
+      sum . map testT $ ts
+     where
+      ts =
+        filter (liftA2 (&&) (>= 0) (<= 1)) $
+          cubForm
+            (-x1y + 3 * c1y - 3 * c2y + x2y)
+            (3 * x1y - 6 * c1y + 3 * c2y)
+            (-3 * x1y + 3 * c1y)
+            (x1y - y)
+      testT t =
+        let (unp2 -> (px, _)) = c `atParam` t
+         in if px > x then signFromDerivAt t else 0
+      signFromDerivAt t =
+        let v =
+              (3 * t * t)
+                *^ ((-1) *^ x1 ^+^ 3 *^ c1 ^-^ 3 *^ c2 ^+^ x2)
+                ^+^ (2 * t)
+                *^ (3 *^ x1 ^-^ 6 *^ c1 ^+^ 3 *^ c2)
+                ^+^ ((-3) *^ x1 ^+^ 3 *^ c1)
+            ang = v ^. _theta . rad
+         in case () of
+              _
+                | 0 < ang && ang < tau / 2 && t < 1 -> 1
+                | -tau / 2 < ang && ang < 0 && t > 0 -> -1
+                | otherwise -> 0
 
-trailCrossings p@(unp2 -> (x,y)) tr
-  = F.foldMap test $ fixTrail tr
-  where
-    test (FLinear a@(unp2 -> (_,ay)) b@(unp2 -> (_,by)))
-      | ay <= y && by > y && isLeft a b > 0 =  1
-      | by <= y && ay > y && isLeft a b < 0 = -1
-      | otherwise                           =  0
-
-    test c@(FCubic (P x1@(V2 _ x1y))
-                   (P c1@(V2 _ c1y))
-                   (P c2@(V2 _ c2y))
-                   (P x2@(V2 _ x2y))
-           ) =
-        sum . map testT $ ts
-      where ts = filter (liftA2 (&&) (>=0) (<=1))
-               $ cubForm (-  x1y + 3*c1y - 3*c2y + x2y)
-                         ( 3*x1y - 6*c1y + 3*c2y)
-                         (-3*x1y + 3*c1y)
-                         (x1y - y)
-            testT t = let (unp2 -> (px,_)) = c `atParam` t
-                      in  if px > x then signFromDerivAt t else 0
-            signFromDerivAt t =
-              let v =  (3*t*t) *^ ((-1)*^x1 ^+^ 3*^c1 ^-^ 3*^c2 ^+^ x2)
-                   ^+^ (2*t)   *^ (3*^x1 ^-^ 6*^c1 ^+^ 3*^c2)
-                   ^+^            ((-3)*^x1 ^+^ 3*^c1)
-                  ang = v ^. _theta . rad
-              in  case () of _ | 0      < ang && ang < tau/2 && t < 1 ->  1
-                               | -tau/2 < ang && ang < 0     && t > 0 -> -1
-                               | otherwise                            ->  0
-
-    isLeft a b = cross2 (b .-. a) (p .-. a)
+  isLeft a b = cross2 (b .-. a) (p .-. a)
 
 ------------------------------------------------------------
 --  Clipping  ----------------------------------------------
@@ -437,7 +500,7 @@ instance AsEmpty (Clip n) where
 type instance V (Clip n) = V2
 type instance N (Clip n) = n
 
-instance (OrderedField n) => Transformable (Clip n) where
+instance OrderedField n => Transformable (Clip n) where
   transform t (Clip ps) = Clip (transform t ps)
 
 -- | A point inside a clip if the point is in 'All' invididual clipping
@@ -460,36 +523,44 @@ _clip = atTAttr . non' _Empty . _Clip
 --
 --   * The envelope of the diagram is unaffected.
 clipBy :: (HasStyle a, V a ~ V2, N a ~ n, TypeableFloat n) => Path V2 n -> a -> a
-clipBy = applyTAttr . Clip . (:[])
+clipBy = applyTAttr . Clip . (: [])
 
 -- | Clip a diagram to the given path setting its envelope to the
 --   pointwise minimum of the envelopes of the diagram and path. The
 --   trace consists of those parts of the original diagram's trace
 --   which fall within the clipping path, or parts of the path's trace
 --   within the original diagram.
-clipTo :: TypeableFloat n
-  => Path V2 n -> QDiagram b V2 n Any -> QDiagram b V2 n Any
+clipTo ::
+  TypeableFloat n =>
+  Path V2 n ->
+  QDiagram b V2 n Any ->
+  QDiagram b V2 n Any
 clipTo p d = setTrace intersectionTrace . toEnvelope $ clipBy p d
-  where
-    envP = appEnvelope . getEnvelope $ p
-    envD = appEnvelope . getEnvelope $ d
-    toEnvelope = case (envP, envD) of
-      (Just eP, Just eD) -> setEnvelope . mkEnvelope $ \v -> min (eP v) (eD v)
-      (_, _)             -> id
-    intersectionTrace = Trace traceIntersections
-    traceIntersections pt v =
-        -- on boundary of d, inside p
-        onSortedList (filter pInside) (appTrace (getTrace d) pt v) <>
-        -- or on boundary of p, inside d
-        onSortedList (filter dInside) (appTrace (getTrace p) pt v) where
-          newPt dist = pt .+^ v ^* dist
-          pInside dDist = runFillRule Winding p (newPt dDist)
-          dInside pDist = getAny . sample d $ newPt pDist
+ where
+  envP = appEnvelope . getEnvelope $ p
+  envD = appEnvelope . getEnvelope $ d
+  toEnvelope = case (envP, envD) of
+    (Just eP, Just eD) -> setEnvelope . mkEnvelope $ \v -> min (eP v) (eD v)
+    (_, _) -> id
+  intersectionTrace = Trace traceIntersections
+  traceIntersections pt v =
+    -- on boundary of d, inside p
+    onSortedList (filter pInside) (appTrace (getTrace d) pt v)
+      <>
+      -- or on boundary of p, inside d
+      onSortedList (filter dInside) (appTrace (getTrace p) pt v)
+   where
+    newPt dist = pt .+^ v ^* dist
+    pInside dDist = runFillRule Winding p (newPt dDist)
+    dInside pDist = getAny . sample d $ newPt pDist
 
 -- | Clip a diagram to the clip path taking the envelope and trace of the clip
 --   path.
-clipped :: TypeableFloat n
-  => Path V2 n -> QDiagram b V2 n Any -> QDiagram b V2 n Any
+clipped ::
+  TypeableFloat n =>
+  Path V2 n ->
+  QDiagram b V2 n Any ->
+  QDiagram b V2 n Any
 clipped p = withTrace p . withEnvelope p . clipBy p
 
 ------------------------------------------------------------
@@ -497,14 +568,21 @@ clipped p = withTrace p . withEnvelope p . clipBy p
 ------------------------------------------------------------
 
 -- | Find the intersect points of two objects that can be converted to a path.
-intersectPoints :: (InSpace V2 n t, SameSpace t s, ToPath t, ToPath s, OrderedField n)
-  => t -> s -> [P2 n]
+intersectPoints ::
+  (InSpace V2 n t, SameSpace t s, ToPath t, ToPath s, OrderedField n) =>
+  t ->
+  s ->
+  [P2 n]
 intersectPoints = intersectPoints' 1e-8
 
 -- | Find the intersect points of two objects that can be converted to a path
 --   within the given tolerance.
-intersectPoints' :: (InSpace V2 n t, SameSpace t s, ToPath t, ToPath s, OrderedField n)
-  => n -> t -> s -> [P2 n]
+intersectPoints' ::
+  (InSpace V2 n t, SameSpace t s, ToPath t, ToPath s, OrderedField n) =>
+  n ->
+  t ->
+  s ->
+  [P2 n]
 intersectPoints' eps t s = intersectPointsP' eps (toPath t) (toPath s)
 
 -- | Compute the intersect points between two paths.

@@ -50,12 +50,14 @@ solveCubicSplineDerivativesClosed xs = solveCyclicTriDiagonal as bs as ds 1 1
 solveCubicSplineCoefficients :: Fractional a => Bool -> [a] -> [[a]]
 solveCubicSplineCoefficients closed xs =
     [ [x,d,3*(x1-x)-2*d-d1,2*(x-x1)+d+d1]
-    | (x,x1,d,d1) <- zip4 xs' (tail xs') ds' (tail ds')
+    | (x,x1,d,d1) <- zip4 xs' (drop 1 xs') ds' (drop 1 ds')
     ]
   where
     ds | closed    = solveCubicSplineDerivativesClosed xs
        | otherwise = solveCubicSplineDerivatives xs
-    close as | closed    = as ++ [head as]
-             | otherwise = as
+    close [] = []
+    close as@(a:_)
+      | closed    = as ++ [a]
+      | otherwise = as
     xs' = close xs
     ds' = close ds

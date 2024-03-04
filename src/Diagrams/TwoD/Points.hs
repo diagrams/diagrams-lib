@@ -24,16 +24,16 @@ import Linear.Affine
 
 -- | Find the convex hull of a list of points using Andrew's monotone chain
 --   algorithm O(n log n).
---   
+--
 --   Returns clockwise list of points starting from the left-most point.
 convexHull2D :: OrderedField n => [P2 n] -> [P2 n]
-convexHull2D ps = init upper ++ reverse (tail lower)
+convexHull2D ps = init upper ++ reverse (drop 1 lower)
   where
     (upper, lower) = sortedConvexHull (sort ps)
 
--- | Find the convex hull of a set of points already sorted in the x direction. 
---   The first list of the tuple is the upper hull going clockwise from 
---   left-most to right-most point. The second is the lower hull from 
+-- | Find the convex hull of a set of points already sorted in the x direction.
+--   The first list of the tuple is the upper hull going clockwise from
+--   left-most to right-most point. The second is the lower hull from
 --   right-most to left-most in the anti-clockwise direction.
 sortedConvexHull :: OrderedField n => [P2 n] -> ([P2 n], [P2 n])
 sortedConvexHull ps = (chain True ps, chain False ps)
