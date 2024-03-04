@@ -1,16 +1,19 @@
-{-# LANGUAGE ConstraintKinds            #-}
-{-# LANGUAGE DeriveDataTypeable         #-}
-{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE RankNTypes                 #-}
-{-# LANGUAGE ScopedTypeVariables        #-}
-{-# LANGUAGE TemplateHaskell            #-}
-{-# LANGUAGE TypeFamilies               #-}
-{-# LANGUAGE TypeOperators              #-}
-{-# LANGUAGE UndecidableInstances       #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 -----------------------------------------------------------------------------
+
+-----------------------------------------------------------------------------
+
 -- |
 -- Module      :  Diagrams.TwoD.Arrow
 -- Copyright   :  (c) 2013-2015 diagrams-lib team (see LICENSE)
@@ -20,161 +23,164 @@
 -- Drawing arrows in two dimensions.  For a tutorial on drawing arrows
 -- using this module, see the diagrams website:
 -- <https://diagrams.github.io/doc/arrow.html>.
---
------------------------------------------------------------------------------
+module Diagrams.TwoD.Arrow (
+  -- * Examples
 
+  -- ** Example 1
 
-module Diagrams.TwoD.Arrow
-       ( -- * Examples
-         -- ** Example 1
--- | <<diagrams/src_Diagrams_TwoD_Arrow_example1.svg#diagram=example1&width=500>>
---
---   > -- Connecting two diagrams at their origins.
---   >
---   > sq = square 2 # showOrigin # lc darkgray # lw ultraThick
---   > ds = (sq # named "left") ||| strutX 3 ||| (sq # named "right")
---   >
---   > shaft  = cubicSpline False ( map p2 [(0, 0), (1, 0), (1, 0.2), (2, 0.2)])
---   >
---   > example1 = ds # connect' (with & arrowHead .~ dart & arrowTail .~ quill
---   >                                & arrowShaft .~ shaft
---   >                                & headLength .~ huge & tailLength .~ veryLarge)
---   >                                "left" "right" # pad 1.1
+  -- | <<diagrams/src_Diagrams_TwoD_Arrow_example1.svg#diagram=example1&width=500>>
+  --
+  --   > -- Connecting two diagrams at their origins.
+  --   >
+  --   > sq = square 2 # showOrigin # lc darkgray # lw ultraThick
+  --   > ds = (sq # named "left") ||| strutX 3 ||| (sq # named "right")
+  --   >
+  --   > shaft  = cubicSpline False ( map p2 [(0, 0), (1, 0), (1, 0.2), (2, 0.2)])
+  --   >
+  --   > example1 = ds # connect' (with & arrowHead .~ dart & arrowTail .~ quill
+  --   >                                & arrowShaft .~ shaft
+  --   >                                & headLength .~ huge & tailLength .~ veryLarge)
+  --   >                                "left" "right" # pad 1.1
 
-         -- ** Example 2
+  -- ** Example 2
 
--- | <<diagrams/src_Diagrams_TwoD_Arrow_example2.svg#diagram=example2&width=500>>
---
---   > -- Comparing connect, connectPerim, and arrowAt.
---   >
---   > oct  = octagon 1 # lc darkgray # lw ultraThick # showOrigin
---   > dias = oct # named "first" ||| strut 3 ||| oct # named "second"
---   >
---   > -- Connect two diagrams and two points on their trails.
---   > ex12 = dias # connect' (with & lengths .~ veryLarge) "first" "second"
---   >             # connectPerim' (with & lengths .~ veryLarge)
---   >        "first" "second" (15/16 @@ turn) (9/16 @@ turn)
---   >
---   > -- Place an arrow at (0,0) the size and direction of (0,1).
---   > ex3 = arrowAt origin unit_Y
---   >
---   > example2 = (ex12 <> ex3) # centerXY # pad 1.1
+  -- | <<diagrams/src_Diagrams_TwoD_Arrow_example2.svg#diagram=example2&width=500>>
+  --
+  --   > -- Comparing connect, connectPerim, and arrowAt.
+  --   >
+  --   > oct  = octagon 1 # lc darkgray # lw ultraThick # showOrigin
+  --   > dias = oct # named "first" ||| strut 3 ||| oct # named "second"
+  --   >
+  --   > -- Connect two diagrams and two points on their trails.
+  --   > ex12 = dias # connect' (with & lengths .~ veryLarge) "first" "second"
+  --   >             # connectPerim' (with & lengths .~ veryLarge)
+  --   >        "first" "second" (15/16 @@ turn) (9/16 @@ turn)
+  --   >
+  --   > -- Place an arrow at (0,0) the size and direction of (0,1).
+  --   > ex3 = arrowAt origin unit_Y
+  --   >
+  --   > example2 = (ex12 <> ex3) # centerXY # pad 1.1
 
-         -- * Creating arrows
-         arrowV
-       , arrowV'
-       , arrowAt
-       , arrowAt'
-       , arrowBetween
-       , arrowBetween'
-       , connect
-       , connect'
-       , connectPerim
-       , connectPerim'
-       , connectOutside
-       , connectOutside'
+  -- * Creating arrows
+  arrowV,
+  arrowV',
+  arrowAt,
+  arrowAt',
+  arrowBetween,
+  arrowBetween',
+  connect,
+  connect',
+  connectPerim,
+  connectPerim',
+  connectOutside,
+  connectOutside',
+  arrow,
+  arrow',
+  arrowFromLocatedTrail,
+  arrowFromLocatedTrail',
 
-       , arrow
-       , arrow'
+  -- * Options
+  ArrowOpts (..),
+  arrowHead,
+  arrowTail,
+  arrowShaft,
+  headGap,
+  tailGap,
+  gaps,
+  gap,
+  headTexture,
+  headStyle,
+  headLength,
+  tailTexture,
+  tailStyle,
+  tailLength,
+  lengths,
+  shaftTexture,
+  shaftStyle,
+  straightShaft,
+  -- | See "Diagrams.TwoD.Arrowheads" for a list of standard
+  --   arrowheads and help creating your own.
+  module Diagrams.TwoD.Arrowheads,
+) where
 
-       , arrowFromLocatedTrail
-       , arrowFromLocatedTrail'
+import Control.Lens (
+  Lens',
+  Traversal',
+  both,
+  generateSignatures,
+  lensRules,
+  makeLensesWith,
+  over,
+  view,
+  (%~),
+  (&),
+  (.~),
+  (^.),
+ )
+import Data.Default.Class
+import Data.Maybe (fromMaybe)
+import Data.Monoid.Coproduct (untangle)
+import Data.Semigroup
+import Data.Typeable
 
-         -- * Options
-       , ArrowOpts(..)
+import Data.Colour hiding (atop, over)
+import Diagrams.Core
+import Diagrams.Core.Style (unmeasureAttrs)
+import Diagrams.Core.Types (QDiaLeaf (..), mkQD')
 
-       , arrowHead
-       , arrowTail
-       , arrowShaft
-       , headGap
-       , tailGap
-       , gaps, gap
-       , headTexture
-       , headStyle
-       , headLength
-       , tailTexture
-       , tailStyle
-       , tailLength
-       , lengths
-       , shaftTexture
-       , shaftStyle
-       , straightShaft
+import Diagrams.Angle
+import Diagrams.Attributes
+import Diagrams.Direction hiding (dir)
+import Diagrams.Located (Located (..), unLoc)
+import Diagrams.Parametric
+import Diagrams.Path
+import Diagrams.Solve.Polynomial (quadForm)
+import Diagrams.Tangent (tangentAtEnd, tangentAtStart)
+import Diagrams.Trail
+import Diagrams.TwoD.Arrowheads
+import Diagrams.TwoD.Attributes
+import Diagrams.TwoD.Path (stroke, strokeT)
+import Diagrams.TwoD.Transform (reflectY, translateX)
+import Diagrams.TwoD.Types
+import Diagrams.TwoD.Vector (unitX, unit_X)
+import Diagrams.Util ((#))
 
-         -- | See "Diagrams.TwoD.Arrowheads" for a list of standard
-         --   arrowheads and help creating your own.
-       , module Diagrams.TwoD.Arrowheads
-       ) where
+import Linear.Affine
+import Linear.Metric
+import Linear.Vector
 
-import           Control.Lens              (Lens', Traversal',
-                                            generateSignatures, lensRules,
-                                            makeLensesWith, view, (%~), (&),
-                                            (.~), (^.))
-import           Data.Default.Class
-import           Data.Maybe                (fromMaybe)
-import           Data.Monoid.Coproduct     (untangle)
-import           Data.Semigroup
-import           Data.Typeable
-
-import           Data.Colour               hiding (atop)
-import           Diagrams.Core
-import           Diagrams.Core.Style       (unmeasureAttrs)
-import           Diagrams.Core.Types       (QDiaLeaf (..), mkQD')
-
-import           Diagrams.Angle
-import           Diagrams.Attributes
-import           Diagrams.Direction        hiding (dir)
-import           Diagrams.Located          (Located (..), unLoc)
-import           Diagrams.Parametric
-import           Diagrams.Path
-import           Diagrams.Solve.Polynomial (quadForm)
-import           Diagrams.Tangent          (tangentAtEnd, tangentAtStart)
-import           Diagrams.Trail
-import           Diagrams.TwoD.Arrowheads
-import           Diagrams.TwoD.Attributes
-import           Diagrams.TwoD.Path        (stroke, strokeT)
-import           Diagrams.TwoD.Transform   (reflectY, translateX)
-import           Diagrams.TwoD.Types
-import           Diagrams.TwoD.Vector      (unitX, unit_X)
-import           Diagrams.Util             (( # ))
-
-import           Linear.Affine
-import           Linear.Metric
-import           Linear.Vector
-
-
-data ArrowOpts n
-  = ArrowOpts
-    { _arrowHead  :: ArrowHT n
-    , _arrowTail  :: ArrowHT n
-    , _arrowShaft :: Trail V2 n
-    , _headGap    :: Measure n
-    , _tailGap    :: Measure n
-    , _headStyle  :: Style V2 n
-    , _headLength :: Measure n
-    , _tailStyle  :: Style V2 n
-    , _tailLength :: Measure n
-    , _shaftStyle :: Style V2 n
-    }
+data ArrowOpts n = ArrowOpts
+  { _arrowHead :: ArrowHT n
+  , _arrowTail :: ArrowHT n
+  , _arrowShaft :: Trail V2 n
+  , _headGap :: Measure n
+  , _tailGap :: Measure n
+  , _headStyle :: Style V2 n
+  , _headLength :: Measure n
+  , _tailStyle :: Style V2 n
+  , _tailLength :: Measure n
+  , _shaftStyle :: Style V2 n
+  }
 
 -- | Straight line arrow shaft.
 straightShaft :: OrderedField n => Trail V2 n
 straightShaft = trailFromOffsets [unitX]
 
 instance TypeableFloat n => Default (ArrowOpts n) where
-  def = ArrowOpts
-        { _arrowHead    = dart
-        , _arrowTail    = noTail
-        , _arrowShaft   = straightShaft
-        , _headGap      = none
-        , _tailGap      = none
-
-        -- See note [Default arrow style attributes]
-        , _headStyle    = mempty
-        , _headLength   = normal
-        , _tailStyle    = mempty
-        , _tailLength   = normal
-        , _shaftStyle   = mempty
-        }
+  def =
+    ArrowOpts
+      { _arrowHead = dart
+      , _arrowTail = noTail
+      , _arrowShaft = straightShaft
+      , _headGap = none
+      , _tailGap = none
+      , -- See note [Default arrow style attributes]
+        _headStyle = mempty
+      , _headLength = normal
+      , _tailStyle = mempty
+      , _tailLength = normal
+      , _shaftStyle = mempty
+      }
 
 makeLensesWith (lensRules & generateSignatures .~ False) ''ArrowOpts
 
@@ -195,9 +201,10 @@ tailGap :: Lens' (ArrowOpts n) (Measure n)
 
 -- | Set both the @headGap@ and @tailGap@ simultaneously.
 gaps :: Traversal' (ArrowOpts n) (Measure n)
-gaps f opts = (\h t -> opts & headGap .~ h & tailGap .~ t)
-        <$> f (opts ^. headGap)
-        <*> f (opts ^. tailGap)
+gaps f opts =
+  (\h t -> opts & headGap .~ h & tailGap .~ t)
+    <$> f (opts ^. headGap)
+    <*> f (opts ^. tailGap)
 
 -- | Same as gaps, provided for backward compatiiblity.
 gap :: Traversal' (ArrowOpts n) (Measure n)
@@ -252,23 +259,23 @@ shaftTexture = shaftStyle . _lineTexture
 -- The semigroup stucture of the lw attribute will insure that the default
 -- is only used if it has not been set in @opts@.
 shaftSty :: ArrowOpts n -> Style V2 n
-shaftSty opts = opts^.shaftStyle
+shaftSty opts = opts ^. shaftStyle
 
 -- Set the default head style. See `shaftSty`.
 headSty :: TypeableFloat n => ArrowOpts n -> Style V2 n
-headSty opts = fc black (opts^.headStyle)
+headSty opts = fc black (opts ^. headStyle)
 
 -- Set the default tail style. See `shaftSty`.
 tailSty :: TypeableFloat n => ArrowOpts n -> Style V2 n
-tailSty opts = fc black (opts^.tailStyle)
+tailSty opts = fc black (opts ^. tailStyle)
 
 -- | Calculate the length of the portion of the horizontal line that passes
 --   through the origin and is inside of p.
 xWidth :: Floating n => (Traced t, V t ~ V2, N t ~ n) => t -> n
 xWidth p = a + b
-  where
-    a = fromMaybe 0 (norm <$> traceV origin unitX p)
-    b = fromMaybe 0 (norm <$> traceV origin unit_X p)
+ where
+  a = fromMaybe 0 (norm <$> traceV origin unitX p)
+  b = fromMaybe 0 (norm <$> traceV origin unit_X p)
 
 -- | Get the line color from the shaft to use as the fill color for the joint.
 --   And set the opacity of the shaft to the current opacity.
@@ -276,12 +283,11 @@ colorJoint :: TypeableFloat n => Style V2 n -> Style V2 n
 colorJoint sStyle =
   let c = fmap getLineTexture . getAttr $ sStyle
       o = fmap getOpacity . getAttr $ sStyle
-  in
-  case (c, o) of
-      (Nothing, Nothing) -> fillColor black mempty
-      (Just t, Nothing)  -> fillTexture t mempty
-      (Nothing, Just o') -> opacity o' . fillColor black $ mempty
-      (Just t, Just o')  -> opacity o' . fillTexture t $ mempty
+   in case (c, o) of
+        (Nothing, Nothing) -> fillColor black mempty
+        (Just t, Nothing) -> fillTexture t mempty
+        (Nothing, Just o') -> opacity o' . fillColor black $ mempty
+        (Just t, Just o') -> opacity o' . fillTexture t $ mempty
 
 -- | Get line width from a style.
 widthOfJoint :: forall n. TypeableFloat n => Style V2 n -> n -> n -> n
@@ -293,31 +299,53 @@ widthOfJoint sStyle gToO nToO =
 -- | Combine the head and its joint into a single scale invariant diagram
 --   and move the origin to the attachment point. Return the diagram
 --   and its width.
-mkHead :: (TypeableFloat n, Renderable (Path V2 n) b) =>
-          n -> ArrowOpts n -> n -> n -> Bool -> (QDiagram b V2 n Any, n)
+mkHead ::
+  (TypeableFloat n, Renderable (Path V2 n) b) =>
+  n ->
+  ArrowOpts n ->
+  n ->
+  n ->
+  Bool ->
+  (QDiagram b V2 n Any, n)
 mkHead = mkHT unit_X arrowHead headSty
 
-mkTail :: (TypeableFloat n, Renderable (Path V2 n) b) =>
-          n -> ArrowOpts n -> n -> n -> Bool -> (QDiagram b V2 n Any, n)
+mkTail ::
+  (TypeableFloat n, Renderable (Path V2 n) b) =>
+  n ->
+  ArrowOpts n ->
+  n ->
+  n ->
+  Bool ->
+  (QDiagram b V2 n Any, n)
 mkTail = mkHT unitX arrowTail tailSty
 
-mkHT
-  :: (TypeableFloat n, Renderable (Path V2 n) b)
-  => V2 n -> Lens' (ArrowOpts n) (ArrowHT n) -> (ArrowOpts n -> Style V2 n)
-  -> n -> ArrowOpts n -> n -> n -> Bool -> (QDiagram b V2 n Any, n)
-mkHT xDir htProj styProj sz opts gToO nToO reflect
-    = ( (j <> ht)
-        # (if reflect then reflectY else id)
-        # moveOriginBy (jWidth *^ xDir) # lwO 0
-      , htWidth + jWidth
-      )
-  where
-    (ht', j') = (opts^.htProj) sz
-                (widthOfJoint (shaftSty opts) gToO nToO)
-    htWidth = xWidth ht'
-    jWidth  = xWidth j'
-    ht = stroke ht' # applyStyle (styProj opts)
-    j  = stroke j'  # applyStyle (colorJoint (opts^.shaftStyle))
+mkHT ::
+  (TypeableFloat n, Renderable (Path V2 n) b) =>
+  V2 n ->
+  Lens' (ArrowOpts n) (ArrowHT n) ->
+  (ArrowOpts n -> Style V2 n) ->
+  n ->
+  ArrowOpts n ->
+  n ->
+  n ->
+  Bool ->
+  (QDiagram b V2 n Any, n)
+mkHT xDir htProj styProj sz opts gToO nToO reflect =
+  ( (j <> ht)
+      # (if reflect then reflectY else id)
+      # moveOriginBy (jWidth *^ xDir)
+      # lwO 0
+  , htWidth + jWidth
+  )
+ where
+  (ht', j') =
+    (opts ^. htProj)
+      sz
+      (widthOfJoint (shaftSty opts) gToO nToO)
+  htWidth = xWidth ht'
+  jWidth = xWidth j'
+  ht = stroke ht' # applyStyle (styProj opts)
+  j = stroke j' # applyStyle (colorJoint (opts ^. shaftStyle))
 
 -- | @spine tr tw hw sz@ makes a trail with the same angles and offset
 --   as an arrow with tail width @t@w, head width @hw@ and shaft @tr@,
@@ -325,18 +353,17 @@ mkHT xDir htProj styProj sz opts gToO nToO reflect
 --   calculating the offset of an arrow.
 spine :: TypeableFloat n => Trail V2 n -> n -> n -> n -> Trail V2 n
 spine tr tw hw sz = tS <> tr # scale sz <> hS
-  where
-    tSpine = trailFromOffsets [signorm . tangentAtStart $ tr] # scale tw
-    hSpine = trailFromOffsets [signorm . tangentAtEnd $ tr] # scale hw
-    hS = if hw > 0 then hSpine else mempty
-    tS = if tw > 0 then tSpine else mempty
+ where
+  tSpine = trailFromOffsets [signorm . tangentAtStart $ tr] # scale tw
+  hSpine = trailFromOffsets [signorm . tangentAtEnd $ tr] # scale hw
+  hS = if hw > 0 then hSpine else mempty
+  tS = if tw > 0 then tSpine else mempty
 
 -- | @scaleFactor tr tw hw t@ calculates the amount required to scale
 --   a shaft trail @tr@ so that an arrow with head width @hw@ and tail
 --   width @tw@ has offset @t@.
 scaleFactor :: TypeableFloat n => Trail V2 n -> n -> n -> n -> n
-scaleFactor tr tw hw t
-
+scaleFactor tr tw hw t =
   -- Let tv be a vector representing the tail width, i.e. a vector
   -- of length tw tangent to the trail's start; similarly for hv.
   -- Let v be the vector offset of the trail.
@@ -348,30 +375,30 @@ scaleFactor tr tw hw t
   -- We can solve by squaring both sides and expanding the LHS as a
   -- dot product, resulting in a quadratic in k.
 
-  = case quadForm
-             (quadrance v)
-             (2* (v `dot` (tv ^+^ hv)))
-             (quadrance (tv ^+^ hv) - t*t)
-    of
-      []  -> 1   -- no scale works, just return 1
-      [s] -> s   -- single solution
-      ss  -> maximum ss
-        -- we will usually get both a positive and a negative solution;
-        -- return the maximum (i.e. positive) solution
-  where
-    tv = tw *^ (tangentAtStart tr # signorm)
-    hv = hw *^ (tangentAtEnd   tr # signorm)
-    v  = trailOffset tr
+  case quadForm
+    (quadrance v)
+    (2 * (v `dot` (tv ^+^ hv)))
+    (quadrance (tv ^+^ hv) - t * t) of
+    [] -> 1 -- no scale works, just return 1
+    [s] -> s -- single solution
+    ss -> maximum ss
+ where
+  -- we will usually get both a positive and a negative solution;
+  -- return the maximum (i.e. positive) solution
+
+  tv = tw *^ (tangentAtStart tr # signorm)
+  hv = hw *^ (tangentAtEnd tr # signorm)
+  v = trailOffset tr
 
 -- Calculate the approximate envelope of a horizontal arrow
 -- as if the arrow were made only of a shaft.
 arrowEnv :: TypeableFloat n => ArrowOpts n -> n -> Envelope V2 n
 arrowEnv opts len = getEnvelope horizShaft
-  where
-    horizShaft = shaft # rotate (negated (v ^. _theta)) # scale (len / m)
-    m = norm v
-    v = trailOffset shaft
-    shaft = opts ^. arrowShaft
+ where
+  horizShaft = shaft # rotate (negated (v ^. _theta)) # scale (len / m)
+  m = norm v
+  v = trailOffset shaft
+  shaft = opts ^. arrowShaft
 
 -- | @arrow len@ creates an arrow of length @len@ with default
 --   parameters, starting at the origin and ending at the point
@@ -384,92 +411,97 @@ arrow = arrow' def
 --   @(len,0)@.  In particular, it scales the given 'arrowShaft' so
 --   that the entire arrow has length @len@.
 arrow' :: (TypeableFloat n, Renderable (Path V2 n) b) => ArrowOpts n -> n -> QDiagram b V2 n Any
-arrow' opts len = mkQD' (DelayedLeaf delayedArrow)
+arrow' opts len =
+  mkQD'
+    (DelayedLeaf delayedArrow)
+    -- Currently we approximate the envelope of an arrow by using the
+    -- envelope of its shaft (see 'arrowEnv'). The trace of an arrow is empty.
+    (arrowEnv opts len)
+    mempty
+    mempty
+    mempty
+ where
+  -- Once we learn the global transformation context (da) and the two scale
+  -- factors, normal to output (n) and global to output (g), this arrow is
+  -- drawn in, we can apply it to the origin and (len,0) to find out
+  -- the actual final points between which this arrow should be
+  -- drawn.  We need to know this to draw it correctly, since the
+  -- head and tail are scale invariant, and hence the precise points
+  -- between which we need to draw the shaft do not transform
+  -- uniformly as the transformation applied to the entire arrow.
+  -- See https://github.com/diagrams/diagrams-lib/issues/112.
+  delayedArrow da g n =
+    let (trans, globalSty) = maybe mempty untangle . fst $ da
+     in dArrow globalSty trans len g n
 
-      -- Currently we approximate the envelope of an arrow by using the
-      -- envelope of its shaft (see 'arrowEnv'). The trace of an arrow is empty.
-      (arrowEnv opts len) mempty mempty mempty
+  -- Build an arrow and set its endpoints to the image under tr of origin and (len,0).
+  dArrow sty tr ln gToO nToO =
+    (h' <> t' <> shaft)
+      # moveOriginBy (tWidth *^ (unit_X # rotate tAngle))
+      # rotate (((q .-. p) ^. _theta) ^-^ (dir ^. _theta))
+      # moveTo p
+   where
+    p = origin # transform tr
+    q = origin # translateX ln # transform tr
 
-  where
+    -- Use the existing line color for head, tail, and shaft by
+    -- default (can be overridden by explicitly setting headStyle,
+    -- tailStyle, or shaftStyle).  Also use existing global line width
+    -- for shaft if not explicitly set in shaftStyle.
+    globalLC = getLineTexture <$> getAttr sty
+    opts' =
+      opts
+        & headStyle %~ maybe id fillTexture globalLC
+        & tailStyle %~ maybe id fillTexture globalLC
+        & shaftStyle %~ applyStyle sty . transform tr
 
-    -- Once we learn the global transformation context (da) and the two scale
-    -- factors, normal to output (n) and global to output (g), this arrow is
-    -- drawn in, we can apply it to the origin and (len,0) to find out
-    -- the actual final points between which this arrow should be
-    -- drawn.  We need to know this to draw it correctly, since the
-    -- head and tail are scale invariant, and hence the precise points
-    -- between which we need to draw the shaft do not transform
-    -- uniformly as the transformation applied to the entire arrow.
-    -- See https://github.com/diagrams/diagrams-lib/issues/112.
-    delayedArrow da g n =
-      let (trans, globalSty) = maybe mempty untangle . fst $ da
-      in  dArrow globalSty trans len g n
+    -- The head size, tail size, head gap, and tail gap are obtained
+    -- from the style and converted to output units.
+    scaleFromMeasure = fromMeasured gToO nToO . scaleLocal (avgScale tr)
+    hSize = scaleFromMeasure $ opts ^. headLength
+    tSize = scaleFromMeasure $ opts ^. tailLength
+    hGap = scaleFromMeasure $ opts ^. headGap
+    tGap = scaleFromMeasure $ opts ^. tailGap
 
-    -- Build an arrow and set its endpoints to the image under tr of origin and (len,0).
-    dArrow sty tr ln gToO nToO = (h' <> t' <> shaft)
-               # moveOriginBy (tWidth *^ (unit_X # rotate tAngle))
-               # rotate (((q .-. p)^._theta) ^-^ (dir^._theta))
-               # moveTo p
-      where
+    -- Make the head and tail and save their widths.
+    (h, hWidth') = mkHead hSize opts' gToO nToO (isReflection tr)
+    (t, tWidth') = mkTail tSize opts' gToO nToO (isReflection tr)
 
-        p = origin # transform tr
-        q = origin # translateX ln # transform tr
+    rawShaftTrail = opts ^. arrowShaft
+    shaftTrail =
+      rawShaftTrail
+        -- rotate it so it is pointing in the positive X direction
+        # rotate (negated . view _theta . trailOffset $ rawShaftTrail)
+        -- apply the context transformation -- in case it includes
+        -- things like flips and shears (the possibility of shears
+        -- is why we must rotate it to a neutral position first)
+        # transform tr
 
-        -- Use the existing line color for head, tail, and shaft by
-        -- default (can be overridden by explicitly setting headStyle,
-        -- tailStyle, or shaftStyle).  Also use existing global line width
-        -- for shaft if not explicitly set in shaftStyle.
-        globalLC = getLineTexture <$> getAttr sty
-        opts' = opts
-          & headStyle  %~ maybe id fillTexture globalLC
-          & tailStyle  %~ maybe id fillTexture globalLC
-          & shaftStyle %~ applyStyle sty . transform tr
+    -- Adjust the head width and tail width to take gaps into account
+    tWidth = tWidth' + tGap
+    hWidth = hWidth' + hGap
 
-        -- The head size, tail size, head gap, and tail gap are obtained
-        -- from the style and converted to output units.
-        scaleFromMeasure = fromMeasured gToO nToO . scaleLocal (avgScale tr)
-        hSize = scaleFromMeasure $ opts ^. headLength
-        tSize = scaleFromMeasure $ opts ^. tailLength
-        hGap  = scaleFromMeasure $ opts ^. headGap
-        tGap  = scaleFromMeasure $ opts ^. tailGap
+    -- Calculate the angles that the head and tail should point.
+    tAngle = tangentAtStart shaftTrail ^. _theta
+    hAngle = tangentAtEnd shaftTrail ^. _theta
 
-        -- Make the head and tail and save their widths.
-        (h, hWidth') = mkHead hSize opts' gToO nToO (isReflection tr)
-        (t, tWidth') = mkTail tSize opts' gToO nToO (isReflection tr)
+    -- Calculte the scaling factor to apply to the shaft shaftTrail so that the entire
+    -- arrow will be of length len. Then apply it to the shaft and make the
+    -- shaft into a Diagram with using its style.
+    sf = scaleFactor shaftTrail tWidth hWidth (norm (q .-. p))
+    shaftTrail' = shaftTrail # scale sf
+    shaft = strokeT shaftTrail' # applyStyle (shaftSty opts')
 
-        rawShaftTrail = opts^.arrowShaft
-        shaftTrail
-          = rawShaftTrail
-            -- rotate it so it is pointing in the positive X direction
-          # rotate (negated . view _theta . trailOffset $ rawShaftTrail)
-            -- apply the context transformation -- in case it includes
-            -- things like flips and shears (the possibility of shears
-            -- is why we must rotate it to a neutral position first)
-          # transform tr
+    -- Adjust the head and tail to point in the directions of the shaft ends.
+    h' =
+      h
+        # rotate hAngle
+        # moveTo (origin .+^ shaftTrail' `atParam` domainUpper shaftTrail')
+    t' = t # rotate tAngle
 
-        -- Adjust the head width and tail width to take gaps into account
-        tWidth = tWidth' + tGap
-        hWidth = hWidth' + hGap
-
-        -- Calculate the angles that the head and tail should point.
-        tAngle = tangentAtStart shaftTrail ^. _theta
-        hAngle = tangentAtEnd shaftTrail ^. _theta
-
-        -- Calculte the scaling factor to apply to the shaft shaftTrail so that the entire
-        -- arrow will be of length len. Then apply it to the shaft and make the
-        -- shaft into a Diagram with using its style.
-        sf = scaleFactor shaftTrail tWidth hWidth (norm (q .-. p))
-        shaftTrail' = shaftTrail # scale sf
-        shaft = strokeT shaftTrail' # applyStyle (shaftSty opts')
-
-        -- Adjust the head and tail to point in the directions of the shaft ends.
-        h' = h # rotate hAngle
-               # moveTo (origin .+^ shaftTrail' `atParam` domainUpper shaftTrail')
-        t' = t # rotate tAngle
-
-        -- Find out what direction the arrow is pointing so we can set it back
-        -- to point in the direction unitX when we are done.
-        dir = direction (trailOffset $ spine shaftTrail tWidth hWidth sf)
+    -- Find out what direction the arrow is pointing so we can set it back
+    -- to point in the direction unitX when we are done.
+    dir = direction (trailOffset $ spine shaftTrail tWidth hWidth sf)
 
 -- | @arrowBetween s e@ creates an arrow pointing from @s@ to @e@
 --   with default parameters.
@@ -480,9 +512,12 @@ arrowBetween = arrowBetween' def
 --   @e@ using the given options.  In particular, it scales and
 --   rotates @arrowShaft@ to go between @s@ and @e@, taking head,
 --   tail, and gaps into account.
-arrowBetween'
-  :: (TypeableFloat n, Renderable (Path V2 n) b) =>
-     ArrowOpts n -> Point V2 n -> Point V2 n -> QDiagram b V2 n Any
+arrowBetween' ::
+  (TypeableFloat n, Renderable (Path V2 n) b) =>
+  ArrowOpts n ->
+  Point V2 n ->
+  Point V2 n ->
+  QDiagram b V2 n Any
 arrowBetween' opts s e = arrowAt' opts s (e .-. s)
 
 -- | Create an arrow starting at s with length and direction determined by
@@ -490,14 +525,19 @@ arrowBetween' opts s e = arrowAt' opts s (e .-. s)
 arrowAt :: (TypeableFloat n, Renderable (Path V2 n) b) => Point V2 n -> V2 n -> QDiagram b V2 n Any
 arrowAt = arrowAt' def
 
-arrowAt'
-  :: (TypeableFloat n, Renderable (Path V2 n) b) =>
-     ArrowOpts n -> Point V2 n -> V2 n -> QDiagram b V2 n Any
-arrowAt' opts s v = arrow' opts len
-                  # rotate dir # moveTo s
-  where
-    len = norm v
-    dir = v ^. _theta
+arrowAt' ::
+  (TypeableFloat n, Renderable (Path V2 n) b) =>
+  ArrowOpts n ->
+  Point V2 n ->
+  V2 n ->
+  QDiagram b V2 n Any
+arrowAt' opts s v =
+  arrow' opts len
+    # rotate dir
+    # moveTo s
+ where
+  len = norm v
+  dir = v ^. _theta
 
 -- | @arrowV v@ creates an arrow with the direction and norm of
 --   the vector @v@ (with its tail at the origin), using default
@@ -507,82 +547,109 @@ arrowV = arrowV' def
 
 -- | @arrowV' v@ creates an arrow with the direction and norm of
 --   the vector @v@ (with its tail at the origin).
-arrowV'
-  :: (TypeableFloat n, Renderable (Path V2 n) b)
-  => ArrowOpts n -> V2 n -> QDiagram b V2 n Any
+arrowV' ::
+  (TypeableFloat n, Renderable (Path V2 n) b) =>
+  ArrowOpts n ->
+  V2 n ->
+  QDiagram b V2 n Any
 arrowV' opts = arrowAt' opts origin
 
 -- | Turn a located trail into a default arrow by putting an
 --   arrowhead at the end of the trail.
-arrowFromLocatedTrail
-  :: (Renderable (Path V2 n) b, RealFloat n, Typeable n)
-  => Located (Trail V2 n) -> QDiagram b V2 n Any
+arrowFromLocatedTrail ::
+  (Renderable (Path V2 n) b, RealFloat n, Typeable n) =>
+  Located (Trail V2 n) ->
+  QDiagram b V2 n Any
 arrowFromLocatedTrail = arrowFromLocatedTrail' def
 
 -- | Turn a located trail into an arrow using the given options.
-arrowFromLocatedTrail'
-  :: (Renderable (Path V2 n) b, RealFloat n, Typeable n)
-  => ArrowOpts n -> Located (Trail V2 n) -> QDiagram b V2 n Any
+arrowFromLocatedTrail' ::
+  (Renderable (Path V2 n) b, RealFloat n, Typeable n) =>
+  ArrowOpts n ->
+  Located (Trail V2 n) ->
+  QDiagram b V2 n Any
 arrowFromLocatedTrail' opts trail = arrowBetween' opts' start end
-  where
-    opts' = opts & arrowShaft .~ unLoc trail
-    start = atStart trail
-    end   = atEnd trail
+ where
+  opts' = opts & arrowShaft .~ unLoc trail
+  start = atStart trail
+  end = atEnd trail
 
 -- | Connect two diagrams with a straight arrow.
-connect
-  :: (TypeableFloat n, Renderable (Path V2 n) b, IsName n1, IsName n2)
-  => n1 -> n2 -> QDiagram b V2 n Any -> QDiagram b V2 n Any
+connect ::
+  (TypeableFloat n, Renderable (Path V2 n) b, IsName n1, IsName n2) =>
+  n1 ->
+  n2 ->
+  QDiagram b V2 n Any ->
+  QDiagram b V2 n Any
 connect = connect' def
 
 -- | Connect two diagrams with an arbitrary arrow.
-connect'
-  :: (TypeableFloat n, Renderable (Path V2 n) b, IsName n1, IsName n2)
-  => ArrowOpts n -> n1 -> n2 -> QDiagram b V2 n Any -> QDiagram b V2 n Any
+connect' ::
+  (TypeableFloat n, Renderable (Path V2 n) b, IsName n1, IsName n2) =>
+  ArrowOpts n ->
+  n1 ->
+  n2 ->
+  QDiagram b V2 n Any ->
+  QDiagram b V2 n Any
 connect' opts n1 n2 =
   withName n1 $ \sub1 ->
-  withName n2 $ \sub2 ->
-    let [s,e] = map location [sub1, sub2]
-    in  atop (arrowBetween' opts s e)
+    withName n2 $ \sub2 ->
+      let (s, e) = over both location (sub1, sub2)
+       in atop (arrowBetween' opts s e)
 
 -- | Connect two diagrams at point on the perimeter of the diagrams, choosen
 --   by angle.
-connectPerim
-  :: (TypeableFloat n, Renderable (Path V2 n) b, IsName n1, IsName n2)
- => n1 -> n2 -> Angle n -> Angle n
-  -> QDiagram b V2 n Any -> QDiagram b V2 n Any
+connectPerim ::
+  (TypeableFloat n, Renderable (Path V2 n) b, IsName n1, IsName n2) =>
+  n1 ->
+  n2 ->
+  Angle n ->
+  Angle n ->
+  QDiagram b V2 n Any ->
+  QDiagram b V2 n Any
 connectPerim = connectPerim' def
 
-connectPerim'
-  :: (TypeableFloat n, Renderable (Path V2 n) b, IsName n1, IsName n2)
-  => ArrowOpts n -> n1 -> n2 -> Angle n -> Angle n
-  -> QDiagram b V2 n Any -> QDiagram b V2 n Any
+connectPerim' ::
+  (TypeableFloat n, Renderable (Path V2 n) b, IsName n1, IsName n2) =>
+  ArrowOpts n ->
+  n1 ->
+  n2 ->
+  Angle n ->
+  Angle n ->
+  QDiagram b V2 n Any ->
+  QDiagram b V2 n Any
 connectPerim' opts n1 n2 a1 a2 =
   withName n1 $ \sub1 ->
-  withName n2 $ \sub2 ->
-    let [os, oe] = map location [sub1, sub2]
-        s = fromMaybe os (maxTraceP os (unitX # rotate a1) sub1)
-        e = fromMaybe oe (maxTraceP oe (unitX # rotate a2) sub2)
-    in  atop (arrowBetween' opts s e)
+    withName n2 $ \sub2 ->
+      let (os, oe) = over both location (sub1, sub2)
+          s = fromMaybe os (maxTraceP os (unitX # rotate a1) sub1)
+          e = fromMaybe oe (maxTraceP oe (unitX # rotate a2) sub2)
+       in atop (arrowBetween' opts s e)
 
 -- | Draw an arrow from diagram named "n1" to diagram named "n2".  The
 --   arrow lies on the line between the centres of the diagrams, but is
 --   drawn so that it stops at the boundaries of the diagrams, using traces
 --   to find the intersection points.
-connectOutside
-  :: (TypeableFloat n, Renderable (Path V2 n) b, IsName n1, IsName n2)
-  => n1 -> n2 -> QDiagram b V2 n Any -> QDiagram b V2 n Any
+connectOutside ::
+  (TypeableFloat n, Renderable (Path V2 n) b, IsName n1, IsName n2) =>
+  n1 ->
+  n2 ->
+  QDiagram b V2 n Any ->
+  QDiagram b V2 n Any
 connectOutside = connectOutside' def
 
-connectOutside'
-  :: (TypeableFloat n, Renderable (Path V2 n) b, IsName n1, IsName n2)
-  => ArrowOpts n -> n1 -> n2 -> QDiagram b V2 n Any -> QDiagram b V2 n Any
+connectOutside' ::
+  (TypeableFloat n, Renderable (Path V2 n) b, IsName n1, IsName n2) =>
+  ArrowOpts n ->
+  n1 ->
+  n2 ->
+  QDiagram b V2 n Any ->
+  QDiagram b V2 n Any
 connectOutside' opts n1 n2 =
   withName n1 $ \b1 ->
-  withName n2 $ \b2 ->
-    let v = location b2 .-. location b1
-        midpoint = location b1 .+^ (v ^/ 2)
-        s' = fromMaybe (location b1) $ traceP midpoint (negated v) b1
-        e' = fromMaybe (location b2) $ traceP midpoint v b2
-    in
-      atop (arrowBetween' opts s' e')
+    withName n2 $ \b2 ->
+      let v = location b2 .-. location b1
+          midpoint = location b1 .+^ (v ^/ 2)
+          s' = fromMaybe (location b1) $ traceP midpoint (negated v) b1
+          e' = fromMaybe (location b2) $ traceP midpoint v b2
+       in atop (arrowBetween' opts s' e')
