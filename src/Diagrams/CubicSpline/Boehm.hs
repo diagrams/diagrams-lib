@@ -33,7 +33,8 @@ import           Diagrams.Located   (at, loc, unLoc)
 import           Diagrams.Segment   (FixedSegment (..), fromFixedSeg)
 import           Diagrams.TrailLike (TrailLike, fromLocSegments)
 import           Diagrams.Util      (iterateN)
-import           Linear.Vector      (Additive, lerp)
+import           Linear.Vector      (Additive)
+import           Linear.Vector.Compat (lerp)
 
 type BSpline v n = [Point v n]
 
@@ -41,7 +42,7 @@ type BSpline v n = [Point v n]
 --   which lies at parameter t, if x has parameter a and y has parameter b.
 --   The usual @lerp@ arises by giving x parameter 0 and y parameter 1.
 affineCombo :: (Additive f, Fractional a) => a -> a -> a -> f a -> f a -> f a
-affineCombo a b t x y = lerp ((t-a)/(b-a)) y x
+affineCombo a b t = lerp ((t-a)/(b-a))
 
 -- | @windows k xs@ yields all the length-@k@ windows from @xs@, e.g.
 --   @windows 3 [a,b,c,d,e] == [[a,b,c], [b,c,d], [c,d,e]]@.

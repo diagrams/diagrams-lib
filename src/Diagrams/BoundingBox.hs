@@ -69,7 +69,8 @@ import           Control.Applicative
 import           Data.Traversable        as T
 import           Linear.Affine
 import           Linear.Metric
-import           Linear.Vector
+import           Linear.Vector           hiding (lerp)
+import           Linear.Vector.Compat    (lerp)
 
 -- Unexported utility newtype
 

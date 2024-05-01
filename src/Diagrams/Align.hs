@@ -52,7 +52,8 @@ import qualified Data.Set         as S
 
 import           Linear.Affine
 import           Linear.Metric
-import           Linear.Vector
+import           Linear.Vector        (negated)
+import           Linear.Vector.Compat (lerp)
 
 -- | Class of things which can be aligned.
 class Alignable a where
@@ -78,8 +79,8 @@ class Alignable a where
 alignBy'Default :: (InSpace v n a, Fractional n, HasOrigin a)
                 => (v n -> a -> Point v n) -> v n -> n -> a -> a
 alignBy'Default boundary v d a = moveOriginTo (lerp ((d + 1) / 2)
-                                                    (boundary v a)
                                                     (boundary (negated v) a)
+                                                    (boundary v a)
                                               ) a
 {-# ANN alignBy'Default ("HLint: ignore Use camelCase" :: String) #-}
 

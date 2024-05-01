@@ -100,6 +100,7 @@ Library
                        Diagrams.TwoD.Types,
                        Diagrams.TwoD.Vector,
                        Diagrams.Util
+  other-modules:       Linear.Vector.Compat
   Build-depends:       base >= 4.9 && < 4.20,
                        containers >= 0.3 && < 0.7,
                        array >= 0.3 && < 0.6,
@@ -119,7 +120,7 @@ Library
                        filepath,
                        JuicyPixels >= 3.3.4 && < 3.4,
                        hashable >= 1.1 && < 1.5,
-                       linear >= 1.20.1 && < 1.23,
+                       linear >= 1.20.1 && < 1.24,
                        adjunctions >= 4.0 && < 5.0,
                        distributive >=0.2.2 && < 1.0,
                        process >= 1.1 && < 1.7,
