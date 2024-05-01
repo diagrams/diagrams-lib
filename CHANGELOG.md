@@ -1,3 +1,10 @@
+## [v1.4.6.2](https://github.com/diagrams/diagrams-lib/tree/v1.4.6.2) (2024-05-01)
+
+- Support for `linear-1.23`.  This version of `linear` introduces a
+  breaking change, so add an internal compatibility module that allows
+  diagrams to work with any version of `linear` both before and after
+  the change.
+
 ## [v1.4.6.1](https://github.com/diagrams/diagrams-lib/tree/v1.4.6.1) (2024-02-26)
 
 - Fix compilation on BSD ([#367](https://github.com/diagrams/diagrams-lib/pull/367), thanks to Finn Espen Gundersen)
