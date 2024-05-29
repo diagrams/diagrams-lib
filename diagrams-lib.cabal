@@ -101,8 +101,8 @@ Library
                        Diagrams.TwoD.Vector,
                        Diagrams.Util
   other-modules:       Linear.Vector.Compat
-  Build-depends:       base >= 4.9 && < 4.20,
-                       containers >= 0.3 && < 0.7,
+  Build-depends:       base >= 4.9 && < 4.21,
+                       containers >= 0.3 && < 0.8,
                        array >= 0.3 && < 0.6,
                        semigroups >= 0.3.4 && < 0.21,
                        monoid-extras >= 0.6 && < 0.7,
@@ -114,10 +114,10 @@ Library
                        data-default-class < 0.2,
                        fingertree >= 0.1 && < 0.2,
                        intervals >= 0.7 && < 0.10,
-                       lens >= 5.1 && < 5.3,
+                       lens >= 5.1 && < 5.4,
                        tagged >= 0.7 && < 0.9,
                        optparse-applicative >= 0.11 && < 0.19,
-                       filepath >= 1.4 && < 1.5,
+                       filepath >= 1.4 && < 1.6,
                        JuicyPixels >= 3.3.4 && < 3.4,
                        hashable >= 1.1 && < 1.5,
                        linear >= 1.20.1 && < 1.24,
