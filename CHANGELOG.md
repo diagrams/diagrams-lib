@@ -1,4 +1,8 @@
-## [v1.4.6.2-r1](https://github.com/diagrams/diagrams-lib/tree/v1.4.6.2) (2024-05-01)
+## [v1.4.6.2-r2](https://github.com/diagrams/diagrams-lib/tree/v1.4.6.2-r2) (2024-07-01)
+
+- Allow `tasty-quickcheck-0.11`
+
+## [v1.4.6.2-r1](https://github.com/diagrams/diagrams-lib/tree/v1.4.6.2-r1) (2024-05-01)
 
 - Allow `base-4.21` (GHC 9.10), `containers-0.7`, `lens-5.3`, and `filepath-1.5`
 
