@@ -1,3 +1,7 @@
+## [v1.4.6.2-r3](https://github.com/diagrams/diagrams-lib/tree/v1.4.6.2-r3) (2024-08-23)
+
+- Allow `hashable-1.5`
+
 ## [v1.4.6.2-r2](https://github.com/diagrams/diagrams-lib/tree/v1.4.6.2-r2) (2024-07-01)
 
 - Allow `tasty-quickcheck-0.11`
