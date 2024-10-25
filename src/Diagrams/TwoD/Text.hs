@@ -57,7 +57,7 @@ import           Diagrams.TwoD.Attributes (recommendFillColor)
 import           Diagrams.TwoD.Types
 
 import           Data.Colour              hiding (over)
-import           Data.Default.Class
+import           Data.Default
 import           Data.Monoid.Recommend
 import           Data.Semigroup
 import           Data.Typeable

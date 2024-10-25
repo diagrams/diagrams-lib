@@ -53,7 +53,7 @@ import           Data.Maybe              (catMaybes)
 import           Data.Monoid
 import           Data.Monoid.Inf
 
-import           Data.Default.Class
+import           Data.Default
 
 import           Diagrams.Core
 
@@ -309,7 +309,7 @@ offsetPath = offsetPath' def
 -- "right" make sense.
 --
 -- > import Diagrams.TwoD.Offset
--- > import Data.Default.Class
+-- > import Data.Default
 -- >
 -- > corner :: (OrderedField n) => Located (Trail V2 n)
 -- > corner = fromVertices (map p2 [(0, 0), (10, 0), (5, 6)]) `at` origin
@@ -409,7 +409,7 @@ expandPath :: RealFloat n => n -> Path V2 n -> Path V2 n
 expandPath = expandPath' def
 
 -- > import Diagrams.TwoD.Offset
--- > import Data.Default.Class
+-- > import Data.Default
 -- >
 -- > expandTrailExample :: Diagram SVG
 -- > expandTrailExample = pad 1.1 . centerXY . hcat' (def & sep .~ 1)

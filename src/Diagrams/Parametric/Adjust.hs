@@ -26,7 +26,7 @@ import           Control.Lens        (Lens', generateSignatures, lensRules, make
                                       (.~), (^.))
 import           Data.Proxy
 
-import           Data.Default.Class
+import           Data.Default
 
 import           Diagrams.Core.V
 import           Diagrams.Parametric

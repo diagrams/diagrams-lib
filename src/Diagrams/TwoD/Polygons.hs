@@ -52,7 +52,7 @@ import           Control.Monad        (forM, liftM)
 import           Control.Monad.ST     (ST, runST)
 import           Data.Array.ST        (STUArray, newArray, readArray,
                                        writeArray)
-import           Data.Default.Class
+import           Data.Default
 import           Data.List            (maximumBy, minimumBy)
 import           Data.Maybe           (catMaybes)
 import           Data.Ord             (comparing)

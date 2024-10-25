@@ -44,7 +44,7 @@ module Diagrams.TwoD.Combinators
 
 import           Control.Lens             ((&), (.~))
 import           Data.Colour
-import           Data.Default.Class
+import           Data.Default
 import           Data.Semigroup
 
 import           Diagrams.Core

@@ -50,7 +50,7 @@ module Diagrams.TwoD.Shapes
        ) where
 
 import           Control.Lens            (makeLenses, op, (&), (.~), (<>~), (^.))
-import           Data.Default.Class
+import           Data.Default
 import           Data.Semigroup
 
 import           Diagrams.Core

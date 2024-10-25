@@ -61,7 +61,7 @@ module Diagrams.TwoD.Arrowheads
        ) where
 
 import           Control.Lens            ((&), (.~), (<>~), (^.))
-import           Data.Default.Class
+import           Data.Default
 import           Data.Monoid             (mempty, (<>))
 
 import           Diagrams.Angle

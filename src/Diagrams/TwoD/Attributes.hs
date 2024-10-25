@@ -65,7 +65,7 @@ module Diagrams.TwoD.Attributes (
 import           Control.Lens                hiding (transform)
 import           Data.Colour                 hiding (AffineSpace, over)
 import           Data.Data
-import           Data.Default.Class
+import           Data.Default
 import           Data.Monoid.Recommend
 import           Data.Semigroup
 

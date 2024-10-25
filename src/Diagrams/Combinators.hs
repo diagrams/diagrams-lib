@@ -41,7 +41,7 @@ module Diagrams.Combinators
        ) where
 
 import           Control.Lens          hiding (beside, ( # ))
-import           Data.Default.Class
+import           Data.Default
 import           Data.Maybe            (fromJust)
 import           Data.Monoid.Deletable (toDeletable)
 import           Data.Monoid.MList     (inj)

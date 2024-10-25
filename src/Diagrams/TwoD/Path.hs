@@ -67,7 +67,7 @@ import qualified Data.Foldable             as F
 import           Data.Semigroup
 import           Data.Typeable
 
-import           Data.Default.Class
+import           Data.Default
 
 import           Diagrams.Angle
 import           Diagrams.Combinators      (withEnvelope, withTrace)

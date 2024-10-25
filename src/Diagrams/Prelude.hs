@@ -22,7 +22,7 @@ module Diagrams.Prelude
 
     -- | For working with default values. Diagrams also exports 'with',
     --   an alias for 'def'.
-  , module Data.Default.Class
+  , module Data.Default
 
     -- | For representing and operating on colors.
   , module Data.Colour
@@ -97,7 +97,7 @@ import           Data.Active
 import           Data.Colour         hiding (AffineSpace (..), atop, over)
 import           Data.Colour.Names   hiding (tan)
 import           Data.Colour.SRGB
-import           Data.Default.Class
+import           Data.Default
 import           Data.Semigroup
 
 import           Linear.Affine

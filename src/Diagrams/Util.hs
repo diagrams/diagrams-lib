@@ -41,7 +41,7 @@ import           Control.Monad
 import           Control.Monad.Catch
 import           Control.Monad.Trans
 import           Control.Monad.Trans.Maybe
-import           Data.Default.Class
+import           Data.Default
 import           Data.List
 import           Data.Maybe
 import           Data.Monoid

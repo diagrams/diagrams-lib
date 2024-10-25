@@ -33,7 +33,7 @@ import           Diagrams.TwoD.Types
 import           Diagrams.Util            (( # ))
 
 import           Control.Lens             (Lens', set, (^.))
-import           Data.Default.Class
+import           Data.Default
 import           Data.Semigroup
 
 

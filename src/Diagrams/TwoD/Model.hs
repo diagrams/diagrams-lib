@@ -38,7 +38,7 @@ import           Control.Arrow            (second)
 import           Control.Lens             (makeLenses, (^.))
 import           Data.Colour              (Colour)
 import           Data.Colour.Names
-import           Data.Default.Class
+import           Data.Default
 import           Data.List                (intercalate)
 import qualified Data.Map                 as M
 import           Data.Maybe               (catMaybes)

@@ -92,7 +92,7 @@ import           Control.Lens          hiding (none, over)
 import           Data.Colour
 import           Data.Colour.RGBSpace  (RGB (..))
 import           Data.Colour.SRGB      (toSRGB)
-import           Data.Default.Class
+import           Data.Default
 import           Data.Distributive
 import           Data.Monoid.Recommend
 import           Data.Semigroup
