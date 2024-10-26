@@ -1,3 +1,7 @@
+## [v1.4.7](https://github.com/diagrams/diagrams-lib/tree/v1.4.7) (2024-10-26)
+
+- Switch to `data-default-0.8` instead of `data-default-class`
+
 ## [v1.4.6.2-r3](https://github.com/diagrams/diagrams-lib/tree/v1.4.6.2-r3) (2024-08-23)
 
 - Allow `hashable-1.5`
