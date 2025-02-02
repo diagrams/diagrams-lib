@@ -76,12 +76,11 @@ import           Control.Lens              (Lens', makeLenses, (&), (.~), (^.))
 import           Diagrams.Animation
 import           Diagrams.Attributes
 import           Diagrams.Core             hiding (output)
-import           Diagrams.Util
 
 import           Options.Applicative
 import           Options.Applicative.Types (readerAsk)
 
-import           Control.Monad             (forM_, forever, unless, when)
+import           Control.Monad             (forM_)
 
 -- MonadFail comes from Prelude in base-4.13 and up
 #if !MIN_VERSION_base(4,13,0)
@@ -95,23 +94,12 @@ import           Data.Colour.Names
 import           Data.Colour.SRGB
 import           Data.Data
 import           Data.Functor.Identity
-import           Data.IORef
 import           Data.Kind                 (Type)
-import           Data.List                 (delete)
-import           Data.Maybe                (fromMaybe)
 import           Data.Monoid
 import           Numeric
 
-import           Control.Concurrent        (threadDelay)
-import           System.Directory          (canonicalizePath)
-import           System.Environment        (getArgs, getProgName)
-import           System.Exit               (ExitCode (..))
-import           System.FilePath           (addExtension, dropExtension,
-                                            replaceExtension, splitExtension,
-                                            takeDirectory, takeFileName, (</>))
-import           System.Info               (os)
-import           System.IO                 (hFlush, stdout)
-import           System.Process            (readProcessWithExitCode)
+import           System.Environment        (getProgName)
+import           System.FilePath           (addExtension, splitExtension)
 
 import           Text.Printf
 
