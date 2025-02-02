@@ -21,7 +21,7 @@ Build-type:          Simple
 Cabal-version:       1.18
 Extra-source-files:  diagrams/*.svg
 Extra-doc-files:     CHANGELOG.md, README.markdown, diagrams/*.svg
-Tested-with:         GHC ==8.4.4 || ==8.6.5 || ==8.8.4 || ==8.10.7 || ==9.0.2 || ==9.2.8 || ==9.4.8 || ==9.6.5 || ==9.8.2 || ==9.10.1
+Tested-with:         GHC ==8.4.4 || ==8.6.5 || ==8.8.4 || ==8.10.7 || ==9.0.2 || ==9.2.8 || ==9.4.8 || ==9.6.6 || ==9.8.2 || ==9.10.1 || ==9.12.1
 Source-repository head
   type:     git
   location: http://github.com/diagrams/diagrams-lib.git
@@ -101,7 +101,7 @@ Library
                        Diagrams.TwoD.Vector,
                        Diagrams.Util
   other-modules:       Linear.Vector.Compat
-  Build-depends:       base >= 4.9 && < 4.21,
+  Build-depends:       base >= 4.9 && < 4.22,
                        containers >= 0.3 && < 0.8,
                        array >= 0.3 && < 0.6,
                        semigroups >= 0.3.4 && < 0.21,
