@@ -70,7 +70,6 @@ module Diagrams.Backend.CmdLine
     -- ** helper functions for implementing @mainRender@
   , defaultAnimMainRender
   , defaultMultiMainRender
-  , defaultLoopRender
   ) where
 
 import           Control.Lens              (Lens', makeLenses, (&), (.~), (^.))
@@ -110,10 +109,6 @@ import           System.Exit               (ExitCode (..))
 import           System.FilePath           (addExtension, dropExtension,
                                             replaceExtension, splitExtension,
                                             takeDirectory, takeFileName, (</>))
-import           System.FSNotify           (defaultConfig,
-                                            eventTime, watchDir,
-                                            withManagerConf, confWatchMode, WatchMode(..))
-import           System.FSNotify.Devel     (existsEvents)
 import           System.Info               (os)
 import           System.IO                 (hFlush, stdout)
 import           System.Process            (readProcessWithExitCode)
@@ -563,86 +558,3 @@ indexize out nDigits i opts = opts & out .~ output'
   where fmt         = "%0" ++ show nDigits ++ "d"
         output'     = addExtension (base ++ printf fmt i) ext
         (base, ext) = splitExtension (opts^.out)
-
-putStrF :: String -> IO ()
-putStrF s = putStr s >> hFlush stdout
-
-defaultLoopRender :: DiagramLoopOpts -> IO ()
-defaultLoopRender opts = when (opts ^. loop) $ do
-  putStrLn "Looping turned on"
-  prog <- getProgName
-  args <- getArgs
-
-  srcPath <- case opts ^. src of
-    Just path -> return path
-    Nothing   -> fromMaybe (error nosrc) <$> findHsFile prog
-      where
-        nosrc = "Unable to find Haskell source file.\n"
-             ++ "Specify source file with '-s' or '--src'"
-  srcPath' <- canonicalizePath srcPath
-
-  sandbox     <- findSandbox []
-  sandboxArgs <- case sandbox of
-    Nothing -> return []
-    Just sb -> do
-      putStrLn ("Using sandbox " ++ takeDirectory sb)
-      return ["-package-db", sb]
-
-  let args'       = delete "-l" . delete "--loop" $ args
-      newProg     = newProgName (takeFileName srcPath) prog
-      timeOfDay   = take 8 . drop 11 . show . eventTime
-
-  withManagerConf defaultConfig $
-    \mgr -> do
-      lock <- newIORef False
-
-      _ <- watchDir mgr (takeDirectory srcPath') (existsEvents (== srcPath'))
-        $ \ev -> do
-          running <- atomicModifyIORef lock ((,) True)
-          unless running $ do
-            putStrF ("Modified " ++ timeOfDay ev ++ " ... ")
-            exitCode <- recompile srcPath' newProg sandboxArgs
-            -- Call the new program without the looping option
-            run newProg args' exitCode
-            atomicWriteIORef lock False
-
-      putStrLn $ "Watching source file " ++ srcPath
-      putStrLn $ "Compiling target: " ++ newProg
-      putStrLn $ "Program args: " ++ unwords args'
-      forever . threadDelay $ case os of
-         -- https://ghc.haskell.org/trac/ghc/ticket/7325
-        "darwin" -> 2000000000
-        _        -> maxBound
-
-recompile :: FilePath -> FilePath -> [String] -> IO ExitCode
-recompile srcFile outFile args = do
-  let ghcArgs = ["--make", srcFile, "-o", outFile] ++ args
-  putStrF "compiling ... "
-  (exit, _, stderr) <- readProcessWithExitCode "ghc" ghcArgs ""
-  when (exit /= ExitSuccess) $ putStrLn ('\n':stderr)
-  return exit
-
--- | On Windows, the next compilation must have a different output
---   than the currently running program.
-newProgName :: FilePath -> String -> String
-newProgName srcFile oldName = case os of
-  "mingw32" ->
-      if oldName == replaceExtension srcFile "exe"
-        then replaceExtension srcFile ".1.exe"
-        else replaceExtension srcFile "exe"
-  _ -> dropExtension srcFile
-
--- | Run the given program with specified arguments, if and only if
---   the previous command returned ExitSuccess.
-run :: String -> [String] -> ExitCode -> IO ()
-run prog args ExitSuccess = do
-  let path = "." </> prog
-  putStrF "running ... "
-  (exit, stdOut, stdErr) <- readProcessWithExitCode path args ""
-  case exit of
-    ExitSuccess   -> putStrLn "done."
-    ExitFailure r -> do
-      putStrLn $ prog ++ " failed with exit code " ++ show r
-      unless (null stdOut) $ putStrLn "stdout:" >> putStrLn stdOut
-      unless (null stdErr) $ putStrLn "stderr:" >> putStrLn stdErr
-run _ _ _ = return ()
