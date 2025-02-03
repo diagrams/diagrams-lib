@@ -50,12 +50,6 @@ module Diagrams.Backend.CmdLine
   , diagramAnimOpts
   , fpu
 
-    -- ** Loop options
-  , DiagramLoopOpts(..)
-  , diagramLoopOpts
-  , loop
-  , src
-
     -- * Parsing
   , Parseable(..)
   , readHexColor
@@ -132,14 +126,6 @@ data DiagramAnimOpts = DiagramAnimOpts
 
 makeLenses ''DiagramAnimOpts
 
--- | Extra options for command-line looping.
-data DiagramLoopOpts = DiagramLoopOpts
-  { _loop     :: Bool            -- ^ Flag to indicate that the program should loop creation.
-  , _src      :: Maybe FilePath  -- ^ File path for the source file to recompile.
-  }
-
-makeLenses ''DiagramLoopOpts
-
 -- | Command line parser for 'DiagramOpts'.
 --   Width is option @--width@ or @-w@.
 --   Height is option @--height@ or @-h@ (note we change help to be @-?@ due to this).
@@ -181,16 +167,6 @@ diagramAnimOpts = DiagramAnimOpts
       ( long "fpu" <> short 'f'
      <> value 30.0
      <> help "Frames per unit time (for animations)")
-
--- | CommandLine parser for 'DiagramLoopOpts'
---   Loop is @--loop@ or @-l@.
---   Source is @--src@ or @-s@.
-diagramLoopOpts :: Parser DiagramLoopOpts
-diagramLoopOpts = DiagramLoopOpts
-  <$> switch (long "loop" <> short 'l' <> help "Run in a self-recompiling loop")
-  <*> (optional . strOption)
-      ( long "src" <> short 's'
-     <> help "Source file to watch")
 
 -- | A hidden \"helper\" option which always fails.
 --   Taken from Options.Applicative.Extra but without the
@@ -259,11 +235,6 @@ instance Parseable DiagramMultiOpts where
 -- | Parse 'DiagramAnimOpts' using the 'diagramAnimOpts' parser.
 instance Parseable DiagramAnimOpts where
   parser = diagramAnimOpts
-
--- | Parse 'DiagramLoopOpts' using the 'diagramLoopOpts' parser.
-instance Parseable DiagramLoopOpts where
-  parser = diagramLoopOpts
-
 
 -- | Parse @'Colour' Double@ as either a named color from "Data.Colour.Names"
 --   or a hexadecimal color.
@@ -512,9 +483,8 @@ showDiaList ds = do
 --   be output for each second (unit time) of animation.
 --
 --   This function requires a lens into the structure that the particular backend
---   uses for it's diagram base case.  If @MainOpts (QDiagram b v n Any) ~ DiagramOpts@
---   then this lens will simply be 'output'.  For a backend supporting looping
---   it will most likely be @_1 . output@.  This lens is required because the
+--   uses for its diagram base case.  If @MainOpts (QDiagram b v n Any) ~ DiagramOpts@
+--   then this lens will simply be 'output'.  This lens is required because the
 --   implementation works by modifying the output field and running the base @mainRender@.
 --   Typically a backend can write its @Animation B V@ instance as
 --
