@@ -1,3 +1,13 @@
+## [v1.5](https://github.com/diagrams/diagrams-lib/tree/v1.5) (2025-02-02)
+
+- Allow `base-4.21` and test on GHC 9.12
+- Remove looped compilation mode options ([#372](https://github.com/diagrams/diagrams-lib/pull/372))
+    - This allows us to remove the `fsnotify` dependency, which in
+      turn allows compiling diagrams to Wasm.
+    - To recover similar functionality (automatically recompiling
+      every time a source file changes), try an external tool like
+      `ghcid` or `ghciwatch`, or, more generically, `entr`.
+
 ## [v1.4.7](https://github.com/diagrams/diagrams-lib/tree/v1.4.7) (2024-10-26)
 
 - Switch to `data-default-0.8` instead of `data-default-class`
