@@ -1,4 +1,4 @@
-## [v1.5](https://github.com/diagrams/diagrams-lib/tree/v1.5) (2025-02-02)
+## [v1.5](https://github.com/diagrams/diagrams-lib/tree/v1.5) (2025-02-13)
 
 - Allow `base-4.21` and test on GHC 9.12
 - Remove looped compilation mode options ([#372](https://github.com/diagrams/diagrams-lib/pull/372))
