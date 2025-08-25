@@ -209,22 +209,32 @@ bezierFindRoot :: OrderedField n
                -> n   -- ^ The upper bound of the interval
                -> [n] -- ^ The roots found
 bezierFindRoot eps p tmin tmax
-  | isNothing chopInterval    = []
-  | clip > 0.8 = let (p1, p2) = splitAtParam newP 0.5
-                     tmid     = tmin' + (tmax' - tmin') / 2
-                 in  bezierFindRoot eps p1 tmin' tmid  ++
-                     bezierFindRoot eps p2 tmid  tmax'
-  | tmax' - tmin' < eps = [avg tmin' tmax']
-  | otherwise           = bezierFindRoot eps newP tmin' tmax'
-  where
-    chopInterval              = chopYs (bernsteinCoeffs p)
-    Just (tminChop, tmaxChop) = chopInterval
-    newP  = section p tminChop tmaxChop
-    clip  = tmaxChop - tminChop
-    tmin' = tmax * tminChop + tmin * (1 - tminChop)
-    tmax' = tmax * tmaxChop + tmin * (1 - tmaxChop)
-
-
+  -- If we generated the max number of roots and tmax is also a root
+  -- (which is not among the generated ones), there must in fact be an
+  -- infinite number of roots, so just include tmax.
+  | length roots == bernsteinDegree p && last roots /= tmax && abs (evaluateBernstein p tmax) <= eps
+  = roots ++ [tmax]
+  | otherwise = roots
+ where
+  -- Lazily take a number of roots at most the degree of the bernstein
+  -- polynomial, to avoid generating a ton of roots in the case of a
+  -- straight Bezier segment along the x-axis. See https://github.com/diagrams/diagrams-contrib/issues/91 .
+  roots = take (bernsteinDegree p) $ go p tmin tmax
+  go p tmin tmax
+    | isNothing chopInterval = []
+    | tmax' - tmin' < eps = [avg tmin' tmax']
+    | clip > 0.8 = let (p1, p2) = splitAtParam newP 0.5
+                       tmid     = tmin' + (tmax' - tmin') / 2
+                   in  go p1 tmin' tmid  ++
+                       go p2 tmid  tmax'
+    | otherwise = bezierFindRoot eps newP tmin' tmax'
+    where
+      chopInterval              = chopYs (bernsteinCoeffs p)
+      Just (tminChop, tmaxChop) = chopInterval
+      newP  = section p tminChop tmaxChop
+      clip  = tmaxChop - tminChop
+      tmin' = tmax * tminChop + tmin * (1 - tminChop)
+      tmax' = tmax * tmaxChop + tmin * (1 - tmaxChop)
 
 ------------------------------------------------------------------------
 -- Internal
