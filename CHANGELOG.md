@@ -1,3 +1,9 @@
+## [v1.5.0.1](https://github.com/diagrams/diagrams-lib/tree/v1.5.0.1) (2025-08-25)
+
+- Fix bug in `bezierFindRoot` that caused diagrams to hang when
+  computing the trace of certain degenerate Bezier curves.  See
+  https://github.com/diagrams/diagrams-contrib/issues/91 .
+
 ## [v1.5-r2](https://github.com/diagrams/diagrams-lib/tree/v1.5-r2) (2025-06-12)
 
 - Allow `optparse-applicative-0.19`
