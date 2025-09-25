@@ -435,22 +435,11 @@ instance Mainable d => Mainable (IO d) where
 
   mainRender opts dio = dio >>= mainRender opts
 
--- | @defaultMultiMainRender@ is an implementation of 'mainRender' where
---   instead of a single diagram it takes a list of diagrams paired with names
---   as input.  The generated executable then takes a @--selection@ option
---   specifying the name of the diagram that should be rendered.  The list of
---   available diagrams may also be printed by passing the option @--list@.
---
---   Typically a backend can write its @[(String,QDiagram b v n Any)]@ instance as
---
---   @
---   instance Mainable [(String,QDiagram b v n Any)] where
---       type MainOpts [(String,QDiagram b v n Any)] = (DiagramOpts, DiagramMultiOpts)
---       mainRender = defaultMultiMainRender
---   @
---
---   We do not provide this instance in general so that backends can choose to
---   opt-in to this form or provide a different instance that makes more sense.
+-- | Used to implement the 'Mainable' instance for '[(String, d)]'.
+--   This used to be exported so backends could use it to implement
+--   their own instances; now a generic instance is provided.  Hence
+--   backends should no longer use this function, but it is still
+--   exported for now to avoid unnecessary breakage.
 defaultMultiMainRender :: Mainable d => (MainOpts d, DiagramMultiOpts) -> [(String, d)] -> IO ()
 defaultMultiMainRender (opts,multi) ds =
   if multi^.list
@@ -460,6 +449,15 @@ defaultMultiMainRender (opts,multi) ds =
            Just sel -> case lookup sel ds of
                          Nothing -> putStrLn $ "Unknown diagram: " ++ sel
                          Just d  -> mainRender opts d
+
+-- | This instance allows pairing 'Mainable' things with 'String's;
+--   the generated executable takes a @--selection@ option specifying
+--   the name of the thing that should be rendered.  The list of
+--   available things may also be printed by passing the option
+--   @--list@.
+instance Mainable d => Mainable [(String, d)] where
+  type MainOpts [(String, d)] = (MainOpts d, DiagramMultiOpts)
+  mainRender = defaultMultiMainRender
 
 -- | Display the list of diagrams available for rendering.
 showDiaList :: [String] -> IO ()
