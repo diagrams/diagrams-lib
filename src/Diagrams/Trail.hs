@@ -539,6 +539,11 @@ instance (Metric v, OrderedField n, Metric u, OrderedField n')
   _Snoc = _Wrapped . _Snoc . bimapping _Unwrapped id
   {-# INLINE _Snoc #-}
 
+instance (Real n, Floating n, Metric v)
+  => Semigroup (Located (Trail' Line v n)) where
+    a@(Loc aLoc aLine) <> b@(Loc _ bLine) =
+      Loc aLoc (aLine <> lineFromOffsets [atStart b .-. atEnd a] <> bLine)
+
 --------------------------------------------------
 -- Extracting segments
 
