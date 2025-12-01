@@ -539,6 +539,12 @@ instance (Metric v, OrderedField n, Metric u, OrderedField n')
   _Snoc = _Wrapped . _Snoc . bimapping _Unwrapped id
   {-# INLINE _Snoc #-}
 
+-- | Compose two Located trails by adding a segment joining the endpoint
+--   of the first to the starting point of the second.  Note, if you have
+--   two located trails such that the end of the first coincides with the
+--   start of the second, this will still add a trivial zero-length segment
+--   between them; in that case you are probably better off with something
+--   like @mapLoc (<> unLoc t2) t1@.
 instance (Real n, Floating n, Metric v)
   => Semigroup (Located (Trail' Line v n)) where
     a@(Loc aLoc aLine) <> b@(Loc _ bLine) =
