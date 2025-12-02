@@ -1,3 +1,9 @@
+## [v1.5.1](https://github.com/diagrams/diagrams-lib/tree/v1.5.1) (2025-12-02)
+
+- New `Semigroup` instance for located lines (i.e. `Located (Trail'
+  Line v n)`), which adds an extra segment from the end of the first
+  to the start of the second.
+
 ## [v1.5.0.1](https://github.com/diagrams/diagrams-lib/tree/v1.5.0.1) (2025-08-25)
 
 - Fix bug in `bezierFindRoot` that caused diagrams to hang when
