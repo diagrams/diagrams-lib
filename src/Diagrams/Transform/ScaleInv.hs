@@ -74,7 +74,6 @@ data ScaleInv t =
   , _scaleInvDir :: Vn t
   , _scaleInvLoc :: Point (V t) (N t)
   }
-  deriving Typeable
 
 deriving instance (Show t, Show (Vn t)) => Show (ScaleInv t)
 

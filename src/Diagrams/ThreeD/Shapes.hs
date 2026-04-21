@@ -42,7 +42,6 @@ module Diagrams.ThreeD.Shapes
   ) where
 
 import           Control.Lens              (review, (^.), _1)
-import           Data.Typeable
 
 import           Data.Semigroup
 import           Diagrams.Angle
@@ -59,7 +58,6 @@ import           Linear.Metric
 import           Linear.Vector
 
 data Ellipsoid n = Ellipsoid (Transformation V3 n)
-  deriving Typeable
 
 type instance V (Ellipsoid n) = V3
 type instance N (Ellipsoid n) = n
@@ -86,7 +84,6 @@ sphere :: Num n => Ellipsoid n
 sphere = Ellipsoid mempty
 
 data Box n = Box (Transformation V3 n)
-  deriving Typeable
 
 type instance V (Box n) = V3
 type instance N (Box n) = n
@@ -124,7 +121,6 @@ cube :: Num n => Box n
 cube = Box mempty
 
 data Frustum n = Frustum n n (Transformation V3 n)
-  deriving Typeable
 
 type instance V (Frustum n) = V3
 type instance N (Frustum n) = n
@@ -235,7 +231,6 @@ data CSG n
   | CsgUnion [CSG n]
   | CsgIntersection [CSG n]
   | CsgDifference (CSG n) (CSG n)
-  deriving Typeable
 
 type instance V (CSG n) = V3
 type instance N (CSG n) = n

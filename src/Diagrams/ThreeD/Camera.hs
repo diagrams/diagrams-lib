@@ -49,7 +49,6 @@ data Camera l n = Camera
     , up      :: V3 n
     , lens    :: l n
     }
-  deriving Typeable
 
 type instance V (Camera l n) = V3
 type instance N (Camera l n) = n
@@ -63,7 +62,6 @@ data PerspectiveLens n = PerspectiveLens
   { _horizontalFieldOfView :: Angle n -- ^ Horizontal field of view.
   , _verticalFieldOfView   :: Angle n -- ^ Vertical field of view.
   }
-  deriving Typeable
 
 makeLenses ''PerspectiveLens
 
@@ -78,7 +76,6 @@ data OrthoLens n = OrthoLens
                { _orthoWidth  :: n -- ^ Width
                , _orthoHeight :: n -- ^ Height
                }
-  deriving Typeable
 
 makeLenses ''OrthoLens
 

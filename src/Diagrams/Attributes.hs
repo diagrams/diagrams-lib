@@ -131,7 +131,7 @@ huge      = normalized 0.10
 -- | Line widths specified on child nodes always override line widths
 --   specified at parent nodes.
 newtype LineWidth n = LineWidth (Last n)
-  deriving (Typeable, Semigroup)
+  deriving (Semigroup)
 
 _LineWidth :: Iso' (LineWidth n) n
 _LineWidth = iso getLineWidth (LineWidth . Last)
@@ -194,7 +194,7 @@ _lineWidthU = atAttr . mapping _LineWidth
 
 -- | Create lines that are dashing... er, dashed.
 data Dashing n = Dashing [n] n
-  deriving (Functor, Typeable, Eq)
+  deriving (Functor, Eq)
 
 instance Semigroup (Dashing n) where
   _ <> b = b
@@ -268,7 +268,6 @@ class Color c where
 
 -- | An existential wrapper for instances of the 'Color' class.
 data SomeColor = forall c. Color c => SomeColor c
-  deriving Typeable
 
 instance Show SomeColor where
   showsPrec d (colorToSRGBA -> (r,g,b,a)) =
@@ -330,7 +329,7 @@ alphaToColour ac | alphaChannel ac == 0 = ac `over` black
 --   words, for example, @opacity 0.8@ means \"decrease this diagram's
 --   opacity to 80% of its previous opacity\".
 newtype Opacity = Opacity (Product Double)
-  deriving (Typeable, Semigroup)
+  deriving (Semigroup)
 instance AttributeClass Opacity
 
 _Opacity :: Iso' Opacity Double
@@ -356,7 +355,7 @@ _opacity = atAttr . mapping _Opacity . non 1
 --   (completely opaque, the default) and 0 (completely transparent),
 --   and is multiplicative.
 newtype FillOpacity = FillOpacity (Product Double)
-  deriving (Typeable, Semigroup)
+  deriving (Semigroup)
 instance AttributeClass FillOpacity
 
 _FillOpacity :: Iso' FillOpacity Double
@@ -382,7 +381,7 @@ _fillOpacity = atAttr . mapping _FillOpacity . non 1
 --   (completely opaque, the default) and 0 (completely transparent),
 --   and is multiplicative.
 newtype StrokeOpacity = StrokeOpacity (Product Double)
-  deriving (Typeable, Semigroup)
+  deriving (Semigroup)
 instance AttributeClass StrokeOpacity
 
 _StrokeOpacity :: Iso' StrokeOpacity Double
@@ -413,7 +412,7 @@ data LineCap = LineCapButt   -- ^ Lines end precisely at their endpoints.
                              --   centered on endpoints.
              | LineCapSquare -- ^ Lines are capped with a squares
                              --   centered on endpoints.
-  deriving (Eq, Ord, Show, Typeable)
+  deriving (Eq, Ord, Show)
 
 instance Default LineCap where
   def = LineCapButt
@@ -443,7 +442,7 @@ data LineJoin = LineJoinMiter    -- ^ Use a \"miter\" shape (whatever that is).
               | LineJoinBevel    -- ^ Use a \"bevel\" shape (whatever
                                  --   that is).  Are these...
                                  --   carpentry terms?
-  deriving (Eq, Ord, Show, Typeable)
+  deriving (Eq, Ord, Show)
 
 instance AttributeClass LineJoin
 
@@ -470,7 +469,7 @@ _lineJoin = atAttr . non def
 -- | Miter limit attribute affecting the 'LineJoinMiter' joins.
 --   For some backends this value may have additional effects.
 newtype LineMiterLimit = LineMiterLimit (Last Double)
-  deriving (Typeable, Semigroup, Eq, Ord)
+  deriving (Semigroup, Eq, Ord)
 instance AttributeClass LineMiterLimit
 
 _LineMiterLimit :: Iso' LineMiterLimit Double

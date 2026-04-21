@@ -29,7 +29,6 @@ import           Diagrams.ThreeD.Types
 -- | A @PointLight@ radiates uniformly in all directions from a given
 -- point.
 data PointLight n = PointLight (Point V3 n) (Colour Double)
-  deriving Typeable
 
 type instance V (PointLight n) = V3
 type instance N (PointLight n) = n
@@ -37,7 +36,6 @@ type instance N (PointLight n) = n
 -- | A @ParallelLight@ casts parallel rays in the specified direction,
 -- from some distant location outside the scene.
 data ParallelLight n = ParallelLight (V3 n) (Colour Double)
-  deriving Typeable
 
 type instance V (ParallelLight n) = V3
 type instance N (ParallelLight n) = n
