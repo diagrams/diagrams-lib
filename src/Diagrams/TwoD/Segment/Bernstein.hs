@@ -84,8 +84,8 @@ evaluateBernsteinDerivs b t
 bernsteinDeriv :: Fractional n => BernsteinPoly n -> BernsteinPoly n
 bernsteinDeriv (BernsteinPoly 0 _)  = 0
 bernsteinDeriv (BernsteinPoly lp p) =
-  -- BernsteinPoly (lp-1) $ map (* fromIntegral lp) $ zipWith (-) (tail p) p
-  BernsteinPoly (lp-1) $ zipWith (\a b -> (a - b) * fromIntegral lp) (tail p) p
+  -- BernsteinPoly (lp-1) $ map (* fromIntegral lp) $ zipWith (-) (drop 1 p) p
+  BernsteinPoly (lp-1) $ zipWith (\a b -> (a - b) * fromIntegral lp) (drop 1 p) p
 
 instance Fractional n => Parametric (BernsteinPoly n) where
   atParam b = V1 . evaluateBernstein b
@@ -104,7 +104,7 @@ bernsteinSplit (BernsteinPoly lp p) t =
     interp a b = (1-t)*a + t*b
 
     terp [_] = []
-    terp l   = let ctrs = zipWith interp l (tail l)
+    terp l   = let ctrs = zipWith interp l (drop 1 l)
                in  ctrs : terp ctrs
     controls = p : terp p
 
@@ -124,9 +124,9 @@ instance Fractional n => Num (BernsteinPoly n) where
     zipWith (flip (/)) (binomials (la + lb)) $
                    init $ map sum $
                    map (zipWith (*) a') (down b') ++
-                   map (zipWith (*) (reverse b')) (tail $ tails a')
+                   map (zipWith (*) (reverse b')) (drop 1 $ tails a')
                    -- zipWith (zipWith (*)) (tail $ tails a') (repeat $ reverse b')
-    where down l = tail $ scanl (flip (:)) [] l -- [[1], [2, 1], [3, 2, 1], ...
+    where down l = drop 1 $ scanl (flip (:)) [] l -- [[1], [2, 1], [3, 2, 1], ...
           a' = zipWith (*) a (binomials la)
           b' = zipWith (*) b (binomials lb)
 

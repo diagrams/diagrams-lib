@@ -203,7 +203,7 @@ findSandbox :: [FilePath] -> IO (Maybe FilePath)
 findSandbox paths = runMaybeT $ pathsTest <|> diaSB <|> envDB <|> wdConfig
   where
     -- first path in environment
-    lookEnv = MaybeT . (fmap . fmap) (head . splitSearchPath) . lookupEnv
+    lookEnv = MaybeT . fmap ((listToMaybe . splitSearchPath) =<<) . lookupEnv
     envDB   = foldMaybeT lookEnv ["GHC_PACKAGE_PATH", "HSENV", "PACKAGE_DB_FOR_GHC"]
 
     -- test if path points directly to db or contains a config file

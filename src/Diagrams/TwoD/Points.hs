@@ -27,7 +27,7 @@ import Linear.Affine
 --   
 --   Returns clockwise list of points starting from the left-most point.
 convexHull2D :: OrderedField n => [P2 n] -> [P2 n]
-convexHull2D ps = init upper ++ reverse (tail lower)
+convexHull2D ps = init upper ++ reverse (drop 1 lower)
   where
     (upper, lower) = sortedConvexHull (sort ps)
 
