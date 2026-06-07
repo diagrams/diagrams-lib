@@ -22,10 +22,13 @@ module Diagrams.CubicSpline.Internal
 import           Diagrams.Solve.Tridiagonal
 
 import           Data.List
+import           Data.List.NonEmpty (NonEmpty (..))
+import qualified Data.List.NonEmpty as NE
 
 -- | Use the tri-diagonal solver with the appropriate parameters for an open cubic spline.
 solveCubicSplineDerivatives :: Fractional a => [a] -> [a]
-solveCubicSplineDerivatives (x:xs) = solveTriDiagonal as bs as ds
+solveCubicSplineDerivatives [_] = [0]
+solveCubicSplineDerivatives (x:xs) = NE.toList $ solveTriDiagonal (NE.fromList as) (NE.fromList bs) (NE.fromList as) (NE.fromList ds)
   where
     as = replicate (l - 1) 1
     bs = 2 : replicate (l - 2) 4 ++ [2]
@@ -37,7 +40,8 @@ solveCubicSplineDerivatives _ = error "argument to solveCubicSplineDerivatives m
 
 -- | Use the cyclic-tri-diagonal solver with the appropriate parameters for a closed cubic spline.
 solveCubicSplineDerivativesClosed :: Fractional a => [a] -> [a]
-solveCubicSplineDerivativesClosed xs = solveCyclicTriDiagonal as bs as ds 1 1
+solveCubicSplineDerivativesClosed [_] = [0]
+solveCubicSplineDerivativesClosed xs = NE.toList $ solveCyclicTriDiagonal (NE.fromList as) (NE.fromList bs) (NE.fromList as) (NE.fromList ds) 1 1
   where
     as = replicate (l - 1) 1
     bs = replicate l 4
