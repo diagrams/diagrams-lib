@@ -140,7 +140,19 @@ lGradEnd :: Lens' (LGradient n) (Point V2 n)
 -- | For setting the spread method.
 lGradSpreadMethod :: Lens' (LGradient n) SpreadMethod
 
--- | Radial Gradient
+-- | A radial gradient blending between colors along concentric circles.
+--   The gradient is defined by an inner circle (center @c0@, radius @r0@)
+--   and an outer circle (center @c1@, radius @r1@), both in local coordinates.
+--
+--   <<diagrams/src_Diagrams_TwoD_Attributes_rGradientEx.svg#diagram=rGradientEx&width=200>>
+--
+--   > rGradientEx :: Diagram B
+--   > rGradientEx = square 1
+--   >   # fillTexture grad
+--   >   # lw none
+--   >   where
+--   >     grad = mkRadialGradient stops origin 0 origin 0.5 GradPad
+--   >     stops = mkStops [(yellow, 0, 1), (royalblue, 1, 1)]
 data RGradient n = RGradient
   { _rGradStops        :: [GradientStop n]
   , _rGradCenter0      :: Point V2 n
