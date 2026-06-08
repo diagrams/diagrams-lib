@@ -268,7 +268,11 @@ mkLinearGradient stops  start end spreadMethod
 --   > rGradientEx = vsep 0.1 $ map row [0, 0.2]
 --   >   where
 --   >     row r0         = hsep 0.1 $ map (mkSquare r0) [origin, p2 (-0.2, 0.2)]
---   >     mkSquare r0 c1 = square 1 # fillTexture (mkGrad r0 c1) # lw none
+--   >     mkSquare r0 c1 = ring r0 origin purple <> ring 0.3 c1 orange
+--   >                   <> (square 1 # fillTexture (mkGrad r0 c1) # lw none)
+--   >     ring r c col
+--   >       | r > 0     = circle r # lw (output 1) # lc col # fcA transparent # moveTo c
+--   >       | otherwise = mempty
 --   >     mkGrad r0 c1   = mkRadialGradient stops origin r0 c1 0.3 GradPad
 --   >     stops          = mkStops [(yellow, 0, 1), (royalblue, 1, 1)]
 --
@@ -284,7 +288,11 @@ mkLinearGradient stops  start end spreadMethod
 --   >     , (p2 (0.25, -0.25), 0.25, p2 (-0.25, 0.25), 0.3)
 --   >     ]
 --   >   where
---   >     mkSquare (c0, r0, c1, r1) = square 1 # fillTexture (mkGrad c0 r0 c1 r1) # lw none # bg lightgray
+--   >     mkSquare (c0, r0, c1, r1) = ring r0 c0 purple <> ring r1 c1 orange
+--   >                              <> (square 1 # fillTexture (mkGrad c0 r0 c1 r1) # lw none # bg lightgray)
+--   >     ring r c col
+--   >       | r > 0     = circle r # lw (output 1) # lc col # fcA transparent # moveTo c
+--   >       | otherwise = mempty
 --   >     mkGrad c0 r0 c1 r1        = mkRadialGradient stops c0 r0 c1 r1 GradPad
 --   >     stops                     = mkStops [(yellow, 0, 1), (royalblue, 1, 1)]
 mkRadialGradient :: Num n => [GradientStop n] -> Point V2 n -> n
