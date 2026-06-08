@@ -282,7 +282,7 @@ mkLinearGradient stops  start end spreadMethod
 --   >     , (p2 (0.25, -0.25), 0.25, p2 (-0.25, 0.25), 0.3)
 --   >     ]
 --   >   where
---   >     mkSquare (c0, r0, c1, r1) = square 1 # fillTexture (mkGrad c0 r0 c1 r1) # lw none
+--   >     mkSquare (c0, r0, c1, r1) = square 1 # fillTexture (mkGrad c0 r0 c1 r1) # lw none # bg lightgray
 --   >     mkGrad c0 r0 c1 r1        = mkRadialGradient stops c0 r0 c1 r1 GradPad
 --   >     stops                     = mkStops [(yellow, 0, 1), (royalblue, 1, 1)]
 mkRadialGradient :: Num n => [GradientStop n] -> Point V2 n -> n
