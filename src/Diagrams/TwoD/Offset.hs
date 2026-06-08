@@ -287,6 +287,7 @@ offsetTrail' opts r t = joinSegments eps j isLoop (opts^.offsetMiterLimit) r end
     where
       eps = opts^.offsetEpsilon
       offset = map (bindLoc (offsetSegment eps r)) . locatedTrailSegments
+      -- FIXME(#381): Use NonEmpty
       ends | isLoop    = case trailPoints t of { (a:as) -> as ++ [a]; [] -> [] }
            | otherwise = tail . trailPoints $ t
       j = fromLineJoin (opts^.offsetJoin)
@@ -394,6 +395,7 @@ expandLoop opts r (mapLoc wrapLoop -> t) = trailLike (f r) <> (trailLike . rever
       offset r' = map (bindLoc (offsetSegment eps r')) . locatedTrailSegments
       f r' = joinSegments eps (fromLineJoin (opts^.expandJoin)) True (opts^.expandMiterLimit) r' ends
            . offset r' $ t
+      -- FIXME(#381): Use NonEmpty
       ends = case trailPoints t of { (a:as) -> as ++ [a]; [] -> [] }
 
 -- | Expand a 'Trail' with the given radius and default options.  See 'expandTrail''.
