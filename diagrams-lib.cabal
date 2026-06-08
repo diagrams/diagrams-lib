@@ -171,5 +171,5 @@ benchmark benchmarks
   build-depends:
     base < 5,
     criterion,
-    diagrams-core,
     diagrams-lib
+  ghc-options:         -Wno-unused-packages
