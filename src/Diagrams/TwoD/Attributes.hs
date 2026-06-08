@@ -274,7 +274,7 @@ mkLinearGradient stops  start end spreadMethod
 --   >                   <> (square 1 # fillTexture (mkGrad r0 c1) # lw none)
 --   >     ring r c col
 --   >       | r > 0     = circle r # lw (output 1) # lc col # fcA transparent # moveTo c
---   >       | otherwise = triangle 0.05 # alignT # moveTo c # showOrigin
+--   >       | otherwise = triangle 0.05 # lw none # fc col # alignT # moveTo c # showOrigin
 --   >     mkGrad r0 c1   = mkRadialGradient stops origin r0 c1 0.3 GradPad
 --   >     stops          = mkStops [(yellow, 0, 1), (royalblue, 1, 1)]
 --
