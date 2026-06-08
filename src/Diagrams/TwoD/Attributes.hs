@@ -268,6 +268,8 @@ mkLinearGradient stops  start end spreadMethod
 --   > rGradientEx = hsep 0.1 $ map mkSquare
 --   >     [ (origin, 0,  origin,         0.3)
 --   >     , (origin, 0,  p2 (-0.2, 0.2), 0.3)
+--   >     , (origin, 0.3,  origin,         0)
+--   >     , (origin, 0.3,  p2 (-0.2, 0.2), 0)
 --   >     , (origin, 0.2,  origin,         0.3)
 --   >     , (origin, 0.2,  p2 (-0.2, 0.2), 0.3)
 --   >     ]
