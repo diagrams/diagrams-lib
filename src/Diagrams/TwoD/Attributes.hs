@@ -277,10 +277,12 @@ mkLinearGradient stops  start end spreadMethod
 --   <<diagrams/src_Diagrams_TwoD_Attributes_rGradientPathologicalEx.svg#diagram=rGradientPathologicalEx&width=200>>
 --
 --   > rGradientPathologicalEx :: Diagram B
---   > rGradientPathologicalEx = square 1
---   >   # fillTexture (mkRadialGradient stops (p2 (0.5, -0.5)) 0 (p2 (-0.5, 0.5)) 0.3 GradPad)
---   >   # lw none
---   >   where stops = mkStops [(yellow, 0, 1), (royalblue, 1, 1)]
+--   > rGradientPathologicalEx = hsep 0.1 $ map mkSquare [0, 0.25]
+--   >   where
+--   >     mkSquare r0 = square 1
+--   >       # fillTexture (mkRadialGradient stops (p2 (0.5, -0.5)) r0 (p2 (-0.5, 0.5)) 0.3 GradPad)
+--   >       # lw none
+--   >     stops = mkStops [(yellow, 0, 1), (royalblue, 1, 1)]
 mkRadialGradient :: Num n => [GradientStop n] -> Point V2 n -> n
                   -> Point V2 n -> n -> SpreadMethod -> Texture n
 mkRadialGradient stops c0 r0 c1 r1 spreadMethod
