@@ -60,7 +60,7 @@ module Diagrams.TwoD.Arrowheads
        , ArrowHT
        ) where
 
-import           Control.Lens            ((&), (.~), (<>~), (^.))
+import           Control.Lens            (both, (&), (.~), (<>~), (%~), (^.))
 import           Data.Default
 import           Data.Monoid             (mempty, (<>))
 
@@ -126,7 +126,7 @@ arrowheadDart theta len shaftWidth = (hd # scale sz, jt)
     j = closeTrail $ fromOffsets [V2 (-jLength) 0, V2 0 (shaftWidth / 2)]
     v = rotate theta unitX
     (t1, t2) = (unit_X ^+^ v, V2 (-0.5) 0 ^-^ v)
-    [b1, b2] = map (reflectY . negated) [t1, t2]
+    (b1, b2) = (t1, t2) & both %~ (reflectY . negated)
     psi = pi - negated t2 ^. _theta . rad
     jLength = shaftWidth / (2 * tan psi)
 
