@@ -140,7 +140,9 @@ lGradEnd :: Lens' (LGradient n) (Point V2 n)
 -- | For setting the spread method.
 lGradSpreadMethod :: Lens' (LGradient n) SpreadMethod
 
--- | Radial Gradient
+-- | A radial gradient blending between colors along concentric circles.
+--   The gradient is defined by an inner circle (center @c0@, radius @r0@)
+--   and an outer circle (center @c1@, radius @r1@), both in local coordinates.
 data RGradient n = RGradient
   { _rGradStops        :: [GradientStop n]
   , _rGradCenter0      :: Point V2 n
@@ -249,9 +251,52 @@ mkLinearGradient :: Num n => [GradientStop n] -> Point V2 n -> Point V2 n -> Spr
 mkLinearGradient stops  start end spreadMethod
   = LG (LGradient stops start end mempty spreadMethod)
 
--- | Make a radial gradient texture from a stop list, radius, start point,
---   end point, and 'SpreadMethod'. The 'rGradTrans' field is set to the identity
---   transfrom, to change it use the 'rGradTrans' lens.
+-- | Make a radial gradient texture from a stop list, inner circle (center @c0@,
+--   radius @r0@), outer circle (center @c1@, radius @r1@), and 'SpreadMethod'.
+--   The 'rGradTrans' field is set to the identity transform; use the 'rGradTrans'
+--   lens to change it.
+--
+--   = Parameter geometry
+--
+--   When @c0@ and @c1@ differ, the focal point is displaced from the centre
+--   of the outer circle, producing a spotlight effect. Left to right:
+--   coincident centres; @c1@ offset.
+--
+--   <<diagrams/src_Diagrams_TwoD_Attributes_rGradientEx.svg#diagram=rGradientEx&width=500>>
+--
+--   > rGradientEx :: Diagram B
+--   > rGradientEx = vsep 0.1 $ map row innerRadii
+--   >   where
+--   >     innerRadii     = [0, 0.1, 0.2]
+--   >     outerCenters   = [p2 (0.2, -0.2), origin, p2 (-0.2, 0.2)]
+--   >     row r0         = hsep 0.1 $ map (mkSquare r0) outerCenters
+--   >     mkSquare r0 c1 = ring r0 origin black <> ring 0.3 c1 red
+--   >                   <> (square 1 # fillTexture (mkGrad r0 c1) # lw none)
+--   >     ring r c col
+--   >       | r > 0     = circle r # lw (output 1) # lc col # fcA transparent # moveTo c
+--   >       | otherwise = triangle 0.04 # lw none # fc col # alignT # scaleX 0.7 # rotate (30 @@ deg) # moveTo c # showOrigin
+--   >     mkGrad r0 c1   = mkRadialGradient stops origin r0 c1 0.3 GradPad
+--   >     stops          = mkStops [(yellow, 0, 1), (royalblue, 1, 1)]
+--
+--   == Undefined behaviour
+--
+--   Weird things happen when one center lies outside the other's radius.
+--
+--   <<diagrams/src_Diagrams_TwoD_Attributes_rGradientPathologicalEx.svg#diagram=rGradientPathologicalEx&width=200>>
+--
+--   > rGradientPathologicalEx :: Diagram B
+--   > rGradientPathologicalEx = hsep 0.1 $ map mkSquare
+--   >     [ (p2 (0.25, -0.25), 0,    p2 (-0.25, 0.25), 0.3)
+--   >     , (p2 (0.25, -0.25), 0.25, p2 (-0.25, 0.25), 0.3)
+--   >     ]
+--   >   where
+--   >     mkSquare (c0, r0, c1, r1) = ring r0 c0 purple <> ring r1 c1 orange
+--   >                              <> (square 1 # fillTexture (mkGrad c0 r0 c1 r1) # lw none # bg lightgray)
+--   >     ring r c col
+--   >       | r > 0     = circle r # lw (output 1) # lc col # fcA transparent # moveTo c
+--   >       | otherwise = mempty
+--   >     mkGrad c0 r0 c1 r1        = mkRadialGradient stops c0 r0 c1 r1 GradPad
+--   >     stops                     = mkStops [(yellow, 0, 1), (royalblue, 1, 1)]
 mkRadialGradient :: Num n => [GradientStop n] -> Point V2 n -> n
                   -> Point V2 n -> n -> SpreadMethod -> Texture n
 mkRadialGradient stops c0 r0 c1 r1 spreadMethod
