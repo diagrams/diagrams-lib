@@ -414,7 +414,7 @@ instance Typeable n => SplitAttribute (FillTextureLoops n) where
 -- | Push fill attributes down until they are at the root of subtrees
 --   containing only loops. This makes life much easier for backends,
 --   which typically have a semantics where fill attributes are
---   applied to lines/non-closed paths as well as loops/closed paths,
+--   applied to lines\/non-closed paths as well as loops\/closed paths,
 --   whereas in the semantics of diagrams, fill attributes only apply
 --   to loops.
 splitTextureFills
