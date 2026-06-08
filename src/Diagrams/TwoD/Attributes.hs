@@ -262,12 +262,14 @@ mkLinearGradient stops  start end spreadMethod
 --   of the outer circle, producing a spotlight effect. Left to right:
 --   coincident centres; @c1@ offset.
 --
---   <<diagrams/src_Diagrams_TwoD_Attributes_rGradientEx.svg#diagram=rGradientEx&width=300>>
+--   <<diagrams/src_Diagrams_TwoD_Attributes_rGradientEx.svg#diagram=rGradientEx&width=500>>
 --
 --   > rGradientEx :: Diagram B
---   > rGradientEx = vsep 0.1 $ map row [0, 0.2]
+--   > rGradientEx = vsep 0.1 $ map row innerRadii
 --   >   where
---   >     row r0         = hsep 0.1 $ map (mkSquare r0) [origin, p2 (-0.2, 0.2)]
+--   >     innerRadii     = [0, 0.1, 0.2]
+--   >     outerCenters   = [p2 (0.2, -0.2), origin, p2 (-0.2, 0.2)]
+--   >     row r0         = hsep 0.1 $ map (mkSquare r0) outerCenters
 --   >     mkSquare r0 c1 = ring r0 origin purple <> ring 0.3 c1 orange
 --   >                   <> (square 1 # fillTexture (mkGrad r0 c1) # lw none)
 --   >     ring r c col
