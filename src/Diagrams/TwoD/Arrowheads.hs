@@ -126,7 +126,8 @@ arrowheadDart theta len shaftWidth = (hd # scale sz, jt)
     j = closeTrail $ fromOffsets [V2 (-jLength) 0, V2 0 (shaftWidth / 2)]
     v = rotate theta unitX
     (t1, t2) = (unit_X ^+^ v, V2 (-0.5) 0 ^-^ v)
-    [b1, b2] = map (reflectY . negated) [t1, t2]
+    b1 = reflectY . negated $ t1
+    b2 = reflectY . negated $ t2
     psi = pi - negated t2 ^. _theta . rad
     jLength = shaftWidth / (2 * tan psi)
 

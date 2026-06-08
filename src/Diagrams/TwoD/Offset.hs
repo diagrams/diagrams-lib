@@ -82,7 +82,9 @@ perpAtParam :: OrderedField n => Segment Closed V2 n -> n -> V2 n
 perpAtParam (Linear (OffsetClosed a)) _ = negated $ unitPerp a
 perpAtParam cubic t                     = negated $ unitPerp a
   where
-    (Cubic a _ _) = snd $ splitAtParam cubic t
+    a = case snd $ splitAtParam cubic t of
+      Cubic a' _ _ -> a'
+      _            -> error "perpAtParam: impossible"
 
 -- | Compute the offset of a segment.  Given a segment compute the offset
 --   curve that is a fixed distance from the original curve.  For linear
@@ -285,7 +287,7 @@ offsetTrail' opts r t = joinSegments eps j isLoop (opts^.offsetMiterLimit) r end
     where
       eps = opts^.offsetEpsilon
       offset = map (bindLoc (offsetSegment eps r)) . locatedTrailSegments
-      ends | isLoop    = (\(a:as) -> as ++ [a]) . trailPoints $ t
+      ends | isLoop    = case trailPoints t of { (a:as) -> as ++ [a]; [] -> [] }
            | otherwise = tail . trailPoints $ t
       j = fromLineJoin (opts^.offsetJoin)
 
@@ -392,7 +394,7 @@ expandLoop opts r (mapLoc wrapLoop -> t) = trailLike (f r) <> (trailLike . rever
       offset r' = map (bindLoc (offsetSegment eps r')) . locatedTrailSegments
       f r' = joinSegments eps (fromLineJoin (opts^.expandJoin)) True (opts^.expandMiterLimit) r' ends
            . offset r' $ t
-      ends = (\(a:as) -> as ++ [a]) . trailPoints $ t
+      ends = case trailPoints t of { (a:as) -> as ++ [a]; [] -> [] }
 
 -- | Expand a 'Trail' with the given radius and default options.  See 'expandTrail''.
 expandTrail :: RealFloat n => n -> Located (Trail V2 n) -> Path V2 n

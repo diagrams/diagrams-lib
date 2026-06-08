@@ -542,7 +542,8 @@ connect'
 connect' opts n1 n2 =
   withName n1 $ \sub1 ->
   withName n2 $ \sub2 ->
-    let [s,e] = map location [sub1, sub2]
+    let s = location sub1
+        e = location sub2
     in  atop (arrowBetween' opts s e)
 
 -- | Connect two diagrams at point on the perimeter of the diagrams, choosen
@@ -560,7 +561,8 @@ connectPerim'
 connectPerim' opts n1 n2 a1 a2 =
   withName n1 $ \sub1 ->
   withName n2 $ \sub2 ->
-    let [os, oe] = map location [sub1, sub2]
+    let os = location sub1
+        oe = location sub2
         s = fromMaybe os (maxTraceP os (unitX # rotate a1) sub1)
         e = fromMaybe oe (maxTraceP oe (unitX # rotate a2) sub2)
     in  atop (arrowBetween' opts s e)
