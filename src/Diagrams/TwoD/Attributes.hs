@@ -265,18 +265,12 @@ mkLinearGradient stops  start end spreadMethod
 --   <<diagrams/src_Diagrams_TwoD_Attributes_rGradientEx.svg#diagram=rGradientEx&width=300>>
 --
 --   > rGradientEx :: Diagram B
---   > rGradientEx = hsep 0.1 $ map mkSquare
---   >     [ (origin, 0,  origin,         0.3)
---   >     , (origin, 0,  p2 (-0.2, 0.2), 0.3)
---   >     , (origin, 0.3,  origin,         0)
---   >     , (origin, 0.3,  p2 (-0.2, 0.2), 0)
---   >     , (origin, 0.2,  origin,         0.3)
---   >     , (origin, 0.2,  p2 (-0.2, 0.2), 0.3)
---   >     ]
+--   > rGradientEx = vsep 0.1 $ map row [0, 0.2]
 --   >   where
---   >     mkSquare (c0, r0, c1, r1) = square 1 # fillTexture (mkGrad c0 r0 c1 r1) # lw none
---   >     mkGrad c0 r0 c1 r1        = mkRadialGradient stops c0 r0 c1 r1 GradPad
---   >     stops                     = mkStops [(yellow, 0, 1), (royalblue, 1, 1)]
+--   >     row r0         = hsep 0.1 $ map (mkSquare r0) [origin, p2 (-0.2, 0.2)]
+--   >     mkSquare r0 c1 = square 1 # fillTexture (mkGrad r0 c1) # lw none
+--   >     mkGrad r0 c1   = mkRadialGradient stops origin r0 c1 0.3 GradPad
+--   >     stops          = mkStops [(yellow, 0, 1), (royalblue, 1, 1)]
 --
 --   == Undefined behaviour
 --
