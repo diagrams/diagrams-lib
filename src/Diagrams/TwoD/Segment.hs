@@ -192,8 +192,8 @@ bezierClip eps p_ q_ = filter (allOf both inRange) -- sometimes this returns NaN
     -- iterate with the curves reversed.
     | otherwise = go q p' umin umax tmin' tmax' clip' (not revCurves)
     where
-      chopInterval              = chopCubics p q
-      Just (tminChop, tmaxChop) = chopInterval
+      chopInterval           = chopCubics p q
+      (tminChop, tmaxChop)   = fromJust chopInterval
       p'    = section p tminChop tmaxChop
       clip' = tmaxChop - tminChop
       tmin' = tmax * tminChop + tmin * (1 - tminChop)
@@ -229,8 +229,8 @@ bezierFindRoot eps p tmin tmax
                        go p2 tmid  tmax'
     | otherwise = bezierFindRoot eps newP tmin' tmax'
     where
-      chopInterval              = chopYs (bernsteinCoeffs p)
-      Just (tminChop, tmaxChop) = chopInterval
+      chopInterval           = chopYs (bernsteinCoeffs p)
+      (tminChop, tmaxChop)   = fromJust chopInterval
       newP  = section p tminChop tmaxChop
       clip  = tmaxChop - tminChop
       tmin' = tmax * tminChop + tmin * (1 - tminChop)

@@ -233,7 +233,10 @@ splitAtParam' (SegTree t) p
                  | otherwise = propFrac $  q           * tSegs
       where propFrac x = let m = mod1 x in (x - m, m)
     (pSegs, pParam) = splitParam p
-    (before, viewl -> seg FT.:< after) = FT.split ((pSegs <) . numSegs) t
+    (before, after_raw) = FT.split ((pSegs <) . numSegs) t
+    (seg, after) = case viewl after_raw of
+      s FT.:< rest -> (s, rest)
+      FT.EmptyL    -> error "splitAtParam': empty trailing tree"
     (segL, segR) = seg `splitAtParam` pParam
     (treeL, treeR) | pParam == 0 = (before        , seg  <| after)
                    | pParam == 1 = (before |> seg ,         after)
