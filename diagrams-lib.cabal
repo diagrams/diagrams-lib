@@ -160,6 +160,7 @@ test-suite tests
                        diagrams-lib,
                        distributive,
                        numeric-extras
+  ghc-options:         -Wno-unused-packages
   default-language:    Haskell2010
 
 benchmark benchmarks
