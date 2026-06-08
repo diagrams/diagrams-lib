@@ -270,11 +270,11 @@ mkLinearGradient stops  start end spreadMethod
 --   >     innerRadii     = [0, 0.1, 0.2]
 --   >     outerCenters   = [p2 (0.2, -0.2), origin, p2 (-0.2, 0.2)]
 --   >     row r0         = hsep 0.1 $ map (mkSquare r0) outerCenters
---   >     mkSquare r0 c1 = ring r0 origin purple <> ring 0.3 c1 orange
+--   >     mkSquare r0 c1 = ring r0 origin black <> ring 0.3 c1 red
 --   >                   <> (square 1 # fillTexture (mkGrad r0 c1) # lw none)
 --   >     ring r c col
 --   >       | r > 0     = circle r # lw (output 1) # lc col # fcA transparent # moveTo c
---   >       | otherwise = mempty
+--   >       | otherwise = triangle 0.02 # moveTo c # showOrigin
 --   >     mkGrad r0 c1   = mkRadialGradient stops origin r0 c1 0.3 GradPad
 --   >     stops          = mkStops [(yellow, 0, 1), (royalblue, 1, 1)]
 --
