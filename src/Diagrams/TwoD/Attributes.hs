@@ -264,25 +264,27 @@ mkLinearGradient stops  start end spreadMethod
 --
 --   > rGradientEx :: Diagram B
 --   > rGradientEx = hsep 0.1 $ map mkSquare
---   >     [ (origin, origin)
---   >     , (origin, p2 (-0.2, 0.2))
+--   >     [ (origin, 0,  origin,         0.3)
+--   >     , (origin, 0,  p2 (-0.2, 0.2), 0.3)
 --   >     ]
 --   >   where
---   >     mkSquare (c0, c1) = square 1 # fillTexture (mkGrad c0 c1) # lw none
---   >     mkGrad c0 c1      = mkRadialGradient stops c0 0 c1 0.3 GradPad
---   >     stops             = mkStops [(yellow, 0, 1), (royalblue, 1, 1)]
+--   >     mkSquare (c0, r0, c1, r1) = square 1 # fillTexture (mkGrad c0 r0 c1 r1) # lw none
+--   >     mkGrad c0 r0 c1 r1        = mkRadialGradient stops c0 r0 c1 r1 GradPad
+--   >     stops                     = mkStops [(yellow, 0, 1), (royalblue, 1, 1)]
 --
 --   Weird things happen when one center lies outside the other's radius.
 --
 --   <<diagrams/src_Diagrams_TwoD_Attributes_rGradientPathologicalEx.svg#diagram=rGradientPathologicalEx&width=200>>
 --
 --   > rGradientPathologicalEx :: Diagram B
---   > rGradientPathologicalEx = hsep 0.1 $ map mkSquare [0, 0.25]
+--   > rGradientPathologicalEx = hsep 0.1 $ map mkSquare
+--   >     [ (p2 (0.25, -0.25), 0,    p2 (-0.25, 0.25), 0.3)
+--   >     , (p2 (0.25, -0.25), 0.25, p2 (-0.25, 0.25), 0.3)
+--   >     ]
 --   >   where
---   >     mkSquare r0 = square 1
---   >       # fillTexture (mkRadialGradient stops (p2 (0.5, -0.5)) r0 (p2 (-0.5, 0.5)) 0.3 GradPad)
---   >       # lw none
---   >     stops = mkStops [(yellow, 0, 1), (royalblue, 1, 1)]
+--   >     mkSquare (c0, r0, c1, r1) = square 1 # fillTexture (mkGrad c0 r0 c1 r1) # lw none
+--   >     mkGrad c0 r0 c1 r1        = mkRadialGradient stops c0 r0 c1 r1 GradPad
+--   >     stops                     = mkStops [(yellow, 0, 1), (royalblue, 1, 1)]
 mkRadialGradient :: Num n => [GradientStop n] -> Point V2 n -> n
                   -> Point V2 n -> n -> SpreadMethod -> Texture n
 mkRadialGradient stops c0 r0 c1 r1 spreadMethod
