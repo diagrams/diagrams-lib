@@ -256,28 +256,18 @@ mkLinearGradient stops  start end spreadMethod
 --   The 'rGradTrans' field is set to the identity transform; use the 'rGradTrans'
 --   lens to change it.
 --
---   <<diagrams/src_Diagrams_TwoD_Attributes_rGradientEx.svg#diagram=rGradientEx&width=200>>
+--   When @c0@ and @c1@ differ, the focal point is displaced from the centre
+--   of the outer circle, producing a spotlight effect. Left to right:
+--   @c1 = origin@, @c1 = p2 (-0.2, 0.2)@, @c1 = p2 (-0.5, 0.5)@.
+--
+--   <<diagrams/src_Diagrams_TwoD_Attributes_rGradientEx.svg#diagram=rGradientEx&width=400>>
 --
 --   > rGradientEx :: Diagram B
---   > rGradientEx = square 1
---   >   # fillTexture grad
---   >   # lw none
+--   > rGradientEx = hcat $ map mkSquare [origin, p2 (-0.2, 0.2), p2 (-0.5, 0.5)]
 --   >   where
---   >     grad = mkRadialGradient stops origin 0 origin 0.5 GradPad
---   >     stops = mkStops [(yellow, 0, 1), (royalblue, 1, 1)]
---
---   When @c0@ and @c1@ differ, the focal point of the gradient is displaced
---   from the centre of the outer circle, producing a spotlight effect:
---
---   <<diagrams/src_Diagrams_TwoD_Attributes_rGradientOffcenterEx.svg#diagram=rGradientOffcenterEx&width=200>>
---
---   > rGradientOffcenterEx :: Diagram B
---   > rGradientOffcenterEx = square 1
---   >   # fillTexture grad
---   >   # lw none
---   >   where
---   >     grad = mkRadialGradient stops (p2 (-0.2, 0.2)) 0 origin 0.5 GradPad
---   >     stops = mkStops [(yellow, 0, 1), (royalblue, 1, 1)]
+--   >     mkSquare c1 = square 1 # fillTexture (mkGrad c1) # lw none
+--   >     mkGrad c1   = mkRadialGradient stops origin 0 c1 0.3 GradPad
+--   >     stops       = mkStops [(yellow, 0, 1), (royalblue, 1, 1)]
 mkRadialGradient :: Num n => [GradientStop n] -> Point V2 n -> n
                   -> Point V2 n -> n -> SpreadMethod -> Texture n
 mkRadialGradient stops c0 r0 c1 r1 spreadMethod
