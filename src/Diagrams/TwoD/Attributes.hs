@@ -256,6 +256,8 @@ mkLinearGradient stops  start end spreadMethod
 --   The 'rGradTrans' field is set to the identity transform; use the 'rGradTrans'
 --   lens to change it.
 --
+--   = Parameter geometry
+--
 --   When @c0@ and @c1@ differ, the focal point is displaced from the centre
 --   of the outer circle, producing a spotlight effect. Left to right:
 --   coincident centres; @c1@ offset.
@@ -266,11 +268,15 @@ mkLinearGradient stops  start end spreadMethod
 --   > rGradientEx = hsep 0.1 $ map mkSquare
 --   >     [ (origin, 0,  origin,         0.3)
 --   >     , (origin, 0,  p2 (-0.2, 0.2), 0.3)
+--   >     , (origin, 0.2,  origin,         0.3)
+--   >     , (origin, 0.2,  p2 (-0.2, 0.2), 0.3)
 --   >     ]
 --   >   where
 --   >     mkSquare (c0, r0, c1, r1) = square 1 # fillTexture (mkGrad c0 r0 c1 r1) # lw none
 --   >     mkGrad c0 r0 c1 r1        = mkRadialGradient stops c0 r0 c1 r1 GradPad
 --   >     stops                     = mkStops [(yellow, 0, 1), (royalblue, 1, 1)]
+--
+--   == Undefined behaviour
 --
 --   Weird things happen when one center lies outside the other's radius.
 --
