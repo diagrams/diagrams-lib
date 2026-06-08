@@ -143,16 +143,6 @@ lGradSpreadMethod :: Lens' (LGradient n) SpreadMethod
 -- | A radial gradient blending between colors along concentric circles.
 --   The gradient is defined by an inner circle (center @c0@, radius @r0@)
 --   and an outer circle (center @c1@, radius @r1@), both in local coordinates.
---
---   <<diagrams/src_Diagrams_TwoD_Attributes_rGradientEx.svg#diagram=rGradientEx&width=200>>
---
---   > rGradientEx :: Diagram B
---   > rGradientEx = square 1
---   >   # fillTexture grad
---   >   # lw none
---   >   where
---   >     grad = mkRadialGradient stops origin 0 origin 0.5 GradPad
---   >     stops = mkStops [(yellow, 0, 1), (royalblue, 1, 1)]
 data RGradient n = RGradient
   { _rGradStops        :: [GradientStop n]
   , _rGradCenter0      :: Point V2 n
@@ -261,9 +251,33 @@ mkLinearGradient :: Num n => [GradientStop n] -> Point V2 n -> Point V2 n -> Spr
 mkLinearGradient stops  start end spreadMethod
   = LG (LGradient stops start end mempty spreadMethod)
 
--- | Make a radial gradient texture from a stop list, radius, start point,
---   end point, and 'SpreadMethod'. The 'rGradTrans' field is set to the identity
---   transfrom, to change it use the 'rGradTrans' lens.
+-- | Make a radial gradient texture from a stop list, inner circle (center @c0@,
+--   radius @r0@), outer circle (center @c1@, radius @r1@), and 'SpreadMethod'.
+--   The 'rGradTrans' field is set to the identity transform; use the 'rGradTrans'
+--   lens to change it.
+--
+--   <<diagrams/src_Diagrams_TwoD_Attributes_rGradientEx.svg#diagram=rGradientEx&width=200>>
+--
+--   > rGradientEx :: Diagram B
+--   > rGradientEx = square 1
+--   >   # fillTexture grad
+--   >   # lw none
+--   >   where
+--   >     grad = mkRadialGradient stops origin 0 origin 0.5 GradPad
+--   >     stops = mkStops [(yellow, 0, 1), (royalblue, 1, 1)]
+--
+--   When @c0@ and @c1@ differ, the focal point of the gradient is displaced
+--   from the centre of the outer circle, producing a spotlight effect:
+--
+--   <<diagrams/src_Diagrams_TwoD_Attributes_rGradientOffcenterEx.svg#diagram=rGradientOffcenterEx&width=200>>
+--
+--   > rGradientOffcenterEx :: Diagram B
+--   > rGradientOffcenterEx = square 1
+--   >   # fillTexture grad
+--   >   # lw none
+--   >   where
+--   >     grad = mkRadialGradient stops (p2 (-0.2, 0.2)) 0 origin 0.5 GradPad
+--   >     stops = mkStops [(yellow, 0, 1), (royalblue, 1, 1)]
 mkRadialGradient :: Num n => [GradientStop n] -> Point V2 n -> n
                   -> Point V2 n -> n -> SpreadMethod -> Texture n
 mkRadialGradient stops c0 r0 c1 r1 spreadMethod
