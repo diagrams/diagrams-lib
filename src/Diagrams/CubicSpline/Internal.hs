@@ -1,6 +1,8 @@
------------------------------------------------------------------------------
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE ImportQualifiedPost #-}
+
 -- |
--- Module      :  Diagrams.CubicSpline
+-- Module      :  Diagrams.CubicSpline.Internal
 -- Copyright   :  (c) 2011 diagrams-lib team (see LICENSE)
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  diagrams-discuss@googlegroups.com
@@ -9,53 +11,60 @@
 -- passing through a given sequence of points.  This module implements
 -- a straightforward spline generation algorithm based on solving
 -- tridiagonal systems of linear equations.
---
------------------------------------------------------------------------------
-module Diagrams.CubicSpline.Internal
-       (
-         -- * Solving for spline coefficents
-         solveCubicSplineDerivatives
-       , solveCubicSplineDerivativesClosed
-       , solveCubicSplineCoefficients
-       ) where
+module Diagrams.CubicSpline.Internal (
+  -- * Solving for spline coefficents
+  solveCubicSplineDerivatives,
+  solveCubicSplineDerivativesClosed,
+  solveCubicSplineCoefficients,
+) where
 
-import           Diagrams.Solve.Tridiagonal
-
-import           Data.List
+import Data.List
+import Data.List.NonEmpty (NonEmpty (..))
+import Data.List.NonEmpty qualified as NE
+import Diagrams.CubicSpline.NonSingleton (NonSingleton (..))
+import Diagrams.CubicSpline.NonSingleton qualified as NS
+import Diagrams.Solve.Tridiagonal
 
 -- | Use the tri-diagonal solver with the appropriate parameters for an open cubic spline.
-solveCubicSplineDerivatives :: Fractional a => [a] -> [a]
-solveCubicSplineDerivatives (x:xs) = solveTriDiagonal as bs as ds
-  where
-    as = replicate (l - 1) 1
-    bs = 2 : replicate (l - 2) 4 ++ [2]
-    l  = length ds
-    ds = zipWith f (xs ++ [last xs]) (x:x:xs)
-    f a b = 3*(a - b)
-
-solveCubicSplineDerivatives _ = error "argument to solveCubicSplineDerivatives must be nonempty"
+--
+--   See e.g. https://observablehq.com/@jrus/cubic-spline
+solveCubicSplineDerivatives :: Fractional a => NonSingleton a -> NonEmpty a
+solveCubicSplineDerivatives xs = solveTriDiagonal as bs as (NS.toNonEmpty ds)
+ where
+  as = NE.map (const 1) (NS.tail ds)
+  bs = 2 :| map (const 4) (NE.tail (NS.tail ds)) ++ [2]
+  -- zipWith f [x1, x2, x3, ..., xn, xn] [x0, x0, x1, ... x{n-2}, x{n-1}]
+  ds = NS.zipWith f (NS.dupLast (NS.tail xs)) (NS.dupFirst xs)
+  f a b = 3 * (a - b)
 
 -- | Use the cyclic-tri-diagonal solver with the appropriate parameters for a closed cubic spline.
-solveCubicSplineDerivativesClosed :: Fractional a => [a] -> [a]
+solveCubicSplineDerivativesClosed :: Fractional a => NonSingleton a -> NonEmpty a
 solveCubicSplineDerivativesClosed xs = solveCyclicTriDiagonal as bs as ds 1 1
-  where
-    as = replicate (l - 1) 1
-    bs = replicate l 4
-    l  = length xs
-    xs' = cycle xs
-    ds = take l $ zipWith f (drop 1 xs') (drop (l - 1) xs')
-    f a b = 3*(a - b)
+ where
+  as = fmap (const 1) (NS.tail xs)
+  bs = fmap (const 4) (NS.toNonEmpty xs)
+
+  -- zipWith f [x1, x2, x3, ..., xn, x0] [xn, x0, x1, ..., x{n-1}]
+  -- ds = take l $ zipWith f (drop 1 xs') (drop (l - 1) xs') where l = length xs
+  xsNE = NS.toNonEmpty xs
+  ds = NE.zipWith f (NE.tail xsNE |: NE.head xsNE) (NE.cons (NE.last xsNE) xsNE)
+  f a b = 3 * (a - b)
+
+  (|:) :: [a] -> a -> NonEmpty a
+  (|:) ys y = foldr NE.cons (NE.singleton y) ys
 
 -- | Use the cyclic-tri-diagonal solver with the appropriate parameters for a closed cubic spline.
-solveCubicSplineCoefficients :: Fractional a => Bool -> [a] -> [[a]]
+solveCubicSplineCoefficients :: Fractional a => Bool -> NonSingleton a -> [[a]]
 solveCubicSplineCoefficients closed xs =
-    [ [x,d,3*(x1-x)-2*d-d1,2*(x-x1)+d+d1]
-    | (x,x1,d,d1) <- zip4 xs' (tail xs') ds' (tail ds')
-    ]
-  where
-    ds | closed    = solveCubicSplineDerivativesClosed xs
-       | otherwise = solveCubicSplineDerivatives xs
-    close as | closed    = as ++ [head as]
-             | otherwise = as
-    xs' = close xs
-    ds' = close ds
+  [ [x, d, 3 * (x1 - x) - 2 * d - d1, 2 * (x - x1) + d + d1]
+  | (x, x1, d, d1) <- zip4 (NE.toList xs') (NE.tail xs') (NE.toList ds') (NE.tail ds')
+  ]
+ where
+  ds
+    | closed = solveCubicSplineDerivativesClosed xs
+    | otherwise = solveCubicSplineDerivatives xs
+  close as
+    | closed = as <> NE.singleton (NE.head as)
+    | otherwise = as
+  xs' = close (NS.toNonEmpty xs)
+  ds' = close ds

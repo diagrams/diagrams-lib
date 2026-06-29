@@ -1,14 +1,18 @@
-{-# LANGUAGE CPP                       #-}
-{-# LANGUAGE ConstrainedClassMethods   #-}
-{-# LANGUAGE DeriveDataTypeable        #-}
-{-# LANGUAGE FlexibleContexts          #-}
-{-# LANGUAGE FlexibleInstances         #-}
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE ConstrainedClassMethods #-}
+{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE TemplateHaskell           #-}
-{-# LANGUAGE TypeFamilies              #-}
-{-# LANGUAGE UndecidableInstances      #-}
+
 -----------------------------------------------------------------------------
+
+-----------------------------------------------------------------------------
+
 -- |
 -- Module      :  Diagrams.Backend.CmdLine
 -- Copyright   :  (c) 2013 Diagrams team (see LICENSE)
@@ -24,105 +28,107 @@
 --
 -- For a tutorial on command-line diagram creation see
 -- <https://diagrams.github.io/doc/cmdline.html>.
---
------------------------------------------------------------------------------
+module Diagrams.Backend.CmdLine (
+  -- * Options
 
-module Diagrams.Backend.CmdLine
-  (
+  -- ** Standard options
+  DiagramOpts (..),
+  diagramOpts,
+  width,
+  height,
+  output,
 
-    -- * Options
+  -- ** Multi-diagram options
+  DiagramMultiOpts (..),
+  diagramMultiOpts,
+  selection,
+  list,
 
-    -- ** Standard options
-    DiagramOpts(..)
-  , diagramOpts
-  , width
-  , height
-  , output
+  -- ** Animation options
+  DiagramAnimOpts (..),
+  diagramAnimOpts,
+  fpu,
 
-    -- ** Multi-diagram options
-  , DiagramMultiOpts(..)
-  , diagramMultiOpts
-  , selection
-  , list
+  -- * Parsing
+  Parseable (..),
+  readHexColor,
 
-    -- ** Animation options
-  , DiagramAnimOpts(..)
-  , diagramAnimOpts
-  , fpu
+  -- * Command-line programs (@Mainable@)
 
-    -- * Parsing
-  , Parseable(..)
-  , readHexColor
+  -- ** Arguments, rendering, and entry point
+  Mainable (..),
 
-    -- * Command-line programs (@Mainable@)
-    -- ** Arguments, rendering, and entry point
-  , Mainable(..)
+  -- ** General currying
+  ToResult (..),
 
-    -- ** General currying
-  , ToResult(..)
+  -- ** helper functions for implementing @mainRender@
+  defaultAnimMainRender,
+  defaultMultiMainRender,
+) where
 
-    -- ** helper functions for implementing @mainRender@
-  , defaultAnimMainRender
-  , defaultMultiMainRender
-  ) where
+import Control.Lens (Lens', makeLenses, (&), (.~), (^.))
+import Diagrams.Animation
+import Diagrams.Attributes
+import Diagrams.Core hiding (output)
 
-import           Control.Lens              (Lens', makeLenses, (&), (.~), (^.))
-import           Diagrams.Animation
-import           Diagrams.Attributes
-import           Diagrams.Core             hiding (output)
+import Options.Applicative
+import Options.Applicative.Types (readerAsk)
 
-import           Options.Applicative
-import           Options.Applicative.Types (readerAsk)
-
-import           Control.Monad             (forM_)
+import Control.Monad (forM_)
 
 -- MonadFail comes from Prelude in base-4.13 and up
 #if !MIN_VERSION_base(4,13,0)
 import           Control.Monad.Fail        (MonadFail)
 #endif
 
-import           Data.Active               hiding (interval)
-import           Data.Char                 (isDigit)
-import           Data.Colour
-import           Data.Colour.Names
-import           Data.Colour.SRGB
-import           Data.Data
-import           Data.Functor.Identity
-import           Data.Kind                 (Type)
-import           Data.Monoid
-import           Numeric
+import Data.Active hiding (interval)
+import Data.Char (isDigit)
+import Data.Colour
+import Data.Colour.Names
+import Data.Colour.SRGB
+import Data.Data
+import Data.Functor.Identity
+import Data.Kind (Type)
+import Data.Monoid
+import Numeric
 
-import           System.Environment        (getProgName)
-import           System.FilePath           (addExtension, splitExtension)
+import System.Environment (getProgName)
+import System.FilePath (addExtension, splitExtension)
 
-import           Text.Printf
+import Text.Printf
 
 -- | Standard options most diagrams are likely to have.
 data DiagramOpts = DiagramOpts
-  { _width  :: Maybe Int -- ^ Final output width of diagram.
-  , _height :: Maybe Int -- ^ Final output height of diagram.
-  , _output :: FilePath  -- ^ Output file path, format is typically chosen by extension.
+  { _width :: Maybe Int
+  -- ^ Final output width of diagram.
+  , _height :: Maybe Int
+  -- ^ Final output height of diagram.
+  , _output :: FilePath
+  -- ^ Output file path, format is typically chosen by extension.
   }
-  deriving (Show, Data, Typeable)
+  deriving (Show, Data)
 
 makeLenses ''DiagramOpts
 
 -- | Extra options for a program that can offer a choice
 --   between multiple diagrams.
 data DiagramMultiOpts = DiagramMultiOpts
-  { _selection :: Maybe String -- ^ Selected diagram to render.
-  , _list      :: Bool         -- ^ Flag to indicate that a list of available diagrams should
-                               --   be printed to standard out.
+  { _selection :: Maybe String
+  -- ^ Selected diagram to render.
+  , _list :: Bool
+  -- ^ Flag to indicate that a list of available diagrams should
+  --   be printed to standard out.
   }
-  deriving (Show, Data, Typeable)
+  deriving (Show, Data)
 
 makeLenses ''DiagramMultiOpts
 
 -- | Extra options for animations.
 data DiagramAnimOpts = DiagramAnimOpts
-  { _fpu :: Double -- ^ Number of frames per unit time to generate for the animation.
+  { _fpu :: Double
+  -- ^ Number of frames per unit time to generate for the animation.
   }
-  deriving (Show, Data, Typeable)
+  deriving (Show, Data)
 
 makeLenses ''DiagramAnimOpts
 
@@ -131,53 +137,71 @@ makeLenses ''DiagramAnimOpts
 --   Height is option @--height@ or @-h@ (note we change help to be @-?@ due to this).
 --   Output is option @--output@ or @-o@.
 diagramOpts :: Parser DiagramOpts
-diagramOpts = DiagramOpts
-  <$> (optional . option auto)
-      ( long "width" <> short 'w'
-     <> metavar "WIDTH"
-     <> help "Desired WIDTH of the output image")
-  <*> (optional . option auto)
-      ( long "height" <> short 'h'
-     <> metavar "HEIGHT"
-     <> help "Desired HEIGHT of the output image")
-  <*> strOption
-      ( long "output" <> short 'o'
-     <> value ""
-     <> metavar "OUTPUT"
-     <> help "OUTPUT file")
+diagramOpts =
+  DiagramOpts
+    <$> (optional . option auto)
+      ( long "width"
+          <> short 'w'
+          <> metavar "WIDTH"
+          <> help "Desired WIDTH of the output image"
+      )
+    <*> (optional . option auto)
+      ( long "height"
+          <> short 'h'
+          <> metavar "HEIGHT"
+          <> help "Desired HEIGHT of the output image"
+      )
+    <*> strOption
+      ( long "output"
+          <> short 'o'
+          <> value ""
+          <> metavar "OUTPUT"
+          <> help "OUTPUT file"
+      )
 
 -- | Command line parser for 'DiagramMultiOpts'.
 --   Selection is option @--selection@ or @-S@.
 --   List is @--list@ or @-L@.
 diagramMultiOpts :: Parser DiagramMultiOpts
-diagramMultiOpts = DiagramMultiOpts
-  <$> (optional . strOption)
-      ( long "selection" <> short 'S'
-     <> metavar "NAME"
-     <> help "NAME of the diagram to render")
-  <*> switch
-      ( long "list" <> short 'L'
-     <> help "List all available diagrams")
+diagramMultiOpts =
+  DiagramMultiOpts
+    <$> (optional . strOption)
+      ( long "selection"
+          <> short 'S'
+          <> metavar "NAME"
+          <> help "NAME of the diagram to render"
+      )
+    <*> switch
+      ( long "list"
+          <> short 'L'
+          <> help "List all available diagrams"
+      )
 
 -- | Command line parser for 'DiagramAnimOpts'
 --   Frames per unit is @--fpu@ or @-f@.
 diagramAnimOpts :: Parser DiagramAnimOpts
-diagramAnimOpts = DiagramAnimOpts
-  <$> option auto
-      ( long "fpu" <> short 'f'
-     <> value 30.0
-     <> help "Frames per unit time (for animations)")
+diagramAnimOpts =
+  DiagramAnimOpts
+    <$> option
+      auto
+      ( long "fpu"
+          <> short 'f'
+          <> value 30.0
+          <> help "Frames per unit time (for animations)"
+      )
 
 -- | A hidden \"helper\" option which always fails.
 --   Taken from Options.Applicative.Extra but without the
 --   short option 'h'.  We want the 'h' for Height.
 helper' :: Parser (a -> a)
-helper' = abortOption param $ mconcat
-  [ long "help"
-  , short '?'
-  , help "Show this help text"
-  ]
-  where
+helper' =
+  abortOption param $
+    mconcat
+      [ long "help"
+      , short '?'
+      , help "Show this help text"
+      ]
+ where
 #if MIN_VERSION_optparse_applicative(0,16,0)
     param = ShowHelpText Nothing
 #else
@@ -190,10 +214,13 @@ helper' = abortOption param $ mconcat
 defaultOpts :: Parser a -> IO a
 defaultOpts optsParser = do
   prog <- getProgName
-  let p = info (helper' <*> optsParser)
-              ( fullDesc
-             <> progDesc "Command-line diagram generation."
-             <> header prog)
+  let p =
+        info
+          (helper' <*> optsParser)
+          ( fullDesc
+              <> progDesc "Command-line diagram generation."
+              <> header prog
+          )
   execParser p
 
 -- | Parseable instances give a command line parser for a type.  If a custom
@@ -240,20 +267,20 @@ instance Parseable DiagramAnimOpts where
 --   or a hexadecimal color.
 instance Parseable (Colour Double) where
   parser = argument (rc <|> rh) mempty
-    where
-      rh, rc :: ReadM (Colour Double)
-      rh = f . colorToSRGBA <$> (readerAsk >>= readHexColor)
-      rc = readerAsk >>= readColourName
-      f (r,g,b,_) = sRGB r g b -- TODO: this seems unfortunate.  Should the alpha
-                               -- value be applied to the r g b values?
+   where
+    rh, rc :: ReadM (Colour Double)
+    rh = f . colorToSRGBA <$> (readerAsk >>= readHexColor)
+    rc = readerAsk >>= readColourName
+    f (r, g, b, _) = sRGB r g b -- TODO: this seems unfortunate.  Should the alpha
+    -- value be applied to the r g b values?
 
 -- | Parse @'AlphaColour' Double@ as either a named color from "Data.Colour.Names"
 --   or a hexadecimal color.
 instance Parseable (AlphaColour Double) where
   parser = argument (rc <|> rh) mempty
-    where
-      rh = readerAsk >>= readHexColor
-      rc = opaque <$> (readerAsk >>= readColourName)
+   where
+    rh = readerAsk >>= readHexColor
+    rc = opaque <$> (readerAsk >>= readColourName)
 
 -- Addapted from the Clay.Color module of the clay package
 
@@ -265,25 +292,25 @@ instance Parseable (AlphaColour Double) where
 --   order being red, green, blue, alpha.
 readHexColor :: (Applicative m, MonadFail m) => String -> m (AlphaColour Double)
 readHexColor cs = case cs of
-  ('0':'x':hs) -> handle hs
-  ('#':hs)     -> handle hs
-  hs           -> handle hs
-  where
-    handle hs | length hs <= 8 && all isHexDigit hs
-      = case hs of
-        [a,b,c,d,e,f,g,h] -> withOpacity <$> (sRGB <$> hex a b <*> hex c d <*> hex e f) <*> hex g h
-        [a,b,c,d,e,f    ] -> opaque      <$> (sRGB <$> hex a b <*> hex c d <*> hex e f)
-        [a,b,c,d        ] -> withOpacity <$> (sRGB <$> hex a a <*> hex b b <*> hex c c) <*> hex d d
-        [a,b,c          ] -> opaque      <$> (sRGB <$> hex a a <*> hex b b <*> hex c c)
-        _                 -> fail $ "could not parse as a colour" ++ cs
-    handle _ = fail $ "could not parse as a colour: " ++ cs
+  ('0' : 'x' : hs) -> handle hs
+  ('#' : hs) -> handle hs
+  hs -> handle hs
+ where
+  handle hs | length hs <= 8 && all isHexDigit hs =
+    case hs of
+      [a, b, c, d, e, f, g, h] -> withOpacity <$> (sRGB <$> hex a b <*> hex c d <*> hex e f) <*> hex g h
+      [a, b, c, d, e, f] -> opaque <$> (sRGB <$> hex a b <*> hex c d <*> hex e f)
+      [a, b, c, d] -> withOpacity <$> (sRGB <$> hex a a <*> hex b b <*> hex c c) <*> hex d d
+      [a, b, c] -> opaque <$> (sRGB <$> hex a a <*> hex b b <*> hex c c)
+      _ -> fail $ "could not parse as a colour" ++ cs
+  handle _ = fail $ "could not parse as a colour: " ++ cs
 
-    isHexDigit c = isDigit c || c `elem` "abcdef"
+  isHexDigit c = isDigit c || c `elem` "abcdef"
 
-    hex a b = (/ 255) <$> case readHex [a,b] of
-                [(h,"")] -> return h
-                _        -> fail $ "could not parse as a hex value" ++ [a,b]
-
+  hex a b =
+    (/ 255) <$> case readHex [a, b] of
+      [(h, "")] -> return h
+      _ -> fail $ "could not parse as a hex value" ++ [a, b]
 
 -- | This instance is needed to signal the end of a chain of
 --   nested tuples, it always just results in the unit value
@@ -292,7 +319,7 @@ instance Parseable () where
   parser = pure ()
 
 -- | Allow 'Parseable' things to be combined.
-instance (Parseable a, Parseable b) => Parseable (a,b) where
+instance (Parseable a, Parseable b) => Parseable (a, b) where
   parser = (,) <$> parser <*> parser
 
 -- | Triples of Parsebales should also be Parseable.
@@ -330,8 +357,8 @@ instance ToResult [QDiagram b v n Any] where
 
 -- | A list of named diagrams can give the multi-diagram interface.
 instance ToResult [(String, QDiagram b v n Any)] where
-  type Args [(String,QDiagram b v n Any)] = ()
-  type ResultOf [(String,QDiagram b v n Any)] = [(String,QDiagram b v n Any)]
+  type Args [(String, QDiagram b v n Any)] = ()
+  type ResultOf [(String, QDiagram b v n Any)] = [(String, QDiagram b v n Any)]
 
   toResult ds _ = ds
 
@@ -362,8 +389,7 @@ instance ToResult d => ToResult (a -> d) where
   type Args (a -> d) = (a, Args d)
   type ResultOf (a -> d) = ResultOf d
 
-  toResult f (a,args) = toResult (f a) args
-
+  toResult f (a, args) = toResult (f a) args
 
 -- | This class represents the various ways we want to support diagram creation
 --   from the command line.  It has the right instances to select between creating
@@ -420,11 +446,14 @@ class Mainable d where
 -- | This instance allows functions resulting in something that is 'Mainable' to
 --   be 'Mainable'.  It takes a parse of collected arguments and applies them to
 --   the given function producing the 'Mainable' result.
-instance (ToResult d, Mainable (ResultOf d))
-        => Mainable (a -> d) where
+instance
+  (ToResult d, Mainable (ResultOf d)) =>
+  Mainable (a -> d)
+  where
   type MainOpts (a -> d) = (MainOpts (ResultOf (a -> d)), Args (a -> d))
 
-  mainRender (opts, a) f  = mainRender opts (toResult f a)
+  mainRender (opts, a) f = mainRender opts (toResult f a)
+
 -- TODO: why can't we get away with: instance (Parseable (Args (a -> d)), Mainable (ResultOf d)) => ...
 --       Doesn't `Args (a -> d)` imply `ToResult (a -> d)` which implies `ToResult d` ?
 
@@ -452,14 +481,14 @@ instance Mainable d => Mainable (IO d) where
 --   We do not provide this instance in general so that backends can choose to
 --   opt-in to this form or provide a different instance that makes more sense.
 defaultMultiMainRender :: Mainable d => (MainOpts d, DiagramMultiOpts) -> [(String, d)] -> IO ()
-defaultMultiMainRender (opts,multi) ds =
-  if multi^.list
+defaultMultiMainRender (opts, multi) ds =
+  if multi ^. list
     then showDiaList (map fst ds)
-    else case multi^.selection of
-           Nothing  -> putStrLn "No diagram selected." >> showDiaList (map fst ds)
-           Just sel -> case lookup sel ds of
-                         Nothing -> putStrLn $ "Unknown diagram: " ++ sel
-                         Just d  -> mainRender opts d
+    else case multi ^. selection of
+      Nothing -> putStrLn "No diagram selected." >> showDiaList (map fst ds)
+      Just sel -> case lookup sel ds of
+        Nothing -> putStrLn $ "Unknown diagram: " ++ sel
+        Just d -> mainRender opts d
 
 -- | Display the list of diagrams available for rendering.
 showDiaList :: [String] -> IO ()
@@ -496,23 +525,24 @@ showDiaList ds = do
 --
 --   We do not provide this instance in general so that backends can choose to
 --   opt-in to this form or provide a different instance that makes more sense.
-
 defaultAnimMainRender ::
-    (opts -> QDiagram b v n Any -> IO ())
-    -> Lens' opts FilePath -- ^ A lens into the output path.
-    -> (opts, DiagramAnimOpts)
-    -> Animation b v n
-    -> IO ()
-defaultAnimMainRender renderF out (opts,animOpts) anim = do
-  let frames  = simulate (toRational $ animOpts^.fpu) anim
+  (opts -> QDiagram b v n Any -> IO ()) ->
+  -- | A lens into the output path.
+  Lens' opts FilePath ->
+  (opts, DiagramAnimOpts) ->
+  Animation b v n ->
+  IO ()
+defaultAnimMainRender renderF out (opts, animOpts) anim = do
+  let frames = simulate (toRational $ animOpts ^. fpu) anim
       nDigits = length . show . length $ frames
-  forM_ (zip [1..] frames) $ \(i,d) -> renderF (indexize out nDigits i opts) d
+  forM_ (zip [1 ..] frames) $ \(i, d) -> renderF (indexize out nDigits i opts) d
 
 -- | @indexize d n@ adds the integer index @n@ to the end of the
 --   output file name, padding with zeros if necessary so that it uses
 --   at least @d@ digits.
 indexize :: Lens' s FilePath -> Int -> Integer -> s -> s
 indexize out nDigits i opts = opts & out .~ output'
-  where fmt         = "%0" ++ show nDigits ++ "d"
-        output'     = addExtension (base ++ printf fmt i) ext
-        (base, ext) = splitExtension (opts^.out)
+ where
+  fmt = "%0" ++ show nDigits ++ "d"
+  output' = addExtension (base ++ printf fmt i) ext
+  (base, ext) = splitExtension (opts ^. out)

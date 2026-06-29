@@ -78,7 +78,6 @@ import           Linear.Metric
 import           Linear.Vector             hiding (lerp)
 import           Linear.Vector.Compat      (lerp)
 
-import           Control.Applicative
 import           Diagrams.Core             hiding (Measured)
 import           Diagrams.Located
 import           Diagrams.Parametric

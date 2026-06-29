@@ -1,11 +1,9 @@
-{-# LANGUAGE ConstraintKinds  #-}
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE TypeFamilies     #-}
-{-# LANGUAGE TypeOperators    #-}
-
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 
------------------------------------------------------------------------------
 -- |
 -- Module      :  Diagrams.CubicSpline
 -- Copyright   :  (c) 2011 diagrams-lib team (see LICENSE)
@@ -27,28 +25,27 @@
 -- through any of the other control points.  It depends on the control
 -- points in a "local" way, that is, changing one control point will
 -- only affect a local portion of the curve near that control point.
---
------------------------------------------------------------------------------
-module Diagrams.CubicSpline
-       (
-         -- * Constructing paths from cubic splines
-         cubicSpline
-       , BSpline
-       , bspline
-       ) where
+module Diagrams.CubicSpline (
+  -- * Constructing paths from cubic splines
+  cubicSpline,
+  BSpline,
+  bspline,
+) where
 
-import           Control.Lens                  (view)
+import Control.Lens (view)
+import Data.List.NonEmpty (NonEmpty (..))
+import Diagrams.CubicSpline.NonSingleton (NonSingleton (..))
 
-import           Diagrams.Core
-import           Diagrams.CubicSpline.Boehm
-import           Diagrams.CubicSpline.Internal
-import           Diagrams.Located              (Located, at, mapLoc)
-import           Diagrams.Segment
-import           Diagrams.Trail
-import           Diagrams.TrailLike            (TrailLike (..))
+import Diagrams.Core
+import Diagrams.CubicSpline.Boehm
+import Diagrams.CubicSpline.Internal
+import Diagrams.Located (Located, at, mapLoc)
+import Diagrams.Segment
+import Diagrams.Trail
+import Diagrams.TrailLike (TrailLike (..))
 
-import           Linear.Affine
-import           Linear.Metric
+import Linear.Affine
+import Linear.Metric
 
 -- | Construct a spline path-like thing of cubic segments from a list of
 --   vertices, with the first vertex as the starting point.  The first
@@ -65,15 +62,16 @@ import           Linear.Metric
 --
 --   For more information, see <http://mathworld.wolfram.com/CubicSpline.html>.
 cubicSpline :: (V t ~ v, N t ~ n, TrailLike t, Fractional (v n)) => Bool -> [Point v n] -> t
-cubicSpline closed []  = trailLike . closeIf closed $ emptyLine `at` origin
+cubicSpline closed [] = trailLike . closeIf closed $ emptyLine `at` origin
 cubicSpline closed [p] = trailLike . closeIf closed $ emptyLine `at` p
-cubicSpline closed ps  = flattenBeziers . map f . solveCubicSplineCoefficients closed . map (view lensP) $ ps
-  where
-    f [a,b,c,d] = [a, (3*a+b)/3, (3*a+2*b+c)/3, a+b+c+d]
-    flattenBeziers bs@((b:_):_)
-      = trailLike . closeIf closed $ lineFromSegments (map bez bs) `at` P b
-    bez [a,b,c,d] = bezier3 (b - a) (c - a) (d - a)
+cubicSpline closed (p1 : p2 : ps) = flattenBeziers . map f . solveCubicSplineCoefficients closed . fmap (view lensP) $ (p1 :|| (p2 :| ps))
+ where
+  f [a, b, c, d] = [a, (3 * a + b) / 3, (3 * a + 2 * b + c) / 3, a + b + c + d]
+  flattenBeziers bs@((b : _) : _) =
+    trailLike . closeIf closed $ lineFromSegments (map bez bs) `at` P b
+  bez [a, b, c, d] = bezier3 (b - a) (c - a) (d - a)
 
-closeIf :: (Metric v, OrderedField n)
-        => Bool -> Located (Trail' Line v n) -> Located (Trail v n)
+closeIf ::
+  (Metric v, OrderedField n) =>
+  Bool -> Located (Trail' Line v n) -> Located (Trail v n)
 closeIf c = mapLoc (if c then wrapLoop . glueLine else wrapLine)

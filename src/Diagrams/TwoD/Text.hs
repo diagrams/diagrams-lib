@@ -1,14 +1,16 @@
-{-# LANGUAGE ConstraintKinds            #-}
-{-# LANGUAGE DeriveDataTypeable         #-}
-{-# LANGUAGE FlexibleContexts           #-}
-{-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE TypeFamilies               #-}
-{-# LANGUAGE TypeOperators              #-}
-{-# LANGUAGE UndecidableInstances       #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 -----------------------------------------------------------------------------
+
+-----------------------------------------------------------------------------
+
 -- |
 -- Module      :  Diagrams.TwoD.Text
 -- Copyright   :  (c) 2011-2015 diagrams-lib team (see LICENSE)
@@ -16,53 +18,80 @@
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
 -- Very basic text primitives along with associated attributes.
---
------------------------------------------------------------------------------
-
 module Diagrams.TwoD.Text (
   -- * Creating text diagrams
-    Text(..), TextAlignment(..)
-  , text, topLeftText, alignedText, baselineText
-  , mkText, mkText'
+  Text (..),
+  TextAlignment (..),
+  text,
+  topLeftText,
+  alignedText,
+  baselineText,
+  mkText,
+  mkText',
 
   -- * Text attributes
 
   -- ** Font family
-  , Font(..), _Font
-  , getFont, font, _font
+  Font (..),
+  _Font,
+  getFont,
+  font,
+  _font,
 
   -- ** Font size
-  , FontSize(..), _FontSize
-  , fontSize, recommendFontSize
-  , fontSizeN, fontSizeO, fontSizeL, fontSizeG
-  , getFontSize, fontSizeM
-  , _fontSizeR, _fontSize, _fontSizeU
+  FontSize (..),
+  _FontSize,
+  fontSize,
+  recommendFontSize,
+  fontSizeN,
+  fontSizeO,
+  fontSizeL,
+  fontSizeG,
+  getFontSize,
+  fontSizeM,
+  _fontSizeR,
+  _fontSize,
+  _fontSizeU,
 
   -- ** Font slant
-  , FontSlant(..)
-  , getFontSlant, fontSlant, italic, oblique, _fontSlant
+  FontSlant (..),
+  getFontSlant,
+  fontSlant,
+  italic,
+  oblique,
+  _fontSlant,
 
   -- ** Font weight
-  , FontWeight(..)
-  , getFontWeight, fontWeight, bold, bolder, lighter, _fontWeight
-  , thinWeight, ultraLight, light, mediumWeight, heavy, semiBold, ultraBold
+  FontWeight (..),
+  getFontWeight,
+  fontWeight,
+  bold,
+  bolder,
+  lighter,
+  _fontWeight,
+  thinWeight,
+  ultraLight,
+  light,
+  mediumWeight,
+  heavy,
+  semiBold,
+  ultraBold,
+) where
 
-  ) where
+import Control.Lens hiding (transform)
+import Diagrams.Attributes (committed)
+import Diagrams.Core
+import Diagrams.Core.Envelope (pointEnvelope)
+import Diagrams.TwoD.Attributes (recommendFillColor)
+import Diagrams.TwoD.Types
 
-import           Control.Lens             hiding (transform)
-import           Diagrams.Attributes      (committed)
-import           Diagrams.Core
-import           Diagrams.Core.Envelope   (pointEnvelope)
-import           Diagrams.TwoD.Attributes (recommendFillColor)
-import           Diagrams.TwoD.Types
+import Data.Colour hiding (over)
+import Data.Default
+import Data.Monoid.Recommend
+import Data.Semigroup
+import Data.Typeable
 
-import           Data.Colour              hiding (over)
-import           Data.Default
-import           Data.Monoid.Recommend
-import           Data.Semigroup
-import           Data.Typeable
-
-import           Linear.Affine
+import Linear.Affine
 
 ------------------------------------------------------------
 -- Text diagrams
@@ -76,14 +105,14 @@ import           Linear.Affine
 --   This constructor should not be used directly. Use 'text',
 --   'alignedText' or 'baselineText'.
 data Text n = Text (T2 n) (TextAlignment n) String
-  deriving Typeable
 
 type instance V (Text n) = V2
 type instance N (Text n) = n
 
 instance Floating n => Transformable (Text n) where
   transform t (Text tt a s) = Text (t <> tt <> t') a s
-    where t' = scaling (1 / avgScale t)
+   where
+    t' = scaling (1 / avgScale t)
 
 instance Floating n => HasOrigin (Text n) where
   moveOriginTo p = translate (origin .-. p)
@@ -96,25 +125,29 @@ data TextAlignment n = BaselineText | BoxAlignedText n n
 
 -- | Make a text from a 'TextAlignment', recommending a fill colour of
 --   'black' and 'fontSize' of @'local' 1@.
-mkText :: (TypeableFloat n, Renderable (Text n) b)
-  => TextAlignment n -> String -> QDiagram b V2 n Any
-mkText a = recommendFillColor black
-           -- See Note [recommendFillColor]
-         . recommendFontSize (local 1)
-           -- See Note [recommendFontSize]
-         . mkText' a
+mkText ::
+  (TypeableFloat n, Renderable (Text n) b) =>
+  TextAlignment n -> String -> QDiagram b V2 n Any
+mkText a =
+  recommendFillColor black
+    -- See Note [recommendFillColor]
+    . recommendFontSize (local 1)
+    -- See Note [recommendFontSize]
+    . mkText' a
 
 -- | Make a text from a 'TextAlignment' without any default size or fill
 --   colour. This is useful is you want to recommend your own using
 --   'recommendFillColor' or 'recommendFontSize'.
-mkText' :: (TypeableFloat n, Renderable (Text n) b)
-  => TextAlignment n -> String -> QDiagram b V2 n Any
-mkText' a t = mkQD (Prim $ Text mempty a t)
-                   (pointEnvelope origin)
-                   mempty
-                   mempty
-                   mempty
-
+mkText' ::
+  (TypeableFloat n, Renderable (Text n) b) =>
+  TextAlignment n -> String -> QDiagram b V2 n Any
+mkText' a t =
+  mkQD
+    (Prim $ Text mempty a t)
+    (pointEnvelope origin)
+    mempty
+    mempty
+    mempty
 
 -- ~~~~ Note [recommendFillColor]
 
@@ -130,7 +163,9 @@ mkText' a t = mkQD (Prim $ Text mempty a t)
 -- must therefore explicitly set the fill to transparent -- but this
 -- meant that it was also drawing text with a transparent fill.  The
 -- solution is that we now explicitly inform all backends that the
--- *default* ("recommended") fill color for text should be black; an
+
+-- * default* ("recommended") fill color for text should be black; an
+
 -- absence of fill specification now consistently means to use a
 -- "transparent" fill no matter what the primitive.  The reason we
 -- need the special recommend/commit distinction is because if the
@@ -168,8 +203,9 @@ topLeftText = alignedText 0 1
 --   and descent, rather than the height of the particular string.
 --
 --   Note that it /takes up no space/.
-alignedText :: (TypeableFloat n, Renderable (Text n) b)
-  => n -> n -> String -> QDiagram b V2 n Any
+alignedText ::
+  (TypeableFloat n, Renderable (Text n) b) =>
+  n -> n -> String -> QDiagram b V2 n Any
 alignedText w h = mkText (BoxAlignedText w h)
 
 -- | Create a primitive text diagram from the given string, with the
@@ -178,8 +214,9 @@ alignedText w h = mkText (BoxAlignedText w h)
 --   graphics library.
 --
 --   Note that it /takes up no space/.
-baselineText :: (TypeableFloat n, Renderable (Text n) b)
-  => String -> QDiagram b V2 n Any
+baselineText ::
+  (TypeableFloat n, Renderable (Text n) b) =>
+  String -> QDiagram b V2 n Any
 baselineText = mkText BaselineText
 
 ------------------------------------------------------------
@@ -192,7 +229,7 @@ baselineText = mkText BaselineText
 -- | The @Font@ attribute specifies the name of a font family.  Inner
 --   @Font@ attributes override outer ones.
 newtype Font = Font (Last String)
-  deriving (Typeable, Semigroup, Eq)
+  deriving (Semigroup, Eq)
 
 _Font :: Iso' Font String
 _Font = iso getFont (Font . Last)
@@ -217,21 +254,23 @@ _font = atAttr . mapping _Font
 -- | The @FontSize@ attribute specifies the size of a font's
 --   em-square.  Inner @FontSize@ attributes override outer ones.
 newtype FontSize n = FontSize (Recommend (Last n))
-  deriving (Typeable, Semigroup)
+  deriving (Semigroup)
 
 -- not sure why this can't be derived
 instance Functor FontSize where
   fmap f (FontSize (Recommend (Last a))) = FontSize (Recommend (Last (f a)))
-  fmap f (FontSize (Commit (Last a)))    = FontSize (Commit (Last (f a)))
+  fmap f (FontSize (Commit (Last a))) = FontSize (Commit (Last (f a)))
 
 _FontSize :: Iso' (FontSize n) (Recommend n)
 _FontSize = iso getter setter
-  where getter (FontSize (Recommend (Last a))) = Recommend a
-        getter (FontSize (Commit    (Last a))) = Commit a
-        setter (Recommend a) = FontSize $ Recommend (Last a)
-        setter (Commit    a) = FontSize $ Commit (Last a)
-      -- = iso (\(FontSize a) -> a) FontSize . mapping _Wrapped
-      -- once we depend on monoid-extras-0.4
+ where
+  getter (FontSize (Recommend (Last a))) = Recommend a
+  getter (FontSize (Commit (Last a))) = Commit a
+  setter (Recommend a) = FontSize $ Recommend (Last a)
+  setter (Commit a) = FontSize $ Commit (Last a)
+
+-- = iso (\(FontSize a) -> a) FontSize . mapping _Wrapped
+-- once we depend on monoid-extras-0.4
 
 _FontSizeM :: Iso' (FontSizeM n) (Measured n (Recommend n))
 _FontSizeM = mapping _FontSize
@@ -246,7 +285,7 @@ instance Num n => Default (FontSizeM n) where
 -- | Extract the size from a @FontSize@ attribute.
 getFontSize :: FontSize n -> n
 getFontSize (FontSize (Recommend (Last s))) = s
-getFontSize (FontSize (Commit (Last s)))    = s
+getFontSize (FontSize (Commit (Last s))) = s
 
 -- | Set the font size, that is, the size of the font's em-square as
 --   measured within the current local vector space. The default size
@@ -289,7 +328,7 @@ _fontSizeR = atMAttr . anon def (const False) . _FontSizeM
 _fontSize :: (Typeable n, OrderedField n) => Lens' (Style v n) (Measure n)
 _fontSize = _fontSizeR . mapping committed
 
-_fontSizeU :: (Typeable n) => Lens' (Style v n) (Maybe n)
+_fontSizeU :: Typeable n => Lens' (Style v n) (Maybe n)
 _fontSizeU = atAttr . mapping (_FontSize . committed)
 
 --------------------------------------------------
@@ -298,12 +337,13 @@ _fontSizeU = atAttr . mapping (_FontSize . committed)
 -- | The @FontSlantA@ attribute specifies the slant (normal, italic,
 --   or oblique) that should be used for all text within a diagram.
 --   Inner @FontSlantA@ attributes override outer ones.
-data FontSlant = FontSlantNormal
-               | FontSlantItalic
-               | FontSlantOblique
-  deriving (Eq, Show, Typeable, Ord)
+data FontSlant
+  = FontSlantNormal
+  | FontSlantItalic
+  | FontSlantOblique
+  deriving (Eq, Show, Ord)
 
-instance AttributeClass FontSlant where
+instance AttributeClass FontSlant
 instance Semigroup FontSlant where
   _ <> b = b
 
@@ -338,19 +378,19 @@ oblique = fontSlant FontSlantOblique
 -- | The @FontWeightA@ attribute specifies the weight (normal or bold)
 --   that should be used for all text within a diagram.  Inner
 --   @FontWeightA@ attributes override outer ones.
-data FontWeight = FontWeightNormal
-                | FontWeightBold
-                | FontWeightBolder
-                | FontWeightLighter
-                | FontWeightThin
-                | FontWeightUltraLight
-                | FontWeightLight
-                | FontWeightMedium
-                | FontWeightSemiBold
-                | FontWeightUltraBold
-                | FontWeightHeavy
-    deriving (Eq,
-              Ord, Show, Typeable)
+data FontWeight
+  = FontWeightNormal
+  | FontWeightBold
+  | FontWeightBolder
+  | FontWeightLighter
+  | FontWeightThin
+  | FontWeightUltraLight
+  | FontWeightLight
+  | FontWeightMedium
+  | FontWeightSemiBold
+  | FontWeightUltraBold
+  | FontWeightHeavy
+  deriving (Eq, Ord, Show)
 
 instance AttributeClass FontWeight
 

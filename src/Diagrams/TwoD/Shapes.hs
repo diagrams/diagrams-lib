@@ -1,12 +1,15 @@
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE TemplateHaskell  #-}
-{-# LANGUAGE TypeFamilies     #-}
-
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# OPTIONS_GHC -fno-warn-unused-imports #-}
-  -- for Data.Semigroup
+
+-- for Data.Semigroup
 
 -----------------------------------------------------------------------------
+
+-----------------------------------------------------------------------------
+
 -- |
 -- Module      :  Diagrams.TwoD.Shapes
 -- Copyright   :  (c) 2011 diagrams-lib team (see LICENSE)
@@ -14,60 +17,58 @@
 -- Maintainer  :  diagrams-discuss@googlegroups.com
 --
 -- Various two-dimensional shapes.
---
------------------------------------------------------------------------------
+module Diagrams.TwoD.Shapes (
+  -- * Miscellaneous
+  hrule,
+  vrule,
 
-module Diagrams.TwoD.Shapes
-       (
-         -- * Miscellaneous
-         hrule, vrule
+  -- * Regular polygons
+  regPoly,
+  triangle,
+  eqTriangle,
+  square,
+  pentagon,
+  hexagon,
+  heptagon,
+  septagon,
+  octagon,
+  nonagon,
+  decagon,
+  hendecagon,
+  dodecagon,
 
-         -- * Regular polygons
+  -- * Other special polygons
+  unitSquare,
+  rect,
 
-       , regPoly
-       , triangle
-       , eqTriangle
-       , square
-       , pentagon
-       , hexagon
-       , heptagon
-       , septagon
-       , octagon
-       , nonagon
-       , decagon
-       , hendecagon
-       , dodecagon
+  -- * Other shapes
+  roundedRect,
+  RoundedRectOpts (..),
+  radiusTL,
+  radiusTR,
+  radiusBL,
+  radiusBR,
+  roundedRect',
+) where
 
-         -- * Other special polygons
-       , unitSquare
-       , rect
+import Control.Lens (makeLenses, op, (&), (.~), (<>~), (^.))
+import Data.Default
+import Data.Semigroup
 
-         -- * Other shapes
+import Diagrams.Core
 
-       , roundedRect
-       , RoundedRectOpts(..), radiusTL, radiusTR, radiusBL, radiusBR
-       , roundedRect'
-       ) where
-
-import           Control.Lens            (makeLenses, op, (&), (.~), (<>~), (^.))
-import           Data.Default
-import           Data.Semigroup
-
-import           Diagrams.Core
-
-import           Diagrams.Angle
-import           Diagrams.Located        (at)
-import           Diagrams.Path
-import           Diagrams.Segment
-import           Diagrams.Trail
-import           Diagrams.TrailLike
-import           Diagrams.TwoD.Arc
-import           Diagrams.TwoD.Polygons
-import           Diagrams.TwoD.Transform
-import           Diagrams.TwoD.Types
-import           Diagrams.TwoD.Vector
-import           Diagrams.Util
-
+import Diagrams.Angle
+import Diagrams.Located (at)
+import Diagrams.Path
+import Diagrams.Segment
+import Diagrams.Trail
+import Diagrams.TrailLike
+import Diagrams.TwoD.Arc
+import Diagrams.TwoD.Polygons
+import Diagrams.TwoD.Transform
+import Diagrams.TwoD.Types
+import Diagrams.TwoD.Vector
+import Diagrams.Util
 
 -- | Create a centered horizontal (L-R) line of the given length.
 --
@@ -76,7 +77,7 @@ import           Diagrams.Util
 --   > hruleEx = vcat' (with & sep .~ 0.2) (map hrule [1..5])
 --   >         # centerXY # pad 1.1
 hrule :: (InSpace V2 n t, TrailLike t) => n -> t
-hrule d = trailLike $ trailFromSegments [straight $ r2 (d, 0)] `at` p2 (-d/2,0)
+hrule d = trailLike $ trailFromSegments [straight $ r2 (d, 0)] `at` p2 (-d / 2, 0)
 
 -- | Create a centered vertical (T-B) line of the given length.
 --
@@ -85,15 +86,19 @@ hrule d = trailLike $ trailFromSegments [straight $ r2 (d, 0)] `at` p2 (-d/2,0)
 --   > vruleEx = hcat' (with & sep .~ 0.2) (map vrule [1, 1.2 .. 2])
 --   >         # centerXY # pad 1.1
 vrule :: (InSpace V2 n t, TrailLike t) => n -> t
-vrule d = trailLike $ trailFromSegments [straight $ r2 (0, -d)] `at` p2 (0,d/2)
+vrule d = trailLike $ trailFromSegments [straight $ r2 (0, -d)] `at` p2 (0, d / 2)
 
 -- | A square with its center at the origin and sides of length 1,
 --   oriented parallel to the axes.
 --
 --   <<diagrams/src_Diagrams_TwoD_Shapes_unitSquareEx.svg#diagram=unitSquareEx&width=100>>
 unitSquare :: (InSpace V2 n t, TrailLike t) => t
-unitSquare = polygon (def & polyType   .~ PolyRegular 4 (sqrt 2 / 2)
-                          & polyOrient .~ OrientH)
+unitSquare =
+  polygon
+    ( def
+        & polyType .~ PolyRegular 4 (sqrt 2 / 2)
+        & polyOrient .~ OrientH
+    )
 
 -- > unitSquareEx = unitSquare # pad 1.1 # showOrigin
 
@@ -112,26 +117,29 @@ square d = rect d d
 --
 --   <<diagrams/src_Diagrams_TwoD_Shapes_rectEx.svg#diagram=rectEx&width=150>>
 rect :: (InSpace V2 n t, TrailLike t) => n -> n -> t
-rect w h = trailLike . head . op Path $ unitSquare # scaleX w # scaleY h
+rect w h = case op Path $ unitSquare # scaleX w # scaleY h of
+  (t : _) -> trailLike t
+  -- This case can't happen---the unitSquare path is definitely non-empty.
+  [] -> error "Impossible - unitSquare returned an empty path!"
 
 -- > rectEx = rect 1 0.7 # pad 1.1
 
-    -- The above may seem a bit roundabout.  In fact, we used to have
-    --
-    --   rect w h = unitSquare # scaleX w # scaleY h
-    --
-    -- since unitSquare can produce any TrailLike.  The current code
-    -- instead uses (unitSquare # scaleX w # scaleY h) to specifically
-    -- produce a Path, which is then deconstructed and passed back into
-    -- 'trailLike' to create any TrailLike.
-    --
-    -- The difference is that while scaling by zero works fine for
-    -- Path it does not work very well for, say, Diagrams (leading to
-    -- NaNs or worse).  This way, we force the scaling to happen on a
-    -- Path, where we know it will behave properly, and then use the
-    -- resulting geometry to construct an arbitrary TrailLike.
-    --
-    -- See https://github.com/diagrams/diagrams-lib/issues/43 .
+-- The above may seem a bit roundabout.  In fact, we used to have
+--
+--   rect w h = unitSquare # scaleX w # scaleY h
+--
+-- since unitSquare can produce any TrailLike.  The current code
+-- instead uses (unitSquare # scaleX w # scaleY h) to specifically
+-- produce a Path, which is then deconstructed and passed back into
+-- 'trailLike' to create any TrailLike.
+--
+-- The difference is that while scaling by zero works fine for
+-- Path it does not work very well for, say, Diagrams (leading to
+-- NaNs or worse).  This way, we force the scaling to happen on a
+-- Path, where we know it will behave properly, and then use the
+-- resulting geometry to construct an arbitrary TrailLike.
+--
+-- See https://github.com/diagrams/diagrams-lib/issues/43 .
 
 ------------------------------------------------------------
 --  Regular polygons
@@ -144,12 +152,15 @@ rect w h = trailLike . head . op Path $ unitSquare # scaleX w # scaleY h
 --
 --   The polygon will be oriented with one edge parallel to the x-axis.
 regPoly :: (InSpace V2 n t, TrailLike t) => Int -> n -> t
-regPoly n l = polygon (def & polyType .~
-                               PolySides
-                                 (repeat (1/fromIntegral n @@ turn))
-                                 (replicate (n-1) l)
-                           & polyOrient .~ OrientH
-                           )
+regPoly n l =
+  polygon
+    ( def
+        & polyType
+          .~ PolySides
+            (repeat (1 / fromIntegral n @@ turn))
+            (replicate (n - 1) l)
+        & polyOrient .~ OrientH
+    )
 
 -- > shapeEx sh   = sh 1 # pad 1.1
 -- > triangleEx   = shapeEx triangle
@@ -238,15 +249,16 @@ dodecagon = regPoly 12
 ------------------------------------------------------------
 --  Other shapes  ------------------------------------------
 ------------------------------------------------------------
-data RoundedRectOpts d = RoundedRectOpts { _radiusTL :: d
-                                         , _radiusTR :: d
-                                         , _radiusBL :: d
-                                         , _radiusBR :: d
-                                         }
+data RoundedRectOpts d = RoundedRectOpts
+  { _radiusTL :: d
+  , _radiusTR :: d
+  , _radiusBL :: d
+  , _radiusBR :: d
+  }
 
 makeLenses ''RoundedRectOpts
 
-instance (Num d) => Default (RoundedRectOpts d) where
+instance Num d => Default (RoundedRectOpts d) where
   def = RoundedRectOpts 0 0 0 0
 
 -- | @roundedRect w h r@ generates a closed trail, or closed path
@@ -269,54 +281,64 @@ instance (Num d) => Default (RoundedRectOpts d) where
 --   >                                & radiusTR .~ -0.2
 --   >                                & radiusBR .~ 0.1)
 --   >   ]
-
 roundedRect :: (InSpace V2 n t, TrailLike t, RealFloat n) => n -> n -> n -> t
-roundedRect w h r = roundedRect' w h (def & radiusTL .~ r
-                                          & radiusBR .~ r
-                                          & radiusTR .~ r
-                                          & radiusBL .~ r)
+roundedRect w h r =
+  roundedRect'
+    w
+    h
+    ( def
+        & radiusTL .~ r
+        & radiusBR .~ r
+        & radiusTR .~ r
+        & radiusBL .~ r
+    )
 
 -- | @roundedRect'@ works like @roundedRect@ but allows you to set the radius of
 --   each corner indivually, using @RoundedRectOpts@. The default corner radius is 0.
 --   Each radius can also be negative, which results in the curves being reversed
 --   to be inward instead of outward.
 roundedRect' :: (InSpace V2 n t, TrailLike t, RealFloat n) => n -> n -> RoundedRectOpts n -> t
-roundedRect' w h opts
-   = trailLike
-   . (`at` p2 (w/2, abs rBR - h/2))
-   . wrapTrail
-   . glueLine
-   $ seg (0, h - abs rTR - abs rBR)
-   <> mkCorner 0 rTR
-   <> seg (abs rTR + abs rTL - w, 0)
-   <> mkCorner 1 rTL
-   <> seg (0, abs rTL + abs rBL - h)
-   <> mkCorner 2 rBL
-   <> seg (w - abs rBL - abs rBR, 0)
-   <> mkCorner 3 rBR
-  where seg   = lineFromOffsets . (:[]) . r2
-        diag  = sqrt (w * w + h * h)
-        -- to clamp corner radius, need to compare with other corners that share an
-        -- edge. If the corners overlap then reduce the largest corner first, as far
-        -- as 50% of the edge in question.
-        rTL                 = clampCnr radiusTR radiusBL radiusBR radiusTL
-        rBL                 = clampCnr radiusBR radiusTL radiusTR radiusBL
-        rTR                 = clampCnr radiusTL radiusBR radiusBL radiusTR
-        rBR                 = clampCnr radiusBL radiusTR radiusTL radiusBR
-        clampCnr rx ry ro r = let (rx',ry',ro',r') = (opts^.rx, opts^.ry, opts^.ro, opts^.r)
-                                in clampDiag ro' . clampAdj h ry' . clampAdj w rx' $ r'
-        -- prevent curves of adjacent corners from overlapping
-        clampAdj len adj r  = if abs r > len/2
-                                then sign r * max (len/2) (min (len - abs adj) (abs r))
-                                else r
-        -- prevent inward curves of diagonally opposite corners from intersecting
-        clampDiag opp r     = if r < 0 && opp < 0 && abs r > diag / 2
-                                then sign r * max (diag / 2) (min (abs r) (diag + opp))
-                                else r
-        sign n = if n < 0 then -1 else 1
-        mkCorner k r | r == 0    = mempty
-                     | r < 0     = doArc 3 (-1)
-                     | otherwise = doArc 0 1
-                     where
-                       doArc d s =
-                           arc' r (xDir & _theta <>~ ((k+d)/4 @@ turn)) (s/4 @@ turn)
+roundedRect' w h opts =
+  trailLike
+    . (`at` p2 (w / 2, abs rBR - h / 2))
+    . wrapTrail
+    . glueLine
+    $ seg (0, h - abs rTR - abs rBR)
+      <> mkCorner 0 rTR
+      <> seg (abs rTR + abs rTL - w, 0)
+      <> mkCorner 1 rTL
+      <> seg (0, abs rTL + abs rBL - h)
+      <> mkCorner 2 rBL
+      <> seg (w - abs rBL - abs rBR, 0)
+      <> mkCorner 3 rBR
+ where
+  seg = lineFromOffsets . (: []) . r2
+  diag = sqrt (w * w + h * h)
+  -- to clamp corner radius, need to compare with other corners that share an
+  -- edge. If the corners overlap then reduce the largest corner first, as far
+  -- as 50% of the edge in question.
+  rTL = clampCnr radiusTR radiusBL radiusBR radiusTL
+  rBL = clampCnr radiusBR radiusTL radiusTR radiusBL
+  rTR = clampCnr radiusTL radiusBR radiusBL radiusTR
+  rBR = clampCnr radiusBL radiusTR radiusTL radiusBR
+  clampCnr rx ry ro r =
+    let (rx', ry', ro', r') = (opts ^. rx, opts ^. ry, opts ^. ro, opts ^. r)
+     in clampDiag ro' . clampAdj h ry' . clampAdj w rx' $ r'
+  -- prevent curves of adjacent corners from overlapping
+  clampAdj len adj r =
+    if abs r > len / 2
+      then sign r * max (len / 2) (min (len - abs adj) (abs r))
+      else r
+  -- prevent inward curves of diagonally opposite corners from intersecting
+  clampDiag opp r =
+    if r < 0 && opp < 0 && abs r > diag / 2
+      then sign r * max (diag / 2) (min (abs r) (diag + opp))
+      else r
+  sign n = if n < 0 then -1 else 1
+  mkCorner k r
+    | r == 0 = mempty
+    | r < 0 = doArc 3 (-1)
+    | otherwise = doArc 0 1
+   where
+    doArc d s =
+      arc' r (xDir & _theta <>~ ((k + d) / 4 @@ turn)) (s / 4 @@ turn)

@@ -1,21 +1,19 @@
-{-# LANGUAGE ConstraintKinds            #-}
-{-# LANGUAGE DeriveDataTypeable         #-}
-{-# LANGUAGE DeriveGeneric              #-}
-{-# LANGUAGE FlexibleContexts           #-}
-{-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE ScopedTypeVariables        #-}
-{-# LANGUAGE StandaloneDeriving         #-}
-{-# LANGUAGE TypeFamilies               #-}
-{-# LANGUAGE TypeOperators              #-}
-{-# LANGUAGE UndecidableInstances       #-}
-{-# LANGUAGE ViewPatterns               #-}
-
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -fno-warn-unused-imports #-}
-  -- for Data.Semigroup
 
------------------------------------------------------------------------------
+-- for Data.Semigroup
+
 -- |
 -- Module      :  Diagrams.Path
 -- Copyright   :  (c) 2011 diagrams-lib team (see LICENSE)
@@ -27,66 +25,56 @@
 -- similar notion of \"path\".  Note that paths with multiple trails
 -- are necessary for being able to draw /e.g./ filled objects with
 -- holes in them.
---
------------------------------------------------------------------------------
+module Diagrams.Path (
+  -- * Paths
+  Path (..),
+  pathTrails,
 
-module Diagrams.Path
-       (
+  -- * Constructing paths
+  -- $construct
+  ToPath (..),
+  pathFromTrail,
+  pathFromTrailAt,
+  pathFromLocTrail,
 
-         -- * Paths
+  -- * Eliminating paths
+  pathPoints,
+  pathVertices',
+  pathVertices,
+  pathOffsets,
+  pathCentroid,
+  pathLocSegments,
+  fixPath,
 
-         Path(..), pathTrails
+  -- * Modifying paths
+  scalePath,
+  reversePath,
 
-         -- * Constructing paths
-         -- $construct
+  -- * Miscellaneous
+  explodePath,
+  partitionPath,
+) where
 
-       , ToPath (..)
-       , pathFromTrail
-       , pathFromTrailAt
-       , pathFromLocTrail
+import Control.Arrow ((***))
+import Control.Lens hiding (at, transform, (#))
+import qualified Data.Foldable as F
+import Data.List (partition)
+import Data.Semigroup
 
-         -- * Eliminating paths
+import Diagrams.Align
+import Diagrams.Core
+import Diagrams.Located
+import Diagrams.Points
+import Diagrams.Segment
+import Diagrams.Trail
+import Diagrams.TrailLike
+import Diagrams.Transform
 
-       , pathPoints
-       , pathVertices'
-       , pathVertices
-       , pathOffsets
-       , pathCentroid
-       , pathLocSegments, fixPath
+import Linear.Metric
+import Linear.Vector
 
-         -- * Modifying paths
-
-       , scalePath
-       , reversePath
-
-         -- * Miscellaneous
-
-       , explodePath
-       , partitionPath
-
-       ) where
-
-import           Control.Arrow      ((***))
-import           Control.Lens       hiding (at, transform, ( # ))
-import qualified Data.Foldable      as F
-import           Data.List          (partition)
-import           Data.Semigroup
-import           Data.Typeable
-
-import           Diagrams.Align
-import           Diagrams.Core
-import           Diagrams.Located
-import           Diagrams.Points
-import           Diagrams.Segment
-import           Diagrams.Trail
-import           Diagrams.TrailLike
-import           Diagrams.Transform
-
-import           Linear.Metric
-import           Linear.Vector
-
-import           Data.Serialize     (Serialize)
-import           GHC.Generics       (Generic)
+import Data.Serialize (Serialize)
+import GHC.Generics (Generic)
 
 ------------------------------------------------------------
 --  Paths  -------------------------------------------------
@@ -97,12 +85,11 @@ import           GHC.Generics       (Generic)
 --   and they form a monoid under /superposition/ (placing one path on
 --   top of another) rather than concatenation.
 newtype Path v n = Path [Located (Trail v n)]
-  deriving (Semigroup, Monoid, Generic
-  , Typeable
-  )
+  deriving (Semigroup, Monoid, Generic)
 
 -- instance (OrderedField n, Metric v, Serialize (v n), Serialize (V n (N n))) =>
-instance (OrderedField n, Metric v, Serialize (v n), Serialize (V (v n) (N (v n)))) =>
+instance
+  (OrderedField n, Metric v, Serialize (v n), Serialize (V (v n) (N (v n)))) =>
   Serialize (Path v n)
 
 instance Wrapped (Path v n) where
@@ -130,8 +117,8 @@ pathTrails :: Path v n -> [Located (Trail v n)]
 pathTrails = op Path
 
 deriving instance Show (v n) => Show (Path v n)
-deriving instance Eq   (v n) => Eq   (Path v n)
-deriving instance Ord  (v n) => Ord  (Path v n)
+deriving instance Eq (v n) => Eq (Path v n)
+deriving instance Ord (v n) => Ord (Path v n)
 
 type instance V (Path v n) = v
 type instance N (Path v n) = n
@@ -142,18 +129,21 @@ instance (Additive v, Num n) => HasOrigin (Path v n) where
 -- | Paths are trail-like; a trail can be used to construct a
 --   singleton path.
 instance (Metric v, OrderedField n) => TrailLike (Path v n) where
-  trailLike = Path . (:[])
+  trailLike = Path . (: [])
 
 -- See Note [Transforming paths]
-instance (HasLinearMap v, Metric v, OrderedField n)
-    => Transformable (Path v n) where
+instance
+  (HasLinearMap v, Metric v, OrderedField n) =>
+  Transformable (Path v n)
+  where
   transform = over _Wrapped . map . transform
 
 instance (Metric v, OrderedField n) => Enveloped (Path v n) where
   getEnvelope = F.foldMap trailEnvelope . op Path
-          -- this type signature is necessary to work around an apparent bug in ghc 6.12.1
-    where trailEnvelope :: Located (Trail v n) -> Envelope v n
-          trailEnvelope (viewLoc -> (p, t)) = moveOriginTo ((-1) *. p) (getEnvelope t)
+   where
+    -- this type signature is necessary to work around an apparent bug in ghc 6.12.1
+    trailEnvelope :: Located (Trail v n) -> Envelope v n
+    trailEnvelope (viewLoc -> (p, t)) = moveOriginTo ((-1) *. p) (getEnvelope t)
 
 instance (Metric v, OrderedField n) => Juxtaposable (Path v n) where
   juxtapose = juxtaposeDefault
@@ -161,8 +151,10 @@ instance (Metric v, OrderedField n) => Juxtaposable (Path v n) where
 instance (Metric v, OrderedField n) => Alignable (Path v n) where
   defaultBoundary = envelopeBoundary
 
-instance (HasLinearMap v, Metric v, OrderedField n)
-    => Renderable (Path v n) NullBackend where
+instance
+  (HasLinearMap v, Metric v, OrderedField n) =>
+  Renderable (Path v n) NullBackend
+  where
   render _ _ = mempty
 
 ------------------------------------------------------------
@@ -174,7 +166,6 @@ instance (HasLinearMap v, Metric v, OrderedField n)
 --   Note that this class is very different from 'TrailLike'. 'TrailLike' is
 --   usually the result of a library function to give you a convenient,
 --   polymorphic result ('Path', 'Diagram' etc.).
---
 class ToPath t where
   -- | 'toPath' takes something that can be converted to 'Path' and returns
   --    the 'Path'.
@@ -196,12 +187,12 @@ instance ToPath (Located (Trail' l v n)) where
   toPath = pathFromLocTrail . mapLoc Trail
 
 instance ToPath (Located (Segment Closed v n)) where
-  toPath (viewLoc -> (p,seg))
-    = Path [trailFromSegments [seg] `at` p]
+  toPath (viewLoc -> (p, seg)) =
+    Path [trailFromSegments [seg] `at` p]
 
 instance ToPath (Located [Segment Closed v n]) where
-  toPath (viewLoc -> (p,segs))
-    = Path [trailFromSegments segs `at` p]
+  toPath (viewLoc -> (p, segs)) =
+    Path [trailFromSegments segs `at` p]
 
 instance ToPath (FixedSegment v n) where
   toPath = toPath . fromFixedSeg
