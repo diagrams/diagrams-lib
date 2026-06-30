@@ -103,6 +103,7 @@ Library
                        Diagrams.Util
   other-modules:       Linear.Vector.Compat
   Build-depends:       base >= 4.9 && < 4.23,
+                       base-compat >= 0.9,
                        containers >= 0.3 && < 0.9,
                        array >= 0.3 && < 0.6,
                        monoid-extras >= 0.6 && < 0.8,

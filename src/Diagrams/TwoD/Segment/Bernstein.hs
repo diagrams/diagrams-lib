@@ -20,7 +20,7 @@ module Diagrams.TwoD.Segment.Bernstein (
 ) where
 
 import Data.List.NonEmpty (NonEmpty (..))
-import qualified Data.List.NonEmpty as NE
+import qualified Data.List.NonEmpty.Compat as NE
 import Diagrams.Core.V
 import Diagrams.Parametric
 import Linear.V1

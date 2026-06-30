@@ -9,10 +9,6 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
 
------------------------------------------------------------------------------
-
------------------------------------------------------------------------------
-
 -- |
 -- Module      :  Diagrams.Backend.CmdLine
 -- Copyright   :  (c) 2013 Diagrams team (see LICENSE)
@@ -67,20 +63,8 @@ module Diagrams.Backend.CmdLine (
 ) where
 
 import Control.Lens (Lens', makeLenses, (&), (.~), (^.))
-import Diagrams.Animation
-import Diagrams.Attributes
-import Diagrams.Core hiding (output)
-
-import Options.Applicative
-import Options.Applicative.Types (readerAsk)
-
 import Control.Monad (forM_)
-
--- MonadFail comes from Prelude in base-4.13 and up
-#if !MIN_VERSION_base(4,13,0)
-import           Control.Monad.Fail        (MonadFail)
-#endif
-
+import Control.Monad.Fail.Compat (MonadFail)
 import Data.Active hiding (interval)
 import Data.Char (isDigit)
 import Data.Colour
@@ -90,12 +74,16 @@ import Data.Data
 import Data.Functor.Identity
 import Data.Kind (Type)
 import Data.Monoid
+import Diagrams.Animation
+import Diagrams.Attributes
+import Diagrams.Core hiding (output)
 import Numeric
-
+import Options.Applicative
+import Options.Applicative.Types (readerAsk)
 import System.Environment (getProgName)
 import System.FilePath (addExtension, splitExtension)
-
 import Text.Printf
+import Prelude hiding (MonadFail)
 
 -- | Standard options most diagrams are likely to have.
 data DiagramOpts = DiagramOpts
