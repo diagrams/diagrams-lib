@@ -20,7 +20,7 @@ module Diagrams.CubicSpline.Internal (
 
 import Data.List
 import Data.List.NonEmpty (NonEmpty (..))
-import Data.List.NonEmpty qualified as NE
+import Data.List.NonEmpty.Compat qualified as NE
 import Diagrams.CubicSpline.NonSingleton (NonSingleton (..))
 import Diagrams.CubicSpline.NonSingleton qualified as NS
 import Diagrams.Solve.Tridiagonal
