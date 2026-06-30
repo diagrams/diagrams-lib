@@ -1,5 +1,4 @@
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 
@@ -26,7 +25,7 @@ module Diagrams.CubicSpline.Boehm (
 ) where
 
 import Data.List.NonEmpty (NonEmpty (..))
-import Data.List.NonEmpty qualified as NE
+import qualified Data.List.NonEmpty as NE
 import Diagrams.Core (N, Point, V, origin)
 import Diagrams.Located (at, loc, unLoc)
 import Diagrams.Segment (FixedSegment (..), fromFixedSeg)

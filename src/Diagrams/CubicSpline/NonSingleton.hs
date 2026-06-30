@@ -1,6 +1,5 @@
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE GADTSyntax #-}
-{-# LANGUAGE ImportQualifiedPost #-}
 
 -- |
 -- Module      :  Diagrams.CubicSpline.NonSingleton
@@ -21,7 +20,7 @@ module Diagrams.CubicSpline.NonSingleton (
 ) where
 
 import Data.List.NonEmpty (NonEmpty (..))
-import Data.List.NonEmpty qualified as NE
+import qualified Data.List.NonEmpty as NE
 import Prelude hiding (tail, zipWith)
 
 -- | Lists with at least 2 elements.

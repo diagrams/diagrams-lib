@@ -1,5 +1,4 @@
 {-# LANGUAGE GADTs #-}
-{-# LANGUAGE ImportQualifiedPost #-}
 
 -- |
 -- Module      :  Diagrams.CubicSpline.Internal
@@ -20,9 +19,9 @@ module Diagrams.CubicSpline.Internal (
 
 import Data.List
 import Data.List.NonEmpty (NonEmpty (..))
-import Data.List.NonEmpty.Compat qualified as NE
+import qualified Data.List.NonEmpty.Compat as NE
 import Diagrams.CubicSpline.NonSingleton (NonSingleton (..))
-import Diagrams.CubicSpline.NonSingleton qualified as NS
+import qualified Diagrams.CubicSpline.NonSingleton as NS
 import Diagrams.Solve.Tridiagonal
 
 -- | Use the tri-diagonal solver with the appropriate parameters for an open cubic spline.

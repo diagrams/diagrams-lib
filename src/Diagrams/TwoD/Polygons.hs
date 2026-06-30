@@ -1,7 +1,6 @@
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -63,7 +62,7 @@ import Data.Array.ST (
 import Data.Default
 import Data.List (maximumBy, minimumBy)
 import Data.List.NonEmpty (NonEmpty (..))
-import Data.List.NonEmpty qualified as NE
+import qualified Data.List.NonEmpty as NE
 import Data.Maybe (catMaybes)
 import Data.Ord (comparing)
 
