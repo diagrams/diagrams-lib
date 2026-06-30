@@ -171,5 +171,4 @@ benchmark benchmarks
   build-depends:
     base < 5,
     criterion,
-    diagrams-core,
     diagrams-lib
