@@ -73,12 +73,10 @@ module Diagrams.TwoD.Path (
 ) where
 
 import Control.Lens hiding (at, transform)
+import Data.Default
 import qualified Data.Foldable as F
 import Data.Semigroup
 import Data.Typeable
-
-import Data.Default
-
 import Diagrams.Angle
 import Diagrams.Combinators (withEnvelope, withTrace)
 import Diagrams.Core
@@ -95,9 +93,10 @@ import Diagrams.TwoD.Segment
 import Diagrams.TwoD.Types
 import Diagrams.TwoD.Vector
 import Diagrams.Util (tau)
-
 import Linear.Affine
 import Linear.Vector
+import Prelude.Compat
+import Prelude ()
 
 ------------------------------------------------------------
 --  Trail and path traces  ---------------------------------
@@ -109,11 +108,11 @@ import Linear.Vector
 -- Diagrams.Path on the Enveloped instance for Trail.
 instance RealFloat n => Traced (Trail V2 n) where
   getTrace =
-    withLine $
-      foldr
+    withLine
+      $ foldr
         (\seg bds -> moveOriginBy (negated . atEnd $ seg) bds <> getTrace seg)
         mempty
-        . lineSegments
+      . lineSegments
 
 instance RealFloat n => Traced (Path V2 n) where
   getTrace = F.foldMap getTrace . op Path
@@ -241,8 +240,9 @@ strokeP' opts path
       (Prim p)
       (getEnvelope p)
       (getTrace p)
-      ( fromNames . concat $
-          zipWith zip (opts ^. vertexNames) ((map . map) subPoint (pathVertices p))
+      ( fromNames
+          . concat
+          $ zipWith zip (opts ^. vertexNames) ((map . map) subPoint (pathVertices p))
       )
       (Query $ Any . (runFillRule (opts ^. queryFillRule)) p)
 
@@ -428,8 +428,8 @@ trailCrossings p@(unp2 -> (x, y)) tr =
       sum . map testT $ ts
      where
       ts =
-        filter (liftA2 (&&) (>= 0) (<= 1)) $
-          cubForm
+        filter (liftA2 (&&) (>= 0) (<= 1))
+          $ cubForm
             (-x1y + 3 * c1y - 3 * c2y + x2y)
             (3 * x1y - 6 * c1y + 3 * c2y)
             (-3 * x1y + 3 * c1y)
