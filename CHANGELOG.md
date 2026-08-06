@@ -1,3 +1,21 @@
+## [v1.6](https://github.com/diagrams/diagrams-lib/tree/v1.6) (2026-08-06)
+
+- Fix a ton of warnings
+    - Remove redundant `Typable` derivations
+    - Use safer function variants, `NonEmpty`, etc.
+    - Redefine `Diagrams.CubicSpline.Boehm.BSpline` as `NonEmpty (Point v n)`
+    - New module `Diagrams.CubicSpline.Nonsingleton` for lists with at
+      least two elements, needed for safe operation of `CubicSpline`
+      methods
+- Dependency updates
+    - Allow `base-4.22` and test on GHC 9.14
+    - Remove support for GHC 8.4
+    - Depend on `diagrams-solve-0.3`
+    - Allow `containers-0.8`
+    - Remove unused dependencies `semigroups`, `tagged`, `text`,
+      `profunctors`, `fail`, `deepseq`
+- Fix documentation for `splitTextureFills` (thanks to @kostmo)
+
 ## [v1.5.1](https://github.com/diagrams/diagrams-lib/tree/v1.5.1) (2025-12-02)
 
 - New `Semigroup` instance for located lines (i.e. `Located (Trail'
