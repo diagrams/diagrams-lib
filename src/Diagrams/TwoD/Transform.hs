@@ -100,7 +100,7 @@ rotated :: (InSpace V2 n a, Floating n, SameSpace a b, Transformable a, Transfor
         => Angle n -> Iso a b a b
 rotated a = transformed $ rotation a
 
--- | @rotationAbout p@ is a rotation about the point @p@ (instead of
+-- | @rotationAround p@ is a rotation around the point @p@ (instead of
 --   around the local origin).
 rotationAround :: Floating n => P2 n -> Angle n -> T2 n
 rotationAround p theta =

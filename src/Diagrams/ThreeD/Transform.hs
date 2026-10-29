@@ -116,15 +116,14 @@ rotationAbout
   -> Angle n            -- ^ angle of rotation
   -> Transformation V3 n
 rotationAbout (P t) d (view rad -> a)
-  = mconcat [translation (negated t),
-             fromOrthogonal r,
-             translation t] where
-    r = rot a <-> rot (-a)
-    w = fromDirection d
+  = conjugate (translation (negated t)) (fromOrthogonal r)
+ where
+  r = rot a <-> rot (-a)
+  w = fromDirection d
 
-    rot θ v =          v ^* cos θ
-           ^+^ cross w v ^* sin θ
-           ^+^         w ^* ((w `dot` v) * (1 - cos θ))
+  rot θ v =          v ^* cos θ
+         ^+^ cross w v ^* sin θ
+         ^+^         w ^* ((w `dot` v) * (1 - cos θ))
 
 -- | @rotationAbout p d a@ is a rotation about a line parallel to @d@
 --   passing through @p@.
