@@ -1,3 +1,7 @@
+## [v1.6.1](https://github.com/diagrams/diagrams-lib/tree/v1.6.1) (2026-11-23)
+
+- Bug fix: 3D `rotateAbout` did not rotate about the correct line ([#383](https://github.com/diagrams/diagrams-lib/issues/383))
+
 ## [v1.6](https://github.com/diagrams/diagrams-lib/tree/v1.6) (2026-08-06)
 
 - Fix a ton of warnings
